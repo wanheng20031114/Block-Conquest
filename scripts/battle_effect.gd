@@ -18,9 +18,11 @@ var _configured_kind: String = ""
 @onready var _lifetime: Timer = $Lifetime
 @onready var _healing: HealingParticles = $Healing
 
-const SPARK_AMOUNTS: Dictionary = {"hit":7, "arrow_hit":3, "wood_hit":3, "stone_chip":3, "muzzle":10, "explosion":18, "charge":14}
-const DUST_AMOUNTS: Dictionary = {"dust":5, "muzzle":6, "explosion":16, "stone_hit":16, "collapse":24}
-const DUST_SCALES: Dictionary = {"dust":.4, "muzzle":.55, "collapse":2.5}
+const SPARK_AMOUNTS: Dictionary = {"hit":7, "arrow_hit":3, "wood_hit":3, "stone_chip":3, "muzzle":8, "explosion":14, "charge":14}
+const DUST_AMOUNTS: Dictionary = {"dust":5, "muzzle":5, "explosion":12, "stone_hit":16, "collapse":24}
+const DUST_SCALES: Dictionary = {"dust":.4, "muzzle":.45, "explosion":.8, "collapse":2.5}
+const SHOT_SCALE: float = .8
+const SHOT_SPEED: float = 1.35
 
 func _ready() -> void:
 	_spark_defaults = {"direction": _sparks.direction, "min": _sparks.initial_velocity_min, "max": _sparks.initial_velocity_max}
@@ -72,7 +74,7 @@ func initialize(kind: String, color: Color = Color.WHITE) -> void:
 			duration = 1.5
 		"muzzle":
 			_flash.show()
-			_flash.scale = Vector3.ONE * 0.8
+			_flash.scale = Vector3.ONE * (0.8 * SHOT_SCALE)
 			_sparks.show()
 			_sparks.restart()
 			_sparks.emitting = true
@@ -80,25 +82,27 @@ func initialize(kind: String, color: Color = Color.WHITE) -> void:
 			_dust.restart()
 			_dust.emitting = true
 			var flash: Tween = _new_tween()
-			flash.tween_method(_animate_flash.bind(0.8), 0.0, 1.0, 0.16)
-			duration = 1.8
+			flash.tween_method(_animate_flash.bind(0.8 * SHOT_SCALE), 0.0, 1.0, 0.16 / SHOT_SPEED)
+			duration = 1.35
 		"explosion", "stone_hit", "collapse":
-			var size: float = 2.5 if kind == "collapse" else 1.0
+			var size: float = 2.5 if kind == "collapse" else (SHOT_SCALE if kind == "explosion" else 1.0)
+			var speed: float = SHOT_SPEED if kind == "explosion" else 1.0
 			_dust.show()
 			_dust.restart()
 			_dust.emitting = true
 			_debris.show()
 			_debris.restart()
 			_debris.emitting = true
-			_show_ring(Color(0.69, 0.52, 0.31, 0.65), 2.8 * size, 0.7)
+			_show_ring(Color(0.69, 0.52, 0.31, 0.65), 2.8 * size, 0.7 / speed)
 			if kind == "explosion":
 				_flash.show()
 				_sparks.show()
 				_sparks.restart()
 				_sparks.emitting = true
 				var flash: Tween = _new_tween()
-				flash.tween_method(_animate_flash.bind(1.0), 0.0, 1.0, 0.27)
-			duration = 3.0
+				flash.tween_method(_animate_flash.bind(SHOT_SCALE), 0.0, 1.0, 0.27 / SHOT_SPEED)
+			# Dust's final emission finishes by ~1.31s at SHOT_SPEED; retain its tail.
+			duration = 1.4 if kind == "explosion" else 3.0
 		"move", "attack":
 			_show_ring(Color("80d9e7") if kind == "move" else Color("eea176"), 1.5, 0.65)
 			_direction.show()
@@ -132,13 +136,22 @@ func _configure_emitters(kind: String) -> void:
 	_sparks.direction = Vector3.UP if kind == "spawn" else _spark_defaults.direction
 	_sparks.initial_velocity_min = .6 if kind == "spawn" else _spark_defaults.min
 	_sparks.initial_velocity_max = 1.8 if kind == "spawn" else _spark_defaults.max
+	var shot: bool = kind in ["muzzle", "explosion"]
+	for particles: CPUParticles3D in [_sparks, _dust, _debris]:
+		# A pooled effect stays at its impact/origin until released. Local simulation
+		# scales the whole shot trajectory, not just particle meshes at emission.
+		particles.local_coords = shot
+		particles.speed_scale = SHOT_SPEED if shot else 1.0
 	var sparks: int = SPARK_AMOUNTS.get(kind, 8)
 	var dust: int = DUST_AMOUNTS.get(kind, 12)
+	var debris: int = 12 if kind == "explosion" else 16
 	if _sparks.amount != sparks: _sparks.amount = sparks
 	if _dust.amount != dust: _dust.amount = dust
+	if _debris.amount != debris: _debris.amount = debris
 	var dust_scale: float = DUST_SCALES.get(kind, 1.0)
+	_sparks.scale = Vector3.ONE * (SHOT_SCALE if shot else 1.0)
 	_dust.scale = Vector3.ONE * dust_scale
-	_debris.scale = Vector3.ONE * (2.5 if kind == "collapse" else 1.0)
+	_debris.scale = Vector3.ONE * (2.5 if kind == "collapse" else (SHOT_SCALE if shot else 1.0))
 
 func _show_ring(color: Color, end_size: float, duration: float) -> void:
 	_ring.show()

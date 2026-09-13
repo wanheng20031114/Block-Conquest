@@ -134,14 +134,14 @@ func run() -> void:
 	var reused: BattleEffect = pool._active.back()
 	pool.reset_all()
 	reused.reset_effect()
-	check(not reused._active and reused.get_node("Sparks").amount == 10 and reused.get_node("Dust").amount == 6, "repeated release is inert and retains reusable particle buffers")
-	for kind: String in ["spawn", "muzzle", "dust", "collapse", "explosion", "heal", "hit"]:
+	check(not reused._active and reused.get_node("Sparks").amount == 8 and reused.get_node("Dust").amount == 5, "repeated release is inert and retains reusable particle buffers")
+	for kind: String in ["spawn", "muzzle", "dust", "collapse", "explosion", "stone_hit", "heal", "hit"]:
 		pool.play(Vector3.ZERO, kind, Color.RED)
 		check(pool._active.back() == reused, "configuration transition reuses the same authored instance: " + kind)
 		if kind == "muzzle":
 			check(reused.get_node("Sparks").direction == reused._spark_defaults.direction and reused.get_node("Sparks").color == Color.RED, "muzzle restores direction and color after spawn")
-		if kind == "explosion":
-			check(reused.get_node("Dust").scale == Vector3.ONE and reused.get_node("Debris").scale == Vector3.ONE, "explosion restores size after building collapse")
+		if kind == "stone_hit":
+			check(reused.get_node("Dust").scale == Vector3.ONE and reused.get_node("Debris").scale == Vector3.ONE and reused.get_node("Dust").speed_scale == 1.0 and not reused.get_node("Dust").local_coords, "stone impact restores normal size and timing after compact cannon explosion")
 		if kind == "hit":
 			check(not reused.get_node("Healing").visible and not reused.get_node("Dust").visible, "healing and smoke do not leak into a reused hit")
 		pool.reset_all()
