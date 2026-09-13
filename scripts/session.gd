@@ -5,6 +5,7 @@ var config: Dictionary = {}
 var online: bool = false
 @onready var relay: RelayClient = $RelayClient
 @onready var settings: GameSettings = $Settings
+@onready var rogue: RogueSession = $Rogue
 
 func _ready() -> void:
 	record_diagnostic("startup", {"engine": Engine.get_version_info().string, "display": DisplayServer.get_name(),

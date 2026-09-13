@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/rogue/rogue_balance_data.gd" id="balance"]
+
+[resource]
+script = ExtResource("balance")
+initial = {"level": 1, "population": 20, "gold": 20, "bread": 3, "ap": 12, "max_ap": 12, "tickets": 1}
+progression = {"xp_base": 100, "xp_step": 50, "bread_per_level": 1, "population_per_level": 5}
+rewards = {"battle": {"gold": 20, "bread": 2, "tickets": 1, "xp": 50}, "emergency": {"gold": 30, "bread": 3, "tickets": 1, "xp": 80}}
+strategies = {"ranged": {"name": "远程优先战略", "description": "所有远程攻击力 +10%", "ranged_attack": 0.1}, "melee": {"name": "近战分队", "description": "近战攻击力 +10%，所有单位近战护甲 +1", "melee_attack": 0.1, "melee_armor": 1}, "range": {"name": "射程优先战略", "description": "远程步兵射程 +1", "range": 1.0}}
+packs = {"steady": {"name": "稳固阵线", "units": {"swordsman": 4, "shield_guard": 3, "spearman": 2, "archer": 4, "catapult": 1, "priest": 1}}, "ranged": {"name": "远程火力", "units": {"shield_guard": 4, "spearman": 2, "archer": 7, "cannon": 1, "engineer": 2}}, "mobile": {"name": "机动突击", "units": {"swordsman": 3, "spearman": 2, "archer": 4, "knight": 4, "light_cavalry": 2, "catapult": 1}}}
+recruit = {"swordsman": {"bread": 1, "count": 3}, "spearman": {"bread": 1, "count": 3}, "archer": {"bread": 1, "count": 3}, "shield_guard": {"bread": 1, "count": 2}, "light_cavalry": {"bread": 1, "count": 2}, "engineer": {"bread": 1, "count": 2}, "knight": {"bread": 2, "count": 2}, "priest": {"bread": 2, "count": 1}, "catapult": {"bread": 3, "count": 1}, "cannon": {"bread": 3, "count": 1}, "triple_cannon": {"bread": 3, "count": 1}, "heavy_cannon": {"bread": 4, "count": 1}, "war_elephant": {"bread": 4, "count": 1}}
+relics = {"melee_attack": {"name": "磨刀石", "description": "近战攻击力 +5%", "price": 24, "amount": 0.05}, "ranged_attack": {"name": "鹰羽箭簇", "description": "远程攻击力 +5%", "price": 24, "amount": 0.05}, "health": {"name": "橡木军旗", "description": "所有单位生命值 +10%", "price": 24, "amount": 0.1}, "melee_armor": {"name": "锻铁护环", "description": "所有单位近战护甲 +1", "price": 24, "amount": 1}, "ranged_armor": {"name": "覆叶盾饰", "description": "所有单位远程护甲 +1", "price": 24, "amount": 1}, "range": {"name": "猎手瞄具", "description": "远程步兵射程 +1", "price": 32, "amount": 1}, "speed": {"name": "轻羽绑腿", "description": "所有单位移动速度 +5%", "price": 24, "amount": 0.05}, "population": {"name": "百夫长印章", "description": "出战人口上限 +5", "price": 32, "amount": 5}}
+node_counts = {"battle": 6, "emergency": 2, "shop": 2, "event": 4, "camp": 3}
+shop = {"relic_count": 3, "ticket_count": 2, "ticket_price": 12, "bread_count": 3, "bread_price": 10}
+camp = {"ap": 3, "bread": 2}
+events = {"bread_cart": {"name": "倾覆的粮车", "description": "林间倾覆的粮车旁，还散落着可以带走的补给。", "options": ["花费 1 行动力，获得 3 面包", "花费 8 金币，获得 2 面包", "离开"], "ap_cost": 1, "ap_bread": 3, "gold_cost": 8, "gold_bread": 2}, "lost_guard": {"name": "迷路的卫兵", "description": "一小队疲惫的长枪兵愿意追随一位可靠的指挥官。", "options": ["花费 1 面包，获得 3 长枪兵", "花费 10 金币，获得 1 招募券", "离开"], "bread_cost": 1, "unit_count": 3, "gold_cost": 10}, "hunter_camp": {"name": "猎人的营火", "description": "老猎人从背包中取出珍藏，也愿意用金币感谢你的帮助。", "options": ["获得收藏品：鹰羽箭簇", "获得 12 金币"], "relic": "ranged_attack", "gold": 12}, "mist_chest": {"name": "雾中的箱子", "description": "一只沉重的木箱隐没在浓雾里，选择稳妥或冒险。", "options": ["谨慎搜寻，获得 10 金币", "深入浓雾：50% 获得 20 金币，50% 一无所获"], "safe_gold": 10, "risk_gold": 20}}
+coordinates = PackedVector2Array(1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, 7, 1, 0, 2, 1, 2, 3, 2, 4, 2, 5, 2, 6, 2, 0, 3, 1, 3, 2, 3, 3, 3, 4, 3, 5, 3, 6, 3, 7, 3, 0, 4, 1, 4, 2, 4, 3, 4, 4, 4, 5, 4, 6, 4)
+edges = PackedInt32Array(0, 1, 0, 7, 1, 8, 2, 3, 2, 9, 3, 4, 4, 5, 5, 6, 6, 12, 7, 8, 7, 14, 8, 9, 9, 10, 9, 15, 10, 11, 10, 16, 11, 17, 13, 14, 13, 19, 15, 16, 15, 22, 16, 17, 17, 18, 19, 27, 20, 21, 21, 22, 22, 23, 22, 30, 23, 24, 24, 25, 25, 26, 25, 33, 28, 29, 29, 30, 30, 31, 31, 32, 32, 33)
