@@ -11,7 +11,7 @@ const EXPECTED_DAMAGE: Array = [
 	[3, 5, 3, 5, 5, 5, 4, 2, 3, 4],
 	[4, 6, 24, 6, 6, 6, 5, 3, 24, 25],
 	[4, 6, 4, 6, 6, 6, 5, 3, 4, 5],
-	[24, 26, 24, 26, 26, 26, 25, 23, 24, 25],
+	[30, 32, 30, 32, 32, 32, 31, 29, 30, 31],
 	[5, 9, 5, 7, 7, 7, 6, 4, 5, 6],
 ]
 const EXPECTED_HITS: Array = [
@@ -23,12 +23,12 @@ const EXPECTED_HITS: Array = [
 	[37, 12, 40, 28, 36, 30, 19, 73, 120, 23],
 	[28, 10, 5, 24, 30, 25, 15, 49, 15, 4],
 	[28, 10, 30, 24, 30, 25, 15, 49, 90, 18],
-	[5, 3, 5, 6, 7, 6, 3, 7, 15, 4],
+	[4, 2, 4, 5, 6, 5, 3, 5, 12, 3],
 	[22, 7, 24, 20, 26, 22, 13, 37, 72, 15],
 ]
 const EXPECTED_HP: Array[int] = [110, 60, 120, 140, 180, 150, 75, 145, 360, 90]
 # Keep negative pre-floor damage: upgrades apply before the minimum-one clamp.
-const BUILDING_RAW_DAMAGE: Array[int] = [-1, 1, -1, 66, 130, -5, -4, -4, 16, -3]
+const BUILDING_RAW_DAMAGE: Array[int] = [-1, 1, -1, 66, 130, -5, -4, -4, 22, -3]
 const ATTACK_BONUS: Array[int] = [0, 1, 2, 4]
 const DEFENSE_BONUS: Array[int] = [0, 1, 2, 3]
 var checks: int = 0
@@ -164,11 +164,11 @@ func _test_siege() -> void:
 func _test_production_data() -> void:
 	_check(BalanceCatalog.building(&"headquarters").produces == PackedStringArray(["farmer"]), "HQ recruits farmers only")
 	_check(BalanceCatalog.building(&"barracks").produces == PackedStringArray(["swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry"]), "barracks recruits seven approved infantry and cavalry units")
-	_check(BalanceCatalog.building(&"factory").produces == PackedStringArray(["catapult", "cannon"]), "factory recruits siege engines")
+	_check(BalanceCatalog.building(&"factory").produces == PackedStringArray(["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"]), "factory recruits its approved siege and support units")
 	_check(BalanceCatalog.unit(&"farmer").training_seconds == 10, "farmer training takes ten seconds")
 	for kind: StringName in KINDS:
 		var definition: UnitDefinition = BalanceCatalog.unit(kind)
-		var supply: Dictionary = {&"light_cavalry": 1, &"war_elephant": 5, &"shield_guard": 1, &"spearman": 1, &"swordsman": 1, &"archer": 1, &"knight": 1, &"catapult": 3, &"cannon": 3, &"farmer": 0}
+		var supply: Dictionary = {&"light_cavalry": 1, &"war_elephant": 2, &"shield_guard": 1, &"spearman": 1, &"swordsman": 1, &"archer": 1, &"knight": 1, &"catapult": 3, &"cannon": 3, &"farmer": 0}
 		_check(definition.supply == supply[kind], str(kind) + " approved military supply")
 		_check(BalanceCatalog.building(definition.production_building).produces.has(String(kind)), str(kind) + " production source agrees with building")
 		if definition.military:

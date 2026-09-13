@@ -156,8 +156,8 @@ func validate_resource_values() -> void:
 		and engineer.support_period==1 and engineer.support_discovery_range==6 and engineer.military
 		and engineer.production_building==&"factory", "packaged_engineer_approved_values")
 	var elephant := BalanceCatalog.unit("war_elephant")
-	check(elephant.cost==300 and elephant.hp==360 and elephant.damage==26 and elephant.melee_armor==2
-		and elephant.ranged_armor==3 and elephant.speed==3.2 and elephant.sight==15 and elephant.supply==5
+	check(elephant.cost==300 and elephant.hp==360 and elephant.damage==32 and elephant.melee_armor==2
+		and elephant.ranged_armor==3 and elephant.speed==3.2 and elephant.sight==15 and elephant.supply==2
 		and elephant.training_seconds==30 and elephant.cooldown==2.4 and elephant.attack_windup_seconds==.55
 		and elephant.range==1.5 and elephant.radius==1.15 and elephant.combat_class==&"cavalry"
 		and elephant.bonuses.is_empty() and elephant.projectile.is_empty() and elephant.splash_radius==0,

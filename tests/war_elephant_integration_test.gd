@@ -19,9 +19,9 @@ func _run() -> void:
 	create_timer(80.0,true,false,true).timeout.connect(func(): quit(3))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
 	var stats := BalanceCatalog.unit(KIND)
-	check(stats.hp == 360 and stats.damage == 26 and stats.speed == 3.2, "latest user health, damage and movement")
+	check(stats.hp == 360 and stats.damage == 32 and stats.speed == 3.2, "latest user health, damage and movement")
 	check(stats.melee_armor == 2 and stats.ranged_armor == 3 and stats.bonuses.is_empty(), "fixed armor without extra damage or directional blocking")
-	check(stats.cost == 300 and stats.supply == 5 and stats.training_seconds == 30, "approved cost, population and training")
+	check(stats.cost == 300 and stats.supply == 2 and stats.training_seconds == 30, "approved cost, population and training")
 	check(stats.range == 1.5 and stats.min_range == 0 and stats.cooldown == 2.4 and stats.attack_windup_seconds == .55, "melee reach and full attack cycle")
 	check(stats.radius == 1.15 and stats.sight == 15 and stats.combat_class == &"cavalry" and stats.projectile.is_empty(), "approved native footprint, vision and class")
 	check(stats.military and stats.production_building == &"barracks", "war elephant belongs to barracks and military selection")
@@ -54,20 +54,22 @@ func _run() -> void:
 	barracks.set_physics_process(false)
 	barracks.production.set_physics_process(false)
 	game.get_node("ConstructionNavigation").refresh()
-	await physics_frame
-	await physics_frame
-	await create_timer(.4).timeout
+	for attempt: int in 180:
+		if game.find_recruit_position(KIND,barracks).is_finite():
+			break
+		await physics_frame
+	check(game.find_recruit_position(KIND,barracks).is_finite(), "war elephant has a navigable barracks exit")
 	var supply_before: int = player.military_supply
 	player.gold = 299
 	check(not barracks.production.recruit(KIND).ok and player.gold == 299, "insufficient gold does not reserve or charge")
 	player.gold = 10000
 	var command := {"kind":"recruit","target":barracks.entity_id,"unit_type":KIND}
 	check(game.command_bus.execute(command,0).ok, "validated human command recruits a war elephant")
-	check(player.gold == 9700 and player.reserved_military_supply == 5, "recruitment charges three hundred and reserves five population")
+	check(player.gold == 9700 and player.reserved_military_supply == 2, "recruitment charges three hundred and reserves two population")
 	barracks.production._physics_process(29.9)
 	check(barracks.production.training.size() == 1 and player.military_supply == supply_before, "training cannot complete early")
 	barracks.production._physics_process(.11)
-	check(barracks.production.training.is_empty() and player.military_supply == supply_before+5 and player.reserved_military_supply == 0, "thirty-second training spawns once and converts reserved population")
+	check(barracks.production.training.is_empty() and player.military_supply == supply_before+2 and player.reserved_military_supply == 0, "thirty-second training spawns once and converts reserved population")
 	var trained: BattleUnit
 	for unit: BattleUnit in game.owned_entities(0,"units"):
 		if unit.unit_type == KIND:
@@ -82,14 +84,15 @@ func _run() -> void:
 	await _blocked_exit(barracks,player)
 	game.select_entities([barracks])
 	game.hud._refresh_actions()
+	game.hud.trigger_action_slot(5)
 	check(game.hud._actions.any(func(action: Dictionary): return action.kind == "recruit" and action.id == KIND), "barracks exposes its actual recruitment button")
 	check(game.command_bus.execute(command,0).ok, "war elephant can be queued again")
 	var refund_before: int = player.gold
 	check(barracks.production.cancel_training(0).ok and player.gold == refund_before+300 and player.reserved_military_supply == 0, "cancellation refunds its exact cost and population")
 	var military_before: int = player.military_supply
-	player.military_supply = player.get_supply_limit()
+	player.military_supply = player.get_supply_limit()-1
 	var gold_before: int = player.gold
-	check(not barracks.production.recruit(KIND).ok and player.gold == gold_before, "population cap rejects war elephant without charging")
+	check(not barracks.production.recruit(KIND).ok and player.gold == gold_before, "one free population cannot fit a war elephant or charge gold")
 	player.military_supply = military_before
 	check(not game.headquarters.production.recruit(KIND).ok, "wrong production building refuses war elephant")
 	check(not game.command_bus.execute(command,1).ok, "another player cannot use the owner's barracks")
@@ -111,7 +114,7 @@ func _run() -> void:
 	await create_timer(.45).timeout
 	check(target.hp == 150, "damage does not precede the authored .55-second contact")
 	await create_timer(.15).timeout
-	check(target.hp == 124 and bystander.hp == 150 and second_bystander.hp==150, "one melee strike damages only its locked target")
+	check(target.hp == 118 and bystander.hp == 150 and second_bystander.hp==150, "one melee strike damages only its locked target")
 	check(is_equal_approx(elephant._attack_cooldown,2.4), "attack start consumes the complete cooldown")
 	elephant.issue_attack(target)
 	check(is_equal_approx(elephant._attack_cooldown,2.4), "repeated focus fire cannot reset cooldown")
@@ -163,14 +166,14 @@ func _blocked_exit(barracks: BattleBuilding,player: PlayerState) -> void:
 	check(barracks.production.recruit(KIND).ok,"elephant can train with temporarily blocked exits")
 	var before: int=player.military_supply
 	barracks.production._physics_process(30)
-	check(barracks.production.training.size()==1 and player.reserved_military_supply==5 and player.military_supply==before,"blocked completion retains its single reservation")
+	check(barracks.production.training.size()==1 and player.reserved_military_supply==2 and player.military_supply==before,"blocked completion retains its single reservation")
 	for blocker: BattleUnit in blockers:
 		blocker.queue_free()
 	await physics_frame
 	await physics_frame
 	check(game.find_recruit_position(KIND,barracks).is_finite(),"clearing blockers restores an exit")
 	barracks.production._physics_process(.3)
-	check(barracks.production.training.is_empty() and player.reserved_military_supply==0 and player.military_supply==before+5,"unblocked retry spawns exactly one elephant")
+	check(barracks.production.training.is_empty() and player.reserved_military_supply==0 and player.military_supply==before+2,"unblocked retry spawns exactly one elephant")
 	for unit: BattleUnit in game.owned_entities(0,"units"):
 		unit.stop()
 		unit.set_physics_process(false)
