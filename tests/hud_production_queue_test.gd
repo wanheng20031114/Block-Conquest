@@ -116,7 +116,7 @@ func _run() -> void:
 	await process_frame
 	check(strip.visible and hud._queue_actions.size() == 1 and hud._queue_actions[0].upgrade == "attack_1", "research has its own directly cancellable identity")
 	check(hud._queue_buttons[0].get_node("Status").text == "15s" and is_equal_approx(hud._queue_buttons[0].get_node("Progress").value, 0.25), "research slot displays actual time and progress")
-	check(hud._actions.all(func(action): return action.kind in ["research", "action_page"]), "research and page buttons remain in main panel without a large cancel tile")
+	check(hud._actions.all(_is_academy_action) and hud._actions.any(func(action): return action.kind == "recruit" and action.id == "priest"), "academy keeps priest training and research controls without a large cancel tile")
 	if capture:
 		await _capture("research")
 	gold_before = player.gold
@@ -129,7 +129,7 @@ func _run() -> void:
 		check(academy.production.research(id).ok, "queued technology " + id)
 	_select(academy)
 	await process_frame
-	check(hud._queue_actions.size() == 6 and hud._actions.all(func(action): return action.kind == "research" and not String(action.id).begins_with("attack_") and not String(action.id).begins_with("defense_")), "six paid military technologies remain visible while independent research routes stay available")
+	check(hud._queue_actions.size() == 6 and hud._actions.all(_is_academy_action) and hud._actions.filter(func(action): return action.kind == "research").all(func(action): return not String(action.id).begins_with("attack_") and not String(action.id).begins_with("defense_")), "six paid military technologies remain visible while priest training and independent research stay available")
 	check(hud._queue_buttons[0].get_node("Portrait").texture == hud.portraits.attack_upgrade and hud._queue_buttons[1].get_node("Portrait").texture == hud.portraits.defense_upgrade, "queue uses separate attack and shield icons")
 	check(hud._queue_buttons[4].get_node("Level").text == "III", "research queue exposes its technology level")
 	var late_id: int = academy.production.research_queue[2].job_id
@@ -188,7 +188,7 @@ func _run() -> void:
 	check(game.selected_production() == barracks and hud._actions.size() == 6 and hud._actions.back().kind == "action_page", "Tab exposes five barracks units and the shared page control")
 	check(hud.selected_portrait.texture == hud.portraits.barracks and "兵营" in hud.selected_role.text, "active building subgroup has a visible model and label")
 	game.cycle_production_group()
-	check(game.selected_production() == academy and hud._actions.all(func(action): return action.kind in ["research", "action_page"]), "Tab exposes academy subgroup research and its page control")
+	check(game.selected_production() == academy and hud._actions.all(_is_academy_action), "Tab exposes academy subgroup priest training, research and page controls")
 	hq.production.recruit("farmer")
 	_select(hq)
 	game.finished = true
@@ -206,6 +206,9 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	quit(0 if failures.is_empty() else 1)
+
+func _is_academy_action(action: Dictionary) -> bool:
+	return action.kind in ["research", "action_page"] or (action.kind == "recruit" and action.id == "priest")
 
 func _inspect_layout() -> void:
 	var hud: Control = game.hud

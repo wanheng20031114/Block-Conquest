@@ -45,18 +45,19 @@ if ($LASTEXITCODE -ne 0) { throw 'Content changed during export; export the snap
 & $PythonPath (Join-Path $projectRoot 'tests/network_release_runner.py') $executable --catalogue-only
 if ($LASTEXITCODE -ne 0) { throw 'Packaged content validation failed; no ZIP published.' }
 Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/windows-readme.txt') -Destination (Join-Path $buildRoot 'START_HERE.txt') -Force
+Copy-Item -LiteralPath (Join-Path $projectRoot 'assets/ui/medieval/fonts/OFL.txt') -Destination (Join-Path $buildRoot 'FONT_LICENSE.txt') -Force
 foreach ($supportFile in @('collect_diagnostics.ps1', 'COLLECT_DIAGNOSTICS.cmd')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $supportFile) -Destination (Join-Path $buildRoot $supportFile) -Force
 }
 # Godot or Windows may retain a replaced executable as an .exe~*.TMP file.
-# Publish only the five deliverables while preserving the windows/ directory.
+# Publish only the six deliverables while preserving the windows/ directory.
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $packageStream = [System.IO.File]::Open($archive, [System.IO.FileMode]::Create)
 try {
     $packageZip = [System.IO.Compression.ZipArchive]::new($packageStream, [System.IO.Compression.ZipArchiveMode]::Create, $true)
     try {
-        foreach ($packageName in @('积木争霸.exe', '积木争霸.pck', 'START_HERE.txt', 'collect_diagnostics.ps1', 'COLLECT_DIAGNOSTICS.cmd')) {
+        foreach ($packageName in @('积木争霸.exe', '积木争霸.pck', 'START_HERE.txt', 'FONT_LICENSE.txt', 'collect_diagnostics.ps1', 'COLLECT_DIAGNOSTICS.cmd')) {
             [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($packageZip, (Join-Path $buildRoot $packageName), ('windows/' + $packageName), [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
         }
     } finally {

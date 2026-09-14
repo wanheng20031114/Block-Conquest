@@ -1,53 +1,21 @@
 [gd_scene format=3]
+[ext_resource type="Theme" path="res://assets/ui/medieval/rogue_battle_controls.tres" id="battle_controls"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/battle_backboard.tres" id="battle_board"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/parchment.tres" id="medieval_paper"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="medieval_title"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="medieval_theme"]
 [ext_resource type="Script" path="res://scripts/rogue/rogue_battle_hud.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/minimap.tscn" id="minimap"]
-[sub_resource type="StyleBoxFlat" id="panel"]
-bg_color = Color(0.065, 0.092, 0.076, 0.94)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.46, 0.51, 0.33, 0.65)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_left = 8
-corner_radius_bottom_right = 8
-[sub_resource type="StyleBoxFlat" id="button"]
-bg_color = Color(0.17, 0.23, 0.18, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
-content_margin_left = 16.0
-content_margin_right = 16.0
-content_margin_top = 12.0
-content_margin_bottom = 12.0
-[sub_resource type="StyleBoxFlat" id="hover"]
-bg_color = Color(0.30, 0.37, 0.22, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
-content_margin_left = 16.0
-content_margin_right = 16.0
-content_margin_top = 12.0
-content_margin_bottom = 12.0
-[sub_resource type="Theme" id="theme"]
-default_font_size = 18
-Label/colors/font_color = Color(0.94, 0.93, 0.83, 1)
-Button/styles/normal = SubResource("button")
-Button/styles/hover = SubResource("hover")
-Button/styles/pressed = SubResource("hover")
-PanelContainer/styles/panel = SubResource("panel")
 [node name="Interface" type="Control"]
 process_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-theme = SubResource("theme")
+theme = ExtResource("medieval_theme")
 script = ExtResource("script")
 [node name="Objectives" type="PanelContainer" parent="."]
+theme_override_styles/panel = ExtResource("battle_board")
 unique_name_in_owner = true
 offset_left = 28.0
 offset_top = 28.0
@@ -65,7 +33,7 @@ theme_override_constants/separation = 9
 [node name="Eyebrow" type="Label" parent="Objectives/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "OUTPOST   /   难度 1"
+text = "作战目标 · 难度 1"
 theme_override_font_sizes/font_size = 14
 mouse_filter = 2
 [node name="Title" type="Label" parent="Objectives/Margin/Content"]
@@ -74,6 +42,8 @@ layout_mode = 2
 text = "前哨站"
 theme_override_font_sizes/font_size = 30
 mouse_filter = 2
+theme_override_fonts/font = ExtResource("medieval_title")
+
 [node name="Objective" type="Label" parent="Objectives/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -107,6 +77,10 @@ layout_mode = 2
 text = "远征军"
 theme_override_font_sizes/font_size = 18
 mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
+
 [node name="Pause" type="Button" parent="TopRight"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -114,6 +88,7 @@ text = "暂停   Esc"
 mouse_default_cursor_shape = 2
 focus_mode = 0
 [node name="MapPanel" type="PanelContainer" parent="."]
+theme_override_styles/panel = ExtResource("battle_board")
 unique_name_in_owner = true
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -126,6 +101,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(256, 208)
 layout_mode = 2
 [node name="Commands" type="PanelContainer" parent="."]
+theme = ExtResource("battle_controls")
+theme_override_styles/panel = ExtResource("battle_board")
 unique_name_in_owner = true
 anchor_left = 1.0
 anchor_top = 1.0
@@ -193,7 +170,11 @@ offset_right = 450.0
 offset_bottom = 60.0
 horizontal_alignment = 1
 mouse_filter = 2
-[node name="IntroPanel" type="PanelContainer" parent="."]
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
+
+[node name="IntroPanel" type="Panel" parent="."]
 unique_name_in_owner = true
 anchor_left = 0.5
 anchor_top = 1.0
@@ -203,8 +184,13 @@ offset_left = -460.0
 offset_top = -280.0
 offset_right = 460.0
 offset_bottom = -74.0
+theme_override_styles/panel = ExtResource("medieval_paper")
+
 [node name="Margin" type="MarginContainer" parent="IntroPanel"]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 theme_override_constants/margin_left = 26
 theme_override_constants/margin_top = 26
 theme_override_constants/margin_right = 26
@@ -218,28 +204,34 @@ layout_mode = 2
 text = "斥候 · 罗文"
 theme_override_font_sizes/font_size = 22
 mouse_filter = 2
+theme_override_fonts/font = ExtResource("medieval_title")
+
 [node name="Dialogue" type="Label" parent="IntroPanel/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(850, 60)
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 autowrap_mode = 2
 text = "林地前哨站"
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 19
+
 [node name="Skip" type="Button" parent="IntroPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "开始作战  /  跳过  Esc"
 mouse_default_cursor_shape = 2
 focus_mode = 0
+size_flags_horizontal = 8
+custom_minimum_size = Vector2(260, 38)
+
 [node name="ModalShade" type="ColorRect" parent="."]
 unique_name_in_owner = true
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.02, 0.03, 0.02, 0.64)
+color = Color(0.18, 0.25, 0.25, 0.58)
 mouse_filter = 0
-[node name="ResultPanel" type="PanelContainer" parent="."]
+[node name="ResultPanel" type="Panel" parent="."]
 unique_name_in_owner = true
 visible = false
 anchor_left = 0.5
@@ -250,40 +242,59 @@ offset_left = -365.0
 offset_top = -190.0
 offset_right = 365.0
 offset_bottom = 190.0
+theme_override_styles/panel = ExtResource("medieval_paper")
+
 [node name="Margin" type="MarginContainer" parent="ResultPanel"]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 theme_override_constants/margin_left = 32
 theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 32
 [node name="Content" type="VBoxContainer" parent="ResultPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 12
+alignment = 1
+
 [node name="ResultTitle" type="Label" parent="ResultPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "作战胜利"
 theme_override_font_sizes/font_size = 36
 mouse_filter = 2
+theme_override_fonts/font = ExtResource("medieval_title")
+horizontal_alignment = 1
+
 [node name="ResultBody" type="Label" parent="ResultPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "军队准备继续探索。"
 theme_override_font_sizes/font_size = 20
 mouse_filter = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+
 [node name="ResultDetail" type="Label" parent="ResultPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "结算"
 theme_override_font_sizes/font_size = 16
 mouse_filter = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+
 [node name="Continue" type="Button" parent="ResultPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "领取结算"
 mouse_default_cursor_shape = 2
 focus_mode = 0
-[node name="PausePanel" type="PanelContainer" parent="."]
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(300, 42)
+
+[node name="PausePanel" type="Panel" parent="."]
 unique_name_in_owner = true
 visible = false
 anchor_left = 0.5
@@ -294,42 +305,63 @@ offset_left = -365.0
 offset_top = -190.0
 offset_right = 365.0
 offset_bottom = 190.0
+theme_override_styles/panel = ExtResource("medieval_paper")
+
 [node name="Margin" type="MarginContainer" parent="PausePanel"]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 theme_override_constants/margin_left = 32
 theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 32
 [node name="Content" type="VBoxContainer" parent="PausePanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 12
+alignment = 1
+
 [node name="PauseTitle" type="Label" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "作战暂停"
 theme_override_font_sizes/font_size = 32
 mouse_filter = 2
+theme_override_fonts/font = ExtResource("medieval_title")
+horizontal_alignment = 1
+
 [node name="PauseBody" type="Label" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "暂离后将从最近一次节点结算存档继续。"
 theme_override_font_sizes/font_size = 18
 mouse_filter = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+
 [node name="Resume" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "继续作战"
 mouse_default_cursor_shape = 2
 focus_mode = 0
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(300, 42)
+
 [node name="Settings" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "游戏设置"
 mouse_default_cursor_shape = 2
 focus_mode = 0
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(300, 42)
+
 [node name="Leave" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "暂离到主菜单"
 mouse_default_cursor_shape = 2
 focus_mode = 0
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(300, 42)

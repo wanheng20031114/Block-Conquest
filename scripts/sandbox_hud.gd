@@ -4,6 +4,11 @@ var game: Node3D
 var _message_time: float = 0.0
 const KINDS: PackedStringArray = ["swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
 
+func _ready() -> void:
+	UIMotion.bind_buttons(self)
+	UIMotion.reveal.call_deferred($Top, Vector2(0, -8))
+	UIMotion.reveal.call_deferred($Sidebar, Vector2(-12, 0))
+
 func bind_game(controller: Node3D) -> void:
 	game = controller
 	for mode: String in NetworkProtocol.MODES:

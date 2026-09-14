@@ -58,12 +58,11 @@ func _ready() -> void:
 	ui.get_node("ReplaceRun").confirmed.connect(_start_run)
 	ui.get_node("LoadConfirm").confirmed.connect(_load_run)
 	army.closed.connect(_refresh)
+	UIMotion.bind_buttons(ui)
 	_refresh()
 	if not rogue.error_message.is_empty():
 		_notice.call_deferred(rogue.error_message)
-	var entrance: Tween = create_tween()
-	ui.modulate.a = 0.0
-	entrance.tween_property(ui,"modulate:a",1.0,0.45)
+	UIMotion.reveal(ui, Vector2.ZERO)
 
 func _queue_refresh() -> void:
 	if not _refresh_queued:
@@ -77,7 +76,13 @@ func _refresh() -> void:
 		return
 	var data: Dictionary = rogue.state.data
 	var phase: String = data.phase
+	if phase != _previous_phase:
+		preview.get_node("Scroll").scroll_vertical = 0
 	setup.hide()
+	$Nodes.show()
+	$Routes.show()
+	for element: String in ["Top", "JourneyPlaque", "ProvisionTray", "Hint"]:
+		ui.get_node(element).show()
 	ui.get_node("Rail").show()
 	ui.get_node("Bottom").show()
 	ui.get_node("Top/TitleBlock/Journey").text = "第 %d 层  ·  Lv.%d  ·  经验 %d / %d" % [mini(int(data.floor),1), data.level, data.xp, rogue.state.xp_required()]
@@ -86,7 +91,7 @@ func _refresh() -> void:
 	ui.get_node("Top/Gold/Value").text = str(data.gold)
 	ui.get_node("Top/Bread/Value").text = str(data.bread)
 	ui.get_node("Top/Action/Value").text = "%d/12" % data.ap
-	ui.get_node("Rail/Recruit").text = "招 募  ·  %d" % data.tickets.size()
+	ui.get_node("Rail/Recruit").text = "招募  %d" % data.tickets.size()
 	_refresh_relics(data.relics)
 	for model: Node3D in $Nodes.get_children():
 		var id: int = model.node_id
@@ -96,6 +101,7 @@ func _refresh() -> void:
 	for option: Button in content.get_node("Options").get_children():
 		option.hide()
 		option.disabled = false
+		option.custom_minimum_size.y = 58.0
 	content.get_node("Primary").show()
 	content.get_node("Primary").disabled = false
 	content.get_node("Secondary").show()
@@ -140,24 +146,36 @@ func _show_relic_detail(id: String) -> void:
 	_notice("%s\n%s\n已拥有 %d 层，效果相加。" % [RogueCatalog.RELICS[id].name, RogueCatalog.RELICS[id].description, rogue.state.data.relics[id]])
 
 func _show_setup() -> void:
+	var opening: bool = not setup.visible
 	setup.show()
 	preview.hide()
 	ui.get_node("Rail").hide()
+	$Nodes.hide()
+	$Routes.hide()
+	for element: String in ["Top", "JourneyPlaque", "ProvisionTray", "Bottom", "Hint"]:
+		ui.get_node(element).hide()
 	setup_content.get_node("Actions/Continue").show()
-	setup_content.get_node("Footnote").text = "初始人口 20  /  军队在战斗之间恢复  /  作战失败结束本局"
+	setup_content.get_node("Footnote").text = "初始人口 20，战斗后全军恢复。离开节点时自动保存。"
 	setup_content.get_node("Title").text = "选择你的战略" if _setup_step == 0 else "选择初始部队"
-	setup_content.get_node("Description").text = "01  /  02    决定军团贯穿本局的优势。" if _setup_step == 0 else "02  /  02    战略：%s。三套部队均占18人口，拥有独立布阵。" % RogueCatalog.STRATEGIES[_strategy].name
+	setup_content.get_node("Description").text = "第 1 步，共 2 步 · 为这次远征选择一项优势" if _setup_step == 0 else "第 2 步，共 2 步 · 已选%s，每套部队均占 18 人口" % RogueCatalog.STRATEGIES[_strategy].name
 	setup_content.get_node("Actions/Back").text = "返回大厅" if _setup_step == 0 else "重新选择战略"
-	var texts: Array[String] = []
+	var choices: Array = []
 	if _setup_step == 0:
-		texts = ["远程优先战略\n\n远程基础攻击力 +10%\n\n火力压制，稳步推进", "近战分队\n\n近战基础攻击力 +10%\n所有单位近战护甲 +1\n\n守住阵线，近身决胜", "射程优先战略\n\n远程步兵射程 +1\n\n保持距离，掌握先机"]
+		choices = [["远程优先战略", "远程基础攻击力 +10%"], ["近战分队", "近战基础攻击力 +10%\n所有单位近战护甲 +1"], ["射程优先战略", "远程步兵射程 +1"]]
 	else:
-		texts = ["稳阵部队\n\n剑士4 · 盾卫3 · 长矛兵2\n弓箭手4 · 投石车1 · 牧师1\n\n18 / 20 人口", "远射部队\n\n盾卫4 · 长矛兵2 · 弓箭手7\n加农炮1 · 工程兵2\n\n18 / 20 人口", "机动部队\n\n剑士3 · 长矛兵2 · 弓箭手4\n骑士4 · 轻骑兵2 · 投石车1\n\n18 / 20 人口"]
+		choices = [["稳阵部队", "剑士4 · 盾卫3 · 长矛兵2\n弓箭手4 · 投石车1 · 牧师1"], ["远射部队", "盾卫4 · 长矛兵2 · 弓箭手7\n加农炮1 · 工程兵2"], ["机动部队", "剑士3 · 长矛兵2 · 弓箭手4\n骑士4 · 轻骑兵2 · 投石车1"]]
 	for index: int in 3:
-		setup_content.get_node("Choices/Choice%d" % index).text = texts[index]
+		var choice: Button = setup_content.get_node("Choices/Choice%d" % index)
+		choice.get_node("Title").text = choices[index][0]
+		choice.get_node("Effect").text = choices[index][1]
+		choice.get_node("Motto").text = ""
+		choice.tooltip_text = "%s\n%s" % [choices[index][0], choices[index][1]]
 		var models: Node3D = setup_content.get_node("Choices/Choice%d/Illustration/Viewport/Models" % index)
+		models.get_node("Stage").hide()
 		models.get_node("Strategy").visible = _setup_step == 0
 		models.get_node("Pack").visible = _setup_step == 1
+	if opening:
+		UIMotion.reveal(setup_content)
 
 func _setup_choice(index: int) -> void:
 	if not _new_run_requested and rogue.state != null and not rogue.state.data.is_empty():
@@ -176,6 +194,7 @@ func _setup_choice(index: int) -> void:
 		_strategy = STRATEGY_IDS[index]
 		_setup_step = 1
 		_show_setup()
+		UIMotion.reveal(setup_content.get_node("Choices"), Vector2(24, 0))
 	else:
 		_pack = PACK_IDS[index]
 		if FileAccess.file_exists(RogueSession.SAVE_PATH):
@@ -187,6 +206,7 @@ func _setup_back() -> void:
 	if _setup_step == 1:
 		_setup_step = 0
 		_show_setup()
+		UIMotion.reveal(setup_content.get_node("Choices"), Vector2(-24, 0))
 	else: _return_menu()
 
 func _start_run() -> void:
@@ -210,15 +230,16 @@ func _toggle_pause_menu() -> void:
 	if Session.settings.is_open(): Session.settings.close_menu()
 	_panning = false
 	ui.get_node("PauseMenu").visible = not ui.get_node("PauseMenu").visible
+	if ui.get_node("PauseMenu").visible:
+		UIMotion.reveal(ui.get_node("PauseMenu/Panel"))
 
 func _select_node(id: int) -> void:
 	if setup.visible or army.visible or ui.get_node("PauseMenu").visible or rogue.state == null or rogue.state.data.phase != "map":
 		return
 	_preview_id = id
+	preview.get_node("Scroll").scroll_vertical = 0
 	_refresh()
-	var reveal: Tween = create_tween()
-	preview.modulate.a = 0.0
-	reveal.tween_property(preview,"modulate:a",1.0,0.18)
+	UIMotion.reveal(preview, Vector2(26, 0))
 
 func _show_preview(id: int) -> void:
 	_panel_mode = "preview"
@@ -233,7 +254,8 @@ func _show_preview(id: int) -> void:
 			var emergency: bool = target.kind == "emergency"
 			var reward: Dictionary = RogueCatalog.BALANCE.rewards[target.kind]
 			var reinforcement: String = "敌方生命 +%d%%，攻击 +%d%%。\n" % [roundi((OUTPOST.emergency_hp_multiplier-1.0)*100.0),roundi((OUTPOST.emergency_damage_multiplier-1.0)*100.0)] if emergency else ""
-			detail = "难度 %d%s\n\n目标：摧毁所有敌方建筑与部队。\n5座箭塔 · 3座兵营 · %d名敌军\n\n%s奖励：%d金币、%d面包、%d招募券、%d经验%s。" % [target.difficulty," · 紧急作战" if emergency else "",16+OUTPOST.emergency_reinforcements.size() if emergency else 16,reinforcement,reward.gold,reward.bread,reward.tickets,reward.xp,"、收藏品三选一" if emergency else ""]
+			content.get_node("Kind").text = "%s  /  难度 %d" % ["紧急军情" if emergency else "作战军情", target.difficulty]
+			detail = "摧毁所有敌方建筑与部队。\n5座箭塔 · 3座兵营 · %d名敌军\n\n%s战利品：%d金币 · %d面包 · %d招募券\n%d经验%s" % [16+OUTPOST.emergency_reinforcements.size() if emergency else 16,reinforcement,reward.gold,reward.bread,reward.tickets,reward.xp," · 收藏品三选一" if emergency else ""]
 		"shop": detail = "林间商人带来了收藏品、招募券和口粮。\n\n离开后商队启程，无法再次购物。"
 		"event": detail = "林道深处传来一些动静。\n\n一次相遇，几个选择，也许会改变军团的命运。"
 		"camp": detail = "一处可以暂歇的安全营地。\n\n整顿脚步、领取口粮或寻找收藏品，只能选择一项。"
@@ -269,6 +291,7 @@ func _show_content() -> void:
 			var offers: Array = active.offers
 			for index: int in offers.size():
 				var offer: Dictionary = offers[index]
+				content.get_node("Options/Option%d" % index).custom_minimum_size.y = 46.0
 				var label: String = "招募券"
 				if offer.kind == "bread": label = "吐司面包 ×%d" % int(offer.count)
 				elif offer.kind == "relic": label = RogueCatalog.RELICS[offer.relic_id].name
@@ -332,7 +355,7 @@ func _show_siege() -> void:
 	content.get_node("Kind").text = "行动力耗尽  /  强制作战"
 	content.get_node("Name").text = "围 剿"
 	_show_map_preview(true)
-	content.get_node("Detail").text = "敌军正在封锁林道。守住中央大本营，等待突围时机。\n\n坚守 %d 秒。敌军从四边逐步增援，同时存活不超过%d名。\n\n基地被毁即失败；士兵全灭仍可坚守。\n胜利：补满行动力，进入层间整备。" % [roundi(SIEGE.duration),SIEGE.enemy_cap]
+	content.get_node("Detail").text = "敌军正在封锁林道。守住大本营，等待突围。\n\n坚守 %d 秒 · 敌军从四边增援\n同时存活不超过 %d 名\n\n基地被毁即失败；士兵全灭仍可坚守。\n胜利后补满行动力，进入层间整备。" % [roundi(SIEGE.duration),SIEGE.enemy_cap]
 	content.get_node("Primary").text = "准备迎战"
 	content.get_node("Secondary").text = "调整围剿编队"
 	ui.get_node("Hint").text = "围剿不可回避 · 可以整备或退出后读档续战"
@@ -346,13 +369,22 @@ func _show_terminal(phase: String) -> void:
 	preview.hide()
 	setup.show()
 	ui.get_node("Rail").hide()
+	$Nodes.hide()
+	$Routes.hide()
+	for element: String in ["Top", "JourneyPlaque", "ProvisionTray", "Bottom", "Hint"]:
+		ui.get_node(element).hide()
 	setup_content.get_node("Actions/Continue").hide()
 	setup_content.get_node("Title").text = "第一层 · 突围成功" if phase == "intermission" else "远征失败"
 	setup_content.get_node("Description").text = "军团已完成突围，行动力恢复。军队与成长已保存，第二层暂未开放。" if phase == "intermission" else "本次作战失败。最近的节点检查点仍然保留，可以读档再次挑战。"
 	setup_content.get_node("Footnote").text = "Lv.%d  ·  出战人口 %d / %d  ·  金币 %d  ·  面包 %d" % [rogue.state.data.level, rogue.state.population(), rogue.state.population_cap(), rogue.state.data.gold, rogue.state.data.bread]
 	var labels: Array = ["整理军队","开始新远征","返回大厅"] if phase == "intermission" else ["读取节点存档","开始新远征","返回大厅"]
+	var descriptions: Array = ["检视军团，调整阵位", "重选战略与初始部队", "军团成长已经保存"] if phase == "intermission" else ["从最近完整节点再次出发", "重选战略与初始部队", "保留存档，暂别林海"]
 	for index: int in 3:
-		setup_content.get_node("Choices/Choice%d" % index).text = labels[index]
+		var choice: Button = setup_content.get_node("Choices/Choice%d" % index)
+		choice.get_node("Title").text = labels[index]
+		choice.get_node("Effect").text = descriptions[index]
+		choice.get_node("Motto").text = ""
+		choice.tooltip_text = descriptions[index]
 	setup_content.get_node("Actions/Back").text = "返回大厅"
 	_setup_step = 0
 

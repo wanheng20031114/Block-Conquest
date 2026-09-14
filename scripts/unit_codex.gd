@@ -29,7 +29,6 @@ var selected_id: String = ""
 var _entries: Array[String] = []
 var _model: Node3D
 var _dragging: bool = false
-var _reveal: Tween
 var _base_camera_size: float = 3.2
 var _preview_unit: UnitVisual
 var _preview_action: PreviewAction = PreviewAction.IDLE
@@ -45,6 +44,7 @@ var _cycle_seconds: float = 1.0
 @onready var _pedestal: MeshInstance3D = %Pedestal
 
 func _ready() -> void:
+	UIMotion.bind_buttons(self)
 	%Target.locomotion.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	%Target.attack.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	%Target.set_team(0)
@@ -69,18 +69,13 @@ func _ready() -> void:
 func open_codex() -> void:
 	show()
 	_refresh_preview_activity()
-	if _reveal != null:
-		_reveal.kill()
-	modulate.a = 0.0
-	_reveal = create_tween()
-	_reveal.tween_property(self, "modulate:a", 1.0, 0.2).set_trans(Tween.TRANS_SINE)
+	UIMotion.reveal(self, Vector2.ZERO)
+	UIMotion.reveal($Margin/Content/Body, Vector2(0, 12))
 	%Entries.grab_focus()
 
 func close_codex() -> void:
 	hide()
 	_dragging = false
-	if _reveal != null:
-		_reveal.kill()
 	_refresh_preview_activity()
 	closed.emit()
 
@@ -375,7 +370,7 @@ func _upgrade_description(upgrade: UpgradeDefinition) -> String:
 	return "农民人数上限提高至 %d，包括存活农民与训练队列中的名额。" % (PlayerState.WORKER_LIMIT + upgrade.total_bonus)
 
 func _row(label: String, value: String) -> String:
-	return "[cell][color=#a99b80]%s[/color][/cell][cell][color=#f0dfbb]%s[/color][/cell]" % [label, value]
+	return "[cell][color=#657469]%s[/color][/cell][cell][color=#394d48]%s[/color][/cell]" % [label, value]
 
 func _number(value: float) -> String:
 	return str(int(value)) if is_equal_approx(value, roundf(value)) else "%.1f" % value

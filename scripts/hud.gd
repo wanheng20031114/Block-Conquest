@@ -35,6 +35,9 @@ var _preview_alliance: int = -1
 @onready var buttons: Array[Button] = [%Recruit0, %Recruit1, %Recruit2, %Recruit3, %Recruit4, %Recruit5]
 
 func _ready() -> void:
+	UIMotion.bind_buttons(self)
+	UIMotion.reveal.call_deferred($Resources, Vector2(0, -8))
+	UIMotion.reveal.call_deferred($CommandBar, Vector2(0, 12))
 	for kind in UNIT_ORDER + ["headquarters", "gold_vein", "defense_tower", "barracks", "factory", "academy"]:
 		portraits[kind] = $ModelPreviews.portrait(kind)
 	portraits["attack_upgrade"] = preload("res://assets/ui/attack_upgrade.png")
@@ -546,6 +549,8 @@ func toast(message: String, duration: float = 2.0) -> void:
 
 func toggle_help() -> void:
 	%HelpOverlay.visible = not %HelpOverlay.visible
+	if %HelpOverlay.visible:
+		UIMotion.reveal($HelpOverlay/Paper)
 	game.get_node("Audio").play_ui(&"select")
 
 func help_visible() -> bool:
@@ -558,9 +563,12 @@ func show_pause(value: bool) -> void:
 	%RestartButton.visible = not game.online
 	%ResumeButton.text = ("返回战场" if game.online and not game.is_authority else "继续战斗") + "  [" + game.settings.hotkey_text("rts_pause") + "]"
 	%PauseOverlay.visible = value
+	if value:
+		UIMotion.reveal($PauseOverlay/Paper)
 
 func show_result(victory: bool, duration: float, defeated: int) -> void:
 	%ResultOverlay.visible = true
+	UIMotion.reveal($ResultOverlay/Paper, Vector2(0, 18))
 	%ResultHeading.text = "战场属于你" if victory else "你的队伍已战败"
-	%ResultEyebrow.text = "VICTORY  /  胜利" if victory else "DEFEAT  /  战败"
+	%ResultEyebrow.text = "战报 · 凯旋" if victory else "战报 · 失利"
 	%ResultBody.text = ("敌队全部军事建筑已被摧毁。" if victory else "整顿军队，重新部署你的进攻。") + "\n\n用时 %02d:%02d      击败敌军 %d" % [int(duration) / 60, int(duration) % 60, defeated]

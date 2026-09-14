@@ -8,6 +8,7 @@ var _resolutions: Array[Vector2i] = []
 @onready var pages: Control = %Pages
 
 func _ready() -> void:
+	UIMotion.bind_buttons(self)
 	%WindowMode.add_item("窗口", 0)
 	%WindowMode.add_item("无边框全屏", 1)
 	%WindowMode.add_item("独占全屏", 2)
@@ -91,6 +92,7 @@ func show_page(page: String) -> void:
 	rebinding_action = ""
 	for child: Control in pages.get_children(): child.visible = String(child.name) == page
 	for category: Button in %Categories.get_children(): category.set_pressed_no_signal(String(category.name) == page)
+	UIMotion.reveal(pages.get_node(page), Vector2(0, 8))
 	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头与操作", "Hotkeys":"热键"}[page]
 	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"调节战场音效；当前版本不播放背景音乐。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。"}[page]
 	if not draft.is_empty(): _update_hotkeys()

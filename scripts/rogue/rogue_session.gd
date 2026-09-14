@@ -11,6 +11,8 @@ var state: RogueRunState = RogueRunState.new()
 var error_message: String = ""
 
 func start_new(strategy: String, pack: String, run_seed: int = 0) -> Error:
+	if get_parent().transition.busy:
+		return _fail("画面切换中，请稍候", ERR_BUSY)
 	var fresh := RogueRunState.new()
 	var result: Error = fresh.start_new(strategy, pack, run_seed)
 	if result != OK:
@@ -53,6 +55,8 @@ func save_checkpoint() -> Error:
 	return OK
 
 func load_run() -> Error:
+	if get_parent().transition.busy:
+		return _fail("画面切换中，请稍候", ERR_BUSY)
 	var loaded: Dictionary = _read_checkpoint(save_path)
 	if loaded.is_empty(): return ERR_FILE_CORRUPT if FileAccess.file_exists(save_path) else ERR_FILE_NOT_FOUND
 	var candidate := RogueRunState.new()
@@ -65,6 +69,8 @@ func load_run() -> Error:
 	return _change_scene(MAP_SCENE)
 
 func enter_node(id: int) -> Error:
+	if get_parent().transition.busy:
+		return _fail("画面切换中，请稍候", ERR_BUSY)
 	var previous: Dictionary = state.data.duplicate(true)
 	var result: Error = state.enter_node(id)
 	if result != OK: return _fail(state.error_message, result)
@@ -82,6 +88,8 @@ func leave_node() -> Error:
 	return _publish_mutation(true)
 
 func launch_battle() -> Error:
+	if get_parent().transition.busy:
+		return _fail("画面切换中，请稍候", ERR_BUSY)
 	var old_phase: String = state.data.phase
 	var result: Error = state.launch_battle()
 	if result != OK: return _fail(state.error_message, result)
@@ -174,7 +182,7 @@ func _prepare_singleplayer() -> void:
 	owner_session.config.clear()
 
 func _change_scene(path: String) -> Error:
-	var result: Error = get_tree().change_scene_to_file(path)
+	var result: Error = get_parent().change_scene(path)
 	if result != OK: return _fail("无法加载肉鸽场景，请检查游戏文件", result)
 	return OK
 

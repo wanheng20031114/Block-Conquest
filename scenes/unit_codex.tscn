@@ -1,31 +1,66 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene format=3]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/panel.tres" id="medieval_panel"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/inset.tres" id="medieval_inset"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/selection.tres" id="medieval_selection"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/sidebar.tres" id="detail_sheet"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/button_compact.tres" id="compact_button"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="medieval_title"]
 
 [ext_resource type="Script" path="res://scripts/unit_codex.gd" id="script"]
-[ext_resource type="Theme" path="res://assets/ui/menu_theme.tres" id="theme"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://assets/models/units/swordsman.tscn" id="healing_target"]
 [ext_resource type="PackedScene" path="res://scenes/healing_target_particles.tscn" id="healing_particles"]
 
 [sub_resource type="StyleBoxEmpty" id="Clear"]
 
-[sub_resource type="StyleBoxFlat" id="Selected"]
-bg_color = Color(0.22, 0.17, 0.095, 1)
-border_width_left = 3
-border_color = Color(0.86, 0.67, 0.34, 1)
-content_margin_left = 16.0
-content_margin_right = 12.0
-content_margin_top = 13.0
-content_margin_bottom = 13.0
+[sub_resource type="StyleBoxEmpty" id="ListPage"]
+content_margin_left = 18.0
+content_margin_right = 10.0
+content_margin_top = 4.0
+content_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="Hovered"]
-bg_color = Color(0.15, 0.13, 0.095, 1)
-content_margin_left = 16.0
-content_margin_right = 12.0
-content_margin_top = 13.0
-content_margin_bottom = 13.0
+[sub_resource type="StyleBoxFlat" id="TabPage"]
+bg_color = Color(0.90, 0.89, 0.82, 0.85)
+content_margin_left = 20.0
+content_margin_right = 20.0
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
 
-[sub_resource type="SystemFont" id="Bold"]
-font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC")
-font_weight = 700
+[sub_resource type="StyleBoxFlat" id="TabSelected"]
+bg_color = Color(0.71, 0.80, 0.72, 1)
+content_margin_left = 20.0
+content_margin_right = 20.0
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="ListSelected"]
+bg_color = Color(0.71, 0.80, 0.72, 1)
+content_margin_left = 18.0
+content_margin_right = 18.0
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="Theme" id="PreviewControls"]
+Button/styles/normal = ExtResource("compact_button")
+Button/styles/hover = ExtResource("compact_button")
+Button/styles/pressed = ExtResource("medieval_selection")
+Button/styles/hover_pressed = ExtResource("medieval_selection")
+CheckButton/styles/normal = ExtResource("medieval_inset")
+CheckButton/styles/hover = ExtResource("medieval_selection")
+CheckButton/styles/pressed = ExtResource("medieval_selection")
+CheckButton/styles/hover_pressed = ExtResource("medieval_selection")
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1
@@ -39,7 +74,7 @@ ssao_radius = 0.55
 ssao_intensity = 1.4
 
 [sub_resource type="StandardMaterial3D" id="GroundMaterial"]
-albedo_color = Color(0.28, 0.23, 0.15, 1)
+albedo_color = Color(0.76, 0.81, 0.72, 1)
 roughness = 1.0
 
 [sub_resource type="CylinderMesh" id="PedestalMesh"]
@@ -49,45 +84,8 @@ bottom_radius = 1.0
 height = 0.1
 radial_segments = 16
 
-[sub_resource type="StyleBoxFlat" id="Panel"]
-bg_color = Color(0.057, 0.051, 0.04, 1)
-
 [sub_resource type="ButtonGroup" id="PreviewActionGroup"]
 resource_local_to_scene = true
-
-[sub_resource type="StyleBoxFlat" id="PreviewButton"]
-bg_color = Color(0.09, 0.08, 0.063, 0.96)
-border_width_bottom = 1
-border_color = Color(0.52, 0.43, 0.26, 0.7)
-content_margin_left = 10.0
-content_margin_right = 10.0
-content_margin_top = 8.0
-content_margin_bottom = 8.0
-
-[sub_resource type="StyleBoxFlat" id="PreviewHover"]
-bg_color = Color(0.20, 0.164, 0.104, 1)
-border_width_bottom = 2
-border_color = Color(0.87, 0.69, 0.37, 1)
-content_margin_left = 10.0
-content_margin_right = 10.0
-content_margin_top = 8.0
-content_margin_bottom = 8.0
-
-[sub_resource type="StyleBoxFlat" id="PreviewPressed"]
-bg_color = Color(0.29, 0.22, 0.12, 1)
-border_width_bottom = 2
-border_color = Color(0.92, 0.75, 0.43, 1)
-content_margin_left = 10.0
-content_margin_right = 10.0
-content_margin_top = 8.0
-content_margin_bottom = 8.0
-
-[sub_resource type="Theme" id="PreviewControlsTheme"]
-Button/font_sizes/font_size = 15
-Button/styles/normal = SubResource("PreviewButton")
-Button/styles/hover = SubResource("PreviewHover")
-Button/styles/pressed = SubResource("PreviewPressed")
-CheckButton/font_sizes/font_size = 15
 
 [node name="UnitCodex" type="Control"]
 layout_mode = 3
@@ -106,7 +104,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("Panel")
+theme_override_styles/panel = ExtResource("medieval_panel")
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -126,19 +124,21 @@ theme_override_constants/separation = 26
 
 [node name="Heading" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
+theme_override_constants/separation = 24
 
 [node name="Title" type="Label" parent="Margin/Content/Heading"]
 layout_mode = 2
-text = "积木争霸"
-theme_override_fonts/font = SubResource("Bold")
-theme_override_font_sizes/font_size = 34
+text = "战争图鉴"
+theme_override_fonts/font = ExtResource("medieval_title")
+theme_override_font_sizes/font_size = 36
 
 [node name="SectionTitle" type="Label" parent="Margin/Content/Heading"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "   /   战争图鉴"
-theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(0.67, 0.58, 0.43, 1)
+text = "积木争霸"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.40, 0.45, 0.41, 1)
+vertical_alignment = 1
 
 [node name="CloseCodex" type="Button" parent="Margin/Content/Heading"]
 unique_name_in_owner = true
@@ -163,31 +163,31 @@ theme_override_constants/separation = 20
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_styles/tab_selected = SubResource("Selected")
-theme_override_styles/tab_unselected = SubResource("Hovered")
-theme_override_colors/font_selected_color = Color(0.94, 0.81, 0.57, 1)
-theme_override_colors/font_unselected_color = Color(0.69, 0.61, 0.48, 1)
+theme_override_styles/tab_selected = SubResource("TabSelected")
+theme_override_styles/tab_unselected = SubResource("TabPage")
+theme_override_styles/tab_hovered = SubResource("TabSelected")
+theme_override_colors/font_selected_color = Color(0.23, 0.30, 0.29, 1)
+theme_override_colors/font_unselected_color = Color(0.40, 0.45, 0.41, 1)
 
 [node name="Entries" type="ItemList" parent="Margin/Content/Body/Catalog"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("Clear")
-theme_override_styles/selected = SubResource("Selected")
-theme_override_styles/selected_focus = SubResource("Selected")
-theme_override_styles/hovered = SubResource("Hovered")
+theme_override_styles/panel = SubResource("ListPage")
+theme_override_styles/selected = SubResource("ListSelected")
+theme_override_styles/selected_focus = SubResource("ListSelected")
+theme_override_styles/hovered = ExtResource("medieval_inset")
 theme_override_styles/focus = SubResource("Clear")
 theme_override_font_sizes/font_size = 20
 theme_override_constants/v_separation = 15
-theme_override_colors/font_color = Color(0.75, 0.68, 0.55, 1)
-theme_override_colors/font_selected_color = Color(0.96, 0.86, 0.66, 1)
+theme_override_colors/font_color = Color(0.23, 0.30, 0.29, 1)
+theme_override_colors/font_selected_color = Color(0.23, 0.30, 0.29, 1)
 allow_reselect = true
 
 [node name="Count" type="Label" parent="Margin/Content/Body/Catalog"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.50, 0.45, 0.36, 1)
 
 [node name="Preview" type="VBoxContainer" parent="Margin/Content/Body"]
 layout_mode = 2
@@ -214,8 +214,8 @@ offset_top = -46.0
 offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = SubResource("PreviewControlsTheme")
-theme_override_constants/separation = 5
+theme = SubResource("PreviewControls")
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="PreviewIdle" type="Button" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
@@ -226,6 +226,9 @@ button_pressed = true
 button_group = SubResource("PreviewActionGroup")
 text = "待机"
 tooltip_text = "观看待机动作"
+theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(88, 40)
+metadata/ui_motion_hover_scale = 1.0
 
 [node name="PreviewWalk" type="Button" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
 unique_name_in_owner = true
@@ -234,6 +237,9 @@ toggle_mode = true
 button_group = SubResource("PreviewActionGroup")
 text = "行进"
 tooltip_text = "原地演示游戏中的行进动作"
+theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(88, 40)
+metadata/ui_motion_hover_scale = 1.0
 
 [node name="PreviewAttack" type="Button" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
 unique_name_in_owner = true
@@ -242,6 +248,9 @@ toggle_mode = true
 button_group = SubResource("PreviewActionGroup")
 text = "攻击"
 tooltip_text = "观看完整攻击动作，循环时保留攻击间隔"
+theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(88, 40)
+metadata/ui_motion_hover_scale = 1.0
 
 [node name="PreviewGather" type="Button" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
 unique_name_in_owner = true
@@ -251,15 +260,22 @@ toggle_mode = true
 button_group = SubResource("PreviewActionGroup")
 text = "采集"
 tooltip_text = "观看农民挥镐采矿"
+theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(88, 40)
+metadata/ui_motion_hover_scale = 1.0
 
 [node name="PlaybackDivider" type="VSeparator" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 15
 
 [node name="PausePreview" type="Button" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "暂停"
 tooltip_text = "停在当前姿势，可继续旋转和缩放"
+theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(88, 40)
+metadata/ui_motion_hover_scale = 1.0
 
 [node name="LoopPreview" type="CheckButton" parent="Margin/Content/Body/Preview/Portrait/PreviewAnimationControls"]
 unique_name_in_owner = true
@@ -267,6 +283,9 @@ layout_mode = 2
 button_pressed = true
 text = "循环"
 tooltip_text = "关闭后播放完当前一轮即停止"
+theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(100, 40)
+metadata/ui_motion_hover_scale = 1.0
 
 [node name="PreviewActions" type="HBoxContainer" parent="Margin/Content/Body/Preview"]
 layout_mode = 2
@@ -276,13 +295,16 @@ alignment = 1
 layout_mode = 2
 text = "拖动旋转 · 滚轮缩放"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.58, 0.51, 0.39, 1)
 
 [node name="ResetView" type="Button" parent="Margin/Content/Body/Preview/PreviewActions"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 34)
 layout_mode = 2
 text = "复位"
 theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = ExtResource("medieval_inset")
+theme_override_styles/hover = ExtResource("medieval_selection")
+theme_override_styles/pressed = ExtResource("medieval_selection")
 
 [node name="DetailScroll" type="ScrollContainer" parent="Margin/Content/Body"]
 unique_name_in_owner = true
@@ -290,23 +312,23 @@ layout_mode = 2
 custom_minimum_size = Vector2(385, 0)
 horizontal_scroll_mode = 0
 follow_focus = true
+theme_override_styles/panel = ExtResource("detail_sheet")
 
 [node name="Details" type="VBoxContainer" parent="Margin/Content/Body/DetailScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 18
+theme_override_constants/separation = 16
 
 [node name="EntryType" type="Label" parent="Margin/Content/Body/DetailScroll/Details"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.71, 0.55, 0.30, 1)
 
 [node name="EntryTitle" type="Label" parent="Margin/Content/Body/DetailScroll/Details"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_fonts/font = SubResource("Bold")
-theme_override_font_sizes/font_size = 38
+theme_override_fonts/font = ExtResource("medieval_title")
+theme_override_font_sizes/font_size = 34
 autowrap_mode = 2
 
 [node name="Description" type="Label" parent="Margin/Content/Body/DetailScroll/Details"]
@@ -314,7 +336,6 @@ unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.69, 0.62, 0.50, 1)
 
 [node name="Divider" type="HSeparator" parent="Margin/Content/Body/DetailScroll/Details"]
 layout_mode = 2
@@ -334,7 +355,6 @@ unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.65, 0.59, 0.46, 1)
 
 [node name="DataNote" type="Label" parent="Margin/Content"]
 unique_name_in_owner = true
@@ -342,7 +362,6 @@ layout_mode = 2
 text = "初始数值 · 未研究科技"
 horizontal_alignment = 2
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.50, 0.45, 0.36, 1)
 
 [node name="CodexViewport" type="SubViewport" parent="."]
 unique_name_in_owner = true
@@ -377,7 +396,7 @@ unique_name_in_owner = true
 position = Vector3(0, 2.22, 0)
 billboard = 1
 pixel_size = 0.004
-font = SubResource("Bold")
+font = ExtResource("medieval_title")
 font_size = 34
 outline_size = 5
 modulate = Color(0.9, 0.79, 0.54, 1)

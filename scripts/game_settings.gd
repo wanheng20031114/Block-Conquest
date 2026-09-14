@@ -43,7 +43,6 @@ var bindings: Dictionary = {}
 var _display_previous: Dictionary = {}
 var _previous_window: Dictionary = {}
 var _close_after_confirm := false
-var _entrance: Tween
 
 @onready var menu: Control = $Menu
 @onready var display_timer: Timer = $DisplayRevertTimer
@@ -183,15 +182,12 @@ func open_menu() -> void:
 	if is_open(): return
 	menu.refresh(snapshot())
 	menu.show()
-	menu.modulate.a = 0.0
-	_entrance = create_tween()
-	_entrance.tween_property(menu, "modulate:a", 1.0, 0.16)
+	UIMotion.reveal(menu.get_node("Center/Panel"))
 	opened.emit()
 
 func close_menu() -> void:
 	if not is_open(): return
 	if not _display_previous.is_empty(): revert_display()
-	if _entrance != null and _entrance.is_valid(): _entrance.kill()
 	menu.hide()
 	closed.emit()
 

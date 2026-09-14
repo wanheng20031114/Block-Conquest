@@ -21,8 +21,6 @@ var mode: String = "1v1"
 var room: Dictionary = {}
 var _pending_request: bool = false
 var _transitioning: bool = false
-var _entrance: Tween
-var _panel_reveal: Tween
 var _endpoint_port: int = 24571
 var _pending_slots: Dictionary = {}
 var _last_request: String = ""
@@ -67,11 +65,9 @@ func _ready() -> void:
 	if not relay.room.is_empty():
 		_on_room_changed(relay.room)
 	_on_connection_state_changed(relay.connection_state)
-	%Brand.modulate.a = 0.0
-	%MainMenu.modulate.a = 0.0
-	_entrance = create_tween().set_parallel(true)
-	_entrance.tween_property(%Brand, "modulate:a", 1.0, 0.48).set_trans(Tween.TRANS_SINE)
-	_entrance.tween_property(%MainMenu, "modulate:a", 1.0, 0.48).set_delay(0.12).set_trans(Tween.TRANS_SINE)
+	UIMotion.bind_buttons($CanvasLayer/UI)
+	UIMotion.reveal(%Brand, Vector2(0, -10))
+	UIMotion.reveal(%MainMenu, Vector2(0, 18))
 	%SoloMenu.grab_focus()
 	if "--lobby-capture" in arguments:
 		call_deferred("_capture_lobby")
@@ -133,12 +129,7 @@ func _on_load_failed(detail: String) -> void:
 	_refresh_request_buttons()
 
 func _reveal_panel(panel: Control) -> void:
-	if _panel_reveal != null:
-		_panel_reveal.kill()
-	panel.show()
-	panel.modulate.a = 0.0
-	_panel_reveal = create_tween()
-	_panel_reveal.tween_property(panel, "modulate:a", 1.0, 0.20).set_trans(Tween.TRANS_SINE)
+	UIMotion.reveal(panel, Vector2(16, 0))
 
 func _on_open_solo() -> void:
 	if %OnlinePanel.visible:
@@ -169,7 +160,7 @@ func _on_open_rogue() -> void:
 	session.online = false
 	session.config.clear()
 	session.rogue.state = null
-	var error: Error = get_tree().change_scene_to_file("res://scenes/rogue/rogue_map.tscn")
+	var error: Error = session.change_scene("res://scenes/rogue/rogue_map.tscn")
 	if error != OK:
 		_transitioning = false
 		_set_message("无法载入林海远征，请检查游戏文件。", true)

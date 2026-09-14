@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/session.gd" id="session"]
 [ext_resource type="Script" path="res://scripts/network/relay_client.gd" id="relay"]
 [ext_resource type="PackedScene" path="res://scenes/settings_menu.tscn" id="settings"]
 [ext_resource type="Script" path="res://scripts/rogue/rogue_session.gd" id="rogue"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ui_transition.tscn" id="transition"]
 
 [node name="Session" type="Node"]
 process_mode = 3
@@ -16,6 +17,8 @@ script = ExtResource("relay")
 
 [node name="Rogue" type="Node" parent="."]
 script = ExtResource("rogue")
+
+[node name="Transition" parent="." instance=ExtResource("transition")]
 
 [node name="DiagnosticHeartbeat" type="Timer" parent="."]
 wait_time = 15.0

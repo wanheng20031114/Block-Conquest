@@ -2,7 +2,21 @@
 
 [ext_resource type="Script" path="res://scripts/rogue/rogue_map.gd" id="script"]
 
-[ext_resource type="Theme" path="res://assets/ui/rogue_theme.tres" id="theme"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
+
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="title_font"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/card.tres" id="card"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/strip.tres" id="strip"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/sidebar.tres" id="sidebar"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/button_compact.tres" id="button_compact"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/compact_hover.tres" id="compact_hover"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/compact_pressed.tres" id="compact_pressed"]
 
 [ext_resource type="PackedScene" path="res://scenes/rogue/route_node.tscn" id="route_node"]
 
@@ -76,28 +90,10 @@ ambient_light_energy = 0.7
 
 [sub_resource type="Shader" id="Shade"]
 code = "shader_type canvas_item;
-void fragment(){float rim=smoothstep(0.2,0.75,length((UV-vec2(0.5,0.46))*vec2(1.1,1.0)));COLOR=vec4(0.025,0.055,0.043,rim*0.6);}"
+void fragment(){float rim=smoothstep(0.2,0.75,length((UV-vec2(0.5,0.46))*vec2(1.1,1.0)));COLOR=vec4(0.12,0.20,0.16,rim*0.32);}"
 
 [sub_resource type="ShaderMaterial" id="ShadeMaterial"]
 shader = SubResource("Shade")
-
-[sub_resource type="StyleBoxFlat" id="ChoiceNormal"]
-bg_color = Color(0.055,0.105,0.084,0.95)
-content_margin_top = 190.0
-content_margin_bottom = 20.0
-content_margin_left = 10.0
-content_margin_right = 10.0
-border_width_bottom = 2
-border_color = Color(0.62,0.52,0.28,1)
-
-[sub_resource type="StyleBoxFlat" id="ChoiceHover"]
-bg_color = Color(0.15,0.22,0.14,0.98)
-content_margin_top = 190.0
-content_margin_bottom = 20.0
-content_margin_left = 10.0
-content_margin_right = 10.0
-border_width_bottom = 2
-border_color = Color(0.62,0.52,0.28,1)
 
 [node name="ForestExpedition" type="Node3D"]
 script = ExtResource("script")
@@ -1083,13 +1079,33 @@ grow_vertical = 2
 mouse_filter = 2
 material = SubResource("ShadeMaterial")
 
+[node name="JourneyPlaque" type="Panel" parent="Canvas/UI"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 15.0
+offset_right = 420.0
+offset_bottom = 113.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("card")
+
+[node name="ProvisionTray" type="Panel" parent="Canvas/UI"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -524.0
+offset_top = 15.0
+offset_right = -20.0
+offset_bottom = 105.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("card")
+
 [node name="Top" type="HBoxContainer" parent="Canvas/UI"]
 layout_mode = 0
 anchor_right = 1.0
-offset_left = 32.0
-offset_top = 24.0
-offset_right = -32.0
-offset_bottom = 115.0
+offset_left = 56.0
+offset_top = 27.0
+offset_right = -56.0
+offset_bottom = 103.0
 mouse_filter = 2
 
 [node name="TitleBlock" type="VBoxContainer" parent="Canvas/UI/Top"]
@@ -1102,11 +1118,13 @@ theme_override_constants/separation = 4
 layout_mode = 2
 text = "林海远征"
 theme_override_font_sizes/font_size = 32
+theme_override_fonts/font = ExtResource("title_font")
 
 [node name="Journey" type="Label" parent="Canvas/UI/Top/TitleBlock"]
 layout_mode = 2
 text = "单人肉鸽 · 第一层"
-theme_override_colors/font_color = Color(0.72,0.81,0.66,1)
+theme_override_colors/font_color = Color(0.35,0.43,0.38,1)
+theme_override_font_sizes/font_size = 16
 
 [node name="XP" type="ProgressBar" parent="Canvas/UI/Top/TitleBlock"]
 layout_mode = 2
@@ -1116,12 +1134,13 @@ show_percentage = false
 
 [node name="Gold" type="HBoxContainer" parent="Canvas/UI/Top"]
 layout_mode = 2
-custom_minimum_size = Vector2(136,65)
+custom_minimum_size = Vector2(128,56)
 alignment = 2
+theme_override_constants/separation = 8
 
 [node name="Icon" type="SubViewportContainer" parent="Canvas/UI/Top/Gold"]
 layout_mode = 2
-custom_minimum_size = Vector2(64,64)
+custom_minimum_size = Vector2(48,48)
 mouse_filter = 2
 stretch = true
 
@@ -1152,16 +1171,18 @@ current = true
 [node name="Value" type="Label" parent="Canvas/UI/Top/Gold"]
 layout_mode = 2
 text = "—"
+vertical_alignment = 1
 theme_override_font_sizes/font_size = 28
 
 [node name="Bread" type="HBoxContainer" parent="Canvas/UI/Top"]
 layout_mode = 2
-custom_minimum_size = Vector2(136,65)
+custom_minimum_size = Vector2(128,56)
 alignment = 2
+theme_override_constants/separation = 8
 
 [node name="Icon" type="SubViewportContainer" parent="Canvas/UI/Top/Bread"]
 layout_mode = 2
-custom_minimum_size = Vector2(64,64)
+custom_minimum_size = Vector2(48,48)
 mouse_filter = 2
 stretch = true
 
@@ -1192,16 +1213,18 @@ current = true
 [node name="Value" type="Label" parent="Canvas/UI/Top/Bread"]
 layout_mode = 2
 text = "—"
+vertical_alignment = 1
 theme_override_font_sizes/font_size = 28
 
 [node name="Action" type="HBoxContainer" parent="Canvas/UI/Top"]
 layout_mode = 2
-custom_minimum_size = Vector2(136,65)
+custom_minimum_size = Vector2(128,56)
 alignment = 2
+theme_override_constants/separation = 8
 
 [node name="Icon" type="SubViewportContainer" parent="Canvas/UI/Top/Action"]
 layout_mode = 2
-custom_minimum_size = Vector2(64,64)
+custom_minimum_size = Vector2(48,48)
 mouse_filter = 2
 stretch = true
 
@@ -1232,40 +1255,67 @@ current = true
 [node name="Value" type="Label" parent="Canvas/UI/Top/Action"]
 layout_mode = 2
 text = "—"
+vertical_alignment = 1
 theme_override_font_sizes/font_size = 28
 
 [node name="Rail" type="VBoxContainer" parent="Canvas/UI"]
 layout_mode = 0
-anchor_top = 0.33
+anchor_top = 0.30
 offset_left = 24.0
 offset_top = 0.0
-offset_right = 154.0
-offset_bottom = 340.0
+offset_right = 165.0
+offset_bottom = 335.0
+theme_override_constants/separation = 10
 
 [node name="Army" type="Button" parent="Canvas/UI/Rail"]
 layout_mode = 2
-custom_minimum_size = Vector2(125,54)
-text = "编 队"
+custom_minimum_size = Vector2(141,50)
+theme_override_styles/normal = ExtResource("button_compact")
+theme_override_styles/hover = ExtResource("compact_hover")
+theme_override_styles/pressed = ExtResource("compact_pressed")
+text = "编队"
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
 
 [node name="Recruit" type="Button" parent="Canvas/UI/Rail"]
 layout_mode = 2
-custom_minimum_size = Vector2(125,54)
-text = "招 募"
+custom_minimum_size = Vector2(141,50)
+theme_override_styles/normal = ExtResource("button_compact")
+theme_override_styles/hover = ExtResource("compact_hover")
+theme_override_styles/pressed = ExtResource("compact_pressed")
+text = "招募"
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
 
 [node name="Load" type="Button" parent="Canvas/UI/Rail"]
 layout_mode = 2
-custom_minimum_size = Vector2(125,54)
+custom_minimum_size = Vector2(141,50)
+theme_override_styles/normal = ExtResource("button_compact")
+theme_override_styles/hover = ExtResource("compact_hover")
+theme_override_styles/pressed = ExtResource("compact_pressed")
 text = "读取存档"
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
 
 [node name="Pause" type="Button" parent="Canvas/UI/Rail"]
 layout_mode = 2
-custom_minimum_size = Vector2(125,54)
+custom_minimum_size = Vector2(141,50)
+theme_override_styles/normal = ExtResource("button_compact")
+theme_override_styles/hover = ExtResource("compact_hover")
+theme_override_styles/pressed = ExtResource("compact_pressed")
 text = "暂停菜单"
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
 
 [node name="Menu" type="Button" parent="Canvas/UI/Rail"]
 layout_mode = 2
-custom_minimum_size = Vector2(125,54)
+custom_minimum_size = Vector2(141,50)
+theme_override_styles/normal = ExtResource("button_compact")
+theme_override_styles/hover = ExtResource("compact_hover")
+theme_override_styles/pressed = ExtResource("compact_pressed")
 text = "返回大厅"
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
 
 [node name="Bottom" type="PanelContainer" parent="Canvas/UI"]
 layout_mode = 0
@@ -1273,9 +1323,10 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 190.0
-offset_top = -104.0
+offset_top = -88.0
 offset_right = -28.0
 offset_bottom = -24.0
+theme_override_styles/panel = ExtResource("strip")
 
 [node name="Content" type="HBoxContainer" parent="Canvas/UI/Bottom"]
 layout_mode = 2
@@ -1283,8 +1334,10 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Canvas/UI/Bottom/Content"]
 layout_mode = 2
-text = "收 藏 品"
-theme_override_colors/font_color = Color(0.86,0.70,0.40,1)
+text = "收藏品"
+theme_override_colors/font_color = Color(0.27,0.40,0.32,1)
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 23
 
 [node name="Scroll" type="ScrollContainer" parent="Canvas/UI/Bottom/Content"]
 layout_mode = 2
@@ -1345,19 +1398,22 @@ custom_minimum_size = Vector2(120,46)
 
 [node name="Empty" type="Label" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
 layout_mode = 2
-text = "尚未获得收藏品 · 在林海中寻找军团的机遇"
+text = "沿途获得的收藏品会放在这里。"
 theme_override_font_sizes/font_size = 16
 
 [node name="Hint" type="Label" parent="Canvas/UI"]
 layout_mode = 0
 anchor_top = 1.0
-offset_left = 194.0
-offset_top = -137.0
+offset_left = 226.0
+offset_top = -121.0
 offset_right = 1100.0
-offset_bottom = -110.0
+offset_bottom = -94.0
 text = "点击节点查看详情 · 中键拖动地图 · 滚轮缩放"
 mouse_filter = 2
 theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.98,0.97,0.88,1)
+theme_override_colors/font_shadow_color = Color(0.12,0.20,0.14,0.8)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="Preview" type="PanelContainer" parent="Canvas/UI"]
 visible = false
@@ -1365,11 +1421,12 @@ layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -425.0
-offset_top = 132.0
-offset_right = -28.0
-offset_bottom = -158.0
+offset_left = -433.0
+offset_top = 130.0
+offset_right = -24.0
+offset_bottom = -140.0
 grow_horizontal = 0
+theme_override_styles/panel = ExtResource("sidebar")
 
 [node name="Scroll" type="ScrollContainer" parent="Canvas/UI/Preview"]
 layout_mode = 2
@@ -1383,17 +1440,21 @@ theme_override_constants/separation = 12
 [node name="Kind" type="Label" parent="Canvas/UI/Preview/Scroll/Content"]
 layout_mode = 2
 text = "作战 / 难度 1"
-theme_override_colors/font_color = Color(0.88,0.72,0.42,1)
+theme_override_colors/font_color = Color(0.35,0.49,0.38,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 theme_override_font_sizes/font_size = 16
 
 [node name="Name" type="Label" parent="Canvas/UI/Preview/Scroll/Content"]
 layout_mode = 2
 text = "前哨站"
 theme_override_font_sizes/font_size = 32
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.20,0.29,0.25,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="MapView" type="SubViewportContainer" parent="Canvas/UI/Preview/Scroll/Content"]
 layout_mode = 2
-custom_minimum_size = Vector2(0,160)
+custom_minimum_size = Vector2(0,136)
 stretch = true
 mouse_filter = 2
 
@@ -1427,6 +1488,9 @@ text = "摧毁所有敌方建筑与部队。"
 autowrap_mode = 2
 custom_minimum_size = Vector2(290,0)
 theme_override_font_sizes/font_size = 17
+theme_override_constants/line_spacing = 4
+theme_override_colors/font_color = Color(0.27,0.34,0.29,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Options" type="VBoxContainer" parent="Canvas/UI/Preview/Scroll/Content"]
 layout_mode = 2
@@ -1437,7 +1501,7 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0,58)
 text = "选项"
-alignment = 0
+alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="Option1" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
@@ -1445,7 +1509,7 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0,58)
 text = "选项"
-alignment = 0
+alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="Option2" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
@@ -1453,7 +1517,7 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0,58)
 text = "选项"
-alignment = 0
+alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="Option3" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
@@ -1461,7 +1525,7 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0,58)
 text = "选项"
-alignment = 0
+alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="Option4" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
@@ -1469,7 +1533,7 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0,58)
 text = "选项"
-alignment = 0
+alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="Option5" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
@@ -1477,7 +1541,7 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0,58)
 text = "选项"
-alignment = 0
+alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="Primary" type="Button" parent="Canvas/UI/Preview/Scroll/Content"]
@@ -1488,6 +1552,10 @@ custom_minimum_size = Vector2(0,52)
 [node name="Secondary" type="Button" parent="Canvas/UI/Preview/Scroll/Content"]
 layout_mode = 2
 text = "关闭预览"
+custom_minimum_size = Vector2(0,44)
+theme_override_styles/normal = ExtResource("button_compact")
+theme_override_styles/hover = ExtResource("compact_hover")
+theme_override_styles/pressed = ExtResource("compact_pressed")
 
 [node name="Setup" type="ColorRect" parent="Canvas/UI"]
 layout_mode = 1
@@ -1496,7 +1564,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.018,0.045,0.035,0.87)
+color = Color(0.88,0.92,0.84,0.78)
 visible = false
 
 [node name="Margin" type="MarginContainer" parent="Canvas/UI/Setup"]
@@ -1506,29 +1574,36 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = 100.0
-offset_top = 80.0
-offset_right = -100.0
-offset_bottom = -60.0
+offset_left = 116.0
+offset_top = 64.0
+offset_right = -116.0
+offset_bottom = -48.0
 
 [node name="Content" type="VBoxContainer" parent="Canvas/UI/Setup/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 18
+alignment = 1
 
 [node name="Eyebrow" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
 layout_mode = 2
-text = "林 海 远 征  /  第一层"
-theme_override_colors/font_color = Color(0.87,0.72,0.43,1)
+text = "林海远征"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.31,0.46,0.36,1)
+theme_override_fonts/font = ExtResource("title_font")
 
 [node name="Title" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
 layout_mode = 2
 text = "选择你的战略"
-theme_override_font_sizes/font_size = 44
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 38
+theme_override_fonts/font = ExtResource("title_font")
 
 [node name="Description" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
 layout_mode = 2
 text = "先决定军团的优势，再选择初始部队。"
 autowrap_mode = 2
+horizontal_alignment = 1
 
 [node name="Choices" type="HBoxContainer" parent="Canvas/UI/Setup/Margin/Content"]
 layout_mode = 2
@@ -1537,20 +1612,34 @@ theme_override_constants/separation = 22
 
 [node name="Choice0" type="Button" parent="Canvas/UI/Setup/Margin/Content/Choices"]
 layout_mode = 2
-custom_minimum_size = Vector2(270,330)
+custom_minimum_size = Vector2(270,396)
+size_flags_vertical = 4
 size_flags_horizontal = 3
-text = "战略 1"
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("ChoiceNormal")
-theme_override_styles/hover = SubResource("ChoiceHover")
-theme_override_styles/pressed = SubResource("ChoiceHover")
+text = ""
+theme_override_styles/normal = ExtResource("card")
+theme_override_styles/hover = ExtResource("card")
+theme_override_styles/pressed = ExtResource("card")
+
+[node name="Ordinal" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0"]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 100.0
+offset_bottom = 45.0
+mouse_filter = 2
+text = "01"
+theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.41,0.56,0.43,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Illustration" type="SubViewportContainer" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0"]
 layout_mode = 0
 anchor_right = 1.0
-offset_left = 12.0
-offset_top = 10.0
-offset_right = -12.0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = -24.0
 offset_bottom = 210.0
 stretch = true
 mouse_filter = 2
@@ -1577,25 +1666,85 @@ shadow_enabled = true
 position = Vector3(0,9,13)
 rotation_degrees = Vector3(-30,0,0)
 projection = 1
-size = 9.8
+size = 6.8
 current = true
+
+[node name="Title" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 220.0
+offset_right = -28.0
+offset_bottom = 260.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.20,0.29,0.25,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
+
+[node name="Effect" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 282.0
+offset_right = -28.0
+offset_bottom = 354.0
+mouse_filter = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 19
+theme_override_constants/line_spacing = 6
+theme_override_colors/font_color = Color(0.27,0.35,0.30,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
+
+[node name="Motto" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0"]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -52.0
+offset_right = -20.0
+offset_bottom = -22.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.34,0.47,0.37,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Choice1" type="Button" parent="Canvas/UI/Setup/Margin/Content/Choices"]
 layout_mode = 2
-custom_minimum_size = Vector2(270,330)
+custom_minimum_size = Vector2(270,396)
+size_flags_vertical = 4
 size_flags_horizontal = 3
-text = "战略 2"
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("ChoiceNormal")
-theme_override_styles/hover = SubResource("ChoiceHover")
-theme_override_styles/pressed = SubResource("ChoiceHover")
+text = ""
+theme_override_styles/normal = ExtResource("card")
+theme_override_styles/hover = ExtResource("card")
+theme_override_styles/pressed = ExtResource("card")
+
+[node name="Ordinal" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1"]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 100.0
+offset_bottom = 45.0
+mouse_filter = 2
+text = "02"
+theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.41,0.56,0.43,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Illustration" type="SubViewportContainer" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1"]
 layout_mode = 0
 anchor_right = 1.0
-offset_left = 12.0
-offset_top = 10.0
-offset_right = -12.0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = -24.0
 offset_bottom = 210.0
 stretch = true
 mouse_filter = 2
@@ -1622,25 +1771,85 @@ shadow_enabled = true
 position = Vector3(0,9,13)
 rotation_degrees = Vector3(-30,0,0)
 projection = 1
-size = 9.8
+size = 6.8
 current = true
+
+[node name="Title" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 220.0
+offset_right = -28.0
+offset_bottom = 260.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.20,0.29,0.25,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
+
+[node name="Effect" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 282.0
+offset_right = -28.0
+offset_bottom = 354.0
+mouse_filter = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 19
+theme_override_constants/line_spacing = 6
+theme_override_colors/font_color = Color(0.27,0.35,0.30,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
+
+[node name="Motto" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1"]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -52.0
+offset_right = -20.0
+offset_bottom = -22.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.34,0.47,0.37,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Choice2" type="Button" parent="Canvas/UI/Setup/Margin/Content/Choices"]
 layout_mode = 2
-custom_minimum_size = Vector2(270,330)
+custom_minimum_size = Vector2(270,396)
+size_flags_vertical = 4
 size_flags_horizontal = 3
-text = "战略 3"
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("ChoiceNormal")
-theme_override_styles/hover = SubResource("ChoiceHover")
-theme_override_styles/pressed = SubResource("ChoiceHover")
+text = ""
+theme_override_styles/normal = ExtResource("card")
+theme_override_styles/hover = ExtResource("card")
+theme_override_styles/pressed = ExtResource("card")
+
+[node name="Ordinal" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2"]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 100.0
+offset_bottom = 45.0
+mouse_filter = 2
+text = "03"
+theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.41,0.56,0.43,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Illustration" type="SubViewportContainer" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2"]
 layout_mode = 0
 anchor_right = 1.0
-offset_left = 12.0
-offset_top = 10.0
-offset_right = -12.0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = -24.0
 offset_bottom = 210.0
 stretch = true
 mouse_filter = 2
@@ -1667,18 +1876,66 @@ shadow_enabled = true
 position = Vector3(0,9,13)
 rotation_degrees = Vector3(-30,0,0)
 projection = 1
-size = 9.8
+size = 6.8
 current = true
+
+[node name="Title" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 220.0
+offset_right = -28.0
+offset_bottom = 260.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_colors/font_color = Color(0.20,0.29,0.25,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
+
+[node name="Effect" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 28.0
+offset_top = 282.0
+offset_right = -28.0
+offset_bottom = 354.0
+mouse_filter = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 19
+theme_override_constants/line_spacing = 6
+theme_override_colors/font_color = Color(0.27,0.35,0.30,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
+
+[node name="Motto" type="Label" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2"]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -52.0
+offset_right = -20.0
+offset_bottom = -22.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.34,0.47,0.37,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0)
 
 [node name="Footnote" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
 layout_mode = 2
-text = "初始人口 20  /  军队在战斗之间恢复  /  作战失败结束本局"
+text = "初始人口 20，战斗后全军恢复。"
 autowrap_mode = 2
+horizontal_alignment = 1
 theme_override_font_sizes/font_size = 17
 
 [node name="Actions" type="HBoxContainer" parent="Canvas/UI/Setup/Margin/Content"]
 layout_mode = 2
-
+alignment = 1
+theme_override_constants/separation = 18
 
 [node name="Back" type="Button" parent="Canvas/UI/Setup/Margin/Content/Actions"]
 layout_mode = 2
@@ -1726,7 +1983,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 visible = false
-color = Color(0.015,0.04,0.03,0.78)
+color = Color(0.24,0.32,0.27,0.68)
 
 [node name="Panel" type="PanelContainer" parent="Canvas/UI/PauseMenu"]
 layout_mode = 0
@@ -1747,6 +2004,7 @@ layout_mode = 2
 layout_mode = 2
 text = "远征暂歇"
 theme_override_font_sizes/font_size = 30
+theme_override_fonts/font = ExtResource("title_font")
 
 [node name="Detail" type="Label" parent="Canvas/UI/PauseMenu/Panel/Content"]
 layout_mode = 2

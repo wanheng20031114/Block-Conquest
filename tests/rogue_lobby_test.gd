@@ -101,4 +101,6 @@ func _click(control: Control) -> void:
 		event.button_index = MOUSE_BUTTON_LEFT
 		event.pressed = pressed
 		root.push_input(event, true)
+	if session.transition.busy:
+		await session.transition.completed
 	await process_frame

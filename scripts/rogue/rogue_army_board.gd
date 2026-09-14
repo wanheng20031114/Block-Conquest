@@ -37,6 +37,7 @@ func show_formation(roster: Array, map_kind: String, uid: int) -> void:
 	%ArmyBase.visible = encounter == "siege"
 	%ArmyFootprint.visible = encounter == "siege"
 	%ArmyGround.scale = Vector3.ONE
+	$ArmyViewport/World/Table.show()
 	_camera.position = Vector3(0, 31, 22)
 	_camera.size = _formation_zoom
 	_camera.look_at(Vector3.ZERO, Vector3.UP)
@@ -73,6 +74,7 @@ func show_candidate(kind: String) -> void:
 	%ArmyFootprint.hide()
 	%ArmyMarker.hide()
 	%ArmyGround.scale = Vector3(.4, 1, .4)
+	$ArmyViewport/World/Table.hide()
 	for model: UnitVisual in _models.values():
 		model.hide()
 	if kind.is_empty():

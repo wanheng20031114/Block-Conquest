@@ -9,7 +9,6 @@ var _selected_uid := -1
 var _selected_ticket := -1
 var _candidate_kind := ""
 var _refreshing := false
-var _reveal: Tween
 
 @onready var _rogue: Node = get_node("/root/Session/Rogue")
 @onready var _board: RogueArmyBoard = %ArmyBoard
@@ -33,6 +32,7 @@ func _ready() -> void:
 	_board.unit_selected.connect(_select_uid)
 	_board.layout_requested.connect(_save_layout)
 	_rogue.changed.connect(_on_state_changed)
+	UIMotion.bind_buttons(self)
 
 func open_panel(tab: String = "formation", encounter: String = "outpost") -> void:
 	_encounter = encounter
@@ -40,17 +40,11 @@ func open_panel(tab: String = "formation", encounter: String = "outpost") -> voi
 	show()
 	_change_tab(tab)
 	_set_status("")
-	if _reveal != null:
-		_reveal.kill()
-	modulate.a = 0.0
-	_reveal = create_tween()
-	_reveal.tween_property(self, "modulate:a", 1.0, .18).set_trans(Tween.TRANS_SINE)
+	UIMotion.reveal(self, Vector2.ZERO)
 	%CloseArmy.grab_focus()
 
 func close_panel() -> void:
 	hide()
-	if _reveal != null:
-		_reveal.kill()
 	closed.emit()
 
 func _input(event: InputEvent) -> void:
@@ -70,6 +64,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 func _change_tab(tab: String) -> void:
+	var changed: bool = _tab != tab
 	_tab = tab
 	var formation := tab == "formation"
 	%FormationTab.set_pressed_no_signal(formation)
@@ -82,6 +77,8 @@ func _change_tab(tab: String) -> void:
 	%WorkspaceTitle.text = "部署阵形" if formation else "招募军队"
 	%WorkspaceHint.text = "拖动调整位置 · 右键移动 · Q / E 旋转 · 滚轮缩放" if formation else "选择招募券与兵种 · 按住模型拖动可旋转查看"
 	_refresh()
+	if changed:
+		UIMotion.reveal(get_node("Margin/Layout/Body"), Vector2(14, 0))
 
 func _on_state_changed() -> void:
 	if is_visible_in_tree() and not _refreshing:
@@ -117,7 +114,7 @@ func _refresh_roster() -> void:
 		var index := list.add_item("%s  #%02d    %d 人口" % [definition.name, int(unit["uid"]), definition.supply])
 		list.set_item_metadata(index, int(unit["uid"]))
 		list.set_item_tooltip(index, "%s · %s" % ["已编入出战军队" if bool(unit["deployed"]) else "在待命区", definition.description])
-		list.set_item_custom_fg_color(index, Color("f4cf89") if bool(unit["deployed"]) else Color("aabbb0"))
+		list.set_item_custom_fg_color(index, Color("304c38") if bool(unit["deployed"]) else Color("5e6c5d"))
 		if int(unit["uid"]) == _selected_uid:
 			selected_index = index
 	%RosterSummary.text = "出战 %d  ·  待命 %d" % [deployed_count, roster.size() - deployed_count]

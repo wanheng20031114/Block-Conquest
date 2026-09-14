@@ -170,97 +170,10 @@ _data = {"outpost": SubResource("intro_outpost"), "siege": SubResource("intro_si
     text+='\n[node name="Intro" type="AnimationPlayer" parent="."]\nlibraries = {&"": SubResource("intros")}\n'
     write(SCENES/'battle.tscn',text)
 
-def hud():
-    text='''[gd_scene format=3]
-[ext_resource type="Script" path="res://scripts/rogue/rogue_battle_hud.gd" id="script"]
-[ext_resource type="PackedScene" path="res://scenes/minimap.tscn" id="minimap"]
-[sub_resource type="StyleBoxFlat" id="panel"]
-bg_color = Color(0.065, 0.092, 0.076, 0.94)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.46, 0.51, 0.33, 0.65)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_left = 8
-corner_radius_bottom_right = 8
-[sub_resource type="StyleBoxFlat" id="button"]
-bg_color = Color(0.17, 0.23, 0.18, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
-content_margin_left = 16.0
-content_margin_right = 16.0
-content_margin_top = 12.0
-content_margin_bottom = 12.0
-[sub_resource type="StyleBoxFlat" id="hover"]
-bg_color = Color(0.30, 0.37, 0.22, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
-content_margin_left = 16.0
-content_margin_right = 16.0
-content_margin_top = 12.0
-content_margin_bottom = 12.0
-[sub_resource type="Theme" id="theme"]
-default_font_size = 18
-Label/colors/font_color = Color(0.94, 0.93, 0.83, 1)
-Button/styles/normal = SubResource("button")
-Button/styles/hover = SubResource("hover")
-Button/styles/pressed = SubResource("hover")
-PanelContainer/styles/panel = SubResource("panel")
-[node name="Interface" type="Control"]
-process_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-theme = SubResource("theme")
-script = ExtResource("script")
-'''
-    def node(name,typ,parent='.',props='',unique=True):
-        nonlocal text
-        text+=f'[node name="{name}" type="{typ}" parent="{parent}"]\n'+('unique_name_in_owner = true\n' if unique else '')+props+'\n'
-    def label(name,parent,value,size=18):
-        node(name,'Label',parent,f'layout_mode = 2\ntext = "{value}"\ntheme_override_font_sizes/font_size = {size}\nmouse_filter = 2')
-    def button(name,parent,value):
-        node(name,'Button',parent,f'layout_mode = 2\ntext = "{value}"\nmouse_default_cursor_shape = 2\nfocus_mode = 0')
-    def margin(parent,amount=20):
-        node('Margin','MarginContainer',parent,f'layout_mode = 2\ntheme_override_constants/margin_left = {amount}\ntheme_override_constants/margin_top = {amount}\ntheme_override_constants/margin_right = {amount}\ntheme_override_constants/margin_bottom = {amount}',False)
-        node('Content','VBoxContainer',parent+'/Margin','layout_mode = 2\ntheme_override_constants/separation = 9',False)
-        return parent+'/Margin/Content'
-    node('Objectives','PanelContainer',props='offset_left = 28.0\noffset_top = 28.0\noffset_right = 590.0\noffset_bottom = 204.0')
-    p=margin('Objectives')
-    label('Eyebrow',p,'OUTPOST   /   难度 1',14);label('Title',p,'前哨站',30);label('Objective',p,'摧毁所有敌方建筑物与部队',19);label('Progress',p,'剩余建筑 8 / 8   ·   敌军 16 / 16',19);label('Detail',p,'向东推进',15)
-    node('TopRight','VBoxContainer',props='anchor_left = 1.0\nanchor_right = 1.0\noffset_left = -200.0\noffset_top = 28.0\noffset_right = -28.0\noffset_bottom = 132.0\ntheme_override_constants/separation = 12')
-    label('ArmyCount','TopRight','远征军');button('Pause','TopRight','暂停   Esc')
-    node('MapPanel','PanelContainer',props='anchor_top = 1.0\nanchor_bottom = 1.0\noffset_left = 28.0\noffset_top = -240.0\noffset_right = 286.0\noffset_bottom = -28.0')
-    text+='[node name="Minimap" parent="MapPanel" instance=ExtResource("minimap")]\nunique_name_in_owner = true\ncustom_minimum_size = Vector2(256, 208)\nlayout_mode = 2\n'
-    node('Commands','PanelContainer',props='anchor_left = 1.0\nanchor_top = 1.0\nanchor_right = 1.0\nanchor_bottom = 1.0\noffset_left = -650.0\noffset_top = -168.0\noffset_right = -28.0\noffset_bottom = -28.0')
-    p=margin('Commands');label('Selection',p,'框选部队 · 右键移动或攻击',17)
-    node('Actions','HBoxContainer',p,'layout_mode = 2\ntheme_override_constants/separation = 9',False)
-    for name,value in [('Army','全军 F2'),('Attack','进攻 A'),('Stop','停止 S'),('Hold','坚守 H')]:button(name,p+'/Actions',value)
-    label('Hint',p,'Shift 连续指令  ·  Ctrl+数字编组  ·  滚轮缩放',14)
-    node('Notice','Label',props='anchor_left = 0.5\nanchor_right = 0.5\noffset_left = -450.0\noffset_top = 32.0\noffset_right = 450.0\noffset_bottom = 60.0\nhorizontal_alignment = 1\nmouse_filter = 2')
-    node('IntroPanel','PanelContainer',props='anchor_left = 0.5\nanchor_top = 1.0\nanchor_right = 0.5\nanchor_bottom = 1.0\noffset_left = -460.0\noffset_top = -280.0\noffset_right = 460.0\noffset_bottom = -74.0')
-    p=margin('IntroPanel',26);label('PortraitName',p,'侦察队长 · 罗文',22)
-    node('Dialogue','Label',p,'custom_minimum_size = Vector2(850, 60)\nlayout_mode = 2\nautowrap_mode = 2\ntext = "林地前哨站"\ntheme_override_font_sizes/font_size = 21')
-    button('Skip',p,'开始作战  /  跳过  Esc')
-    node('ModalShade','ColorRect',props='visible = false\nanchors_preset = 15\nanchor_right = 1.0\nanchor_bottom = 1.0\ncolor = Color(0.02, 0.03, 0.02, 0.64)\nmouse_filter = 0')
-    for name in ['ResultPanel','PausePanel']:
-        node(name,'PanelContainer',props='visible = false\nanchor_left = 0.5\nanchor_top = 0.5\nanchor_right = 0.5\nanchor_bottom = 0.5\noffset_left = -365.0\noffset_top = -190.0\noffset_right = 365.0\noffset_bottom = 190.0')
-        p=margin(name,32)
-        if name=='ResultPanel':
-            label('ResultTitle',p,'作战胜利',36);label('ResultBody',p,'军队准备继续探索。',20);label('ResultDetail',p,'结算',16);button('Continue',p,'领取结算')
-        else:
-            label('PauseTitle',p,'作战暂停',32);label('PauseBody',p,'暂离后将从最近一次节点结算存档继续。',18);button('Resume',p,'继续作战');button('Settings',p,'游戏设置');button('Leave',p,'暂离到主菜单')
-    write(SCENES/'battle_hud.tscn',text)
+# battle_hud.tscn is an authored scene. Keep its shared material styles and layout
+# under editor control; rebuilding world geometry must not replace the interface.
 
 make_map('outpost',112,64)
 make_map('siege',80,80)
 battle_scene()
-hud()
-print('Authored two rogue maps, battle scene, HUD and balance resources.')
+print('Authored two rogue maps, battle scene and balance resources; authored HUD preserved.')

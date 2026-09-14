@@ -6,8 +6,10 @@ var online: bool = false
 @onready var relay: RelayClient = $RelayClient
 @onready var settings: GameSettings = $Settings
 @onready var rogue: RogueSession = $Rogue
+@onready var transition: UITransition = $Transition
 
 func _ready() -> void:
+	transition.failed.connect(_on_transition_failed)
 	record_diagnostic("startup", {"engine": Engine.get_version_info().string, "display": DisplayServer.get_name(),
 		"renderer": RenderingServer.get_current_rendering_method(), "audio": AudioServer.get_driver_name(),
 		"shader_uniform_slots": ProjectSettings.get_setting("rendering/limits/global_shader_variables/buffer_size"),
@@ -20,6 +22,8 @@ func _ready() -> void:
 		add_child.call_deferred(preload("res://scripts/qa/rogue_release_probe.tscn").instantiate())
 
 func start_offline(mode: String, bot_difficulty: String = "normal") -> Error:
+	if transition.busy:
+		return ERR_BUSY
 	if mode not in NetworkProtocol.MODES:
 		load_failed.emit("所选对局模式无效，请重新选择")
 		return ERR_INVALID_PARAMETER
@@ -40,6 +44,8 @@ static func offline_config(mode: String, bot_difficulty: String = "normal") -> D
 	return match_data
 
 func start_online(match_data: Dictionary) -> Error:
+	if transition.busy:
+		return ERR_BUSY
 	if not NetworkProtocol.match_config_error(match_data).is_empty():
 		relay.leave_room()
 		online = false
@@ -52,20 +58,22 @@ func start_online(match_data: Dictionary) -> Error:
 	return _load_match_scene()
 
 func start_sandbox(map_mode: String = "1v1") -> Error:
+	if transition.busy:
+		return ERR_BUSY
 	if map_mode not in NetworkProtocol.MODES:
 		return ERR_INVALID_PARAMETER
 	relay.leave_room()
 	relay.disconnect_relay()
 	online = false
 	config = {"mode": map_mode}
-	var error := get_tree().change_scene_to_file("res://scenes/sandbox.tscn")
+	var error := change_scene("res://scenes/sandbox.tscn")
 	if error != OK:
 		config.clear()
 		load_failed.emit("无法载入自由沙盘，请检查游戏文件后重试")
 	return error
 
 func _load_match_scene() -> Error:
-	var error := get_tree().change_scene_to_file("res://scenes/main.tscn")
+	var error := change_scene("res://scenes/main.tscn")
 	if error != OK:
 		if online:
 			relay.leave_room()
@@ -75,12 +83,32 @@ func _load_match_scene() -> Error:
 	return error
 
 func back_to_lobby() -> void:
+	if transition.busy:
+		return
 	record_diagnostic("return_to_lobby")
 	get_tree().paused = false
 	relay.leave_room()
 	online = false
 	config.clear()
-	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
+	var error: Error = change_scene("res://scenes/lobby.tscn")
+	if error != OK:
+		load_failed.emit("无法返回主菜单，请检查游戏文件后重试")
+
+func change_scene(path: String) -> Error:
+	return transition.change_scene(path)
+
+func _on_transition_failed(path: String, _error: Error) -> void:
+	# Resource validation is synchronous. If SceneTree itself cannot instantiate
+	# the validated scene, the curtain still opens and the old screen can retry.
+	if path in ["res://scenes/main.tscn", "res://scenes/sandbox.tscn"]:
+		if online:
+			relay.leave_room()
+		online = false
+		config.clear()
+	if path in [RogueSession.MAP_SCENE, RogueSession.BATTLE_SCENE]:
+		rogue.error_message = "无法加载远征场景，请检查游戏文件后重试"
+		rogue.changed.emit()
+	load_failed.emit("无法切换场景，请检查游戏文件后重试")
 
 func record_diagnostic(event: String, details: Dictionary = {}) -> void:
 	# Only bounded lifecycle/health facts reach this local log. Never dump the

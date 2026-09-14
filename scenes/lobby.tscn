@@ -1,8 +1,8 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/lobby.gd" id="script"]
 
-[ext_resource type="Theme" path="res://assets/ui/menu_theme.tres" id="menu_theme"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="menu_theme"]
 
 [ext_resource type="PackedScene" path="res://assets/models/environment/player_barracks.tscn" id="barracks"]
 
@@ -22,36 +22,13 @@
 
 [ext_resource type="PackedScene" path="res://assets/models/units/archer.tscn" id="hero_archer"]
 
-[sub_resource type="SystemFont" id="Bold"]
-font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC")
-font_weight = 700
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="med_title"]
 
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/primary.tres" id="med_Primary"]
 
-[sub_resource type="StyleBoxFlat" id="Primary"]
-bg_color = Color(0.70,0.52,0.27,1)
-content_margin_left = 22.0
-content_margin_right = 22.0
-content_margin_top = 15.0
-content_margin_bottom = 15.0
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/primary_hover.tres" id="med_PrimaryHover"]
 
-
-[sub_resource type="StyleBoxFlat" id="PrimaryHover"]
-bg_color = Color(0.84,0.66,0.37,1)
-content_margin_left = 22.0
-content_margin_right = 22.0
-content_margin_top = 15.0
-content_margin_bottom = 15.0
-
-
-[sub_resource type="StyleBoxFlat" id="Pressed"]
-bg_color = Color(0.29,0.22,0.12,1)
-border_width_bottom = 2
-border_color = Color(0.92,0.75,0.43,1)
-content_margin_left = 18.0
-content_margin_right = 18.0
-content_margin_top = 10.0
-content_margin_bottom = 10.0
-
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/pressed.tres" id="med_Pressed"]
 
 [sub_resource type="ButtonGroup" id="OnlineModes"]
 
@@ -87,7 +64,7 @@ adjustment_contrast = 1.06
 adjustment_saturation = 0.93
 
 [sub_resource type="Shader" id="Scrim"]
-code = "shader_type canvas_item;\nvoid fragment() {\n float side = smoothstep(0.26,0.81,UV.x);\n float edge = smoothstep(0.45,0.98,abs(UV.y-0.50)*2.0);\n COLOR = vec4(vec3(0.045,0.036,0.026),clamp(mix(0.97,0.05,side)+edge*0.12,0.0,0.98));\n}"
+code = "shader_type canvas_item;\nvoid fragment() {\n float side = smoothstep(0.26,0.81,UV.x);\n float edge = smoothstep(0.45,0.98,abs(UV.y-0.50)*2.0);\n COLOR = vec4(vec3(0.10,0.18,0.17),clamp(mix(0.97,0.05,side)+edge*0.12,0.0,0.98));\n}"
 
 [sub_resource type="ShaderMaterial" id="ScrimMaterial"]
 shader = SubResource("Scrim")
@@ -211,9 +188,9 @@ material = SubResource("ScrimMaterial")
 
 [node name="Brand" type="VBoxContainer" parent="CanvasLayer/UI"]
 unique_name_in_owner = true
-offset_left = 86.0
-offset_top = 136.0
-offset_right = 626.0
+offset_left = 88.0
+offset_top = 126.0
+offset_right = 640.0
 offset_bottom = 270.0
 mouse_filter = 2
 theme_override_constants/separation = 5
@@ -222,76 +199,77 @@ theme_override_constants/separation = 5
 layout_mode = 2
 text = "积木世界 · 即时战略"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.79,0.63,0.35,1)
+theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
 
 [node name="Title" type="Label" parent="CanvasLayer/UI/Brand"]
 layout_mode = 2
 text = "积木争霸"
-theme_override_fonts/font = SubResource("Bold")
+theme_override_fonts/font = ExtResource("med_title")
 theme_override_font_sizes/font_size = 66
-theme_override_colors/font_color = Color(0.94,0.86,0.69,1)
+theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
 
 [node name="Subtitle" type="Label" parent="CanvasLayer/UI/Brand"]
 layout_mode = 2
 text = "筑起城镇，率领你的军队。"
 theme_override_font_sizes/font_size = 19
-theme_override_colors/font_color = Color(0.62,0.57,0.46,1)
+theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
 
 [node name="MainMenu" type="VBoxContainer" parent="CanvasLayer/UI"]
 unique_name_in_owner = true
 offset_left = 88.0
-offset_top = 355.0
+offset_top = 315.0
 offset_right = 480.0
 offset_bottom = 710.0
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="SoloMenu" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 64)
-text = "单人对战     →"
-alignment = 0
-theme_override_font_sizes/font_size = 23
-theme_override_styles/normal = SubResource("Primary")
-theme_override_styles/hover = SubResource("PrimaryHover")
-theme_override_colors/font_focus_color = Color(0.075,0.061,0.040,1)
-theme_override_colors/font_color = Color(0.075,0.061,0.040,1)
-theme_override_colors/font_hover_color = Color(0.075,0.061,0.040,1)
+text = "单人对战"
+alignment = 1
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+theme_override_fonts/font = ExtResource("med_title")
+theme_type_variation = &"MedievalPrimary"
 
 [node name="Multiplayer" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0,64)
-text = "多人房间     →"
-alignment = 0
-theme_override_font_sizes/font_size = 23
+text = "多人房间"
+alignment = 1
+theme_override_font_sizes/font_size = 25
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="RogueMode" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.89, 0.62, 1)
-theme_override_font_sizes/font_size = 23
-text = "林海远征     →"
+theme_override_font_sizes/font_size = 25
+text = "林海远征"
 tooltip_text = "单人肉鸽 · 森林探索、军团编队与前哨站作战"
-alignment = 0
-
+alignment = 1
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="Codex" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 64)
-text = "战争图鉴     →"
-alignment = 0
-theme_override_font_sizes/font_size = 23
+text = "战争图鉴"
+alignment = 1
+theme_override_font_sizes/font_size = 25
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="Sandbox" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 56)
-text = "自由沙盘     →"
-alignment = 0
-theme_override_font_sizes/font_size = 23
+text = "自由沙盘"
+alignment = 1
+theme_override_font_sizes/font_size = 25
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="UtilityActions" type="HBoxContainer" parent="CanvasLayer/UI/MainMenu"]
 layout_mode = 2
@@ -302,6 +280,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0,43)
 text = "设置"
+theme_type_variation = &"MedievalCompact"
 
 [node name="QuitGame" type="Button" parent="CanvasLayer/UI/MainMenu/UtilityActions"]
 unique_name_in_owner = true
@@ -309,6 +288,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0,43)
 text = "退出游戏"
+theme_type_variation = &"MedievalCompact"
 
 [node name="SoloPanel" type="PanelContainer" parent="CanvasLayer/UI"]
 unique_name_in_owner = true
@@ -340,16 +320,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "单人对战"
 theme_override_font_sizes/font_size = 30
+theme_override_fonts/font = ExtResource("med_title")
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="CloseSolo" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading"]
 layout_mode = 2
 text = "返回"
+theme_type_variation = &"MedievalCompact"
 
 [node name="ModeLabel" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 layout_mode = 2
 text = "选择对战规模"
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.67,0.61,0.49,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="ModeRow" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 layout_mode = 2
@@ -422,13 +405,15 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "琥珀十字路"
 theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("med_title")
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="MapDetail" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "96 × 96   ·   六座矿脉"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.61,0.56,0.45,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="DifficultyRow" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 layout_mode = 2
@@ -438,6 +423,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 text = "电脑难度"
 theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="SoloDifficulty" type="OptionButton" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow"]
 unique_name_in_owner = true
@@ -452,7 +438,7 @@ layout_mode = 2
 text = "困难起，电脑农民每次采集获得 2 / 3 / 4 倍金币。"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.64,0.58,0.47,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Divider" type="HSeparator" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 layout_mode = 2
@@ -464,13 +450,10 @@ layout_mode = 2
 custom_minimum_size = Vector2(0,67)
 text = "开始单人对战"
 theme_override_font_sizes/font_size = 23
-theme_override_colors/font_focus_color = Color(0.075,0.061,0.040,1)
-theme_override_styles/normal = SubResource("Primary")
-theme_override_styles/hover = SubResource("PrimaryHover")
-theme_override_styles/pressed = SubResource("Pressed")
-theme_override_colors/font_color = Color(0.075,0.061,0.040,1)
-theme_override_colors/font_hover_color = Color(0.075,0.061,0.040,1)
-theme_override_fonts/font = SubResource("Bold")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="SoloDescription" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 unique_name_in_owner = true
@@ -478,14 +461,14 @@ layout_mode = 2
 text = "与一位电脑对手交锋。"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.64,0.58,0.47,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="SoloLoadMessage" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.89,0.69,0.49,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="OnlinePanel" type="PanelContainer" parent="CanvasLayer/UI"]
 unique_name_in_owner = true
@@ -517,8 +500,9 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "多人房间"
-theme_override_fonts/font = SubResource("Bold")
+theme_override_fonts/font = ExtResource("med_title")
 theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="CloseOnline" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading"]
 unique_name_in_owner = true
@@ -526,13 +510,14 @@ layout_mode = 2
 text = "返回主菜单"
 tooltip_text = "离开当前房间并返回主菜单"
 theme_override_font_sizes/font_size = 15
+theme_type_variation = &"MedievalCompact"
 
 [node name="ConnectionStatus" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "尚未连接"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.65,0.58,0.45,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Setup" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
 unique_name_in_owner = true
@@ -611,6 +596,7 @@ theme_override_font_sizes/font_size = 18
 layout_mode = 2
 text = "你的称呼"
 theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Nickname" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
 unique_name_in_owner = true
@@ -624,6 +610,7 @@ placeholder_text = "指挥官"
 layout_mode = 2
 text = "房间服务器"
 theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="ServerAddress" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
 unique_name_in_owner = true
@@ -638,13 +625,10 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0,55)
 text = "创建 1v1 房间"
-theme_override_colors/font_focus_color = Color(0.075,0.061,0.040,1)
-theme_override_styles/normal = SubResource("Primary")
-theme_override_styles/hover = SubResource("PrimaryHover")
-theme_override_styles/pressed = SubResource("Pressed")
-theme_override_colors/font_color = Color(0.075,0.061,0.040,1)
-theme_override_colors/font_hover_color = Color(0.075,0.061,0.040,1)
-theme_override_fonts/font = SubResource("Bold")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="Divider" type="HSeparator" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
 layout_mode = 2
@@ -654,6 +638,7 @@ custom_minimum_size = Vector2(0,21)
 layout_mode = 2
 text = "加入朋友的房间"
 theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="InviteRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
 layout_mode = 2
@@ -684,6 +669,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "1v1   /   琥珀十字路"
 theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="CodeRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
 layout_mode = 2
@@ -694,14 +680,15 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "--------"
 theme_override_font_sizes/font_size = 33
-theme_override_fonts/font = SubResource("Bold")
-theme_override_colors/font_color = Color(0.90,0.74,0.43,1)
+theme_override_fonts/font = ExtResource("med_title")
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="CopyInvite" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "复制邀请码"
 theme_override_font_sizes/font_size = 16
+theme_type_variation = &"MedievalCompact"
 
 [node name="Divider" type="HSeparator" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
 layout_mode = 2
@@ -712,7 +699,7 @@ layout_mode = 2
 text = "联盟一：1、2    /    联盟二：3、4"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.82,0.73,0.54,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="SlotScroll" type="ScrollContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
 unique_name_in_owner = true
@@ -738,7 +725,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "01"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
 layout_mode = 2
@@ -747,6 +734,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
 layout_mode = 2
@@ -778,6 +766,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot1" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -789,7 +778,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "02"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
 layout_mode = 2
@@ -798,6 +787,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
 layout_mode = 2
@@ -829,6 +819,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot2" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -840,7 +831,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "03"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
 layout_mode = 2
@@ -849,6 +840,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
 layout_mode = 2
@@ -880,6 +872,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot3" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -891,7 +884,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "04"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
 layout_mode = 2
@@ -900,6 +893,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
 layout_mode = 2
@@ -931,6 +925,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot4" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -942,7 +937,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "05"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
 layout_mode = 2
@@ -951,6 +946,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
 layout_mode = 2
@@ -982,6 +978,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot5" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -993,7 +990,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "06"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
 layout_mode = 2
@@ -1002,6 +999,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
 layout_mode = 2
@@ -1033,6 +1031,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot6" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -1044,7 +1043,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "07"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
 layout_mode = 2
@@ -1053,6 +1052,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
 layout_mode = 2
@@ -1084,6 +1084,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Slot7" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
 layout_mode = 2
@@ -1095,7 +1096,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(25,0)
 text = "08"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.55,0.46,0.30,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
 layout_mode = 2
@@ -1104,6 +1105,7 @@ size_flags_horizontal = 3
 text = "等待加入"
 text_overrun_behavior = 3
 theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
 layout_mode = 2
@@ -1135,6 +1137,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(77,0)
 text = "等待加入"
 theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="FillBots" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
 unique_name_in_owner = true
@@ -1152,7 +1155,7 @@ size_flags_vertical = 1
 autowrap_mode = 2
 text = "邀请朋友或添加电脑。空位可以保留。"
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.67,0.61,0.49,1)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Actions" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
 layout_mode = 2
@@ -1163,13 +1166,10 @@ layout_mode = 2
 custom_minimum_size = Vector2(0,57)
 size_flags_horizontal = 3
 text = "开始对战"
-theme_override_colors/font_focus_color = Color(0.075,0.061,0.040,1)
-theme_override_styles/normal = SubResource("Primary")
-theme_override_styles/hover = SubResource("PrimaryHover")
-theme_override_styles/pressed = SubResource("Pressed")
-theme_override_colors/font_color = Color(0.075,0.061,0.040,1)
-theme_override_colors/font_hover_color = Color(0.075,0.061,0.040,1)
-theme_override_fonts/font = SubResource("Bold")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="Ready" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions"]
 unique_name_in_owner = true
@@ -1178,13 +1178,10 @@ custom_minimum_size = Vector2(0,57)
 size_flags_horizontal = 3
 text = "准备就绪"
 toggle_mode = true
-theme_override_colors/font_focus_color = Color(0.075,0.061,0.040,1)
-theme_override_styles/normal = SubResource("Primary")
-theme_override_styles/hover = SubResource("PrimaryHover")
-theme_override_styles/pressed = SubResource("Pressed")
-theme_override_colors/font_color = Color(0.075,0.061,0.040,1)
-theme_override_colors/font_hover_color = Color(0.075,0.061,0.040,1)
-theme_override_fonts/font = SubResource("Bold")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_fonts/font = ExtResource("med_title")
 
 [node name="LeaveRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions"]
 unique_name_in_owner = true
@@ -1192,6 +1189,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(133,57)
 text = "离开房间"
 theme_override_font_sizes/font_size = 17
+theme_type_variation = &"MedievalCompact"
 
 [node name="RequestActions" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
 layout_mode = 2
@@ -1214,6 +1212,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(0,44)
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
 [node name="Footer" type="Label" parent="CanvasLayer/UI"]
 layout_mode = 0
@@ -1225,7 +1224,7 @@ offset_right = 800.0
 offset_bottom = -25.0
 text = "鼠标框选   ·   右键指令   ·   Shift 连续任务"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.45,0.40,0.32,1)
+theme_override_colors/font_color = Color(0.77,0.84,0.75,1)
 
 [node name="Version" type="Label" parent="CanvasLayer/UI"]
 unique_name_in_owner = true
@@ -1241,7 +1240,7 @@ offset_bottom = -25.0
 horizontal_alignment = 2
 text = "即时战略"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.65,0.56,0.39,1)
+theme_override_colors/font_color = Color(0.77,0.84,0.75,1)
 
 [node name="RequestTimeout" type="Timer" parent="."]
 unique_name_in_owner = true

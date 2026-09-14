@@ -3,6 +3,11 @@ extends Control
 var game: Node3D
 var _notice_seconds: float = 0.0
 
+func _ready() -> void:
+	UIMotion.bind_buttons(self)
+	UIMotion.reveal.call_deferred(%Objectives, Vector2(0, -8))
+	UIMotion.reveal.call_deferred(%IntroPanel)
+
 func bind_game(controller: Node3D) -> void:
 	game = controller
 	%Minimap.game = game
@@ -22,7 +27,7 @@ func refresh() -> void:
 	if game == null or game.encounter == null:
 		return
 	%Title.text = "围剿" if game.battle_kind == "siege" else ("前哨站 · 紧急作战" if game.emergency else "前哨站")
-	%Eyebrow.text = ("ENCIRCLEMENT   /   生存作战   /   难度 %d" if game.battle_kind == "siege" else "OUTPOST   /   难度 %d") % game.encounter.difficulty
+	%Eyebrow.text = ("作战目标 · 坚守待援 · 难度 %d" if game.battle_kind == "siege" else "作战目标 · 肃清据点 · 难度 %d") % game.encounter.difficulty
 	if game.battle_kind == "siege":
 		var seconds: int = maxi(0, ceili(game.encounter.duration - game.elapsed))
 		%Objective.text = "守住中央大本营，等待援军抵达"
@@ -62,6 +67,7 @@ func show_result(victory: bool, duration: float, defeated: int) -> void:
 	%IntroPanel.hide()
 	%ModalShade.show()
 	%ResultPanel.show()
+	UIMotion.reveal(%ResultPanel, Vector2(0, 18))
 	%ResultTitle.text = "坚守成功" if victory and game.battle_kind == "siege" else ("作战胜利" if victory else "远征结束")
 	%ResultBody.text = ("援军抵达，围剿已经瓦解。前往整顿营地。" if game.battle_kind == "siege" else "前哨站已肃清，军队准备继续探索。") if victory else ("大本营被摧毁，本次远征到此结束。" if game.battle_kind == "siege" else "部署部队已全部阵亡，本次远征到此结束。")
 	%ResultDetail.text = "作战用时 %02d:%02d    ·    击败敌军 %d\n军队名册与初始编队保留，本场伤亡不带出战场。" % [int(duration) / 60, int(duration) % 60, defeated]
@@ -70,6 +76,8 @@ func show_result(victory: bool, duration: float, defeated: int) -> void:
 func show_pause(value: bool) -> void:
 	%PausePanel.visible = value
 	%ModalShade.visible = value
+	if value:
+		UIMotion.reveal(%PausePanel)
 
 func help_visible() -> bool:
 	return false

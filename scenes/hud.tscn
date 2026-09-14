@@ -1,4 +1,9 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene format=3]
+[ext_resource type="Theme" path="res://assets/ui/medieval/battle_controls.tres" id="battle_controls"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/battle_backboard.tres" id="battle_board"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/parchment.tres" id="medieval_paper"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="medieval_title"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="medieval_theme"]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="hud"]
 
@@ -8,119 +13,6 @@
 
 [ext_resource type="PackedScene" path="res://scenes/production_queue_slot.tscn" id="queue_slot"]
 
-[sub_resource type="SystemFont" id="font"]
-font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC")
-font_weight = 500
-
-[sub_resource type="SystemFont" id="bold"]
-font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC")
-font_weight = 700
-
-[sub_resource type="StyleBoxFlat" id="panel"]
-bg_color = Color(0.075,0.085,0.085,0.96)
-border_color = Color(0.40,0.34,0.23,0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-content_margin_left = 8.0
-content_margin_right = 8.0
-
-[sub_resource type="StyleBoxFlat" id="normal"]
-bg_color = Color(0.15,0.155,0.145,0.96)
-border_color = Color(0.40,0.36,0.27,0.7)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-content_margin_left = 8.0
-content_margin_right = 8.0
-
-[sub_resource type="StyleBoxFlat" id="hover"]
-bg_color = Color(0.25,0.245,0.18,1)
-border_color = Color(0.8,0.65,0.36,1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-content_margin_left = 8.0
-content_margin_right = 8.0
-
-[sub_resource type="StyleBoxFlat" id="pressed"]
-bg_color = Color(0.34,0.28,0.16,1)
-border_color = Color(0.92,0.77,0.43,1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-content_margin_left = 8.0
-content_margin_right = 8.0
-
-[sub_resource type="StyleBoxFlat" id="disabled"]
-bg_color = Color(0.105,0.115,0.11,0.95)
-border_color = Color(0.27,0.28,0.23,0.8)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-content_margin_left = 8.0
-content_margin_right = 8.0
-
-[sub_resource type="StyleBoxFlat" id="hp_bg"]
-bg_color = Color(0.055,0.065,0.06,1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_left = 2
-corner_radius_bottom_right = 2
-
-[sub_resource type="StyleBoxFlat" id="hp_fg"]
-bg_color = Color(0.49,0.65,0.40,1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_left = 2
-corner_radius_bottom_right = 2
-
-[sub_resource type="Theme" id="theme"]
-default_font = SubResource("font")
-default_font_size = 15
-Button/colors/font_color = Color(0.9,0.88,0.79,1)
-Button/colors/font_hover_color = Color(1,0.94,0.74,1)
-Button/colors/font_disabled_color = Color(0.43,0.46,0.44,1)
-Button/styles/normal = SubResource("normal")
-Button/styles/hover = SubResource("hover")
-Button/styles/pressed = SubResource("pressed")
-Button/styles/disabled = SubResource("disabled")
-Button/styles/focus = SubResource("hover")
-Label/colors/font_color = Color(0.90,0.90,0.84,1)
-Label/colors/font_shadow_color = Color(0.04,0.04,0.035,0.8)
-Label/constants/shadow_offset_x = 1
-Label/constants/shadow_offset_y = 1
-Panel/styles/panel = SubResource("panel")
-ProgressBar/styles/background = SubResource("hp_bg")
-ProgressBar/styles/fill = SubResource("hp_fg")
-TooltipPanel/styles/panel = SubResource("panel")
-TooltipLabel/colors/font_color = Color(0.94,0.91,0.79,1)
-
 [node name="Interface" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -129,7 +21,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme = SubResource("theme")
+theme = ExtResource("medieval_theme")
 script = ExtResource("hud")
 process_mode = 3
 
@@ -154,7 +46,9 @@ text = "积木争霸  /  边境战役"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.92,0.81,0.56,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="Title" type="Label" parent="TopLeft"]
 layout_mode = 0
@@ -166,7 +60,10 @@ text = "积木争霸"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 31
-theme_override_fonts/font = SubResource("bold")
+theme_override_fonts/font = ExtResource("medieval_title")
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="Location" type="Label" parent="TopLeft"]
 layout_mode = 0
@@ -178,7 +75,9 @@ text = "琥珀十字路  ·  1v1 遭遇战"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.84,0.82,0.72,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="Objective" type="Label" parent="TopLeft"]
 layout_mode = 0
@@ -191,6 +90,9 @@ mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 16
 unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="EnemyCount" type="Label" parent="TopLeft"]
 layout_mode = 0
@@ -202,8 +104,10 @@ text = "敌军 30    击败 0"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.82,0.79,0.66,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
 unique_name_in_owner = true
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="Resources" type="Panel" parent="."]
 layout_mode = 0
@@ -221,11 +125,10 @@ offset_left = 18
 offset_top = 8
 offset_right = 90
 offset_bottom = 30
-text = "◈  金币"
+text = "金币"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.87,0.74,0.45,1)
 
 [node name="GoldValue" type="Label" parent="Resources"]
 layout_mode = 0
@@ -237,10 +140,10 @@ text = "320"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 28
-theme_override_fonts/font = SubResource("bold")
-theme_override_colors/font_color = Color(1,0.86,0.53,1)
+theme_override_fonts/font = ExtResource("medieval_title")
 unique_name_in_owner = true
 clip_text = true
+theme_override_colors/font_color = Color(0.49, 0.35, 0.16, 1)
 
 [node name="Income" type="Label" parent="Resources"]
 layout_mode = 0
@@ -252,7 +155,6 @@ text = "自然 +1/秒"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.69,0.66,0.51,1)
 
 [node name="ArmyCaption" type="Label" parent="Resources"]
 layout_mode = 0
@@ -264,7 +166,6 @@ text = "人口 · 含训练"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.67,0.77,0.8,1)
 
 [node name="ArmyValue" type="Label" parent="Resources"]
 layout_mode = 0
@@ -300,12 +201,15 @@ text = "00:00"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.84,0.81,0.70,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
 unique_name_in_owner = true
 anchor_left = 1.0
 anchor_right = 1.0
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="HelpButton" type="Button" parent="."]
+theme = ExtResource("battle_controls")
 layout_mode = 0
 offset_left = -153
 offset_top = 108
@@ -316,8 +220,10 @@ unique_name_in_owner = true
 focus_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
+theme_override_font_sizes/font_size = 15
 
 [node name="PauseButton" type="Button" parent="."]
+theme = ExtResource("battle_controls")
 layout_mode = 0
 offset_left = -68
 offset_top = 108
@@ -328,8 +234,11 @@ unique_name_in_owner = true
 focus_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
+theme_override_font_sizes/font_size = 15
 
 [node name="CommandBar" type="Panel" parent="."]
+theme_override_styles/panel = ExtResource("battle_board")
+theme = ExtResource("battle_controls")
 layout_mode = 0
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -341,6 +250,8 @@ offset_bottom = -22.0
 grow_vertical = 0
 
 [node name="MapFrame" type="Panel" parent="."]
+theme_override_styles/panel = ExtResource("battle_board")
+theme = ExtResource("battle_controls")
 layout_mode = 0
 offset_left = 24
 offset_top = -226
@@ -360,7 +271,6 @@ text = "琥珀十字路"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.8,0.77,0.63,1)
 
 [node name="Minimap" parent="MapFrame" instance=ExtResource("minimap")]
 layout_mode = 0
@@ -393,7 +303,9 @@ clip_text = true
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.91,0.85,0.69,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="SelectedPortrait" type="TextureRect" parent="CommandBar/Selection"]
 layout_mode = 0
@@ -416,7 +328,6 @@ text = "蓝旗军团"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.53,0.72,0.84,1)
 unique_name_in_owner = true
 
 [node name="SelectedName" type="Label" parent="CommandBar/Selection"]
@@ -429,7 +340,6 @@ text = "大本营"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 20
-theme_override_fonts/font = SubResource("bold")
 unique_name_in_owner = true
 
 [node name="SelectionHP" type="ProgressBar" parent="CommandBar/Selection"]
@@ -452,7 +362,6 @@ text = "2200 / 2200"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.72,0.77,0.62,1)
 unique_name_in_owner = true
 
 [node name="SelectedStats" type="Label" parent="CommandBar/Selection"]
@@ -465,7 +374,6 @@ text = "每秒 +1 金币\n右键设置集结点"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.72,0.74,0.7,1)
 unique_name_in_owner = true
 autowrap_mode = 2
 
@@ -475,7 +383,7 @@ offset_left = 323
 offset_top = 17
 offset_right = 324
 offset_bottom = 141
-color = Color(0.45,0.39,0.27,0.55)
+color = Color(0.49, 0.55, 0.49, 0.25)
 mouse_filter = 2
 
 [node name="Recruitment" type="Control" parent="CommandBar"]
@@ -496,7 +404,9 @@ text = "生产与研究"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.91,0.85,0.69,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="RecruitHint" type="Label" parent="CommandBar/Recruitment"]
 layout_mode = 0
@@ -508,9 +418,11 @@ text = "金币入队扣除 · 可取消退款"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.80,0.76,0.63,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
 unique_name_in_owner = true
 horizontal_alignment = 2
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="QueueStrip" type="Control" parent="CommandBar/Recruitment"]
 unique_name_in_owner = true
@@ -569,12 +481,14 @@ visible = false
 layout_mode = 2
 
 [node name="Caption" type="Label" parent="CommandBar/Recruitment/QueueStrip"]
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 layout_mode = 0
 offset_left = 446.0
 offset_right = 566.0
 offset_bottom = 18.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.91, 0.85, 0.69, 1)
 theme_override_font_sizes/font_size = 11
 text = "点击格子取消"
 vertical_alignment = 1
@@ -589,8 +503,12 @@ offset_bottom = 40.0
 focus_mode = 0
 text = "‹"
 tooltip_text = "上一页队列"
+theme_override_font_sizes/font_size = 15
 
 [node name="QueuePage" type="Label" parent="CommandBar/Recruitment/QueueStrip"]
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 unique_name_in_owner = true
 visible = false
 offset_left = 472.0
@@ -613,6 +531,7 @@ offset_bottom = 40.0
 focus_mode = 0
 text = "›"
 tooltip_text = "下一页队列"
+theme_override_font_sizes/font_size = 15
 
 [node name="Recruit0" type="Button" parent="CommandBar/Recruitment"]
 layout_mode = 0
@@ -623,6 +542,7 @@ offset_bottom = 142
 text = ""
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="Portrait" type="TextureRect" parent="CommandBar/Recruitment/Recruit0"]
 layout_mode = 0
@@ -644,7 +564,6 @@ text = "Q"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.75,0.78,0.72,1)
 
 [node name="Name" type="Label" parent="CommandBar/Recruitment/Recruit0"]
 layout_mode = 0
@@ -656,7 +575,6 @@ text = "剑士"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_fonts/font = SubResource("bold")
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="CommandBar/Recruitment/Recruit0"]
@@ -669,7 +587,6 @@ text = "◈ 45"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.92,0.79,0.49,1)
 horizontal_alignment = 1
 
 [node name="Recruit1" type="Button" parent="CommandBar/Recruitment"]
@@ -681,6 +598,7 @@ offset_bottom = 142
 text = ""
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="Portrait" type="TextureRect" parent="CommandBar/Recruitment/Recruit1"]
 layout_mode = 0
@@ -702,7 +620,6 @@ text = "W"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.75,0.78,0.72,1)
 
 [node name="Name" type="Label" parent="CommandBar/Recruitment/Recruit1"]
 layout_mode = 0
@@ -714,7 +631,6 @@ text = "弓箭手"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_fonts/font = SubResource("bold")
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="CommandBar/Recruitment/Recruit1"]
@@ -727,7 +643,6 @@ text = "◈ 60"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.92,0.79,0.49,1)
 horizontal_alignment = 1
 
 [node name="Recruit2" type="Button" parent="CommandBar/Recruitment"]
@@ -739,6 +654,7 @@ offset_bottom = 142
 text = ""
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="Portrait" type="TextureRect" parent="CommandBar/Recruitment/Recruit2"]
 layout_mode = 0
@@ -760,7 +676,6 @@ text = "E"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.75,0.78,0.72,1)
 
 [node name="Name" type="Label" parent="CommandBar/Recruitment/Recruit2"]
 layout_mode = 0
@@ -772,7 +687,6 @@ text = "骑士"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_fonts/font = SubResource("bold")
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="CommandBar/Recruitment/Recruit2"]
@@ -785,7 +699,6 @@ text = "◈ 80"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.92,0.79,0.49,1)
 horizontal_alignment = 1
 
 [node name="Recruit3" type="Button" parent="CommandBar/Recruitment"]
@@ -797,6 +710,7 @@ offset_bottom = 142
 text = ""
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="Portrait" type="TextureRect" parent="CommandBar/Recruitment/Recruit3"]
 layout_mode = 0
@@ -818,7 +732,6 @@ text = "R"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.75,0.78,0.72,1)
 
 [node name="Name" type="Label" parent="CommandBar/Recruitment/Recruit3"]
 layout_mode = 0
@@ -830,7 +743,6 @@ text = "投石车"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_fonts/font = SubResource("bold")
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="CommandBar/Recruitment/Recruit3"]
@@ -843,7 +755,6 @@ text = "◈ 140"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.92,0.79,0.49,1)
 horizontal_alignment = 1
 
 [node name="Recruit4" type="Button" parent="CommandBar/Recruitment"]
@@ -855,6 +766,7 @@ offset_bottom = 142
 text = ""
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="Portrait" type="TextureRect" parent="CommandBar/Recruitment/Recruit4"]
 layout_mode = 0
@@ -876,7 +788,6 @@ text = "T"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.75,0.78,0.72,1)
 
 [node name="Name" type="Label" parent="CommandBar/Recruitment/Recruit4"]
 layout_mode = 0
@@ -888,7 +799,6 @@ text = "加农炮"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_fonts/font = SubResource("bold")
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="CommandBar/Recruitment/Recruit4"]
@@ -901,7 +811,6 @@ text = "◈ 180"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.92,0.79,0.49,1)
 horizontal_alignment = 1
 
 [node name="Recruit5" type="Button" parent="CommandBar/Recruitment"]
@@ -913,6 +822,7 @@ offset_bottom = 142
 text = ""
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="Portrait" type="TextureRect" parent="CommandBar/Recruitment/Recruit5"]
 layout_mode = 0
@@ -934,7 +844,6 @@ text = "Y"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.75,0.78,0.72,1)
 
 [node name="Name" type="Label" parent="CommandBar/Recruitment/Recruit5"]
 layout_mode = 0
@@ -946,7 +855,6 @@ text = "农民"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_fonts/font = SubResource("bold")
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="CommandBar/Recruitment/Recruit5"]
@@ -959,7 +867,6 @@ text = "◈ 50"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.92,0.79,0.49,1)
 horizontal_alignment = 1
 
 [node name="BuildPanel" type="Control" parent="CommandBar/Recruitment"]
@@ -1004,6 +911,7 @@ offset_bottom = 104
 text = "建造防御塔  [V]"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="CancelSiteButton" type="Button" parent="CommandBar/Recruitment/BuildPanel"]
 layout_mode = 0
@@ -1038,7 +946,6 @@ text = "Shift 连续下单 · 右键工地接手"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.79,0.75,0.61,1)
 unique_name_in_owner = true
 
 [node name="Separator2" type="ColorRect" parent="CommandBar"]
@@ -1047,7 +954,7 @@ offset_left = 906
 offset_top = 17
 offset_right = 907
 offset_bottom = 141
-color = Color(0.45,0.39,0.27,0.55)
+color = Color(0.49, 0.55, 0.49, 0.25)
 mouse_filter = 2
 
 [node name="Orders" type="Control" parent="CommandBar"]
@@ -1060,6 +967,9 @@ offset_bottom = 150.0
 mouse_filter = 2
 
 [node name="OrdersCaption" type="Label" parent="CommandBar/Orders"]
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 layout_mode = 0
 offset_left = 0
 offset_top = -28
@@ -1069,7 +979,6 @@ text = "战场指令"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.91,0.85,0.69,1)
 
 [node name="AttackButton" type="Button" parent="CommandBar/Orders"]
 layout_mode = 0
@@ -1081,6 +990,7 @@ text = "攻击前进  A"
 unique_name_in_owner = true
 focus_mode = 0
 toggle_mode = true
+theme_override_font_sizes/font_size = 15
 
 [node name="StopButton" type="Button" parent="CommandBar/Orders"]
 layout_mode = 0
@@ -1091,6 +1001,7 @@ offset_bottom = 58
 text = "停止  S"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="HoldButton" type="Button" parent="CommandBar/Orders"]
 layout_mode = 0
@@ -1101,6 +1012,7 @@ offset_bottom = 102
 text = "坚守  H"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="BaseButton" type="Button" parent="CommandBar/Orders"]
 layout_mode = 0
@@ -1111,6 +1023,7 @@ offset_bottom = 102
 text = "大本营  B"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="ArmyButton" type="Button" parent="CommandBar/Orders"]
 layout_mode = 0
@@ -1124,6 +1037,7 @@ focus_mode = 0
 theme_override_font_sizes/font_size = 11
 
 [node name="Groups" type="Control" parent="."]
+theme = ExtResource("battle_controls")
 layout_mode = 0
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -1242,7 +1156,6 @@ text = "Ctrl + 数字  建队    Shift + 数字  追加"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.81,0.78,0.65,1)
 
 [node name="BottomHint" type="Label" parent="."]
 layout_mode = 0
@@ -1254,11 +1167,13 @@ text = "框选部队    右键移动 / 攻击    中键拖动视角    滚轮缩
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.76,0.75,0.67,0.85)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
 anchor_top = 1.0
 anchor_bottom = 1.0
 anchor_right = 1.0
 horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="Toast" type="Label" parent="."]
 layout_mode = 0
@@ -1270,11 +1185,13 @@ text = "发展领地，率军出征"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(1.0,0.91,0.68,1)
+theme_override_colors/font_color = Color(0.98, 0.96, 0.88, 1)
 unique_name_in_owner = true
 anchor_left = 0.5
 anchor_right = 0.5
 horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.12, 0.19, 0.17, 0.85)
+theme_override_constants/shadow_offset_y = 1
 
 [node name="HelpOverlay" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -1282,7 +1199,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025,0.035,0.035,0.72)
+color = Color(0.18, 0.25, 0.25, 0.58)
 visible = false
 unique_name_in_owner = true
 mouse_filter = 0
@@ -1297,6 +1214,7 @@ offset_left = -365
 offset_top = -309
 offset_right = 365
 offset_bottom = 309
+theme_override_styles/panel = ExtResource("medieval_paper")
 
 [node name="Eyebrow" type="Label" parent="HelpOverlay/Paper"]
 layout_mode = 0
@@ -1304,11 +1222,10 @@ offset_left = 34
 offset_top = 25
 offset_right = 684
 offset_bottom = 50
-text = "FIELD MANUAL   /   战地手册"
+text = "战地手册"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.82,0.69,0.44,1)
 
 [node name="Title" type="Label" parent="HelpOverlay/Paper"]
 layout_mode = 0
@@ -1320,7 +1237,7 @@ text = "指挥你的军队"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 30
-theme_override_fonts/font = SubResource("bold")
+theme_override_fonts/font = ExtResource("medieval_title")
 
 [node name="Intro" type="Label" parent="HelpOverlay/Paper"]
 layout_mode = 0
@@ -1343,7 +1260,6 @@ text = "左键 / 框选 / 双击或 Ctrl+单击\n右键 / Shift + 右键\nA + �
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.88,0.76,0.50,1)
 theme_override_constants/line_spacing = 5
 
 [node name="Actions" type="Label" parent="HelpOverlay/Paper"]
@@ -1368,7 +1284,6 @@ text = "训练（秒）：农民10 / 剑士6 / 弓手8 / 骑士10 / 攻城20 · 
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.65,0.70,0.65,1)
 
 [node name="CloseHelp" type="Button" parent="HelpOverlay/Paper"]
 layout_mode = 0
@@ -1379,6 +1294,7 @@ offset_bottom = 604
 text = "返回战场"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="PauseOverlay" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -1386,7 +1302,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025,0.035,0.035,0.72)
+color = Color(0.18, 0.25, 0.25, 0.58)
 visible = false
 unique_name_in_owner = true
 mouse_filter = 0
@@ -1401,6 +1317,7 @@ offset_left = -240
 offset_top = -240
 offset_right = 240
 offset_bottom = 240
+theme_override_styles/panel = ExtResource("medieval_paper")
 
 [node name="Eyebrow" type="Label" parent="PauseOverlay/Paper"]
 layout_mode = 0
@@ -1412,7 +1329,6 @@ text = "积木争霸"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.82,0.69,0.44,1)
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="PauseOverlay/Paper"]
@@ -1425,7 +1341,7 @@ text = "战斗已暂停"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 29
-theme_override_fonts/font = SubResource("bold")
+theme_override_fonts/font = ExtResource("medieval_title")
 horizontal_alignment = 1
 
 [node name="Actions" type="VBoxContainer" parent="PauseOverlay/Paper"]
@@ -1442,6 +1358,7 @@ layout_mode = 2
 text = "继续战斗  [F5]"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="SettingsButton" type="Button" parent="PauseOverlay/Paper/Actions"]
 unique_name_in_owner = true
@@ -1449,6 +1366,7 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "设置"
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="RestartButton" type="Button" parent="PauseOverlay/Paper/Actions"]
 custom_minimum_size = Vector2(0, 40)
@@ -1456,6 +1374,7 @@ layout_mode = 2
 text = "重新开始"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="MenuButton" type="Button" parent="PauseOverlay/Paper/Actions"]
 unique_name_in_owner = true
@@ -1463,6 +1382,7 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "返回主菜单"
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="ExitButton" type="Button" parent="PauseOverlay/Paper/Actions"]
 unique_name_in_owner = true
@@ -1470,6 +1390,7 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "退出游戏"
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="SoundCaption" type="Label" parent="PauseOverlay/Paper"]
 layout_mode = 0
@@ -1514,7 +1435,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025,0.035,0.035,0.72)
+color = Color(0.18, 0.25, 0.25, 0.58)
 visible = false
 unique_name_in_owner = true
 mouse_filter = 0
@@ -1529,6 +1450,7 @@ offset_left = -340
 offset_top = -205
 offset_right = 340
 offset_bottom = 205
+theme_override_styles/panel = ExtResource("medieval_paper")
 
 [node name="ResultEyebrow" type="Label" parent="ResultOverlay/Paper"]
 layout_mode = 0
@@ -1536,11 +1458,10 @@ offset_left = 32
 offset_top = 39
 offset_right = 648
 offset_bottom = 64
-text = "VICTORY  /  胜利"
+text = "战报 · 凯旋"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.91,0.76,0.42,1)
 unique_name_in_owner = true
 horizontal_alignment = 1
 
@@ -1554,7 +1475,7 @@ text = "战场属于你"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 35
-theme_override_fonts/font = SubResource("bold")
+theme_override_fonts/font = ExtResource("medieval_title")
 unique_name_in_owner = true
 horizontal_alignment = 1
 
@@ -1580,6 +1501,7 @@ offset_bottom = 367
 text = "再次出征"
 unique_name_in_owner = true
 focus_mode = 0
+theme_override_font_sizes/font_size = 15
 
 [node name="ResultMenu" type="Button" parent="ResultOverlay/Paper"]
 unique_name_in_owner = true
@@ -1590,3 +1512,4 @@ offset_right = 596
 offset_bottom = 367
 text = "返回主菜单"
 focus_mode = 0
+theme_override_font_sizes/font_size = 15

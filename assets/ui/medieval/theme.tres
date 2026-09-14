@@ -1,0 +1,198 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/panel.tres" id="panel"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/panel_compact.tres" id="panel_compact"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/parchment.tres" id="parchment"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/button.tres" id="button"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/hover.tres" id="hover"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/pressed.tres" id="pressed"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/disabled.tres" id="disabled"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/primary.tres" id="primary"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/primary_hover.tres" id="primary_hover"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/inset.tres" id="inset"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/focus.tres" id="focus"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/selection.tres" id="selection"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/track.tres" id="track"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/fill.tres" id="fill"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/button_compact.tres" id="button_compact"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/compact_hover.tres" id="compact_hover"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/compact_pressed.tres" id="compact_pressed"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/tab.tres" id="tab"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/tab_idle.tres" id="tab_idle"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="title"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="body"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/arrow.svg" id="arrow"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/check.svg" id="check"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/unchecked.svg" id="unchecked"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/thumb.svg" id="thumb"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/cross.svg" id="cross"]
+
+[resource]
+default_font = ExtResource("body")
+default_font_size = 18
+Label/colors/font_color = Color(0.22, 0.28, 0.27, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0)
+Label/constants/shadow_offset_x = 0
+Label/constants/shadow_offset_y = 0
+MedievalTitle/base_type = &"Label"
+MedievalTitle/fonts/font = ExtResource("title")
+MedievalTitle/colors/font_color = Color(0.24, 0.35, 0.32, 1)
+MedievalTitle/font_sizes/font_size = 28
+MedievalPrimary/base_type = &"Button"
+MedievalPrimary/styles/normal = ExtResource("primary")
+MedievalPrimary/styles/hover = ExtResource("primary_hover")
+MedievalPrimary/styles/pressed = ExtResource("pressed")
+MedievalPrimary/fonts/font = ExtResource("title")
+MedievalPrimary/font_sizes/font_size = 23
+MedievalCompact/base_type = &"Button"
+MedievalCompact/styles/normal = ExtResource("button_compact")
+MedievalCompact/styles/hover = ExtResource("compact_hover")
+MedievalCompact/styles/pressed = ExtResource("compact_pressed")
+MedievalCompact/styles/disabled = ExtResource("button_compact")
+MedievalCompact/font_sizes/font_size = 16
+MedievalTab/base_type = &"Button"
+MedievalTab/styles/normal = ExtResource("tab_idle")
+MedievalTab/styles/hover = ExtResource("tab")
+MedievalTab/styles/pressed = ExtResource("tab")
+Button/styles/normal = ExtResource("button")
+Button/styles/hover = ExtResource("hover")
+Button/styles/pressed = ExtResource("pressed")
+Button/styles/hover_pressed = ExtResource("pressed")
+Button/styles/disabled = ExtResource("disabled")
+Button/styles/focus = ExtResource("focus")
+Button/colors/font_color = Color(0.25, 0.31, 0.29, 1)
+Button/colors/font_hover_color = Color(0.18, 0.30, 0.25, 1)
+Button/colors/font_pressed_color = Color(0.18, 0.30, 0.25, 1)
+Button/colors/font_disabled_color = Color(0.57, 0.57, 0.51, 1)
+Button/colors/font_focus_color = Color(0.18, 0.30, 0.25, 1)
+OptionButton/styles/normal = ExtResource("button")
+OptionButton/styles/hover = ExtResource("hover")
+OptionButton/styles/pressed = ExtResource("pressed")
+OptionButton/styles/hover_pressed = ExtResource("pressed")
+OptionButton/styles/disabled = ExtResource("disabled")
+OptionButton/styles/focus = ExtResource("focus")
+OptionButton/colors/font_color = Color(0.25, 0.31, 0.29, 1)
+OptionButton/colors/font_hover_color = Color(0.18, 0.30, 0.25, 1)
+OptionButton/colors/font_pressed_color = Color(0.18, 0.30, 0.25, 1)
+OptionButton/colors/font_disabled_color = Color(0.57, 0.57, 0.51, 1)
+OptionButton/colors/font_focus_color = Color(0.18, 0.30, 0.25, 1)
+MenuButton/styles/normal = ExtResource("button")
+MenuButton/styles/hover = ExtResource("hover")
+MenuButton/styles/pressed = ExtResource("pressed")
+MenuButton/styles/hover_pressed = ExtResource("pressed")
+MenuButton/styles/disabled = ExtResource("disabled")
+MenuButton/styles/focus = ExtResource("focus")
+MenuButton/colors/font_color = Color(0.25, 0.31, 0.29, 1)
+MenuButton/colors/font_hover_color = Color(0.18, 0.30, 0.25, 1)
+MenuButton/colors/font_pressed_color = Color(0.18, 0.30, 0.25, 1)
+MenuButton/colors/font_disabled_color = Color(0.57, 0.57, 0.51, 1)
+MenuButton/colors/font_focus_color = Color(0.18, 0.30, 0.25, 1)
+CheckButton/styles/normal = ExtResource("button")
+CheckButton/styles/hover = ExtResource("hover")
+CheckButton/styles/pressed = ExtResource("pressed")
+CheckButton/styles/hover_pressed = ExtResource("pressed")
+CheckButton/styles/disabled = ExtResource("disabled")
+CheckButton/styles/focus = ExtResource("focus")
+CheckButton/colors/font_color = Color(0.25, 0.31, 0.29, 1)
+CheckButton/colors/font_hover_color = Color(0.18, 0.30, 0.25, 1)
+CheckButton/colors/font_pressed_color = Color(0.18, 0.30, 0.25, 1)
+CheckButton/colors/font_disabled_color = Color(0.57, 0.57, 0.51, 1)
+CheckButton/colors/font_focus_color = Color(0.18, 0.30, 0.25, 1)
+CheckBox/styles/normal = ExtResource("button")
+CheckBox/styles/hover = ExtResource("hover")
+CheckBox/styles/pressed = ExtResource("pressed")
+CheckBox/styles/hover_pressed = ExtResource("pressed")
+CheckBox/styles/disabled = ExtResource("disabled")
+CheckBox/styles/focus = ExtResource("focus")
+CheckBox/colors/font_color = Color(0.25, 0.31, 0.29, 1)
+CheckBox/colors/font_hover_color = Color(0.18, 0.30, 0.25, 1)
+CheckBox/colors/font_pressed_color = Color(0.18, 0.30, 0.25, 1)
+CheckBox/colors/font_disabled_color = Color(0.57, 0.57, 0.51, 1)
+CheckBox/colors/font_focus_color = Color(0.18, 0.30, 0.25, 1)
+OptionButton/icons/arrow = ExtResource("arrow")
+OptionButton/constants/arrow_margin = 10
+CheckBox/icons/checked = ExtResource("check")
+CheckBox/icons/unchecked = ExtResource("unchecked")
+CheckBox/icons/checked_disabled = ExtResource("check")
+CheckBox/icons/unchecked_disabled = ExtResource("unchecked")
+CheckButton/icons/checked = ExtResource("check")
+CheckButton/icons/unchecked = ExtResource("unchecked")
+CheckButton/icons/checked_disabled = ExtResource("check")
+CheckButton/icons/unchecked_disabled = ExtResource("unchecked")
+Panel/styles/panel = ExtResource("panel")
+PanelContainer/styles/panel = ExtResource("panel")
+PopupPanel/styles/panel = ExtResource("panel")
+PopupMenu/styles/panel = ExtResource("panel")
+Window/styles/panel = ExtResource("panel")
+PopupMenu/styles/hover = ExtResource("selection")
+PopupMenu/colors/font_color = Color(0.22,0.28,0.27,1)
+PopupMenu/colors/font_hover_color = Color(0.18,0.30,0.25,1)
+PopupMenu/font_sizes/font_size = 17
+TooltipPanel/styles/panel = ExtResource("panel_compact")
+TooltipLabel/font_sizes/font_size = 16
+RichTextLabel/colors/default_color = Color(0.22,0.28,0.27,1)
+LineEdit/styles/normal = ExtResource("inset")
+LineEdit/styles/panel = ExtResource("inset")
+LineEdit/styles/focus = ExtResource("focus")
+LineEdit/styles/read_only = ExtResource("inset")
+LineEdit/colors/font_color = Color(0.22,0.28,0.27,1)
+LineEdit/colors/font_selected_color = Color(0.18,0.30,0.25,1)
+LineEdit/colors/selection_color = Color(0.69,0.79,0.64,1)
+TextEdit/styles/normal = ExtResource("inset")
+TextEdit/styles/panel = ExtResource("inset")
+TextEdit/styles/focus = ExtResource("focus")
+TextEdit/styles/read_only = ExtResource("inset")
+TextEdit/colors/font_color = Color(0.22,0.28,0.27,1)
+TextEdit/colors/font_selected_color = Color(0.18,0.30,0.25,1)
+TextEdit/colors/selection_color = Color(0.69,0.79,0.64,1)
+ItemList/styles/normal = ExtResource("inset")
+ItemList/styles/panel = ExtResource("inset")
+ItemList/styles/focus = ExtResource("focus")
+ItemList/styles/read_only = ExtResource("inset")
+ItemList/colors/font_color = Color(0.22,0.28,0.27,1)
+ItemList/colors/font_selected_color = Color(0.18,0.30,0.25,1)
+ItemList/colors/selection_color = Color(0.69,0.79,0.64,1)
+Tree/styles/normal = ExtResource("inset")
+Tree/styles/panel = ExtResource("inset")
+Tree/styles/focus = ExtResource("focus")
+Tree/styles/read_only = ExtResource("inset")
+Tree/colors/font_color = Color(0.22,0.28,0.27,1)
+Tree/colors/font_selected_color = Color(0.18,0.30,0.25,1)
+Tree/colors/selection_color = Color(0.69,0.79,0.64,1)
+LineEdit/colors/caret_color = Color(0.25,0.4,0.35,1)
+LineEdit/colors/font_placeholder_color = Color(0.52,0.57,0.51,1)
+ItemList/styles/selected = ExtResource("selection")
+ItemList/styles/selected_focus = ExtResource("selection")
+ItemList/styles/hovered = ExtResource("selection")
+ProgressBar/styles/background = ExtResource("track")
+ProgressBar/styles/fill = ExtResource("fill")
+HSlider/styles/slider = ExtResource("track")
+HSlider/styles/grabber_area = ExtResource("fill")
+HSlider/styles/grabber_area_highlight = ExtResource("fill")
+HSlider/icons/grabber = ExtResource("thumb")
+HSlider/icons/grabber_highlight = ExtResource("thumb")
+HSlider/icons/grabber_disabled = ExtResource("thumb")
+VSlider/styles/slider = ExtResource("track")
+VSlider/styles/grabber_area = ExtResource("fill")
+VSlider/styles/grabber_area_highlight = ExtResource("fill")
+VSlider/icons/grabber = ExtResource("thumb")
+VSlider/icons/grabber_highlight = ExtResource("thumb")
+VSlider/icons/grabber_disabled = ExtResource("thumb")
+HScrollBar/styles/scroll = ExtResource("track")
+HScrollBar/styles/grabber = ExtResource("fill")
+HScrollBar/styles/grabber_highlight = ExtResource("fill")
+HScrollBar/styles/grabber_pressed = ExtResource("fill")
+VScrollBar/styles/scroll = ExtResource("track")
+VScrollBar/styles/grabber = ExtResource("fill")
+VScrollBar/styles/grabber_highlight = ExtResource("fill")
+VScrollBar/styles/grabber_pressed = ExtResource("fill")
+TabBar/styles/tab_selected = ExtResource("pressed")
+TabBar/styles/tab_unselected = ExtResource("button")
+TabBar/styles/tab_hovered = ExtResource("hover")
+TabBar/styles/panel = ExtResource("panel")
+TabContainer/styles/tab_selected = ExtResource("pressed")
+TabContainer/styles/tab_unselected = ExtResource("button")
+TabContainer/styles/tab_hovered = ExtResource("hover")
+TabContainer/styles/panel = ExtResource("panel")
+VBoxContainer/constants/separation = 10
+HBoxContainer/constants/separation = 12

@@ -16,6 +16,8 @@ func _check(value: bool, label: String) -> void:
 		push_error(label)
 
 func _settle() -> void:
+	if Session.transition.busy:
+		await Session.transition.completed
 	for index: int in 6: await get_tree().process_frame
 
 func _timeout() -> void:

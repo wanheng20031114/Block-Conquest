@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/ui_motion_fixture.gd" id="script"]
+
+[node name="MotionFixture" type="Control"]
+script = ExtResource("script")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Buttons" type="VBoxContainer" parent="."]
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 280.0
+offset_bottom = 180.0
+theme_override_constants/separation = 16
+
+[node name="Primary" type="Button" parent="Buttons"]
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+text = "出征"
+
+[node name="Secondary" type="Button" parent="Buttons"]
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+text = "返回军营"
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="Independent" type="Panel" parent="."]
+offset_left = 340.0
+offset_top = 40.0
+offset_right = 700.0
+offset_bottom = 220.0
+
+[node name="ManagedBox" type="VBoxContainer" parent="."]
+offset_left = 40.0
+offset_top = 250.0
+offset_right = 280.0
+offset_bottom = 550.0
+
+[node name="Anchored" type="Panel" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.0
+offset_top = 350.0
+offset_right = 90.0
+offset_bottom = 450.0
+
+[node name="Managed" type="Panel" parent="ManagedBox"]
+custom_minimum_size = Vector2(240, 140)
+layout_mode = 2

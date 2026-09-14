@@ -16,6 +16,9 @@ func check(value: bool, label: String) -> void:
 		push_error(label)
 
 func wait_ready() -> void:
+	var transition: UITransition = root.get_node("Session").transition
+	if transition.busy:
+		await transition.completed
 	for index: int in 5: await process_frame
 
 func next_node(kind: String, ap: int = 8) -> int:

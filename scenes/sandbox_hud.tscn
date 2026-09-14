@@ -1,25 +1,9 @@
 [gd_scene format=3]
+[ext_resource type="Theme" path="res://assets/ui/medieval/sandbox_controls.tres" id="battle_controls"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/panel_compact.tres" id="medieval_panel"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="medieval_title"]
 [ext_resource type="Script" path="res://scripts/sandbox_hud.gd" id="script"]
-[ext_resource type="Theme" path="res://assets/ui/menu_theme.tres" id="theme"]
-[sub_resource type="StyleBoxFlat" id="Panel"]
-bg_color = Color(0.06, 0.063, 0.051, 0.96)
-content_margin_left = 14.0
-content_margin_right = 14.0
-content_margin_top = 12.0
-content_margin_bottom = 12.0
-border_width_bottom = 1
-border_color = Color(0.55,0.43,0.22,1)
-[sub_resource type="StyleBoxFlat" id="ColorNormal"]
-bg_color = Color(0.12, 0.13, 0.11, 1)
-[sub_resource type="StyleBoxFlat" id="ColorHover"]
-bg_color = Color(0.22, 0.23, 0.18, 1)
-[sub_resource type="StyleBoxFlat" id="ColorPressed"]
-bg_color = Color(0.22, 0.20, 0.13, 1)
-border_width_left = 1
-border_width_right = 1
-border_width_top = 1
-border_width_bottom = 1
-border_color = Color(0.95,0.81,0.5,1)
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
 [sub_resource type="ButtonGroup" id="Factions"]
 [sub_resource type="ButtonGroup" id="Kinds"]
 [sub_resource type="ButtonGroup" id="Tools"]
@@ -37,20 +21,21 @@ offset_left = 16.0
 offset_top = 14.0
 offset_right = -16.0
 offset_bottom = 70.0
-theme_override_styles/panel = SubResource("Panel")
+theme_override_styles/panel = ExtResource("medieval_panel")
 [node name="Row" type="HBoxContainer" parent="Top"]
 layout_mode = 2
 theme_override_constants/separation = 20
 [node name="Brand" type="Label" parent="Top/Row"]
 layout_mode = 2
-text = "积木争霸  /  自由沙盘"
+text = "自由沙盘"
 theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = ExtResource("medieval_title")
+
 [node name="State" type="Label" parent="Top/Row"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.8,0.71,0.52,1)
 text = "布阵中"
 [node name="Population" type="Label" parent="Top/Row"]
 unique_name_in_owner = true
@@ -64,17 +49,22 @@ text = "00:00"
 unique_name_in_owner = true
 layout_mode = 2
 text = "设置"
+theme_override_font_sizes/font_size = 15
+
 [node name="Back" type="Button" parent="Top/Row"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "返回主菜单"
+theme_override_font_sizes/font_size = 15
+
 [node name="Sidebar" type="PanelContainer" parent="."]
+theme = ExtResource("battle_controls")
 offset_left = 16.0
 offset_top = 90.0
 offset_right = 294.0
 anchor_bottom = 1.0
 offset_bottom = -16.0
-theme_override_styles/panel = SubResource("Panel")
+theme_override_styles/panel = ExtResource("medieval_panel")
 [node name="Scroll" type="ScrollContainer" parent="Sidebar"]
 layout_mode = 2
 horizontal_scroll_mode = 0
@@ -117,10 +107,6 @@ size_flags_horizontal = 3
 text = "01"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction1"]
@@ -140,10 +126,6 @@ size_flags_horizontal = 3
 text = "02"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction2"]
@@ -163,10 +145,6 @@ size_flags_horizontal = 3
 text = "03"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction3"]
@@ -186,10 +164,6 @@ size_flags_horizontal = 3
 text = "04"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction4"]
@@ -209,10 +183,6 @@ size_flags_horizontal = 3
 text = "05"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction5"]
@@ -232,10 +202,6 @@ size_flags_horizontal = 3
 text = "06"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction6"]
@@ -255,10 +221,6 @@ size_flags_horizontal = 3
 text = "07"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction7"]
@@ -278,10 +240,6 @@ size_flags_horizontal = 3
 text = "08"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction8"]
@@ -301,10 +259,6 @@ size_flags_horizontal = 3
 text = "09"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction9"]
@@ -324,10 +278,6 @@ size_flags_horizontal = 3
 text = "10"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction10"]
@@ -347,10 +297,6 @@ size_flags_horizontal = 3
 text = "11"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction11"]
@@ -370,10 +316,6 @@ size_flags_horizontal = 3
 text = "12"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction12"]
@@ -393,10 +335,6 @@ size_flags_horizontal = 3
 text = "13"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction13"]
@@ -416,10 +354,6 @@ size_flags_horizontal = 3
 text = "14"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction14"]
@@ -439,10 +373,6 @@ size_flags_horizontal = 3
 text = "15"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction15"]
@@ -462,10 +392,6 @@ size_flags_horizontal = 3
 text = "16"
 toggle_mode = true
 button_group = SubResource("Factions")
-theme_override_styles/normal = SubResource("ColorNormal")
-theme_override_styles/hover = SubResource("ColorHover")
-theme_override_styles/pressed = SubResource("ColorPressed")
-theme_override_styles/hover_pressed = SubResource("ColorPressed")
 theme_override_font_sizes/font_size = 15
 
 [node name="Swatch" type="ColorRect" parent="Sidebar/Scroll/Content/Colors/Faction16"]
@@ -584,21 +510,25 @@ button_group = SubResource("Kinds")
 layout_mode = 2
 text = "三管短炮"
 toggle_mode = true
+theme_override_font_sizes/font_size = 15
 
 [node name="heavy_cannon" type="Button" parent="Sidebar/Scroll/Content/Kinds"]
 layout_mode = 2
 text = "重型火炮"
 toggle_mode = true
+theme_override_font_sizes/font_size = 15
 
 [node name="engineer" type="Button" parent="Sidebar/Scroll/Content/Kinds"]
 layout_mode = 2
 text = "工程兵"
 toggle_mode = true
+theme_override_font_sizes/font_size = 15
 
 [node name="priest" type="Button" parent="Sidebar/Scroll/Content/Kinds"]
 layout_mode = 2
 text = "牧师"
 toggle_mode = true
+theme_override_font_sizes/font_size = 15
 
 [node name="farmer" type="Button" parent="Sidebar/Scroll/Content/Kinds"]
 unique_name_in_owner = true
@@ -664,6 +594,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "开始交战   F5"
 custom_minimum_size = Vector2(0, 40)
+theme_override_font_sizes/font_size = 15
 
 [node name="Selection" type="Label" parent="Sidebar/Scroll/Content"]
 unique_name_in_owner = true
@@ -697,7 +628,6 @@ layout_mode = 2
 text = "右键 / Esc 退出放置 · R 旋转\nF2 全选当前阵营军队 · Delete 移除\n中键拖动 · 滚轮缩放 · 方向键移动\n不同颜色互为敌人，无胜负限制"
 autowrap_mode = 3
 theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.67,0.63,0.52,1)
 
 [node name="Notice" type="Label" parent="."]
 unique_name_in_owner = true
@@ -710,6 +640,5 @@ offset_right = -28.0
 offset_bottom = -22.0
 mouse_filter = 2
 text = ""
-theme_override_colors/font_shadow_color = Color(0.1,0.07,0.02,1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2

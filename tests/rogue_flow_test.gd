@@ -22,6 +22,9 @@ func check(condition: bool, label: String) -> void:
 		push_error(label)
 
 func settle() -> void:
+	var transition: UITransition = root.get_node("Session").transition
+	if transition.busy:
+		await transition.completed
 	for index: int in 4: await process_frame
 
 func click_world(point: Vector3) -> void:
