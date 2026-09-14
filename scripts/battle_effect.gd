@@ -18,9 +18,9 @@ var _configured_kind: String = ""
 @onready var _lifetime: Timer = $Lifetime
 @onready var _healing: HealingParticles = $Healing
 
-const SPARK_AMOUNTS: Dictionary = {"hit":7, "arrow_hit":3, "bullet_hit":2, "wood_hit":3, "stone_chip":3, "muzzle":8, "musket_muzzle":3, "explosion":14, "charge":14}
-const DUST_AMOUNTS: Dictionary = {"dust":5, "muzzle":5, "musket_muzzle":2, "explosion":12, "stone_hit":16, "collapse":24}
-const DUST_SCALES: Dictionary = {"dust":.4, "muzzle":.45, "musket_muzzle":.14, "explosion":.8, "collapse":2.5}
+const SPARK_AMOUNTS: Dictionary = {"hit":7, "arrow_hit":3, "bullet_hit":4, "wood_hit":3, "stone_chip":3, "muzzle":8, "musket_muzzle":4, "explosion":14, "charge":14}
+const DUST_AMOUNTS: Dictionary = {"dust":5, "muzzle":5, "musket_muzzle":3, "explosion":12, "stone_hit":16, "collapse":24}
+const DUST_SCALES: Dictionary = {"dust":.4, "muzzle":.45, "musket_muzzle":.25, "explosion":.8, "collapse":2.5}
 const SHOT_SCALE: float = .8
 const SHOT_SPEED: float = 1.35
 
@@ -61,19 +61,26 @@ func initialize(kind: String, color: Color = Color.WHITE) -> void:
 		_configured_kind = kind
 	var duration: float = 1.4
 	_sparks.color = Color("e6dba5") if kind == "spawn" else color
+	_flash.position.y = 0.0 if kind in ["musket_muzzle", "bullet_hit"] else 0.5
 	match kind:
 		"hit", "arrow_hit", "bullet_hit", "wood_hit", "stone_chip":
 			_sparks.show()
 			_sparks.restart()
 			_sparks.emitting = true
 			duration = 0.3 if kind == "bullet_hit" else 0.8
+			if kind == "bullet_hit":
+				_flash.show()
+				_flash.scale = Vector3.ONE * .34
+				var impact: Tween = _new_tween()
+				impact.tween_interval(.03)
+				impact.tween_method(_animate_flash.bind(.34), 0.0, 1.0, .13)
 		"dust":
 			_dust.show()
 			_dust.restart()
 			_dust.emitting = true
 			duration = 1.5
 		"muzzle", "musket_muzzle":
-			var size: float = .20 if kind == "musket_muzzle" else .8 * SHOT_SCALE
+			var size: float = .42 if kind == "musket_muzzle" else .8 * SHOT_SCALE
 			_flash.show()
 			_flash.scale = Vector3.ONE * size
 			_sparks.show()
@@ -83,8 +90,9 @@ func initialize(kind: String, color: Color = Color.WHITE) -> void:
 			_dust.restart()
 			_dust.emitting = true
 			var flash: Tween = _new_tween()
-			flash.tween_method(_animate_flash.bind(size), 0.0, 1.0, .07 if kind == "musket_muzzle" else .16 / SHOT_SPEED)
-			duration = .65 if kind == "musket_muzzle" else 1.35
+			if kind == "musket_muzzle": flash.tween_interval(.04)
+			flash.tween_method(_animate_flash.bind(size), 0.0, 1.0, .11 if kind == "musket_muzzle" else .16 / SHOT_SPEED)
+			duration = .78 if kind == "musket_muzzle" else 1.35
 		"explosion", "stone_hit", "collapse":
 			var size: float = 2.5 if kind == "collapse" else (SHOT_SCALE if kind == "explosion" else 1.0)
 			var speed: float = SHOT_SPEED if kind == "explosion" else 1.0
@@ -143,7 +151,7 @@ func _configure_emitters(kind: String) -> void:
 		# A pooled effect stays at its impact/origin until released. Local simulation
 		# scales the whole shot trajectory, not just particle meshes at emission.
 		particles.local_coords = shot or musket
-		particles.speed_scale = 3.0 if musket else (SHOT_SPEED if shot else 1.0)
+		particles.speed_scale = (2.5 if kind == "musket_muzzle" else 3.0) if musket else (SHOT_SPEED if shot else 1.0)
 	var sparks: int = SPARK_AMOUNTS.get(kind, 8)
 	var dust: int = DUST_AMOUNTS.get(kind, 12)
 	var debris: int = 12 if kind == "explosion" else 16
@@ -151,7 +159,7 @@ func _configure_emitters(kind: String) -> void:
 	if _dust.amount != dust: _dust.amount = dust
 	if _debris.amount != debris: _debris.amount = debris
 	var dust_scale: float = DUST_SCALES.get(kind, 1.0)
-	_sparks.scale = Vector3.ONE * (.22 if musket else (SHOT_SCALE if shot else 1.0))
+	_sparks.scale = Vector3.ONE * (.65 if musket else (SHOT_SCALE if shot else 1.0))
 	_dust.scale = Vector3.ONE * dust_scale
 	_debris.scale = Vector3.ONE * (2.5 if kind == "collapse" else (SHOT_SCALE if shot else 1.0))
 

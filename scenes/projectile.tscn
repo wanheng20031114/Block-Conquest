@@ -1,6 +1,7 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/projectile.gd" id="1_script"]
+[ext_resource type="Shader" path="res://assets/shaders/musket_smoke.gdshader" id="smoke_shader"]
 
 [sub_resource type="StandardMaterial3D" id="Material_wood"]
 albedo_color = Color(0.36, 0.22, 0.11, 1)
@@ -72,6 +73,19 @@ colors = PackedColorArray(0.54, 0.46, 0.34, 0.45, 0.47, 0.43, 0.36, 0.24, 0.5, 0
 _data = [Vector2(0, 0.3), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
 point_count = 2
 
+[sub_resource type="ShaderMaterial" id="Material_musket_smoke"]
+shader = ExtResource("smoke_shader")
+
+[sub_resource type="CylinderMesh" id="Mesh_musket_smoke"]
+material = SubResource("Material_musket_smoke")
+top_radius = 1.0
+bottom_radius = 1.0
+height = 1.0
+radial_segments = 6
+rings = 8
+cap_top = false
+cap_bottom = false
+
 [node name="Projectile" type="Node3D"]
 script = ExtResource("1_script")
 
@@ -119,3 +133,9 @@ scale_amount_min = 0.8
 scale_amount_max = 1.5
 scale_amount_curve = SubResource("Curve_trail")
 color_ramp = SubResource("Gradient_trail")
+
+[node name="MusketSmoke" type="MeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+visible = false
+cast_shadow = 0
+mesh = SubResource("Mesh_musket_smoke")

@@ -139,10 +139,10 @@ func run() -> void:
 		pool.play(Vector3.ZERO, kind, Color.RED)
 		check(pool._active.back() == reused, "configuration transition reuses the same authored instance: " + kind)
 		if kind == "musket_muzzle":
-			check(reused._sparks.amount==3 and reused._dust.amount==2 and reused._dust.speed_scale==3 and reused._dust.scale.is_equal_approx(Vector3.ONE*.14) and not reused._debris.visible,"musket emits five compact fast particles, without debris")
-			check(reused._lifetime.time_left<=.65 and reused._flash.scale.is_equal_approx(Vector3.ONE*.2),"musket lifetime and flash are smaller than cannon")
+			check(reused._sparks.amount==4 and reused._dust.amount==3 and reused._dust.speed_scale==2.5 and reused._dust.scale.is_equal_approx(Vector3.ONE*.25) and not reused._debris.visible,"musket emits seven compact fast particles, without debris")
+			check(reused._lifetime.time_left<=.78 and reused._flash.scale.is_equal_approx(Vector3.ONE*.42) and reused._flash.position==Vector3.ZERO,"musket flash stays at actual barrel height and finishes before cannon smoke")
 		if kind == "bullet_hit":
-			check(reused._sparks.amount==2 and reused._sparks.speed_scale==3 and not reused._dust.visible and not reused._ring.visible,"bullet impact has no explosion or dust ring")
+			check(reused._sparks.amount==4 and reused._sparks.speed_scale==3 and reused._flash.visible and reused._flash.position==Vector3.ZERO and not reused._dust.visible and not reused._ring.visible,"bullet impact marks the exact target without explosion or dust ring")
 		if kind == "muzzle":
 			check(reused._sparks.amount==8 and reused._dust.amount==5 and is_equal_approx(reused._dust.speed_scale,1.35) and reused._dust.scale.is_equal_approx(Vector3.ONE*.45),"cannon profile restored after musket borrower")
 			check(reused.get_node("Sparks").direction == reused._spark_defaults.direction and reused.get_node("Sparks").color == Color.RED, "muzzle restores direction and color after spawn")

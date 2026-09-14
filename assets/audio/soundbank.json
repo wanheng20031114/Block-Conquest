@@ -38,6 +38,10 @@
     "cannon_shot_01.wav",
     "cannon_shot_02.wav"
   ],
+  "musket_shot": [
+    "musket_shot_01.wav",
+    "musket_shot_02.wav"
+  ],
   "explosion": [
     "explosion_01.wav",
     "explosion_02.wav"

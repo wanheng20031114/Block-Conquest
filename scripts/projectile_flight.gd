@@ -85,12 +85,20 @@ func impact() -> void:
 	var damage_source: Node3D = _source if is_instance_valid(_source) else null
 	if _kind in ["arrow", "bolt", "bullet", "cannon"]:
 		var impact_kind: String = "explosion" if _kind == "cannon" else ("bullet_hit" if _kind == "bullet" else "arrow_hit")
+		var impact_at: Vector3 = _end
+		if _kind == "bullet" and is_instance_valid(_target):
+			# Surface feedback stays visible outside armor; flight timing and damage
+			# retain the shared center-target contract. Sample before death callbacks.
+			if _target.is_in_group("buildings"):
+				impact_at = _target.get_attack_position(_start) + Vector3.UP * 2.0
+			else:
+				impact_at += (_start - _end).normalized() * _target.radius
 		if is_instance_valid(_target) and _target.alive and _target.alliance_id != _payload.alliance_id:
 			if _kind in ["arrow", "bolt"] and _target.is_in_group("buildings"):
 				impact_kind = _target.get_hit_effect()
 			if _game.is_authority:
 				_target.receive_hit(_payload, damage_source)
-		_game.spawn_effect(_end, impact_kind, Color("ead098"))
+		_game.spawn_effect(impact_at, impact_kind, Color("ead098"))
 	elif _kind == "stone":
 		if _game.is_authority:
 			# Queries are sequential on the main thread. Both standalone and pooled

@@ -5,7 +5,7 @@ in assets/audio/sources, with Godot imports disabled for this authoring director
 """
 
 from pathlib import Path
-import hashlib, json, math, wave
+import argparse, hashlib, json, math, wave
 import numpy as np
 import soundfile as sf
 from scipy import signal
@@ -25,6 +25,7 @@ COUNTS = {
     "catapult_release": 2,
     "stone_hit": 3,
     "cannon_shot": 2,
+    "musket_shot": 2,
     "explosion": 2,
     "footstep_dirt": 4,
     "horse_hoof": 4,
@@ -48,6 +49,7 @@ DESCRIPTIONS = {
     "catapult_release": "Recorded leather creak and plank release with original rope vibration",
     "stone_hit": "Recorded mining/concrete chips with original low impact body",
     "cannon_shot": "Original pressure blast/rumble with recorded metal and wood recoil",
+    "musket_shot": "Original dry powder crack, low-mid pressure body and short smoke tail with recorded lock contact",
     "explosion": "Original explosive air pressure with recorded scattering stone",
     "footstep_dirt": "Recorded grass/leather footfalls processed into compact dirt steps",
     "horse_hoof": "Designed hoof from recorded wood/concrete steps; not a horse recording",
@@ -262,6 +264,19 @@ def make(k, i):
                 (imp("impactWood_heavy", i), 0.045, 0.18),
             ],
         )
+    if k == "musket_shot":
+        duration = 0.72
+        t = tbase(duration)
+        crack = noise(duration, (650, 6500)) * env(t, 0.0005, 0.017)
+        body = noise(duration, (100, 1600)) * env(t, 0.001, 0.066)
+        phase = math.tau * ((110 + i * 9) * t + 125 * 0.036 * (1 - np.exp(-t / 0.036)))
+        pressure_body = np.sin(phase) * env(t, 0.0012, 0.078)
+        tail = noise(duration, (180, 2600)) * env(t, 0.012, 0.135)
+        return mix(duration, [
+            (crack, 0, 0.9), (body, 0, 0.85), (pressure_body, 0, 0.7),
+            (tail, 0.025, 0.20),
+            (imp("impactMetal_light", i, duration=0.12, lowpass=3800), 0.004, 0.065),
+        ])
     if k == "explosion":
         return mix(
             1.85,
@@ -432,7 +447,7 @@ def export(kind, index, v, used):
         else (
             -24.0
             if kind in ("footstep_dirt", "horse_hoof", "cart_wheel")
-            else -18.5 if kind in ("cannon_shot", "explosion") else -20.0
+            else -18.5 if kind in ("cannon_shot", "musket_shot", "explosion") else -20.0
         )
     )
     cap_db = -6.0 if target_db <= -22 else -3.0
@@ -509,9 +524,15 @@ def export(kind, index, v, used):
 
 def main():
     global RNG, USED
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--only", action="append", choices=COUNTS, help="Rebuild only this sound kind; retain other authored WAVs and manifest records")
+    args = parser.parse_args()
+    selected = set(args.only or COUNTS)
     OUT.mkdir(exist_ok=True)
-    records = []
+    records = [r for r in json.loads((OUT / "audio_manifest.json").read_text(encoding="utf8"))["files"] if r["kind"] not in selected] if args.only else []
     for kind, count in COUNTS.items():
+        if kind not in selected:
+            continue
         for index in range(1, count + 1):
             RNG = np.random.default_rng(
                 int.from_bytes(
@@ -521,6 +542,8 @@ def main():
             USED = set()
             values = make(kind, index)
             records.append(export(kind, index, values, USED))
+    order = list(COUNTS)
+    records.sort(key=lambda r: (order.index(r["kind"]), r["variant"]))
     bank = {kind: [r["file"] for r in records if r["kind"] == kind] for kind in COUNTS}
     (OUT / "soundbank.json").write_text(
         json.dumps(bank, indent=2) + "\n", encoding="utf8"
@@ -537,8 +560,9 @@ def main():
     (OUT / "audio_manifest.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf8"
     )
-    assert len(records) == 54 and len({r["sha256"] for r in records}) == 54
-    print("SFX_BANK_READY: 21 kinds / 54 unique WAV; no music or ambience generated")
+    expected = sum(COUNTS.values())
+    assert len(records) == expected and len({r["sha256"] for r in records}) == expected
+    print(f"SFX_BANK_READY: {len(COUNTS)} kinds / {expected} unique WAV; no music or ambience generated")
 
 
 if __name__ == "__main__":

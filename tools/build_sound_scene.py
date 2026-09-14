@@ -14,6 +14,7 @@ EVENTS = {
     'stone_hit': (3, -1, 'Combat', 4, 150, 3),
     'stone_chip': (3, -9, 'Combat', 2, 110, 3),
     'cannon_shot': (2, -2, 'Combat', 5, 160, 3),
+    'musket_shot': (2, -2, 'Combat', 3, 110, 3),
     'explosion': (2, -2, 'Combat', 5, 180, 3),
     'collapse': (2, -1, 'Combat', 6, 350, 2),
     'death_fall': (3, -5, 'Combat', 2, 160, 3),
@@ -77,7 +78,7 @@ mix = 0.7
 
 [resource]
 bus/0/name = &"Master"
-bus/0/volume_db = -1.411621
+bus/0/volume_db = -6.0206
 bus/0/mute = false
 bus/0/effect/0/effect = SubResource("master_limiter")
 bus/0/effect/0/enabled = true

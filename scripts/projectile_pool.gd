@@ -94,7 +94,7 @@ func _physics_process(delta: float) -> void:
 			break
 		var flight: ProjectileFlight = active_flights[index]
 		if not flight._active:
-			flight.retiring = true
+			flight.retiring = flight.visual == null or not flight.visual.present_tail(delta)
 			continue
 		flight.advance(delta)
 		if _reset_requested:

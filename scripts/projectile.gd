@@ -4,6 +4,8 @@ extends Node3D
 
 var flight: ProjectileFlight
 var pooled: bool = false
+const SMOKE_TAIL_SECONDS: float = 0.24
+var _tail_elapsed: float = 0.0
 var _source: Node3D:
 	get: return flight._source if flight != null else null
 var _kind: String:
@@ -21,6 +23,7 @@ var _active: bool:
 @onready var _stone: MeshInstance3D = $Stone
 @onready var _cannonball: MeshInstance3D = $Cannonball
 @onready var _trail: CPUParticles3D = $Trail
+@onready var _smoke: MeshInstance3D = $MusketSmoke
 
 func initialize_visual(from: Vector3, to: Vector3, kind: String, duration: float, arc: float, target: Node3D = null) -> void:
 	var launched := ProjectileFlight.new()
@@ -35,6 +38,8 @@ func initialize(source: Node3D, target: Node3D, payload: DamagePayload, kind: St
 func bind_flight(launched: ProjectileFlight) -> void:
 	flight = launched
 	flight.visual = self
+	_tail_elapsed = 0.0
+	_smoke.hide()
 	_arrow.visible = flight._kind in ["arrow", "bolt"]
 	_arrow.scale = Vector3(1, 1, .55) if flight._kind == "bolt" else Vector3.ONE
 	_stone.visible = flight._kind == "stone"
@@ -61,6 +66,36 @@ func present_flight(delta: float) -> void:
 	if flight._kind == "stone":
 		_stone.rotate_x(delta * 5.0)
 		_stone.rotate_z(delta * 3.0)
+	elif flight._kind == "bullet":
+		_cannonball.visible = flight._active
+		_present_smoke(0.0)
+
+func present_tail(delta: float) -> bool:
+	# Keep only the presentation briefly after impact. The Flight is inactive:
+	# neither damage nor target tracking is repeated during this cosmetic tail.
+	if flight._kind != "bullet":
+		return false
+	_tail_elapsed += delta
+	if _tail_elapsed >= SMOKE_TAIL_SECONDS:
+		return false
+	visible = flight._game.can_see_position(flight._game.local_owner_id, flight.position)
+	_present_smoke(_tail_elapsed / SMOKE_TAIL_SECONDS)
+	return true
+
+func _present_smoke(age: float) -> void:
+	var direction: Vector3 = flight.position - flight._start
+	var length: float = direction.length()
+	# A long trail must not reveal its hidden origin through a visible endpoint.
+	_smoke.visible = length > 0.01 and visible and flight._game.can_see_position(flight._game.local_owner_id, flight._start)
+	if not _smoke.visible:
+		return
+	var along: Vector3 = direction / length
+	var up: Vector3 = Vector3.RIGHT if absf(along.dot(Vector3.UP)) > 0.99 else Vector3.UP
+	var across: Vector3 = along.cross(up).normalized()
+	var width: float = 0.065
+	_smoke.global_transform = Transform3D(Basis(across * width, along * length, across.cross(along) * width), flight._start.lerp(flight.position, 0.5))
+	_smoke.set_instance_shader_parameter(&"trace_length", length)
+	_smoke.set_instance_shader_parameter(&"smoke_age", age)
 
 func _face_direction(direction: Vector3) -> void:
 	if direction.length_squared() <= 0.0001:
@@ -71,15 +106,20 @@ func _face_direction(direction: Vector3) -> void:
 func reset_visual() -> void:
 	_trail.emitting = false
 	_trail.hide()
+	_smoke.hide()
+	_tail_elapsed = 0.0
 	hide()
 	flight = null
 
 func _physics_process(delta: float) -> void:
 	if pooled:
 		return
-	if flight == null or not flight._active:
-		# Preserve the final interpolation tick and standalone fixture lifetime.
+	if flight == null:
 		queue_free()
+		return
+	if not flight._active:
+		# Preserve the final interpolation tick and standalone fixture lifetime.
+		if not present_tail(delta): queue_free()
 		return
 	flight.advance(delta)
 	present_flight(delta)

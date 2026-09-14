@@ -97,6 +97,20 @@ func _run() -> void:
 	var bullet: ProjectileFlight=pool.launch(subject,target,DamageResolver.snapshot(subject._stats,0,0,0),"bullet")
 	check(bullet._arc_height==0 and bullet._duration<=.35 and not bullet.visual.get_node("Trail").visible,"fast direct bullet never inherits cannon smoke")
 	check(bullet.visual.get_node("Cannonball").scale.is_equal_approx(Vector3.ONE*.2),"borrowed cannon mesh becomes a small bullet")
+	var hp_before: float = target.hp
+	pool._physics_process(bullet._duration)
+	var smoke: MeshInstance3D = bullet.visual.get_node("MusketSmoke")
+	var smoke_end: Vector3 = smoke.global_position + smoke.global_basis.y * .5
+	check(smoke.visible and smoke_end.is_equal_approx(bullet._end),"smoke grows along the flight to the actual hit target")
+	check(not bullet._active and not bullet.visual.get_node("Cannonball").visible and target.hp==hp_before-18,"impact ends bullet damage and ball while retaining smoke")
+	var fixed_end: Vector3 = bullet._end
+	target.position += Vector3(2,0,0)
+	pool._physics_process(.1)
+	check(pool.active_flights.has(bullet) and smoke.visible and bullet._end==fixed_end and target.hp==hp_before-18,"afterimage neither follows a moving target nor applies damage again")
+	pool._physics_process(.15)
+	check(pool.active_flights.is_empty() and not smoke.visible,"smoke tail releases its borrowed scene after 0.24 seconds")
+	var reused_cannon: ProjectileFlight = pool.launch(subject,target,DamageResolver.snapshot(subject._stats,0,0,0),"cannon")
+	check(not reused_cannon.visual.get_node("MusketSmoke").visible and reused_cannon.visual.get_node("Trail").emitting,"later cannon borrower cannot inherit musket smoke")
 	pool.reset_all()
 	await game.prepare_shutdown()
 	game.queue_free()

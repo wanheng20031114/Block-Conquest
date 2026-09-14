@@ -1,7 +1,7 @@
 {
   "format": "48 kHz mono PCM16 WAV",
   "music_included": false,
-  "file_count": 54,
+  "file_count": 56,
   "provenance": "CC0 recorded foley from Kenney and Vehicle/Jan Schupke, layered with original deterministic DSP; see CREDITS.md and sources.json",
   "active_rms_definition": "20-ms blocks within 20 dB of maximum block energy; not LUFS",
   "listening_validation": "Asset-level technical validation only; no system-loudspeaker playback or perceptual listening claim. Runtime mix verification is recorded separately.",
@@ -611,6 +611,56 @@
       "description": "Original pressure blast/rumble with recorded metal and wood recoil",
       "modifications": "Mono downmix, 48k resample, silence trim, rate adjustment, EQ, foley/DSP layering, endpoint fades, active-RMS gain and soft crest control",
       "sha256": "f19e06b4fc7f2eb63f54d173f7d7f8a1f4b0b2b9db626cadf484652fbc7c2bb0"
+    },
+    {
+      "file": "musket_shot_01.wav",
+      "kind": "musket_shot",
+      "variant": 1,
+      "duration_s": 0.72,
+      "sample_rate": 48000,
+      "channels": 1,
+      "format": "PCM16",
+      "peak_dbfs": -3.98,
+      "true_peak_4x_dbtp": -3.95,
+      "rms_dbfs": -24.47,
+      "active_rms_dbfs": -18.5,
+      "target_active_rms_dbfs": -18.5,
+      "peak_limit_dbfs": -3.0,
+      "energy_above_6khz_percent": 1.077,
+      "clipped_samples": 0,
+      "first_sample": 0,
+      "last_sample": 0,
+      "source_files": [
+        "kenney_impact/impactMetal_light_001.ogg"
+      ],
+      "description": "Original dry powder crack, low-mid pressure body and short smoke tail with recorded lock contact",
+      "modifications": "Mono downmix, 48k resample, silence trim, rate adjustment, EQ, foley/DSP layering, endpoint fades, active-RMS gain and soft crest control",
+      "sha256": "853e51e638021a8a4386fb59a98970dd5d8c470b22d55705a6470a690cc47ebb"
+    },
+    {
+      "file": "musket_shot_02.wav",
+      "kind": "musket_shot",
+      "variant": 2,
+      "duration_s": 0.72,
+      "sample_rate": 48000,
+      "channels": 1,
+      "format": "PCM16",
+      "peak_dbfs": -4.9,
+      "true_peak_4x_dbtp": -4.9,
+      "rms_dbfs": -24.02,
+      "active_rms_dbfs": -18.5,
+      "target_active_rms_dbfs": -18.5,
+      "peak_limit_dbfs": -3.0,
+      "energy_above_6khz_percent": 1.269,
+      "clipped_samples": 0,
+      "first_sample": 0,
+      "last_sample": 0,
+      "source_files": [
+        "kenney_impact/impactMetal_light_002.ogg"
+      ],
+      "description": "Original dry powder crack, low-mid pressure body and short smoke tail with recorded lock contact",
+      "modifications": "Mono downmix, 48k resample, silence trim, rate adjustment, EQ, foley/DSP layering, endpoint fades, active-RMS gain and soft crest control",
+      "sha256": "61bbe50f758795b6d35cd350c66cbdfa2a1873bf5fec5df0b41351a91a109e38"
     },
     {
       "file": "explosion_01.wav",
