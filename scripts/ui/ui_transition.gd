@@ -7,7 +7,7 @@ signal completed
 signal failed(path: String, error: Error)
 
 const CLOSE_SECONDS: float = 0.20
-const OPEN_SECONDS: float = 0.25
+const OPEN_SECONDS: float = 0.35
 var busy: bool = false
 var _curtain: float = 0.0
 var _tween: Tween
@@ -40,18 +40,32 @@ func _animate_scene(packed: PackedScene, path: String) -> void:
 	_tween = _create_motion()
 	_tween.tween_method(_set_curtain, 0.0, 1.0, CLOSE_SECONDS).set_ease(Tween.EASE_IN_OUT)
 	await _tween.finished
+	# Present the fully closed sheet before scene instantiation can stall a frame.
+	await _covered_frame()
 	var error: Error = get_tree().change_scene_to_packed(packed)
 	if error == OK:
 		await get_tree().scene_changed
 	else:
 		failed.emit(path, error)
+	# scene_changed only means the new nodes are ready. Keep the sheet closed
+	# through their first draw, then let its loading/rendering delta drain on the
+	# next frame. Otherwise the real-time tween can finish in one long frame.
+	await _covered_frame()
+	await _covered_frame()
 	_tween = _create_motion()
-	_tween.tween_method(_set_curtain, 1.0, 0.0, OPEN_SECONDS).set_ease(Tween.EASE_OUT)
+	_tween.tween_method(_set_curtain, 1.0, 0.0, OPEN_SECONDS).set_ease(Tween.EASE_IN_OUT)
 	await _tween.finished
 	veil.hide()
 	_release_scene_input()
 	busy = false
 	completed.emit()
+
+func _covered_frame() -> void:
+	if DisplayServer.get_name() == "headless":
+		# The dedicated/headless runner has no presented frames to await.
+		await get_tree().process_frame
+	else:
+		await RenderingServer.frame_post_draw
 
 func _input(event: InputEvent) -> void:
 	# The full-screen Control blocks pointer clicks. This also prevents keyboard
