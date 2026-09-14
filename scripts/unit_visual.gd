@@ -1,7 +1,7 @@
 class_name UnitVisual
 extends Node3D
 ## Saved rigid-part sculptures driven by native AnimationPlayers.
-@export_enum("swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer") var kind: String = "swordsman"
+@export_enum("swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer") var kind: String = "swordsman"
 @export var projectile_socket: NodePath
 @export var extra_projectile_sockets: Array[NodePath] = []
 @export var support_particle_paths: Array[NodePath] = []
@@ -150,7 +150,7 @@ func set_motion(moving: bool) -> void:
 		_locomotion_advanced = _suspended_seconds()
 
 func set_working(active: bool, mode: String = "gather") -> void:
-	if kind not in ["farmer", "engineer", "priest"]:
+	if not (BalanceCatalog.unit(kind).is_construction() or BalanceCatalog.unit(kind).is_support()):
 		return
 	if _working == active and (not active or _work_mode == mode):
 		return

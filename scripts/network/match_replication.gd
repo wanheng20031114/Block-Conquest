@@ -719,7 +719,7 @@ func _valid_snapshot(snapshot: Dictionary) -> bool:
 				return false
 			if state.anim in ["repair", "heal"] and (not state.working or state.moving):
 				return false
-			if state.anim in ["gather", "build"] and state.kind != "farmer":
+			if state.anim in ["gather", "build"] and not BalanceCatalog.unit(state.kind).is_construction():
 				return false
 			if int(state.owner) == game.local_owner_id and not NetworkProtocol.integer(state.get("order"), 0, 7):
 				return false

@@ -35,7 +35,8 @@ func initialize(source: Node3D, target: Node3D, payload: DamagePayload, kind: St
 func bind_flight(launched: ProjectileFlight) -> void:
 	flight = launched
 	flight.visual = self
-	_arrow.visible = flight._kind == "arrow"
+	_arrow.visible = flight._kind in ["arrow", "bolt"]
+	_arrow.scale = Vector3(1, 1, .55) if flight._kind == "bolt" else Vector3.ONE
 	_stone.visible = flight._kind == "stone"
 	_stone.rotation = Vector3.ZERO
 	_cannonball.visible = flight._kind == "cannon"

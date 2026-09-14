@@ -1,7 +1,7 @@
 extends SceneTree
 ## Real sandbox geometry/PathBudget/RVO. Record intent separately from safe motion.
 const UNIT := preload("res://scenes/unit.tscn")
-const KINDS: Array[String] = ["swordsman", "shield_guard", "spearman", "farmer", "knight", "war_elephant", "archer"]
+const KINDS: Array[String] = ["swordsman", "shield_guard", "spearman", "farmer", "knight", "war_elephant", "archer", "crossbowman"]
 
 class ApproachProbe extends BattleUnit:
 	var attack_starts: int = 0
@@ -112,7 +112,7 @@ func _run() -> void:
 			# deliberately remove that controller for isolated diagnostics.
 			if direct:
 				await duel("light_cavalry", true, true, 0.0)
-				for kind: String in ["swordsman", "spearman", "shield_guard", "light_cavalry"]:
+				for kind: String in ["swordsman", "spearman", "shield_guard", "light_cavalry", "crossbowman"]:
 					await duel(kind, true, true, 0.0, "light_cavalry")
 			if not direct and "--native-diagnostics" in OS.get_cmdline_user_args():
 				await duel("light_cavalry", false, true, 0.0)

@@ -12,6 +12,7 @@ damage = 3
 melee_armor = 0
 ranged_armor = 1
 combat_class = &"infantry"
+role = 1
 range = 0.8
 cooldown = 1.5
 attack_windup_seconds = 0.25

@@ -9,8 +9,8 @@ const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const PROJECTILE_SCENE: PackedScene = preload("res://scenes/projectile.tscn")
 const EFFECT_SCENE: PackedScene = preload("res://scenes/battle_effect.tscn")
 const BUILDING_SCENE: PackedScene = preload("res://scenes/building.tscn")
-const UNIT_TYPES := ["swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
-const UNIT_NAMES := {"swordsman": "剑士", "shield_guard": "盾卫", "spearman": "长矛兵", "archer": "弓箭手", "knight": "骑士", "war_elephant": "战象", "light_cavalry": "轻骑兵", "catapult": "投石车", "cannon": "加农炮", "heavy_cannon": "重型火炮", "triple_cannon": "三管短炮", "engineer": "工程兵", "priest": "牧师", "farmer": "农民"}
+const UNIT_TYPES := ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
+const UNIT_NAMES := {"swordsman": "剑士", "shield_guard": "盾卫", "spearman": "长矛兵", "archer": "弓箭手", "crossbowman": "弩手", "knight": "骑士", "war_elephant": "战象", "light_cavalry": "轻骑兵", "catapult": "投石车", "cannon": "加农炮", "heavy_cannon": "重型火炮", "triple_cannon": "三管短炮", "engineer": "工程兵", "priest": "牧师", "farmer": "农民"}
 const MAX_ARMY: int = 160
 const EFFECT_SOUNDS: Dictionary = {"hit": &"sword_hit", "wood_hit": &"wood_hit", "stone_chip": &"stone_chip", "arrow_hit": &"arrow_hit", "muzzle": &"cannon_shot", "explosion": &"explosion", "stone_hit": &"stone_hit", "collapse": &"collapse"}
 
@@ -437,7 +437,7 @@ func own_selected_workers() -> Array[Node3D]:
 	for entity: Node3D in selection:
 		if is_instance_valid(entity) and entity is BattleUnit:
 			var unit: BattleUnit = entity
-			if unit.alive and unit.owner_id == local_owner_id and unit.unit_type == "farmer":
+			if unit.alive and unit.owner_id == local_owner_id and unit._stats.is_construction():
 				result.append(unit)
 	return result
 
@@ -614,14 +614,14 @@ func select_headquarters() -> void:
 func select_army() -> void:
 	var army: Array[Node3D] = []
 	for unit in get_tree().get_nodes_in_group("units"):
-		if unit.alive and unit.owner_id == local_owner_id and unit.unit_type != "farmer":
+		if unit.alive and unit.owner_id == local_owner_id and not unit._stats.is_construction():
 			army.append(unit)
 	select_entities(army)
 
 func select_idle_worker() -> void:
 	var idle: Array[Node3D] = []
 	for unit: Node3D in owned_entities(local_owner_id, "units"):
-		if unit.unit_type == "farmer" and unit.order == BattleUnit.Order.IDLE:
+		if unit._stats.is_construction() and unit.order == BattleUnit.Order.IDLE:
 			idle.append(unit)
 	if idle.is_empty():
 		hud.toast("没有空闲农民", 1.8)
@@ -781,7 +781,7 @@ func on_entity_died(entity: Node3D) -> void:
 		return
 	if entity is BattleUnit:
 		var player := get_player(entity.owner_id)
-		if entity.unit_type == "farmer":
+		if entity._stats.is_construction():
 			player.farmers -= 1
 		else:
 			player.military_supply -= BalanceCatalog.unit(entity.unit_type).supply
@@ -1005,7 +1005,7 @@ func register_entity(entity: Node3D) -> void:
 		$FogOfWar.apply_entity_visibility(local_owner_id, entity)
 	if entity is BattleUnit and is_authority:
 		var player := get_player(entity.owner_id)
-		if entity.unit_type == "farmer":
+		if entity._stats.is_construction():
 			player.farmers += 1
 		else:
 			player.military_supply += BalanceCatalog.unit(entity.unit_type).supply
@@ -1069,7 +1069,7 @@ func choose_builder(units: Array, at: Vector3, queued: bool) -> BattleUnit:
 	var best: BattleUnit
 	var score := INF
 	for worker: BattleUnit in units:
-		if worker.unit_type != "farmer":
+		if not worker._stats.is_construction():
 			continue
 		var value := worker.global_position.distance_squared_to(at)
 		if queued:

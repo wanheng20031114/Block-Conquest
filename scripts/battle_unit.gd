@@ -12,6 +12,7 @@ const MODELS: Dictionary = {
 	"shield_guard": preload("res://assets/models/units/shield_guard.tscn"),
 	"spearman": preload("res://assets/models/units/spearman.tscn"),
 	"archer": preload("res://assets/models/units/archer.tscn"),
+	"crossbowman": preload("res://assets/models/units/crossbowman.tscn"),
 	"knight": preload("res://assets/models/units/knight.tscn"),
 	"light_cavalry": preload("res://assets/models/units/light_cavalry.tscn"),
 	"war_elephant": preload("res://assets/models/units/war_elephant.tscn"),
@@ -36,7 +37,7 @@ const MELEE_CONTACT_TOLERANCE: float = 0.2
 const CONGESTION_SECONDS: float = 0.6
 const BODY_RADIUS_SCALE: float = 0.85
 
-@export_enum("swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer") var unit_type: String = "swordsman"
+@export_enum("swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer") var unit_type: String = "swordsman"
 @export var model_scene_override: PackedScene
 # Presentation and RVO choices are fixed before this unit enters
 # the tree. Network replicas retain the same authority gate as native models.
@@ -166,7 +167,7 @@ func _ready() -> void:
 	if owner_id < 0:
 		owner_id = alliance_id
 	_stats = definition_override if definition_override != null else BalanceCatalog.unit(unit_type)
-	_melee_fighter = _stats.military and _stats.projectile.is_empty()
+	_melee_fighter = _stats.military and _stats.damage_channel == CombatDefinition.DamageChannel.MELEE
 	display_name = _stats.name
 	max_hp = _stats.hp
 	hp = max_hp
@@ -592,7 +593,7 @@ func _refresh_target() -> void:
 	var keep_current_target: bool = false
 	# Workers finish economic orders even under fire. An explicit attack still
 	# lets the player use a pickaxe for self-defence.
-	if unit_type == "farmer" and order != Order.ATTACK:
+	if _stats.is_construction() and order != Order.ATTACK:
 		target = null
 		return
 	if support.enabled() and order != Order.ATTACK:
@@ -801,7 +802,7 @@ func _on_attack_windup_timeout() -> void:
 		_game.spawn_effect(contact + Vector3.UP * 1.1, effect_kind, Color("f5d691"))
 	else:
 		if kind != "cannon":
-			sound_requested.emit(&"bow_release" if kind == "arrow" else &"catapult_release", get_projectile_origin())
+			sound_requested.emit(&"bow_release" if kind in ["arrow", "bolt"] else &"catapult_release", get_projectile_origin())
 		_game.spawn_projectile(self, strike_target, payload, kind)
 		if kind == "cannon":
 			_game.spawn_effect(get_projectile_origin(), "muzzle", Color("ffd898"))
@@ -815,12 +816,12 @@ func set_selected(value: bool) -> void:
 	health_bar.visible = selected or hp < max_hp
 
 func issue_gather(mine: Node3D, queued: bool = false) -> bool:
-	if not alive or unit_type != "farmer" or not is_instance_valid(mine) or not mine.is_in_group("resource_veins"):
+	if not alive or not _stats.is_construction() or not is_instance_valid(mine) or not mine.is_in_group("resource_veins"):
 		return false
 	return _issue_work(mine, Order.GATHER, queued)
 
 func issue_build(site: Node3D, queued: bool = false) -> bool:
-	if not alive or unit_type != "farmer" or not is_instance_valid(site) or not site.is_in_group("buildings") or not site.alive or site.owner_id != owner_id or site.is_constructed:
+	if not alive or not _stats.is_construction() or not is_instance_valid(site) or not site.is_in_group("buildings") or not site.alive or site.owner_id != owner_id or site.is_constructed:
 		return false
 	return _issue_work(site, Order.BUILD, queued)
 
@@ -1190,7 +1191,7 @@ func _apply_damage(actual_damage: float, source: Node3D, attacker_owner: int = -
 		defeated_by_owner = attacker_owner
 		_die()
 		return
-	if unit_type != "farmer" and _valid_target(source) and (not support.enabled() or (not is_instance_valid(support.recipient) and order != Order.SUPPORT and _within_attack_range(source))):
+	if not _stats.is_construction() and _valid_target(source) and (not support.enabled() or (not is_instance_valid(support.recipient) and order != Order.SUPPORT and _within_attack_range(source))):
 		if order == Order.MOVE:
 			_move_retaliation = source
 			_retaliation_time = 2.0

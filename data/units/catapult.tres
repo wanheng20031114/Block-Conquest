@@ -29,4 +29,3 @@ min_range = 3
 projectile = "stone"
 production_building = &"factory"
 training_seconds = 20
-military = true

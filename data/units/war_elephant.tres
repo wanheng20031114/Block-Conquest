@@ -30,4 +30,3 @@ splash_radius = 0
 projectile = ""
 production_building = &"barracks"
 training_seconds = 30
-military = true

@@ -80,7 +80,7 @@ func rally_routes() -> Array[Dictionary]:
 		if products.is_empty():
 			continue
 		var mine: ResourceVein = building.production.rally_mine
-		var gathering: bool = "farmer" in products and is_instance_valid(mine)
+		var gathering: bool = is_instance_valid(mine) and Array(products).any(func(kind: String): return BalanceCatalog.unit(kind).is_construction())
 		# Farmers follow the mine itself, including the default starting mine;
 		# a factory's mine-targeted rally remains ordinary movement. Both values
 		# already arrive in the owner's existing private building snapshot.

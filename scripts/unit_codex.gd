@@ -3,10 +3,11 @@ extends Control
 signal closed
 
 const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower"]
-const CLASS_NAMES: Dictionary = {&"infantry": "步兵", &"archer": "弓箭手", &"cavalry": "骑兵", &"siege": "攻城器", &"building": "建筑", &"worker": "农民"}
+const CLASS_NAMES: Dictionary = CombatDefinition.GROUP_NAMES
+const FAMILY_FILTERS: Array[StringName] = [&"", &"infantry", &"ranged_infantry", &"melee_infantry", &"cavalry", &"siege"]
 const BUILDING_DESCRIPTIONS: Dictionary = {
 	"headquarters": "城镇的中心。训练农民、守护经济，并为重建保留希望。",
-	"barracks": "训练剑士、盾卫、长矛兵、弓箭手、骑士、战象与轻骑兵，用不同兵种组成你的主力。",
+	"barracks": "训练剑士、盾卫、长矛兵、弓箭手、弩手与各类骑兵，组成你的主力。",
 	"factory": "制造投石车、加农炮、重型火炮、三管短炮并训练工程兵，为前线提供火力和维修支援。",
 	"academy": "训练牧师，并研究军队、人口与采矿科技。训练和研究独立进行，已完成的研究永久保留。",
 	"defense_tower": "自动攻击范围内的敌人。无法驻军，需要部队保护。",
@@ -20,7 +21,7 @@ const MODEL_PATHS: Dictionary = {
 }
 const TECH_MODELS: Dictionary = {&"attack": "swordsman", &"defense": "knight", &"workforce": "farmer", &"army_capacity": "barracks", &"mining": "farmer", &"cannon_range": "cannon", &"recovery": "farmer"}
 const UNIT_FRAMING: Dictionary = {
-	"swordsman": Vector2(1.0, 3.2), "shield_guard": Vector2(1.05, 3.4), "spearman": Vector2(1.35, 4.1), "archer": Vector2(1.0, 3.3), "knight": Vector2(1.35, 4.5), "light_cavalry": Vector2(1.3, 4.2), "war_elephant": Vector2(1.85, 6.4),
+	"swordsman": Vector2(1.0, 3.2), "shield_guard": Vector2(1.05, 3.4), "spearman": Vector2(1.35, 4.1), "archer": Vector2(1.0, 3.3), "crossbowman": Vector2(1.0, 3.2), "knight": Vector2(1.35, 4.5), "light_cavalry": Vector2(1.3, 4.2), "war_elephant": Vector2(1.85, 6.4),
 	"catapult": Vector2(1.25, 5.4), "cannon": Vector2(0.8, 4.4), "heavy_cannon": Vector2(.95, 6.0), "triple_cannon": Vector2(.75, 3.8), "farmer": Vector2(1.0, 3.2), "engineer": Vector2(1.0, 3.2), "priest": Vector2(1.0, 3.2),
 }
 enum PreviewAction { IDLE, WALK, ATTACK, GATHER }
@@ -37,6 +38,9 @@ var _preview_complete: bool = false
 var _preview_loop: bool = true
 var _cycle_elapsed: float = 0.0
 var _cycle_seconds: float = 1.0
+var _family_filter: StringName = &""
+var _channel_filter: int = -1
+var _role_filter: int = -1
 
 @onready var _viewport: SubViewport = %CodexViewport
 @onready var _anchor: Node3D = %ModelAnchor
@@ -52,6 +56,14 @@ func _ready() -> void:
 		%CategoryTabs.add_tab(title)
 	%Portrait.texture = _viewport.get_texture()
 	%CategoryTabs.tab_changed.connect(_on_category_changed)
+	for family: StringName in FAMILY_FILTERS:
+		%FamilyFilter.add_item("全部兵种" if family.is_empty() else CombatDefinition.GROUP_NAMES[family])
+	for title: String in ["全部攻击方式", "近战攻击", "远程攻击"]: %ChannelFilter.add_item(title)
+	for title: String in ["全部职责", "作战", "支援", "建设"]: %RoleFilter.add_item(title)
+	%FamilyFilter.item_selected.connect(_on_filters_changed)
+	%ChannelFilter.item_selected.connect(_on_filters_changed)
+	%RoleFilter.item_selected.connect(_on_filters_changed)
+	%ClearFilters.pressed.connect(_clear_filters)
 	%Entries.item_selected.connect(_on_entry_selected)
 	%Portrait.gui_input.connect(_on_preview_input)
 	%CloseCodex.pressed.connect(close_codex)
@@ -94,7 +106,7 @@ func _on_codex_visibility_changed() -> void:
 	_refresh_preview_activity()
 
 func _refresh_preview_activity() -> void:
-	var showing: bool = is_visible_in_tree()
+	var showing: bool = is_visible_in_tree() and not _entries.is_empty()
 	var playing: bool = showing and category == 0 and _preview_unit != null and not _preview_paused
 	if _preview_unit != null:
 		_preview_unit.set_support_particles_paused(not playing)
@@ -214,11 +226,33 @@ func _update_preview_controls() -> void:
 
 func _on_category_changed(value: int) -> void:
 	category = value
+	%UnitFilters.visible = category == 0
+	_refresh_entries()
+
+func _on_filters_changed(_index: int) -> void:
+	_family_filter = FAMILY_FILTERS[%FamilyFilter.selected]
+	_channel_filter = %ChannelFilter.selected - 1
+	_role_filter = %RoleFilter.selected - 1
+	_refresh_entries()
+
+func _clear_filters() -> void:
+	%FamilyFilter.select(0)
+	%ChannelFilter.select(0)
+	%RoleFilter.select(0)
+	_on_filters_changed(0)
+
+func _matches_filters(unit: UnitDefinition) -> bool:
+	return (_family_filter.is_empty() or unit.matches_combat_group(_family_filter)) \
+		and (_channel_filter < 0 or unit.damage_channel == _channel_filter) \
+		and (_role_filter < 0 or unit.role == _role_filter)
+
+func _refresh_entries() -> void:
+	var previous: String = selected_id
 	_entries.clear()
 	match category:
 		0:
 			for id: String in BalanceCatalog.UNITS:
-				_entries.append(id)
+				if _matches_filters(BalanceCatalog.unit(id)): _entries.append(id)
 		1: _entries.assign(BUILDING_IDS)
 		2:
 			for id: String in BalanceCatalog.UPGRADES:
@@ -228,8 +262,20 @@ func _on_category_changed(value: int) -> void:
 		var definition: Resource = _definition(id)
 		%Entries.add_item(definition.name)
 	%Count.text = "%d 项" % _entries.size()
-	%Entries.select(0)
-	_on_entry_selected(0)
+	%ClearFilters.disabled = _family_filter.is_empty() and _channel_filter < 0 and _role_filter < 0
+	%EmptyResults.visible = _entries.is_empty()
+	$Margin/Content/Body/Preview.visible = not _entries.is_empty()
+	%DetailScroll.visible = not _entries.is_empty()
+	if _entries.is_empty():
+		selected_id = ""
+		_preview_paused = true
+		_refresh_preview_activity()
+		_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		return
+	var index: int = maxi(0, _entries.find(previous))
+	%Entries.select(index)
+	%Entries.ensure_current_is_visible()
+	_on_entry_selected(index)
 
 func _definition(id: String) -> Resource:
 	match category:
@@ -238,6 +284,9 @@ func _definition(id: String) -> Resource:
 	return BalanceCatalog.upgrade(id)
 
 func select_entry(value: int, id: String) -> void:
+	# Links from production/HUD open the requested unit even after narrow filtering.
+	if value == 0 and not _matches_filters(BalanceCatalog.unit(id)):
+		_clear_filters()
 	%CategoryTabs.current_tab = value
 	if category != value:
 		_on_category_changed(value)
@@ -251,11 +300,15 @@ func _on_entry_selected(index: int) -> void:
 	selected_id = _entries[index]
 	var definition: Resource = _definition(selected_id)
 	%EntryTitle.text = definition.name
+	%UnitTags.visible = category == 0
 	var content: String = ""
 	match category:
 		0:
 			var unit: UnitDefinition = definition
 			%EntryType.text = "单位  /  " + ("军事部队" if unit.military else "经济单位")
+			%FamilyTag.text = unit.formation_label()
+			%ChannelTag.text = unit.channel_label()
+			%RoleTag.text = unit.role_label()
 			%Description.text = unit.description
 			content += _row("训练费用", "%d 金币" % unit.cost)
 			content += _row("训练时间", _number(unit.training_seconds) + " 秒")
@@ -334,11 +387,15 @@ func _combat_rows(definition: CombatDefinition) -> String:
 		rows += _row("攻击力", _number(definition.damage) + (" · 近战" if definition.damage_channel == CombatDefinition.DamageChannel.MELEE else " · 远程"))
 		rows += _row("每管间隔" if definition is UnitDefinition and definition.independent_weapons > 1 else "攻击间隔", _number(definition.cooldown) + " 秒")
 		rows += _row("射程", _number(definition.range))
+		if definition.armor_penetration > 0.0:
+			rows += _row("固定穿甲", "无视 %s 点护甲" % _number(definition.armor_penetration))
 	for target_class: StringName in definition.bonuses:
 		rows += _row("对" + String(CLASS_NAMES[target_class]), "+%s 伤害" % _number(definition.bonuses[target_class]))
 	return rows
 
 func _unit_notes(unit: UnitDefinition) -> String:
+	if unit.armor_penetration > 0.0:
+		return "穿甲在防御科技后计算，剩余护甲最低为0；攻击科技提高攻击力，穿甲固定为%s。对建筑同样有效，类别附伤另行计算。" % _number(unit.armor_penetration)
 	if unit.support_kind == &"heal":
 		return "治疗己方和盟友的步兵、骑兵、弓手、农民及其他牧师；不能治疗自身、攻城器或建筑。同一目标同时一名牧师治疗。移动中断施法，手动指定可跟随；攻击科技只提高挥拳伤害。"
 	if unit.support_kind == &"repair":
@@ -352,7 +409,7 @@ func _unit_notes(unit: UnitDefinition) -> String:
 	if unit.id == &"catapult":
 		return "半径 %s 的范围伤害，范围内伤害一致。巨石落点在发射时确定，可以躲避；不会伤及友军。" % _number(unit.splash_radius)
 	if unit.independent_weapons > 1:
-		return "三根炮管各有2.4秒冷却，空闲炮管可单独开火。自动攻击优先分散，目标不足时集中火力；手动指定目标时三管集火。额外目标优先步兵，无溅射，弓箭手不属于步兵附伤类别。不受加长炮管科技影响。"
+		return "三根炮管各有2.4秒冷却，空闲炮管可单独开火。自动优先分散，目标不足时集火；手动指定时三管集火。优先步兵，无溅射；步兵附伤也作用于弓箭手、弩手和农民。不受加长炮管科技影响。"
 	if unit.cannon_range_upgrades:
 		return "炮弹命中单个目标。适合拆除建筑；需要前排保护，无法攻击贴身敌人。学院研究加长炮管可使射程 +%d。" % BalanceCatalog.upgrade(&"cannon_range_1").total_bonus
 	if not unit.military:

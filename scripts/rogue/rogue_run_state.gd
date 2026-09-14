@@ -418,7 +418,7 @@ func _add_unit(kind: String, deployed: bool) -> void:
 func _find_layout(unit: Dictionary, encounter: String) -> Array:
 	if encounter == "outpost":
 		var columns: Array = [3.5, 6.5]
-		if unit.kind == "archer": columns = [0.0, -2.8]
+		if RogueCatalog.is_ranged_infantry(unit.kind): columns = [0.0, -2.8]
 		elif unit.kind in ["catapult", "cannon", "heavy_cannon", "triple_cannon"]: columns = [-5.6, -8.4]
 		elif unit.kind in ["priest", "engineer"]: columns = [-8.4, -5.6]
 		for x: float in columns:

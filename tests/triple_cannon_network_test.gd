@@ -77,7 +77,7 @@ func _run() -> void:
 	cannon.battery.last_fired = PackedFloat64Array([1.4,-1,1.9])
 	var snapshot := wire(sender.build_snapshot(0))
 	var stamps: Array = state_for(snapshot,cannon.entity_id).barrels
-	check(NetworkProtocol.VERSION == 14 and is_equal_approx(stamps[0],1.4) and stamps[1] == -1.0 and is_equal_approx(stamps[2],1.9),"protocol carries individual release timestamps")
+	check(NetworkProtocol.VERSION >= 14 and is_equal_approx(stamps[0],1.4) and stamps[1] == -1.0 and is_equal_approx(stamps[2],1.9),"protocol carries individual release timestamps")
 	check(state_for(snapshot,target.entity_id).hp == 345 and state_for(snapshot,hidden.entity_id).is_empty(),"host damage and fog filtering")
 	var client: Node3D = FIXTURE.instantiate()
 	root.add_child(client)

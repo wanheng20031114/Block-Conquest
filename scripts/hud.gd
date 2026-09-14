@@ -1,7 +1,6 @@
 extends Control
 
-const UNIT_ORDER := ["swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
-const UNIT_NAMES := ["剑士", "盾卫", "长矛兵", "弓箭手", "骑士", "战象", "轻骑兵", "投石车", "加农炮", "农民"]
+const UNIT_ORDER := ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
 const BUILD_ORDER := ["barracks", "factory", "academy", "defense_tower", "headquarters"]
 var _actions: Array[Dictionary] = []
 var _queue_actions: Array[Dictionary] = []
@@ -142,8 +141,7 @@ func refresh_hotkey_labels() -> void:
 	]
 	$HelpOverlay/Paper/Keys.text = "\n".join(help_keys)
 	$HelpOverlay/Paper/Intro.text = "摧毁敌方全部军事建筑。基础上限：%d 军事人口、%d 农民（含训练），学院可研究扩展。" % [PlayerState.SUPPLY_LIMIT, PlayerState.WORKER_LIMIT]
-	var workforce := BalanceCatalog.upgrade(&"workforce_1")
-	$HelpOverlay/Paper/Economy.text = "训练（秒）：农民%s / 剑士%s / 盾卫%s / 长矛%s / 弓手%s / 骑士%s / 战象%s / 轻骑%s / 攻城%s · 每矿%d位 · 每人%s秒+%d金\n学院研究：攻击%s，防御%s，攻城近甲固定0；%d金/%d秒扩农民10→12 · 队列可取消退款" % [BalanceCatalog.unit("farmer").training_seconds, BalanceCatalog.unit("swordsman").training_seconds, BalanceCatalog.unit("shield_guard").training_seconds, BalanceCatalog.unit("spearman").training_seconds, BalanceCatalog.unit("archer").training_seconds, BalanceCatalog.unit("knight").training_seconds, BalanceCatalog.unit("war_elephant").training_seconds, BalanceCatalog.unit("light_cavalry").training_seconds, BalanceCatalog.unit("catapult").training_seconds, ResourceVein.CAPACITY, BalanceCatalog.ECONOMY.mining_seconds, BalanceCatalog.ECONOMY.mining_gold, _upgrade_bonus_text("attack"), _upgrade_bonus_text("defense"), workforce.cost, workforce.research_seconds]
+	$HelpOverlay/Paper/Economy.text = "兵营训练步兵与骑兵，军工厂生产攻城器和工程兵，学院训练牧师并研究科技。详细数值见战争图鉴。\n每矿%d位 · 每人%s秒+%d金 · 攻击科技%s，防御科技%s，攻城近甲固定0 · 训练和研究队列可取消退款" % [ResourceVein.CAPACITY, BalanceCatalog.ECONOMY.mining_seconds, BalanceCatalog.ECONOMY.mining_gold, _upgrade_bonus_text("attack"), _upgrade_bonus_text("defense")]
 	$HelpOverlay/Paper/Economy.text += "\n学院扩编：%d→%d→%d人口；采矿效率%s%%，保持每次%d金；自然收入不变" % [PlayerState.SUPPLY_LIMIT, PlayerState.SUPPLY_LIMIT + BalanceCatalog.upgrade("army_capacity_1").total_bonus, PlayerState.SUPPLY_LIMIT + BalanceCatalog.upgrade("army_capacity_2").total_bonus, _upgrade_bonus_text("mining"), BalanceCatalog.ECONOMY.mining_gold]
 	# Initial binding precedes match setup; subsequent preference changes refresh the panel.
 	if game._match_ready:
@@ -235,13 +233,16 @@ func refresh() -> void:
 			_selected_preview = entity.unit_type
 			var definition := BalanceCatalog.unit(entity.unit_type)
 			# Only the local player's upgrades are part of their private snapshot.
+			selected_role.text += " · " + definition.formation_label() + " · " + definition.role_label()
 			var own_unit: bool = entity.owner_id == game.local_owner_id
 			var attack_bonus: int = player.get_attack_bonus() if own_unit and definition.military else 0
 			var defense_bonus: int = player.get_defense_bonus() if own_unit and definition.military else 0
 			selected_stats.text = "%s攻 %d · 近甲 %d / 远甲 %d\n%s" % ["" if own_unit else "基础 ", definition.damage + attack_bonus,
 				DamageResolver.armor_for_channel(definition, CombatDefinition.DamageChannel.MELEE, defense_bonus),
 				DamageResolver.armor_for_channel(definition, CombatDefinition.DamageChannel.RANGED, defense_bonus), entity.order_name]
-			if entity.unit_type == "farmer":
+			if definition.armor_penetration > 0.0:
+				selected_stats.text += " · 穿甲%d" % definition.armor_penetration
+			if entity._stats.is_construction():
 				var queued_orders: int = int(entity.get_meta("replica_queue_count", 0)) if game.online and not game.is_authority else entity.waypoint_queue.size()
 				var mining_rate: float = player.get_mining_rate_multiplier() if own_unit else 1.0
 				var mining_gold: int = BalanceCatalog.ECONOMY.mining_gold * game.get_player(entity.owner_id).get_gather_yield_multiplier()

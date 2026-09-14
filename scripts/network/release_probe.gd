@@ -115,7 +115,7 @@ func validate_resource_values() -> void:
 	# File existence and a source manifest cannot detect a converter dropping a
 	# saved exported property. Exercise the actual ResourceLoader values in PCK.
 	var began := checks
-	var production := {"headquarters": ["farmer"], "barracks": ["swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry"],
+	var production := {"headquarters": ["farmer"], "barracks": ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry"],
 		"factory": ["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"], "academy": ["priest"], "defense_tower": [], "enemy_keep": ["farmer"], "tower": [], "house": []}
 	var defensive_damage := {"headquarters": 40, "enemy_keep": 40, "defense_tower": 16, "tower": 17}
 	for kind: String in production:
@@ -125,11 +125,12 @@ func validate_resource_values() -> void:
 			"packaged_building_combat_values_" + kind)
 	for kind: String in BalanceCatalog.UNITS:
 		var unit := BalanceCatalog.unit(kind)
+		check(unit.validation_errors().is_empty(), "packaged_classification_" + kind)
 		check(unit.id == StringName(kind) and unit.hp > 0.0 and is_finite(unit.hp) and unit.cost > 0 and unit.speed > 0.0
 			and String(unit.production_building) in production and kind in production[String(unit.production_building)], "packaged_unit_production_owner_" + kind)
 	var farmer := BalanceCatalog.unit("farmer")
 	check(not farmer.military and farmer.hp == 150 and farmer.damage == 5 and farmer.cost == 50 and farmer.training_seconds == 10.0 and farmer.supply == 0 and farmer.sight == 9, "packaged_farmer_health_and_training_contract")
-	var training_seconds := {"triple_cannon": 22.0, "heavy_cannon": 36.0, "priest": 18.0, "engineer": 10.0, "light_cavalry": 7.0, "war_elephant": 30.0, "shield_guard": 10.0, "spearman": 6.0, "swordsman": 6.0, "archer": 7.0, "knight": 8.0, "catapult": 20.0, "cannon": 20.0, "farmer": 10.0}
+	var training_seconds := {"triple_cannon": 22.0, "heavy_cannon": 36.0, "priest": 18.0, "engineer": 10.0, "light_cavalry": 7.0, "war_elephant": 30.0, "shield_guard": 10.0, "spearman": 6.0, "swordsman": 6.0, "archer": 7.0, "crossbowman": 9.0, "knight": 8.0, "catapult": 20.0, "cannon": 20.0, "farmer": 10.0}
 	for kind: String in training_seconds:
 		check(BalanceCatalog.unit(kind).training_seconds == training_seconds[kind], "packaged_training_seconds_" + kind)
 	for pair: Array in [["knight", "archer", 5], ["knight", "swordsman", 16], ["swordsman", "knight", 10],
@@ -137,6 +138,12 @@ func validate_resource_values() -> void:
 		var defender := BalanceCatalog.unit(pair[1])
 		var damage := DamageResolver.resolve(DamageResolver.snapshot(BalanceCatalog.unit(pair[0]), 0.0, 0, 0), defender)
 		check(ceili(defender.hp / damage) == pair[2], "packaged_combat_hits_" + pair[0] + "_" + pair[1])
+	var crossbow := BalanceCatalog.unit("crossbowman")
+	check(crossbow.cost == 75 and crossbow.hp == 60 and crossbow.damage == 9 and crossbow.armor_penetration == 3
+		and crossbow.melee_armor == 0 and crossbow.ranged_armor == 2 and crossbow.range == 7 and crossbow.cooldown == 1
+		and crossbow.attack_windup_seconds == .2 and crossbow.speed == 3.6 and crossbow.supply == 1 and crossbow.sight == 14
+		and crossbow.is_ranged_infantry() and crossbow.role == UnitDefinition.Role.COMBAT and crossbow.projectile == "bolt",
+		"packaged_crossbowman_approved_values")
 	var archer := BalanceCatalog.unit("archer")
 	var priest := BalanceCatalog.unit("priest")
 	check(priest.cost==180 and priest.hp==70 and priest.damage==3 and priest.melee_armor==0 and priest.ranged_armor==1
@@ -182,12 +189,12 @@ func validate_resource_values() -> void:
 		and light.ranged_armor==3 and light.speed==6.8 and light.sight==20 and light.supply==1
 		and light.training_seconds==7 and light.cooldown==1.1 and light.attack_windup_seconds==.2
 		and light.range==1.1 and light.radius==.75 and light.combat_class==&"cavalry"
-		and light.bonuses=={&"archer":2} and light.projectile.is_empty() and light.splash_radius==0,
+		and light.bonuses=={&"ranged_infantry":2} and light.projectile.is_empty() and light.splash_radius==0,
 		"packaged_light_cavalry_approved_values")
 	check(DamageResolver.resolve(DamageResolver.snapshot(spearman,0,0,0),light)==25,
 		"packaged_light_cavalry_full_anti_cavalry_damage")
 	check(knight.cost == 80 and knight.hp == 120 and knight.ranged_armor == 7 and knight.melee_armor == 2 and knight.damage == 9
-		and knight.bonuses == {&"archer": 3, &"siege": 11} and knight.supply == 1, "packaged_knight_price_ranged_armor_and_class_bonuses")
+		and knight.bonuses == {&"ranged_infantry": 3, &"siege": 11} and knight.supply == 1, "packaged_knight_price_ranged_armor_and_class_bonuses")
 	var catapult := BalanceCatalog.unit("catapult")
 	check(catapult.range == 13 and catapult.damage == 26 and catapult.speed == 2 and catapult.splash_radius == 2.7
 		and catapult.bonuses == {&"building": 50, &"siege": 20}
@@ -209,7 +216,7 @@ func validate_resource_values() -> void:
 		and triple.splash_radius==0 and triple.military and triple.training_seconds==22,
 		"packaged_triple_cannon_approved_values")
 	var triple_shot := DamageResolver.snapshot(triple,0,0,0)
-	for entry: Array in [[swordsman,28],[spearman,29],[guard,23],[knight,11],[archer,13]]:
+	for entry: Array in [[swordsman,28],[spearman,29],[guard,23],[knight,11],[archer,25]]:
 		check(DamageResolver.resolve(triple_shot,entry[0])==entry[1],"packaged_triple_cannon_damage_"+String(entry[0].id))
 	check(heavy.hp == 260 and heavy.cost == 500 and heavy.damage == 100 and heavy.bonuses == {&"building": 100}
 		and heavy.melee_armor == 0 and heavy.ranged_armor == 2 and not heavy.melee_defense_upgrades

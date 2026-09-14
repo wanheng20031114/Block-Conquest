@@ -193,7 +193,7 @@ func remove_selected() -> void:
 		entities_by_id.erase(entity.entity_id)
 		sandbox_unit_count -= 1
 		var player: PlayerState = get_player(entity.owner_id)
-		if entity.unit_type == "farmer":
+		if entity._stats.is_construction():
 			player.farmers -= 1
 		else:
 			player.military_supply -= entity.get_combat_definition().supply

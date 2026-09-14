@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://assets/models/units/spearman.tscn" id="spearman"]
 
 [ext_resource type="PackedScene" path="res://assets/models/units/archer.tscn" id="archer"]
+[ext_resource type="PackedScene" path="res://assets/models/units/crossbowman.tscn" id="crossbowman"]
 
 [ext_resource type="PackedScene" path="res://assets/models/units/knight.tscn" id="knight"]
 [ext_resource type="PackedScene" path="res://assets/models/units/light_cavalry.tscn" id="light_cavalry"]
@@ -36,6 +37,9 @@ visible = false
 visible = false
 
 [node name="archer" parent="Models" instance=ExtResource("archer")]
+visible = false
+
+[node name="crossbowman" parent="Models" instance=ExtResource("crossbowman")]
 visible = false
 
 [node name="knight" parent="Models" instance=ExtResource("knight")]

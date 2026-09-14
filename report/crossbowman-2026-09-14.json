@@ -1,0 +1,144 @@
+{
+  "date": "2026-09-14",
+  "unit": "crossbowman",
+  "version": 1,
+  "status": "awaiting_user_acceptance",
+  "balance": {
+    "checks": 2036,
+    "crossbow_damage": {
+      "archer": 7,
+      "cannon": 9,
+      "catapult": 9,
+      "crossbowman": 9,
+      "engineer": 9,
+      "farmer": 9,
+      "heavy_cannon": 9,
+      "knight": 5,
+      "light_cavalry": 9,
+      "priest": 9,
+      "shield_guard": 5,
+      "spearman": 9,
+      "swordsman": 9,
+      "triple_cannon": 9,
+      "war_elephant": 9
+    },
+    "crossbow_kill_hits": {
+      "archer": 9,
+      "cannon": 20,
+      "catapult": 16,
+      "crossbowman": 7,
+      "engineer": 9,
+      "farmer": 17,
+      "heavy_cannon": 29,
+      "knight": 24,
+      "light_cavalry": 10,
+      "priest": 8,
+      "shield_guard": 29,
+      "spearman": 9,
+      "swordsman": 13,
+      "triple_cannon": 18,
+      "war_elephant": 40
+    },
+    "failures": [],
+    "resolver_100000_hits_us": 138179
+  },
+  "battle": {
+    "checks": 15,
+    "failures": []
+  },
+  "integration": {
+    "checks": 30,
+    "failures": []
+  },
+  "network": {
+    "checks": 19,
+    "failures": []
+  },
+  "visual": {
+    "checks": 74,
+    "failures": [],
+    "triangles": 4076
+  },
+  "performance": {
+    "archer": {
+      "frames": 415,
+      "median_ms": 11.246,
+      "p95_ms": 21.169,
+      "peak_flights": 250,
+      "shooters": 250,
+      "shots": 1000,
+      "units": 500,
+      "visuals": 256
+    },
+    "crossbowman": {
+      "frames": 365,
+      "median_ms": 12.175,
+      "p95_ms": 23.37,
+      "peak_flights": 250,
+      "shooters": 250,
+      "shots": 1250,
+      "units": 500,
+      "visuals": 256
+    },
+    "settings": {
+      "gpu": "NVIDIA GeForce RTX 3080",
+      "limitation": "Different unit workloads on the same build; not a before/after regression baseline.",
+      "msaa": 2,
+      "resolution": "(1280, 720)",
+      "tps": 30
+    }
+  },
+  "engagement": {
+    "checks": 382,
+    "failures": [],
+    "cases": 52,
+    "full_results": ".local/crossbow-20260914/engagement-results.json"
+  },
+  "regressions": {
+    "rigid_batch_checks": 4612,
+    "catalogue_checks": 252,
+    "balance_checks": 2440,
+    "ranged_vision_checks": 122,
+    "triple_integration_checks": 39,
+    "triple_network_checks": 40,
+    "light_cavalry_checks": 56,
+    "production_checks": 40,
+    "priest_support_checks": 47,
+    "priest_network_checks": 17,
+    "failures": []
+  },
+  "review_files": [
+    "ranged-filter.png",
+    "grip-detail.png",
+    "comparison.png",
+    "support-filter.png",
+    "actions.gif"
+  ],
+  "network_release": {
+    "protocol": 15,
+    "release": "0.15.0",
+    "online_relay_deployed": false,
+    "exported_package_tested": false,
+    "remote_handshake_tested": false,
+    "submitted_content_hash": "3f9dd0f053c9d95600411f3eac857840c41ddcfff5bd2cea1c40ce01ee0cd694",
+    "working_content_hash": "892c1d6490346b502a505b13976a2e576e09a11bb4b28fd7c86c2bac2ce2ff66",
+    "catalogue_files": 107
+  },
+  "submitted_project_validation": {
+    "cold_import": "passed",
+    "catalogue_checks": 252,
+    "balance_checks": 2036,
+    "failures": [],
+    "content_hash": "3f9dd0f053c9d95600411f3eac857840c41ddcfff5bd2cea1c40ce01ee0cd694"
+  },
+  "cleanup": {
+    "own_validation_processes_remaining": 0,
+    "user_editor_and_game_preserved": true,
+    "temporary_files_removal": "blocked_by_automatic_approval",
+    "reason": "blocked by policy",
+    "retained_paths": [
+      ".local/crossbow-20260914/visual/",
+      ".local/crossbow-20260914/submitted/"
+    ]
+  }
+}

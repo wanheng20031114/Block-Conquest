@@ -12,4 +12,4 @@ const DEPLOYMENT_HALF_SIZE: float = 12.0
 const SIEGE_BASE_HALF_SIZE: Vector2 = Vector2(5.65, 5.15)
 
 static func is_ranged_infantry(kind: String) -> bool:
-	return kind == "archer"
+	return BalanceCatalog.unit(kind).is_ranged_infantry()

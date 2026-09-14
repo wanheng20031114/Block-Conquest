@@ -92,9 +92,9 @@ func _refresh_own_army() -> void:
 	_supporters.clear()
 	_buildings.assign(_game.owned_entities(_owner, "buildings"))
 	for unit: Node3D in _game.owned_entities(_owner, "units"):
-		if unit.unit_type == "farmer":
+		if unit._stats.is_construction():
 			_workers.append(unit)
-		elif not BalanceCatalog.unit(unit.unit_type).support_kind.is_empty():
+		elif unit._stats.is_support():
 			_supporters.append(unit)
 			unit.support.auto_allowed = true
 		else:
@@ -343,7 +343,8 @@ func _recruitment_role(kind: String) -> String:
 	if kind == "spearman":
 		return kind
 	var definition := BalanceCatalog.unit(kind)
-	if not definition.support_kind.is_empty(): return "support"
+	if definition.is_support(): return "support"
+	if definition.is_ranged_infantry(): return "archer"
 	match definition.combat_class:
 		&"infantry": return "swordsman"
 		&"cavalry": return "knight"
@@ -353,7 +354,7 @@ func _recruitment_role(kind: String) -> String:
 func _composition() -> Dictionary:
 	var counts: Dictionary = {"spearman": 0.0, "swordsman": 0.0, "archer": 0.0, "knight": 0.0, "siege": 0.0, "support": 0.0}
 	for record: Dictionary in _memory.values():
-		if record.building or record.kind == "farmer":
+		if record.building or BalanceCatalog.unit(record.kind).is_construction():
 			continue
 		var kind: String = "siege" if BalanceCatalog.unit(record.kind).combat_class == &"siege" else _recruitment_role(record.kind)
 		counts[kind] += maxf(0.0, 1.0 - (_clock - float(record.seen_at)) / UNIT_MEMORY_SECONDS)
@@ -408,7 +409,7 @@ func _recruit_army(reserve: int) -> void:
 		queued_seconds[building.entity_id] = 0.0
 		for job: Dictionary in building.production.training:
 			queued_seconds[building.entity_id] += maxf(0.0, BalanceCatalog.unit(job.kind).training_seconds - float(job.elapsed))
-			if job.kind != "farmer":
+			if not BalanceCatalog.unit(job.kind).is_construction():
 				counts[_recruitment_role(job.kind)] += 1
 	var player: PlayerState = _game.get_player(_owner)
 	var supply: int = player.used_military_supply()
@@ -436,7 +437,7 @@ func _enemy_power_near(at: Vector3, reach: float) -> float:
 	var power: float = 0.0
 	for entity: Node3D in _visible_enemies:
 		var record: Dictionary = _memory[entity.entity_id]
-		if not record.building and record.kind != "farmer" and at.distance_squared_to(record.position) <= reach * reach:
+		if not record.building and not BalanceCatalog.unit(record.kind).is_construction() and at.distance_squared_to(record.position) <= reach * reach:
 			power += float(record.power)
 	return power
 
@@ -464,10 +465,12 @@ func _attack_target(from: Vector3, reach: float) -> Node3D:
 		if distance > reach:
 			continue
 		var score: float = distance + (18.0 if record.building else 0.0)
-		if not record.building and BalanceCatalog.unit(record.kind).combat_class == &"siege":
-			score *= 0.65
-		elif record.kind == "farmer":
-			score += 8.0
+		if not record.building:
+			var definition: UnitDefinition = BalanceCatalog.unit(record.kind)
+			if definition.combat_class == &"siege":
+				score *= 0.65
+			elif definition.is_construction():
+				score += 8.0
 		if score < priority:
 			priority = score
 			best = entity

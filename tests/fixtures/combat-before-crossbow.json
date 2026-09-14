@@ -1,0 +1,243 @@
+{
+  "academy": {
+    "building": true,
+    "damage": 0.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "barracks": {
+    "building": true,
+    "damage": 0.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "defense_tower": {
+    "building": true,
+    "damage": 16.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {
+      "infantry": 3.0,
+      "cavalry": 9.0
+    }
+  },
+  "enemy_keep": {
+    "building": true,
+    "damage": 40.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "factory": {
+    "building": true,
+    "damage": 0.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "headquarters": {
+    "building": true,
+    "damage": 40.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "house": {
+    "building": true,
+    "damage": 0.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "tower": {
+    "building": true,
+    "damage": 17.0,
+    "melee_armor": 10.0,
+    "ranged_armor": 10.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "building",
+    "bonuses": {}
+  },
+  "archer": {
+    "building": false,
+    "damage": 11.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 5.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "archer",
+    "bonuses": {}
+  },
+  "cannon": {
+    "building": false,
+    "damage": 40.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 2.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": false,
+    "combat_class": "siege",
+    "bonuses": {
+      "building": 100.0
+    }
+  },
+  "catapult": {
+    "building": false,
+    "damage": 26.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 2.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": false,
+    "combat_class": "siege",
+    "bonuses": {
+      "building": 50.0,
+      "siege": 20.0
+    }
+  },
+  "engineer": {
+    "building": false,
+    "damage": 3.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 1.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "infantry",
+    "bonuses": {}
+  },
+  "farmer": {
+    "building": false,
+    "damage": 5.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 0.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "worker",
+    "bonuses": {}
+  },
+  "heavy_cannon": {
+    "building": false,
+    "damage": 100.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 2.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": false,
+    "combat_class": "siege",
+    "bonuses": {
+      "building": 100.0
+    }
+  },
+  "knight": {
+    "building": false,
+    "damage": 9.0,
+    "melee_armor": 2.0,
+    "ranged_armor": 7.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "cavalry",
+    "bonuses": {
+      "archer": 3.0,
+      "siege": 11.0
+    }
+  },
+  "light_cavalry": {
+    "building": false,
+    "damage": 7.0,
+    "melee_armor": 1.0,
+    "ranged_armor": 3.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "cavalry",
+    "bonuses": {
+      "archer": 2.0
+    }
+  },
+  "priest": {
+    "building": false,
+    "damage": 3.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 1.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "infantry",
+    "bonuses": {}
+  },
+  "shield_guard": {
+    "building": false,
+    "damage": 6.0,
+    "melee_armor": 3.0,
+    "ranged_armor": 7.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "infantry",
+    "bonuses": {}
+  },
+  "spearman": {
+    "building": false,
+    "damage": 6.0,
+    "melee_armor": 1.0,
+    "ranged_armor": 1.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "infantry",
+    "bonuses": {
+      "cavalry": 20.0
+    }
+  },
+  "swordsman": {
+    "building": false,
+    "damage": 9.0,
+    "melee_armor": 2.0,
+    "ranged_armor": 2.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "infantry",
+    "bonuses": {
+      "cavalry": 5.0
+    }
+  },
+  "triple_cannon": {
+    "building": false,
+    "damage": 18.0,
+    "melee_armor": 0.0,
+    "ranged_armor": 2.0,
+    "damage_channel": 1.0,
+    "melee_defense_upgrades": false,
+    "combat_class": "siege",
+    "bonuses": {
+      "infantry": 12.0
+    }
+  },
+  "war_elephant": {
+    "building": false,
+    "damage": 32.0,
+    "melee_armor": 2.0,
+    "ranged_armor": 3.0,
+    "damage_channel": 0.0,
+    "melee_defense_upgrades": true,
+    "combat_class": "cavalry",
+    "bonuses": {}
+  }
+}

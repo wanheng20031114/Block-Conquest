@@ -87,7 +87,7 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _test_defensive_buildings() -> void:
-	var expected: Dictionary = {"headquarters": [38, 35, 33], "enemy_keep": [38, 35, 33], "defense_tower": [17, 11, 18], "tower": [15, 12, 10]}
+	var expected: Dictionary = {"headquarters": [38, 35, 33], "enemy_keep": [38, 35, 33], "defense_tower": [17, 14, 18], "tower": [15, 12, 10]}
 	for kind: String in expected:
 		var definition := BalanceCatalog.building(kind)
 		for index: int in 3:
@@ -163,7 +163,7 @@ func _test_siege() -> void:
 
 func _test_production_data() -> void:
 	_check(BalanceCatalog.building(&"headquarters").produces == PackedStringArray(["farmer"]), "HQ recruits farmers only")
-	_check(BalanceCatalog.building(&"barracks").produces == PackedStringArray(["swordsman", "shield_guard", "spearman", "archer", "knight", "war_elephant", "light_cavalry"]), "barracks recruits seven approved infantry and cavalry units")
+	_check(BalanceCatalog.building(&"barracks").produces == PackedStringArray(["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry"]), "barracks recruits eight approved infantry and cavalry units")
 	_check(BalanceCatalog.building(&"factory").produces == PackedStringArray(["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"]), "factory recruits its approved siege and support units")
 	_check(BalanceCatalog.unit(&"farmer").training_seconds == 10, "farmer training takes ten seconds")
 	for kind: StringName in KINDS:
@@ -184,4 +184,5 @@ func _test_production_data() -> void:
 		var payload: DamagePayload = DamageResolver.snapshot(tower, 0, 0, 0)
 		for defense: int in DEFENSE_BONUS:
 			var hits: int = ceili(defender.hp / DamageResolver.resolve(payload, defender, defense))
-			_check(hits >= 6 and hits <= 8, "tower defeats %s with defense %d in six to eight hits" % [kind, defense])
+			var expected: Array = [5,5,5,6] if kind == &"archer" else ([7,7,8,8] if kind == &"swordsman" else [7,8,8,8])
+			_check(hits == expected[defense], "tower defeats %s with defense %d using all-infantry bonus" % [kind, defense])

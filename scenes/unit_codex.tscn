@@ -171,6 +171,44 @@ theme_override_colors/font_unselected_color = Color(0.34, 0.39, 0.35, 1)
 theme_override_colors/font_hovered_color = Color(0.23, 0.30, 0.29, 1)
 theme_override_colors/font_disabled_color = Color(0.36, 0.41, 0.35, 1)
 
+[node name="UnitFilters" type="VBoxContainer" parent="Margin/Content/Body/Catalog"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FamilyFilter" type="OptionButton" parent="Margin/Content/Body/Catalog/UnitFilters"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 16
+tooltip_text = "按兵种类别筛选，可与攻击方式和职责组合"
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="ChannelFilter" type="OptionButton" parent="Margin/Content/Body/Catalog/UnitFilters"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 16
+tooltip_text = "按近战或远程攻击筛选"
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="RoleFilter" type="OptionButton" parent="Margin/Content/Body/Catalog/UnitFilters"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 16
+tooltip_text = "作战、支援或建设职责；支援单位也占军事人口"
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="ClearFilters" type="Button" parent="Margin/Content/Body/Catalog/UnitFilters"]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+text = "清除筛选"
+alignment = 0
+theme_override_font_sizes/font_size = 14
+metadata/ui_motion_hover_scale = 1.0
+
 [node name="Entries" type="ItemList" parent="Margin/Content/Body/Catalog"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -192,6 +230,17 @@ allow_reselect = true
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
+
+[node name="EmptyResults" type="Label" parent="Margin/Content/Body"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "没有符合条件的单位
+调整左侧分类，或清除筛选"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 22
 
 [node name="Preview" type="VBoxContainer" parent="Margin/Content/Body"]
 layout_mode = 2
@@ -334,6 +383,29 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("medieval_title")
 theme_override_font_sizes/font_size = 34
 autowrap_mode = 2
+
+[node name="UnitTags" type="HBoxContainer" parent="Margin/Content/Body/DetailScroll/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="FamilyTag" type="Label" parent="Margin/Content/Body/DetailScroll/Details/UnitTags"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.33, 0.40, 0.35, 1)
+
+[node name="ChannelTag" type="Label" parent="Margin/Content/Body/DetailScroll/Details/UnitTags"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.33, 0.40, 0.35, 1)
+
+[node name="RoleTag" type="Label" parent="Margin/Content/Body/DetailScroll/Details/UnitTags"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.33, 0.40, 0.35, 1)
 
 [node name="Description" type="Label" parent="Margin/Content/Body/DetailScroll/Details"]
 unique_name_in_owner = true

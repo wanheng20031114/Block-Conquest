@@ -1,6 +1,10 @@
 class_name UnitDefinition
 extends CombatDefinition
 
+enum Role { COMBAT, SUPPORT, CONSTRUCTION }
+const ROLE_NAMES: PackedStringArray = ["作战", "支援", "建设"]
+@export var role: Role = Role.COMBAT
+
 ## Seconds from attack start to melee contact or projectile release.
 @export var attack_windup_seconds: float = 0.22
 @export var health_bar_height: float = 2.45
@@ -22,7 +26,9 @@ extends CombatDefinition
 @export var projectile: String = ""
 @export var production_building: StringName
 @export var training_seconds: float = 0.0
-@export var military: bool = true
+## Derived from role: support uses military supply, construction uses worker slots.
+var military: bool:
+	get: return role != Role.CONSTRUCTION
 ## Authored support capability; recovery uses a separate authority-only channel.
 @export var support_kind: StringName
 @export var support_range: float = 0.0
@@ -31,3 +37,22 @@ extends CombatDefinition
 @export var support_windup_seconds: float = 1.0
 @export var support_discovery_range: float = 0.0
 @export var support_auto_chase: bool = true
+
+func is_support() -> bool:
+	return role == Role.SUPPORT
+
+func is_construction() -> bool:
+	return role == Role.CONSTRUCTION
+
+func role_label() -> String:
+	return ROLE_NAMES[role]
+
+func validation_errors() -> PackedStringArray:
+	var errors := super.validation_errors()
+	if combat_class == &"building": errors.append("单位不能使用建筑类别")
+	if role < Role.COMBAT or role > Role.CONSTRUCTION: errors.append("未知单位职责")
+	if is_support() != (not support_kind.is_empty()): errors.append("支援职责必须与支援能力一致")
+	if support_kind not in [&"", &"repair", &"heal"]: errors.append("未知支援能力")
+	if is_construction() != (supply == 0): errors.append("建设单位使用农民名额，军事单位必须占人口")
+	if (damage_channel == DamageChannel.RANGED) != (not projectile.is_empty()): errors.append("攻击方式与投射物配置不一致")
+	return errors

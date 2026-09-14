@@ -46,7 +46,7 @@ func _run() -> void:
 	check(knight.sight == 16 and archer.sight == 14, "cavalry sees two world units farther than archers")
 	check(archer.range == 10 and is_equal_approx(archer.cooldown, 1.5), "archer reach and cadence stay at their approved values")
 	check(knight.ranged_armor == 7 and knight.melee_armor == 2 and knight.cost == 80, "cavalry has seven ranged armor and costs eighty gold")
-	check(knight.bonuses[&"archer"] == 3 and knight.damage == 9, "anti-archer damage is a class bonus, not extra damage against all units")
+	check(knight.bonuses[&"ranged_infantry"] == 3 and knight.damage == 9, "ranged-infantry counter is a class bonus, not extra damage against all units")
 	check(swordsman.ranged_armor == 2 and swordsman.melee_armor == 2 and swordsman.cost == 60 and swordsman.hp == 110 and swordsman.sight == 14, "swordsman has two ranged armor and fourteen-unit vision")
 	for pair: Array in [["knight", 4, 30], ["swordsman", 9, 13], ["archer", 6, 10]]:
 		await _shoot_to_defeat(pair[0], pair[1], pair[2])
@@ -87,7 +87,7 @@ func _vision_case() -> void:
 	check(host.can_see_entity(2, archer), "allied owner shares cavalry scouting vision")
 	check(knight._valid_target(archer) and not archer._valid_target(knight), "combat target validity obeys asymmetric current visibility")
 	check(not knight._within_attack_range(archer), "greater vision does not give cavalry a ranged attack")
-	check(is_equal_approx(knight._target_query.shape.radius, BalanceCatalog.unit("knight").sight + knight.radius), "native target sphere follows cavalry sight resource")
+	check(knight._find_auto_target(false,false) == archer, "native broadphase finds the visible target at cavalry sight distance")
 	knight.position = Vector3(-9, 0, -1)
 	host.fog.tick(0.2)
 	host.fog.apply_visibility(0)

@@ -20,7 +20,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
 	var stats := BalanceCatalog.unit(KIND)
 	check(stats.hp == 90 and stats.damage == 7 and stats.speed == 6.8, "latest user health, damage and movement")
-	check(stats.melee_armor == 1 and stats.ranged_armor == 3 and stats.bonuses == {&"archer": 2}, "fixed armor without extra damage or directional blocking")
+	check(stats.melee_armor == 1 and stats.ranged_armor == 3 and stats.bonuses == {&"ranged_infantry": 2}, "fixed armor and ranged-infantry counter")
 	check(stats.cost == 70 and stats.supply == 1 and stats.training_seconds == 7, "approved cost, population and training")
 	check(stats.range == 1.1 and stats.min_range == 0 and stats.cooldown == 1.1 and stats.attack_windup_seconds == .2, "melee reach and full attack cycle")
 	check(stats.radius == .75 and stats.sight == 20 and stats.combat_class == &"cavalry" and stats.projectile.is_empty(), "approved native footprint, vision and class")
@@ -54,9 +54,10 @@ func _run() -> void:
 	barracks.set_physics_process(false)
 	barracks.production.set_physics_process(false)
 	game.get_node("ConstructionNavigation").refresh()
-	await physics_frame
-	await physics_frame
-	await create_timer(.4).timeout
+	for attempt: int in 180:
+		if game.find_recruit_position(KIND,barracks).is_finite(): break
+		await physics_frame
+	check(game.find_recruit_position(KIND,barracks).is_finite(), "native navigation publishes a usable barracks exit")
 	var supply_before: int = player.military_supply
 	player.gold = 69
 	check(not barracks.production.recruit(KIND).ok and player.gold == 69, "insufficient gold does not reserve or charge")

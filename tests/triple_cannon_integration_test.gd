@@ -105,7 +105,7 @@ func _run() -> void:
 		check(cannon._within_attack_range(target)==(edge>1 and edge<7),"edge distance boundary "+str(edge))
 	var stats := BalanceCatalog.unit("triple_cannon")
 	var payload := DamageResolver.snapshot(stats,0,0,0)
-	var expected := {"swordsman":28,"spearman":29,"shield_guard":23,"knight":11,"archer":13}
+	var expected := {"swordsman":28,"spearman":29,"shield_guard":23,"knight":11,"archer":25,"crossbowman":28,"farmer":30}
 	for kind: String in expected:
 		check(DamageResolver.resolve(payload,BalanceCatalog.unit(kind))==expected[kind],"single shot damage "+kind)
 	check(DamageResolver.resolve(payload,BalanceCatalog.building("barracks"))==8,"no building bonus or infantry bonus on buildings")

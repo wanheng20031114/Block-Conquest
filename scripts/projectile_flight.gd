@@ -49,6 +49,9 @@ func initialize(game: Node3D, source: Node3D, target: Node3D, payload: DamagePay
 		"arrow":
 			_duration = clampf(distance / 22.0, 0.18, 0.9)
 			_arc_height = clampf(distance * 0.12, 0.35, 2.0)
+		"bolt":
+			_duration = clampf(distance / 25.0, 0.15, 0.85)
+			_arc_height = 0.13
 		"stone":
 			_duration = clampf(distance / 11.0, 0.75, 2.2)
 			_arc_height = clampf(distance * 0.42, 3.5, 9.0)
@@ -63,7 +66,7 @@ func advance(delta: float) -> void:
 		return
 	_elapsed += delta
 	var progress: float = minf(1.0, _elapsed / _duration)
-	if _kind in ["arrow", "cannon"] and is_instance_valid(_target) and _target.alive:
+	if _kind in ["arrow", "bolt", "cannon"] and is_instance_valid(_target) and _target.alive:
 		_end = _target.global_position + Vector3.UP * (2.0 if _target.is_in_group("buildings") else 1.0)
 	position = _start.lerp(_end, progress)
 	position.y += 4.0 * _arc_height * progress * (1.0 - progress)
@@ -77,10 +80,10 @@ func impact() -> void:
 	if _visual_only:
 		return
 	var damage_source: Node3D = _source if is_instance_valid(_source) else null
-	if _kind in ["arrow", "cannon"]:
-		var impact_kind: String = "arrow_hit" if _kind == "arrow" else "explosion"
+	if _kind in ["arrow", "bolt", "cannon"]:
+		var impact_kind: String = "arrow_hit" if _kind in ["arrow", "bolt"] else "explosion"
 		if is_instance_valid(_target) and _target.alive and _target.alliance_id != _payload.alliance_id:
-			if _kind == "arrow" and _target.is_in_group("buildings"):
+			if _kind in ["arrow", "bolt"] and _target.is_in_group("buildings"):
 				impact_kind = _target.get_hit_effect()
 			if _game.is_authority:
 				_target.receive_hit(_payload, damage_source)

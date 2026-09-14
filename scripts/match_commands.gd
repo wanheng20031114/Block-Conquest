@@ -170,7 +170,7 @@ func execute(command: Dictionary, owner: int) -> Dictionary:
 				return failure("无效建筑")
 			var workers: Array[BattleUnit] = []
 			for unit: BattleUnit in entities:
-				if unit.unit_type == "farmer":
+				if unit._stats.is_construction():
 					workers.append(unit)
 			if workers.is_empty():
 				return failure("需要农民施工")
@@ -196,17 +196,17 @@ func execute(command: Dictionary, owner: int) -> Dictionary:
 				unit.issue_attack(target, queued)
 		"support":
 			if not target_valid or not target is BattleUnit or not game.can_see_entity(owner, target):
-				return failure("需要视野内的友方攻城器")
+				return failure("需要视野内的友方支援目标")
 			var accepted := false
 			for unit: BattleUnit in entities:
 				if unit.support.valid_target(target):
 					accepted = unit.issue_support(target, queued) or accepted
-			if not accepted: return failure("需要工程兵和受损友方攻城器")
+			if not accepted: return failure("所选单位没有对应支援能力，或目标无需恢复")
 		"gather":
 			if not target_valid or not target is ResourceVein:
 				return failure("需要矿脉目标")
 			for unit: BattleUnit in entities:
-				if unit.unit_type == "farmer":
+				if unit._stats.is_construction():
 					unit.issue_gather(target, queued)
 		"work":
 			if not own_building or target.is_constructed:

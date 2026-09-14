@@ -22,7 +22,7 @@ var _query: PhysicsShapeQueryParameters3D
 
 func configure(value: BattleUnit) -> void:
 	unit = value
-	is_supporter = not unit._stats.support_kind.is_empty()
+	is_supporter = unit._stats.is_support()
 	if not is_supporter:
 		return
 	_query = PhysicsShapeQueryParameters3D.new()
@@ -40,7 +40,7 @@ func valid_target(candidate: Variant, require_damage: bool = true) -> bool:
 		return false
 	match unit._stats.support_kind:
 		&"repair": return candidate._stats.combat_class == &"siege"
-		&"heal": return candidate._stats.combat_class in [&"infantry", &"archer", &"cavalry", &"worker"]
+		&"heal": return candidate._stats.combat_class in [&"infantry", &"cavalry"]
 	return false
 
 func action_name() -> String:

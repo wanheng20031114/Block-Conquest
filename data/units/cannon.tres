@@ -29,4 +29,3 @@ cannon_range_upgrades = true
 projectile = "cannon"
 production_building = &"factory"
 training_seconds = 20
-military = true

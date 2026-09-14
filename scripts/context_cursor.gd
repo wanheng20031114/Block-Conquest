@@ -31,7 +31,7 @@ func context_kind(target: Node3D, at: Vector3) -> String:
 	var units: Array = game.own_selected_units()
 	var has_workers := false
 	for unit: BattleUnit in units:
-		if unit.unit_type == "farmer":
+		if unit._stats.is_construction():
 			has_workers = true
 			break
 	var has_producer := false
@@ -40,8 +40,8 @@ func context_kind(target: Node3D, at: Vector3) -> String:
 		var products: PackedStringArray = BalanceCatalog.building(building.building_type).produces
 		if not products.is_empty():
 			has_producer = true
-		if "farmer" in products:
-			has_farmer_producer = true
+		for kind: String in products:
+			if BalanceCatalog.unit(kind).is_construction(): has_farmer_producer = true
 	if units.is_empty() and not has_producer:
 		return "normal"
 	if game.build_mode:

@@ -30,4 +30,3 @@ collision_height = 2.0
 projectile = "cannon"
 production_building = &"factory"
 training_seconds = 36.0
-military = true

@@ -4,8 +4,8 @@ extends RefCounted
 
 var base_damage: float
 var attack_bonus: float
+var armor_penetration: float
 var bonuses: Dictionary
 var channel: int
 var owner_id: int
 var alliance_id: int
-
