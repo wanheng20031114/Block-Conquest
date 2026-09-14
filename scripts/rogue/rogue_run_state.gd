@@ -2,8 +2,9 @@ class_name RogueRunState
 extends RefCounted
 ## Pure run state. Scene nodes and unit resources never enter a checkpoint.
 
-const VERSION: int = 1
+const VERSION: int = 2
 const SAFE_PHASES: Array[String] = ["map", "siege_briefing", "intermission"]
+const RECRUIT_PHASES: Array[String] = ["recruit_unit", "recruit_batch"]
 var data: Dictionary = {}
 var error_message: String = ""
 
@@ -22,9 +23,9 @@ func start_new(strategy: String, pack: String, run_seed: int = 0) -> Error:
 		"strategy": strategy, "pack": pack, "level": int(initial.level), "xp": 0,
 		"gold": int(initial.gold), "bread": int(initial.bread), "ap": int(initial.ap),
 		"current_node": -1, "start_node": -1, "nodes": [], "edges": [],
-		"roster": [], "tickets": [], "relics": {}, "active_node": -1,
+		"roster": [], "pending_recruits": [], "recruit_kind": "", "recruit_return_phase": "", "settlement": {}, "relics": {}, "active_node": -1,
 		"battle_kind": "outpost", "battle_difficulty": int(RogueCatalog.BALANCE.difficulty), "emergency": false, "pending_choices": [],
-		"pending_siege": false, "last_result": "远征已经启程。选择相邻节点开始探索。",
+		"pending_siege": false, "last_result": "远征已经启程。先完成初始招募，再选择相邻节点开始探索。",
 		"next_unit_uid": 1, "next_ticket_uid": 1, "rng_counter": 0}
 	_generate_map()
 	var units: Dictionary = RogueCatalog.PACKS[pack].units
@@ -107,7 +108,7 @@ func enter_node(id: int) -> Error:
 	return _ok()
 
 func leave_node() -> Error:
-	if data.phase != "node" or not data.pending_choices.is_empty():
+	if data.phase != "node" or not data.pending_choices.is_empty() or not data.pending_recruits.is_empty() or not data.settlement.is_empty():
 		return _fail("请先完成当前节点的选择")
 	var current: Dictionary = active_node()
 	if current.is_empty():
@@ -143,6 +144,48 @@ func resolve_battle(won: bool) -> Error:
 		data.phase = "game_over"
 		data.last_result = "远征失败。军队名册保留在最近的节点存档中，可从主菜单读档重试。"
 		return _ok()
+	var reward_key: String = "emergency" if data.emergency else "battle"
+	var reward: Dictionary = {"gold": 0, "bread": 0, "tickets": 0, "xp": 0} if data.battle_kind == "siege" else RogueCatalog.BALANCE.rewards[reward_key].duplicate(true)
+	var preview_level: int = int(data.level)
+	var preview_xp: int = int(data.xp) + int(reward.xp)
+	var required: int = xp_required()
+	while preview_xp >= required:
+		preview_xp -= required
+		preview_level += 1
+		required += int(RogueCatalog.BALANCE.progression.xp_step)
+	var levels: int = preview_level - int(data.level)
+	data.settlement = {"battle_kind": data.battle_kind, "emergency": data.emergency, "rewards": reward, "claimed": false,
+		"levels": levels, "bonus_bread": levels * int(RogueCatalog.BALANCE.progression.bread_per_level),
+		"bonus_population": levels * int(RogueCatalog.BALANCE.progression.population_per_level)}
+	data.phase = "settlement"
+	return _ok()
+
+func confirm_settlement() -> Error:
+	if data.phase != "settlement" or data.settlement.is_empty() or data.settlement.claimed:
+		return _fail("本场战利品已领取或尚未结算")
+	var reward: Dictionary = data.settlement.rewards
+	data.settlement.claimed = true
+	data.gold = int(data.gold) + int(reward.gold)
+	data.bread = int(data.bread) + int(reward.bread)
+	var levels: int = _grant_xp(int(reward.xp))
+	data.last_result = "前哨站作战胜利：+%d 金币，+%d 面包，+%d 招募券，+%d 经验。" % [reward.gold, reward.bread, reward.tickets, reward.xp]
+	if levels > 0:
+		data.last_result += " 升级 %d 次：+%d 面包，+%d 人口上限。" % [levels, levels * int(RogueCatalog.BALANCE.progression.bread_per_level), levels * int(RogueCatalog.BALANCE.progression.population_per_level)]
+	data.phase = "node"
+	if data.battle_kind == "outpost":
+		active_node().resolved = true
+		active_node().result_text = data.last_result
+	if data.battle_kind == "outpost" and data.emergency:
+		data.pending_choices = active_node().relic_choices.duplicate()
+		data.phase = "reward"
+	for _index: int in int(reward.tickets):
+		_add_ticket()
+	return _finish_settlement()
+
+func _finish_settlement() -> Error:
+	if data.settlement.is_empty() or not data.settlement.claimed or not data.pending_recruits.is_empty() or not data.pending_choices.is_empty():
+		return _ok()
+	data.settlement.clear()
 	if data.battle_kind == "siege":
 		data.ap = int(RogueCatalog.BALANCE.initial.max_ap)
 		data.pending_siege = false
@@ -150,22 +193,6 @@ func resolve_battle(won: bool) -> Error:
 		data.phase = "intermission"
 		data.active_node = -1
 		data.last_result = "围剿突围成功！行动力已恢复。军队抵达层间休整，第二层正在筹备。"
-		return _ok()
-	var reward_key: String = "emergency" if data.emergency else "battle"
-	var reward: Dictionary = RogueCatalog.BALANCE.rewards[reward_key]
-	data.gold = int(data.gold) + int(reward.gold)
-	data.bread = int(data.bread) + int(reward.bread)
-	for _index: int in int(reward.tickets):
-		_add_ticket()
-	var levels: int = _grant_xp(int(reward.xp))
-	data.last_result = "前哨站作战胜利：+%d 金币，+%d 面包，+%d 招募券，+%d 经验。" % [reward.gold, reward.bread, reward.tickets, reward.xp]
-	if levels > 0:
-		data.last_result += " 升级 %d 次：+%d 面包，+%d 人口上限。" % [levels, levels * int(RogueCatalog.BALANCE.progression.bread_per_level), levels * int(RogueCatalog.BALANCE.progression.population_per_level)]
-	active_node().resolved = true
-	active_node().result_text = data.last_result
-	if data.emergency:
-		data.pending_choices = active_node().relic_choices.duplicate()
-		data.phase = "reward"
 		return _ok()
 	data.phase = "node"
 	return leave_node()
@@ -264,51 +291,121 @@ func choose_relic(id: String) -> Error:
 	data.last_result += " 获得收藏品：%s。" % RogueCatalog.RELICS[id].name
 	active_node().result_text = data.last_result
 	if data.phase == "reward":
-		data.phase = "node"
-		return leave_node()
+		return _finish_settlement()
 	return _ok()
 
-func recruit(ticket_uid: int, kind: String, batches: int) -> Error:
-	if not _army_editable() or batches < 1 or batches > 3 or not RogueCatalog.RECRUIT.has(kind):
-		return _fail("每张招募券可选择一个兵种，招募 1 到 3 批")
-	var index: int = _ticket_index(ticket_uid)
-	if index < 0 or not data.tickets[index].candidates.has(kind):
-		return _fail("该招募券没有这个候选兵种")
+func pending_recruit() -> Dictionary:
+	return {} if data.pending_recruits.is_empty() else data.pending_recruits[0].duplicate(true)
+
+func choose_recruit_unit(ticket_uid: int, kind: String) -> Error:
+	if data.phase != "recruit_unit" or not _current_ticket(ticket_uid) or not data.pending_recruits[0].candidates.has(kind):
+		return _fail("请从当前招募的三个兵种中选择")
+	data.recruit_kind = kind
+	data.phase = "recruit_batch"
+	return _ok()
+
+func back_to_recruit_units() -> Error:
+	if data.phase != "recruit_batch": return _fail("当前没有可返回的招募选择")
+	data.recruit_kind = ""
+	data.phase = "recruit_unit"
+	return _ok()
+
+func confirm_recruit_batches(ticket_uid: int, batches: int) -> Error:
+	if data.phase != "recruit_batch" or not _current_ticket(ticket_uid) or batches < 1 or batches > 3:
+		return _fail("请为当前兵种选择 1 到 3 批，或弃置本次招募")
+	var kind: String = data.recruit_kind
 	var price: Dictionary = RogueCatalog.RECRUIT[kind]
 	var cost: int = int(price.bread) * batches
 	if int(data.bread) < cost:
 		return _fail("面包不足，需要 %d 面包" % cost)
 	data.bread = int(data.bread) - cost
-	data.tickets.remove_at(index)
 	var count: int = int(price.count) * batches
 	for _index: int in count: _add_unit(kind, false)
 	data.last_result = "%d 名%s加入待命区，消耗 %d 面包。" % [count, BalanceCatalog.unit(kind).name, cost]
-	return _ok()
+	return _complete_recruit()
+
+func discard_recruit(ticket_uid: int) -> Error:
+	if data.phase not in RECRUIT_PHASES or not _current_ticket(ticket_uid):
+		return _fail("只能弃置当前待处理的招募")
+	data.last_result = "已弃置本次招募。"
+	return _complete_recruit()
+
+func recruit(ticket_uid: int, kind: String, batches: int) -> Error:
+	# The legacy entry point must not bypass the mandatory unit-selection round.
+	if data.phase != "recruit_batch" or data.recruit_kind != kind:
+		return _fail("请先确认当前招募的兵种")
+	return confirm_recruit_batches(ticket_uid, batches)
+
+func _current_ticket(uid: int) -> bool:
+	return not data.pending_recruits.is_empty() and int(data.pending_recruits[0].uid) == uid
+
+func _complete_recruit() -> Error:
+	data.pending_recruits.pop_front()
+	data.recruit_kind = ""
+	if not data.pending_recruits.is_empty():
+		data.phase = "recruit_unit"
+		return _ok()
+	data.phase = data.recruit_return_phase
+	data.recruit_return_phase = ""
+	return _finish_settlement()
 
 func set_deployed(uid: int, value: bool) -> Error:
+	return set_deployed_many([uid], value)
+
+func set_deployed_many(uids: Array, value: bool) -> Error:
 	if not _army_editable(): return _fail("作战期间不能修改编队")
-	var unit: Dictionary = _unit(uid)
-	if unit.is_empty(): return _fail("军队中没有这个单位")
-	if unit.deployed == value: return _ok()
-	if value and population() + BalanceCatalog.unit(unit.kind).supply > population_cap():
-		return _fail("出战人口不足，请先将其他单位移入待命区")
-	if value:
-		var next_layouts: Dictionary = unit.layouts.duplicate(true)
-		for encounter: String in ["outpost", "siege"]:
-			if not _layout_error(unit, encounter, next_layouts[encounter], true).is_empty():
-				next_layouts[encounter] = _find_layout(unit, encounter)
-			if next_layouts[encounter].is_empty(): return _fail("编队区域没有足够的空位")
-		unit.layouts = next_layouts
-	unit.deployed = value
+	if uids.is_empty(): return _fail("请先选择要调整的单位")
+	var seen: Dictionary = {}
+	var next_population: int = population()
+	for uid: Variant in uids:
+		if not _integer(uid) or seen.has(int(uid)) or _unit(int(uid)).is_empty(): return _fail("编队单位编号无效或重复")
+		seen[int(uid)] = true
+		var unit: Dictionary = _unit(int(uid))
+		if unit.deployed != value:
+			next_population += BalanceCatalog.unit(unit.kind).supply * (1 if value else -1)
+	if next_population > population_cap(): return _fail("出战人口不足，请先将其他单位移入待命区")
+	var previous: Array = data.roster
+	data.roster = previous.duplicate(true)
+	for uid: Variant in uids:
+		var unit: Dictionary = _unit(int(uid))
+		if unit.deployed == value: continue
+		if value:
+			for encounter: String in ["outpost", "siege"]:
+				if not _layout_error(unit, encounter, unit.layouts[encounter], true).is_empty():
+					unit.layouts[encounter] = _find_layout(unit, encounter)
+				if unit.layouts[encounter].is_empty():
+					data.roster = previous
+					return _fail("编队区域没有足够的空位")
+		unit.deployed = value
 	return _ok()
 
 func set_layout(uid: int, encounter: String, layout: Array) -> Error:
+	return set_layouts(encounter, [{"uid": uid, "layout": layout}])
+
+func set_layouts(encounter: String, changes: Array) -> Error:
 	if not _army_editable(): return _fail("作战期间不能修改编队")
-	var unit: Dictionary = _unit(uid)
-	if unit.is_empty(): return _fail("军队中没有这个单位")
-	var reason: String = _layout_error(unit, encounter, layout, bool(unit.deployed))
-	if not reason.is_empty(): return _fail(reason)
-	unit.layouts[encounter] = [float(layout[0]), float(layout[1]), wrapf(float(layout[2]), -PI, PI)]
+	if encounter not in ["outpost", "siege"] or changes.is_empty(): return _fail("请选择有效战场和布阵单位")
+	var seen: Dictionary = {}
+	for change: Variant in changes:
+		if typeof(change) != TYPE_DICTIONARY or not _integer(change.get("uid")) or typeof(change.get("layout")) != TYPE_ARRAY:
+			return _fail("批量布阵数据无效")
+		var uid: int = int(change.uid)
+		if seen.has(uid) or _unit(uid).is_empty(): return _fail("编队单位编号无效或重复")
+		seen[uid] = true
+		var reason: String = _layout_error(_unit(uid), encounter, change.layout, false)
+		if not reason.is_empty(): return _fail(reason)
+	var previous: Array = data.roster
+	data.roster = previous.duplicate(true)
+	for change: Dictionary in changes:
+		var layout: Array = change.layout
+		_unit(int(change.uid)).layouts[encounter] = [float(layout[0]), float(layout[1]), wrapf(float(layout[2]), -PI, PI)]
+	# Compare final candidate positions, never intermediate positions during a drag.
+	for uid: int in seen:
+		var unit: Dictionary = _unit(uid)
+		var reason: String = _layout_error(unit, encounter, unit.layouts[encounter], bool(unit.deployed))
+		if not reason.is_empty():
+			data.roster = previous
+			return _fail(reason)
 	return _ok()
 
 func formation_error(encounter: String) -> String:
@@ -404,8 +501,12 @@ func _add_ticket() -> void:
 			if int(RogueCatalog.RECRUIT[kind].bread) == 1:
 				choices[2] = kind
 				break
-	data.tickets.append({"uid": int(data.next_ticket_uid), "candidates": choices})
+	data.pending_recruits.append({"uid": int(data.next_ticket_uid), "candidates": choices})
 	data.next_ticket_uid = int(data.next_ticket_uid) + 1
+	if data.phase not in RECRUIT_PHASES:
+		data.recruit_return_phase = data.phase
+		data.recruit_kind = ""
+		data.phase = "recruit_unit"
 
 func _add_unit(kind: String, deployed: bool) -> void:
 	var unit: Dictionary = {"uid": int(data.next_unit_uid), "kind": kind, "deployed": deployed, "layouts": {"outpost": [9.8, -9.8, -PI * 0.5], "siege": [9.8, -9.8, -PI * 0.25]}}
@@ -477,13 +578,14 @@ func _unit(uid: int) -> Dictionary:
 		if int(unit.uid) == uid: return unit
 	return {}
 
-func _ticket_index(uid: int) -> int:
-	for index: int in data.tickets.size():
-		if int(data.tickets[index].uid) == uid: return index
-	return -1
-
 func _army_editable() -> bool:
-	return data.phase in ["map", "node", "reward", "siege_briefing", "intermission"]
+	return data.phase in ["map", "node", "reward", "siege_briefing", "intermission", "settlement", "recruit_unit", "recruit_batch"]
+
+func checkpoint_phase() -> String:
+	return str(data.recruit_return_phase) if data.phase in RECRUIT_PHASES else str(data.phase)
+
+func can_checkpoint() -> bool:
+	return not data.is_empty() and checkpoint_phase() in SAFE_PHASES and int(data.active_node) == -1 and data.settlement.is_empty()
 
 func _stream(salt: int) -> RandomNumberGenerator:
 	var random := RandomNumberGenerator.new()
@@ -521,6 +623,19 @@ func export_checkpoint() -> Dictionary:
 func import_checkpoint(snapshot: Dictionary) -> Error:
 	var candidate := RogueRunState.new()
 	candidate.data = snapshot.duplicate(true)
+	if _integer(candidate.data.get("version")) and int(candidate.data.version) == 1:
+		if typeof(candidate.data.get("tickets")) != TYPE_ARRAY or candidate.data.get("phase") not in SAFE_PHASES:
+			return _fail("旧存档的节点或招募券数据无效", ERR_FILE_CORRUPT)
+		# Preserve each old coupon's exact identity and candidates; never reroll it.
+		candidate.data.version = VERSION
+		candidate.data.pending_recruits = candidate.data.tickets
+		candidate.data.erase("tickets")
+		candidate.data.recruit_kind = ""
+		candidate.data.recruit_return_phase = ""
+		candidate.data.settlement = {}
+		if not candidate.data.pending_recruits.is_empty():
+			candidate.data.recruit_return_phase = candidate.data.phase
+			candidate.data.phase = "recruit_unit"
 	var reason: String = candidate.checkpoint_error()
 	if not reason.is_empty(): return _fail(reason, ERR_FILE_CORRUPT)
 	candidate._normalize_checkpoint_integers()
@@ -541,7 +656,7 @@ func _normalize_checkpoint_integers() -> void:
 				offer.price = int(offer.price)
 				if offer.kind == "bread": offer.count = int(offer.count)
 	for unit: Dictionary in data.roster: unit.uid = int(unit.uid)
-	for ticket: Dictionary in data.tickets: ticket.uid = int(ticket.uid)
+	for ticket: Dictionary in data.pending_recruits: ticket.uid = int(ticket.uid)
 	for id: String in data.relics: data.relics[id] = int(data.relics[id])
 
 func checkpoint_error() -> String:
@@ -549,26 +664,32 @@ func checkpoint_error() -> String:
 	var integer_fields: Array[String] = ["version", "seed", "floor", "level", "xp", "gold", "bread", "ap", "current_node", "start_node", "active_node", "battle_difficulty", "next_unit_uid", "next_ticket_uid", "rng_counter"]
 	for key: String in integer_fields:
 		if not data.has(key) or not _integer(data[key]): return "存档缺少有效数值字段：%s" % key
-	for key: String in ["phase", "strategy", "pack", "battle_kind", "last_result"]:
+	for key: String in ["phase", "strategy", "pack", "battle_kind", "last_result", "recruit_kind", "recruit_return_phase"]:
 		if not data.has(key) or typeof(data[key]) != TYPE_STRING: return "存档缺少有效文本字段：%s" % key
-	for key: String in ["nodes", "edges", "roster", "tickets", "pending_choices"]:
+	for key: String in ["nodes", "edges", "roster", "pending_recruits", "pending_choices"]:
 		if not data.has(key) or typeof(data[key]) != TYPE_ARRAY: return "存档缺少有效列表字段：%s" % key
 	for key: String in ["pending_siege", "emergency"]:
 		if not data.has(key) or typeof(data[key]) != TYPE_BOOL: return "存档缺少状态字段：%s" % key
 	if not data.has("relics") or typeof(data.relics) != TYPE_DICTIONARY: return "收藏品存档无效"
+	if typeof(data.get("settlement")) != TYPE_DICTIONARY or not data.settlement.is_empty(): return "节点战利品尚未处理完毕"
 	if int(data.version) != VERSION: return "此存档版本不受支持"
 	if not RogueCatalog.STRATEGIES.has(data.strategy) or not RogueCatalog.PACKS.has(data.pack): return "存档中的初始战略或部队无效"
-	if data.phase not in SAFE_PHASES or int(data.active_node) != -1 or not data.pending_choices.is_empty() or data.emergency:
+	if not can_checkpoint() or not data.pending_choices.is_empty() or data.emergency:
 		return "存档必须位于已退出节点的安全检查点"
+	if data.phase in RECRUIT_PHASES:
+		if data.pending_recruits.is_empty(): return "强制招募缺少待处理候选"
+		if data.phase == "recruit_unit" and not data.recruit_kind.is_empty(): return "招募选择阶段不一致"
+	elif not data.pending_recruits.is_empty() or not data.recruit_kind.is_empty() or not data.recruit_return_phase.is_empty():
+		return "待处理招募不能绕过选择返回地图"
 	if int(data.seed) <= 0 or int(data.seed) > 0x7fffffff or int(data.level) < 1 or int(data.xp) < 0 or int(data.xp) >= xp_required():
 		return "存档中的种子或成长数据无效"
 	if int(data.gold) < 0 or int(data.bread) < 0 or int(data.ap) < 0 or int(data.ap) > int(RogueCatalog.BALANCE.initial.max_ap) or int(data.rng_counter) < 0:
 		return "存档中的经济数据无效"
-	if data.phase == "intermission":
+	if checkpoint_phase() == "intermission":
 		if int(data.floor) != 2 or data.pending_siege or int(data.ap) != int(RogueCatalog.BALANCE.initial.max_ap): return "层间休整状态不一致"
 	elif int(data.floor) != 1:
 		return "当前版本仅支持第一层探索"
-	if (data.phase == "siege_briefing") != bool(data.pending_siege) or (int(data.ap) == 0) != bool(data.pending_siege):
+	if (checkpoint_phase() == "siege_briefing") != bool(data.pending_siege) or (int(data.ap) == 0) != bool(data.pending_siege):
 		return "行动力与围剿状态不一致"
 	if data.battle_kind not in ["outpost", "siege"] or (data.pending_siege and data.battle_kind != "siege"): return "作战类型无效"
 	if int(data.battle_difficulty) < 1 or int(data.battle_difficulty) > 5: return "作战难度必须位于 1 到 5"
@@ -616,7 +737,7 @@ func checkpoint_error() -> String:
 			if not reason.is_empty(): return "存档布阵无效：" + reason
 	if int(data.next_unit_uid) < 1 or int(data.next_ticket_uid) < 1: return "存档编号计数器无效"
 	var seen_tickets: Dictionary = {}
-	for entry: Variant in data.tickets:
+	for entry: Variant in data.pending_recruits:
 		if typeof(entry) != TYPE_DICTIONARY or not entry.has("uid") or not _integer(entry.uid) or int(entry.uid) < 1 or seen_tickets.has(int(entry.uid)) or int(entry.uid) >= int(data.next_ticket_uid): return "招募券编号无效"
 		seen_tickets[int(entry.uid)] = true
 		if not entry.has("candidates") or not _valid_choices(entry.candidates, RogueCatalog.RECRUIT): return "招募券候选无效"
@@ -624,6 +745,7 @@ func checkpoint_error() -> String:
 		for kind: String in entry.candidates:
 			if int(RogueCatalog.RECRUIT[kind].bread) == 1: affordable = true
 		if not affordable: return "招募券缺少基础兵种"
+	if data.phase == "recruit_batch" and not data.pending_recruits[0].candidates.has(data.recruit_kind): return "招募批量缺少已选兵种"
 	for id: Variant in data.relics:
 		if typeof(id) != TYPE_STRING or not RogueCatalog.RELICS.has(id) or not _integer(data.relics[id]) or int(data.relics[id]) < 1: return "收藏品数据无效"
 	if population() > population_cap(): return "存档编队超过人口上限"

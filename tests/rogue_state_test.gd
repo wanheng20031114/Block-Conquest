@@ -13,10 +13,15 @@ func _check(condition: bool, message: String) -> void:
 		failures.append(message)
 		printerr("FAIL ", message)
 
-func _fresh(strategy: String = "ranged", pack: String = "steady", seed_value: int = 721) -> RogueRunState:
+func _fresh(strategy: String = "ranged", pack: String = "steady", seed_value: int = 721, pending: bool = false) -> RogueRunState:
 	var state := RogueRunState.new()
 	_check(state.start_new(strategy, pack, seed_value) == OK, "new run initializes")
+	if not pending: _discard_all(state)
 	return state
+
+func _discard_all(state: RogueRunState) -> void:
+	while not state.data.pending_recruits.is_empty():
+		_check(state.discard_recruit(int(state.pending_recruit().uid)) == OK, "pending recruitment is explicitly discarded")
 
 func _run() -> void:
 	_test_generation()
@@ -33,9 +38,9 @@ func _run() -> void:
 
 func _test_generation() -> void:
 	for pack: String in RogueCatalog.PACKS:
-		var state: RogueRunState = _fresh("ranged", pack)
+		var state: RogueRunState = _fresh("ranged", pack, 721, true)
 		_check(state.population() == 18 and state.population_cap() == 20, pack + " begins with eighteen of twenty population")
-		_check(state.data.gold == 20 and state.data.bread == 3 and state.data.ap == 12 and state.data.tickets.size() == 1, "approved starting economy")
+		_check(state.data.gold == 20 and state.data.bread == 3 and state.data.ap == 12 and state.data.pending_recruits.size() == 1 and state.data.phase == "recruit_unit", "starting coupon is a mandatory pending choice")
 		_check(state.checkpoint_error().is_empty(), "starting checkpoint validates: " + state.checkpoint_error())
 		_check(state.formation_error("outpost").is_empty() and state.formation_error("siege").is_empty(), "both default formations are valid")
 	for seed_value: int in range(1, 101):
@@ -117,60 +122,135 @@ func _test_progression_and_modifiers() -> void:
 	_check(is_equal_approx(knight.damage, BalanceCatalog.unit("knight").damage * 1.2), "melee attack modifier")
 	_check(knight.bonuses == BalanceCatalog.unit("knight").bonuses, "percentage modifiers never multiply matchup bonus damage")
 	_check(state.unit_definition("heavy_cannon").melee_armor == BalanceCatalog.unit("heavy_cannon").melee_armor + 3, "all-unit melee armor includes siege engines")
+
 	state = _fresh()
 	_stage(state, "battle")
-	_check(state.resolve_battle(true) == OK, "normal battle resolves")
-	_check(state.data.gold == 40 and state.data.bread == 5 and state.data.xp == 50 and state.data.tickets.size() == 2, "normal rewards match approved economy")
+	var before_gold: int = state.data.gold
+	_check(state.resolve_battle(true) == OK and state.data.phase == "settlement", "victory enters explicit settlement")
+	_check(state.data.gold == before_gold and state.data.xp == 0 and state.data.pending_recruits.is_empty(), "settlement preview grants nothing")
+	var preview: String = JSON.stringify(state.data)
+	_check(state.resolve_battle(true) != OK and JSON.stringify(state.data) == preview, "result cannot create a second settlement")
+	_check(state.confirm_settlement() == OK and state.data.phase == "recruit_unit", "claim immediately requires coupon processing")
+	_check(state.data.gold == 40 and state.data.bread == 5 and state.data.xp == 50 and state.data.pending_recruits.size() == 1, "normal reward grants once")
 	var after: String = JSON.stringify(state.data)
-	_check(state.resolve_battle(true) != OK and JSON.stringify(state.data) == after, "battle settlement cannot replay")
+	_check(state.confirm_settlement() != OK and JSON.stringify(state.data) == after, "claim cannot replay while recruit is pending")
+	_check(state.leave_node() != OK, "recruit cannot be skipped by node exit")
+	_discard_all(state)
+	_check(state.data.phase == "map" and state.data.settlement.is_empty(), "final choice completes node settlement")
 	_stage(state, "battle", 1)
 	state.resolve_battle(true)
-	_check(state.data.level == 2 and state.data.xp == 0 and state.data.bread == 8 and state.population_cap() == 25 and state.xp_required() == 150, "level adds bread and population exactly once")
+	_check(state.data.settlement.levels == 1 and state.data.settlement.bonus_bread == 1 and state.data.settlement.bonus_population == 5, "settlement previews level rewards before claim")
+	state.confirm_settlement()
+	_check(state.data.level == 2 and state.data.xp == 0 and state.data.bread == 8 and state.population_cap() == 25 and state.xp_required() == 150, "level grants bread and population once")
+	_discard_all(state)
 	_stage(state, "emergency")
-	_check(state.resolve_battle(true) == OK and state.data.phase == "reward" and state.data.pending_choices.size() == 3, "emergency waits for relic choice")
-	_check(state.data.gold == 90 and state.data.bread == 11 and state.data.xp == 80 and state.data.tickets.size() == 4, "emergency economy")
+	state.resolve_battle(true)
+	_check(state.confirm_settlement() == OK and state.data.phase == "recruit_unit" and state.data.pending_choices.size() == 3, "emergency recruitment precedes its fixed relic choice")
+	_check(state.data.gold == 90 and state.data.bread == 11 and state.data.xp == 80, "emergency economy")
 	var selected_uid: int = int(state.data.roster[0].uid)
-	_check(state.set_deployed(selected_uid, false) == OK and state.set_deployed(selected_uid, true) == OK, "army remains editable from emergency reward screen")
-	_check(state.data.phase == "reward" and state.data.pending_choices.size() == 3, "army edits cannot skip pending emergency reward")
+	_check(state.set_deployed(selected_uid, false) == OK and state.set_deployed(selected_uid, true) == OK, "army edits preserve pending rewards")
+	_discard_all(state)
+	_check(state.data.phase == "reward", "emergency waits for relic after coupon")
 	var chosen: String = state.data.pending_choices[0]
-	_check(state.choose_relic(chosen) == OK and state.data.phase == "map" and int(state.data.relics[chosen]) == 1, "emergency relic completes node")
+	_check(state.choose_relic(chosen) == OK and state.data.phase == "map" and int(state.data.relics[chosen]) == 1, "emergency final relic exits node")
 	_check(state.choose_relic(chosen) != OK, "relic reward cannot replay")
+	state = _fresh()
+	_check(state._grant_xp(600) == 3 and state.data.level == 4 and state.data.xp == 150 and state.data.bread == 6, "one large experience grant supports multiple levels")
 
 func _test_recruitment_and_formation() -> void:
-	var state: RogueRunState = _fresh()
+	var state: RogueRunState = _fresh("ranged", "steady", 721, true)
+	var initial: Dictionary = state.pending_recruit()
+	_check(state.enter_node(state._neighbors(int(state.data.current_node))[0]) != OK and state.launch_battle() != OK, "initial coupon blocks exploration and battle")
+	_check(state.recruit(int(initial.uid), initial.candidates[0], 1) != OK, "legacy recruit cannot skip first selection")
 	for _index: int in 100: state._add_ticket()
-	for ticket: Dictionary in state.data.tickets:
+	for ticket: Dictionary in state.data.pending_recruits:
 		var unique: Dictionary = {}
 		var cheap: bool = false
 		for kind: String in ticket.candidates:
 			unique[kind] = true
 			cheap = cheap or int(RogueCatalog.RECRUIT[kind].bread) == 1
-		_check(unique.size() == 3 and cheap, "each held ticket has three distinct choices with an affordable unit")
-	state.data.tickets = [{"uid": 500, "candidates": ["swordsman", "heavy_cannon", "priest"]}]
+		_check(unique.size() == 3 and cheap, "each queued candidate is distinct and contains a low-price option")
+	_check(state.discard_recruit(int(state.data.pending_recruits[1].uid)) != OK, "queued later coupon cannot be processed out of order")
+	state.data.pending_recruits = [{"uid": 500, "candidates": ["swordsman", "heavy_cannon", "priest"]}]
 	state.data.next_ticket_uid = 501
 	var before: int = state.data.roster.size()
-	_check(state.recruit(500, "swordsman", 4) != OK and state.data.bread == 3 and state.data.roster.size() == before, "batch limit has no partial mutation")
-	_check(state.recruit(500, "heavy_cannon", 1) != OK and state.data.tickets.size() == 1, "insufficient bread preserves coupon")
-	_check(state.recruit(500, "swordsman", 3) == OK and state.data.bread == 0 and state.data.roster.size() == before + 9 and state.data.tickets.is_empty(), "one coupon recruits three batches atomically")
-	_check(state.population() == 18, "new recruits remain in standby")
+	_check(state.choose_recruit_unit(500, "heavy_cannon") == OK, "unit selection opens batch round")
+	var fixed: String = JSON.stringify(state.data)
+	_check(state.confirm_recruit_batches(500, 1) != OK and JSON.stringify(state.data) == fixed, "unaffordable batch cannot spend anything")
+	_check(state.back_to_recruit_units() == OK and state.pending_recruit().candidates == ["swordsman", "heavy_cannon", "priest"], "back preserves all three candidates")
+	state.choose_recruit_unit(500, "swordsman")
+	_check(state.confirm_recruit_batches(500, 4) != OK and state.data.bread == 3 and state.data.roster.size() == before, "batch limit is atomic")
+	_check(state.recruit(500, "priest", 1) != OK, "legacy recruit cannot replace selected kind")
+	_check(state.confirm_recruit_batches(500, 3) == OK and state.data.bread == 0 and state.data.roster.size() == before + 9 and state.data.pending_recruits.is_empty(), "three batches consume one pending coupon atomically")
+	_check(state.population() == 18 and state.data.phase == "map", "recruits remain in standby and completed initial choice unlocks map")
+	_check(state.discard_recruit(500) != OK and state.confirm_recruit_batches(500, 3) != OK, "processed coupon cannot be reused")
+	for kind: String in ["archer", "cannon"]:
+		var batch_state: RogueRunState = _fresh("ranged", "steady", 721, true)
+		batch_state.data.bread = 20
+		batch_state.data.pending_recruits[0].candidates = ["archer", "cannon", "priest"]
+		var coupon_uid: int = int(batch_state.pending_recruit().uid)
+		var roster_size: int = batch_state.data.roster.size()
+		batch_state.choose_recruit_unit(coupon_uid, kind)
+		var unit_count: int = 9 if kind == "archer" else 3
+		var bread_cost: int = 3 if kind == "archer" else 9
+		_check(batch_state.confirm_recruit_batches(coupon_uid, 3) == OK and batch_state.data.roster.size() == roster_size + unit_count and batch_state.data.bread == 20 - bread_cost and batch_state.population() == 18, kind + " batches apply unit quantity and bread cost independently of population")
 	state.data.roster.clear()
 	for _index: int in 5: state._add_unit("heavy_cannon", false)
-	for index: int in 4:
-		_check(state.set_deployed(int(state.data.roster[index].uid), true) == OK, "heavy cannon can deploy within capacity")
-	_check(state.population() == 20 and state.set_deployed(int(state.data.roster[4].uid), true) != OK, "four heavy cannons fill twenty population")
+	var uids: Array = state.data.roster.map(func(unit: Dictionary): return int(unit.uid))
+	_check(state.set_deployed_many(uids.slice(0, 4), true) == OK and state.population() == 20, "four heavy cannons deploy atomically with free positions in both maps")
+	var before_failure: String = JSON.stringify(state.data)
+	_check(state.set_deployed_many(uids, true) != OK and JSON.stringify(state.data) == before_failure, "fifth heavy cannon cannot partially change deployment")
 	for _index: int in 100: state._add_unit("swordsman", false)
-	_check(state.data.roster.size() == 105 and state.population() == 20, "standby roster is not population-limited")
-	var first_uid: int = int(state.data.roster[0].uid)
-	var second_layout: Array = state.data.roster[1].layouts.outpost
+	_check(state.data.roster.size() == 105 and state.population() == 20, "standby roster has no population cap")
+	var first_uid: int = uids[0]
+	var second_uid: int = uids[1]
+	var first_layout: Array = state._unit(first_uid).layouts.outpost.duplicate()
+	var second_layout: Array = state._unit(second_uid).layouts.outpost.duplicate()
 	_check(state.set_layout(first_uid, "siege", [0, 0, 0]) != OK, "central base cannot be occupied")
 	_check(state.set_layout(first_uid, "outpost", [12, 0, 0]) != OK, "unit footprint must remain inside deployment area")
-	_check(state.set_layout(first_uid, "outpost", second_layout) != OK, "deployment rejects overlapping units")
-	_check(state.set_layout(first_uid, "outpost", [0.0, 7.0, 1.2]) == OK, "legal position and facing accepted")
-	_check(state.data.roster[0].layouts.siege != state.data.roster[0].layouts.outpost, "two battle layouts are independent")
-	_check(state.checkpoint_error().is_empty(), "large standby roster remains a valid checkpoint")
+	_check(state.set_layout(first_uid, "outpost", second_layout) != OK, "single move rejects overlap")
+	_check(state.set_layouts("outpost", [{"uid": first_uid, "layout": second_layout}, {"uid": second_uid, "layout": first_layout}]) == OK, "batch swaps use final positions instead of intermediate collisions")
+	var group: Array = []
+	for uid: int in [first_uid, second_uid]:
+		var layout: Array = state._unit(uid).layouts.outpost.duplicate()
+		layout[0] += 0.3
+		group.append({"uid": uid, "layout": layout})
+	_check(state.set_layouts("outpost", group) == OK, "group translation preserves relative spacing")
+	before_failure = JSON.stringify(state.data)
+	group[1].layout = [99, 0, 0]
+	_check(state.set_layouts("outpost", group) != OK and JSON.stringify(state.data) == before_failure, "invalid group movement rolls back all members")
+	_check(state.set_deployed_many([first_uid, first_uid], false) != OK, "duplicate group identifiers rejected")
+	_check(state.checkpoint_error().is_empty(), "large standby roster and batch positions form a valid checkpoint")
+	state = _fresh()
+	state.data.level = 100
+	state.data.roster.clear()
+	for _index: int in 70: state._add_unit("heavy_cannon", false)
+	uids = state.data.roster.map(func(unit: Dictionary): return int(unit.uid))
+	before_failure = JSON.stringify(state.data)
+	_check(state.set_deployed_many(uids, true) != OK and JSON.stringify(state.data) == before_failure, "lack of map space rolls back the entire two-map deployment")
 
 func _test_nodes_and_siege() -> void:
 	var state: RogueRunState = _fresh()
+	var saved_start: Dictionary = state.export_checkpoint()
+	var guard_event: Dictionary = {}
+	for entry: Dictionary in state.data.nodes:
+		if entry.kind == "event" and entry.event_id == "lost_guard": guard_event = entry
+	state.data.current_node = guard_event.id
+	state.data.active_node = guard_event.id
+	state.data.phase = "node"
+	_check(state.resolve_event(1) == OK and state.data.phase == "recruit_unit" and state.data.gold == 10, "event coupon immediately opens mandatory selection")
+	var event_candidates: Dictionary = state.pending_recruit()
+	_check(state.resolve_event(1) != OK and state.leave_node() != OK, "event coupon cannot be charged twice or postponed")
+	var replay := RogueRunState.new()
+	replay.import_checkpoint(saved_start)
+	replay.data.current_node = guard_event.id
+	replay.data.active_node = guard_event.id
+	replay.data.phase = "node"
+	replay.resolve_event(1)
+	_check(replay.pending_recruit() == event_candidates, "returning to pre-node checkpoint reproduces the same event coupon")
+	_discard_all(state)
+	_check(state.data.phase == "node" and state.leave_node() == OK, "event coupon completes before ordinary node exit")
+	state = _fresh()
 	_stage(state, "shop")
 	state.data.gold = 100
 	var shop_id: int = int(state.data.active_node)
@@ -206,7 +286,7 @@ func _test_nodes_and_siege() -> void:
 	var before: Dictionary = state.data.duplicate(true)
 	_check(state.enter_node(state._neighbors(int(state.data.current_node))[0]) != OK, "pending siege blocks route movement")
 	_check(state.launch_battle() == OK, "mandatory siege launches")
-	_check(state.resolve_battle(true) == OK and state.data.phase == "intermission" and state.data.floor == 2 and state.data.ap == 12, "siege victory restores AP and reaches layer intermission")
+	_check(state.resolve_battle(true) == OK and state.data.phase == "settlement" and state.confirm_settlement() == OK and state.data.phase == "intermission" and state.data.floor == 2 and state.data.ap == 12, "siege victory restores AP and reaches layer intermission")
 	_check(state.data.gold == before.gold and state.data.bread == before.bread and state.data.xp == before.xp and state.data.roster == before.roster, "siege grants no farmable economy and casualties do not alter roster")
 	_check(state.checkpoint_error().is_empty(), "intermission is a loadable checkpoint")
 	state = _fresh()
@@ -225,56 +305,114 @@ func _test_checkpoint() -> void:
 	var session: RogueSession = root.get_node("Session/Rogue")
 	session.save_path = TEST_SAVE
 	session.state = null
-	_check(session.save_checkpoint() == ERR_UNCONFIGURED, "lobby null state cannot save an unstarted run")
-	session.state = _fresh()
-	_check(session.save_checkpoint() == OK, "first atomic checkpoint write: " + session.error_message)
-	var original: String = FileAccess.get_file_as_string(TEST_SAVE)
+	_check(session.save_checkpoint() == ERR_UNCONFIGURED, "unstarted run cannot save")
+	session.state = _fresh("ranged", "steady", 721, true)
+	_check(session.save_checkpoint() == OK, "initial forced candidates are checkpointed")
 	var loaded: Dictionary = session._read_checkpoint(TEST_SAVE)
-	_check(not loaded.is_empty(), "saved plain JSON checkpoint reads and validates")
-	var clone := RogueRunState.new()
-	_check(clone.import_checkpoint(loaded) == OK and JSON.stringify(clone.data) == JSON.stringify(session.state.data), "checkpoint roundtrip preserves all stable data")
-	_stage(session.state, "shop")
-	session.state.purchase(3)
-	_check(session.save_checkpoint() == ERR_BUSY and FileAccess.get_file_as_string(TEST_SAVE) == original, "mid-shop changes never overwrite checkpoint")
-	session.state.leave_node()
-	_check(session.save_checkpoint() == OK, "exit persists completed shop and purchase")
+	_check(loaded.phase == "recruit_unit" and loaded.pending_recruits == session.state.data.pending_recruits, "reload restores compulsory fixed initial candidates")
+	var ticket: Dictionary = session.state.pending_recruit()
+	var cheap: String = ""
+	for kind: String in ticket.candidates:
+		if int(RogueCatalog.RECRUIT[kind].bread) == 1: cheap = kind
+	_check(session.choose_recruit_unit(int(ticket.uid), cheap) == OK, "first selection persists safely outside a node")
 	loaded = session._read_checkpoint(TEST_SAVE)
-	_check(loaded.gold == 8 and loaded.tickets.size() == 2, "purchase appears only after node exit checkpoint")
-	var completed_shop: String = FileAccess.get_file_as_string(TEST_SAVE)
-	_stage(session.state, "emergency")
-	session.state.resolve_battle(true)
-	var held_uid: int = int(session.state.data.roster[0].uid)
-	_check(session.set_deployed(held_uid, false) == OK and FileAccess.get_file_as_string(TEST_SAVE) == completed_shop, "reward-screen formation changes do not save a half-resolved node")
-	_check(session.choose_relic(session.state.data.pending_choices[0]) == OK, "emergency selection commits the combined reward and formation checkpoint")
-	loaded = session._read_checkpoint(TEST_SAVE)
-	_check(not loaded.roster[0].deployed and loaded.phase == "map", "reward-screen formation is preserved after node exit")
-	var bad: Dictionary = loaded.duplicate(true)
-	bad.version = 999
-	_check(clone.import_checkpoint(bad) != OK, "unknown checkpoint version rejected")
-	bad = loaded.duplicate(true)
-	bad.roster[0].kind = "res://malicious.gd"
-	_check(clone.import_checkpoint(bad) != OK, "saved resource paths are never accepted as unit kinds")
-	bad = loaded.duplicate(true)
-	bad.edges[0][1] = 33
-	_check(clone.import_checkpoint(bad) != OK, "tampered graph topology rejected")
-	bad = loaded.duplicate(true)
-	bad.roster[0].layouts.siege = [0, 0, 0]
-	_check(clone.import_checkpoint(bad) != OK, "invalid saved base-overlap formation rejected")
+	_check(loaded.phase == "recruit_batch" and loaded.recruit_kind == cheap and loaded.pending_recruits[0].candidates == ticket.candidates, "reload restores exact second round without reroll")
+	var emissions: Array = [0]
+	var observer: Callable = func(): emissions[0] += 1
+	session.changed.connect(observer)
+	var before: String = JSON.stringify(session.state.data)
 	var good_file: String = FileAccess.get_file_as_string(TEST_SAVE)
+	session.save_path = TEST_SAVE + "/cannot_be_a_directory.json"
+	_check(session.confirm_recruit_batches(int(ticket.uid), 1) != OK and JSON.stringify(session.state.data) == before and emissions[0] == 0, "failed recruitment save rolls back currency, roster and pending choice without changed")
+	_check(FileAccess.get_file_as_string(TEST_SAVE) == good_file, "failed replacement retains checkpoint bytes")
+	session.save_path = TEST_SAVE
+	_check(session.confirm_recruit_batches(int(ticket.uid), 1) == OK and emissions[0] == 1, "retry successfully consumes once and publishes once")
+	loaded = session._read_checkpoint(TEST_SAVE)
+	_check(loaded.phase == "map" and loaded.pending_recruits.is_empty(), "processed initial coupon is absent after reload")
+	before = JSON.stringify(session.state.data)
+	_check(session.confirm_recruit_batches(int(ticket.uid), 1) != OK and JSON.stringify(session.state.data) == before and emissions[0] == 1, "repeat confirmation has no mutation or publication")
+	var first: Dictionary = session.state.data.roster[0]
+	var second: Dictionary = session.state.data.roster[1]
+	var changes: Array = [{"uid": first.uid, "layout": second.layouts.outpost.duplicate()}, {"uid": second.uid, "layout": first.layouts.outpost.duplicate()}]
+	session.save_path = TEST_SAVE + "/cannot_be_a_directory.json"
+	_check(session.set_layouts("outpost", changes) != OK and JSON.stringify(session.state.data) == before and emissions[0] == 1, "failed batch save restores both positions and emits nothing")
+	session.save_path = TEST_SAVE
+	_check(session.set_layouts("outpost", changes) == OK and emissions[0] == 2, "successful batch publishes once and saves both positions")
+	var saved_layout: Array = session._read_checkpoint(TEST_SAVE).roster[0].layouts.outpost
+	var expected_layout: Array = changes[0].layout
+	# JSON decimal roundtrips and wrapf can round the last bits of a heading.
+	_check(Vector2(saved_layout[0], saved_layout[1]).is_equal_approx(Vector2(expected_layout[0], expected_layout[1])) and is_zero_approx(angle_difference(saved_layout[2], expected_layout[2])), "batch checkpoint contains final positions and heading")
+	session.changed.disconnect(observer)
+	# Convert an actual v1-shaped checkpoint without discarding its stock or RNG.
+	var legacy_state: RogueRunState = _fresh("ranged", "steady", 721, true)
+	legacy_state._add_ticket()
+	legacy_state._add_ticket()
+	var legacy: Dictionary = legacy_state.export_checkpoint()
+	legacy.version = 1
+	legacy.phase = "map"
+	legacy.tickets = legacy.pending_recruits
+	for key: String in ["pending_recruits", "recruit_kind", "recruit_return_phase", "settlement"]: legacy.erase(key)
+	_write_envelope(legacy)
+	loaded = session._read_checkpoint(TEST_SAVE)
+	_check(loaded.version == 2 and loaded.phase == "recruit_unit" and loaded.pending_recruits == legacy.tickets and loaded.rng_counter == legacy.rng_counter, "v1 coupons migrate in order with identical IDs, candidates and RNG")
+	_check(JSON.parse_string(JSON.parse_string(FileAccess.get_file_as_string(TEST_SAVE)).snapshot).version == 1, "reading legacy checkpoint never deletes or rewrites the old file")
+	var clone := RogueRunState.new()
+	_check(clone.import_checkpoint(loaded) == OK, "migrated checkpoint validates")
+	var next_ticket: Dictionary = clone.data.pending_recruits[1].duplicate(true)
+	clone.discard_recruit(int(clone.pending_recruit().uid))
+	_check(clone.pending_recruit() == next_ticket and clone.data.phase == "recruit_unit", "old coupon stock is sequential mandatory work")
+	var bypass: Dictionary = loaded.duplicate(true)
+	bypass.phase = "map"
+	_check(clone.import_checkpoint(bypass) != OK, "checkpoint cannot hide queued coupons behind map phase")
+	# Node-internal recruitment remains transient until the whole node exits.
+	session.state = _fresh()
+	session.save_checkpoint()
+	good_file = FileAccess.get_file_as_string(TEST_SAVE)
+	_stage(session.state, "shop")
+	_check(session.purchase(3) == OK and session.state.data.phase == "recruit_unit", "buying a coupon immediately blocks the shop")
+	_check(session.purchase(4) != OK and session.leave_node() != OK, "forced shop recruit blocks further purchases and exit")
+	_check(session.save_checkpoint() == ERR_BUSY and FileAccess.get_file_as_string(TEST_SAVE) == good_file, "node-internal recruit cannot overwrite safe checkpoint")
+	session.discard_recruit(int(session.state.pending_recruit().uid))
+	_check(session.state.data.phase == "node" and session.leave_node() == OK, "discard returns to shop result and explicit exit commits")
+	loaded = session._read_checkpoint(TEST_SAVE)
+	_check(loaded.gold == 8 and loaded.pending_recruits.is_empty(), "shop exit retains payment without a storable coupon")
+	# Last AP is held through settlement, recruitment and the emergency relic.
+	good_file = FileAccess.get_file_as_string(TEST_SAVE)
+	_stage(session.state, "emergency")
+	session.state.data.ap = 0
+	session.state.resolve_battle(true)
+	_check(session.save_checkpoint() == ERR_BUSY and FileAccess.get_file_as_string(TEST_SAVE) == good_file, "victory preview does not save a half-node")
+	_check(session.confirm_settlement() == OK and session.state.data.phase == "recruit_unit" and not session.state.data.pending_siege, "AP-zero claim waits for recruitment before siege")
+	_check(FileAccess.get_file_as_string(TEST_SAVE) == good_file, "awarded but incomplete settlement remains transient")
+	session.discard_recruit(int(session.state.pending_recruit().uid))
+	_check(session.state.data.phase == "reward" and not session.state.data.pending_siege, "last AP still waits for emergency relic")
+	_check(session.choose_relic(session.state.data.pending_choices[0]) == OK and session.state.data.phase == "siege_briefing", "last mandatory choice atomically exits and schedules siege")
+	loaded = session._read_checkpoint(TEST_SAVE)
+	_check(loaded.phase == "siege_briefing" and loaded.pending_siege and loaded.pending_recruits.is_empty() and loaded.settlement.is_empty(), "reload cannot bypass siege or reclaim rewards")
+	for mutation: String in ["version", "kind", "edge", "layout"]:
+		var bad: Dictionary = loaded.duplicate(true)
+		match mutation:
+			"version": bad.version = 999
+			"kind": bad.roster[0].kind = "res://malicious.gd"
+			"edge": bad.edges[0][1] = 33
+			"layout": bad.roster[0].layouts.siege = [0,0,0]
+		_check(clone.import_checkpoint(bad) != OK, "tampered checkpoint rejected: " + mutation)
+	good_file = FileAccess.get_file_as_string(TEST_SAVE)
 	var corrupt := FileAccess.open(TEST_SAVE, FileAccess.WRITE)
 	corrupt.store_string(good_file.replace("sha256", "broken_digest"))
 	corrupt.close()
 	_check(session._read_checkpoint(TEST_SAVE).is_empty(), "corrupt checkpoint fails explicitly")
-	corrupt = FileAccess.open(TEST_SAVE, FileAccess.WRITE)
-	corrupt.store_string(JSON.stringify({"format": {"unexpected": true}, "snapshot": "{}", "sha256": ""}))
-	corrupt.close()
-	_check(session._read_checkpoint(TEST_SAVE).is_empty(), "wrong envelope field type is rejected without executing data")
-	_check(session.save_checkpoint() == OK, "atomic replacement recovers from a corrupt destination")
-	_check(not FileAccess.file_exists(TEST_SAVE + ".tmp"), "successful rename leaves no temporary file")
+	_check(session.save_checkpoint() == OK and not FileAccess.file_exists(TEST_SAVE + ".tmp"), "atomic replacement recovers without leftover temporary files")
 	session.state.data.phase = "game_over"
 	good_file = FileAccess.get_file_as_string(TEST_SAVE)
 	_check(session.save_checkpoint() == ERR_BUSY and FileAccess.get_file_as_string(TEST_SAVE) == good_file, "defeat preserves latest checkpoint")
 	session.save_path = RogueSession.SAVE_PATH
+
+func _write_envelope(snapshot: Dictionary) -> void:
+	var payload: String = JSON.stringify(snapshot)
+	var file := FileAccess.open(TEST_SAVE, FileAccess.WRITE)
+	file.store_string(JSON.stringify({"format": 1, "snapshot": payload, "sha256": payload.sha256_text()}))
+	file.close()
 
 func _stage(state: RogueRunState, kind: String, ordinal: int = 0) -> void:
 	var found: int = 0

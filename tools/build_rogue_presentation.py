@@ -132,6 +132,8 @@ for key in ['card','strip','sidebar','button_compact','compact_hover','compact_p
 ext(s,'PackedScene','scenes/rogue/route_node.tscn','route_node')
 ext(s,'PackedScene','scenes/rogue/route_preview.tscn','preview')
 ext(s,'PackedScene','scenes/rogue/army_panel.tscn','army')
+ext(s,'PackedScene','scenes/rogue/recruit_overlay.tscn','recruit')
+ext(s,'PackedScene','scenes/rogue/victory_rewards.tscn','victory')
 for index in range(3):
     ext(s,'PackedScene',f'scenes/rogue/setup_models_{index}.tscn',f'setup{index}')
 ext(s,'PackedScene','scenes/rogue/forest_exploration.tscn','forest')
@@ -167,7 +169,7 @@ for name,icon in [('Gold','coin'),('Bread','bread'),('Action','boot')]:
     ui(s,'Icon','TextureRect',f'Canvas/UI/Top/{name}',f'custom_minimum_size = Vector2(52,52)\nsize_flags_vertical = 4\nmouse_filter = 2\ntexture = ExtResource("{icon}")\nexpand_mode = 1\nstretch_mode = 5')
     ui(s,'Value','Label',f'Canvas/UI/Top/{name}','text = "—"\nvertical_alignment = 1\ntheme_override_font_sizes/font_size = 28')
 node(s,'Rail','VBoxContainer','Canvas/UI','layout_mode = 0\nanchor_top = 0.30\noffset_left = 24.0\noffset_top = 0.0\noffset_right = 165.0\noffset_bottom = 335.0\ntheme_override_constants/separation = 10')
-for name,label in [('Army','编队'),('Recruit','招募'),('Load','读取存档'),('Pause','暂停菜单'),('Menu','返回大厅')]:
+for name,label in [('Army','编队'),('Load','读取存档'),('Pause','暂停菜单'),('Menu','返回大厅')]:
     ui(s,name,'Button','Canvas/UI/Rail',f'custom_minimum_size = Vector2(141,50)\ntheme_override_styles/normal = ExtResource("button_compact")\ntheme_override_styles/hover = ExtResource("compact_hover")\ntheme_override_styles/pressed = ExtResource("compact_pressed")\ntext = "{label}"\ntheme_override_fonts/font = ExtResource("title_font")\ntheme_override_font_sizes/font_size = 20')
 node(s,'Bottom','PanelContainer','Canvas/UI','layout_mode = 0\nanchor_top = 1.0\nanchor_right = 1.0\nanchor_bottom = 1.0\noffset_left = 190.0\noffset_top = -88.0\noffset_right = -28.0\noffset_bottom = -24.0\ntheme_override_styles/panel = ExtResource("strip")')
 ui(s,'Content','HBoxContainer','Canvas/UI/Bottom')
@@ -224,15 +226,21 @@ for name,label in [('Back','返回大厅'),('Continue','继续上次远征')]:
 node(s,'Alert','ColorRect','Canvas/UI',FULL+'\nmouse_filter = 2\nvisible = false\ncolor = Color(0.7,0.11,0.04,0.32)')
 node(s,'AlertTitle','Label','Canvas/UI/Alert','layout_mode = 0\nanchor_left = 0.5\nanchor_right = 0.5\nanchor_top = 0.35\nanchor_bottom = 0.35\noffset_left = -400.0\noffset_right = 400.0\noffset_bottom = 100.0\ntext = "⚠  敌 军 围 剿"\nhorizontal_alignment = 1\ntheme_override_font_sizes/font_size = 52\ntheme_override_colors/font_color = Color(1,0.75,0.46,1)')
 node(s,'ArmyPanel','','Canvas/UI','visible = false', 'army')
+node(s,'VictoryRewards','','Canvas/UI','visible = false', 'victory')
+node(s,'RecruitOverlay','','Canvas/UI','visible = false', 'recruit')
 node(s,'PauseMenu','ColorRect','Canvas/UI',FULL+'\nvisible = false\ncolor = Color(0.24,0.32,0.27,0.68)')
 node(s,'Panel','PanelContainer','Canvas/UI/PauseMenu','layout_mode = 0\nanchor_left = 0.5\nanchor_top = 0.5\nanchor_right = 0.5\nanchor_bottom = 0.5\noffset_left = -240.0\noffset_top = -210.0\noffset_right = 240.0\noffset_bottom = 210.0')
 ui(s,'Content','VBoxContainer','Canvas/UI/PauseMenu/Panel')
 ui(s,'Title','Label','Canvas/UI/PauseMenu/Panel/Content','text = "远征暂歇"\ntheme_override_font_sizes/font_size = 30\ntheme_override_fonts/font = ExtResource("title_font")')
 ui(s,'Detail','Label','Canvas/UI/PauseMenu/Panel/Content','text = "离开完整节点时自动保存。\n节点内部退出将回到最近检查点。"\ntheme_override_font_sizes/font_size = 16')
-for name,label in [('Resume','继续探索'),('Settings','游戏设置'),('Load','读取节点存档'),('Menu','返回大厅'),('Quit','退出游戏')]:
-    ui(s,name,'Button','Canvas/UI/PauseMenu/Panel/Content',f'text = "{label}"\ncustom_minimum_size = Vector2(0,45)')
+pause_actions = [('Resume','继续远征'),('Settings','游戏设置'),('Load','读取节点存档'),('Menu','返回大厅'),('Quit','退出游戏')]
+for index,(name,label) in enumerate(pause_actions):
+    previous = pause_actions[(index-1) % len(pause_actions)][0]
+    following = pause_actions[(index+1) % len(pause_actions)][0]
+    ui(s,name,'Button','Canvas/UI/PauseMenu/Panel/Content',f'text = "{label}"\ncustom_minimum_size = Vector2(0,45)\nfocus_neighbor_top = NodePath("../{previous}")\nfocus_neighbor_bottom = NodePath("../{following}")\nfocus_previous = NodePath("../{previous}")\nfocus_next = NodePath("../{following}")')
 node(s,'ReplaceRun','ConfirmationDialog','Canvas/UI','title = "开始新远征"\ndialog_text = "开始新局将替换最近的节点存档。"\nok_button_text = "开始新局"\ncancel_button_text = "取消"')
 node(s,'LoadConfirm','ConfirmationDialog','Canvas/UI','title = "读取节点存档"\ndialog_text = "恢复最近完整节点的存档，当前节点内的进度将被放弃。"\nok_button_text = "读取存档"\ncancel_button_text = "取消"')
+node(s,'DiscardRecruit','ConfirmationDialog','Canvas/UI','title = "放弃本次招募"\ndialog_text = "弃置后无法保留这张招募券。已支付的金币不会退还。"\nok_button_text = "弃置招募券"\ncancel_button_text = "继续选择"')
 node(s,'Notice','AcceptDialog','Canvas/UI','title = "林海远征"\nok_button_text = "知道了"')
 write('scenes/rogue/rogue_map.tscn','\n'.join(s))
 

@@ -56,6 +56,9 @@ func start_run() -> void:
 	await scene_changed
 	map = current_scene
 	await settle()
+	check(map.recruit_overlay.visible, "initial voucher automatically opens unit cards")
+	check(rogue.discard_recruit(int(rogue.state.pending_recruit().uid)) == OK, "initial voucher resolves before exploring")
+	await settle()
 
 func pick_kind(kind: String) -> int:
 	for node: Dictionary in rogue.state.data.nodes:
@@ -131,10 +134,6 @@ func _run() -> void:
 	check(map.army.visible,"real formation opens")
 	await capture("formation")
 	map.army.close_panel()
-	map._open_army("recruit")
-	await settle()
-	await capture("recruit")
-	map.army.close_panel()
 	var shop: int = pick_kind("shop")
 	prepare_adjacent(shop)
 	check(rogue.enter_node(shop)==OK,"enter actual shop")
@@ -142,6 +141,51 @@ func _run() -> void:
 	check(map._panel_mode=="shop","shop buttons rendered")
 	check(map.content.get_node("Options").get_child_count()==6,"six native offer controls")
 	await capture("shop")
+	var offer_index: int = -1
+	for index: int in rogue.state.active_node().offers.size():
+		if rogue.state.active_node().offers[index].kind == "ticket": offer_index = index; break
+	check(rogue.purchase(offer_index) == OK, "buy voucher immediately opens recruitment")
+	await settle()
+	check(map.recruit_overlay.visible and rogue.state.data.phase == "recruit_unit", "three unit cards cover shop")
+	map._toggle_pause_menu()
+	check(root.gui_get_focus_owner() == map.ui.get_node("PauseMenu/Panel/Content/Resume"), "pause takes keyboard focus from recruitment")
+	var pending_before: Dictionary = rogue.state.pending_recruit()
+	map._choose_recruit_unit(int(pending_before.uid), str(pending_before.candidates[0]))
+	check(rogue.state.data.phase == "recruit_unit", "paused recruitment cannot accept background actions")
+	map._toggle_pause_menu()
+	await settle()
+	check(rogue.leave_node() != OK, "unresolved recruitment cannot be stored by leaving shop")
+	var selected_before_recruit: int = map._preview_id
+	map._select_node(battle)
+	check(map._preview_id == selected_before_recruit, "forced recruitment blocks route picks")
+	map._open_army("formation")
+	check(not map.army.visible, "forced recruitment cannot be bypassed by formation")
+	await capture("recruit_units")
+	var card_index: int = 0
+	while map.recruit_overlay.cards[card_index].disabled: card_index += 1
+	var choice: String = str(map.recruit_overlay.cards[card_index].get_meta("kind"))
+	map.recruit_overlay.cards[card_index].pressed.emit()
+	await settle()
+	check(rogue.state.data.phase == "recruit_batch" and rogue.state.data.recruit_kind == choice, "first card opens batch choice")
+	await capture("recruit_batches")
+	map.recruit_overlay.back_button.pressed.emit()
+	await settle()
+	check(rogue.state.data.phase == "recruit_unit", "back keeps same voucher for another unit")
+	map.recruit_overlay.discard_button.pressed.emit()
+	await settle()
+	check(map.ui.get_node("DiscardRecruit").visible, "discard asks before losing voucher")
+	map.ui.get_node("DiscardRecruit").hide()
+	map.ui.get_node("DiscardRecruit").canceled.emit()
+	await settle()
+	check(not map.recruit_overlay.discard_button.disabled, "cancel discard restores recruitment controls")
+	map.recruit_overlay.cards[card_index].pressed.emit()
+	await settle()
+	var roster_before: int = rogue.state.data.roster.size()
+	map.recruit_overlay.cards[0].pressed.emit()
+	await settle()
+	check(rogue.state.data.phase == "node" and not map.recruit_overlay.visible, "recruited shop voucher returns to same shop")
+	check(rogue.state.data.roster.size() == roster_before + int(RogueCatalog.RECRUIT[choice].count), "recruits arrive in batches")
+	check(rogue.purchase(offer_index) != OK, "purchased voucher remains sold out")
 	check(rogue.leave_node()==OK,"shop exit checkpoint")
 	var event: int = pick_kind("event")
 	prepare_adjacent(event)

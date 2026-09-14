@@ -33,7 +33,7 @@ func has_checkpoint() -> bool:
 
 func save_checkpoint() -> Error:
 	if state == null or state.data.is_empty(): return _fail("尚未开始肉鸽远征", ERR_UNCONFIGURED)
-	if state.data.phase not in RogueRunState.SAFE_PHASES:
+	if not state.can_checkpoint():
 		return _fail("当前节点尚未退出，最近的安全存档保持不变", ERR_BUSY)
 	var reason: String = state.checkpoint_error()
 	if not reason.is_empty(): return _fail(reason, ERR_INVALID_DATA)
@@ -62,7 +62,13 @@ func load_run() -> Error:
 	var candidate := RogueRunState.new()
 	var result: Error = candidate.import_checkpoint(loaded)
 	if result != OK: return _fail(candidate.error_message, result)
+	var previous: RogueRunState = state
 	state = candidate
+	if not state.data.pending_recruits.is_empty():
+		result = save_checkpoint()
+		if result != OK:
+			state = previous
+			return result
 	_prepare_singleplayer()
 	error_message = ""
 	changed.emit()
@@ -80,12 +86,10 @@ func enter_node(id: int) -> Error:
 			state.data = previous
 			changed.emit()
 		return result
-	return _publish_mutation(true)
+	return _publish_mutation(true, previous)
 
 func leave_node() -> Error:
-	var result: Error = state.leave_node()
-	if result != OK: return _fail(state.error_message, result)
-	return _publish_mutation(true)
+	return _mutate(func() -> Error: return state.leave_node(), true)
 
 func launch_battle() -> Error:
 	if get_parent().transition.busy:
@@ -101,44 +105,67 @@ func launch_battle() -> Error:
 	return OK
 
 func resolve_battle(won: bool) -> void:
-	var result: Error = state.resolve_battle(won)
-	if result != OK:
-		error_message = state.error_message
-		return
-	# Failure never overwrites the last checkpoint. Reward choices remain transient.
-	_publish_mutation(true)
-	_change_scene(MAP_SCENE)
+	var result: Error = _mutate(func() -> Error: return state.resolve_battle(won), true)
+	if result == OK: _change_scene(MAP_SCENE)
+
+func confirm_settlement() -> Error:
+	return _mutate(func() -> Error: return state.confirm_settlement(), true)
 
 func purchase(offer_index: int) -> Error:
-	return _publish_result(state.purchase(offer_index))
+	return _mutate(func() -> Error: return state.purchase(offer_index))
 
 func resolve_event(option: int) -> Error:
-	return _publish_result(state.resolve_event(option))
+	return _mutate(func() -> Error: return state.resolve_event(option))
 
 func choose_camp(option: int) -> Error:
-	return _publish_result(state.choose_camp(option))
+	return _mutate(func() -> Error: return state.choose_camp(option))
 
 func choose_relic(id: String) -> Error:
-	return _publish_result(state.choose_relic(id), true)
+	return _mutate(func() -> Error: return state.choose_relic(id), true)
+
+func choose_recruit_unit(ticket_uid: int, kind: String) -> Error:
+	return _mutate(func() -> Error: return state.choose_recruit_unit(ticket_uid, kind), true)
+
+func back_to_recruit_units() -> Error:
+	return _mutate(func() -> Error: return state.back_to_recruit_units(), true)
+
+func confirm_recruit_batches(ticket_uid: int, batches: int) -> Error:
+	return _mutate(func() -> Error: return state.confirm_recruit_batches(ticket_uid, batches), true)
+
+func discard_recruit(ticket_uid: int) -> Error:
+	return _mutate(func() -> Error: return state.discard_recruit(ticket_uid), true)
 
 func recruit(ticket_uid: int, kind: String, batches: int) -> Error:
-	return _publish_result(state.recruit(ticket_uid, kind, batches), true)
+	return _mutate(func() -> Error: return state.recruit(ticket_uid, kind, batches), true)
 
 func set_deployed(uid: int, value: bool) -> Error:
-	return _publish_result(state.set_deployed(uid, value), true)
+	return set_deployed_many([uid], value)
 
 func set_layout(uid: int, encounter: String, layout: Array) -> Error:
-	return _publish_result(state.set_layout(uid, encounter, layout), true)
+	return set_layouts(encounter, [{"uid": uid, "layout": layout}])
 
-func _publish_result(result: Error, persist: bool = false) -> Error:
-	if result != OK: return _fail(state.error_message, result)
-	return _publish_mutation(persist)
+func set_deployed_many(uids: Array, value: bool) -> Error:
+	return _mutate(func() -> Error: return state.set_deployed_many(uids, value), true)
 
-func _publish_mutation(persist: bool) -> Error:
+func set_layouts(encounter: String, changes: Array) -> Error:
+	return _mutate(func() -> Error: return state.set_layouts(encounter, changes), true)
+
+func _mutate(action: Callable, persist: bool = false) -> Error:
+	var previous: Dictionary = state.data.duplicate(true)
+	var result: Error = action.call()
+	if result != OK:
+		state.data = previous
+		return _fail(state.error_message, result)
+	return _publish_mutation(persist, previous)
+
+func _publish_mutation(persist: bool, previous: Dictionary) -> Error:
 	error_message = ""
 	var result: Error = OK
-	if persist and state.data.phase in RogueRunState.SAFE_PHASES:
+	if persist and state.can_checkpoint():
 		result = save_checkpoint()
+		if result != OK:
+			state.data = previous
+			return result
 	changed.emit()
 	return result
 

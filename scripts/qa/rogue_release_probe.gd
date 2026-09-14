@@ -35,6 +35,9 @@ func _run() -> void:
 	var map: Node3D = get_tree().current_scene
 	_check(map.scene_file_path==RogueSession.MAP_SCENE,"exported forest loads")
 	_check(map.get_node("Nodes").get_child_count()==34,"all authored route nodes packaged")
+	_check(map.recruit_overlay.visible and rogue.state.data.phase == "recruit_unit", "initial recruitment opens in packaged game")
+	_check(rogue.discard_recruit(int(rogue.state.pending_recruit().uid)) == OK, "initial voucher resolves")
+	await _settle()
 	map.army.open_panel("formation","outpost")
 	await _settle()
 	_check(map.army.visible,"exported army and models open")
@@ -56,7 +59,19 @@ func _run() -> void:
 	battle.accept_result()
 	await get_tree().scene_changed
 	await _settle()
-	_check(rogue.state.data.phase=="map" and int(rogue.state.data.xp)==50,"packaged victory commits reward")
+	map = get_tree().current_scene
+	_check(map.victory_rewards.visible and rogue.state.data.phase == "settlement", "packaged victory opens reward screen")
+	map.victory_rewards.claim.pressed.emit()
+	await _settle()
+	_check(map.recruit_overlay.visible and int(rogue.state.data.xp) == 50, "claim opens automatic recruitment")
+	var kind_index: int = 0
+	while map.recruit_overlay.cards[kind_index].disabled: kind_index += 1
+	map.recruit_overlay.cards[kind_index].pressed.emit()
+	await _settle()
+	_check(rogue.state.data.phase == "recruit_batch", "packaged unit card opens batch cards")
+	map.recruit_overlay.cards[0].pressed.emit()
+	await _settle()
+	_check(rogue.state.data.phase=="map" and rogue.state.data.pending_recruits.is_empty(),"packaged recruit completes node checkpoint")
 	_check(rogue.load_run()==OK,"packaged checkpoint reloads")
 	await get_tree().scene_changed
 	await _settle()
@@ -74,6 +89,8 @@ func _run() -> void:
 	battle.end_battle(true)
 	battle.accept_result()
 	await get_tree().scene_changed
+	await _settle()
+	_check(rogue.confirm_settlement() == OK, "siege completion confirmed without ordinary rewards")
 	await _settle()
 	_check(rogue.state.data.phase=="intermission" and int(rogue.state.data.ap)==12,"exported first floor reaches saved intermission")
 	_finish()

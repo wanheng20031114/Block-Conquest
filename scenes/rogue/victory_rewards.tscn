@@ -1,0 +1,243 @@
+[gd_scene format=3]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/card.tres" id="paper"]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="title"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/rogue/bread.png" id="bread"]
+[ext_resource type="Script" path="res://scripts/rogue/rogue_victory_rewards.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/rogue/coin.png" id="coin"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/rogue/experience.png" id="experience"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/rogue/recruitment.png" id="recruitment"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/rogue/boot.png" id="boot"]
+[node name="VictoryRewards" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme = ExtResource("theme")
+script = ExtResource("script")
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055,0.13,0.095,0.94)
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+[node name="Paper" type="Panel" parent="Center"]
+custom_minimum_size = Vector2(980,520)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("paper")
+[node name="Margin" type="MarginContainer" parent="Center/Paper"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 30
+[node name="Content" type="VBoxContainer" parent="Center/Paper/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+alignment = 1
+[node name="Heading" type="Label" parent="Center/Paper/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("title")
+theme_override_font_sizes/font_size = 40
+text = "前哨已肃清"
+horizontal_alignment = 1
+[node name="Record" type="Label" parent="Center/Paper/Margin/Content"]
+custom_minimum_size = Vector2(0,52)
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 19
+text = "前哨站 · 普通作战"
+horizontal_alignment = 1
+vertical_alignment = 1
+[node name="Rewards" type="HBoxContainer" parent="Center/Paper/Margin/Content"]
+custom_minimum_size = Vector2(0,165)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+[node name="Gold" type="VBoxContainer" parent="Center/Paper/Margin/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 7
+alignment = 1
+[node name="Icon" type="TextureRect" parent="Center/Paper/Margin/Content/Rewards/Gold"]
+custom_minimum_size = Vector2(0,80)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("coin")
+expand_mode = 1
+stretch_mode = 5
+[node name="Title" type="Label" parent="Center/Paper/Margin/Content/Rewards/Gold"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35,0.44,0.38,1)
+theme_override_font_sizes/font_size = 18
+text = "金币"
+horizontal_alignment = 1
+[node name="Value" type="Label" parent="Center/Paper/Margin/Content/Rewards/Gold"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("title")
+theme_override_font_sizes/font_size = 34
+text = "+20"
+horizontal_alignment = 1
+[node name="Bread" type="VBoxContainer" parent="Center/Paper/Margin/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 7
+alignment = 1
+[node name="Icon" type="TextureRect" parent="Center/Paper/Margin/Content/Rewards/Bread"]
+custom_minimum_size = Vector2(0,80)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("bread")
+expand_mode = 1
+stretch_mode = 5
+[node name="Title" type="Label" parent="Center/Paper/Margin/Content/Rewards/Bread"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35,0.44,0.38,1)
+theme_override_font_sizes/font_size = 18
+text = "面包"
+horizontal_alignment = 1
+[node name="Value" type="Label" parent="Center/Paper/Margin/Content/Rewards/Bread"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("title")
+theme_override_font_sizes/font_size = 34
+text = "+2"
+horizontal_alignment = 1
+[node name="Experience" type="VBoxContainer" parent="Center/Paper/Margin/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 7
+alignment = 1
+[node name="Icon" type="TextureRect" parent="Center/Paper/Margin/Content/Rewards/Experience"]
+custom_minimum_size = Vector2(0,80)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("experience")
+expand_mode = 1
+stretch_mode = 5
+[node name="Title" type="Label" parent="Center/Paper/Margin/Content/Rewards/Experience"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35,0.44,0.38,1)
+theme_override_font_sizes/font_size = 18
+text = "经验"
+horizontal_alignment = 1
+[node name="Value" type="Label" parent="Center/Paper/Margin/Content/Rewards/Experience"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("title")
+theme_override_font_sizes/font_size = 34
+text = "+50"
+horizontal_alignment = 1
+[node name="Tickets" type="VBoxContainer" parent="Center/Paper/Margin/Content/Rewards"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 7
+alignment = 1
+[node name="Icon" type="TextureRect" parent="Center/Paper/Margin/Content/Rewards/Tickets"]
+custom_minimum_size = Vector2(0,80)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("recruitment")
+expand_mode = 1
+stretch_mode = 5
+[node name="Title" type="Label" parent="Center/Paper/Margin/Content/Rewards/Tickets"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35,0.44,0.38,1)
+theme_override_font_sizes/font_size = 18
+text = "招募券"
+horizontal_alignment = 1
+[node name="Value" type="Label" parent="Center/Paper/Margin/Content/Rewards/Tickets"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("title")
+theme_override_font_sizes/font_size = 34
+text = "+1"
+horizontal_alignment = 1
+[node name="Recovery" type="HBoxContainer" parent="Center/Paper/Margin/Content"]
+visible = false
+custom_minimum_size = Vector2(0,165)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Center/Paper/Margin/Content/Recovery"]
+custom_minimum_size = Vector2(92,92)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("boot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Copy" type="VBoxContainer" parent="Center/Paper/Margin/Content/Recovery"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Action" type="Label" parent="Center/Paper/Margin/Content/Recovery/Copy"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("title")
+theme_override_font_sizes/font_size = 30
+text = "行动力恢复  12 / 12"
+
+[node name="Rest" type="Label" parent="Center/Paper/Margin/Content/Recovery/Copy"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 19
+text = "军队与成长保留，进入层间整备。"
+
+[node name="Growth" type="Label" parent="Center/Paper/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.32,0.45,0.35,1)
+theme_override_font_sizes/font_size = 19
+text = "提升 1 级  ·  额外面包 +1  ·  人口上限 +5"
+horizontal_alignment = 1
+[node name="Status" type="Label" parent="Center/Paper/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35,0.44,0.38,1)
+theme_override_font_sizes/font_size = 18
+text = "确认领取后，继续处理本次获得的招募券与收藏品。"
+horizontal_alignment = 1
+[node name="Claim" type="Button" parent="Center/Paper/Margin/Content"]
+custom_minimum_size = Vector2(320,48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"MedievalPrimary"
+text = "领取奖励"

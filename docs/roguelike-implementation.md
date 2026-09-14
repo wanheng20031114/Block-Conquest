@@ -27,6 +27,8 @@
 
 每张招募券固定给出 3 个不同兵种，其中至少一个每批只需 1 面包。使用一张券选择一个兵种，一次招募 1–3 批；候选、价格和批量均显示在面板。所有单位保留稳定 `uid`，人口按原 `UnitDefinition.supply` 计算；4 门重型火炮即占满 20 人口。
 
+招募券获得后立即弹出两轮三选一卡牌，不再存入库存或编队页。第一轮选择兵种，第二轮选择1、2、3批；资源不足呈灰色并保留深色文字。可返回重选固定候选，也可明确弃置。战后先显示金币、面包、经验、招募券与升级奖励，领取后进入招募，全部选择完成才结算节点。编队的出战/待命名册按兵种合并，支持框选、多选、整组移动旋转及双击转移，顶部统一显示人口。最新交互与验证见[更新记录](../report/rogue-recruitment.md)。
+
 前哨站与围剿分别保存位置和朝向。初军前哨站默认前排近战、中排弓兵、后排攻城/支援，围剿默认环绕基地四侧；读档不会重新排列玩家阵位。布阵验证单位占地不越界、不重叠、不侵入基地及导航通道。
 
 三种战略与 8 种收藏品只作用于复制出的单位定义，不改原竞技模式的 `BalanceCatalog`。同类百分比线性叠加；攻击百分比仅乘基础攻击，不乘类别附伤。远程步兵射程目前明确作用于弓箭手；全军近战护甲包括攻城器。
@@ -45,13 +47,14 @@
 
 `Session.rogue` 指向 `/root/Session/Rogue`，类型 `RogueSession`。它有 `state: RogueRunState`、`error_message: String` 和 `changed` 信号。大厅打开开局页面时允许 `state == null`；未开始状态不会自动生成远征。
 
-状态使用 `state.data: Dictionary`。稳定字段：`version, seed, phase, floor, strategy, pack, level, xp, gold, bread, ap, current_node, start_node, nodes, edges, roster, tickets, relics, active_node, battle_kind, battle_difficulty, emergency, pending_choices, pending_siege, last_result, next_unit_uid, next_ticket_uid, rng_counter`。
+状态使用 `state.data: Dictionary`。稳定字段：`version, seed, phase, floor, strategy, pack, level, xp, gold, bread, ap, current_node, start_node, nodes, edges, roster, pending_recruits, recruit_kind, recruit_return_phase, settlement, relics, active_node, battle_kind, battle_difficulty, emergency, pending_choices, pending_siege, last_result, next_unit_uid, next_ticket_uid, rng_counter`。
 
-- phase: `map`、`node`、`battle`、`siege_briefing`、`reward`、`intermission`、`game_over`。
+- phase: `map`、`node`、`battle`、`settlement`、`recruit_unit`、`recruit_batch`、`siege_briefing`、`reward`、`intermission`、`game_over`。
 - nodes: `{id:int, x:int, z:int, kind:String, difficulty:int, completed:bool, resolved:bool, content_seed:int, result_text:String, ...节点固定内容}`。kind: `road, battle, emergency, shop, event, camp`。edges: `[[a,b], ...]`，直接使用 4c 坐标。
 - 商店 `offers` 为 `[{kind:"relic"/"ticket"/"bread", price:int, sold:bool, relic_id?:String, count?:int}]`；`relic_id` 只用于收藏品，`count` 用于面包。事件固定 `event_id` 和 `risk_success`；营地、紧急战斗固定 `relic_choices`。
 - roster: `{uid:int, kind:String, deployed:bool, layouts:{outpost:[x,z,yaw_radians], siege:[x,z,yaw_radians]}}`。outpost 为出生点 `(-43,0,0)` 的局部坐标；siege 为地图中心坐标。两图中心坐标均在 `[-12,12]`，还需为单位半径留边。围剿基地禁区半宽为 x=5.65、z=5.15，再加单位半径。东向朝向为 `-PI/2`（单位零朝向为 -Z）。
-- tickets: `{uid:int, candidates:Array[String]}`；relics: `{relic_id:count}`。
+- pending_recruits: `[{uid:int, candidates:Array[String]}]`，只能处理队首，并不是可留存的券库存；recruit_kind为第二轮已选兵种，recruit_return_phase记录招募完成后返回的阶段；relics: `{relic_id:count}`。
+- settlement: `{battle_kind, emergency, rewards:{gold,bread,xp,tickets}, claimed, levels, bonus_bread, bonus_population}`。战斗结果只生成预览，领取命令才增加资源，随后强制处理招募及紧急藏品。
 - battle_kind 为 `outpost` 或 `siege`；battle_difficulty 为进入战斗时写入的 `1–5` 整数，前哨取目标节点难度，围剿取本层配置，首版均为 1。pending_choices 为收藏品 ID 数组；last_result 为可显示的中文结算摘要。
 
 RogueSession 方法（Error返回OK或具体错误；UI从error_message读取说明）：
@@ -64,30 +67,36 @@ has_checkpoint() -> bool
 enter_node(id:int) -> Error # 扣AP、进入内容；战斗节点自动launch_battle
 leave_node() -> Error # 完成节点、检查围剿、保存；不切场景
 launch_battle() -> Error # 当前outpost或强制siege
-resolve_battle(won:bool) -> void # 一次性结算并切回主场景；普通胜利自动完成节点保存；紧急待选择藏品
+resolve_battle(won:bool) -> void # 一次性结果，胜利切回地图显示settlement
+confirm_settlement() -> Error # 一次性发奖励，进入自动招募；所有选择完成才保存节点
 purchase(offer_index:int) -> Error
 resolve_event(option:int) -> Error # 结算后保持结果页，等待leave_node
 choose_camp(option:int) -> Error # 0行动/1面包/2藏品；等待leave_node
 choose_relic(id:String) -> Error # 完成待选；紧急奖励自动leave_node，营地由UI退出
-recruit(ticket_uid:int, kind:String, batches:int) -> Error
+choose_recruit_unit(ticket_uid:int, kind:String) -> Error
+back_to_recruit_units() -> Error # 固定候选，不消费
+confirm_recruit_batches(ticket_uid:int, batches:int) -> Error
+discard_recruit(ticket_uid:int) -> Error # 只能弃置当前队首
 set_deployed(uid:int, value:bool) -> Error
 set_layout(uid:int, encounter:String, layout:Array) -> Error
+set_deployed_many(uids:Array, value:bool) -> Error
+set_layouts(encounter:String, changes:Array) -> Error # [{uid,layout}]，验证整组最终阵位后一次保存
 ```
 
 `RogueRunState.start_new(strategy, pack, run_seed)` 只初始化纯状态，不保存、不切场景，供测试使用。查询包括 `population()->int`、`population_cap()->int`、`xp_required()->int`、`adjacent(id:int)->bool`、`node(id:int)->Dictionary`、`active_node()->Dictionary`、`deployed_units()->Array`、`unit_definition(kind:String)->UnitDefinition`、`formation_error(encounter:String)->String`。快照接口为 `export_checkpoint()`、`import_checkpoint(snapshot)`、`checkpoint_error()`。
 
 `RogueCatalog` 提供 `STRATEGIES`（id→name/description）、`PACKS`（id→name/units）、`RECRUIT`（kind→bread/count）、`RELICS`（id→name/description/price/amount）、`EVENTS` 和 `NODE_NAMES`，从可编辑资源载入。战略 ID 为 `ranged,melee,range`；套餐 ID 为 `steady,ranged,mobile`；收藏品 ID 为 `melee_attack,ranged_attack,health,melee_armor,ranged_armor,range,speed,population`。
 
-军队界面 `scenes/rogue/army_panel.tscn` 根Control，脚本RogueArmyPanel，`open_panel(tab:String="formation", encounter:String="outpost")`、`closed`信号。内部通过Session.rogue调用接口，关闭时隐藏。formation标签支持两张战场切换，recruit标签显示券及三个候选和批量。
+军队界面 `scenes/rogue/army_panel.tscn` 根Control，脚本RogueArmyPanel，`open_panel(tab:String="formation", encounter:String="outpost")`、`closed`信号，旧tab参数保留但固定显示编队。出战与待命按兵种堆叠，模型阵地支持原生拾取、框选、整组移动旋转与双击转移。`recruit_overlay.tscn`独立负责两轮三选一卡牌，`victory_rewards.tscn`显示不可变结算快照，两者只发信号给地图，由Session执行规则和持久化。卡牌使用独立tween，避免全局按钮动画重复缩放。
 
 主场景路径为 `res://scenes/rogue/rogue_map.tscn`，战斗场景为 `res://scenes/rogue/battle.tscn`。
 
 ## 检查点与状态边界
 
-单槽路径为 `RogueSession.SAVE_PATH = "user://rogue_run.json"`；`save_path` 可注入独立测试路径。存档封装为 `{format:1, snapshot:String, sha256:String}`，内部是版本 1 的纯 JSON 状态。先写临时文件、刷新、回读校验，再原子替换旧文件；校验失败或写入失败明确报告，不会从存档实例化脚本或加载任意资源。JSON 数字在验证后恢复文档约定的整数字段。
+单槽路径为 `RogueSession.SAVE_PATH = "user://rogue_run.json"`；`save_path` 可注入独立测试路径。存档封装为 `{format:1, snapshot:String, sha256:String}`，内部是版本 2 的纯 JSON 状态。版本1的券库存迁移为顺序强制招募队列，候选和随机状态保留。先写临时文件、刷新、回读校验，再原子替换旧文件；校验失败或写入失败明确报告，不会从存档实例化脚本或加载任意资源。JSON 数字在验证后恢复文档约定的整数字段。
 
-保存时机：新局、退出节点、围剿胜利，以及地图/强制围剿简报/层间休整中的军队修改。`node` 和 `reward` 阶段允许编队与招募，但只改内存，等节点退出统一保存；活动战斗和 `game_over` 不覆盖检查点。普通胜利直接完成节点，紧急胜利等收藏品领取后完成，营地领取后保留结果页直到离开。
+保存时机：新局、退出节点、围剿胜利确认，以及地图/强制围剿简报/层间休整中的军队修改。来自安全检查点的开局或旧券队列，选择兵种、返回、招募和弃置均更新检查点。节点内的商店/事件招募和战后结算只改内存，待节点全部处理后保存；活动战斗和`game_over`不覆盖检查点。普通胜利等待领取及招募，紧急胜利还等待收藏品；营地领取后保留结果页直到离开。Session对每次命令保存前拷贝状态，保存失败回滚内存，且不发changed；整组布阵也原子成功或回滚。
 
 AP 归零并不打断商店、事件、营地或战斗奖励；节点出口先把 `pending_siege=true` 与 `phase=siege_briefing` 写入检查点。读档必须恢复此状态。围剿胜利保存 `floor=2, phase=intermission, ap=12`，不生成下一层。重复战斗结算、重复领奖、重复消费已售罄商品均被状态层拒绝。
 
-当前没有旧版存档迁移、多存档槽或跨设备同步。地图模板和商品等数据有明确校验；后续改变这些配置时需考虑版本升级或使用新局进行平衡测试。
+支持本项目版本1到版本2迁移，尚无多存档槽或跨设备同步。地图模板和商品等数据有明确校验；后续改变这些配置时仍需考虑版本升级或使用新局进行平衡测试。

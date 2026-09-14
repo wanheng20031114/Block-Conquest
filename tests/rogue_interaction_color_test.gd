@@ -1,6 +1,7 @@
 extends SceneTree
 ## Real mouse hover/selection and inherited native state colors on the pale UI.
 const OUTPUT := "res://artifacts/rogue_interaction_colors"
+const CHECKPOINT := "res://.local/rogue_interaction_color_checkpoint.json"
 var checks := 0
 var failures: Array[String] = []
 var evidence: Array[Dictionary] = []
@@ -56,28 +57,35 @@ func record(widget: String, state: String, foreground: Color, background: Color,
 	evidence.append({"widget": widget, "state": state, "foreground": foreground.to_html(false), "background": background.to_html(false), "contrast": snappedf(ratio, 0.01)})
 	check(ratio >= minimum, "%s %s contrast %.2f >= %.1f" % [widget, state, ratio, minimum])
 
-func inspect_list(list: ItemList, selected: bool) -> void:
-	var font_key := "font_hovered_selected_color" if selected else "font_hovered_color"
-	var style_key := "hovered_selected_focus" if selected and list.has_focus() else ("hovered_selected" if selected else "hovered")
-	var background: StyleBoxFlat = list.get_theme_stylebox(style_key)
-	record(list.name, font_key, list.get_theme_color(font_key), background.bg_color)
+func style_color(style: StyleBox) -> Color:
+	if style is StyleBoxFlat:
+		return style.bg_color
+	var paper: StyleBoxTexture = style
+	var texture: Image = paper.texture.get_image()
+	return texture.get_pixel(texture.get_width() / 2, texture.get_height() / 2) * paper.modulate_color
+
+func inspect_card(card: Button, state: String, label_path: String) -> void:
+	var label: Label = card.get_node(label_path)
+	var style: StyleBox = card.get_theme_stylebox("disabled" if card.disabled else "hover")
+	record(card.name + "/" + label.name, state, label.get_theme_color("font_color") * label.modulate, style_color(style), 3.0 if card.disabled else 4.5)
 
 func inspect_button(button: Button, state: String = "hover") -> void:
 	var style_key := "disabled" if button.disabled else ("pressed" if button.button_pressed else "hover")
 	var font_key := "font_disabled_color" if button.disabled else ("font_hover_pressed_color" if button.button_pressed else "font_hover_color")
-	var style: StyleBoxTexture = button.get_theme_stylebox(style_key)
-	var texture: Image = style.texture.get_image()
-	var background := texture.get_pixel(texture.get_width() / 2, texture.get_height() / 2) * style.modulate_color
+	var background: Color = style_color(button.get_theme_stylebox(style_key))
 	record(button.name, state, button.get_theme_color(font_key) * button.self_modulate, background * button.self_modulate, 3.0 if button.disabled else 4.5)
 
 func _run() -> void:
-	create_timer(55, true, false, true).timeout.connect(func(): push_error("Rogue interaction capture timeout"); quit(3))
+	create_timer(55, true, false, true).timeout.connect(func(): push_error("Rogue interaction capture timeout"); cleanup(); quit(3))
 	DirAccess.make_dir_recursive_absolute(OUTPUT)
 	rogue = root.get_node("Session").rogue
+	rogue.save_path = CHECKPOINT
 	check(rogue.state.start_new("ranged", "steady", 73113) == OK, "prepare isolated in-memory army")
+	var initial_ticket: Dictionary = rogue.state.pending_recruit()
+	initial_ticket.candidates = ["swordsman", "archer", "heavy_cannon"]
+	check(rogue.state.discard_recruit(int(initial_ticket.uid)) == OK, "prepare formation without pending recruitment")
 	rogue.state.data.roster[1].deployed = false
-	rogue.state.data.bread = 15
-	rogue.state.data.tickets[0].candidates = ["swordsman", "archer", "heavy_cannon"]
+	rogue.state.data.bread = 3
 	map = load("res://scenes/rogue/rogue_map.tscn").instantiate()
 	root.add_child(map)
 	current_scene = map
@@ -86,13 +94,13 @@ func _run() -> void:
 	army = map.army
 	army.open_panel("formation")
 	await create_timer(0.35).timeout
-	var roster: ItemList = army.get_node("%ArmyRoster")
-	await hover(roster, roster.get_item_rect(1).get_center())
-	inspect_list(roster, false)
+	var roster: Button = army._rows["out:archer"]
+	await hover(roster, roster.size * .5)
+	inspect_card(roster, "group_hover", "Margin/Content/Name")
 	await capture("formation_hover")
-	await click(roster, roster.get_item_rect(1).get_center())
-	check(roster.is_selected(1), "native click selects roster unit")
-	inspect_list(roster, true)
+	await click(roster, roster.size * .5)
+	check(army._selected_uids.size() == 4 and roster.get_meta("uids").all(func(uid: int) -> bool: return uid in army._selected_uids), "native row click selects the whole archer group")
+	inspect_card(roster, "group_hover_selected", "Margin/Content/Name")
 	await capture("formation_hover_selected")
 	army._set_status("此处与其他单位重叠，请换一个位置。", true)
 	record("ArmyStatus", "error", army.get_node("%ArmyStatus").get_theme_color("font_color"), Color("eeecda"))
@@ -100,28 +108,49 @@ func _run() -> void:
 	await hover(map_choice, map_choice.size * 0.5)
 	inspect_button(map_choice)
 	await capture("formation_dropdown_hover_error")
-	var recruit_tab: Button = army.get_node("%RecruitTab")
-	await hover(recruit_tab, recruit_tab.size * 0.5)
-	inspect_button(recruit_tab)
-	await click(recruit_tab, recruit_tab.size * 0.5)
-	check(army._tab == "recruit", "native tab click opens recruitment")
-	inspect_button(recruit_tab, "hover_pressed")
-	await capture("recruit_tab_hover_pressed")
-	var candidates: ItemList = army.get_node("%ArmyCandidates")
-	await hover(candidates, candidates.get_item_rect(1).get_center())
-	inspect_list(candidates, false)
-	await capture("recruit_hover")
-	await click(candidates, candidates.get_item_rect(1).get_center())
-	check(candidates.is_selected(1), "native click selects recruit candidate")
-	inspect_list(candidates, true)
-	await capture("recruit_hover_selected")
-	var tickets: ItemList = army.get_node("%ArmyTickets")
-	await hover(tickets, tickets.get_item_rect(0).get_center())
-	inspect_list(tickets, true)
-	await capture("ticket_hover_selected")
 	army._set_status("军队已准备就绪。")
 	record("ArmyStatus", "success", army.get_node("%ArmyStatus").get_theme_color("font_color"), Color("eeecda"))
 	army.close_panel()
+	rogue.state.data.pending_recruits = [initial_ticket.duplicate(true)]
+	rogue.state.data.recruit_return_phase = "map"
+	rogue.state.data.phase = "recruit_unit"
+	map._refresh()
+	await create_timer(.65).timeout
+	var recruit: Control = map.recruit_overlay
+	var candidate: Button = recruit.cards[1]
+	await hover(candidate, candidate.size * .5)
+	inspect_card(candidate, "unit_hover", "Margin/Body/Name")
+	check(candidate.position.y < -3.5, "native candidate hover raises only its own paper")
+	await capture("recruit_units_hover")
+	var expensive: Button = recruit.cards[2]
+	await hover(expensive, expensive.size * .5)
+	check(expensive.disabled, "unaffordable unit card remains disabled")
+	inspect_card(expensive, "unit_disabled", "Margin/Body/Name")
+	inspect_card(expensive, "unit_disabled", "Margin/Body/Description")
+	await capture("recruit_units_disabled")
+	await click(candidate, candidate.size * .5)
+	await create_timer(.4).timeout
+	check(rogue.state.data.phase == "recruit_batch" and rogue.state.data.recruit_kind == "archer", "native unit choice reaches persisted batch round")
+	check(FileAccess.file_exists(CHECKPOINT), "unit choice saves only the isolated test checkpoint")
+	rogue.state.data.bread = 2
+	map._refresh()
+	await create_timer(.65).timeout
+	var batch: Button = recruit.cards[1]
+	await hover(batch, batch.size * .5)
+	inspect_card(batch, "batch_hover", "Margin/Body/Name")
+	await capture("recruit_batches_hover")
+	await hover(expensive, expensive.size * .5)
+	check(expensive.disabled and int(expensive.get_meta("count")) == 9, "third archer batch shows nine units but is disabled with two bread")
+	inspect_card(expensive, "batch_disabled", "Margin/Body/Name")
+	inspect_card(expensive, "batch_disabled", "Margin/Body/Description")
+	await capture("recruit_batches_disabled")
+	await click(recruit.back_button, recruit.back_button.size * .5)
+	await create_timer(.4).timeout
+	check(rogue.state.data.phase == "recruit_unit", "native back returns to same ticket candidates")
+	check(rogue.state.pending_recruit().candidates == initial_ticket.candidates, "native two-round navigation never redraws candidates")
+	rogue.state.data.pending_recruits.clear()
+	rogue.state.data.recruit_kind = ""
+	rogue.state.data.recruit_return_phase = ""
 	for route: Dictionary in rogue.state.data.nodes:
 		if route.kind == "event" and route.event_id == "bread_cart":
 			rogue.state.data.active_node = route.id
@@ -140,5 +169,10 @@ func _run() -> void:
 	var output := FileAccess.open(OUTPUT + "/contrasts.json", FileAccess.WRITE)
 	output.store_string(JSON.stringify(evidence, "\t"))
 	output.close()
+	cleanup()
 	print("ROGUE_INTERACTION_COLORS=%d FAILURES=%d" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+func cleanup() -> void:
+	for path: String in [CHECKPOINT, CHECKPOINT + ".tmp"]:
+		if FileAccess.file_exists(path): DirAccess.remove_absolute(ProjectSettings.globalize_path(path))

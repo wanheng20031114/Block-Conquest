@@ -5,6 +5,7 @@ var failures: Array[String] = []
 var checks := 0
 var map: Node3D
 var rogue: RogueSession
+var initial_ticket: Dictionary
 
 func _initialize() -> void:
 	root.visible = false
@@ -19,10 +20,12 @@ func check(condition: bool, message: String) -> void:
 		push_error(message)
 
 func capture(name: String, width: int) -> void:
-	await create_timer(0.35).timeout
+	await create_timer(0.65).timeout
 	await RenderingServer.frame_post_draw
 	inspect_buttons(name + " " + str(width))
-	check(root.get_texture().get_image().save_png("%s/%s_%d.png" % [OUTPUT, name, width]) == OK, "capture " + name)
+	var screenshot: Image = root.get_texture().get_image()
+	check(screenshot.get_width() == width and screenshot.get_height() == width * 9 / 16, "capture uses requested physical resolution")
+	check(screenshot.save_png("%s/%s_%d.png" % [OUTPUT, name, width]) == OK, "capture " + name)
 
 func inspect_buttons(page: String) -> void:
 	for button: BaseButton in map.ui.find_children("*", "BaseButton", true, false):
@@ -59,7 +62,9 @@ func _run() -> void:
 	rogue = root.get_node("Session").rogue
 	check(rogue.state.start_new("ranged", "steady", 73113) == OK, "prepare army in memory")
 	rogue.state.data.bread = 15
-	rogue.state.data.tickets[0].candidates = ["swordsman", "archer", "heavy_cannon"]
+	initial_ticket = rogue.state.pending_recruit()
+	initial_ticket.candidates = ["swordsman", "archer", "heavy_cannon"]
+	check(rogue.state.discard_recruit(int(initial_ticket.uid)) == OK, "prepare map after initial recruitment in memory")
 	map = load("res://scenes/rogue/rogue_map.tscn").instantiate()
 	root.add_child(map)
 	current_scene = map
@@ -73,6 +78,7 @@ func _run() -> void:
 		map._new_run_requested = false
 		map.army.hide()
 		map._preview_id = -1
+		rogue.state.data.phase = "map"
 		map._refresh()
 		check(map.get_node("Nodes").visible and map.ui.get_node("Top").visible, "map restores route markers and supplies")
 		var battle_id: int = -1
@@ -105,10 +111,36 @@ func _run() -> void:
 		await capture("formation", resolution.x)
 		visible_bounds(map.army.get_node("%CloseArmy"), "army return")
 		visible_bounds(map.army.get_node("%ArmyBoard"), "formation table")
-		map.army._change_tab("recruit")
-		await capture("recruit", resolution.x)
-		visible_bounds(map.army.get_node("%RecruitConfirm"), "recruit confirm")
 		map.army.close_panel()
+		rogue.state.data.pending_recruits = [initial_ticket.duplicate(true)]
+		rogue.state.data.recruit_kind = ""
+		rogue.state.data.recruit_return_phase = "map"
+		rogue.state.data.phase = "recruit_unit"
+		rogue.state.data.bread = 3
+		map._refresh()
+		await capture("recruit_units", resolution.x)
+		check(map.recruit_overlay.visible and not map.preview.visible, "unit round occupies the overlay")
+		for card: Button in map.recruit_overlay.cards:
+			visible_bounds(card, "unit choice card")
+		check(rogue.state.choose_recruit_unit(int(initial_ticket.uid), "archer") == OK, "prepare batch round in memory")
+		rogue.state.data.bread = 2
+		map._refresh()
+		await capture("recruit_batches", resolution.x)
+		visible_bounds(map.recruit_overlay.back_button, "return to unit round")
+		check(map.recruit_overlay.cards[2].disabled, "unaffordable batch remains legible and disabled")
+		rogue.state.data.pending_recruits.clear()
+		rogue.state.data.recruit_kind = ""
+		rogue.state.data.recruit_return_phase = ""
+		rogue.state.data.phase = "settlement"
+		rogue.state.data.settlement = {"battle_kind":"outpost", "emergency":true, "rewards":{"gold":30,"bread":3,"xp":80,"tickets":1}, "claimed":false, "levels":1, "bonus_bread":1, "bonus_population":5}
+		map._refresh()
+		await capture("victory_rewards", resolution.x)
+		visible_bounds(map.victory_rewards.get_node("Center/Paper"), "victory paper")
+		rogue.state.data.settlement = {"battle_kind":"siege", "emergency":false, "rewards":{"gold":0,"bread":0,"xp":0,"tickets":0}, "claimed":false, "levels":0, "bonus_bread":0, "bonus_population":0}
+		map._refresh()
+		await capture("siege_rewards", resolution.x)
+		visible_bounds(map.victory_rewards.claim, "complete intermission")
+		rogue.state.data.settlement.clear()
 	root.size = Vector2i(1600, 900)
 	for kind: String in ["shop", "event", "camp"]:
 		for route: Dictionary in rogue.state.data.nodes:

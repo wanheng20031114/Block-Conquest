@@ -9,23 +9,11 @@
 
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/sidebar.tres" id="sidebar"]
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/button_compact.tres" id="compact"]
-[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/tab.tres" id="tab"]
 
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/compact_hover.tres" id="compact_hover"]
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/compact_pressed.tres" id="compact_pressed"]
-[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/tab_idle.tres" id="tab_idle"]
 
-[sub_resource type="StyleBoxFlat" id="ListSelected"]
-bg_color = Color(0.68, 0.78, 0.64, 1)
-border_width_left = 3
-border_color = Color(0.32, 0.48, 0.35, 1)
-content_margin_left = 8.0
-content_margin_right = 8.0
-content_margin_top = 8.0
-content_margin_bottom = 8.0
-
-[sub_resource type="StyleBoxFlat" id="ListHover"]
-bg_color = Color(0.80, 0.86, 0.75, 1)
+[ext_resource type="PackedScene" path="res://scenes/model_previews.tscn" id="previews"]
 
 [node name="ArmyPanel" type="Control"]
 visible = false
@@ -65,9 +53,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 32
+theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 32
+theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 18
 
 [node name="Layout" type="VBoxContainer" parent="Margin"]
@@ -76,13 +64,13 @@ theme_override_constants/separation = 14
 
 [node name="Header" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
-theme_override_constants/separation = 22
+theme_override_constants/separation = 18
 
 [node name="Title" type="Label" parent="Margin/Layout/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 34
-text = "军团整备"
+text = "军队编组"
 theme_override_fonts/font = ExtResource("title_font")
 
 vertical_alignment = 1
@@ -100,14 +88,6 @@ theme_override_font_sizes/font_size = 28
 text = "0 / 20"
 
 vertical_alignment = 1
-[node name="BreadValue" type="Label" parent="Margin/Layout/Header"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(110, 0)
-horizontal_alignment = 2
-text = "0 面包"
-
-vertical_alignment = 1
 [node name="CloseArmy" type="Button" parent="Margin/Layout/Header"]
 theme_override_styles/normal = ExtResource("compact")
 theme_override_styles/hover = ExtResource("compact_hover")
@@ -117,178 +97,17 @@ custom_minimum_size = Vector2(126, 44)
 layout_mode = 2
 text = "返回  Esc"
 
-[node name="Navigation" type="HBoxContainer" parent="Margin/Layout"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="FormationTab" type="Button" parent="Margin/Layout/Navigation"]
-theme_override_styles/normal = ExtResource("tab_idle")
-theme_override_styles/hover = ExtResource("tab")
-theme_override_styles/pressed = ExtResource("tab")
-theme_override_styles/hover_pressed = ExtResource("tab")
-unique_name_in_owner = true
-custom_minimum_size = Vector2(138, 40)
-layout_mode = 2
-toggle_mode = true
-button_pressed = true
-text = "编队"
-
-[node name="RecruitTab" type="Button" parent="Margin/Layout/Navigation"]
-theme_override_styles/normal = ExtResource("tab_idle")
-theme_override_styles/hover = ExtResource("tab")
-theme_override_styles/pressed = ExtResource("tab")
-theme_override_styles/hover_pressed = ExtResource("tab")
-unique_name_in_owner = true
-custom_minimum_size = Vector2(138, 40)
-layout_mode = 2
-toggle_mode = true
-text = "招募"
-
-[node name="NavSpace" type="Control" parent="Margin/Layout/Navigation"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-
-[node name="TicketCount" type="Label" parent="Margin/Layout/Navigation"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.44, 0.38, 1)
-text = "0 张招募券"
-
 [node name="Divider" type="HSeparator" parent="Margin/Layout"]
 layout_mode = 2
 
 [node name="Body" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 22
+theme_override_constants/separation = 18
 
 [node name="Sidebar" type="Control" parent="Margin/Layout/Body"]
-custom_minimum_size = Vector2(252, 0)
+custom_minimum_size = Vector2(246, 0)
 layout_mode = 2
-
-[node name="FormationSidebar" type="VBoxContainer" parent="Margin/Layout/Body/Sidebar"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
-
-[node name="Caption" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "军队名册"
-theme_override_fonts/font = ExtResource("title_font")
-
-[node name="RosterSummary" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.44, 0.38, 1)
-text = "出战 0 · 待命 0"
-
-[node name="RosterFilter" type="OptionButton" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
-theme_override_styles/normal = ExtResource("compact")
-theme_override_styles/hover = ExtResource("compact_hover")
-theme_override_styles/pressed = ExtResource("compact_pressed")
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-item_count = 3
-selected = 0
-popup/item_0/text = "全部单位"
-popup/item_0/id = 0
-popup/item_1/text = "出战军队"
-popup/item_1/id = 1
-popup/item_2/text = "待命区"
-popup/item_2/id = 2
-
-[node name="ArmyRoster" type="ItemList" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 16
-theme_override_constants/v_separation = 13
-theme_override_styles/panel = ExtResource("inset")
-theme_override_styles/selected = SubResource("ListSelected")
-theme_override_styles/selected_focus = SubResource("ListSelected")
-theme_override_styles/hovered = SubResource("ListHover")
-allow_reselect = true
-
-[node name="ReserveHint" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.41, 0.48, 0.42, 1)
-theme_override_font_sizes/font_size = 16
-text = "待命区不设人数上限。\n只有出战军队占用人口。"
-autowrap_mode = 2
-
-[node name="RecruitSidebar" type="VBoxContainer" parent="Margin/Layout/Body/Sidebar"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
-
-[node name="TicketCaption" type="Label" parent="Margin/Layout/Body/Sidebar/RecruitSidebar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "选择招募券"
-theme_override_fonts/font = ExtResource("title_font")
-
-[node name="ArmyTickets" type="ItemList" parent="Margin/Layout/Body/Sidebar/RecruitSidebar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 110)
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.6
-theme_override_constants/v_separation = 12
-theme_override_font_sizes/font_size = 16
-theme_override_styles/panel = ExtResource("inset")
-theme_override_styles/selected = SubResource("ListSelected")
-theme_override_styles/selected_focus = SubResource("ListSelected")
-theme_override_styles/hovered = SubResource("ListHover")
-allow_reselect = true
-
-[node name="NoTickets" type="Label" parent="Margin/Layout/Body/Sidebar/RecruitSidebar"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.44, 0.38, 1)
-text = "尚无招募券。\n可在商店或旅途中获得。"
-autowrap_mode = 2
-
-[node name="CandidateCaption" type="Label" parent="Margin/Layout/Body/Sidebar/RecruitSidebar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "兵种三选一"
-theme_override_fonts/font = ExtResource("title_font")
-
-[node name="ArmyCandidates" type="ItemList" parent="Margin/Layout/Body/Sidebar/RecruitSidebar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 235)
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/v_separation = 22
-theme_override_font_sizes/font_size = 16
-theme_override_styles/panel = ExtResource("inset")
-theme_override_styles/selected = SubResource("ListSelected")
-theme_override_styles/selected_focus = SubResource("ListSelected")
-theme_override_styles/hovered = SubResource("ListHover")
-max_text_lines = 1
-allow_reselect = true
-
-[node name="TicketHint" type="Label" parent="Margin/Layout/Body/Sidebar/RecruitSidebar"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.41, 0.48, 0.42, 1)
-theme_override_font_sizes/font_size = 16
-text = "每张券的候选固定。\n一次可招募同兵种 1–3 批。"
-autowrap_mode = 2
 
 [node name="Workspace" type="VBoxContainer" parent="Margin/Layout/Body"]
 layout_mode = 2
@@ -339,14 +158,15 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.41, 0.48, 0.42, 1)
 theme_override_font_sizes/font_size = 14
-text = "拖动单位调整位置 · 右键指定位置 · Q / E 旋转"
+text = "框选 / Shift 多选 · 拖动 / 右键移动整组 · Q / E 旋转\n双击模型移入待命 · 滚轮缩放 · Esc 取消拖动"
 autowrap_mode = 2
 
 [node name="Inspector" type="ScrollContainer" parent="Margin/Layout/Body"]
 theme_override_styles/panel = ExtResource("sidebar")
-custom_minimum_size = Vector2(304, 0)
+custom_minimum_size = Vector2(312, 0)
 layout_mode = 2
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
 
 [node name="InspectorContent" type="VBoxContainer" parent="Margin/Layout/Body/Inspector"]
 layout_mode = 2
@@ -360,7 +180,7 @@ theme_override_constants/separation = 14
 [node name="NoUnit" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "选择一名单位\n查看能力并调整部署。"
+text = "点击兵种，或在模型区框选。\n\nShift 可以增减选择，\n拖动整组调整阵形。"
 autowrap_mode = 2
 
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
@@ -379,10 +199,12 @@ text = "剑士"
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
 theme_override_fonts/font = ExtResource("title_font")
-[node name="UnitIndex" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls"]
+[node name="SelectionSummary" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "单位 #01 · 1 人口"
+text = "已选 1 名"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 16
 
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
@@ -411,6 +233,12 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "移入待命区"
 
+[node name="EnlistButton" type="Button" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "编入出战"
+
 [node name="ReserveNote" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -425,24 +253,29 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="PositionCaption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls"]
+[node name="PrecisePosition" type="VBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PositionCaption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition"]
 layout_mode = 2
 text = "出生位置"
 
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
 theme_override_fonts/font = ExtResource("title_font")
-[node name="XRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls"]
+[node name="XRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition"]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/XRow"]
+[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition/XRow"]
 custom_minimum_size = Vector2(46, 0)
 layout_mode = 2
 text = "横向"
 
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="PositionX" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/XRow"]
+[node name="PositionX" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition/XRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -450,17 +283,17 @@ min_value = -12.0
 max_value = 12.0
 step = 0.25
 
-[node name="ZRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls"]
+[node name="ZRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition"]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/ZRow"]
+[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition/ZRow"]
 custom_minimum_size = Vector2(46, 0)
 layout_mode = 2
 text = "纵向"
 
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="PositionZ" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/ZRow"]
+[node name="PositionZ" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition/ZRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -468,17 +301,17 @@ min_value = -12.0
 max_value = 12.0
 step = 0.25
 
-[node name="YawRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls"]
+[node name="YawRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition"]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/YawRow"]
+[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition/YawRow"]
 custom_minimum_size = Vector2(46, 0)
 layout_mode = 2
 text = "朝向"
 
 theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="PositionYaw" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/YawRow"]
+[node name="PositionYaw" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition/YawRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -487,7 +320,7 @@ max_value = 180.0
 step = 15.0
 suffix = "°"
 
-[node name="ApplyPosition" type="Button" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls"]
+[node name="ApplyPosition" type="Button" parent="Margin/Layout/Body/Inspector/InspectorContent/FormationInspector/UnitControls/PositionControls/PrecisePosition"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
@@ -517,101 +350,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "E  15°  ↷"
 
-[node name="RecruitInspector" type="VBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="RecruitEmpty" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "从左侧选择招募券，\n查看可加入军团的单位。"
-autowrap_mode = 2
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="RecruitControls" type="VBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="RecruitName" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "剑士"
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-theme_override_fonts/font = ExtResource("title_font")
-[node name="RecruitDescription" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = ""
-autowrap_mode = 2
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="RecruitStats" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_constants/line_spacing = 8
-text = ""
-autowrap_mode = 2
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="BatchRow" type="HBoxContainer" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Caption" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls/BatchRow"]
-layout_mode = 2
-text = "招募批数"
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="Batches" type="SpinBox" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls/BatchRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = 1.0
-max_value = 3.0
-value = 1.0
-
-[node name="RecruitCost" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 21
-theme_override_constants/line_spacing = 8
-text = "3 名单位\n2 面包 + 1 张招募券"
-autowrap_mode = 2
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-[node name="RecruitConfirm" type="Button" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-text = "确认招募"
-
-[node name="RecruitCancel" type="Button" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-text = "取消选择"
-
-[node name="RecruitHint" type="Label" parent="Margin/Layout/Body/Inspector/InspectorContent/RecruitInspector/RecruitControls"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "确认后消耗一张券及对应面包。\n新单位直接进入待命区。"
-autowrap_mode = 2
-
-theme_override_colors/font_color = Color(0.23, 0.31, 0.26, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
 [node name="ArmyStatus" type="Label" parent="Margin/Layout"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 26)
@@ -619,3 +357,79 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = ""
 autowrap_mode = 2
+
+
+[node name="FormationSidebar" type="VBoxContainer" parent="Margin/Layout/Body/Sidebar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="DeployedCaption" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 24
+text = "出战军队"
+
+[node name="DeployedScroll" type="ScrollContainer" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 114)
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.35
+horizontal_scroll_mode = 0
+
+[node name="DeployedRows" type="VBoxContainer" parent="Margin/Layout/Body/Sidebar/FormationSidebar/DeployedScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DeployedEmpty" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar/DeployedScroll/DeployedRows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "尚未编入出战单位"
+theme_override_font_sizes/font_size = 16
+
+[node name="Divider" type="HSeparator" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
+layout_mode = 2
+
+[node name="ReserveCaption" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 24
+text = "待命区"
+
+[node name="ReserveScroll" type="ScrollContainer" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ReserveRows" type="VBoxContainer" parent="Margin/Layout/Body/Sidebar/FormationSidebar/ReserveScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="ReserveEmpty" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar/ReserveScroll/ReserveRows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "待命区暂无单位"
+theme_override_font_sizes/font_size = 16
+
+[node name="RosterHint" type="Label" parent="Margin/Layout/Body/Sidebar/FormationSidebar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "单击选兵种 · Shift 增减选择\n双击转移 1 名 · Shift 双击全部"
+autowrap_mode = 2
+
+[node name="ModelPreviews" parent="." instance=ExtResource("previews")]
+unique_name_in_owner = true

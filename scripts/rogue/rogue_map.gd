@@ -17,6 +17,8 @@ const EVENT_TEXT: Dictionary = {
 @onready var setup: Control = $Canvas/UI/Setup
 @onready var setup_content: VBoxContainer = $Canvas/UI/Setup/Margin/Content
 @onready var army = $Canvas/UI/ArmyPanel
+@onready var recruit_overlay = $Canvas/UI/RecruitOverlay
+@onready var victory_rewards = $Canvas/UI/VictoryRewards
 @onready var camera: Camera3D = $CameraRig/Camera3D
 var _preview_id: int = -1
 var _panel_mode: String = "preview"
@@ -29,6 +31,7 @@ var _previous_phase: String = ""
 var _refresh_queued: bool = false
 var _panning: bool = false
 var _alert_tween: Tween
+var _discard_uid: int = -1
 
 func _ready() -> void:
 	get_tree().paused = false
@@ -43,7 +46,6 @@ func _ready() -> void:
 	content.get_node("Primary").pressed.connect(_primary_pressed)
 	content.get_node("Secondary").pressed.connect(_secondary_pressed)
 	ui.get_node("Rail/Army").pressed.connect(_open_army.bind("formation"))
-	ui.get_node("Rail/Recruit").pressed.connect(_open_army.bind("recruit"))
 	ui.get_node("Rail/Load").pressed.connect(_ask_load)
 	ui.get_node("Rail/Pause").pressed.connect(_toggle_pause_menu)
 	ui.get_node("Rail/Menu").pressed.connect(_return_menu)
@@ -57,8 +59,18 @@ func _ready() -> void:
 	setup_content.get_node("Actions/Continue").pressed.connect(_load_run)
 	ui.get_node("ReplaceRun").confirmed.connect(_start_run)
 	ui.get_node("LoadConfirm").confirmed.connect(_load_run)
+	ui.get_node("DiscardRecruit").confirmed.connect(_confirm_discard)
+	ui.get_node("DiscardRecruit").canceled.connect(_refresh)
+	recruit_overlay.unit_chosen.connect(_choose_recruit_unit)
+	recruit_overlay.batches_chosen.connect(_choose_recruit_batches)
+	recruit_overlay.back_requested.connect(_back_to_recruit_units)
+	recruit_overlay.discard_requested.connect(_ask_discard_recruit)
+	victory_rewards.claim_requested.connect(_claim_settlement)
 	army.closed.connect(_refresh)
-	UIMotion.bind_buttons(ui)
+	# Cards animate their own inner paper; don't bind a second scale tween to them.
+	for branch: Node in ui.get_children():
+		if branch not in [recruit_overlay, victory_rewards]:
+			UIMotion.bind_buttons(branch)
 	_refresh()
 	if not rogue.error_message.is_empty():
 		_notice.call_deferred(rogue.error_message)
@@ -76,6 +88,8 @@ func _refresh() -> void:
 		return
 	var data: Dictionary = rogue.state.data
 	var phase: String = data.phase
+	if phase not in ["recruit_unit", "recruit_batch"]: recruit_overlay.hide()
+	if phase != "settlement": victory_rewards.hide()
 	if phase != _previous_phase:
 		preview.get_node("Scroll").scroll_vertical = 0
 	setup.hide()
@@ -91,7 +105,6 @@ func _refresh() -> void:
 	ui.get_node("Top/Gold/Value").text = str(data.gold)
 	ui.get_node("Top/Bread/Value").text = str(data.bread)
 	ui.get_node("Top/Action/Value").text = "%d/12" % data.ap
-	ui.get_node("Rail/Recruit").text = "招募  %d" % data.tickets.size()
 	_refresh_relics(data.relics)
 	for model: Node3D in $Nodes.get_children():
 		var id: int = model.node_id
@@ -118,6 +131,14 @@ func _refresh() -> void:
 			_show_content()
 		"reward":
 			_show_relic_choices("紧急作战胜利", str(data.last_result))
+		"settlement":
+			preview.hide()
+			_panning = false
+			victory_rewards.render_settlement(data.settlement, rogue.state)
+		"recruit_unit", "recruit_batch":
+			preview.hide()
+			_panning = false
+			recruit_overlay.render_ticket(rogue.state.pending_recruit(), int(data.bread), rogue.state, str(data.recruit_kind))
 		"siege_briefing":
 			_show_siege()
 			if _previous_phase != phase:
@@ -149,6 +170,8 @@ func _show_setup() -> void:
 	var opening: bool = not setup.visible
 	setup.show()
 	preview.hide()
+	recruit_overlay.hide()
+	victory_rewards.hide()
 	ui.get_node("Rail").hide()
 	$Nodes.hide()
 	$Routes.hide()
@@ -231,6 +254,8 @@ func _toggle_pause_menu() -> void:
 	_panning = false
 	ui.get_node("PauseMenu").visible = not ui.get_node("PauseMenu").visible
 	if ui.get_node("PauseMenu").visible:
+		get_viewport().gui_release_focus()
+		ui.get_node("PauseMenu/Panel/Content/Resume").grab_focus(true)
 		UIMotion.reveal(ui.get_node("PauseMenu/Panel"))
 
 func _select_node(id: int) -> void:
@@ -275,7 +300,7 @@ func _show_content() -> void:
 	var kind: String = active.kind
 	content.get_node("Kind").text = "第一层  /  " + RogueCatalog.NODE_NAMES[kind]
 	content.get_node("Name").text = RogueCatalog.NODE_NAMES[kind]
-	content.get_node("Secondary").text = "编队与招募"
+	content.get_node("Secondary").text = "整理编队"
 	content.get_node("Primary").text = "离开节点"
 	if not rogue.state.data.pending_choices.is_empty():
 		_show_relic_choices("发现收藏品", "选择一件收藏品，强化本局军团。")
@@ -287,16 +312,17 @@ func _show_content() -> void:
 	match kind:
 		"shop":
 			_panel_mode = "shop"
-			content.get_node("Detail").text = "金币购买 · 每件商品限购一次\n离开后商队便会启程。"
+			content.get_node("Detail").text = "每件商品限购一次，离开后商队启程。\n招募券购买后立即选兵，不能留存。"
 			var offers: Array = active.offers
 			for index: int in offers.size():
 				var offer: Dictionary = offers[index]
 				content.get_node("Options/Option%d" % index).custom_minimum_size.y = 46.0
-				var label: String = "招募券"
+				var label: String = "招募券 · 立即选兵"
 				if offer.kind == "bread": label = "吐司面包 ×%d" % int(offer.count)
 				elif offer.kind == "relic": label = RogueCatalog.RELICS[offer.relic_id].name
 				_option(index,"%s%s  ·  %d 金币" % [label,"（售罄）" if offer.sold else "",offer.price],bool(offer.sold) or int(rogue.state.data.gold)<int(offer.price))
 				if offer.kind == "relic": content.get_node("Options/Option%d" % index).tooltip_text = RogueCatalog.RELICS[offer.relic_id].description
+				elif offer.kind == "ticket": content.get_node("Options/Option%d" % index).tooltip_text = "购买后立即选择兵种与批数，需要额外支付面包。弃置不退还金币。"
 		"event":
 			_panel_mode = "event"
 			var event_id: String = active.event_id
@@ -393,6 +419,7 @@ func _option(index: int, text_value: String, disabled: bool = false) -> void:
 	button.show()
 	button.text = text_value
 	button.disabled = disabled
+	button.tooltip_text = ""
 
 func _option_pressed(index: int) -> void:
 	var error: Error = OK
@@ -427,8 +454,44 @@ func _secondary_pressed() -> void:
 
 func _open_army(tab: String) -> void:
 	if rogue.state == null or rogue.state.data.is_empty(): return
+	if rogue.state.data.phase in ["settlement", "recruit_unit", "recruit_batch"]: return
 	var encounter: String = "siege" if rogue.state.data.phase in ["siege_briefing","intermission"] else "outpost"
 	army.open_panel(tab,encounter)
+
+func _choose_recruit_unit(uid: int, kind: String) -> void:
+	if _choice_blocked(): return
+	_finish_choice(rogue.choose_recruit_unit(uid, kind))
+
+func _choose_recruit_batches(uid: int, batches: int) -> void:
+	if _choice_blocked(): return
+	_finish_choice(rogue.confirm_recruit_batches(uid, batches))
+
+func _back_to_recruit_units() -> void:
+	if _choice_blocked(): return
+	_finish_choice(rogue.back_to_recruit_units())
+
+func _claim_settlement() -> void:
+	if _choice_blocked(): return
+	_finish_choice(rogue.confirm_settlement())
+
+func _choice_blocked() -> bool:
+	if ui.get_node("PauseMenu").visible or Session.settings.is_open():
+		_queue_refresh()
+		return true
+	return false
+
+func _finish_choice(result: Error) -> void:
+	if result != OK: _notice(rogue.error_message)
+	_queue_refresh()
+
+func _ask_discard_recruit(uid: int) -> void:
+	if _choice_blocked(): return
+	_discard_uid = uid
+	ui.get_node("DiscardRecruit").popup_centered()
+
+func _confirm_discard() -> void:
+	_finish_choice(rogue.discard_recruit(_discard_uid))
+	_discard_uid = -1
 
 func _play_siege_alert() -> void:
 	var alert: ColorRect = ui.get_node("Alert")
@@ -448,14 +511,14 @@ func _notice(message: String) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if setup.visible or army.visible or Session.settings.is_open(): return
 	if event is InputEventKey and event.pressed and event.keycode in [KEY_ESCAPE,KEY_F5]:
-		if event.keycode == KEY_ESCAPE and _preview_id >= 0 and not ui.get_node("PauseMenu").visible:
+		if event.keycode == KEY_ESCAPE and _preview_id >= 0 and not recruit_overlay.visible and not victory_rewards.visible and not ui.get_node("PauseMenu").visible:
 			_preview_id = -1
 			_refresh()
 		else:
 			_toggle_pause_menu()
 		get_viewport().set_input_as_handled()
 		return
-	if ui.get_node("PauseMenu").visible: return
+	if ui.get_node("PauseMenu").visible or recruit_overlay.visible or victory_rewards.visible: return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			_panning = event.pressed

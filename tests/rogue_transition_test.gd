@@ -48,12 +48,28 @@ func finish(victory: bool) -> void:
 	await wait_ready()
 	check(current_scene.scene_file_path==RogueSession.MAP_SCENE,"result returns to forest scene")
 
+func claim_and_discard_recruit() -> void:
+	check(rogue.state.data.phase == "settlement", "victory awaits explicit reward collection")
+	check(current_scene.victory_rewards.visible, "native reward screen is visible")
+	current_scene.victory_rewards.claim.pressed.emit()
+	await wait_ready()
+	check(rogue.confirm_settlement() != OK, "repeated claim cannot grant rewards twice")
+	if rogue.state.data.phase == "recruit_unit":
+		check(current_scene.recruit_overlay.visible, "reward voucher opens immediately")
+		check(rogue.leave_node() != OK, "cannot leave with unresolved recruitment")
+		var ticket: Dictionary = rogue.state.pending_recruit()
+		check(rogue.discard_recruit(int(ticket.uid)) == OK, "explicitly discard reward voucher")
+		await wait_ready()
+
 func _run() -> void:
 	create_timer(60.0,true,false,true).timeout.connect(func(): quit(3))
 	rogue = root.get_node("Session").rogue
-	rogue.save_path = "user://rogue_transition_test.json"
+	rogue.save_path = "user://rogue_transition_test_%d.json" % OS.get_process_id()
 	check(rogue.start_new("range","mobile",99223)==OK,"new run")
 	await scene_changed
+	await wait_ready()
+	check(rogue.state.data.phase == "recruit_unit", "initial voucher must be handled before exploration")
+	check(rogue.discard_recruit(int(rogue.state.pending_recruit().uid)) == OK, "discard initial voucher")
 	await wait_ready()
 	var roster: Array = rogue.state.data.roster.duplicate(true)
 	var normal: int = next_node("battle")
@@ -63,6 +79,8 @@ func _run() -> void:
 	check(current_scene.scene_file_path==RogueSession.BATTLE_SCENE,"actual battle scene loads")
 	check(current_scene.player_count()==roster.size(),"roster instantiated in battle")
 	await finish(true)
+	check(int(rogue.state.data.gold) == 20 and int(rogue.state.data.xp) == 0, "settlement preview does not grant rewards")
+	await claim_and_discard_recruit()
 	check(rogue.state.data.phase=="map" and rogue.state.node(normal).completed,"normal victory completes node")
 	check(int(rogue.state.data.xp)==50 and int(rogue.state.data.gold)==40,"normal reward once")
 	check(rogue.state.data.roster==roster,"battle does not rewrite roster or layouts")
@@ -72,6 +90,7 @@ func _run() -> void:
 	await wait_ready()
 	check(current_scene.emergency,"emergency battle variant selected")
 	await finish(true)
+	await claim_and_discard_recruit()
 	check(rogue.state.data.phase=="reward","emergency waits for relic reward")
 	check(int(rogue.state.data.level)==2 and rogue.state.population_cap()==25,"XP upgrades level and population")
 	check(rogue.choose_relic(str(rogue.state.data.pending_choices[0]))==OK,"finish emergency relic selection")
@@ -91,6 +110,7 @@ func _run() -> void:
 	await scene_changed
 	await wait_ready()
 	await finish(true)
+	await claim_and_discard_recruit()
 	check(rogue.state.data.phase=="intermission" and int(rogue.state.data.ap)==12,"siege victory restores AP and reaches intermission")
 	check(rogue.load_run()==OK,"load intermission checkpoint")
 	await scene_changed
