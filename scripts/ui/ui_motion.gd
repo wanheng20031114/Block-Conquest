@@ -18,15 +18,15 @@ static func _bind_button(button: BaseButton) -> void:
 	if button.has_meta(BUTTON_META):
 		return
 	var state: Dictionary = {"scale": button.scale, "color": button.self_modulate,
-		"hover": false, "focus": button.has_focus(), "down": false,
+		"hover": false, "focus": button.has_focus(true), "down": false,
 		"disabled": button.disabled, "tween": null,
 		"hover_scale": float(button.get_meta(&"ui_motion_hover_scale", 1.02))}
 	button.set_meta(BUTTON_META, state)
 	button.pivot_offset = button.size * 0.5
 	button.mouse_entered.connect(_button_state.bind(button, "hover", true))
 	button.mouse_exited.connect(_button_state.bind(button, "hover", false))
-	button.focus_entered.connect(_button_state.bind(button, "focus", true))
-	button.focus_exited.connect(_button_state.bind(button, "focus", false))
+	button.focus_entered.connect(_button_focus_changed.bind(button))
+	button.focus_exited.connect(_button_focus_changed.bind(button))
 	button.button_down.connect(_button_state.bind(button, "down", true))
 	button.button_up.connect(_button_state.bind(button, "down", false))
 	button.resized.connect(_button_resized.bind(button))
@@ -45,8 +45,8 @@ static func _button_state(button: BaseButton, key: String, value: bool) -> void:
 	_kill(state)
 	# Queue slots may opt into a fixed hover footprint with scene-authored
 	# metadata/ui_motion_hover_scale = 1.0; their light and press feedback remain.
-	# Menus assign keyboard focus on entry. Keep that focus visible through
-	# lighting and the native focus style without enlarging the default option.
+	# Native hidden focus remembers a mouse user's keyboard return target without
+	# highlighting the button. Only visible keyboard focus adds material feedback.
 	var strength: float = 0.98 if state.down else (float(state.hover_scale) if state.hover else 1.0)
 	var light: float = 0.91 if state.down else (1.10 if state.hover or state.focus else 1.0)
 	var color: Color = state.color
@@ -59,6 +59,11 @@ static func _button_state(button: BaseButton, key: String, value: bool) -> void:
 static func _button_resized(button: BaseButton) -> void:
 	button.pivot_offset = button.size * 0.5
 
+static func _button_focus_changed(button: BaseButton) -> void:
+	if not button.has_focus():
+		button.get_meta(BUTTON_META).down = false
+	_button_state(button, "focus", button.has_focus(true))
+
 static func _button_visibility(button: BaseButton) -> void:
 	if not button.is_visible_in_tree():
 		_button_reset(button)
@@ -68,6 +73,10 @@ static func _button_draw(button: BaseButton) -> void:
 	if state.disabled != button.disabled:
 		state.disabled = button.disabled
 		_button_reset(button)
+	elif not button.disabled and state.focus != button.has_focus(true):
+		# Changing hidden focus on the same owner redraws it without emitting
+		# focus_entered/focus_exited (including a mouse click on keyboard focus).
+		_button_focus_changed(button)
 
 static func _button_reset(button: BaseButton) -> void:
 	var state: Dictionary = button.get_meta(BUTTON_META)

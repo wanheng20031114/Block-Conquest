@@ -52,13 +52,15 @@
 
 | 入口 | 行为 |
 |---|---|
-| `UIMotion.bind_buttons(root)` | 递归且只绑定一次；鼠标悬停在 120ms 内轻微提亮并等比放大至 1.02，按压缩至 0.98；键盘聚焦仅提亮并保留原生焦点提示，不改变尺寸 |
+| `UIMotion.bind_buttons(root)` | 递归且只绑定一次；鼠标悬停在 120ms 内轻微提亮并等比放大至 1.02，按压缩至 0.98；可见的键盘焦点仅提亮并保留原生焦点提示，不改变尺寸；鼠标产生的隐藏焦点不提亮 |
 | `metadata/ui_motion_hover_scale = 1.0` | 紧凑槽位保持悬停尺寸，仅保留明暗与按压反馈；在绑定前写入场景 |
 | `UIMotion.reveal(panel, direction)` | 180ms 展开；透明度与 0.985→1.0 等比缩放；独立面板默认位移 12px |
 | `UIMotion.dismiss(panel, direction)` | 120ms 收起并隐藏；默认位移 8px |
 | `Session.change_scene(path)` | 奶油纸页在 200ms 内展开、250ms 内收起，中央小地图不放口号或古风文字 |
 
 保持柔和 EaseOut，不增加明显抖动、耀光或超过 3% 的缩放。Container 子面板不修改布局偏移。新的 Tween 开始前停止同属性的旧 Tween；隐藏、禁用或离树时恢复原始外观，避免位置累加。遵循 [Tween 官方文档](https://docs.godotengine.org/en/4.6/classes/class_tween.html) 的节点绑定与单属性单 Tween 约定。
+
+菜单打开和返回时用 `grab_focus(true)` 记住键盘操作位置，不强行显示已按按钮的焦点底板。动效用 `has_focus(true)` 区分可见焦点与鼠标隐藏焦点，不能把所有 `focus_entered` 都当作悬停；同一控件的焦点可见性改变时也须刷新，失焦须取消尚未释放的按压动效。Tab、方向键仍由引擎显示原生焦点。这一划分参考本机 [bot-jump 的 InputMode](C:/Users/wh/Documents/bot-jump/scripts/input_mode.gd) 与 [AnimatedButton](C:/Users/wh/Documents/bot-jump/scripts/animated_button.gd)，具体实现使用 [Godot 4.6 的隐藏焦点 API](https://docs.godotengine.org/en/4.6/classes/class_control.html#class-control-method-grab-focus)。
 
 转场期间遮罩接管输入，重复切场返回 `ERR_BUSY`；错误不能留下无法关闭的遮罩。CanvasLayer 的绘制顺序不改变 `_input` 分发顺序，因此转场同时暂时停用场景内原先启用的 `_input` 回调，完成后恢复，不暂停模拟或网络。动效忽略战斗时间倍率并在暂停时继续运行。`SceneTree.scene_changed` 表示场景已加载，`Session.transition.completed` 才表示转场结束、界面可再次操作；自动化测试连续操作时应等待后者。
 
@@ -70,7 +72,8 @@
 
 | 检查 | 通过数量 | 已覆盖内容 |
 |---|---:|---|
-| `ui_motion_test.gd` | 32/32 | 打断、禁用、聚焦、紧凑控件、锚点与 Container 布局、纸页覆盖、暂停、重复切场及场景输入阻断与恢复 |
+| `ui_motion_test.gd` | 36/36 | 打断、禁用、隐藏/可见焦点切换、失焦取消按压、紧凑控件、锚点与 Container 布局、纸页覆盖、暂停、重复切场及场景输入阻断与恢复 |
+| `ui_menu_return_test.gd`（GPU，含截图） | 89/89 | 四个入口的鼠标关闭与 Esc 返回共 8 条路径；按钮尺寸、亮度、原生绘制状态完全恢复；Tab/方向键与 Enter 激活；下拉框 Esc 仅关闭下拉 |
 | `rogue_transition_test.gd` | 30/30 | 战斗、结果、检查点与围剿之间的实际场景切换 |
 | `rogue_flow_test.gd`（headless） | 38/38 | 原生地图点击、节点、编队入口与完整探索流程 |
 | `rogue_lobby_test.gd` | 77/77 | 大厅入口、图鉴目录与返回路径 |
@@ -79,3 +82,5 @@
 | `network_game_expiry_test.gd` | 19/19 | 联机连接过期、暂停释放与退出回归 |
 
 每次共享素材调整完成后，补做三个分辨率下的页面截图检查；最终导出后确认 ZIP 内包含字体许可，并运行导出包探针。所有验证辅助进程结束后以命令核实，保留用户正常编辑器。
+
+2026-09-14 返回状态修复：真实鼠标操作确认，多人、单人和图鉴原先返回后仍有 `self_modulate=1.10`，设置在隐藏焦点下也会残留提亮。修复后四个入口返回并移开鼠标均为原始 `scale=(1,1)`、`self_modulate=(1,1,1,1)`、`DRAW_NORMAL`，无可见焦点；仍可通过原生键盘导航激活。另修正多人昵称输入框吞掉首个 Esc 的返回问题，保留下拉菜单原生 Esc 行为。未改动玩家设置、大厅偏好与肉鸽存档。Windows 包已重新导出，资源目录检查 233/233 通过。

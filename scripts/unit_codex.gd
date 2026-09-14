@@ -71,7 +71,7 @@ func open_codex() -> void:
 	_refresh_preview_activity()
 	UIMotion.reveal(self, Vector2.ZERO)
 	UIMotion.reveal($Margin/Content/Body, Vector2(0, 12))
-	%Entries.grab_focus()
+	%Entries.grab_focus(true)
 
 func close_codex() -> void:
 	hide()

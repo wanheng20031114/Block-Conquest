@@ -41,7 +41,7 @@ func open_panel(tab: String = "formation", encounter: String = "outpost") -> voi
 	_change_tab(tab)
 	_set_status("")
 	UIMotion.reveal(self, Vector2.ZERO)
-	%CloseArmy.grab_focus()
+	%CloseArmy.grab_focus(true)
 
 func close_panel() -> void:
 	hide()

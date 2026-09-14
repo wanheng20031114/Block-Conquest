@@ -68,7 +68,7 @@ func _ready() -> void:
 	UIMotion.bind_buttons($CanvasLayer/UI)
 	UIMotion.reveal(%Brand, Vector2(0, -10))
 	UIMotion.reveal(%MainMenu, Vector2(0, 18))
-	%SoloMenu.grab_focus()
+	%SoloMenu.grab_focus(true)
 	if "--lobby-capture" in arguments:
 		call_deferred("_capture_lobby")
 
@@ -135,11 +135,12 @@ func _on_open_solo() -> void:
 	if %OnlinePanel.visible:
 		_on_close_multiplayer()
 	_reveal_panel(%SoloPanel)
-	%SoloStart.grab_focus()
+	%SoloStart.grab_focus(true)
 
 func _on_close_solo() -> void:
 	%SoloPanel.hide()
-	%SoloMenu.grab_focus()
+	# Preserve a keyboard return target without leaving mouse navigation lit.
+	%SoloMenu.grab_focus(true)
 
 func _on_open_codex() -> void:
 	%UnitCodex.open_codex()
@@ -166,7 +167,7 @@ func _on_open_rogue() -> void:
 		_set_message("无法载入林海远征，请检查游戏文件。", true)
 
 func _on_close_codex() -> void:
-	%Codex.grab_focus()
+	%Codex.grab_focus(true)
 
 func _on_open_multiplayer() -> void:
 	%SoloPanel.hide()
@@ -184,7 +185,7 @@ func _on_close_multiplayer() -> void:
 		_show_setup()
 	%SlotTimeout.stop()
 	%OnlinePanel.hide()
-	%Multiplayer.grab_focus()
+	%Multiplayer.grab_focus(true)
 
 func _on_create_room() -> void:
 	if not _prepare_connection():
@@ -540,10 +541,16 @@ func _on_quit_game() -> void:
 	get_tree().quit()
 
 func _input(event: InputEvent) -> void:
-	# The codex is modal. Handle its return key before GUI tooltips can consume it.
-	if not %UnitCodex.visible or session.settings.is_open(): return
+	# Modal returns must run before the codex or a room LineEdit consumes Escape.
+	# Other controls retain native popup dismissal before the unhandled path.
+	if session.settings.is_open(): return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
-		%UnitCodex.close_codex()
+		if %UnitCodex.visible:
+			%UnitCodex.close_codex()
+		elif %OnlinePanel.visible and get_viewport().gui_get_focus_owner() is LineEdit:
+			_on_close_multiplayer()
+		else:
+			return
 		get_viewport().set_input_as_handled()
 
 func _unhandled_key_input(event: InputEvent) -> void:
