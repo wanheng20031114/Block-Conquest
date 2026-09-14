@@ -45,7 +45,9 @@ static func _button_state(button: BaseButton, key: String, value: bool) -> void:
 	_kill(state)
 	# Queue slots may opt into a fixed hover footprint with scene-authored
 	# metadata/ui_motion_hover_scale = 1.0; their light and press feedback remain.
-	var strength: float = 0.98 if state.down else (float(state.hover_scale) if state.hover or state.focus else 1.0)
+	# Menus assign keyboard focus on entry. Keep that focus visible through
+	# lighting and the native focus style without enlarging the default option.
+	var strength: float = 0.98 if state.down else (float(state.hover_scale) if state.hover else 1.0)
 	var light: float = 0.91 if state.down else (1.10 if state.hover or state.focus else 1.0)
 	var color: Color = state.color
 	color = Color(color.r * light, color.g * light, color.b * light, color.a)

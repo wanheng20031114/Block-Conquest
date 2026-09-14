@@ -41,7 +41,7 @@
 
 | 入口 | 行为 |
 |---|---|
-| `UIMotion.bind_buttons(root)` | 递归且只绑定一次；悬停与键盘聚焦在 120ms 内轻微提亮并等比放大至 1.02，按压缩至 0.98 |
+| `UIMotion.bind_buttons(root)` | 递归且只绑定一次；鼠标悬停在 120ms 内轻微提亮并等比放大至 1.02，按压缩至 0.98；键盘聚焦仅提亮并保留原生焦点提示，不改变尺寸 |
 | `metadata/ui_motion_hover_scale = 1.0` | 紧凑槽位保持悬停尺寸，仅保留明暗与按压反馈；在绑定前写入场景 |
 | `UIMotion.reveal(panel, direction)` | 180ms 展开；透明度与 0.985→1.0 等比缩放；独立面板默认位移 12px |
 | `UIMotion.dismiss(panel, direction)` | 120ms 收起并隐藏；默认位移 8px |
@@ -59,7 +59,7 @@
 
 | 检查 | 通过数量 | 已覆盖内容 |
 |---|---:|---|
-| `ui_motion_test.gd` | 30/30 | 打断、禁用、聚焦、紧凑控件、锚点与 Container 布局、纸页覆盖、暂停、重复切场及场景输入阻断与恢复 |
+| `ui_motion_test.gd` | 32/32 | 打断、禁用、聚焦、紧凑控件、锚点与 Container 布局、纸页覆盖、暂停、重复切场及场景输入阻断与恢复 |
 | `rogue_transition_test.gd` | 30/30 | 战斗、结果、检查点与围剿之间的实际场景切换 |
 | `rogue_flow_test.gd`（headless） | 38/38 | 原生地图点击、节点、编队入口与完整探索流程 |
 | `rogue_lobby_test.gd` | 77/77 | 大厅入口、图鉴目录与返回路径 |
