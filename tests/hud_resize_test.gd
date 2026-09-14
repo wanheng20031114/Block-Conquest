@@ -92,7 +92,7 @@ func _run() -> void:
 		game.camera_rig.edge_scroll = false
 		game.get_node("EnemyTimer").stop()
 		game.get_node("IncomeTimer").stop()
-		game.get_node("Audio").set_volume_percent(0)
+		AudioServer.set_bus_mute(0, true)
 		for entity: Node in get_nodes_in_group("entities"):
 			entity.set_physics_process(false)
 		await create_timer(.5).timeout

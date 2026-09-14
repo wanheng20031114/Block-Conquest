@@ -8,7 +8,7 @@
 
 - 显示：窗口、无边框全屏、独占全屏；当前尺寸及 1280×720、1600×900、1920×1080、2560×1440；垂直同步；30 / 60 / 90 / 120 / 144 / 165 / 240 FPS 或不限帧数。
 - 全屏窗口按显示器尺寸展示，所选分辨率控制原生 3D 渲染比例；窗口模式直接改变窗口尺寸。UI 随视口适配。
-- 声音：主音效音量、静音；不播放背景音乐。
+- 声音：主音效音量、静音；首次启动和恢复默认均为 50%、声音开启。已保存的个人音量和静音偏好继续保留；不播放背景音乐。
 - 镜头：平移速度倍率、滚轮缩放倍率、鼠标边缘移动开关。
 - 热键：35 个原生 InputMap 动作，涵盖战斗、训练、选中、编队、暂停、界面和镜头方向。F2 / G、B / Home 保留初始别名。重新绑定动作会替换其旧别名；Ctrl / Shift 保留给组合指令，Esc仅可绑定取消操作，F12固定保留。
 
@@ -27,5 +27,7 @@
 `tests/settings_test.gd` 本轮共 139 项通过：原生动作及别名、Ctrl / Shift、重绑冲突、保留按键、草稿与取消、音频混音器、FPS、ConfigFile 跨实例重载、暂停中显示超时、确认及无效配置保护。
 
 `tests/settings_visual_test.gd` 在 Vulkan 下渲染主菜单、四个设置分类及显示确认弹层；实际窗口从 1600×900 调整至 1280×720，再恢复原尺寸。测试配置路径位于 `.local`，不覆盖玩家偏好。验证进程均退出后单独查询 Godot 进程核实。
+
+界面验证只在测试进程中临时静音，不调用会保存玩家设置的音量接口；`tests/audio_runtime_test.gd` 的音量和静音操作使用 `.local/audio-runtime-test.cfg`，避免影响后续正常启动。
 
 原生能力：[InputMap](https://docs.godotengine.org/en/4.6/classes/class_inputmap.html)、[DisplayServer](https://docs.godotengine.org/en/4.6/classes/class_displayserver.html)、[ConfigFile](https://docs.godotengine.org/en/4.6/classes/class_configfile.html)。

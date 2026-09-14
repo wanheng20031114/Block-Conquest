@@ -63,7 +63,7 @@ func _run() -> void:
 	game.bots.clear()
 	game.set_physics_process(false)
 	game.camera_rig.edge_scroll = false
-	game.get_node("Audio").set_volume_percent(0)
+	AudioServer.set_bus_mute(0, true)
 	game.get_node("IncomeTimer").stop()
 	game.get_node("EnemyTimer").stop()
 	for size_pixels: Vector2i in SIZES:

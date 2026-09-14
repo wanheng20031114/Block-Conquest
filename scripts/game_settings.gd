@@ -7,6 +7,7 @@ signal closed
 signal pause_requested
 
 const FPS_OPTIONS: Array[int] = [30, 60, 90, 120, 144, 165, 240, 0]
+const DEFAULT_VOLUME_PERCENT := 50.0
 const ACTIONS := {
 	"rts_attack_move": ["攻击前进", KEY_A, [KEY_A]], "rts_stop": ["停止", KEY_S, [KEY_S]],
 	"rts_hold": ["坚守", KEY_H, [KEY_H]], "rts_select_base": ["选择大本营", KEY_B, [KEY_B, KEY_HOME]],
@@ -33,7 +34,7 @@ var settings_path := "user://settings.cfg"
 var edge_scroll_enabled := true
 var camera_speed := 1.0
 var zoom_speed := 1.0
-var volume_percent := 80.0
+var volume_percent := DEFAULT_VOLUME_PERCENT
 var muted := false
 var window_mode := 0
 var resolution := Vector2i(1600, 900)
@@ -80,7 +81,7 @@ func defaults() -> Dictionary:
 	var keys := {}
 	for action: String in ACTIONS: keys[action] = ACTIONS[action][2].duplicate()
 	return {"edge_scroll_enabled": true, "camera_speed": 1.0, "zoom_speed": 1.0,
-		"volume_percent": 80.0, "muted": false, "window_mode": 0,
+		"volume_percent": DEFAULT_VOLUME_PERCENT, "muted": false, "window_mode": 0,
 		"resolution": Vector2i(1600, 900), "vsync": true, "fps_limit": 120, "bindings": keys}
 
 func snapshot() -> Dictionary:

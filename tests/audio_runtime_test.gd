@@ -65,6 +65,7 @@ func _measure(label: String) -> Dictionary:
 
 func _run() -> void:
 	create_timer(140.0).timeout.connect(func(): push_error("AUDIO_RUNTIME watchdog"); quit(3))
+	root.get_node("Session/Settings").settings_path = "res://.local/audio-runtime-test.cfg"
 	change_scene_to_file("res://scenes/main.tscn")
 	await scene_changed
 	game = current_scene
