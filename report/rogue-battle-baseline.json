@@ -1,0 +1,246 @@
+{
+  "date": "2026-09-14",
+  "engine": "Godot 4.6.3",
+  "strategy": "ranged",
+  "map_seed": 24681,
+  "method": {
+    "damage": "production entities and real projectiles; no scripted damage in balance runs",
+    "simulation_step_seconds": 0.03333333333333333,
+    "schedule_hz": 120,
+    "time_scale": 4,
+    "assault": "nearest hostile attack-move; support follows army",
+    "active_defense": "every 3 simulation seconds: attack visible enemies within 22m of base, support injured allies",
+    "limitations": "one sample per composition, simple policy, no win-rate or performance claim"
+  },
+  "final_balance": {
+    "headquarters_hp": 1800,
+    "duration_seconds": 150,
+    "wave_times": [
+      10,
+      30,
+      50,
+      70,
+      90,
+      110,
+      130
+    ],
+    "wave_sizes": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      9
+    ],
+    "enemy_alive_cap": 24,
+    "tower_base_damage": 9,
+    "tower_class_bonuses": {
+      "infantry": 3,
+      "cavalry": 9
+    }
+  },
+  "outpost_18_population": [
+    {
+      "base_hp": 0.0,
+      "battle": "outpost",
+      "buildings_left": 0,
+      "enemy_left": 0,
+      "pack": "steady",
+      "seconds": 102.1,
+      "survivors": 11,
+      "won": true
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "outpost",
+      "buildings_left": 0,
+      "enemy_left": 0,
+      "pack": "ranged",
+      "seconds": 91.2,
+      "survivors": 12,
+      "won": true
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "outpost",
+      "buildings_left": 0,
+      "enemy_left": 0,
+      "pack": "mobile",
+      "seconds": 127.1,
+      "survivors": 3,
+      "won": true
+    }
+  ],
+  "siege_1500_idle_legacy": [
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 16,
+      "pack": "steady",
+      "seconds": 139.4,
+      "survivors": 0,
+      "won": false
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 11,
+      "pack": "ranged",
+      "seconds": 145.5,
+      "survivors": 0,
+      "won": false
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 19,
+      "pack": "mobile",
+      "seconds": 137.0,
+      "survivors": 0,
+      "won": false
+    }
+  ],
+  "siege_1500_active_legacy": [
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 16,
+      "pack": "steady",
+      "seconds": 146.3,
+      "survivors": 0,
+      "won": false
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 9,
+      "pack": "ranged",
+      "seconds": 144.8,
+      "survivors": 1,
+      "won": false
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 17,
+      "pack": "mobile",
+      "seconds": 135.4,
+      "survivors": 1,
+      "won": false
+    }
+  ],
+  "siege_1800_active_initial_combat_rng_not_fixed": [
+    {
+      "base_hp": 258.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 8,
+      "growth": false,
+      "level": 1,
+      "pack": "steady",
+      "population": 18,
+      "population_cap": 20,
+      "seconds": 150.0,
+      "survivors": 5,
+      "won": true
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 14,
+      "growth": false,
+      "level": 1,
+      "pack": "ranged",
+      "population": 18,
+      "population_cap": 20,
+      "seconds": 141.3,
+      "survivors": 1,
+      "won": false
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 18,
+      "growth": false,
+      "level": 1,
+      "pack": "mobile",
+      "population": 18,
+      "population_cap": 20,
+      "seconds": 138.0,
+      "survivors": 0,
+      "won": false
+    },
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 13,
+      "growth": true,
+      "level": 2,
+      "pack": "steady",
+      "population": 21,
+      "population_cap": 25,
+      "seconds": 145.2,
+      "survivors": 0,
+      "won": false
+    }
+  ],
+  "siege_1800_growth_pair_combat_seed_24681": [
+    {
+      "base_hp": 0.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 17,
+      "growth": false,
+      "level": 1,
+      "pack": "steady",
+      "population": 18,
+      "population_cap": 20,
+      "seconds": 144.8,
+      "survivors": 0,
+      "won": false
+    },
+    {
+      "base_hp": 397.0,
+      "battle": "siege",
+      "buildings_left": 0,
+      "enemy_left": 9,
+      "growth": true,
+      "level": 2,
+      "pack": "steady",
+      "population": 21,
+      "population_cap": 25,
+      "seconds": 150.0,
+      "survivors": 4,
+      "won": true
+    }
+  ],
+  "verification": {
+    "rogue_battle_test": {
+      "checks": 32,
+      "failures": 0
+    },
+    "balance_matrix_test": {
+      "checks": 2440,
+      "failures": 0
+    },
+    "balance_combat_test": {
+      "checks": 82,
+      "failures": 0
+    },
+    "visuals": [
+      "rogue_battle_outpost_intro.png",
+      "rogue_battle_outpost_play.png",
+      "rogue_battle_siege_play.png"
+    ]
+  }
+}

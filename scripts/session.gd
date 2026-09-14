@@ -16,6 +16,8 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred("res://scripts/network/release_probe.tscn")
 	elif "--match-smoke" in OS.get_cmdline_user_args():
 		add_child.call_deferred(preload("res://scripts/qa/release_match_probe.tscn").instantiate())
+	elif "--rogue-release-smoke" in OS.get_cmdline_user_args():
+		add_child.call_deferred(preload("res://scripts/qa/rogue_release_probe.tscn").instantiate())
 
 func start_offline(mode: String, bot_difficulty: String = "normal") -> Error:
 	if mode not in NetworkProtocol.MODES:

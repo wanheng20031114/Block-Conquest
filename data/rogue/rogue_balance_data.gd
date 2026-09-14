@@ -1,5 +1,6 @@
 extends Resource
 ## Inspector-editable first-floor economy and fixed route template.
+@export_range(1, 5, 1) var difficulty: int = 1
 @export var initial: Dictionary = {}
 @export var progression: Dictionary = {}
 @export var rewards: Dictionary = {}

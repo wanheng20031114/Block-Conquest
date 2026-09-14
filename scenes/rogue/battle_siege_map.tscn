@@ -1,0 +1,810 @@
+[gd_scene format=3]
+[ext_resource type="NavigationMesh" path="res://scenes/rogue/battle_siege_navigation.tres" id="nav"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/tree_oak.tscn" id="oak"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/tree_pine.tscn" id="pine"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/campfire.tscn" id="fire"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/crate.tscn" id="crate"]
+[sub_resource type="StandardMaterial3D" id="grass"]
+albedo_color = Color(0.24, 0.31, 0.19, 1)
+roughness = 1.0
+[sub_resource type="StandardMaterial3D" id="path"]
+albedo_color = Color(0.47, 0.40, 0.27, 1)
+roughness = 1.0
+[sub_resource type="BoxMesh" id="ground"]
+size = Vector3(80, 0.8, 80)
+material = SubResource("grass")
+[sub_resource type="BoxShape3D" id="floor"]
+size = Vector3(80, 1, 80)
+[sub_resource type="CylinderShape3D" id="trunk"]
+radius = 0.42
+height = 4.0
+[sub_resource type="BoxMesh" id="east_road"]
+size = Vector3(74, 0.025, 7)
+material = SubResource("path")
+[sub_resource type="BoxMesh" id="cross_road"]
+size = Vector3(7, 0.025, 74)
+material = SubResource("path")
+[node name="Siege" type="Node3D"]
+metadata/map_id = "rogue_siege"
+metadata/map_size = Vector2(80, 80)
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = ExtResource("nav")
+[node name="Environment" type="Node3D" parent="."]
+[node name="Ground" type="StaticBody3D" parent="Environment"]
+collision_layer = 1
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Ground"]
+position = Vector3(0, -0.5, 0)
+shape = SubResource("floor")
+[node name="Mesh" type="MeshInstance3D" parent="Environment/Ground"]
+position = Vector3(0, -0.4, 0)
+mesh = SubResource("ground")
+[node name="Road" type="MeshInstance3D" parent="Environment"]
+mesh = SubResource("east_road")
+position = Vector3(0, 0.018, 0)
+[node name="CrossRoad" type="MeshInstance3D" parent="Environment"]
+mesh = SubResource("cross_road")
+position = Vector3(0, 0.023, 0)
+[node name="NaturalObstacles" type="Node3D" parent="Environment"]
+[node name="Tree0" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.937, 0, -37.031)
+scale = Vector3(0.888, 0.888, 0.888)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree0"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree0" instance=ExtResource("oak")]
+rotation = Vector3(0, 5.393, 0)
+[node name="Tree1" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-32.011, 0, -37.053)
+scale = Vector3(0.916, 0.916, 0.916)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree1"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree1" instance=ExtResource("pine")]
+rotation = Vector3(0, 1.115, 0)
+[node name="Tree2" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.967, 0, -37.602)
+scale = Vector3(0.984, 0.984, 0.984)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree2"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree2" instance=ExtResource("pine")]
+rotation = Vector3(0, 1.994, 0)
+[node name="Tree3" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-24.421, 0, -37.172)
+scale = Vector3(0.915, 0.915, 0.915)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree3"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree3" instance=ExtResource("oak")]
+rotation = Vector3(0, 1.008, 0)
+[node name="Tree4" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-20.912, 0, -37.314)
+scale = Vector3(1.067, 1.067, 1.067)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree4"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree4" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.633, 0)
+[node name="Tree5" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-17.757, 0, -37.609)
+scale = Vector3(1.022, 1.022, 1.022)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree5"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree5" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.509, 0)
+[node name="Tree6" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-12.152, 0, -37.178)
+scale = Vector3(1.104, 1.104, 1.104)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree6"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree6" instance=ExtResource("oak")]
+rotation = Vector3(0, 1.736, 0)
+[node name="Tree7" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-9.440, 0, -37.061)
+scale = Vector3(0.903, 0.903, 0.903)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree7"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree7" instance=ExtResource("pine")]
+rotation = Vector3(0, 6.026, 0)
+[node name="Tree8" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-5.324, 0, -37.843)
+scale = Vector3(1.065, 1.065, 1.065)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree8"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree8" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.568, 0)
+[node name="Tree9" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-0.409, 0, -37.298)
+scale = Vector3(1.172, 1.172, 1.172)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree9"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree9" instance=ExtResource("oak")]
+rotation = Vector3(0, 4.485, 0)
+[node name="Tree10" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(3.405, 0, -37.347)
+scale = Vector3(0.913, 0.913, 0.913)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree10"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree10" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.660, 0)
+[node name="Tree11" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.917, 0, -37.010)
+scale = Vector3(1.130, 1.130, 1.130)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree11"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree11" instance=ExtResource("pine")]
+rotation = Vector3(0, 5.381, 0)
+[node name="Tree12" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(11.994, 0, -37.116)
+scale = Vector3(1.195, 1.195, 1.195)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree12"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree12" instance=ExtResource("oak")]
+rotation = Vector3(0, 3.450, 0)
+[node name="Tree13" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(15.514, 0, -37.188)
+scale = Vector3(1.111, 1.111, 1.111)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree13"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree13" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.893, 0)
+[node name="Tree14" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.255, 0, -37.163)
+scale = Vector3(0.959, 0.959, 0.959)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree14"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree14" instance=ExtResource("pine")]
+rotation = Vector3(0, 5.741, 0)
+[node name="Tree15" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(23.287, 0, -37.101)
+scale = Vector3(1.022, 1.022, 1.022)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree15"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree15" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.445, 0)
+[node name="Tree16" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(26.541, 0, -37.447)
+scale = Vector3(1.194, 1.194, 1.194)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree16"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree16" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.299, 0)
+[node name="Tree17" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(31.682, 0, -37.006)
+scale = Vector3(1.209, 1.209, 1.209)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree17"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree17" instance=ExtResource("pine")]
+rotation = Vector3(0, 1.483, 0)
+[node name="Tree18" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(35.610, 0, -37.515)
+scale = Vector3(0.882, 0.882, 0.882)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree18"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree18" instance=ExtResource("oak")]
+rotation = Vector3(0, 5.792, 0)
+[node name="Tree19" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -33.000)
+scale = Vector3(1.173, 1.173, 1.173)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree19"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree19" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.066, 0)
+[node name="Tree20" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -28.000)
+scale = Vector3(0.815, 0.815, 0.815)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree20"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree20" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.369, 0)
+[node name="Tree21" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -23.000)
+scale = Vector3(1.179, 1.179, 1.179)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree21"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree21" instance=ExtResource("oak")]
+rotation = Vector3(0, 3.490, 0)
+[node name="Tree22" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -18.000)
+scale = Vector3(1.056, 1.056, 1.056)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree22"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree22" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.443, 0)
+[node name="Tree23" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -13.000)
+scale = Vector3(0.894, 0.894, 0.894)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree23"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree23" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.823, 0)
+[node name="Tree24" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -8.000)
+scale = Vector3(0.866, 0.866, 0.866)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree24"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree24" instance=ExtResource("oak")]
+rotation = Vector3(0, 5.141, 0)
+[node name="Tree25" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, -3.000)
+scale = Vector3(1.087, 1.087, 1.087)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree25"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree25" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.912, 0)
+[node name="Tree26" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 2.000)
+scale = Vector3(0.829, 0.829, 0.829)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree26"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree26" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.807, 0)
+[node name="Tree27" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 7.000)
+scale = Vector3(0.972, 0.972, 0.972)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree27"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree27" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.853, 0)
+[node name="Tree28" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 12.000)
+scale = Vector3(0.843, 0.843, 0.843)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree28"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree28" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.709, 0)
+[node name="Tree29" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 17.000)
+scale = Vector3(0.854, 0.854, 0.854)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree29"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree29" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.922, 0)
+[node name="Tree30" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 22.000)
+scale = Vector3(0.901, 0.901, 0.901)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree30"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree30" instance=ExtResource("oak")]
+rotation = Vector3(0, 3.189, 0)
+[node name="Tree31" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 27.000)
+scale = Vector3(1.061, 1.061, 1.061)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree31"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree31" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.847, 0)
+[node name="Tree32" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.500, 0, 32.000)
+scale = Vector3(0.811, 0.811, 0.811)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree32"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree32" instance=ExtResource("pine")]
+rotation = Vector3(0, 5.463, 0)
+[node name="Tree33" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-36.293, 0, 37.630)
+scale = Vector3(0.916, 0.916, 0.916)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree33"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree33" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.896, 0)
+[node name="Tree34" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-32.571, 0, 37.063)
+scale = Vector3(0.914, 0.914, 0.914)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree34"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree34" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.797, 0)
+[node name="Tree35" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.992, 0, 37.854)
+scale = Vector3(1.104, 1.104, 1.104)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree35"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree35" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.276, 0)
+[node name="Tree36" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-25.920, 0, 37.959)
+scale = Vector3(0.869, 0.869, 0.869)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree36"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree36" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.070, 0)
+[node name="Tree37" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-21.631, 0, 37.578)
+scale = Vector3(0.832, 0.832, 0.832)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree37"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree37" instance=ExtResource("pine")]
+rotation = Vector3(0, 6.009, 0)
+[node name="Tree38" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-17.178, 0, 37.212)
+scale = Vector3(1.003, 1.003, 1.003)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree38"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree38" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.701, 0)
+[node name="Tree39" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.301, 0, 37.421)
+scale = Vector3(0.953, 0.953, 0.953)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree39"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree39" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.635, 0)
+[node name="Tree40" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-9.040, 0, 37.657)
+scale = Vector3(0.989, 0.989, 0.989)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree40"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree40" instance=ExtResource("pine")]
+rotation = Vector3(0, 1.120, 0)
+[node name="Tree41" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-4.942, 0, 37.297)
+scale = Vector3(0.979, 0.979, 0.979)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree41"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree41" instance=ExtResource("pine")]
+rotation = Vector3(0, 5.878, 0)
+[node name="Tree42" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-1.844, 0, 37.458)
+scale = Vector3(1.027, 1.027, 1.027)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree42"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree42" instance=ExtResource("oak")]
+rotation = Vector3(0, 2.850, 0)
+[node name="Tree43" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(2.319, 0, 37.317)
+scale = Vector3(1.050, 1.050, 1.050)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree43"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree43" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.574, 0)
+[node name="Tree44" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(6.972, 0, 37.631)
+scale = Vector3(0.915, 0.915, 0.915)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree44"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree44" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.633, 0)
+[node name="Tree45" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(11.640, 0, 37.149)
+scale = Vector3(1.214, 1.214, 1.214)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree45"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree45" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.034, 0)
+[node name="Tree46" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(14.680, 0, 37.270)
+scale = Vector3(0.951, 0.951, 0.951)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree46"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree46" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.473, 0)
+[node name="Tree47" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.893, 0, 37.694)
+scale = Vector3(1.225, 1.225, 1.225)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree47"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree47" instance=ExtResource("pine")]
+rotation = Vector3(0, 1.692, 0)
+[node name="Tree48" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(23.982, 0, 37.464)
+scale = Vector3(1.161, 1.161, 1.161)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree48"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree48" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.797, 0)
+[node name="Tree49" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(26.088, 0, 37.813)
+scale = Vector3(0.915, 0.915, 0.915)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree49"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree49" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.544, 0)
+[node name="Tree50" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.668, 0, 37.671)
+scale = Vector3(1.029, 1.029, 1.029)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree50"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree50" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.458, 0)
+[node name="Tree51" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(35.104, 0, 37.320)
+scale = Vector3(0.977, 0.977, 0.977)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree51"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree51" instance=ExtResource("oak")]
+rotation = Vector3(0, 4.792, 0)
+[node name="Tree52" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -33.000)
+scale = Vector3(1.168, 1.168, 1.168)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree52"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree52" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.188, 0)
+[node name="Tree53" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -28.000)
+scale = Vector3(0.811, 0.811, 0.811)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree53"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree53" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.188, 0)
+[node name="Tree54" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -23.000)
+scale = Vector3(0.808, 0.808, 0.808)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree54"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree54" instance=ExtResource("oak")]
+rotation = Vector3(0, 1.570, 0)
+[node name="Tree55" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -18.000)
+scale = Vector3(1.057, 1.057, 1.057)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree55"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree55" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.935, 0)
+[node name="Tree56" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -13.000)
+scale = Vector3(0.833, 0.833, 0.833)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree56"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree56" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.143, 0)
+[node name="Tree57" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -8.000)
+scale = Vector3(0.903, 0.903, 0.903)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree57"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree57" instance=ExtResource("oak")]
+rotation = Vector3(0, 0.465, 0)
+[node name="Tree58" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, -3.000)
+scale = Vector3(0.909, 0.909, 0.909)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree58"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree58" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.526, 0)
+[node name="Tree59" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 2.000)
+scale = Vector3(0.810, 0.810, 0.810)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree59"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree59" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.431, 0)
+[node name="Tree60" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 7.000)
+scale = Vector3(0.956, 0.956, 0.956)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree60"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree60" instance=ExtResource("oak")]
+rotation = Vector3(0, 5.127, 0)
+[node name="Tree61" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 12.000)
+scale = Vector3(1.189, 1.189, 1.189)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree61"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree61" instance=ExtResource("pine")]
+rotation = Vector3(0, 2.038, 0)
+[node name="Tree62" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 17.000)
+scale = Vector3(1.144, 1.144, 1.144)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree62"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree62" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.712, 0)
+[node name="Tree63" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 22.000)
+scale = Vector3(0.817, 0.817, 0.817)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree63"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree63" instance=ExtResource("oak")]
+rotation = Vector3(0, 3.712, 0)
+[node name="Tree64" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 27.000)
+scale = Vector3(1.196, 1.196, 1.196)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree64"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree64" instance=ExtResource("pine")]
+rotation = Vector3(0, 4.222, 0)
+[node name="Tree65" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.500, 0, 32.000)
+scale = Vector3(1.161, 1.161, 1.161)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree65"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree65" instance=ExtResource("pine")]
+rotation = Vector3(0, 6.209, 0)
+[node name="Tree66" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-21.000, 0, -21.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree66"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree66" instance=ExtResource("oak")]
+rotation = Vector3(0, 1.352, 0)
+[node name="Tree67" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-24.000, 0, -20.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree67"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree67" instance=ExtResource("pine")]
+rotation = Vector3(0, 0.612, 0)
+[node name="Tree68" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(22.000, 0, -22.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree68"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree68" instance=ExtResource("pine")]
+rotation = Vector3(0, 5.807, 0)
+[node name="Tree69" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(24.000, 0, -20.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree69"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree69" instance=ExtResource("oak")]
+rotation = Vector3(0, 1.696, 0)
+[node name="Tree70" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-23.000, 0, 23.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree70"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree70" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.922, 0)
+[node name="Tree71" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-20.000, 0, 25.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree71"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree71" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.552, 0)
+[node name="Tree72" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(23.000, 0, 23.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree72"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree72" instance=ExtResource("oak")]
+rotation = Vector3(0, 6.166, 0)
+[node name="Tree73" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(20.000, 0, 25.000)
+scale = Vector3(1.200, 1.200, 1.200)
+collision_layer = 128
+collision_mask = 0
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree73"]
+position = Vector3(0, 2, 0)
+shape = SubResource("trunk")
+[node name="Model" parent="Environment/NaturalObstacles/Tree73" instance=ExtResource("pine")]
+rotation = Vector3(0, 3.730, 0)
+[node name="Buildings" type="Node3D" parent="."]
+[node name="Building0" type="Marker3D" parent="Buildings"]
+position = Vector3(0, 0, 0)
+metadata/kind = "headquarters"
+[node name="Defenders" type="Node3D" parent="."]
+[node name="Entrances" type="Node3D" parent="."]
+[node name="West" type="Marker3D" parent="Entrances"]
+position = Vector3(-33, 0, 0)
+[node name="North" type="Marker3D" parent="Entrances"]
+position = Vector3(0, 0, -33)
+[node name="East" type="Marker3D" parent="Entrances"]
+position = Vector3(33, 0, 0)
+[node name="South" type="Marker3D" parent="Entrances"]
+position = Vector3(0, 0, 33)
+[node name="Camp0" parent="Environment" instance=ExtResource("fire")]
+position = Vector3(-8, 0, -8)
+[node name="Crate0" parent="Environment" instance=ExtResource("crate")]
+position = Vector3(-6, 0, -6)
+[node name="Camp1" parent="Environment" instance=ExtResource("fire")]
+position = Vector3(8, 0, 8)
+[node name="Crate1" parent="Environment" instance=ExtResource("crate")]
+position = Vector3(10, 0, 10)

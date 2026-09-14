@@ -83,12 +83,16 @@ func _run() -> void:
 	create_timer(100.0,true,false,true).timeout.connect(func(): push_error("Rogue flow timeout"); quit(3))
 	DirAccess.make_dir_recursive_absolute(OUTPUT)
 	rogue = root.get_node("Session").rogue
-	rogue.save_path = "user://rogue_flow_test.json"
+	rogue.save_path = "user://rogue_flow_test_%d.json" % OS.get_process_id()
 	root.content_scale_size = Vector2i(1600,900)
 	root.size = Vector2i(1600,900)
 	await start_run()
 	check(map.get_node("Nodes").get_child_count()==34,"34 authored forest nodes")
 	check(rogue.state.population()==18,"starter deployment populated")
+	var original_cost: int = int(RogueCatalog.EVENTS.bread_cart.gold_cost)
+	RogueCatalog.EVENTS.bread_cart.gold_cost = 21
+	check("21" in map._event_options("bread_cart")[1] and not map._event_affordable("bread_cart",1),"editable event price updates display and affordability together")
+	RogueCatalog.EVENTS.bread_cart.gold_cost = original_cost
 	var battle: int = pick_kind("battle")
 	prepare_adjacent(battle)
 	await click_world(map.get_node("Nodes/Node%d" % battle).global_position+Vector3.UP)

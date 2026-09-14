@@ -20,6 +20,7 @@ func _fresh(strategy: String = "ranged", pack: String = "steady", seed_value: in
 
 func _run() -> void:
 	_test_generation()
+	_test_difficulty()
 	_test_progression_and_modifiers()
 	_test_recruitment_and_formation()
 	_test_nodes_and_siege()
@@ -55,6 +56,50 @@ func _test_generation() -> void:
 	var first: RogueRunState = _fresh()
 	var repeat: RogueRunState = _fresh()
 	_check(JSON.stringify(first.data) == JSON.stringify(repeat.data), "same seed reproduces map, tickets, rewards and formations")
+
+func _test_difficulty() -> void:
+	var state: RogueRunState = _fresh()
+	_check(state.data.battle_difficulty == 1 and state.data.nodes.all(func(entry: Dictionary) -> bool: return int(entry.difficulty) == 1), "first-floor node and battle difficulties are explicitly one")
+	for kind: String in ["battle", "emergency"]:
+		var target: Dictionary = {}
+		for entry: Dictionary in state.data.nodes:
+			if entry.kind == kind:
+				target = entry
+				break
+		state.data.phase = "map"
+		state.data.current_node = state._neighbors(int(target.id))[0]
+		state.data.battle_difficulty = 5
+		_check(state.enter_node(int(target.id)) == OK and state.data.battle_difficulty == 1 and bool(state.data.emergency) == (kind == "emergency"), "entering " + kind + " uses node difficulty independently of emergency variant")
+	state = _fresh()
+	var clone := RogueRunState.new()
+	var parsed: Dictionary = JSON.parse_string(JSON.stringify(state.export_checkpoint()))
+	_check(clone.import_checkpoint(parsed) == OK and typeof(clone.data.battle_difficulty) == TYPE_INT and typeof(clone.data.nodes[0].difficulty) == TYPE_INT and clone.data.battle_difficulty == 1, "checkpoint preserves independent difficulty fields and restores integers")
+	parsed.battle_difficulty = 5
+	parsed.nodes[0].difficulty = 3
+	_check(clone.import_checkpoint(parsed) == OK and clone.data.floor == 1 and clone.data.battle_difficulty == 5 and clone.data.nodes[0].difficulty == 3, "difficulty one through five is stored independently of floor and node kind")
+	for invalid: int in [0, 6]:
+		var bad: Dictionary = state.export_checkpoint()
+		bad.battle_difficulty = invalid
+		_check(clone.import_checkpoint(bad) != OK, "out-of-range battle difficulty rejected")
+		bad = state.export_checkpoint()
+		bad.nodes[0].difficulty = invalid
+		_check(clone.import_checkpoint(bad) != OK, "out-of-range node difficulty rejected")
+	var fractional: Dictionary = state.export_checkpoint()
+	fractional.battle_difficulty = 1.5
+	_check(clone.import_checkpoint(fractional) != OK, "fractional battle difficulty rejected")
+	state.data.ap = 1
+	var next: int = int(state._neighbors(int(state.data.current_node))[0])
+	state.node(next).completed = true
+	state.node(next).resolved = true
+	state.enter_node(next)
+	_check(state.data.battle_difficulty == 1 and state.launch_battle() == OK and state.data.battle_difficulty == 1, "pending siege and launched siege retain configured difficulty one")
+	var risk_unchanged: bool = is_equal_approx(float(RogueCatalog.EVENTS.mist_chest.risk_chance), 0.5)
+	for entry: Dictionary in state.data.nodes:
+		if entry.kind == "event":
+			var node_rng := RandomNumberGenerator.new()
+			node_rng.seed = int(entry.content_seed)
+			risk_unchanged = risk_unchanged and bool(entry.risk_success) == (node_rng.randf() < 0.5)
+	_check(risk_unchanged, "configurable mist chance preserves the existing seed stream and fifty-percent default")
 
 func _test_progression_and_modifiers() -> void:
 	var state: RogueRunState = _fresh("ranged")

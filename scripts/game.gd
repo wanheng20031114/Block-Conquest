@@ -731,9 +731,16 @@ func find_recruit_position(kind: String, building: BattleBuilding = null) -> Vec
 				return at
 	return Vector3.INF
 
+func unit_definition_for(_kind: String, _owner: int) -> UnitDefinition:
+	return null
+
+func building_definition_for(_kind: String, _owner: int) -> BuildingDefinition:
+	return null
+
 func spawn_unit(kind: String, faction: int, at: Vector3, id: int = 0) -> Node3D:
 	var unit: Node3D = UNIT_SCENE.instantiate()
 	unit.unit_type = kind
+	unit.definition_override = unit_definition_for(kind, faction)
 	unit.model_scene_override = unit_model_overrides.get(kind)
 	unit.prune_stationary_avoidance = stationary_avoidance_pruning_enabled
 	if unit_batches_enabled:
@@ -1097,6 +1104,7 @@ func spawn_building(kind: String, owner: int, at: Vector3, construction: bool = 
 		$StaticMotionGrid.invalidate()
 	var site: BattleBuilding = BUILDING_SCENE.instantiate()
 	site.building_type = kind
+	site.definition_override = building_definition_for(kind, owner)
 	site.entity_id = id
 	site.owner_id = owner
 	site.team = get_player(owner).alliance_id

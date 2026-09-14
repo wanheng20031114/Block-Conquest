@@ -42,6 +42,8 @@ var is_constructed: bool:
 		return alive and not under_construction
 
 var _stats: BuildingDefinition
+## Optional authored scenario definition, supplied before the scene enters the tree.
+var definition_override: BuildingDefinition
 var _game: Node
 var _model: Node3D
 var _target: Node3D
@@ -60,7 +62,7 @@ var _construction_meshes: Array[MeshInstance3D] = []
 @onready var production: BuildingProduction = $Production
 
 func _ready() -> void:
-	_stats = BalanceCatalog.building(building_type)
+	_stats = definition_override if definition_override != null else BalanceCatalog.building(building_type)
 	_game = get_tree().current_scene
 	if owner_id < 0:
 		owner_id = team

@@ -2,11 +2,13 @@ extends Node3D
 ## Forest route, native node interaction, and complete between-battle menus.
 const STRATEGY_IDS: Array[String] = ["ranged", "melee", "range"]
 const PACK_IDS: Array[String] = ["steady", "ranged", "mobile"]
+const OUTPOST: RogueBattleDefinition = preload("res://data/rogue/battles/outpost.tres")
+const SIEGE: RogueBattleDefinition = preload("res://data/rogue/battles/siege.tres")
 const EVENT_TEXT: Dictionary = {
-	"bread_cart": ["林间面包车", "一辆满载吐司的马车陷在林道的泥泞里。车夫愿意拿口粮换取援手。", ["帮忙推车  ·  行动力 −1 / 面包 +3", "购买口粮  ·  金币 −8 / 面包 +2", "继续前进"]],
-	"lost_guard": ["失散守军", "三名长矛兵守在旧路标旁。他们已经与大部队失联数日。", ["分给口粮  ·  面包 −1 / 长矛兵 +3", "联络援军  ·  金币 −10 / 招募券 +1", "祝他们平安"]],
-	"hunter_camp": ["废弃猎营", "湿冷的猎营里留着一束干燥箭材，以及一些还能卖钱的铁器。", ["带走箭材  ·  远程攻击收藏品 +1", "回收铁器  ·  金币 +12"]],
-	"mist_chest": ["雾中木箱", "树根下的木箱压着一只旧钱袋。更深处还藏着什么，谁也说不准。", ["收好钱袋  ·  金币 +10", "深入搜寻  ·  50% 金币 +20 / 50% 无收获"]],
+	"bread_cart": ["林间面包车", "一辆满载吐司的马车陷在林道的泥泞里。车夫愿意拿口粮换取援手。"],
+	"lost_guard": ["失散守军", "一小队长矛兵守在旧路标旁。他们已经与大部队失联数日。"],
+	"hunter_camp": ["废弃猎营", "湿冷的猎营里留着一束干燥箭材，以及一些还能卖钱的铁器。"],
+	"mist_chest": ["雾中木箱", "树根下的木箱压着一只旧钱袋。更深处还藏着什么，谁也说不准。"],
 }
 @onready var rogue = Session.rogue
 @onready var ui: Control = $Canvas/UI
@@ -228,7 +230,10 @@ func _show_preview(id: int) -> void:
 	match str(target.kind):
 		"battle", "emergency":
 			_show_map_preview(false)
-			detail = "难度 1%s\n\n目标：摧毁所有敌方建筑与部队。\n5座箭塔 · 3座兵营 · %d名敌军\n\n%s" % [" · 紧急作战" if target.kind == "emergency" else "",20 if target.kind == "emergency" else 16,"敌方生命 +25%，攻击 +15%。\n奖励：30金币、3面包、招募券、80经验、收藏品三选一。" if target.kind == "emergency" else "奖励：20金币、2面包、招募券、50经验。"]
+			var emergency: bool = target.kind == "emergency"
+			var reward: Dictionary = RogueCatalog.BALANCE.rewards[target.kind]
+			var reinforcement: String = "敌方生命 +%d%%，攻击 +%d%%。\n" % [roundi((OUTPOST.emergency_hp_multiplier-1.0)*100.0),roundi((OUTPOST.emergency_damage_multiplier-1.0)*100.0)] if emergency else ""
+			detail = "难度 %d%s\n\n目标：摧毁所有敌方建筑与部队。\n5座箭塔 · 3座兵营 · %d名敌军\n\n%s奖励：%d金币、%d面包、%d招募券、%d经验%s。" % [target.difficulty," · 紧急作战" if emergency else "",16+OUTPOST.emergency_reinforcements.size() if emergency else 16,reinforcement,reward.gold,reward.bread,reward.tickets,reward.xp,"、收藏品三选一" if emergency else ""]
 		"shop": detail = "林间商人带来了收藏品、招募券和口粮。\n\n离开后商队启程，无法再次购物。"
 		"event": detail = "林道深处传来一些动静。\n\n一次相遇，几个选择，也许会改变军团的命运。"
 		"camp": detail = "一处可以暂歇的安全营地。\n\n整顿脚步、领取口粮或寻找收藏品，只能选择一项。"
@@ -264,8 +269,9 @@ func _show_content() -> void:
 			var offers: Array = active.offers
 			for index: int in offers.size():
 				var offer: Dictionary = offers[index]
-				var label: String = "招募券" if offer.kind == "ticket" else "吐司面包 ×3"
-				if offer.kind == "relic": label = RogueCatalog.RELICS[offer.relic_id].name
+				var label: String = "招募券"
+				if offer.kind == "bread": label = "吐司面包 ×%d" % int(offer.count)
+				elif offer.kind == "relic": label = RogueCatalog.RELICS[offer.relic_id].name
 				_option(index,"%s%s  ·  %d 金币" % [label,"（售罄）" if offer.sold else "",offer.price],bool(offer.sold) or int(rogue.state.data.gold)<int(offer.price))
 				if offer.kind == "relic": content.get_node("Options/Option%d" % index).tooltip_text = RogueCatalog.RELICS[offer.relic_id].description
 		"event":
@@ -274,25 +280,38 @@ func _show_content() -> void:
 			var info: Array = EVENT_TEXT[event_id]
 			content.get_node("Name").text = info[0]
 			content.get_node("Detail").text = info[1]
-			for index: int in info[2].size():
-				_option(index,info[2][index],not _event_affordable(event_id,index))
+			var options: Array[String] = _event_options(event_id)
+			for index: int in options.size():
+				_option(index,options[index],not _event_affordable(event_id,index))
 			content.get_node("Primary").hide()
 		"camp":
 			_panel_mode = "camp"
 			content.get_node("Detail").text = "篝火旁还有一些干燥的木柴。\n选择一项补给，然后继续前进。"
-			_option(0,"整顿脚步  ·  恢复3行动力（上限12）",int(rogue.state.data.ap)>=12)
-			_option(1,"领取口粮  ·  面包 +2")
+			var camp: Dictionary = RogueCatalog.BALANCE.camp
+			var max_ap: int = int(RogueCatalog.BALANCE.initial.max_ap)
+			_option(0,"整顿脚步  ·  恢复%d行动力（上限%d）" % [camp.ap,max_ap],int(rogue.state.data.ap)>=max_ap)
+			_option(1,"领取口粮  ·  面包 +%d" % int(camp.bread))
 			_option(2,"搜索营地  ·  收藏品三选一")
 			content.get_node("Primary").hide()
 
+func _event_options(id: String) -> Array[String]:
+	var event: Dictionary = RogueCatalog.EVENTS[id]
+	match id:
+		"bread_cart": return ["帮忙推车  ·  行动力 −%d / 面包 +%d" % [event.ap_cost,event.ap_bread],"购买口粮  ·  金币 −%d / 面包 +%d" % [event.gold_cost,event.gold_bread],"继续前进"]
+		"lost_guard": return ["分给口粮  ·  面包 −%d / 长矛兵 +%d" % [event.bread_cost,event.unit_count],"联络援军  ·  金币 −%d / 招募券 +1" % int(event.gold_cost),"祝他们平安"]
+		"hunter_camp": return ["带走箭材  ·  %s +1" % RogueCatalog.RELICS[event.relic].name,"回收铁器  ·  金币 +%d" % int(event.gold)]
+		"mist_chest": return ["收好钱袋  ·  金币 +%d" % int(event.safe_gold),"深入搜寻  ·  %d%% 金币 +%d / %d%% 无收获" % [roundi(float(event.risk_chance)*100.0),event.risk_gold,roundi((1.0-float(event.risk_chance))*100.0)]]
+	return []
+
 func _event_affordable(id: String, option: int) -> bool:
 	var d: Dictionary = rogue.state.data
+	var event: Dictionary = RogueCatalog.EVENTS[id]
 	if id == "bread_cart":
-		if option == 0: return int(d.ap) >= 1
-		if option == 1: return int(d.gold) >= 8
+		if option == 0: return int(d.ap) >= int(event.ap_cost)
+		if option == 1: return int(d.gold) >= int(event.gold_cost)
 	if id == "lost_guard":
-		if option == 0: return int(d.bread) >= 1
-		if option == 1: return int(d.gold) >= 10
+		if option == 0: return int(d.bread) >= int(event.bread_cost)
+		if option == 1: return int(d.gold) >= int(event.gold_cost)
 	return true
 
 func _show_relic_choices(title: String, detail: String) -> void:
@@ -313,7 +332,7 @@ func _show_siege() -> void:
 	content.get_node("Kind").text = "行动力耗尽  /  强制作战"
 	content.get_node("Name").text = "围 剿"
 	_show_map_preview(true)
-	content.get_node("Detail").text = "敌军正在封锁林道。守住中央大本营，等待突围时机。\n\n坚守 150 秒。敌军从四边逐步增援，同时存活不超过24名。\n\n基地被毁即失败；士兵全灭仍可坚守。\n胜利：补满行动力，进入层间整备。"
+	content.get_node("Detail").text = "敌军正在封锁林道。守住中央大本营，等待突围时机。\n\n坚守 %d 秒。敌军从四边逐步增援，同时存活不超过%d名。\n\n基地被毁即失败；士兵全灭仍可坚守。\n胜利：补满行动力，进入层间整备。" % [roundi(SIEGE.duration),SIEGE.enemy_cap]
 	content.get_node("Primary").text = "准备迎战"
 	content.get_node("Secondary").text = "调整围剿编队"
 	ui.get_node("Hint").text = "围剿不可回避 · 可以整备或退出后读档续战"

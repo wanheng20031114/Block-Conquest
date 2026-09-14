@@ -23,7 +23,7 @@ func start_new(strategy: String, pack: String, run_seed: int = 0) -> Error:
 		"gold": int(initial.gold), "bread": int(initial.bread), "ap": int(initial.ap),
 		"current_node": -1, "start_node": -1, "nodes": [], "edges": [],
 		"roster": [], "tickets": [], "relics": {}, "active_node": -1,
-		"battle_kind": "outpost", "emergency": false, "pending_choices": [],
+		"battle_kind": "outpost", "battle_difficulty": int(RogueCatalog.BALANCE.difficulty), "emergency": false, "pending_choices": [],
 		"pending_siege": false, "last_result": "远征已经启程。选择相邻节点开始探索。",
 		"next_unit_uid": 1, "next_ticket_uid": 1, "rng_counter": 0}
 	_generate_map()
@@ -101,6 +101,7 @@ func enter_node(id: int) -> Error:
 		return leave_node()
 	if target.kind in ["battle", "emergency"]:
 		data.battle_kind = "outpost"
+		data.battle_difficulty = int(target.difficulty)
 		data.emergency = target.kind == "emergency"
 		data.phase = "battle"
 	return _ok()
@@ -119,6 +120,7 @@ func leave_node() -> Error:
 	if int(data.ap) == 0:
 		data.pending_siege = true
 		data.battle_kind = "siege"
+		data.battle_difficulty = int(RogueCatalog.BALANCE.difficulty)
 		data.phase = "siege_briefing"
 	return _ok()
 
@@ -129,6 +131,7 @@ func launch_battle() -> Error:
 	if not reason.is_empty(): return _fail(reason)
 	if data.phase == "siege_briefing":
 		data.battle_kind = "siege"
+		data.battle_difficulty = int(RogueCatalog.BALANCE.difficulty)
 		data.emergency = false
 	data.phase = "battle"
 	return _ok()
@@ -321,7 +324,7 @@ func _generate_map() -> void:
 	var balance: Resource = RogueCatalog.BALANCE
 	for index: int in balance.coordinates.size():
 		var coord: Vector2 = balance.coordinates[index]
-		data.nodes.append({"id": index, "x": int(coord.x), "z": int(coord.y), "kind": "road", "completed": false, "resolved": false, "content_seed": 0, "result_text": ""})
+		data.nodes.append({"id": index, "x": int(coord.x), "z": int(coord.y), "kind": "road", "difficulty": int(balance.difficulty), "completed": false, "resolved": false, "content_seed": 0, "result_text": ""})
 	for index: int in range(0, balance.edges.size(), 2):
 		data.edges.append([int(balance.edges[index]), int(balance.edges[index + 1])])
 	var topology_rng: RandomNumberGenerator = _stream(0x13579)
@@ -368,7 +371,7 @@ func _generate_map() -> void:
 		if entry.kind == "shop": entry.offers = _shop_offers(node_rng)
 		if entry.kind == "event":
 			entry.event_id = event_ids[event_index]
-			entry.risk_success = node_rng.randf() < 0.5
+			entry.risk_success = node_rng.randf() < float(RogueCatalog.EVENTS.mist_chest.risk_chance)
 			event_index += 1
 
 func _shop_offers(random: RandomNumberGenerator) -> Array:
@@ -526,13 +529,13 @@ func import_checkpoint(snapshot: Dictionary) -> Error:
 
 func _normalize_checkpoint_integers() -> void:
 	# JSON represents every number as float; restore the documented integer fields.
-	for key: String in ["version", "seed", "floor", "level", "xp", "gold", "bread", "ap", "current_node", "start_node", "active_node", "next_unit_uid", "next_ticket_uid", "rng_counter"]:
+	for key: String in ["version", "seed", "floor", "level", "xp", "gold", "bread", "ap", "current_node", "start_node", "active_node", "battle_difficulty", "next_unit_uid", "next_ticket_uid", "rng_counter"]:
 		data[key] = int(data[key])
 	for edge: Array in data.edges:
 		edge[0] = int(edge[0])
 		edge[1] = int(edge[1])
 	for entry: Dictionary in data.nodes:
-		for key: String in ["id", "x", "z", "content_seed"]: entry[key] = int(entry[key])
+		for key: String in ["id", "x", "z", "content_seed", "difficulty"]: entry[key] = int(entry[key])
 		if entry.kind == "shop":
 			for offer: Dictionary in entry.offers:
 				offer.price = int(offer.price)
@@ -543,7 +546,7 @@ func _normalize_checkpoint_integers() -> void:
 
 func checkpoint_error() -> String:
 	# Validate only plain data. Never load resource paths or instantiate classes from saves.
-	var integer_fields: Array[String] = ["version", "seed", "floor", "level", "xp", "gold", "bread", "ap", "current_node", "start_node", "active_node", "next_unit_uid", "next_ticket_uid", "rng_counter"]
+	var integer_fields: Array[String] = ["version", "seed", "floor", "level", "xp", "gold", "bread", "ap", "current_node", "start_node", "active_node", "battle_difficulty", "next_unit_uid", "next_ticket_uid", "rng_counter"]
 	for key: String in integer_fields:
 		if not data.has(key) or not _integer(data[key]): return "存档缺少有效数值字段：%s" % key
 	for key: String in ["phase", "strategy", "pack", "battle_kind", "last_result"]:
@@ -568,6 +571,7 @@ func checkpoint_error() -> String:
 	if (data.phase == "siege_briefing") != bool(data.pending_siege) or (int(data.ap) == 0) != bool(data.pending_siege):
 		return "行动力与围剿状态不一致"
 	if data.battle_kind not in ["outpost", "siege"] or (data.pending_siege and data.battle_kind != "siege"): return "作战类型无效"
+	if int(data.battle_difficulty) < 1 or int(data.battle_difficulty) > 5: return "作战难度必须位于 1 到 5"
 	var balance: Resource = RogueCatalog.BALANCE
 	if data.nodes.size() != balance.coordinates.size() or data.edges.size() * 2 != balance.edges.size(): return "地图模板数据不完整"
 	for edge_index: int in data.edges.size():
@@ -580,10 +584,11 @@ func checkpoint_error() -> String:
 	for index: int in data.nodes.size():
 		var entry: Variant = data.nodes[index]
 		if typeof(entry) != TYPE_DICTIONARY: return "地图节点无效"
-		for key: String in ["id", "x", "z", "content_seed"]:
+		for key: String in ["id", "x", "z", "content_seed", "difficulty"]:
 			if not entry.has(key) or not _integer(entry[key]): return "地图节点坐标无效"
 		var coord: Vector2 = balance.coordinates[index]
 		if int(entry.id) != index or int(entry.x) != int(coord.x) or int(entry.z) != int(coord.y) or int(entry.content_seed) <= 0: return "地图节点与模板不匹配"
+		if int(entry.difficulty) < 1 or int(entry.difficulty) > 5: return "节点难度必须位于 1 到 5"
 		if not entry.has("kind") or not RogueCatalog.NODE_NAMES.has(entry.kind): return "地图节点类型无效"
 		for key: String in ["completed", "resolved"]:
 			if not entry.has(key) or typeof(entry[key]) != TYPE_BOOL: return "节点完成状态无效"

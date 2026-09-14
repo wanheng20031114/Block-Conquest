@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RogueBattleDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/rogue/rogue_battle_definition.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/rogue/battle_siege_map.tscn" id="map"]
+[resource]
+script = ExtResource("script")
+id = "siege"
+title = "围剿"
+difficulty = 1
+emergency_hp_multiplier = 1.25
+emergency_damage_multiplier = 1.15
+size = Vector2(80, 80)
+map_scene = ExtResource("map")
+duration = 150.0
+enemy_cap = 24
+base_hp = 1800.0
+base_armor = 3.0
+base_damage = 24.0
+base_range = 10.0
+base_cooldown = 2.0
+waves = Array[Dictionary]([{"time": 10, "units": ["swordsman", "swordsman", "spearman", "spearman"]}, {"time": 30, "units": ["swordsman", "swordsman", "swordsman", "archer", "archer"]}, {"time": 50, "units": ["swordsman", "swordsman", "swordsman", "spearman", "archer", "archer"]}, {"time": 70, "units": ["swordsman", "swordsman", "swordsman", "shield_guard", "archer", "archer", "light_cavalry"]}, {"time": 90, "units": ["swordsman", "swordsman", "swordsman", "shield_guard", "archer", "archer", "archer", "light_cavalry"]}, {"time": 110, "units": ["swordsman", "swordsman", "swordsman", "swordsman", "shield_guard", "archer", "archer", "light_cavalry", "catapult"]}, {"time": 130, "units": ["swordsman", "swordsman", "swordsman", "swordsman", "shield_guard", "archer", "archer", "light_cavalry", "catapult"]}])

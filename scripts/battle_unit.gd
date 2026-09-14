@@ -99,6 +99,8 @@ var work_target: Node3D
 var work_progress: float = 0.0
 
 var _stats: UnitDefinition
+## Optional encounter-owned copy; shared multiplayer definitions stay immutable.
+var definition_override: UnitDefinition
 var _model: UnitVisual
 var _attack_animation: AnimationPlayer
 var _game: Node
@@ -163,7 +165,7 @@ var _claimed_mine: bool = false
 func _ready() -> void:
 	if owner_id < 0:
 		owner_id = alliance_id
-	_stats = BalanceCatalog.unit(unit_type)
+	_stats = definition_override if definition_override != null else BalanceCatalog.unit(unit_type)
 	_melee_fighter = _stats.military and _stats.projectile.is_empty()
 	display_name = _stats.name
 	max_hp = _stats.hp

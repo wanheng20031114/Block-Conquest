@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/qa/rogue_release_probe.gd" id="probe"]
+
+[node name="RogueReleaseProbe" type="Node"]
+script = ExtResource("probe")
