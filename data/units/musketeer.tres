@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="UnitDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+id = &"musketeer"
+name = "火枪手"
+description = "高单发伤害的昂贵远程步兵。每发子弹无视3点护甲，射程较短、装填较慢，需要前排掩护，谨防骑兵突袭。"
+attack_windup_seconds = 0.35
+hp = 75.0
+damage = 22.0
+melee_armor = 0.0
+ranged_armor = 1.0
+damage_channel = 1
+armor_penetration = 3.0
+combat_class = &"infantry"
+range = 7.0
+cooldown = 2.2
+cost = 150
+supply = 1
+speed = 3.6
+radius = 0.42
+sight = 14.0
+projectile = "bullet"
+production_building = &"barracks"
+training_seconds = 15.0

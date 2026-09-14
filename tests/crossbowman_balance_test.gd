@@ -10,13 +10,13 @@ func check(ok: bool, label: String) -> void:
 		printerr("FAIL ",label)
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://.local/crossbow-20260914"))
-	var families := {"swordsman":&"infantry","shield_guard":&"infantry","spearman":&"infantry","archer":&"infantry","crossbowman":&"infantry","engineer":&"infantry","priest":&"infantry","farmer":&"infantry","knight":&"cavalry","light_cavalry":&"cavalry","war_elephant":&"cavalry","catapult":&"siege","cannon":&"siege","heavy_cannon":&"siege","triple_cannon":&"siege"}
+	var families := {"swordsman":&"infantry","shield_guard":&"infantry","spearman":&"infantry","archer":&"infantry","crossbowman":&"infantry","musketeer":&"infantry","engineer":&"infantry","priest":&"infantry","farmer":&"infantry","knight":&"cavalry","light_cavalry":&"cavalry","war_elephant":&"cavalry","catapult":&"siege","cannon":&"siege","heavy_cannon":&"siege","triple_cannon":&"siege"}
 	for kind: String in BalanceCatalog.UNITS:
 		var unit := BalanceCatalog.unit(kind)
 		check(unit.combat_class == families[kind] and unit.validation_errors().is_empty(),kind+" family and valid contract")
 		check(unit.is_support() == (kind in ["engineer","priest"]),kind+" support role")
 		check(unit.is_construction() == (kind == "farmer") and unit.military == (kind != "farmer"),kind+" construction role and population")
-		check(unit.is_ranged_infantry() == (kind in ["archer","crossbowman"]),kind+" ranged infantry derivation")
+		check(unit.is_ranged_infantry() == (kind in ["archer","crossbowman","musketeer"]),kind+" ranged infantry derivation")
 	for kind: String in BalanceCatalog.BUILDINGS:
 		check(BalanceCatalog.building(kind).validation_errors().is_empty(),kind+" building contract")
 	var crossbow := BalanceCatalog.unit("crossbowman")

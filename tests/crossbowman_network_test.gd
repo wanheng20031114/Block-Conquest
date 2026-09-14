@@ -41,7 +41,7 @@ func _run() -> void:
 	shooter._model.attack.seek(.56,true)
 	host.elapsed = 1
 	var snapshot := wire(sender.build_snapshot(0))
-	check(NetworkProtocol.VERSION == 15 and not snapshot.is_empty(),"versioned primitive wire round trip")
+	check(NetworkProtocol.VERSION == 16 and not snapshot.is_empty(),"versioned primitive wire round trip")
 	check(state_for(snapshot,hidden.entity_id).is_empty(),"unseen crossbow omitted")
 	check(state_for(snapshot,shooter.entity_id).anim == "strike","host publishes reload action")
 	var client: Node3D = FIXTURE.instantiate()

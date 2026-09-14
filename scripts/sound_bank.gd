@@ -2,6 +2,8 @@ extends RefCounted
 ## Shared audio resources; no runtime directory scan or per-unit duplication.
 
 const EVENTS: Dictionary = {
+	# Shared cannon recordings, quieter and pitched up for a short musket report.
+	"musket_shot": {"streams": [preload("res://assets/audio/cannon_shot_01.wav"), preload("res://assets/audio/cannon_shot_02.wav")], "gain_db": -9.0, "pitch": 1.8, "bus": &"Combat", "priority": 3, "gap_ms": 110, "limit": 3},
 	"sword_swing": {"streams": [preload("res://assets/audio/sword_swing_01.wav"), preload("res://assets/audio/sword_swing_02.wav"), preload("res://assets/audio/sword_swing_03.wav")], "gain_db": -5.0, "bus": &"Combat", "priority": 2, "gap_ms": 85, "limit": 3},
 	"sword_hit": {"streams": [preload("res://assets/audio/sword_hit_01.wav"), preload("res://assets/audio/sword_hit_02.wav"), preload("res://assets/audio/sword_hit_03.wav"), preload("res://assets/audio/sword_hit_04.wav")], "gain_db": -2.0, "bus": &"Combat", "priority": 3, "gap_ms": 75, "limit": 4},
 	"bow_release": {"streams": [preload("res://assets/audio/bow_release_01.wav"), preload("res://assets/audio/bow_release_02.wav"), preload("res://assets/audio/bow_release_03.wav")], "gain_db": -3.0, "bus": &"Combat", "priority": 2, "gap_ms": 110, "limit": 3},

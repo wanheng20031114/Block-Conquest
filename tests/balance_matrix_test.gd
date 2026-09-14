@@ -163,7 +163,7 @@ func _test_siege() -> void:
 
 func _test_production_data() -> void:
 	_check(BalanceCatalog.building(&"headquarters").produces == PackedStringArray(["farmer"]), "HQ recruits farmers only")
-	_check(BalanceCatalog.building(&"barracks").produces == PackedStringArray(["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry"]), "barracks recruits eight approved infantry and cavalry units")
+	_check(BalanceCatalog.building(&"barracks").produces == PackedStringArray(["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry"]), "barracks recruits nine approved infantry and cavalry units")
 	_check(BalanceCatalog.building(&"factory").produces == PackedStringArray(["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"]), "factory recruits its approved siege and support units")
 	_check(BalanceCatalog.unit(&"farmer").training_seconds == 10, "farmer training takes ten seconds")
 	for kind: StringName in KINDS:

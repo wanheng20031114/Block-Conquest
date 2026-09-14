@@ -7,7 +7,7 @@ const CLASS_NAMES: Dictionary = CombatDefinition.GROUP_NAMES
 const FAMILY_FILTERS: Array[StringName] = [&"", &"infantry", &"ranged_infantry", &"melee_infantry", &"cavalry", &"siege"]
 const BUILDING_DESCRIPTIONS: Dictionary = {
 	"headquarters": "城镇的中心。训练农民、守护经济，并为重建保留希望。",
-	"barracks": "训练剑士、盾卫、长矛兵、弓箭手、弩手与各类骑兵，组成你的主力。",
+	"barracks": "训练各类步兵、远程步兵与骑兵，组成你的主力。",
 	"factory": "制造投石车、加农炮、重型火炮、三管短炮并训练工程兵，为前线提供火力和维修支援。",
 	"academy": "训练牧师，并研究军队、人口与采矿科技。训练和研究独立进行，已完成的研究永久保留。",
 	"defense_tower": "自动攻击范围内的敌人。无法驻军，需要部队保护。",
@@ -21,7 +21,7 @@ const MODEL_PATHS: Dictionary = {
 }
 const TECH_MODELS: Dictionary = {&"attack": "swordsman", &"defense": "knight", &"workforce": "farmer", &"army_capacity": "barracks", &"mining": "farmer", &"cannon_range": "cannon", &"recovery": "farmer"}
 const UNIT_FRAMING: Dictionary = {
-	"swordsman": Vector2(1.0, 3.2), "shield_guard": Vector2(1.05, 3.4), "spearman": Vector2(1.35, 4.1), "archer": Vector2(1.0, 3.3), "crossbowman": Vector2(1.0, 3.2), "knight": Vector2(1.35, 4.5), "light_cavalry": Vector2(1.3, 4.2), "war_elephant": Vector2(1.85, 6.4),
+	"swordsman": Vector2(1.0, 3.2), "shield_guard": Vector2(1.05, 3.4), "spearman": Vector2(1.35, 4.1), "archer": Vector2(1.0, 3.3), "crossbowman": Vector2(1.0, 3.2), "musketeer": Vector2(1.08, 3.6), "knight": Vector2(1.35, 4.5), "light_cavalry": Vector2(1.3, 4.2), "war_elephant": Vector2(1.85, 6.4),
 	"catapult": Vector2(1.25, 5.4), "cannon": Vector2(0.8, 4.4), "heavy_cannon": Vector2(.95, 6.0), "triple_cannon": Vector2(.75, 3.8), "farmer": Vector2(1.0, 3.2), "engineer": Vector2(1.0, 3.2), "priest": Vector2(1.0, 3.2),
 }
 enum PreviewAction { IDLE, WALK, ATTACK, GATHER }
@@ -409,7 +409,7 @@ func _unit_notes(unit: UnitDefinition) -> String:
 	if unit.id == &"catapult":
 		return "半径 %s 的范围伤害，范围内伤害一致。巨石落点在发射时确定，可以躲避；不会伤及友军。" % _number(unit.splash_radius)
 	if unit.independent_weapons > 1:
-		return "三根炮管各有2.4秒冷却，空闲炮管可单独开火。自动优先分散，目标不足时集火；手动指定时三管集火。优先步兵，无溅射；步兵附伤也作用于弓箭手、弩手和农民。不受加长炮管科技影响。"
+		return "三根炮管各有2.4秒冷却，空闲炮管可单独开火。自动优先分散，目标不足时集火；手动指定时三管集火。优先步兵，无溅射；步兵附伤也作用于远程步兵与农民。不受加长炮管科技影响。"
 	if unit.cannon_range_upgrades:
 		return "炮弹命中单个目标。适合拆除建筑；需要前排保护，无法攻击贴身敌人。学院研究加长炮管可使射程 +%d。" % BalanceCatalog.upgrade(&"cannon_range_1").total_bonus
 	if not unit.military:

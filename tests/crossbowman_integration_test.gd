@@ -53,7 +53,7 @@ func _run() -> void:
 		game.hud._refresh_actions()
 		for action: Dictionary in game.hud._actions:
 			if action.kind == "recruit": listed.append(action.id)
-	check(listed.size()==8 and listed.has("crossbowman") and listed.has("light_cavalry") and listed.has("war_elephant"),"pagination retains all eight recruits")
+	check(listed.size()==9 and listed.has("crossbowman") and listed.has("light_cavalry") and listed.has("war_elephant"),"pagination retains all nine recruits")
 	player.gold = 74
 	check(not barracks.production.recruit("crossbowman").ok and player.gold==74,"insufficient gold")
 	player.gold = 20000

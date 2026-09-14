@@ -13,6 +13,7 @@ const MODELS: Dictionary = {
 	"spearman": preload("res://assets/models/units/spearman.tscn"),
 	"archer": preload("res://assets/models/units/archer.tscn"),
 	"crossbowman": preload("res://assets/models/units/crossbowman.tscn"),
+	"musketeer": preload("res://assets/models/units/musketeer.tscn"),
 	"knight": preload("res://assets/models/units/knight.tscn"),
 	"light_cavalry": preload("res://assets/models/units/light_cavalry.tscn"),
 	"war_elephant": preload("res://assets/models/units/war_elephant.tscn"),
@@ -37,7 +38,7 @@ const MELEE_CONTACT_TOLERANCE: float = 0.2
 const CONGESTION_SECONDS: float = 0.6
 const BODY_RADIUS_SCALE: float = 0.85
 
-@export_enum("swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer") var unit_type: String = "swordsman"
+@export_enum("swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer") var unit_type: String = "swordsman"
 @export var model_scene_override: PackedScene
 # Presentation and RVO choices are fixed before this unit enters
 # the tree. Network replicas retain the same authority gate as native models.
@@ -801,11 +802,14 @@ func _on_attack_windup_timeout() -> void:
 			_game.spawn_effect(global_position + model_pivot.global_basis * Vector3(.56,.08,-.77), "dust", Color("be9a72"))
 		_game.spawn_effect(contact + Vector3.UP * 1.1, effect_kind, Color("f5d691"))
 	else:
-		if kind != "cannon":
-			sound_requested.emit(&"bow_release" if kind in ["arrow", "bolt"] else &"catapult_release", get_projectile_origin())
+		match kind:
+			"arrow", "bolt": sound_requested.emit(&"bow_release", get_projectile_origin())
+			"stone": sound_requested.emit(&"catapult_release", get_projectile_origin())
 		_game.spawn_projectile(self, strike_target, payload, kind)
 		if kind == "cannon":
 			_game.spawn_effect(get_projectile_origin(), "muzzle", Color("ffd898"))
+		elif kind == "bullet":
+			_game.spawn_effect(get_projectile_origin(), "musket_muzzle", Color("fff0b2"))
 
 func get_projectile_origin(barrel_index: int = 0) -> Vector3:
 	return _model.get_projectile_origin(barrel_index)

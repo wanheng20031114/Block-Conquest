@@ -2,7 +2,7 @@ extends Control
 ## Native sandbox controls share the battle controller's small HUD contract.
 var game: Node3D
 var _message_time: float = 0.0
-const KINDS: PackedStringArray = ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
+const KINDS: PackedStringArray = ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
 
 func _ready() -> void:
 	UIMotion.bind_buttons(self)

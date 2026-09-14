@@ -1,6 +1,6 @@
 extends Control
 
-const UNIT_ORDER := ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
+const UNIT_ORDER := ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
 const BUILD_ORDER := ["barracks", "factory", "academy", "defense_tower", "headquarters"]
 var _actions: Array[Dictionary] = []
 var _queue_actions: Array[Dictionary] = []

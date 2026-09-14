@@ -55,4 +55,5 @@ func validation_errors() -> PackedStringArray:
 	if support_kind not in [&"", &"repair", &"heal"]: errors.append("未知支援能力")
 	if is_construction() != (supply == 0): errors.append("建设单位使用农民名额，军事单位必须占人口")
 	if (damage_channel == DamageChannel.RANGED) != (not projectile.is_empty()): errors.append("攻击方式与投射物配置不一致")
+	if projectile not in ["", "arrow", "bolt", "bullet", "stone", "cannon"]: errors.append("未知投射物类型")
 	return errors

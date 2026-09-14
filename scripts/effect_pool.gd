@@ -15,7 +15,7 @@ var _impact_cells: Dictionary = {}
 var _burst_frame: int = -1
 var _camera: Camera3D
 
-const SMALL_EFFECTS: Array[String] = ["hit", "arrow_hit", "wood_hit", "stone_chip", "dust"]
+const SMALL_EFFECTS: Array[String] = ["hit", "arrow_hit", "bullet_hit", "wood_hit", "stone_chip", "dust"]
 const CELL_PIXELS: float = 64.0
 const DENSITY_WINDOW_MS: int = 100
 const BURST_CELL_PIXELS: float = 16.0
@@ -30,7 +30,7 @@ func _ready() -> void:
 		_available.append(effect)
 
 func play(at: Vector3, kind: String, color: Color) -> void:
-	if kind in ["muzzle", "explosion", "stone_hit"] and not _accept_burst(at, kind == "muzzle"):
+	if kind in ["muzzle", "musket_muzzle", "explosion", "stone_hit"] and not _accept_burst(at, kind in ["muzzle", "musket_muzzle"]):
 		return
 	var small: bool = kind in SMALL_EFFECTS
 	if small and not _accept_small_effect(at):
@@ -63,7 +63,7 @@ func _priority(kind: String) -> int:
 	match kind:
 		"move", "attack": return 3
 		"explosion", "stone_hit", "collapse", "heal": return 2
-		"muzzle", "spawn", "charge": return 1
+		"muzzle", "musket_muzzle", "spawn", "charge": return 1
 	return 0
 
 func _accept_burst(at: Vector3, muzzle: bool) -> bool:

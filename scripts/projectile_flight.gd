@@ -52,6 +52,9 @@ func initialize(game: Node3D, source: Node3D, target: Node3D, payload: DamagePay
 		"bolt":
 			_duration = clampf(distance / 25.0, 0.15, 0.85)
 			_arc_height = 0.13
+		"bullet":
+			_duration = clampf(distance / 55.0, 0.06, 0.35)
+			_arc_height = 0.0
 		"stone":
 			_duration = clampf(distance / 11.0, 0.75, 2.2)
 			_arc_height = clampf(distance * 0.42, 3.5, 9.0)
@@ -66,7 +69,7 @@ func advance(delta: float) -> void:
 		return
 	_elapsed += delta
 	var progress: float = minf(1.0, _elapsed / _duration)
-	if _kind in ["arrow", "bolt", "cannon"] and is_instance_valid(_target) and _target.alive:
+	if _kind in ["arrow", "bolt", "bullet", "cannon"] and is_instance_valid(_target) and _target.alive:
 		_end = _target.global_position + Vector3.UP * (2.0 if _target.is_in_group("buildings") else 1.0)
 	position = _start.lerp(_end, progress)
 	position.y += 4.0 * _arc_height * progress * (1.0 - progress)
@@ -80,15 +83,15 @@ func impact() -> void:
 	if _visual_only:
 		return
 	var damage_source: Node3D = _source if is_instance_valid(_source) else null
-	if _kind in ["arrow", "bolt", "cannon"]:
-		var impact_kind: String = "arrow_hit" if _kind in ["arrow", "bolt"] else "explosion"
+	if _kind in ["arrow", "bolt", "bullet", "cannon"]:
+		var impact_kind: String = "explosion" if _kind == "cannon" else ("bullet_hit" if _kind == "bullet" else "arrow_hit")
 		if is_instance_valid(_target) and _target.alive and _target.alliance_id != _payload.alliance_id:
 			if _kind in ["arrow", "bolt"] and _target.is_in_group("buildings"):
 				impact_kind = _target.get_hit_effect()
 			if _game.is_authority:
 				_target.receive_hit(_payload, damage_source)
 		_game.spawn_effect(_end, impact_kind, Color("ead098"))
-	else:
+	elif _kind == "stone":
 		if _game.is_authority:
 			# Queries are sequential on the main thread. Both standalone and pooled
 			# stones share this native shape/query; intersect_shape returns its own hits.

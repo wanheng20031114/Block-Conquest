@@ -67,7 +67,7 @@ func _run() -> void:
 	await capture("top",codex._viewport)
 	codex.get_node("%FamilyFilter").select(2)
 	codex._on_filters_changed(2)
-	check(codex._entries == ["archer","crossbowman"],"ranged infantry filter shows bow and crossbow")
+	check(codex._entries == ["archer","crossbowman","musketeer"],"ranged infantry filter shows all three ranged infantry")
 	await capture("ranged-filter",root)
 	codex.get_node("%RoleFilter").select(2)
 	codex._on_filters_changed(2)
@@ -79,7 +79,7 @@ func _run() -> void:
 	check(codex._entries == ["engineer","priest"],"support role filter")
 	await capture("support-filter",root)
 	codex.select_entry(0,"crossbowman")
-	check(codex.selected_id == "crossbowman" and codex._entries.size() == 15,"explicit entry link clears obstructing filters")
+	check(codex.selected_id == "crossbowman" and codex._entries.size() == 16,"explicit entry link clears obstructing filters")
 	codex.queue_free()
 	await process_frame
 	var previews: Node = load("res://scenes/model_previews.tscn").instantiate()

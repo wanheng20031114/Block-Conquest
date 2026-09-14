@@ -84,7 +84,7 @@ func _play(kind: StringName, at: Vector3, spatial: bool) -> void:
 	voice.stop()
 	voice.stream = choices[index]
 	voice.volume_db = float(info.gain_db)
-	voice.pitch_scale = randf_range(0.97, 1.03)
+	voice.pitch_scale = float(info.get("pitch", 1.0)) * randf_range(0.97, 1.03)
 	voice.set_meta("kind", kind)
 	voice.set_meta("priority", info.priority)
 	voice.set_meta("started", now)

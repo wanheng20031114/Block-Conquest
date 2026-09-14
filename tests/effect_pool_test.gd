@@ -42,7 +42,7 @@ func run() -> void:
 	pool.play(Vector3.ZERO, "move", Color.WHITE)
 	check(pool.active_count() == 3, "density never suppresses explosions or command feedback")
 	pool.reset_all()
-	for kind: String in ["spawn", "hit", "muzzle", "collapse", "move", "arrow_hit", "dust", "charge"]:
+	for kind: String in ["spawn", "hit", "muzzle", "musket_muzzle", "bullet_hit", "collapse", "move", "arrow_hit", "dust", "charge"]:
 		pool.reset_all()
 		pool.play(Vector3.ZERO, kind, Color.WHITE)
 		var effect: BattleEffect = pool._active.back()
@@ -57,7 +57,7 @@ func run() -> void:
 	var recycled: BattleEffect = pool._active.back()
 	check(recycled.get_node("Dust").visible and recycled.get_node("Debris").visible, "collapse activates both relevant emitters")
 	recycled._on_lifetime_timeout()
-	for kind: String in ["move", "attack", "hit", "stone_chip", "spawn"]:
+	for kind: String in ["move", "attack", "hit", "bullet_hit", "stone_chip", "spawn"]:
 		pool.reset_all()
 		pool.play(Vector3.ZERO, kind, Color.WHITE)
 		var marker: BattleEffect = pool._active.back()
@@ -135,16 +135,29 @@ func run() -> void:
 	pool.reset_all()
 	reused.reset_effect()
 	check(not reused._active and reused.get_node("Sparks").amount == 8 and reused.get_node("Dust").amount == 5, "repeated release is inert and retains reusable particle buffers")
-	for kind: String in ["spawn", "muzzle", "dust", "collapse", "explosion", "stone_hit", "heal", "hit"]:
+	for kind: String in ["spawn", "musket_muzzle", "muzzle", "bullet_hit", "dust", "collapse", "explosion", "stone_hit", "heal", "hit"]:
 		pool.play(Vector3.ZERO, kind, Color.RED)
 		check(pool._active.back() == reused, "configuration transition reuses the same authored instance: " + kind)
+		if kind == "musket_muzzle":
+			check(reused._sparks.amount==3 and reused._dust.amount==2 and reused._dust.speed_scale==3 and reused._dust.scale.is_equal_approx(Vector3.ONE*.14) and not reused._debris.visible,"musket emits five compact fast particles, without debris")
+			check(reused._lifetime.time_left<=.65 and reused._flash.scale.is_equal_approx(Vector3.ONE*.2),"musket lifetime and flash are smaller than cannon")
+		if kind == "bullet_hit":
+			check(reused._sparks.amount==2 and reused._sparks.speed_scale==3 and not reused._dust.visible and not reused._ring.visible,"bullet impact has no explosion or dust ring")
 		if kind == "muzzle":
+			check(reused._sparks.amount==8 and reused._dust.amount==5 and is_equal_approx(reused._dust.speed_scale,1.35) and reused._dust.scale.is_equal_approx(Vector3.ONE*.45),"cannon profile restored after musket borrower")
 			check(reused.get_node("Sparks").direction == reused._spark_defaults.direction and reused.get_node("Sparks").color == Color.RED, "muzzle restores direction and color after spawn")
 		if kind == "stone_hit":
 			check(reused.get_node("Dust").scale == Vector3.ONE and reused.get_node("Debris").scale == Vector3.ONE and reused.get_node("Dust").speed_scale == 1.0 and not reused.get_node("Dust").local_coords, "stone impact restores normal size and timing after compact cannon explosion")
 		if kind == "hit":
 			check(not reused.get_node("Healing").visible and not reused.get_node("Dust").visible, "healing and smoke do not leak into a reused hit")
 		pool.reset_all()
+	camera.size = 8
+	for index: int in count: pool.play(Vector3.ZERO,"musket_muzzle",Color.WHITE)
+	original = pool._active.duplicate()
+	for effect: BattleEffect in original: effect._lifetime.start(.3)
+	for index: int in 500: pool.play(Vector3.ONE,"musket_muzzle",Color.RED)
+	check(pool._active==original and original.all(func(effect: BattleEffect): return is_equal_approx(effect._lifetime.time_left,.3)),"saturated musket fire never restarts live muzzle particles")
+	pool.reset_all()
 	pool.queue_free()
 	camera.queue_free()
 	await process_frame

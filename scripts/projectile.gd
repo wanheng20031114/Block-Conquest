@@ -39,7 +39,8 @@ func bind_flight(launched: ProjectileFlight) -> void:
 	_arrow.scale = Vector3(1, 1, .55) if flight._kind == "bolt" else Vector3.ONE
 	_stone.visible = flight._kind == "stone"
 	_stone.rotation = Vector3.ZERO
-	_cannonball.visible = flight._kind == "cannon"
+	_cannonball.visible = flight._kind in ["cannon", "bullet"]
+	_cannonball.scale = Vector3.ONE * .2 if flight._kind == "bullet" else Vector3.ONE
 	_trail.hide()
 	_trail.emitting = false
 	global_position = flight.position
