@@ -1,29 +1,710 @@
 [gd_scene format=3]
 [ext_resource type="NavigationMesh" path="res://scenes/rogue/battle_siege_navigation.tres" id="nav"]
-[ext_resource type="PackedScene" path="res://assets/models/environment/tree_oak.tscn" id="oak"]
-[ext_resource type="PackedScene" path="res://assets/models/environment/tree_pine.tscn" id="pine"]
-[ext_resource type="PackedScene" path="res://assets/models/environment/campfire.tscn" id="fire"]
-[ext_resource type="PackedScene" path="res://assets/models/environment/crate.tscn" id="crate"]
-[sub_resource type="StandardMaterial3D" id="grass"]
-albedo_color = Color(0.24, 0.31, 0.19, 1)
-roughness = 1.0
-[sub_resource type="StandardMaterial3D" id="path"]
-albedo_color = Color(0.47, 0.40, 0.27, 1)
-roughness = 1.0
-[sub_resource type="BoxMesh" id="ground"]
-size = Vector3(80, 0.8, 80)
-material = SubResource("grass")
+[ext_resource type="PackedScene" path="res://scenes/rogue/forest_siege.tscn" id="forest"]
 [sub_resource type="BoxShape3D" id="floor"]
 size = Vector3(80, 1, 80)
-[sub_resource type="CylinderShape3D" id="trunk"]
-radius = 0.42
-height = 4.0
-[sub_resource type="BoxMesh" id="east_road"]
-size = Vector3(74, 0.025, 7)
-material = SubResource("path")
-[sub_resource type="BoxMesh" id="cross_road"]
-size = Vector3(7, 0.025, 74)
-material = SubResource("path")
+[sub_resource type="CylinderShape3D" id="obstacle0"]
+radius = 0.45108
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle1"]
+radius = 0.41751
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle2"]
+radius = 0.30792
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle3"]
+radius = 0.33395
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle4"]
+radius = 0.39512
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle5"]
+radius = 0.42114
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle6"]
+radius = 0.43549
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle7"]
+radius = 0.30550
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle8"]
+radius = 0.29834
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle9"]
+radius = 0.44525
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle10"]
+radius = 0.32269
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle11"]
+radius = 0.39579
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle12"]
+radius = 0.36310
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle13"]
+radius = 0.39150
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle14"]
+radius = 0.33225
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle15"]
+radius = 0.42129
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle16"]
+radius = 0.34053
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle17"]
+radius = 0.45020
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle18"]
+radius = 0.42852
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle19"]
+radius = 0.37915
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle20"]
+radius = 0.37128
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle21"]
+radius = 0.35675
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle22"]
+radius = 0.32900
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle23"]
+radius = 0.39826
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle24"]
+radius = 0.39043
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle25"]
+radius = 0.41842
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle26"]
+radius = 0.39863
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle27"]
+radius = 0.39543
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle28"]
+radius = 0.37133
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle29"]
+radius = 0.38744
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle30"]
+radius = 0.29301
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle31"]
+radius = 0.32314
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle32"]
+radius = 0.39589
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle33"]
+radius = 0.34794
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle34"]
+radius = 0.39236
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle35"]
+radius = 0.31847
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle36"]
+radius = 0.37132
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle37"]
+radius = 0.32854
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle38"]
+radius = 0.39989
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle39"]
+radius = 0.44348
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle40"]
+radius = 0.31666
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle41"]
+radius = 0.28810
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle42"]
+radius = 0.38029
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle43"]
+radius = 0.34388
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle44"]
+radius = 0.31409
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle45"]
+radius = 0.35749
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle46"]
+radius = 0.36788
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle47"]
+radius = 0.34902
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle48"]
+radius = 0.32995
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle49"]
+radius = 0.40239
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle50"]
+radius = 0.44923
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle51"]
+radius = 0.35374
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle52"]
+radius = 0.34715
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle53"]
+radius = 0.42474
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle54"]
+radius = 0.41349
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle55"]
+radius = 0.37550
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle56"]
+radius = 0.29504
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle57"]
+radius = 0.45136
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle58"]
+radius = 0.32850
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle59"]
+radius = 0.30435
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle60"]
+radius = 0.44864
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle61"]
+radius = 0.44884
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle62"]
+radius = 0.34602
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle63"]
+radius = 0.43829
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle64"]
+radius = 0.31646
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle65"]
+radius = 0.41701
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle66"]
+radius = 0.43356
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle67"]
+radius = 0.45047
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle68"]
+radius = 0.29501
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle69"]
+radius = 0.40277
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle70"]
+radius = 0.36388
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle71"]
+radius = 0.29154
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle72"]
+radius = 0.43182
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle73"]
+radius = 0.30008
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle74"]
+radius = 0.39904
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle75"]
+radius = 0.38364
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle76"]
+radius = 0.39578
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle77"]
+radius = 0.40493
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle78"]
+radius = 0.42961
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle79"]
+radius = 0.43303
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle80"]
+radius = 0.30181
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle81"]
+radius = 0.42992
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle82"]
+radius = 0.44709
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle83"]
+radius = 0.29849
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle84"]
+radius = 0.31651
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle85"]
+radius = 0.38006
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle86"]
+radius = 0.28929
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle87"]
+radius = 0.39328
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle88"]
+radius = 0.39882
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle89"]
+radius = 0.36160
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle90"]
+radius = 0.32292
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle91"]
+radius = 0.32192
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle92"]
+radius = 0.39450
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle93"]
+radius = 0.30111
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle94"]
+radius = 0.31124
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle95"]
+radius = 0.29689
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle96"]
+radius = 0.30778
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle97"]
+radius = 0.43362
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle98"]
+radius = 0.36871
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle99"]
+radius = 0.36763
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle100"]
+radius = 0.44246
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle101"]
+radius = 0.44252
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle102"]
+radius = 0.42712
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle103"]
+radius = 0.40762
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle104"]
+radius = 0.30024
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle105"]
+radius = 0.33073
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle106"]
+radius = 0.34897
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle107"]
+radius = 0.35126
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle108"]
+radius = 0.42277
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle109"]
+radius = 0.40565
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle110"]
+radius = 0.40459
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle111"]
+radius = 0.40343
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle112"]
+radius = 0.40785
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle113"]
+radius = 0.30733
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle114"]
+radius = 0.42649
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle115"]
+radius = 0.45120
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle116"]
+radius = 0.41368
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle117"]
+radius = 0.44863
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle118"]
+radius = 0.40729
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle119"]
+radius = 0.38456
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle120"]
+radius = 0.29971
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle121"]
+radius = 0.33792
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle122"]
+radius = 0.38127
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle123"]
+radius = 0.32004
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle124"]
+radius = 0.41723
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle125"]
+radius = 0.31634
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle126"]
+radius = 0.32508
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle127"]
+radius = 0.35862
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle128"]
+radius = 0.40744
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle129"]
+radius = 0.35779
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle130"]
+radius = 0.39495
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle131"]
+radius = 0.30127
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle132"]
+radius = 0.45092
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle133"]
+radius = 0.32157
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle134"]
+radius = 0.45127
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle135"]
+radius = 0.40729
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle136"]
+radius = 0.31883
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle137"]
+radius = 0.31272
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle138"]
+radius = 0.42036
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle139"]
+radius = 0.32887
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle140"]
+radius = 0.43696
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle141"]
+radius = 0.30598
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle142"]
+radius = 0.31214
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle143"]
+radius = 0.38804
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle144"]
+radius = 0.34390
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle145"]
+radius = 0.29176
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle146"]
+radius = 0.28903
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle147"]
+radius = 0.31562
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle148"]
+radius = 0.43816
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle149"]
+radius = 0.30185
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle150"]
+radius = 0.43725
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle151"]
+radius = 0.34897
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle152"]
+radius = 0.43489
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle153"]
+radius = 0.33941
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle154"]
+radius = 0.43875
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle155"]
+radius = 0.32566
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle156"]
+radius = 0.41674
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle157"]
+radius = 0.30198
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle158"]
+radius = 0.31725
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle159"]
+radius = 0.40485
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle160"]
+radius = 0.36674
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle161"]
+radius = 0.31535
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle162"]
+radius = 0.41000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle163"]
+radius = 0.43672
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle164"]
+radius = 0.39068
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle165"]
+radius = 0.29422
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle166"]
+radius = 0.37778
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle167"]
+radius = 0.39722
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle168"]
+radius = 0.35407
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle169"]
+radius = 0.33205
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle170"]
+radius = 0.37495
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle171"]
+radius = 0.36400
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle172"]
+radius = 0.30917
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle173"]
+radius = 0.31579
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle174"]
+radius = 0.33004
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle175"]
+radius = 0.39959
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle176"]
+radius = 0.38179
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle177"]
+radius = 0.41390
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle178"]
+radius = 0.44316
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle179"]
+radius = 0.35808
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle180"]
+radius = 0.30173
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle181"]
+radius = 0.35128
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle182"]
+radius = 0.32851
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle183"]
+radius = 0.34751
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle184"]
+radius = 0.41653
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle185"]
+radius = 0.38147
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle186"]
+radius = 0.35712
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle187"]
+radius = 0.38918
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle188"]
+radius = 0.37809
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle189"]
+radius = 0.40940
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle190"]
+radius = 0.45050
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle191"]
+radius = 0.34347
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle192"]
+radius = 0.40324
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle193"]
+radius = 0.38062
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle194"]
+radius = 0.37955
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle195"]
+radius = 0.33134
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle196"]
+radius = 0.38252
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle197"]
+radius = 0.33852
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle198"]
+radius = 0.35932
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle199"]
+radius = 0.39769
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle200"]
+radius = 0.34939
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle201"]
+radius = 0.35482
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle202"]
+radius = 0.33188
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle203"]
+radius = 0.40879
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle204"]
+radius = 0.44649
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle205"]
+radius = 0.33830
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle206"]
+radius = 0.29284
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle207"]
+radius = 3.40000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle208"]
+radius = 3.30000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle209"]
+radius = 2.60000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle210"]
+radius = 2.90000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle211"]
+radius = 2.38000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle212"]
+radius = 2.04000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle213"]
+radius = 1.87000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle214"]
+radius = 2.00000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle215"]
+radius = 2.00000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle216"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle217"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle218"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle219"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle220"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle221"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle222"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle223"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle224"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle225"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle226"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle227"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle228"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle229"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle230"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle231"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle232"]
+radius = 0.23000
+height = 2.0
+[sub_resource type="CylinderShape3D" id="obstacle233"]
+radius = 0.23000
+height = 2.0
 [node name="Siege" type="Node3D"]
 metadata/map_id = "rogue_siege"
 metadata/map_size = Vector2(80, 80)
@@ -36,756 +717,6 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Ground"]
 position = Vector3(0, -0.5, 0)
 shape = SubResource("floor")
-[node name="Mesh" type="MeshInstance3D" parent="Environment/Ground"]
-position = Vector3(0, -0.4, 0)
-mesh = SubResource("ground")
-[node name="Road" type="MeshInstance3D" parent="Environment"]
-mesh = SubResource("east_road")
-position = Vector3(0, 0.018, 0)
-[node name="CrossRoad" type="MeshInstance3D" parent="Environment"]
-mesh = SubResource("cross_road")
-position = Vector3(0, 0.023, 0)
-[node name="NaturalObstacles" type="Node3D" parent="Environment"]
-[node name="Tree0" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.937, 0, -37.031)
-scale = Vector3(0.888, 0.888, 0.888)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree0"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree0" instance=ExtResource("oak")]
-rotation = Vector3(0, 5.393, 0)
-[node name="Tree1" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-32.011, 0, -37.053)
-scale = Vector3(0.916, 0.916, 0.916)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree1"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree1" instance=ExtResource("pine")]
-rotation = Vector3(0, 1.115, 0)
-[node name="Tree2" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-28.967, 0, -37.602)
-scale = Vector3(0.984, 0.984, 0.984)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree2"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree2" instance=ExtResource("pine")]
-rotation = Vector3(0, 1.994, 0)
-[node name="Tree3" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-24.421, 0, -37.172)
-scale = Vector3(0.915, 0.915, 0.915)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree3"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree3" instance=ExtResource("oak")]
-rotation = Vector3(0, 1.008, 0)
-[node name="Tree4" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-20.912, 0, -37.314)
-scale = Vector3(1.067, 1.067, 1.067)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree4"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree4" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.633, 0)
-[node name="Tree5" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-17.757, 0, -37.609)
-scale = Vector3(1.022, 1.022, 1.022)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree5"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree5" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.509, 0)
-[node name="Tree6" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-12.152, 0, -37.178)
-scale = Vector3(1.104, 1.104, 1.104)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree6"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree6" instance=ExtResource("oak")]
-rotation = Vector3(0, 1.736, 0)
-[node name="Tree7" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-9.440, 0, -37.061)
-scale = Vector3(0.903, 0.903, 0.903)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree7"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree7" instance=ExtResource("pine")]
-rotation = Vector3(0, 6.026, 0)
-[node name="Tree8" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-5.324, 0, -37.843)
-scale = Vector3(1.065, 1.065, 1.065)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree8"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree8" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.568, 0)
-[node name="Tree9" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-0.409, 0, -37.298)
-scale = Vector3(1.172, 1.172, 1.172)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree9"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree9" instance=ExtResource("oak")]
-rotation = Vector3(0, 4.485, 0)
-[node name="Tree10" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(3.405, 0, -37.347)
-scale = Vector3(0.913, 0.913, 0.913)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree10"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree10" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.660, 0)
-[node name="Tree11" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(7.917, 0, -37.010)
-scale = Vector3(1.130, 1.130, 1.130)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree11"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree11" instance=ExtResource("pine")]
-rotation = Vector3(0, 5.381, 0)
-[node name="Tree12" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(11.994, 0, -37.116)
-scale = Vector3(1.195, 1.195, 1.195)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree12"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree12" instance=ExtResource("oak")]
-rotation = Vector3(0, 3.450, 0)
-[node name="Tree13" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(15.514, 0, -37.188)
-scale = Vector3(1.111, 1.111, 1.111)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree13"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree13" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.893, 0)
-[node name="Tree14" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(18.255, 0, -37.163)
-scale = Vector3(0.959, 0.959, 0.959)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree14"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree14" instance=ExtResource("pine")]
-rotation = Vector3(0, 5.741, 0)
-[node name="Tree15" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(23.287, 0, -37.101)
-scale = Vector3(1.022, 1.022, 1.022)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree15"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree15" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.445, 0)
-[node name="Tree16" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(26.541, 0, -37.447)
-scale = Vector3(1.194, 1.194, 1.194)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree16"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree16" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.299, 0)
-[node name="Tree17" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(31.682, 0, -37.006)
-scale = Vector3(1.209, 1.209, 1.209)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree17"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree17" instance=ExtResource("pine")]
-rotation = Vector3(0, 1.483, 0)
-[node name="Tree18" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(35.610, 0, -37.515)
-scale = Vector3(0.882, 0.882, 0.882)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree18"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree18" instance=ExtResource("oak")]
-rotation = Vector3(0, 5.792, 0)
-[node name="Tree19" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -33.000)
-scale = Vector3(1.173, 1.173, 1.173)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree19"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree19" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.066, 0)
-[node name="Tree20" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -28.000)
-scale = Vector3(0.815, 0.815, 0.815)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree20"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree20" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.369, 0)
-[node name="Tree21" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -23.000)
-scale = Vector3(1.179, 1.179, 1.179)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree21"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree21" instance=ExtResource("oak")]
-rotation = Vector3(0, 3.490, 0)
-[node name="Tree22" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -18.000)
-scale = Vector3(1.056, 1.056, 1.056)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree22"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree22" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.443, 0)
-[node name="Tree23" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -13.000)
-scale = Vector3(0.894, 0.894, 0.894)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree23"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree23" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.823, 0)
-[node name="Tree24" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -8.000)
-scale = Vector3(0.866, 0.866, 0.866)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree24"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree24" instance=ExtResource("oak")]
-rotation = Vector3(0, 5.141, 0)
-[node name="Tree25" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, -3.000)
-scale = Vector3(1.087, 1.087, 1.087)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree25"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree25" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.912, 0)
-[node name="Tree26" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 2.000)
-scale = Vector3(0.829, 0.829, 0.829)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree26"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree26" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.807, 0)
-[node name="Tree27" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 7.000)
-scale = Vector3(0.972, 0.972, 0.972)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree27"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree27" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.853, 0)
-[node name="Tree28" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 12.000)
-scale = Vector3(0.843, 0.843, 0.843)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree28"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree28" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.709, 0)
-[node name="Tree29" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 17.000)
-scale = Vector3(0.854, 0.854, 0.854)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree29"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree29" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.922, 0)
-[node name="Tree30" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 22.000)
-scale = Vector3(0.901, 0.901, 0.901)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree30"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree30" instance=ExtResource("oak")]
-rotation = Vector3(0, 3.189, 0)
-[node name="Tree31" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 27.000)
-scale = Vector3(1.061, 1.061, 1.061)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree31"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree31" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.847, 0)
-[node name="Tree32" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-37.500, 0, 32.000)
-scale = Vector3(0.811, 0.811, 0.811)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree32"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree32" instance=ExtResource("pine")]
-rotation = Vector3(0, 5.463, 0)
-[node name="Tree33" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-36.293, 0, 37.630)
-scale = Vector3(0.916, 0.916, 0.916)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree33"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree33" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.896, 0)
-[node name="Tree34" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-32.571, 0, 37.063)
-scale = Vector3(0.914, 0.914, 0.914)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree34"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree34" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.797, 0)
-[node name="Tree35" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-28.992, 0, 37.854)
-scale = Vector3(1.104, 1.104, 1.104)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree35"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree35" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.276, 0)
-[node name="Tree36" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-25.920, 0, 37.959)
-scale = Vector3(0.869, 0.869, 0.869)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree36"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree36" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.070, 0)
-[node name="Tree37" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-21.631, 0, 37.578)
-scale = Vector3(0.832, 0.832, 0.832)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree37"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree37" instance=ExtResource("pine")]
-rotation = Vector3(0, 6.009, 0)
-[node name="Tree38" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-17.178, 0, 37.212)
-scale = Vector3(1.003, 1.003, 1.003)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree38"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree38" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.701, 0)
-[node name="Tree39" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-13.301, 0, 37.421)
-scale = Vector3(0.953, 0.953, 0.953)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree39"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree39" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.635, 0)
-[node name="Tree40" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-9.040, 0, 37.657)
-scale = Vector3(0.989, 0.989, 0.989)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree40"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree40" instance=ExtResource("pine")]
-rotation = Vector3(0, 1.120, 0)
-[node name="Tree41" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-4.942, 0, 37.297)
-scale = Vector3(0.979, 0.979, 0.979)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree41"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree41" instance=ExtResource("pine")]
-rotation = Vector3(0, 5.878, 0)
-[node name="Tree42" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-1.844, 0, 37.458)
-scale = Vector3(1.027, 1.027, 1.027)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree42"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree42" instance=ExtResource("oak")]
-rotation = Vector3(0, 2.850, 0)
-[node name="Tree43" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(2.319, 0, 37.317)
-scale = Vector3(1.050, 1.050, 1.050)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree43"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree43" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.574, 0)
-[node name="Tree44" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(6.972, 0, 37.631)
-scale = Vector3(0.915, 0.915, 0.915)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree44"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree44" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.633, 0)
-[node name="Tree45" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(11.640, 0, 37.149)
-scale = Vector3(1.214, 1.214, 1.214)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree45"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree45" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.034, 0)
-[node name="Tree46" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(14.680, 0, 37.270)
-scale = Vector3(0.951, 0.951, 0.951)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree46"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree46" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.473, 0)
-[node name="Tree47" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(19.893, 0, 37.694)
-scale = Vector3(1.225, 1.225, 1.225)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree47"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree47" instance=ExtResource("pine")]
-rotation = Vector3(0, 1.692, 0)
-[node name="Tree48" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(23.982, 0, 37.464)
-scale = Vector3(1.161, 1.161, 1.161)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree48"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree48" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.797, 0)
-[node name="Tree49" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(26.088, 0, 37.813)
-scale = Vector3(0.915, 0.915, 0.915)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree49"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree49" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.544, 0)
-[node name="Tree50" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(30.668, 0, 37.671)
-scale = Vector3(1.029, 1.029, 1.029)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree50"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree50" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.458, 0)
-[node name="Tree51" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(35.104, 0, 37.320)
-scale = Vector3(0.977, 0.977, 0.977)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree51"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree51" instance=ExtResource("oak")]
-rotation = Vector3(0, 4.792, 0)
-[node name="Tree52" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -33.000)
-scale = Vector3(1.168, 1.168, 1.168)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree52"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree52" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.188, 0)
-[node name="Tree53" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -28.000)
-scale = Vector3(0.811, 0.811, 0.811)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree53"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree53" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.188, 0)
-[node name="Tree54" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -23.000)
-scale = Vector3(0.808, 0.808, 0.808)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree54"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree54" instance=ExtResource("oak")]
-rotation = Vector3(0, 1.570, 0)
-[node name="Tree55" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -18.000)
-scale = Vector3(1.057, 1.057, 1.057)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree55"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree55" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.935, 0)
-[node name="Tree56" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -13.000)
-scale = Vector3(0.833, 0.833, 0.833)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree56"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree56" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.143, 0)
-[node name="Tree57" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -8.000)
-scale = Vector3(0.903, 0.903, 0.903)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree57"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree57" instance=ExtResource("oak")]
-rotation = Vector3(0, 0.465, 0)
-[node name="Tree58" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, -3.000)
-scale = Vector3(0.909, 0.909, 0.909)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree58"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree58" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.526, 0)
-[node name="Tree59" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 2.000)
-scale = Vector3(0.810, 0.810, 0.810)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree59"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree59" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.431, 0)
-[node name="Tree60" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 7.000)
-scale = Vector3(0.956, 0.956, 0.956)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree60"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree60" instance=ExtResource("oak")]
-rotation = Vector3(0, 5.127, 0)
-[node name="Tree61" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 12.000)
-scale = Vector3(1.189, 1.189, 1.189)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree61"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree61" instance=ExtResource("pine")]
-rotation = Vector3(0, 2.038, 0)
-[node name="Tree62" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 17.000)
-scale = Vector3(1.144, 1.144, 1.144)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree62"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree62" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.712, 0)
-[node name="Tree63" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 22.000)
-scale = Vector3(0.817, 0.817, 0.817)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree63"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree63" instance=ExtResource("oak")]
-rotation = Vector3(0, 3.712, 0)
-[node name="Tree64" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 27.000)
-scale = Vector3(1.196, 1.196, 1.196)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree64"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree64" instance=ExtResource("pine")]
-rotation = Vector3(0, 4.222, 0)
-[node name="Tree65" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(37.500, 0, 32.000)
-scale = Vector3(1.161, 1.161, 1.161)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree65"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree65" instance=ExtResource("pine")]
-rotation = Vector3(0, 6.209, 0)
-[node name="Tree66" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-21.000, 0, -21.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree66"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree66" instance=ExtResource("oak")]
-rotation = Vector3(0, 1.352, 0)
-[node name="Tree67" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-24.000, 0, -20.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree67"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree67" instance=ExtResource("pine")]
-rotation = Vector3(0, 0.612, 0)
-[node name="Tree68" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(22.000, 0, -22.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree68"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree68" instance=ExtResource("pine")]
-rotation = Vector3(0, 5.807, 0)
-[node name="Tree69" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(24.000, 0, -20.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree69"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree69" instance=ExtResource("oak")]
-rotation = Vector3(0, 1.696, 0)
-[node name="Tree70" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-23.000, 0, 23.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree70"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree70" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.922, 0)
-[node name="Tree71" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(-20.000, 0, 25.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree71"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree71" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.552, 0)
-[node name="Tree72" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(23.000, 0, 23.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree72"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree72" instance=ExtResource("oak")]
-rotation = Vector3(0, 6.166, 0)
-[node name="Tree73" type="StaticBody3D" parent="Environment/NaturalObstacles"]
-position = Vector3(20.000, 0, 25.000)
-scale = Vector3(1.200, 1.200, 1.200)
-collision_layer = 128
-collision_mask = 0
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/NaturalObstacles/Tree73"]
-position = Vector3(0, 2, 0)
-shape = SubResource("trunk")
-[node name="Model" parent="Environment/NaturalObstacles/Tree73" instance=ExtResource("pine")]
-rotation = Vector3(0, 3.730, 0)
 [node name="Buildings" type="Node3D" parent="."]
 [node name="Building0" type="Marker3D" parent="Buildings"]
 position = Vector3(0, 0, 0)
@@ -800,11 +731,1643 @@ position = Vector3(0, 0, -33)
 position = Vector3(33, 0, 0)
 [node name="South" type="Marker3D" parent="Entrances"]
 position = Vector3(0, 0, 33)
-[node name="Camp0" parent="Environment" instance=ExtResource("fire")]
-position = Vector3(-8, 0, -8)
-[node name="Crate0" parent="Environment" instance=ExtResource("crate")]
-position = Vector3(-6, 0, -6)
-[node name="Camp1" parent="Environment" instance=ExtResource("fire")]
-position = Vector3(8, 0, 8)
-[node name="Crate1" parent="Environment" instance=ExtResource("crate")]
-position = Vector3(10, 0, 10)
+[node name="ForestLandscape" parent="Environment" instance=ExtResource("forest")]
+[node name="NaturalObstacles" type="Node3D" parent="Environment"]
+[node name="Obstacle0" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.9835, 0.0000, -37.0155)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle0"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle0")
+[node name="Obstacle1" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-34.9658, 0.0000, -38.2136)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle1"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle1")
+[node name="Obstacle2" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-31.9078, 0.0000, -37.6094)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle2"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle2")
+[node name="Obstacle3" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.1094, 0.0000, -37.3229)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle3"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle3")
+[node name="Obstacle4" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.5762, 0.0000, -37.3129)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle4"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle4")
+[node name="Obstacle5" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-16.1945, 0.0000, -37.2077)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle5"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle5")
+[node name="Obstacle6" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.2917, 0.0000, -38.3099)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle6"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle6")
+[node name="Obstacle7" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.4556, 0.0000, -38.8982)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle7"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle7")
+[node name="Obstacle8" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(13.2735, 0.0000, -38.5075)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle8"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle8")
+[node name="Obstacle9" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.7439, 0.0000, -37.6320)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle9"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle9")
+[node name="Obstacle10" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.1635, 0.0000, -38.9022)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle10"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle10")
+[node name="Obstacle11" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.8339, 0.0000, -38.3360)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle11"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle11")
+[node name="Obstacle12" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(24.5730, 0.0000, -38.2155)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle12"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle12")
+[node name="Obstacle13" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(27.6165, 0.0000, -37.8816)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle13"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle13")
+[node name="Obstacle14" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.2626, 0.0000, -37.1193)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle14"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle14")
+[node name="Obstacle15" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(36.9249, 0.0000, -37.3638)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle15"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle15")
+[node name="Obstacle16" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.6419, 0.0000, -34.9817)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle16"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle16")
+[node name="Obstacle17" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.0057, 0.0000, -34.2434)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle17"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle17")
+[node name="Obstacle18" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-19.5226, 0.0000, -34.5503)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle18"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle18")
+[node name="Obstacle19" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.1132, 0.0000, -35.3593)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle19"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle19")
+[node name="Obstacle20" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-8.7647, 0.0000, -34.4753)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle20"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle20")
+[node name="Obstacle21" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.9157, 0.0000, -35.0969)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle21"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle21")
+[node name="Obstacle22" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(13.5525, 0.0000, -35.9870)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle22"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle22")
+[node name="Obstacle23" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.6313, 0.0000, -35.8119)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle23"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle23")
+[node name="Obstacle24" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.1546, 0.0000, -34.1082)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle24"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle24")
+[node name="Obstacle25" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(25.1974, 0.0000, -34.3461)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle25"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle25")
+[node name="Obstacle26" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(34.7941, 0.0000, -34.0724)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle26"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle26")
+[node name="Obstacle27" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.7654, 0.0000, -32.2140)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle27"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle27")
+[node name="Obstacle28" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-34.1981, 0.0000, -31.3400)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle28"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle28")
+[node name="Obstacle29" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-25.1651, 0.0000, -32.8606)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle29"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle29")
+[node name="Obstacle30" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(13.5301, 0.0000, -32.5236)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle30"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle30")
+[node name="Obstacle31" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.2042, 0.0000, -32.6100)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle31"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle31")
+[node name="Obstacle32" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-24.0466, 0.0000, -29.3077)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle32"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle32")
+[node name="Obstacle33" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-20.4338, 0.0000, -28.2881)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle33"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle33")
+[node name="Obstacle34" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-11.5310, 0.0000, -28.4437)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle34"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle34")
+[node name="Obstacle35" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(9.1517, 0.0000, -29.0723)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle35"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle35")
+[node name="Obstacle36" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(13.8322, 0.0000, -28.6492)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle36"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle36")
+[node name="Obstacle37" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(25.4748, 0.0000, -28.8921)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle37"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle37")
+[node name="Obstacle38" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.1049, 0.0000, -29.4427)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle38"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle38")
+[node name="Obstacle39" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(33.8771, 0.0000, -28.9192)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle39"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle39")
+[node name="Obstacle40" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.0634, 0.0000, -28.7293)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle40"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle40")
+[node name="Obstacle41" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.3159, 0.0000, -26.0375)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle41"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle41")
+[node name="Obstacle42" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-29.1628, 0.0000, -26.2564)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle42"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle42")
+[node name="Obstacle43" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-26.0707, 0.0000, -26.5676)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle43"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle43")
+[node name="Obstacle44" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.7945, 0.0000, -25.6252)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle44"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle44")
+[node name="Obstacle45" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-11.3929, 0.0000, -25.3478)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle45"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle45")
+[node name="Obstacle46" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.8473, 0.0000, -26.7241)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle46"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle46")
+[node name="Obstacle47" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.7455, 0.0000, -25.1661)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle47"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle47")
+[node name="Obstacle48" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(27.6756, 0.0000, -25.5983)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle48"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle48")
+[node name="Obstacle49" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.0684, 0.0000, -25.5599)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle49"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle49")
+[node name="Obstacle50" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.6898, 0.0000, -22.5825)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle50"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle50")
+[node name="Obstacle51" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.8439, 0.0000, -22.4222)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle51"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle51")
+[node name="Obstacle52" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-20.9724, 0.0000, -23.7831)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle52"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle52")
+[node name="Obstacle53" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-17.3568, 0.0000, -23.9833)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle53"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle53")
+[node name="Obstacle54" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.7610, 0.0000, -23.7667)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle54"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle54")
+[node name="Obstacle55" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(13.7910, 0.0000, -23.6248)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle55"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle55")
+[node name="Obstacle56" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.0810, 0.0000, -22.4433)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle56"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle56")
+[node name="Obstacle57" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(24.4010, 0.0000, -23.9971)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle57"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle57")
+[node name="Obstacle58" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(28.6722, 0.0000, -23.1509)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle58"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle58")
+[node name="Obstacle59" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(34.0144, 0.0000, -23.5014)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle59"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle59")
+[node name="Obstacle60" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(36.4514, 0.0000, -22.4700)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle60"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle60")
+[node name="Obstacle61" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-31.5859, 0.0000, -20.3512)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle61"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle61")
+[node name="Obstacle62" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-29.1129, 0.0000, -20.1273)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle62"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle62")
+[node name="Obstacle63" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-11.2610, 0.0000, -20.3181)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle63"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle63")
+[node name="Obstacle64" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-7.7796, 0.0000, -19.2222)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle64"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle64")
+[node name="Obstacle65" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.6574, 0.0000, -19.6373)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle65"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle65")
+[node name="Obstacle66" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(27.4540, 0.0000, -19.9383)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle66"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle66")
+[node name="Obstacle67" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(33.2736, 0.0000, -20.4242)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle67"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle67")
+[node name="Obstacle68" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.2992, 0.0000, -16.6608)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle68"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle68")
+[node name="Obstacle69" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-29.3439, 0.0000, -17.7436)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle69"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle69")
+[node name="Obstacle70" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-25.2545, 0.0000, -17.0584)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle70"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle70")
+[node name="Obstacle71" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.1939, 0.0000, -16.9301)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle71"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle71")
+[node name="Obstacle72" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-10.6821, 0.0000, -16.9418)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle72"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle72")
+[node name="Obstacle73" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.0871, 0.0000, -17.3121)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle73"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle73")
+[node name="Obstacle74" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(15.5804, 0.0000, -16.3816)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle74"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle74")
+[node name="Obstacle75" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.2523, 0.0000, -17.1198)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle75"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle75")
+[node name="Obstacle76" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(22.2431, 0.0000, -17.9719)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle76"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle76")
+[node name="Obstacle77" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(25.2445, 0.0000, -17.5126)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle77"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle77")
+[node name="Obstacle78" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(31.8654, 0.0000, -16.6684)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle78"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle78")
+[node name="Obstacle79" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(36.1934, 0.0000, -16.9950)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle79"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle79")
+[node name="Obstacle80" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.1928, 0.0000, -13.1003)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle80"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle80")
+[node name="Obstacle81" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-34.8135, 0.0000, -14.9433)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle81"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle81")
+[node name="Obstacle82" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(12.4350, 0.0000, -14.6625)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle82"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle82")
+[node name="Obstacle83" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.4758, 0.0000, -13.8516)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle83"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle83")
+[node name="Obstacle84" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.6260, 0.0000, -14.6364)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle84"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle84")
+[node name="Obstacle85" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(31.0322, 0.0000, -13.6589)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle85"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle85")
+[node name="Obstacle86" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.7282, 0.0000, -11.7316)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle86"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle86")
+[node name="Obstacle87" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.4202, 0.0000, -10.7317)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle87"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle87")
+[node name="Obstacle88" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-18.0237, 0.0000, -11.3877)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle88"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle88")
+[node name="Obstacle89" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.0483, 0.0000, -11.8857)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle89"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle89")
+[node name="Obstacle90" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.0589, 0.0000, -10.7641)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle90"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle90")
+[node name="Obstacle91" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.0785, 0.0000, -7.5344)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle91"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle91")
+[node name="Obstacle92" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-34.4802, 0.0000, -8.6171)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle92"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle92")
+[node name="Obstacle93" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.2240, 0.0000, -8.7544)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle93"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle93")
+[node name="Obstacle94" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-21.0050, 0.0000, -8.7098)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle94"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle94")
+[node name="Obstacle95" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.7110, 0.0000, -7.3835)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle95"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle95")
+[node name="Obstacle96" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.7964, 0.0000, -7.2367)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle96"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle96")
+[node name="Obstacle97" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.6915, 0.0000, -7.9013)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle97"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle97")
+[node name="Obstacle98" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(34.7310, 0.0000, -8.6292)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle98"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle98")
+[node name="Obstacle99" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.2998, 0.0000, 7.0023)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle99"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle99")
+[node name="Obstacle100" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.3306, 0.0000, 7.1660)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle100"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle100")
+[node name="Obstacle101" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-32.0731, 0.0000, 7.7950)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle101"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle101")
+[node name="Obstacle102" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-23.6530, 0.0000, 6.5916)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle102"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle102")
+[node name="Obstacle103" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.1029, 0.0000, 6.9465)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle103"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle103")
+[node name="Obstacle104" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(33.0419, 0.0000, 7.5298)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle104"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle104")
+[node name="Obstacle105" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.4839, 0.0000, 6.7500)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle105"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle105")
+[node name="Obstacle106" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.0457, 0.0000, 10.5352)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle106"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle106")
+[node name="Obstacle107" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.9886, 0.0000, 9.7234)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle107"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle107")
+[node name="Obstacle108" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.7581, 0.0000, 10.2389)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle108"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle108")
+[node name="Obstacle109" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.7713, 0.0000, 9.6619)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle109"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle109")
+[node name="Obstacle110" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.8235, 0.0000, 10.8201)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle110"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle110")
+[node name="Obstacle111" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(36.2881, 0.0000, 10.9359)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle111"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle111")
+[node name="Obstacle112" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.6600, 0.0000, 13.6248)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle112"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle112")
+[node name="Obstacle113" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.6473, 0.0000, 13.3623)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle113"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle113")
+[node name="Obstacle114" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-14.7756, 0.0000, 12.7789)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle114"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle114")
+[node name="Obstacle115" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.6631, 0.0000, 13.4101)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle115"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle115")
+[node name="Obstacle116" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.2133, 0.0000, 13.1626)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle116"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle116")
+[node name="Obstacle117" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(34.1693, 0.0000, 12.7865)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle117"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle117")
+[node name="Obstacle118" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(36.6008, 0.0000, 13.7392)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle118"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle118")
+[node name="Obstacle119" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.9588, 0.0000, 16.9882)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle119"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle119")
+[node name="Obstacle120" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-32.8595, 0.0000, 15.5440)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle120"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle120")
+[node name="Obstacle121" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-23.5842, 0.0000, 15.6770)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle121"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle121")
+[node name="Obstacle122" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-17.7813, 0.0000, 15.1965)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle122"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle122")
+[node name="Obstacle123" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(9.7959, 0.0000, 17.0456)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle123"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle123")
+[node name="Obstacle124" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(24.9458, 0.0000, 16.4612)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle124"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle124")
+[node name="Obstacle125" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.1824, 0.0000, 16.4012)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle125"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle125")
+[node name="Obstacle126" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.6548, 0.0000, 19.8917)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle126"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle126")
+[node name="Obstacle127" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-29.3343, 0.0000, 18.5479)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle127"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle127")
+[node name="Obstacle128" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.7120, 0.0000, 19.2332)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle128"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle128")
+[node name="Obstacle129" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-17.0841, 0.0000, 17.9679)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle129"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle129")
+[node name="Obstacle130" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-10.9433, 0.0000, 18.6323)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle130"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle130")
+[node name="Obstacle131" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-8.6708, 0.0000, 19.5361)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle131"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle131")
+[node name="Obstacle132" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(12.3678, 0.0000, 19.6960)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle132"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle132")
+[node name="Obstacle133" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(20.0352, 0.0000, 19.4783)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle133"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle133")
+[node name="Obstacle134" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(24.2735, 0.0000, 19.1234)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle134"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle134")
+[node name="Obstacle135" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(31.6246, 0.0000, 18.9201)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle135"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle135")
+[node name="Obstacle136" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(34.7748, 0.0000, 18.1158)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle136"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle136")
+[node name="Obstacle137" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-37.8555, 0.0000, 22.9962)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle137"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle137")
+[node name="Obstacle138" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-32.2937, 0.0000, 22.3367)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle138"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle138")
+[node name="Obstacle139" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-27.9834, 0.0000, 22.6807)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle139"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle139")
+[node name="Obstacle140" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.2957, 0.0000, 22.7395)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle140"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle140")
+[node name="Obstacle141" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.6814, 0.0000, 22.6889)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle141"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle141")
+[node name="Obstacle142" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(19.4501, 0.0000, 21.8772)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle142"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle142")
+[node name="Obstacle143" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(28.0436, 0.0000, 21.5587)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle143"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle143")
+[node name="Obstacle144" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-34.1596, 0.0000, 25.2439)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle144"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle144")
+[node name="Obstacle145" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-19.7327, 0.0000, 23.9747)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle145"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle145")
+[node name="Obstacle146" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-7.6014, 0.0000, 25.9681)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle146"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle146")
+[node name="Obstacle147" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.4474, 0.0000, 25.5249)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle147"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle147")
+[node name="Obstacle148" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.0646, 0.0000, 25.0194)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle148"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle148")
+[node name="Obstacle149" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(33.9637, 0.0000, 25.9765)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle149"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle149")
+[node name="Obstacle150" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(36.2507, 0.0000, 24.5148)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle150"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle150")
+[node name="Obstacle151" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.1494, 0.0000, 27.2211)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle151"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle151")
+[node name="Obstacle152" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.0719, 0.0000, 27.5694)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle152"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle152")
+[node name="Obstacle153" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.9496, 0.0000, 28.3178)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle153"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle153")
+[node name="Obstacle154" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-18.9895, 0.0000, 27.3767)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle154"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle154")
+[node name="Obstacle155" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-16.0900, 0.0000, 27.8390)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle155"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle155")
+[node name="Obstacle156" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(25.7220, 0.0000, 27.4686)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle156"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle156")
+[node name="Obstacle157" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(28.8198, 0.0000, 28.9264)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle157"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle157")
+[node name="Obstacle158" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(31.9891, 0.0000, 27.6628)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle158"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle158")
+[node name="Obstacle159" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.6158, 0.0000, 27.1579)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle159"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle159")
+[node name="Obstacle160" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.0358, 0.0000, 31.5740)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle160"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle160")
+[node name="Obstacle161" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.1759, 0.0000, 30.1804)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle161"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle161")
+[node name="Obstacle162" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-31.0921, 0.0000, 32.0077)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle162"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle162")
+[node name="Obstacle163" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-23.5426, 0.0000, 31.8838)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle163"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle163")
+[node name="Obstacle164" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-19.6097, 0.0000, 30.9204)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle164"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle164")
+[node name="Obstacle165" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-15.0014, 0.0000, 31.4337)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle165"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle165")
+[node name="Obstacle166" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-10.1398, 0.0000, 30.5631)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle166"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle166")
+[node name="Obstacle167" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(6.4732, 0.0000, 31.0137)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle167"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle167")
+[node name="Obstacle168" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(14.0116, 0.0000, 30.0465)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle168"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle168")
+[node name="Obstacle169" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.6282, 0.0000, 31.8380)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle169"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle169")
+[node name="Obstacle170" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(24.9086, 0.0000, 30.8859)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle170"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle170")
+[node name="Obstacle171" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(33.9515, 0.0000, 30.9546)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle171"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle171")
+[node name="Obstacle172" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.8455, 0.0000, 30.2404)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle172"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle172")
+[node name="Obstacle173" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-34.6010, 0.0000, 33.4551)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle173"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle173")
+[node name="Obstacle174" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.0371, 0.0000, 33.3075)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle174"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle174")
+[node name="Obstacle175" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-26.3048, 0.0000, 34.9028)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle175"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle175")
+[node name="Obstacle176" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-20.5545, 0.0000, 34.8666)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle176"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle176")
+[node name="Obstacle177" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-14.4540, 0.0000, 34.2758)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle177"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle177")
+[node name="Obstacle178" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-11.2589, 0.0000, 34.7008)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle178"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle178")
+[node name="Obstacle179" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-8.1584, 0.0000, 33.3008)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle179"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle179")
+[node name="Obstacle180" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(6.6501, 0.0000, 33.8512)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle180"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle180")
+[node name="Obstacle181" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(9.1097, 0.0000, 34.9262)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle181"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle181")
+[node name="Obstacle182" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(12.2350, 0.0000, 34.3914)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle182"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle182")
+[node name="Obstacle183" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(15.2731, 0.0000, 34.6015)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle183"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle183")
+[node name="Obstacle184" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(22.0287, 0.0000, 34.5317)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle184"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle184")
+[node name="Obstacle185" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(27.6845, 0.0000, 35.0036)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle185"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle185")
+[node name="Obstacle186" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.2766, 0.0000, 33.6689)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle186"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle186")
+[node name="Obstacle187" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.0475, 0.0000, 32.9683)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle187"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle187")
+[node name="Obstacle188" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-38.4242, 0.0000, 35.9580)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle188"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle188")
+[node name="Obstacle189" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-35.1178, 0.0000, 35.9874)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle189"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle189")
+[node name="Obstacle190" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-31.0399, 0.0000, 36.2293)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle190"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle190")
+[node name="Obstacle191" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-28.4145, 0.0000, 36.4864)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle191"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle191")
+[node name="Obstacle192" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-25.0106, 0.0000, 37.2921)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle192"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle192")
+[node name="Obstacle193" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-22.4461, 0.0000, 38.0309)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle193"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle193")
+[node name="Obstacle194" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-13.9018, 0.0000, 36.8603)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle194"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle194")
+[node name="Obstacle195" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-11.5331, 0.0000, 37.0676)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle195"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle195")
+[node name="Obstacle196" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-8.2102, 0.0000, 37.4708)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle196"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle196")
+[node name="Obstacle197" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.9292, 0.0000, 37.0554)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle197"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle197")
+[node name="Obstacle198" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(12.6158, 0.0000, 37.2012)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle198"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle198")
+[node name="Obstacle199" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.7765, 0.0000, 38.0291)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle199"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle199")
+[node name="Obstacle200" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(18.7732, 0.0000, 36.7811)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle200"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle200")
+[node name="Obstacle201" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(21.0134, 0.0000, 37.5296)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle201"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle201")
+[node name="Obstacle202" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(25.5794, 0.0000, 37.9454)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle202"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle202")
+[node name="Obstacle203" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(27.9112, 0.0000, 37.4591)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle203"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle203")
+[node name="Obstacle204" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(30.2285, 0.0000, 36.0344)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle204"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle204")
+[node name="Obstacle205" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(34.6104, 0.0000, 35.9968)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle205"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle205")
+[node name="Obstacle206" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(37.9605, 0.0000, 36.7772)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle206"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle206")
+[node name="Obstacle207" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-21.0000, 0.0000, -21.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle207"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle207")
+[node name="Obstacle208" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(22.0000, 0.0000, 22.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle208"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle208")
+[node name="Obstacle209" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-25.0000, 0.0000, 22.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle209"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle209")
+[node name="Obstacle210" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(23.0000, 0.0000, -24.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle210"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle210")
+[node name="Obstacle211" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-17.0000, 0.0000, 25.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle211"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle211")
+[node name="Obstacle212" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(26.0000, 0.0000, 16.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle212"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle212")
+[node name="Obstacle213" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-7.0000, 0.0000, 26.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle213"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle213")
+[node name="Obstacle214" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-16.0000, 0.0000, -11.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle214"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle214")
+[node name="Obstacle215" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(16.0000, 0.0000, 11.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle215"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle215")
+[node name="Obstacle216" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-12.1000, 0.0000, -15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle216"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle216")
+[node name="Obstacle217" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-11.0000, 0.0000, -15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle217"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle217")
+[node name="Obstacle218" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-9.9000, 0.0000, -15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle218"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle218")
+[node name="Obstacle219" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-8.1000, 0.0000, -15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle219"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle219")
+[node name="Obstacle220" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-7.0000, 0.0000, -15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle220"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle220")
+[node name="Obstacle221" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-5.9000, 0.0000, -15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle221"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle221")
+[node name="Obstacle222" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(5.9000, 0.0000, 15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle222"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle222")
+[node name="Obstacle223" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(7.0000, 0.0000, 15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle223"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle223")
+[node name="Obstacle224" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(8.1000, 0.0000, 15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle224"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle224")
+[node name="Obstacle225" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(9.9000, 0.0000, 15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle225"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle225")
+[node name="Obstacle226" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(11.0000, 0.0000, 15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle226"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle226")
+[node name="Obstacle227" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(12.1000, 0.0000, 15.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle227"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle227")
+[node name="Obstacle228" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-15.0000, 0.0000, 8.1000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle228"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle228")
+[node name="Obstacle229" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-15.0000, 0.0000, 7.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle229"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle229")
+[node name="Obstacle230" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(-15.0000, 0.0000, 5.9000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle230"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle230")
+[node name="Obstacle231" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(15.0000, 0.0000, -5.9000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle231"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle231")
+[node name="Obstacle232" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(15.0000, 0.0000, -7.0000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle232"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle232")
+[node name="Obstacle233" type="StaticBody3D" parent="Environment/NaturalObstacles"]
+position = Vector3(15.0000, 0.0000, -8.1000)
+collision_layer = 128
+collision_mask = 0
+[node name="Shape" type="CollisionShape3D" parent="Environment/NaturalObstacles/Obstacle233"]
+position = Vector3(0, 1, 0)
+shape = SubResource("obstacle233")

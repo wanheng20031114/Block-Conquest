@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "release": "0.14.0",
+  "core_commit": "36a52447a428093c3fd021091c88de588658fb63",
+  "source": "HEAD plus explicit roguelike forest, HUD, icons and outpost AI changes; concurrent crossbowman work excluded",
+  "core_interface_audit": [
+    {
+      "file": "scripts/skirmish_bot.gd",
+      "head_git_blob": "078ebb2c9693c4ebfe21c8a52472afada640f430",
+      "snapshot_git_blob": "078ebb2c9693c4ebfe21c8a52472afada640f430",
+      "matches_head": true
+    },
+    {
+      "file": "scripts/game.gd",
+      "head_git_blob": "3f757b9a462d6de5cf3a3395d38dc1c16c9b867f",
+      "snapshot_git_blob": "3f757b9a462d6de5cf3a3395d38dc1c16c9b867f",
+      "matches_head": true
+    },
+    {
+      "file": "scripts/data/combat_definition.gd",
+      "head_git_blob": "da54b97f2cf160ad47d0c16b797a6e88691aaf65",
+      "snapshot_git_blob": "da54b97f2cf160ad47d0c16b797a6e88691aaf65",
+      "matches_head": true
+    },
+    {
+      "file": "scripts/data/unit_definition.gd",
+      "head_git_blob": "76ba7544ba1bbeaaeca6be9d4c7c7d173805d308",
+      "snapshot_git_blob": "76ba7544ba1bbeaaeca6be9d4c7c7d173805d308",
+      "matches_head": true
+    },
+    {
+      "file": "scripts/battle_unit.gd",
+      "head_git_blob": "e48a515ec9b23f8c3a6b199c9ff2249d50edb0fa",
+      "snapshot_git_blob": "e48a515ec9b23f8c3a6b199c9ff2249d50edb0fa",
+      "matches_head": true
+    }
+  ],
+  "runtime": {
+    "seed": 24681,
+    "combat_seed": 24681,
+    "strategy": "ranged",
+    "level": 1,
+    "population": 18,
+    "population_cap": 20,
+    "physics_ticks_per_second": 120,
+    "time_scale": 4,
+    "simulation_step_seconds": 0.03333333333333333
+  },
+  "maps": {
+    "outpost_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+    "siege_sha256": "5d9e618fc327491c770ae75a51d1d3ea510aaa25a464c0b027c07d8eb52da35a"
+  },
+  "ai_test": {
+    "checks": 34,
+    "failures": [],
+    "after_tuning": true,
+    "log": "rogue-outpost-ai-test.log"
+  },
+  "outpost": {
+    "driver": "tests/rogue_outpost_balance.gd, reusing tests/rogue_battle_balance.gd automatic nearest-objective attack-move every 3 seconds; support units escort; no expert micro, growth or recruitment",
+    "unchanged": {
+      "initial_enemies": 16,
+      "barracks_count": 3,
+      "tower_count": 5,
+      "enemy_cap": 28,
+      "recruit_stagger_seconds": 6,
+      "recruit_cycle": [
+        "swordsman",
+        "spearman",
+        "archer"
+      ],
+      "tower_damage": 9,
+      "tower_armor": 2,
+      "tower_range": 10,
+      "guard_response_radius": 16,
+      "support_response_radius": 24,
+      "guard_chase_radius": 26,
+      "scout_start_seconds": 8,
+      "raid_muster_size": 3,
+      "raid_muster_radius": 12,
+      "raid_muster_timeout": 18
+    },
+    "before_parameters": {
+      "first_recruit_seconds": 35,
+      "recruit_interval": 32,
+      "tower_hp": 360,
+      "barracks_hp": 520
+    },
+    "after_parameters": {
+      "first_recruit_seconds": 50,
+      "recruit_interval": 45,
+      "tower_hp": 320,
+      "barracks_hp": 440
+    },
+    "before_results": [
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 3,
+        "casualties": 15,
+        "enemy_left": 3,
+        "enemy_total": 25,
+        "growth": false,
+        "initial_units": 15,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "steady",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 9,
+        "seconds": 158.3,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 0,
+        "won": false
+      },
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 0,
+        "casualties": 11,
+        "enemy_left": 0,
+        "enemy_total": 22,
+        "growth": false,
+        "initial_units": 16,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "ranged",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 6,
+        "seconds": 127.5,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 5,
+        "won": true
+      },
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 4,
+        "casualties": 16,
+        "enemy_left": 5,
+        "enemy_total": 21,
+        "growth": false,
+        "initial_units": 16,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "mobile",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 5,
+        "seconds": 82.2,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 0,
+        "won": false
+      }
+    ],
+    "after_results": [
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 3,
+        "casualties": 15,
+        "enemy_left": 2,
+        "enemy_total": 22,
+        "growth": false,
+        "initial_units": 15,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "steady",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 6,
+        "seconds": 149.5,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 0,
+        "won": false
+      },
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 0,
+        "casualties": 13,
+        "enemy_left": 0,
+        "enemy_total": 22,
+        "growth": false,
+        "initial_units": 16,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "ranged",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 6,
+        "seconds": 158.8,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 3,
+        "won": true
+      },
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 4,
+        "casualties": 16,
+        "enemy_left": 6,
+        "enemy_total": 19,
+        "growth": false,
+        "initial_units": 16,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "mobile",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 3,
+        "seconds": 96.5,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 0,
+        "won": false
+      }
+    ]
+  },
+  "siege": {
+    "driver": "tests/rogue_battle_balance.gd --siege-only --active-defense: every 3 seconds attack only visible enemies within 22m of the headquarters; supporters heal valid recipients",
+    "parameters": {
+      "duration": 150,
+      "base_hp": 1800,
+      "base_armor": 3,
+      "base_damage": 24,
+      "base_range": 10,
+      "base_cooldown": 2,
+      "enemy_cap": 24,
+      "first_wave_seconds": 10,
+      "wave_interval_seconds": 20,
+      "wave_sizes": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        9
+      ]
+    },
+    "parameters_changed": false,
+    "results": [
+      {
+        "base_hp": 0.0,
+        "battle": "siege",
+        "buildings_left": 0,
+        "enemy_left": 14,
+        "growth": false,
+        "level": 1,
+        "pack": "steady",
+        "population": 18,
+        "population_cap": 20,
+        "seconds": 146.1,
+        "survivors": 1,
+        "won": false,
+        "initial_units": 15,
+        "casualties": 14
+      },
+      {
+        "base_hp": 0.0,
+        "battle": "siege",
+        "buildings_left": 0,
+        "enemy_left": 22,
+        "growth": false,
+        "level": 1,
+        "pack": "ranged",
+        "population": 18,
+        "population_cap": 20,
+        "seconds": 139.4,
+        "survivors": 0,
+        "won": false,
+        "initial_units": 16,
+        "casualties": 16
+      },
+      {
+        "base_hp": 0.0,
+        "battle": "siege",
+        "buildings_left": 0,
+        "enemy_left": 21,
+        "growth": false,
+        "level": 1,
+        "pack": "mobile",
+        "population": 18,
+        "population_cap": 20,
+        "seconds": 135.9,
+        "survivors": 0,
+        "won": false,
+        "initial_units": 16,
+        "casualties": 16
+      }
+    ]
+  },
+  "interpretation": "Seeded automated samples, not evidence of fully validated player balance. Siege uses fresh level-1 starting armies without the growth normally acquired during the layer. Failures are retained; shared unit values, strategies and retaliation/search AI were not weakened."
+}

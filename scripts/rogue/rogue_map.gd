@@ -255,7 +255,7 @@ func _show_preview(id: int) -> void:
 			var reward: Dictionary = RogueCatalog.BALANCE.rewards[target.kind]
 			var reinforcement: String = "敌方生命 +%d%%，攻击 +%d%%。\n" % [roundi((OUTPOST.emergency_hp_multiplier-1.0)*100.0),roundi((OUTPOST.emergency_damage_multiplier-1.0)*100.0)] if emergency else ""
 			content.get_node("Kind").text = "%s  /  难度 %d" % ["紧急军情" if emergency else "作战军情", target.difficulty]
-			detail = "摧毁所有敌方建筑与部队。\n5座箭塔 · 3座兵营 · %d名敌军\n\n%s战利品：%d金币 · %d面包 · %d招募券\n%d经验%s" % [16+OUTPOST.emergency_reinforcements.size() if emergency else 16,reinforcement,reward.gold,reward.bread,reward.tickets,reward.xp," · 收藏品三选一" if emergency else ""]
+			detail = "摧毁所有敌方建筑与部队。\n5座箭塔 · 3座兵营 · 初始%d名守军\n兵营会补充援军，摧毁后停止。\n\n%s战利品：%d金币 · %d面包 · %d招募券\n%d经验%s" % [16+OUTPOST.emergency_reinforcements.size() if emergency else 16,reinforcement,reward.gold,reward.bread,reward.tickets,reward.xp," · 收藏品三选一" if emergency else ""]
 		"shop": detail = "林间商人带来了收藏品、招募券和口粮。\n\n离开后商队启程，无法再次购物。"
 		"event": detail = "林道深处传来一些动静。\n\n一次相遇，几个选择，也许会改变军团的命运。"
 		"camp": detail = "一处可以暂歇的安全营地。\n\n整顿脚步、领取口粮或寻找收藏品，只能选择一项。"

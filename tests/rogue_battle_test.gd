@@ -63,9 +63,10 @@ func _run() -> void:
 	await frames(50)
 	check(swordsman.position.distance_to(from) > 0.8, "deployed soldier actually follows native path")
 	var guarded: BattleUnit = game.get_node("Units").get_children().filter(func(u: BattleUnit): return u.owner_id == 1 and u.unit_type == "swordsman")[0]
-	check(guarded.order == BattleUnit.Order.HOLD, "authored guards hold their post")
-	game._command_searchers()
-	check(game._searchers.any(func(u: BattleUnit): return u.order == BattleUnit.Order.ATTACK_MOVE), "search teams receive active pursuit route")
+	check(guarded.order != BattleUnit.Order.HOLD, "guards retain native pursuit and retaliation instead of forced hold")
+	game.outpost_ai.tick(game.encounter.scout_start_seconds)
+	game.command_bus.tick()
+	check(game.outpost_ai.squads.any(func(squad: Dictionary): return squad.role == "scout" and squad.state == "search"), "PvE scout groups receive active discovery routes")
 	for building: BattleBuilding in game.get_node("Buildings").get_children():
 		building.receive_damage(building.hp)
 	game.check_victory()
@@ -79,7 +80,7 @@ func _run() -> void:
 	await load_battle("outpost", true)
 	check(game.living_enemies() == 20, "emergency adds four defenders on the same map")
 	var tower: BattleBuilding = game.get_node("Buildings").get_child(0)
-	check(tower.max_hp == 450 and is_equal_approx(tower._stats.damage, 10.35), "emergency modifiers apply to encounter fortifications")
+	check(is_equal_approx(tower.max_hp, game.encounter.tower_hp * game.encounter.emergency_hp_multiplier) and is_equal_approx(tower._stats.damage, game.encounter.tower_damage * game.encounter.emergency_damage_multiplier), "emergency modifiers apply to encounter fortifications")
 	game.skip_intro()
 	for unit: BattleUnit in game.get_node("Units").get_children():
 		if unit.owner_id == 0:

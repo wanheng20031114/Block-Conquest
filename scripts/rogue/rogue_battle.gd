@@ -1,15 +1,15 @@
 extends "res://scripts/game.gd"
 ## Single-player encounters share combat and commands, but own objectives and lifecycle.
+const OutpostAI = preload("res://scripts/rogue/rogue_outpost_ai.gd")
 var encounter: RogueBattleDefinition
 var battle_kind: String = "outpost"
 var emergency: bool = false
 var intro_active: bool = true
 var battle_won: bool = false
 var enemy_total: int = 0
+var enemy_reinforcements: int = 0
+var outpost_ai: OutpostAI
 var wave_index: int = 0
-var _search_time: float = 0.0
-var _search_step: int = 0
-var _searchers: Array[BattleUnit] = []
 var _ending_queued: bool = false
 var _result_accepted: bool = false
 var _roster_snapshot: Array = []
@@ -38,6 +38,7 @@ func _ready() -> void:
 	_set_combat_processing(false)
 	if battle_kind == "outpost":
 		_spawn_outpost()
+		outpost_ai = OutpostAI.new(self, encounter)
 	else:
 		headquarters = spawn_building("headquarters", 0, Vector3.ZERO)
 		headquarters.died.connect(_on_base_destroyed)
@@ -66,9 +67,11 @@ func unit_definition_for(kind: String, owner: int) -> UnitDefinition:
 		definition.damage *= encounter.emergency_damage_multiplier
 	return definition
 
-func building_definition_for(kind: String, _owner: int) -> BuildingDefinition:
+func building_definition_for(kind: String, owner: int) -> BuildingDefinition:
 	var definition: BuildingDefinition = BalanceCatalog.building(kind).duplicate(true)
 	definition.produces = PackedStringArray()
+	if battle_kind == "outpost" and owner == 1 and kind == "barracks":
+		definition.produces = encounter.barracks_recruit_cycle.duplicate()
 	if kind == "headquarters":
 		definition.hp = encounter.base_hp
 		definition.melee_armor = encounter.base_armor
@@ -101,16 +104,19 @@ func _spawn_outpost() -> void:
 		spawn_building(marker.get_meta("kind"), 1, marker.position)
 	for marker: Marker3D in map_instance.get_node("Defenders").get_children():
 		var unit: BattleUnit = spawn_unit(marker.get_meta("kind"), 1, marker.position)
-		enemy_total += 1
-		if marker.get_meta("search", false):
-			_searchers.append(unit)
-		else:
-			unit.hold()
+		unit.set_meta("rogue_role", "scout" if marker.get_meta("search", false) else "guard")
 	if emergency:
 		for reinforcement: Dictionary in encounter.emergency_reinforcements:
 			var unit: BattleUnit = spawn_unit(reinforcement.kind, 1, reinforcement.position)
-			unit.hold()
-			enemy_total += 1
+			unit.set_meta("rogue_role", "guard")
+	# Guards deliberately retain native IDLE: HOLD forbids chasing a shooter
+	# outside melee reach. The encounter AI adds local support and guarded posts.
+
+func spawn_unit(kind: String, faction: int, at: Vector3, id: int = 0) -> Node3D:
+	var unit: Node3D = super.spawn_unit(kind, faction, at, id)
+	if faction == 1:
+		enemy_total += 1
+	return unit
 
 func _set_combat_processing(enabled: bool) -> void:
 	var mode: ProcessMode = Node.PROCESS_MODE_INHERIT if enabled else Node.PROCESS_MODE_DISABLED
@@ -156,10 +162,7 @@ func _physics_process(delta: float) -> void:
 			# Resolve after all native unit and projectile ticks; base destruction wins ties.
 			_resolve_deadline.call_deferred()
 	else:
-		_search_time += delta
-		if _search_time >= 8.0:
-			_search_time = 0.0
-			_command_searchers()
+		outpost_ai.tick(delta)
 		check_victory()
 
 func _process(delta: float) -> void:
@@ -175,16 +178,6 @@ func _process(delta: float) -> void:
 		overlay.box_end = get_viewport().get_mouse_position()
 		overlay.box_visible = overlay.box_start.distance_to(overlay.box_end) > 6.0
 
-func _command_searchers() -> void:
-	var lane: float = -9.0 if _search_step % 2 == 0 else 9.0
-	var point := Vector3(-40, 0, lane)
-	_search_step += 1
-	for index: int in _searchers.size():
-		var unit: BattleUnit = _searchers[index]
-		if not is_instance_valid(unit) or not unit.alive or is_instance_valid(unit.target):
-			continue
-		unit.issue_move(point + Vector3(float(index % 3) * 2.0, 0, float(index / 3) * 12.0), true)
-
 func _spawn_siege_wave(wave: Dictionary) -> void:
 	var capacity: int = maxi(0, encounter.enemy_cap - living_enemies())
 	var spawned: int = 0
@@ -196,7 +189,6 @@ func _spawn_siege_wave(wave: Dictionary) -> void:
 		var unit: BattleUnit = spawn_unit(str(entries[index]), 1, at)
 		unit.issue_move(Vector3.ZERO, true)
 		spawned += 1
-		enemy_total += 1
 	hud.toast("第 %d 波围剿 · %d 名敌军正从林间接近" % [wave_index + 1, spawned], 3.5)
 
 func living_enemies() -> int:
@@ -205,6 +197,9 @@ func living_enemies() -> int:
 		if unit.alive and unit.owner_id == 1:
 			amount += 1
 	return amount
+
+func living_enemy_barracks() -> int:
+	return owned_entities(1, "buildings").filter(func(building: BattleBuilding): return building.building_type == "barracks").size()
 
 func remaining_buildings() -> int:
 	var amount: int = 0

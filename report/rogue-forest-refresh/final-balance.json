@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "release": "0.15.0",
+  "core_commit": "542a77202893e2a0b4a73a97198bfe1512208d6b",
+  "source": "Committed core including the crossbowman commit, plus the explicit roguelike forest/HUD/icons/outpost-AI work; unrelated uncommitted changes excluded",
+  "core_audit": [
+    {
+      "file": "scripts/skirmish_bot.gd",
+      "head_git_blob": "184fd711fa0741c6376a61f31c9d559553b4c754",
+      "snapshot_git_blob": "184fd711fa0741c6376a61f31c9d559553b4c754",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/game.gd",
+      "head_git_blob": "9e2b33a624f59d799d44be01ac1ecb528fde1730",
+      "snapshot_git_blob": "9e2b33a624f59d799d44be01ac1ecb528fde1730",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/data/combat_definition.gd",
+      "head_git_blob": "fe60cc99882aff4d122916f3a4d6a70c3ddf16ec",
+      "snapshot_git_blob": "fe60cc99882aff4d122916f3a4d6a70c3ddf16ec",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/data/unit_definition.gd",
+      "head_git_blob": "0612082cc80ff7c22fecd5ce4577ccfa06c9a741",
+      "snapshot_git_blob": "0612082cc80ff7c22fecd5ce4577ccfa06c9a741",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/battle_unit.gd",
+      "head_git_blob": "ed14a4bd1185b0d05e5b1eeeb754313acae4b43b",
+      "snapshot_git_blob": "ed14a4bd1185b0d05e5b1eeeb754313acae4b43b",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/combat/damage_payload.gd",
+      "head_git_blob": "c278788bcbac821f01130d0ea46d209f3df3b93a",
+      "snapshot_git_blob": "c278788bcbac821f01130d0ea46d209f3df3b93a",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/combat/damage_resolver.gd",
+      "head_git_blob": "9379119a1aeb72cf9a82d7cd2169fe1f11c3f703",
+      "snapshot_git_blob": "9379119a1aeb72cf9a82d7cd2169fe1f11c3f703",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/unit_support.gd",
+      "head_git_blob": "850f63459b24ba0d2ec8500f5843fea96ea93391",
+      "snapshot_git_blob": "850f63459b24ba0d2ec8500f5843fea96ea93391",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/rogue/rogue_run_state.gd",
+      "head_git_blob": "8b3b877471f70fbcc07efa770d7835d842135ccb",
+      "snapshot_git_blob": "8b3b877471f70fbcc07efa770d7835d842135ccb",
+      "matches_committed_core": true
+    },
+    {
+      "file": "scripts/rogue/rogue_catalog.gd",
+      "head_git_blob": "a690915f8badc79786d237b4765ccf21d2f62b77",
+      "snapshot_git_blob": "a690915f8badc79786d237b4765ccf21d2f62b77",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/archer.tres",
+      "head_git_blob": "a1a36ce2c30205bbe08fe8455ecae09798348a65",
+      "snapshot_git_blob": "a1a36ce2c30205bbe08fe8455ecae09798348a65",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/cannon.tres",
+      "head_git_blob": "be4b40911fa65a91ac0a94314199e2e87310714c",
+      "snapshot_git_blob": "be4b40911fa65a91ac0a94314199e2e87310714c",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/catapult.tres",
+      "head_git_blob": "e7fcc2621585273205ddd98ed8ea01f0c2aba464",
+      "snapshot_git_blob": "e7fcc2621585273205ddd98ed8ea01f0c2aba464",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/crossbowman.tres",
+      "head_git_blob": "70c7d4c08f70d1617c2cb64fb546869da43d8a54",
+      "snapshot_git_blob": "70c7d4c08f70d1617c2cb64fb546869da43d8a54",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/engineer.tres",
+      "head_git_blob": "1a057a0bdd92c34523fc77b8ba0af85f04af6c2a",
+      "snapshot_git_blob": "1a057a0bdd92c34523fc77b8ba0af85f04af6c2a",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/farmer.tres",
+      "head_git_blob": "36f613c4ccc53c9cd14b0d35c8fbab01ee026043",
+      "snapshot_git_blob": "36f613c4ccc53c9cd14b0d35c8fbab01ee026043",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/heavy_cannon.tres",
+      "head_git_blob": "943d0af042c6f5815fe0316e8e5a674c3fad5d3b",
+      "snapshot_git_blob": "943d0af042c6f5815fe0316e8e5a674c3fad5d3b",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/knight.tres",
+      "head_git_blob": "10bf46fbe361fde1a0e523cbe98b2e9c9795df60",
+      "snapshot_git_blob": "10bf46fbe361fde1a0e523cbe98b2e9c9795df60",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/light_cavalry.tres",
+      "head_git_blob": "ffaee0a644696f64871aa7d7391a091a8534a1ca",
+      "snapshot_git_blob": "ffaee0a644696f64871aa7d7391a091a8534a1ca",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/priest.tres",
+      "head_git_blob": "a3afa85f6abfc901f16462bb89796a4f944d6057",
+      "snapshot_git_blob": "a3afa85f6abfc901f16462bb89796a4f944d6057",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/shield_guard.tres",
+      "head_git_blob": "3be1ff7d5118ece8eecfdcad74514543a2472ee5",
+      "snapshot_git_blob": "3be1ff7d5118ece8eecfdcad74514543a2472ee5",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/spearman.tres",
+      "head_git_blob": "30b5fe6a61e639826cc962a066da6c3c03391e1f",
+      "snapshot_git_blob": "30b5fe6a61e639826cc962a066da6c3c03391e1f",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/swordsman.tres",
+      "head_git_blob": "9a7f0896e6a64bd8c440c6587aa91f65209bb7f9",
+      "snapshot_git_blob": "9a7f0896e6a64bd8c440c6587aa91f65209bb7f9",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/triple_cannon.tres",
+      "head_git_blob": "406c54064388c7ce0f92a9a4c83c405229f92a8d",
+      "snapshot_git_blob": "406c54064388c7ce0f92a9a4c83c405229f92a8d",
+      "matches_committed_core": true
+    },
+    {
+      "file": "data/units/war_elephant.tres",
+      "head_git_blob": "8d0250bbc29778f4c87ebf0f28c3b2ae54964365",
+      "snapshot_git_blob": "8d0250bbc29778f4c87ebf0f28c3b2ae54964365",
+      "matches_committed_core": true
+    }
+  ],
+  "runtime": {
+    "seed": 24681,
+    "combat_seed": 24681,
+    "strategy": "ranged",
+    "level": 1,
+    "population": 18,
+    "population_cap": 20,
+    "physics_ticks_per_second": 120,
+    "time_scale": 4,
+    "simulation_step_seconds": 0.03333333333333333
+  },
+  "maps": {
+    "outpost_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+    "siege_sha256": "5d9e618fc327491c770ae75a51d1d3ea510aaa25a464c0b027c07d8eb52da35a"
+  },
+  "outpost_resource_sha256": "35e022dddc2c33ad1da253f10e47d430c4d7c6dde31e7cfdd4b73a33d172688d",
+  "ai_test": {
+    "checks": 34,
+    "failures": []
+  },
+  "error_logs": [
+    {
+      "file": "final-committed-ai-test.error.log",
+      "bytes": 0
+    },
+    {
+      "file": "final-committed-outpost.error.log",
+      "bytes": 0
+    },
+    {
+      "file": "final-committed-siege.error.log",
+      "bytes": 0
+    }
+  ],
+  "outpost": {
+    "command": "Godot_console.exe --headless --path .local/rogue-release-check --script res://tests/rogue_outpost_balance.gd",
+    "driver": "Inherited tests/rogue_battle_balance.gd::_assault, every 3 seconds nearest-objective attack-move and supporter escort",
+    "parameters": {
+      "initial_enemies": 16,
+      "barracks_count": 3,
+      "tower_count": 5,
+      "enemy_cap": 28,
+      "first_recruit_seconds": 50,
+      "recruit_interval": 45,
+      "recruit_stagger_seconds": 6,
+      "recruit_cycle": [
+        "swordsman",
+        "spearman",
+        "archer"
+      ],
+      "tower_hp": 320,
+      "barracks_hp": 440,
+      "tower_damage": 9,
+      "tower_armor": 2,
+      "tower_range": 10
+    },
+    "results": [
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 5,
+        "casualties": 15,
+        "enemy_left": 5,
+        "enemy_total": 19,
+        "growth": false,
+        "initial_units": 15,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "steady",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 3,
+        "seconds": 83.8,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 0,
+        "won": false
+      },
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 0,
+        "casualties": 11,
+        "enemy_left": 0,
+        "enemy_total": 19,
+        "growth": false,
+        "initial_units": 16,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "ranged",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 3,
+        "seconds": 125.0,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 5,
+        "won": true
+      },
+      {
+        "balance_status": "automated assault only; not verified player balance",
+        "base_hp": 0.0,
+        "battle": "outpost",
+        "buildings_left": 4,
+        "casualties": 16,
+        "enemy_left": 4,
+        "enemy_total": 19,
+        "growth": false,
+        "initial_units": 16,
+        "level": 1,
+        "map_sha256": "4071d5563ac2ae28c3fa97c905589e5d438f4c8229450d6fbabc4948648d4b46",
+        "pack": "mobile",
+        "population": 18,
+        "population_cap": 20,
+        "reinforcements": 3,
+        "seconds": 82.1,
+        "seed": 24681,
+        "strategy": "ranged",
+        "survivors": 0,
+        "won": false
+      }
+    ]
+  },
+  "siege": {
+    "command": "Godot_console.exe --headless --path .local/rogue-release-check --script res://tests/rogue_battle_balance.gd -- --siege-only --active-defense",
+    "driver": "Every 3 seconds attack only visible enemies within 22m of the headquarters; supporters heal valid recipients",
+    "parameters": {
+      "duration": 150,
+      "base_hp": 1800,
+      "base_armor": 3,
+      "base_damage": 24,
+      "base_range": 10,
+      "base_cooldown": 2,
+      "enemy_cap": 24,
+      "first_wave_seconds": 10,
+      "wave_interval_seconds": 20,
+      "wave_sizes": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        9
+      ]
+    },
+    "results": [
+      {
+        "base_hp": 64.0,
+        "battle": "siege",
+        "buildings_left": 0,
+        "enemy_left": 13,
+        "growth": false,
+        "level": 1,
+        "pack": "steady",
+        "population": 18,
+        "population_cap": 20,
+        "seconds": 150.0,
+        "survivors": 0,
+        "won": true,
+        "initial_units": 15,
+        "casualties": 15
+      },
+      {
+        "base_hp": 6.0,
+        "battle": "siege",
+        "buildings_left": 0,
+        "enemy_left": 6,
+        "growth": false,
+        "level": 1,
+        "pack": "ranged",
+        "population": 18,
+        "population_cap": 20,
+        "seconds": 150.0,
+        "survivors": 6,
+        "won": true,
+        "initial_units": 16,
+        "casualties": 10
+      },
+      {
+        "base_hp": 0.0,
+        "battle": "siege",
+        "buildings_left": 0,
+        "enemy_left": 18,
+        "growth": false,
+        "level": 1,
+        "pack": "mobile",
+        "population": 18,
+        "population_cap": 20,
+        "seconds": 137.7,
+        "survivors": 0,
+        "won": false,
+        "initial_units": 16,
+        "casualties": 16
+      }
+    ]
+  },
+  "interpretation": "Final bounded committed-core run: three starting armies, one seed and ranged strategy per encounter. No further tuning or extra cases. Automatic samples do not prove player balance. Siege armies are fresh level 1, without expected first-layer growth. Failures are retained. Earlier 36a5244 and melee-strategy samples are historical and are not this release core."
+}

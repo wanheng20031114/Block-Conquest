@@ -1,0 +1,999 @@
+[gd_scene format=3]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/tree_oak.tscn" id="tree_oak"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/tree_birch.tscn" id="tree_birch"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/tree_pine.tscn" id="tree_pine"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/tree_aspen.tscn" id="tree_aspen"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/bush.tscn" id="bush"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/fern.tscn" id="fern"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/grass.tscn" id="grass"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/flowers.tscn" id="flowers"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/leaf_litter.tscn" id="leaf_litter"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/mushrooms.tscn" id="mushrooms"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/moss_rock.tscn" id="moss_rock"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/pebbles.tscn" id="pebbles"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/stump.tscn" id="stump"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/fallen_log.tscn" id="fallen_log"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/split_fence.tscn" id="split_fence"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/waystone.tscn" id="waystone"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/canvas_tent.tscn" id="canvas_tent"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/root_arch.tscn" id="root_arch"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/camp_supplies.tscn" id="camp_supplies"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/fire_circle.tscn" id="fire_circle"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/rogue_forest/ground_outpost.res" id="ground"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_bush.tres" id="batch_bush"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_fern.tres" id="batch_fern"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_flowers.tres" id="batch_flowers"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_grass.tres" id="batch_grass"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_leaf_litter.tres" id="batch_leaf_litter"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_mushrooms.tres" id="batch_mushrooms"]
+[ext_resource type="MultiMesh" path="res://assets/models/environment/rogue_forest/outpost_pebbles.tres" id="batch_pebbles"]
+[node name="ForestOutpost" type="Node3D"]
+metadata/terrain_grid_spacing = 1.0
+metadata/forest_palette = "sage_birch_pine"
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = ExtResource("ground")
+
+[node name="Canopy" type="Node3D" parent="."]
+
+[node name="Landmarks" type="Node3D" parent="."]
+
+[node name="Understory" type="Node3D" parent="."]
+
+[node name="TreeBirch000" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-54.2127, 0.0000, -29.3712)
+rotation = Vector3(0.0000, 4.1994, 0.0000)
+scale = Vector3(0.9082, 0.9082, 0.9082)
+
+[node name="TreeAspen001" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-51.5148, 0.0000, -29.0106)
+rotation = Vector3(0.0000, 2.8040, 0.0000)
+scale = Vector3(1.1143, 1.1143, 1.1143)
+
+[node name="TreeBirch002" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-47.8891, 0.0000, -29.0535)
+rotation = Vector3(0.0000, 5.3900, 0.0000)
+scale = Vector3(0.8471, 0.8471, 0.8471)
+
+[node name="TreeBirch003" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-42.5888, 0.0000, -29.5004)
+rotation = Vector3(0.0000, 0.1098, 0.0000)
+scale = Vector3(1.1118, 1.1118, 1.1118)
+
+[node name="TreeAspen004" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-38.0708, 0.0000, -29.3201)
+rotation = Vector3(0.0000, 5.9090, 0.0000)
+scale = Vector3(1.1155, 1.1155, 1.1155)
+
+[node name="TreeBirch005" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-33.3855, 0.0000, -30.8985)
+rotation = Vector3(0.0000, 1.8033, 0.0000)
+scale = Vector3(0.7557, 0.7557, 0.7557)
+
+[node name="TreeBirch006" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-29.1202, 0.0000, -30.2436)
+rotation = Vector3(0.0000, 0.6784, 0.0000)
+scale = Vector3(0.7216, 0.7216, 0.7216)
+
+[node name="TreeBirch007" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-26.0384, 0.0000, -29.4734)
+rotation = Vector3(0.0000, 5.6766, 0.0000)
+scale = Vector3(0.9547, 0.9547, 0.9547)
+
+[node name="TreeAspen008" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-20.0143, 0.0000, -30.2533)
+rotation = Vector3(0.0000, 3.7641, 0.0000)
+scale = Vector3(0.9098, 0.9098, 0.9098)
+
+[node name="TreePine009" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(-11.7988, 0.0000, -29.8889)
+rotation = Vector3(0.0000, 1.0098, 0.0000)
+scale = Vector3(1.0587, 1.0587, 1.0587)
+
+[node name="TreePine010" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(-9.2983, 0.0000, -30.3842)
+rotation = Vector3(0.0000, 1.5251, 0.0000)
+scale = Vector3(0.7723, 0.7723, 0.7723)
+
+[node name="TreePine011" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(8.7831, 0.0000, -30.3324)
+rotation = Vector3(0.0000, 4.9652, 0.0000)
+scale = Vector3(0.9169, 0.9169, 0.9169)
+
+[node name="TreePine012" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(11.7773, 0.0000, -29.0724)
+rotation = Vector3(0.0000, 3.3527, 0.0000)
+scale = Vector3(0.8898, 0.8898, 0.8898)
+
+[node name="TreePine013" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(14.7656, 0.0000, -29.7698)
+rotation = Vector3(0.0000, 1.8385, 0.0000)
+scale = Vector3(0.7349, 0.7349, 0.7349)
+
+[node name="TreePine014" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(18.2372, 0.0000, -30.0881)
+rotation = Vector3(0.0000, 2.2431, 0.0000)
+scale = Vector3(0.8607, 0.8607, 0.8607)
+
+[node name="TreePine015" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(23.6143, 0.0000, -30.3457)
+rotation = Vector3(0.0000, 0.1800, 0.0000)
+scale = Vector3(0.7360, 0.7360, 0.7360)
+
+[node name="TreeAspen016" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(26.4751, 0.0000, -30.5582)
+rotation = Vector3(0.0000, 5.9956, 0.0000)
+scale = Vector3(1.0727, 1.0727, 1.0727)
+
+[node name="TreeAspen017" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(29.9564, 0.0000, -30.0473)
+rotation = Vector3(0.0000, 3.0008, 0.0000)
+scale = Vector3(1.0816, 1.0816, 1.0816)
+
+[node name="TreePine018" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(32.3456, 0.0000, -29.5797)
+rotation = Vector3(0.0000, 6.2119, 0.0000)
+scale = Vector3(1.0764, 1.0764, 1.0764)
+
+[node name="TreePine019" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(36.8789, 0.0000, -29.6706)
+rotation = Vector3(0.0000, 3.3834, 0.0000)
+scale = Vector3(0.8728, 0.8728, 0.8728)
+
+[node name="TreePine020" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(39.2172, 0.0000, -30.7457)
+rotation = Vector3(0.0000, 0.1531, 0.0000)
+scale = Vector3(0.9186, 0.9186, 0.9186)
+
+[node name="TreePine021" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(42.6067, 0.0000, -30.4114)
+rotation = Vector3(0.0000, 1.1280, 0.0000)
+scale = Vector3(0.9545, 0.9545, 0.9545)
+
+[node name="TreePine022" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(45.3249, 0.0000, -29.2970)
+rotation = Vector3(0.0000, 5.2623, 0.0000)
+scale = Vector3(1.1008, 1.1008, 1.1008)
+
+[node name="TreePine023" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(48.1141, 0.0000, -29.8134)
+rotation = Vector3(0.0000, 6.1080, 0.0000)
+scale = Vector3(0.9191, 0.9191, 0.9191)
+
+[node name="TreePine024" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(53.3102, 0.0000, -30.6122)
+rotation = Vector3(0.0000, 4.7142, 0.0000)
+scale = Vector3(1.0630, 1.0630, 1.0630)
+
+[node name="TreeBirch025" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-51.0949, 0.0000, -26.0286)
+rotation = Vector3(0.0000, 4.9024, 0.0000)
+scale = Vector3(0.7611, 0.7611, 0.7611)
+
+[node name="TreeBirch026" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-44.2286, 0.0000, -26.6816)
+rotation = Vector3(0.0000, 4.1903, 0.0000)
+scale = Vector3(0.7849, 0.7849, 0.7849)
+
+[node name="TreeAspen027" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-35.3803, 0.0000, -26.4942)
+rotation = Vector3(0.0000, 0.3585, 0.0000)
+scale = Vector3(0.9393, 0.9393, 0.9393)
+
+[node name="TreeBirch028" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-27.6636, 0.0000, -26.0633)
+rotation = Vector3(0.0000, 3.9221, 0.0000)
+scale = Vector3(0.9825, 0.9825, 0.9825)
+
+[node name="TreeBirch029" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-23.9919, 0.0000, -27.6115)
+rotation = Vector3(0.0000, 3.1402, 0.0000)
+scale = Vector3(0.8124, 0.8124, 0.8124)
+
+[node name="TreeBirch030" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-20.7872, 0.0000, -27.7327)
+rotation = Vector3(0.0000, 0.5592, 0.0000)
+scale = Vector3(1.0150, 1.0150, 1.0150)
+
+[node name="TreeAspen031" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-18.1223, 0.0000, -26.7370)
+rotation = Vector3(0.0000, 3.7144, 0.0000)
+scale = Vector3(0.8066, 0.8066, 0.8066)
+
+[node name="TreePine032" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(-14.3363, 0.0000, -27.9846)
+rotation = Vector3(0.0000, 0.2873, 0.0000)
+scale = Vector3(0.9859, 0.9859, 0.9859)
+
+[node name="TreeAspen033" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(39.8204, 0.0000, -27.2796)
+rotation = Vector3(0.0000, 5.3438, 0.0000)
+scale = Vector3(0.9540, 0.9540, 0.9540)
+
+[node name="TreePine034" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(43.0436, 0.0000, -27.1846)
+rotation = Vector3(0.0000, 4.0213, 0.0000)
+scale = Vector3(1.1080, 1.1080, 1.1080)
+
+[node name="TreeAspen035" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(54.4014, 0.0000, -27.9969)
+rotation = Vector3(0.0000, 4.1824, 0.0000)
+scale = Vector3(1.0715, 1.0715, 1.0715)
+
+[node name="TreeBirch036" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-54.1392, 0.0000, -23.1999)
+rotation = Vector3(0.0000, 3.8461, 0.0000)
+scale = Vector3(1.0709, 1.0709, 1.0709)
+
+[node name="TreeBirch037" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-48.1609, 0.0000, -24.1856)
+rotation = Vector3(0.0000, 1.1043, 0.0000)
+scale = Vector3(1.0993, 1.0993, 1.0993)
+
+[node name="TreeBirch038" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-27.6571, 0.0000, -23.0103)
+rotation = Vector3(0.0000, 3.2607, 0.0000)
+scale = Vector3(0.7638, 0.7638, 0.7638)
+
+[node name="TreeAspen039" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(48.0223, 0.0000, -23.7682)
+rotation = Vector3(0.0000, 3.8117, 0.0000)
+scale = Vector3(1.1061, 1.1061, 1.1061)
+
+[node name="TreePine040" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(50.2845, 0.0000, -25.0373)
+rotation = Vector3(0.0000, 4.0509, 0.0000)
+scale = Vector3(0.7345, 0.7345, 0.7345)
+
+[node name="TreePine041" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(54.0652, 0.0000, -23.3069)
+rotation = Vector3(0.0000, 4.6602, 0.0000)
+scale = Vector3(0.9210, 0.9210, 0.9210)
+
+[node name="TreeBirch042" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-50.4205, 0.0000, -20.2055)
+rotation = Vector3(0.0000, 5.2128, 0.0000)
+scale = Vector3(0.9826, 0.9826, 0.9826)
+
+[node name="TreeBirch043" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-47.4775, 0.0000, -20.9323)
+rotation = Vector3(0.0000, 6.1321, 0.0000)
+scale = Vector3(1.0105, 1.0105, 1.0105)
+
+[node name="TreeBirch044" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-40.9993, 0.0000, -20.6729)
+rotation = Vector3(0.0000, 4.3050, 0.0000)
+scale = Vector3(0.9664, 0.9664, 0.9664)
+
+[node name="TreeAspen045" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-27.6391, 0.0000, -19.9534)
+rotation = Vector3(0.0000, 6.0409, 0.0000)
+scale = Vector3(0.8512, 0.8512, 0.8512)
+
+[node name="TreePine046" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(48.6691, 0.0000, -21.2548)
+rotation = Vector3(0.0000, 5.8439, 0.0000)
+scale = Vector3(0.7937, 0.7937, 0.7937)
+
+[node name="TreePine047" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(54.6973, 0.0000, -20.6497)
+rotation = Vector3(0.0000, 0.7961, 0.0000)
+scale = Vector3(0.7556, 0.7556, 0.7556)
+
+[node name="TreeBirch048" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-53.6589, 0.0000, -17.7646)
+rotation = Vector3(0.0000, 1.6603, 0.0000)
+scale = Vector3(0.8691, 0.8691, 0.8691)
+
+[node name="TreeAspen049" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-50.6391, 0.0000, -17.4038)
+rotation = Vector3(0.0000, 1.0729, 0.0000)
+scale = Vector3(0.7778, 0.7778, 0.7778)
+
+[node name="TreeBirch050" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-38.0298, 0.0000, -18.8319)
+rotation = Vector3(0.0000, 0.9626, 0.0000)
+scale = Vector3(0.7353, 0.7353, 0.7353)
+
+[node name="TreePine051" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(50.7303, 0.0000, -16.9901)
+rotation = Vector3(0.0000, 0.0355, 0.0000)
+scale = Vector3(0.7225, 0.7225, 0.7225)
+
+[node name="TreeBirch052" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-45.4659, 0.0000, -15.9256)
+rotation = Vector3(0.0000, 5.2679, 0.0000)
+scale = Vector3(0.9200, 0.9200, 0.9200)
+
+[node name="TreeAspen053" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-36.0528, 0.0000, -15.3357)
+rotation = Vector3(0.0000, 2.0583, 0.0000)
+scale = Vector3(0.8933, 0.8933, 0.8933)
+
+[node name="TreeBirch054" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-33.7950, 0.0000, -14.3182)
+rotation = Vector3(0.0000, 1.5885, 0.0000)
+scale = Vector3(0.9413, 0.9413, 0.9413)
+
+[node name="TreeBirch055" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-31.0248, 0.0000, -15.0347)
+rotation = Vector3(0.0000, 1.4288, 0.0000)
+scale = Vector3(1.0469, 1.0469, 1.0469)
+
+[node name="TreePine056" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(-15.1689, 0.0000, -15.5392)
+rotation = Vector3(0.0000, 3.4472, 0.0000)
+scale = Vector3(1.1184, 1.1184, 1.1184)
+
+[node name="TreePine057" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(18.7288, 0.0000, -15.0003)
+rotation = Vector3(0.0000, 0.4201, 0.0000)
+scale = Vector3(0.7890, 0.7890, 0.7890)
+
+[node name="TreePine058" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(30.0211, 0.0000, -15.2429)
+rotation = Vector3(0.0000, 4.7436, 0.0000)
+scale = Vector3(1.1150, 1.1150, 1.1150)
+
+[node name="TreePine059" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(51.1523, 0.0000, -14.0858)
+rotation = Vector3(0.0000, 0.9768, 0.0000)
+scale = Vector3(0.7883, 0.7883, 0.7883)
+
+[node name="TreePine060" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(54.8452, 0.0000, -15.1376)
+rotation = Vector3(0.0000, 1.9240, 0.0000)
+scale = Vector3(0.9443, 0.9443, 0.9443)
+
+[node name="TreePine061" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(3.0521, 0.0000, -12.0191)
+rotation = Vector3(0.0000, 3.0514, 0.0000)
+scale = Vector3(0.9147, 0.9147, 0.9147)
+
+[node name="TreePine062" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(14.1585, 0.0000, -11.2655)
+rotation = Vector3(0.0000, 4.2433, 0.0000)
+scale = Vector3(0.8562, 0.8562, 0.8562)
+
+[node name="TreePine063" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(17.6006, 0.0000, -12.3386)
+rotation = Vector3(0.0000, 3.3038, 0.0000)
+scale = Vector3(0.7593, 0.7593, 0.7593)
+
+[node name="TreePine064" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(20.4323, 0.0000, -11.3584)
+rotation = Vector3(0.0000, 5.9317, 0.0000)
+scale = Vector3(0.9771, 0.9771, 0.9771)
+
+[node name="TreeAspen065" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(24.3977, 0.0000, -11.4998)
+rotation = Vector3(0.0000, 0.6396, 0.0000)
+scale = Vector3(0.9431, 0.9431, 0.9431)
+
+[node name="TreeAspen066" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-17.0503, 0.0000, -8.2137)
+rotation = Vector3(0.0000, 5.6832, 0.0000)
+scale = Vector3(0.7894, 0.7894, 0.7894)
+
+[node name="TreePine067" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(-12.5352, 0.0000, -9.0242)
+rotation = Vector3(0.0000, 4.9026, 0.0000)
+scale = Vector3(1.0579, 1.0579, 1.0579)
+
+[node name="TreeAspen068" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-5.8796, 0.0000, -8.8675)
+rotation = Vector3(0.0000, 4.3033, 0.0000)
+scale = Vector3(0.9503, 0.9503, 0.9503)
+
+[node name="TreeAspen069" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-3.4079, 0.0000, -9.8900)
+rotation = Vector3(0.0000, 5.4946, 0.0000)
+scale = Vector3(1.0613, 1.0613, 1.0613)
+
+[node name="TreePine070" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(0.4141, 0.0000, -8.6779)
+rotation = Vector3(0.0000, 2.1651, 0.0000)
+scale = Vector3(0.7408, 0.7408, 0.7408)
+
+[node name="TreePine071" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(24.2884, 0.0000, -8.6994)
+rotation = Vector3(0.0000, 2.9422, 0.0000)
+scale = Vector3(0.9189, 0.9189, 0.9189)
+
+[node name="TreeAspen072" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(29.5939, 0.0000, -8.8352)
+rotation = Vector3(0.0000, 0.0250, 0.0000)
+scale = Vector3(1.0590, 1.0590, 1.0590)
+
+[node name="TreeAspen073" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(39.5704, 0.0000, -8.9672)
+rotation = Vector3(0.0000, 4.0499, 0.0000)
+scale = Vector3(0.9426, 0.9426, 0.9426)
+
+[node name="TreePine074" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(51.6423, 0.0000, -9.2153)
+rotation = Vector3(0.0000, 0.5068, 0.0000)
+scale = Vector3(0.8527, 0.8527, 0.8527)
+
+[node name="TreePine075" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(54.2484, 0.0000, -8.3547)
+rotation = Vector3(0.0000, 3.3859, 0.0000)
+scale = Vector3(0.7983, 0.7983, 0.7983)
+
+[node name="TreePine076" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(15.0668, 0.0000, -5.9912)
+rotation = Vector3(0.0000, 6.2766, 0.0000)
+scale = Vector3(0.7534, 0.7534, 0.7534)
+
+[node name="TreeAspen077" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(24.4369, 0.0000, -5.5613)
+rotation = Vector3(0.0000, 1.0220, 0.0000)
+scale = Vector3(0.9402, 0.9402, 0.9402)
+
+[node name="TreePine078" parent="Canopy" instance=ExtResource("tree_pine")]
+position = Vector3(29.8110, 0.0000, -6.0575)
+rotation = Vector3(0.0000, 4.6816, 0.0000)
+scale = Vector3(0.9597, 0.9597, 0.9597)
+
+[node name="TreeAspen079" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(32.6445, 0.0000, -6.1034)
+rotation = Vector3(0.0000, 2.1463, 0.0000)
+scale = Vector3(0.8458, 0.8458, 0.8458)
+
+[node name="TreeAspen080" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(54.8697, 0.0000, -5.5394)
+rotation = Vector3(0.0000, 2.6392, 0.0000)
+scale = Vector3(1.0296, 1.0296, 1.0296)
+
+[node name="TreeBirch081" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-17.1619, 0.0000, 5.3664)
+rotation = Vector3(0.0000, 0.5296, 0.0000)
+scale = Vector3(0.9322, 0.9322, 0.9322)
+
+[node name="TreeOak082" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-10.9659, 0.0000, 5.9387)
+rotation = Vector3(0.0000, 5.4706, 0.0000)
+scale = Vector3(0.9334, 0.9334, 0.9334)
+
+[node name="TreeOak083" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-8.1468, 0.0000, 5.1162)
+rotation = Vector3(0.0000, 5.7455, 0.0000)
+scale = Vector3(0.7349, 0.7349, 0.7349)
+
+[node name="TreeAspen084" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-9.0361, 0.0000, 9.4083)
+rotation = Vector3(0.0000, 2.3054, 0.0000)
+scale = Vector3(1.0312, 1.0312, 1.0312)
+
+[node name="TreeOak085" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-2.3394, 0.0000, 8.5976)
+rotation = Vector3(0.0000, 2.2005, 0.0000)
+scale = Vector3(1.0592, 1.0592, 1.0592)
+
+[node name="TreeOak086" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(0.2152, 0.0000, 9.7239)
+rotation = Vector3(0.0000, 3.9692, 0.0000)
+scale = Vector3(0.8843, 0.8843, 0.8843)
+
+[node name="TreeOak087" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(2.7152, 0.0000, 9.5395)
+rotation = Vector3(0.0000, 1.4442, 0.0000)
+scale = Vector3(0.7315, 0.7315, 0.7315)
+
+[node name="TreeAspen088" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(24.7368, 0.0000, 9.9089)
+rotation = Vector3(0.0000, 1.4680, 0.0000)
+scale = Vector3(0.7854, 0.7854, 0.7854)
+
+[node name="TreeOak089" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(51.4664, 0.0000, 8.9279)
+rotation = Vector3(0.0000, 1.2523, 0.0000)
+scale = Vector3(1.0706, 1.0706, 1.0706)
+
+[node name="TreeOak090" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-3.6878, 0.0000, 11.1539)
+rotation = Vector3(0.0000, 6.0525, 0.0000)
+scale = Vector3(0.8069, 0.8069, 0.8069)
+
+[node name="TreeOak091" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(19.0012, 0.0000, 12.1304)
+rotation = Vector3(0.0000, 5.3862, 0.0000)
+scale = Vector3(1.1011, 1.1011, 1.1011)
+
+[node name="TreeOak092" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(21.5417, 0.0000, 12.5167)
+rotation = Vector3(0.0000, 1.8835, 0.0000)
+scale = Vector3(0.8586, 0.8586, 0.8586)
+
+[node name="TreeOak093" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(26.0031, 0.0000, 12.9502)
+rotation = Vector3(0.0000, 1.8584, 0.0000)
+scale = Vector3(1.0354, 1.0354, 1.0354)
+
+[node name="TreeOak094" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(50.8682, 0.0000, 11.8428)
+rotation = Vector3(0.0000, 2.0620, 0.0000)
+scale = Vector3(0.9826, 0.9826, 0.9826)
+
+[node name="TreeOak095" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(53.1838, 0.0000, 11.1880)
+rotation = Vector3(0.0000, 5.5665, 0.0000)
+scale = Vector3(0.9668, 0.9668, 0.9668)
+
+[node name="TreeBirch096" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-54.9080, 0.0000, 14.3240)
+rotation = Vector3(0.0000, 1.2303, 0.0000)
+scale = Vector3(1.0222, 1.0222, 1.0222)
+
+[node name="TreeBirch097" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-51.8525, 0.0000, 15.8083)
+rotation = Vector3(0.0000, 4.4978, 0.0000)
+scale = Vector3(0.9727, 0.9727, 0.9727)
+
+[node name="TreeBirch098" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-36.7530, 0.0000, 14.8480)
+rotation = Vector3(0.0000, 0.2961, 0.0000)
+scale = Vector3(0.8488, 0.8488, 0.8488)
+
+[node name="TreeBirch099" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-33.6062, 0.0000, 15.9284)
+rotation = Vector3(0.0000, 2.4007, 0.0000)
+scale = Vector3(0.7446, 0.7446, 0.7446)
+
+[node name="TreeBirch100" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-27.8643, 0.0000, 14.0784)
+rotation = Vector3(0.0000, 3.4868, 0.0000)
+scale = Vector3(1.0789, 1.0789, 1.0789)
+
+[node name="TreeOak101" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-15.0849, 0.0000, 15.2938)
+rotation = Vector3(0.0000, 0.5194, 0.0000)
+scale = Vector3(0.9931, 0.9931, 0.9931)
+
+[node name="TreeOak102" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(14.6141, 0.0000, 14.7428)
+rotation = Vector3(0.0000, 4.3123, 0.0000)
+scale = Vector3(0.8118, 0.8118, 0.8118)
+
+[node name="TreeOak103" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(51.5388, 0.0000, 15.2580)
+rotation = Vector3(0.0000, 3.0496, 0.0000)
+scale = Vector3(1.1078, 1.1078, 1.1078)
+
+[node name="TreeBirch104" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-53.9514, 0.0000, 17.0602)
+rotation = Vector3(0.0000, 5.6943, 0.0000)
+scale = Vector3(0.8127, 0.8127, 0.8127)
+
+[node name="TreeBirch105" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-50.9302, 0.0000, 18.4603)
+rotation = Vector3(0.0000, 1.4029, 0.0000)
+scale = Vector3(0.9716, 0.9716, 0.9716)
+
+[node name="TreeAspen106" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-47.7810, 0.0000, 17.6767)
+rotation = Vector3(0.0000, 5.8702, 0.0000)
+scale = Vector3(0.8208, 0.8208, 0.8208)
+
+[node name="TreeBirch107" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-38.9567, 0.0000, 18.9607)
+rotation = Vector3(0.0000, 1.2311, 0.0000)
+scale = Vector3(0.9699, 0.9699, 0.9699)
+
+[node name="TreeBirch108" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-36.0641, 0.0000, 17.9923)
+rotation = Vector3(0.0000, 3.4193, 0.0000)
+scale = Vector3(1.1141, 1.1141, 1.1141)
+
+[node name="TreeBirch109" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-33.1644, 0.0000, 18.8880)
+rotation = Vector3(0.0000, 2.3619, 0.0000)
+scale = Vector3(0.9862, 0.9862, 0.9862)
+
+[node name="TreeBirch110" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-29.5146, 0.0000, 18.8826)
+rotation = Vector3(0.0000, 3.3795, 0.0000)
+scale = Vector3(0.7540, 0.7540, 0.7540)
+
+[node name="TreeBirch111" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-26.2417, 0.0000, 17.2586)
+rotation = Vector3(0.0000, 4.9007, 0.0000)
+scale = Vector3(0.7804, 0.7804, 0.7804)
+
+[node name="TreeOak112" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(50.9836, 0.0000, 18.1047)
+rotation = Vector3(0.0000, 5.7087, 0.0000)
+scale = Vector3(0.8896, 0.8896, 0.8896)
+
+[node name="TreeBirch113" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-54.8670, 0.0000, 21.3594)
+rotation = Vector3(0.0000, 4.5864, 0.0000)
+scale = Vector3(0.7883, 0.7883, 0.7883)
+
+[node name="TreeBirch114" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-41.0127, 0.0000, 20.5742)
+rotation = Vector3(0.0000, 2.4205, 0.0000)
+scale = Vector3(0.9164, 0.9164, 0.9164)
+
+[node name="TreeBirch115" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-35.9009, 0.0000, 21.5977)
+rotation = Vector3(0.0000, 5.8586, 0.0000)
+scale = Vector3(1.0194, 1.0194, 1.0194)
+
+[node name="TreeAspen116" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-25.9796, 0.0000, 21.5261)
+rotation = Vector3(0.0000, 0.4135, 0.0000)
+scale = Vector3(1.0123, 1.0123, 1.0123)
+
+[node name="TreeOak117" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(51.5526, 0.0000, 22.0291)
+rotation = Vector3(0.0000, 5.3041, 0.0000)
+scale = Vector3(0.8929, 0.8929, 0.8929)
+
+[node name="TreeBirch118" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-54.2663, 0.0000, 24.5507)
+rotation = Vector3(0.0000, 4.6860, 0.0000)
+scale = Vector3(0.8766, 0.8766, 0.8766)
+
+[node name="TreeBirch119" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-51.3205, 0.0000, 24.8940)
+rotation = Vector3(0.0000, 5.9205, 0.0000)
+scale = Vector3(0.7370, 0.7370, 0.7370)
+
+[node name="TreeBirch120" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-42.2661, 0.0000, 23.5733)
+rotation = Vector3(0.0000, 3.4580, 0.0000)
+scale = Vector3(1.0471, 1.0471, 1.0471)
+
+[node name="TreeAspen121" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-33.5827, 0.0000, 23.3378)
+rotation = Vector3(0.0000, 1.1077, 0.0000)
+scale = Vector3(0.9363, 0.9363, 0.9363)
+
+[node name="TreeBirch122" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-27.4052, 0.0000, 23.6355)
+rotation = Vector3(0.0000, 3.9365, 0.0000)
+scale = Vector3(0.9196, 0.9196, 0.9196)
+
+[node name="TreeBirch123" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-24.4262, 0.0000, 24.8826)
+rotation = Vector3(0.0000, 0.4829, 0.0000)
+scale = Vector3(1.0066, 1.0066, 1.0066)
+
+[node name="TreeBirch124" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-21.0052, 0.0000, 24.9548)
+rotation = Vector3(0.0000, 2.0168, 0.0000)
+scale = Vector3(0.8318, 0.8318, 0.8318)
+
+[node name="TreeOak125" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(48.9481, 0.0000, 24.0013)
+rotation = Vector3(0.0000, 4.9977, 0.0000)
+scale = Vector3(0.7633, 0.7633, 0.7633)
+
+[node name="TreeBirch126" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-53.9094, 0.0000, 27.9074)
+rotation = Vector3(0.0000, 5.9448, 0.0000)
+scale = Vector3(1.1011, 1.1011, 1.1011)
+
+[node name="TreeAspen127" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-51.1733, 0.0000, 28.0097)
+rotation = Vector3(0.0000, 5.8969, 0.0000)
+scale = Vector3(0.8023, 0.8023, 0.8023)
+
+[node name="TreeAspen128" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-48.7783, 0.0000, 26.6848)
+rotation = Vector3(0.0000, 5.8416, 0.0000)
+scale = Vector3(0.8864, 0.8864, 0.8864)
+
+[node name="TreeBirch129" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-42.1428, 0.0000, 28.0013)
+rotation = Vector3(0.0000, 0.2287, 0.0000)
+scale = Vector3(0.7727, 0.7727, 0.7727)
+
+[node name="TreeBirch130" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-38.9568, 0.0000, 26.5747)
+rotation = Vector3(0.0000, 3.1343, 0.0000)
+scale = Vector3(1.1080, 1.1080, 1.1080)
+
+[node name="TreeBirch131" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-35.2318, 0.0000, 26.4125)
+rotation = Vector3(0.0000, 2.2261, 0.0000)
+scale = Vector3(1.0391, 1.0391, 1.0391)
+
+[node name="TreeBirch132" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-32.3631, 0.0000, 27.8455)
+rotation = Vector3(0.0000, 0.7187, 0.0000)
+scale = Vector3(1.0145, 1.0145, 1.0145)
+
+[node name="TreeBirch133" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-30.1715, 0.0000, 25.9522)
+rotation = Vector3(0.0000, 1.8935, 0.0000)
+scale = Vector3(0.7996, 0.7996, 0.7996)
+
+[node name="TreeBirch134" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-27.4836, 0.0000, 27.1420)
+rotation = Vector3(0.0000, 5.5915, 0.0000)
+scale = Vector3(0.8740, 0.8740, 0.8740)
+
+[node name="TreeAspen135" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-18.0237, 0.0000, 26.8375)
+rotation = Vector3(0.0000, 6.2549, 0.0000)
+scale = Vector3(0.8550, 0.8550, 0.8550)
+
+[node name="TreeOak136" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-14.8476, 0.0000, 27.4716)
+rotation = Vector3(0.0000, 0.3864, 0.0000)
+scale = Vector3(0.7212, 0.7212, 0.7212)
+
+[node name="TreeOak137" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(23.3905, 0.0000, 27.5848)
+rotation = Vector3(0.0000, 6.0862, 0.0000)
+scale = Vector3(0.8685, 0.8685, 0.8685)
+
+[node name="TreeOak138" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(31.0420, 0.0000, 27.9699)
+rotation = Vector3(0.0000, 3.0559, 0.0000)
+scale = Vector3(0.8109, 0.8109, 0.8109)
+
+[node name="TreeAspen139" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(40.0187, 0.0000, 27.9068)
+rotation = Vector3(0.0000, 6.1677, 0.0000)
+scale = Vector3(0.7562, 0.7562, 0.7562)
+
+[node name="TreeOak140" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(44.7045, 0.0000, 27.1878)
+rotation = Vector3(0.0000, 1.6234, 0.0000)
+scale = Vector3(0.9942, 0.9942, 0.9942)
+
+[node name="TreeOak141" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(48.4798, 0.0000, 26.3970)
+rotation = Vector3(0.0000, 5.2547, 0.0000)
+scale = Vector3(0.9050, 0.9050, 0.9050)
+
+[node name="TreeBirch142" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-51.6588, 0.0000, 30.6026)
+rotation = Vector3(0.0000, 0.8533, 0.0000)
+scale = Vector3(0.9909, 0.9909, 0.9909)
+
+[node name="TreeBirch143" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-48.4389, 0.0000, 29.8171)
+rotation = Vector3(0.0000, 2.5383, 0.0000)
+scale = Vector3(0.7901, 0.7901, 0.7901)
+
+[node name="TreeBirch144" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-44.2651, 0.0000, 30.1793)
+rotation = Vector3(0.0000, 2.7629, 0.0000)
+scale = Vector3(0.9689, 0.9689, 0.9689)
+
+[node name="TreeBirch145" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-29.4270, 0.0000, 30.3565)
+rotation = Vector3(0.0000, 2.3124, 0.0000)
+scale = Vector3(0.7348, 0.7348, 0.7348)
+
+[node name="TreeBirch146" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-26.8917, 0.0000, 30.8555)
+rotation = Vector3(0.0000, 4.9402, 0.0000)
+scale = Vector3(0.9232, 0.9232, 0.9232)
+
+[node name="TreeBirch147" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-24.0607, 0.0000, 29.7285)
+rotation = Vector3(0.0000, 4.5299, 0.0000)
+scale = Vector3(1.0011, 1.0011, 1.0011)
+
+[node name="TreeBirch148" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-20.9553, 0.0000, 30.5591)
+rotation = Vector3(0.0000, 2.6217, 0.0000)
+scale = Vector3(0.9476, 0.9476, 0.9476)
+
+[node name="TreeBirch149" parent="Canopy" instance=ExtResource("tree_birch")]
+position = Vector3(-18.7056, 0.0000, 29.5549)
+rotation = Vector3(0.0000, 5.7648, 0.0000)
+scale = Vector3(1.1174, 1.1174, 1.1174)
+
+[node name="TreeAspen150" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-14.0722, 0.0000, 29.8364)
+rotation = Vector3(0.0000, 0.3045, 0.0000)
+scale = Vector3(0.9288, 0.9288, 0.9288)
+
+[node name="TreeAspen151" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(-11.3867, 0.0000, 29.2912)
+rotation = Vector3(0.0000, 0.0110, 0.0000)
+scale = Vector3(0.8062, 0.8062, 0.8062)
+
+[node name="TreeOak152" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-6.7600, 0.0000, 30.7839)
+rotation = Vector3(0.0000, 1.2587, 0.0000)
+scale = Vector3(0.7443, 0.7443, 0.7443)
+
+[node name="TreeOak153" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(-2.4547, 0.0000, 30.8564)
+rotation = Vector3(0.0000, 5.3594, 0.0000)
+scale = Vector3(0.9739, 0.9739, 0.9739)
+
+[node name="TreeOak154" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(12.4175, 0.0000, 29.2971)
+rotation = Vector3(0.0000, 1.7927, 0.0000)
+scale = Vector3(0.9931, 0.9931, 0.9931)
+
+[node name="TreeOak155" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(21.4908, 0.0000, 29.5046)
+rotation = Vector3(0.0000, 1.8625, 0.0000)
+scale = Vector3(0.9344, 0.9344, 0.9344)
+
+[node name="TreeOak156" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(27.1115, 0.0000, 28.9552)
+rotation = Vector3(0.0000, 3.0393, 0.0000)
+scale = Vector3(0.7742, 0.7742, 0.7742)
+
+[node name="TreeOak157" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(35.2969, 0.0000, 29.6112)
+rotation = Vector3(0.0000, 2.3246, 0.0000)
+scale = Vector3(0.8581, 0.8581, 0.8581)
+
+[node name="TreeOak158" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(38.9710, 0.0000, 30.3634)
+rotation = Vector3(0.0000, 2.9501, 0.0000)
+scale = Vector3(0.9660, 0.9660, 0.9660)
+
+[node name="TreeOak159" parent="Canopy" instance=ExtResource("tree_oak")]
+position = Vector3(45.6667, 0.0000, 30.5154)
+rotation = Vector3(0.0000, 3.2048, 0.0000)
+scale = Vector3(0.9720, 0.9720, 0.9720)
+
+[node name="TreeAspen160" parent="Canopy" instance=ExtResource("tree_aspen")]
+position = Vector3(48.3799, 0.0000, 29.6015)
+rotation = Vector3(0.0000, 5.4063, 0.0000)
+scale = Vector3(0.8454, 0.8454, 0.8454)
+
+[node name="MossRock0" parent="Landmarks" instance=ExtResource("moss_rock")]
+position = Vector3(-25.0000, 0.0000, -27.0000)
+rotation = Vector3(0.0000, 0.4000, 0.0000)
+scale = Vector3(1.4500, 1.4500, 1.4500)
+
+[node name="MossRock1" parent="Landmarks" instance=ExtResource("moss_rock")]
+position = Vector3(-26.0000, 0.0000, 27.0000)
+rotation = Vector3(0.0000, 2.1000, 0.0000)
+scale = Vector3(1.3500, 1.3500, 1.3500)
+
+[node name="FallenLog2" parent="Landmarks" instance=ExtResource("fallen_log")]
+position = Vector3(-21.0000, 0.0000, -15.0000)
+rotation = Vector3(0.0000, 1.1000, 0.0000)
+scale = Vector3(1.2000, 1.2000, 1.2000)
+
+[node name="Stump3" parent="Landmarks" instance=ExtResource("stump")]
+position = Vector3(-18.0000, 0.0000, 13.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.1000, 1.1000, 1.1000)
+
+[node name="Waystone4" parent="Landmarks" instance=ExtResource("waystone")]
+position = Vector3(-25.0000, 0.0000, 6.0000)
+rotation = Vector3(0.0000, 0.2000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="CanvasTent5" parent="Landmarks" instance=ExtResource("canvas_tent")]
+position = Vector3(-48.0000, 0.0000, -18.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.2000, 1.2000, 1.2000)
+
+[node name="CanvasTent6" parent="Landmarks" instance=ExtResource("canvas_tent")]
+position = Vector3(-43.0000, 0.0000, -20.0000)
+rotation = Vector3(0.0000, -0.2000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="CanvasTent7" parent="Landmarks" instance=ExtResource("canvas_tent")]
+position = Vector3(48.0000, 0.0000, -11.0000)
+rotation = Vector3(0.0000, -0.3000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="CanvasTent8" parent="Landmarks" instance=ExtResource("canvas_tent")]
+position = Vector3(48.0000, 0.0000, 10.0000)
+rotation = Vector3(0.0000, 3.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="MossRock9" parent="Landmarks" instance=ExtResource("moss_rock")]
+position = Vector3(23.0000, 0.0000, -14.0000)
+rotation = Vector3(0.0000, 0.6000, 0.0000)
+scale = Vector3(1.3500, 1.3500, 1.3500)
+
+[node name="MossRock10" parent="Landmarks" instance=ExtResource("moss_rock")]
+position = Vector3(24.0000, 0.0000, 14.0000)
+rotation = Vector3(0.0000, 1.5000, 0.0000)
+scale = Vector3(1.2000, 1.2000, 1.2000)
+
+[node name="FallenLog11" parent="Landmarks" instance=ExtResource("fallen_log")]
+position = Vector3(3.0000, 0.0000, -11.0000)
+rotation = Vector3(0.0000, 0.9000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="CampDetail0" parent="Landmarks" instance=ExtResource("camp_supplies")]
+position = Vector3(-45.4000, 0.0000, -18.6000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.2500, 1.2500, 1.2500)
+
+[node name="CampDetail1" parent="Landmarks" instance=ExtResource("camp_supplies")]
+position = Vector3(50.0000, 0.0000, -12.5000)
+rotation = Vector3(0.0000, 1.0000, 0.0000)
+scale = Vector3(1.0500, 1.0500, 1.0500)
+
+[node name="CampDetail2" parent="Landmarks" instance=ExtResource("fire_circle")]
+position = Vector3(-39.7000, 0.0000, -20.5000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.1500, 1.1500, 1.1500)
+
+[node name="CampDetail3" parent="Landmarks" instance=ExtResource("fire_circle")]
+position = Vector3(49.5000, 0.0000, 13.3000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence0" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(-49.0000, 0.0000, -15.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence1" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(-45.0000, 0.0000, -15.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence2" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(-40.0000, 0.0000, -17.0000)
+rotation = Vector3(0.0000, -0.4000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence3" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(50.0000, 0.0000, -9.0000)
+rotation = Vector3(0.0000, 1.5708, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence4" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(50.0000, 0.0000, 9.0000)
+rotation = Vector3(0.0000, 1.5708, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence5" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(28.0000, 0.0000, -28.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence6" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(32.0000, 0.0000, -28.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence7" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(28.0000, 0.0000, 28.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="SplitFence8" parent="Landmarks" instance=ExtResource("split_fence")]
+position = Vector3(32.0000, 0.0000, 28.0000)
+rotation = Vector3(0.0000, 0.0000, 0.0000)
+scale = Vector3(1.0000, 1.0000, 1.0000)
+
+[node name="Bush" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_bush")
+cast_shadow = 1
+
+[node name="Fern" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_fern")
+cast_shadow = 1
+
+[node name="Flowers" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_flowers")
+cast_shadow = 0
+
+[node name="Grass" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_grass")
+cast_shadow = 0
+
+[node name="LeafLitter" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_leaf_litter")
+cast_shadow = 0
+
+[node name="Mushrooms" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_mushrooms")
+cast_shadow = 1
+
+[node name="Pebbles" type="MultiMeshInstance3D" parent="Understory"]
+multimesh = ExtResource("batch_pebbles")
+cast_shadow = 0

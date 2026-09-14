@@ -1,0 +1,5 @@
+[gd_scene format=3]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/rogue_forest/ground_exploration.res" id="mesh"]
+[node name="GroundExploration" type="Node3D"]
+[node name="SculptedMesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("mesh")

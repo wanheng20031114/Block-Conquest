@@ -4,8 +4,6 @@ This offline authoring tool writes complete native scenes. The game only
 instances those scenes; it never builds individual model/UI pieces in code.
 """
 from pathlib import Path
-import math
-import random
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,11 +11,17 @@ OUT = ROOT / "scenes/rogue"
 OUT.mkdir(parents=True, exist_ok=True)
 
 def write(path, text):
-    if "--map-only" in sys.argv and path != "scenes/rogue/rogue_map.tscn":
+    targets = {
+        "--map-only": "scenes/rogue/rogue_map.tscn",
+        "--preview-only": "scenes/rogue/route_preview.tscn",
+        "--node-only": "scenes/rogue/route_node.tscn",
+    }
+    selected = {target for flag, target in targets.items() if flag in sys.argv}
+    if selected and path not in selected:
         return
     dest = ROOT / path
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(text, encoding="utf-8")
+    dest.write_text(text.rstrip() + "\n", encoding="utf-8")
 
 def scene():
     return ['[gd_scene format=3]\n']
@@ -57,44 +61,7 @@ sub(theme,'SystemFont','Font','font_names = PackedStringArray("Microsoft YaHei U
 theme.append('[resource]\ndefault_font = SubResource("Font")\ndefault_font_size = 18\nLabel/colors/font_color = Color(0.9,0.93,0.83,1)\nButton/colors/font_color = Color(0.91,0.94,0.85,1)\nButton/colors/font_hover_color = Color(1,0.94,0.72,1)\nButton/colors/font_disabled_color = Color(0.44,0.51,0.45,1)\nButton/styles/normal = SubResource("Normal")\nButton/styles/hover = SubResource("Hover")\nButton/styles/pressed = SubResource("Pressed")\nButton/styles/disabled = SubResource("Disabled")\nButton/styles/focus = SubResource("Focus")\nPanelContainer/styles/panel = SubResource("Panel")\nVBoxContainer/constants/separation = 12\nHBoxContainer/constants/separation = 14\n')
 write('assets/ui/rogue_theme.tres','\n'.join(theme))
 
-# Three physical resource symbols. No raster generation or alpha extraction.
-for kind in ['coin','bread','boot']:
-    s=scene()
-    material(s,'Gold','0.95,0.65,0.17,1','metallic = 0.65')
-    material(s,'Pale','1,0.88,0.55,1')
-    material(s,'Crust','0.65,0.30,0.09,1')
-    material(s,'Leather','0.33,0.18,0.08,1')
-    material(s,'Sole','0.10,0.085,0.055,1')
-    if kind=='coin':
-        sub(s,'CylinderMesh','Coin','top_radius = 0.79\nbottom_radius = 0.79\nheight = 0.24\nradial_segments = 16\nmaterial = SubResource("Gold")')
-        box(s,'Mark','0.12,0.82,0.08','Pale')
-        node(s,'Coin','Node3D')
-        node(s,'Disc','MeshInstance3D','.', 'rotation_degrees = Vector3(90,0,0)\nmesh = SubResource("Coin")')
-        for i in [-1,0,1]:
-            node(s,f'Mark{i+1}','MeshInstance3D','.',f'position = Vector3({i*.24},0,0.15)\nmesh = SubResource("Mark")')
-    elif kind=='bread':
-        box(s,'CrustBase','1.55,1.35,0.48','Crust')
-        box(s,'BreadBase','1.29,1.18,0.49','Pale')
-        sub(s,'SphereMesh','RoundCrust','radius = 0.57\nheight = 1.14\nradial_segments = 16\nrings = 8\nmaterial = SubResource("Crust")')
-        sub(s,'SphereMesh','RoundBread','radius = 0.45\nheight = 0.9\nradial_segments = 16\nrings = 8\nmaterial = SubResource("Pale")')
-        node(s,'Bread','Node3D',props='rotation_degrees = Vector3(0,-12,8)')
-        node(s,'Crust','MeshInstance3D','.', 'mesh = SubResource("CrustBase")')
-        node(s,'Crumb','MeshInstance3D','.', 'position = Vector3(0,0.02,0.02)\nmesh = SubResource("BreadBase")')
-        for i,x in enumerate([-.35,.35]):
-            node(s,f'Top{i}','MeshInstance3D','.',f'position = Vector3({x},0.62,0)\nscale = Vector3(1,0.75,0.45)\nmesh = SubResource("RoundCrust")')
-            node(s,f'CrumbTop{i}','MeshInstance3D','.',f'position = Vector3({x},0.65,0.03)\nscale = Vector3(1,0.74,0.55)\nmesh = SubResource("RoundBread")')
-    else:
-        box(s,'Ankle','0.75,1.15,0.75','Leather')
-        box(s,'Foot','0.9,0.5,1.55','Leather')
-        box(s,'SoleMesh','0.98,0.18,1.65','Sole')
-        box(s,'Lace','0.78,0.10,0.08','Pale')
-        node(s,'Boot','Node3D',props='rotation_degrees = Vector3(0,-25,0)')
-        node(s,'Ankle','MeshInstance3D','.', 'position = Vector3(0,0.34,-0.25)\nmesh = SubResource("Ankle")')
-        node(s,'Foot','MeshInstance3D','.', 'position = Vector3(0,-0.35,0.12)\nmesh = SubResource("Foot")')
-        node(s,'Sole','MeshInstance3D','.', 'position = Vector3(0,-0.64,0.12)\nmesh = SubResource("SoleMesh")')
-        for i in range(3):
-            node(s,f'Lace{i}','MeshInstance3D','.',f'position = Vector3(0,{i*.22},0.16)\nmesh = SubResource("Lace")')
-    write(f'scenes/rogue/icon_{kind}.tscn','\n'.join(s))
+# Resource icons are generated artwork, sliced by build_rogue_icons.py.
 
 s=scene()
 ext(s,'Script','scripts/rogue/rogue_route_node.gd','script')
@@ -121,26 +88,20 @@ write('scenes/rogue/route_node.tscn','\n'.join(s))
 
 # A quiet miniature of the actual outpost is used in its operation briefing.
 s=scene()
-for k in ['defense_tower','barracks','tree_pine','headquarters']:
+for k in ['defense_tower','barracks','headquarters']:
     ext(s,'PackedScene',f'assets/models/environment/{k}.tscn',k)
-material(s,'Ground','0.25,0.34,0.20,1')
-material(s,'Road','0.51,0.45,0.30,1')
-box(s,'GroundMesh','112,1,64','Ground')
-box(s,'RoadMesh','106,0.05,7','Road')
+for k in ['outpost', 'siege']:
+    ext(s,'PackedScene',f'scenes/rogue/forest_{k}.tscn',f'forest_{k}')
 node(s,'Preview','Node3D')
-node(s,'Ground','MeshInstance3D','.', 'position = Vector3(0,-0.65,0)\nmesh = SubResource("GroundMesh")')
-node(s,'Road','MeshInstance3D','.', 'mesh = SubResource("RoadMesh")')
 node(s,'Outpost','Node3D','.')
+node(s,'Scenery','','Outpost','', 'forest_outpost')
 for i,(x,z) in enumerate([(-8,-15),(-8,15),(15,0),(36,-16),(36,16)]):
     node(s,f'Tower{i}','','Outpost',f'position = Vector3({x},0,{z})', 'defense_tower')
 for i,(x,z) in enumerate([(9,-20),(9,20),(42,0)]):
     node(s,f'Barracks{i}','','Outpost',f'position = Vector3({x},0,{z})', 'barracks')
 node(s,'Siege','Node3D','.', 'visible = false')
+node(s,'Scenery','','Siege','', 'forest_siege')
 node(s,'HQ','','Siege','', 'headquarters')
-for i in range(24):
-    x=-52+i*4.5
-    z=(-28 if i%2 else 28)
-    node(s,f'Tree{i}','','.',f'position = Vector3({x},0,{z})\nscale = Vector3(1.2,1.2,1.2)', 'tree_pine')
 write('scenes/rogue/route_preview.tscn','\n'.join(s))
 
 # Authored military miniatures give the two opening choices an actual visual.
@@ -173,15 +134,9 @@ ext(s,'PackedScene','scenes/rogue/route_preview.tscn','preview')
 ext(s,'PackedScene','scenes/rogue/army_panel.tscn','army')
 for index in range(3):
     ext(s,'PackedScene',f'scenes/rogue/setup_models_{index}.tscn',f'setup{index}')
-for k in ['tree_pine','tree_oak','rock_medium','campfire']:
-    ext(s,'PackedScene',f'assets/models/environment/{k}.tscn',k)
+ext(s,'PackedScene','scenes/rogue/forest_exploration.tscn','forest')
 for k in ['coin','bread','boot']:
-    ext(s,'PackedScene',f'scenes/rogue/icon_{k}.tscn',k)
-material(s,'Ground','0.15,0.25,0.16,1')
-material(s,'Path','0.48,0.45,0.28,1')
-box(s,'GroundMesh','100,1.5,72','Ground')
-box(s,'HorizontalPath','9,0.10,0.55','Path')
-box(s,'VerticalPath','0.55,0.10,10','Path')
+    ext(s,'Texture2D',f'assets/ui/medieval/icons/rogue/{k}.png',k)
 sub(s,'Environment','World','background_mode = 1\nbackground_color = Color(0.06,0.12,0.10,1)\nambient_light_source = 3\nambient_light_color = Color(0.63,0.78,0.65,1)\nambient_light_energy = 0.65\ntonemap_mode = 2\nssao_enabled = true\nssao_radius = 2.0\nssao_intensity = 1.6\nglow_enabled = true\nglow_intensity = 0.35\nfog_enabled = true\nfog_light_color = Color(0.12,0.24,0.19,1)\nfog_density = 0.002')
 sub(s,'Environment','IconEnvironment','background_mode = 0\nambient_light_source = 3\nambient_light_color = Color(1,0.92,0.8,1)\nambient_light_energy = 0.7')
 sub(s,'Shader','Shade','code = "shader_type canvas_item;\nvoid fragment(){float rim=smoothstep(0.2,0.75,length((UV-vec2(0.5,0.46))*vec2(1.1,1.0)));COLOR=vec4(0.12,0.20,0.16,rim*0.32);}"')
@@ -191,24 +146,12 @@ node(s,'WorldEnvironment','WorldEnvironment','.', 'environment = SubResource("Wo
 node(s,'Sun','DirectionalLight3D','.', 'rotation_degrees = Vector3(-60,-28,0)\nlight_color = Color(1,0.89,0.65,1)\nlight_energy = 1.3\nshadow_enabled = true\ndirectional_shadow_max_distance = 130.0')
 node(s,'CameraRig','Node3D','.', 'position = Vector3(0,0,0)')
 node(s,'Camera3D','Camera3D','CameraRig', 'position = Vector3(0,54,31.2)\nrotation_degrees = Vector3(-60,0,0)\nprojection = 1\nsize = 65.0\ncurrent = true\nfar = 180.0')
-node(s,'Ground','MeshInstance3D','.', 'position = Vector3(0,-1.0,0)\nmesh = SubResource("GroundMesh")')
 node(s,'Routes','Node3D','.')
 coords=[(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(1,1),(2,1),(3,1),(4,1),(5,1),(7,1),(0,2),(1,2),(3,2),(4,2),(5,2),(6,2),(0,3),(1,3),(2,3),(3,3),(4,3),(5,3),(6,3),(7,3),(0,4),(1,4),(2,4),(3,4),(4,4),(5,4),(6,4)]
-edges=[(0,1),(0,7),(1,8),(2,3),(2,9),(3,4),(4,5),(5,6),(6,12),(7,8),(7,14),(8,9),(9,10),(9,15),(10,11),(10,16),(11,17),(13,14),(13,19),(15,16),(15,22),(16,17),(17,18),(19,27),(20,21),(21,22),(22,23),(22,30),(23,24),(24,25),(25,26),(25,33),(28,29),(29,30),(30,31),(31,32),(32,33)]
-for i,(a,b) in enumerate(edges):
-    xa,za=coords[a];xb,zb=coords[b]
-    node(s,f'Path{i}','MeshInstance3D','Routes',f'position = Vector3({((xa+xb)/2-3.5)*9},-0.17,{((za+zb)/2-2)*10})\nmesh = SubResource("{"HorizontalPath" if za==zb else "VerticalPath"}")')
 node(s,'Nodes','Node3D','.')
 for i,(x,z) in enumerate(coords):
     node(s,f'Node{i}','','Nodes',f'position = Vector3({(x-3.5)*9},0,{(z-2)*10})\nnode_id = {i}', 'route_node')
-node(s,'Forest','Node3D','.')
-rng=random.Random(734)
-for i in range(180):
-    x=rng.uniform(-46,46);z=rng.uniform(-32,32)
-    if any(abs(x-(cx-3.5)*9)<3.4 and abs(z-(cz-2)*10)<4.4 for cx,cz in coords):
-        continue
-    scale=rng.uniform(.65,1.15)
-    node(s,f'Tree{i}','','Forest',f'position = Vector3({x:.3f},-0.22,{z:.3f})\nrotation_degrees = Vector3(0,{rng.uniform(0,360):.2f},0)\nscale = Vector3({scale:.3f},{scale:.3f},{scale:.3f})', 'tree_pine' if i%3 else 'tree_oak')
+node(s,'Forest','','.','', 'forest')
 node(s,'Canvas','CanvasLayer','.')
 node(s,'UI','Control','Canvas',FULL+'\nmouse_filter = 2\ntheme = ExtResource("theme")')
 node(s,'Vignette','ColorRect','Canvas/UI',FULL+'\nmouse_filter = 2\nmaterial = SubResource("ShadeMaterial")')
@@ -221,12 +164,7 @@ ui(s,'Journey','Label','Canvas/UI/Top/TitleBlock','text = "单人肉鸽 · 第�
 ui(s,'XP','ProgressBar','Canvas/UI/Top/TitleBlock','custom_minimum_size = Vector2(190,5)\nsize_flags_horizontal = 0\nshow_percentage = false')
 for name,icon in [('Gold','coin'),('Bread','bread'),('Action','boot')]:
     ui(s,name,'HBoxContainer','Canvas/UI/Top','custom_minimum_size = Vector2(128,56)\nalignment = 2\ntheme_override_constants/separation = 8')
-    ui(s,'Icon','SubViewportContainer',f'Canvas/UI/Top/{name}','custom_minimum_size = Vector2(48,48)\nmouse_filter = 2\nstretch = true')
-    node(s,'Viewport','SubViewport',f'Canvas/UI/Top/{name}/Icon','transparent_bg = true\nhandle_input_locally = false\nsize = Vector2i(64,64)\nrender_target_update_mode = 1\nown_world_3d = true')
-    node(s,'Environment','WorldEnvironment',f'Canvas/UI/Top/{name}/Icon/Viewport','environment = SubResource("IconEnvironment")')
-    node(s,'Model','',f'Canvas/UI/Top/{name}/Icon/Viewport','',icon)
-    node(s,'Light','DirectionalLight3D',f'Canvas/UI/Top/{name}/Icon/Viewport','rotation_degrees = Vector3(-35,-30,0)\nlight_energy = 1.7')
-    node(s,'Camera','Camera3D',f'Canvas/UI/Top/{name}/Icon/Viewport','position = Vector3(0,1.3,5)\nrotation_degrees = Vector3(-14,0,0)\nprojection = 1\nsize = 2.7\ncurrent = true')
+    ui(s,'Icon','TextureRect',f'Canvas/UI/Top/{name}',f'custom_minimum_size = Vector2(52,52)\nsize_flags_vertical = 4\nmouse_filter = 2\ntexture = ExtResource("{icon}")\nexpand_mode = 1\nstretch_mode = 5')
     ui(s,'Value','Label',f'Canvas/UI/Top/{name}','text = "—"\nvertical_alignment = 1\ntheme_override_font_sizes/font_size = 28')
 node(s,'Rail','VBoxContainer','Canvas/UI','layout_mode = 0\nanchor_top = 0.30\noffset_left = 24.0\noffset_top = 0.0\noffset_right = 165.0\noffset_bottom = 335.0\ntheme_override_constants/separation = 10')
 for name,label in [('Army','编队'),('Recruit','招募'),('Load','读取存档'),('Pause','暂停菜单'),('Menu','返回大厅')]:
@@ -299,4 +237,4 @@ node(s,'Notice','AcceptDialog','Canvas/UI','title = "林海远征"\nok_button_te
 write('scenes/rogue/rogue_map.tscn','\n'.join(s))
 
 if __name__ == '__main__':
-    print('Authored forest presentation scenes and native resource icons.')
+    print('Authored forest presentation scenes and illustrated resource icons.')
