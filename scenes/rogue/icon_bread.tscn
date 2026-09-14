@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Gold"]
+albedo_color = Color(0.95,0.65,0.17,1)
+roughness = 0.9
+metallic = 0.65
+
+[sub_resource type="StandardMaterial3D" id="Pale"]
+albedo_color = Color(1,0.88,0.55,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Crust"]
+albedo_color = Color(0.65,0.30,0.09,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Leather"]
+albedo_color = Color(0.33,0.18,0.08,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Sole"]
+albedo_color = Color(0.10,0.085,0.055,1)
+roughness = 0.9
+
+
+[sub_resource type="BoxMesh" id="CrustBase"]
+size = Vector3(1.55,1.35,0.48)
+material = SubResource("Crust")
+
+[sub_resource type="BoxMesh" id="BreadBase"]
+size = Vector3(1.29,1.18,0.49)
+material = SubResource("Pale")
+
+[sub_resource type="SphereMesh" id="RoundCrust"]
+radius = 0.57
+height = 1.14
+radial_segments = 16
+rings = 8
+material = SubResource("Crust")
+
+[sub_resource type="SphereMesh" id="RoundBread"]
+radius = 0.45
+height = 0.9
+radial_segments = 16
+rings = 8
+material = SubResource("Pale")
+
+[node name="Bread" type="Node3D"]
+rotation_degrees = Vector3(0,-12,8)
+
+[node name="Crust" type="MeshInstance3D" parent="."]
+mesh = SubResource("CrustBase")
+
+[node name="Crumb" type="MeshInstance3D" parent="."]
+position = Vector3(0,0.02,0.02)
+mesh = SubResource("BreadBase")
+
+[node name="Top0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.35,0.62,0)
+scale = Vector3(1,0.75,0.45)
+mesh = SubResource("RoundCrust")
+
+[node name="CrumbTop0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.35,0.65,0.03)
+scale = Vector3(1,0.74,0.55)
+mesh = SubResource("RoundBread")
+
+[node name="Top1" type="MeshInstance3D" parent="."]
+position = Vector3(0.35,0.62,0)
+scale = Vector3(1,0.75,0.45)
+mesh = SubResource("RoundCrust")
+
+[node name="CrumbTop1" type="MeshInstance3D" parent="."]
+position = Vector3(0.35,0.65,0.03)
+scale = Vector3(1,0.74,0.55)
+mesh = SubResource("RoundBread")

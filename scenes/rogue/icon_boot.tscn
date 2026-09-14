@@ -1,0 +1,69 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Gold"]
+albedo_color = Color(0.95,0.65,0.17,1)
+roughness = 0.9
+metallic = 0.65
+
+[sub_resource type="StandardMaterial3D" id="Pale"]
+albedo_color = Color(1,0.88,0.55,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Crust"]
+albedo_color = Color(0.65,0.30,0.09,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Leather"]
+albedo_color = Color(0.33,0.18,0.08,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Sole"]
+albedo_color = Color(0.10,0.085,0.055,1)
+roughness = 0.9
+
+
+[sub_resource type="BoxMesh" id="Ankle"]
+size = Vector3(0.75,1.15,0.75)
+material = SubResource("Leather")
+
+[sub_resource type="BoxMesh" id="Foot"]
+size = Vector3(0.9,0.5,1.55)
+material = SubResource("Leather")
+
+[sub_resource type="BoxMesh" id="SoleMesh"]
+size = Vector3(0.98,0.18,1.65)
+material = SubResource("Sole")
+
+[sub_resource type="BoxMesh" id="Lace"]
+size = Vector3(0.78,0.10,0.08)
+material = SubResource("Pale")
+
+[node name="Boot" type="Node3D"]
+rotation_degrees = Vector3(0,-25,0)
+
+[node name="Ankle" type="MeshInstance3D" parent="."]
+position = Vector3(0,0.34,-0.25)
+mesh = SubResource("Ankle")
+
+[node name="Foot" type="MeshInstance3D" parent="."]
+position = Vector3(0,-0.35,0.12)
+mesh = SubResource("Foot")
+
+[node name="Sole" type="MeshInstance3D" parent="."]
+position = Vector3(0,-0.64,0.12)
+mesh = SubResource("SoleMesh")
+
+[node name="Lace0" type="MeshInstance3D" parent="."]
+position = Vector3(0,0.0,0.16)
+mesh = SubResource("Lace")
+
+[node name="Lace1" type="MeshInstance3D" parent="."]
+position = Vector3(0,0.22,0.16)
+mesh = SubResource("Lace")
+
+[node name="Lace2" type="MeshInstance3D" parent="."]
+position = Vector3(0,0.44,0.16)
+mesh = SubResource("Lace")

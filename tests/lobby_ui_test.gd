@@ -260,7 +260,7 @@ func _run() -> void:
 	await click(control("Codex"))
 	var codex: Control = control("UnitCodex")
 	check(codex.visible, "native codex entry opens the full catalogue")
-	var counts: Array[int] = [6, 5, 14]
+	var counts: Array[int] = [BalanceCatalog.UNITS.size(), 5, 14]
 	for category in range(3):
 		codex._on_category_changed(category)
 		check(codex.get_node("%Entries").item_count == counts[category], "catalogue category " + str(category) + " contains every current resource")
@@ -269,7 +269,11 @@ func _run() -> void:
 			codex.select_entry(category, id)
 			var definition: Resource = codex._definition(id)
 			check(codex.get_node("%EntryTitle").text == definition.name and not codex.get_node("%Stats").get_parsed_text().is_empty(), id + " shows exact shared resource identity and statistics")
-			check(codex.get_node("%ModelAnchor").get_child_count() == 1 and is_instance_valid(codex._model), id + " owns one real preview model")
+			var support: Node = codex.get_node("%SupportPreview")
+			var preview_children: Array[Node] = codex.get_node("%ModelAnchor").get_children().filter(func(child: Node) -> bool: return child != support)
+			var preview_kind: String = id if category < 2 else String(codex.TECH_MODELS[definition.track])
+			var preview_path: String = "res://assets/models/units/%s.tscn" % preview_kind if BalanceCatalog.UNITS.has(preview_kind) else codex.MODEL_PATHS[preview_kind]
+			check(preview_children.size() == 1 and is_instance_valid(codex._model) and preview_children[0] == codex._model and codex._model.scene_file_path == preview_path, id + " owns one correct preview model alongside authored support preview")
 			if category == 0:
 				check(codex.get_node("%Stats").get_parsed_text().contains(str(definition.cost)) and codex.get_node("%Stats").get_parsed_text().contains(str(int(definition.hp))), id + " displays real cost and health")
 	codex.select_entry(0, "knight")

@@ -1,0 +1,1796 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/rogue/rogue_map.gd" id="script"]
+
+[ext_resource type="Theme" path="res://assets/ui/rogue_theme.tres" id="theme"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/route_node.tscn" id="route_node"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/route_preview.tscn" id="preview"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/army_panel.tscn" id="army"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/setup_models_0.tscn" id="setup0"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/setup_models_1.tscn" id="setup1"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/setup_models_2.tscn" id="setup2"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/tree_pine.tscn" id="tree_pine"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/tree_oak.tscn" id="tree_oak"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/rock_medium.tscn" id="rock_medium"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/campfire.tscn" id="campfire"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/icon_coin.tscn" id="coin"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/icon_bread.tscn" id="bread"]
+
+[ext_resource type="PackedScene" path="res://scenes/rogue/icon_boot.tscn" id="boot"]
+
+[sub_resource type="StandardMaterial3D" id="Ground"]
+albedo_color = Color(0.15,0.25,0.16,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Path"]
+albedo_color = Color(0.48,0.45,0.28,1)
+roughness = 0.9
+
+
+[sub_resource type="BoxMesh" id="GroundMesh"]
+size = Vector3(100,1.5,72)
+material = SubResource("Ground")
+
+[sub_resource type="BoxMesh" id="HorizontalPath"]
+size = Vector3(9,0.10,0.55)
+material = SubResource("Path")
+
+[sub_resource type="BoxMesh" id="VerticalPath"]
+size = Vector3(0.55,0.10,10)
+material = SubResource("Path")
+
+[sub_resource type="Environment" id="World"]
+background_mode = 1
+background_color = Color(0.06,0.12,0.10,1)
+ambient_light_source = 3
+ambient_light_color = Color(0.63,0.78,0.65,1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+ssao_enabled = true
+ssao_radius = 2.0
+ssao_intensity = 1.6
+glow_enabled = true
+glow_intensity = 0.35
+fog_enabled = true
+fog_light_color = Color(0.12,0.24,0.19,1)
+fog_density = 0.002
+
+[sub_resource type="Environment" id="IconEnvironment"]
+background_mode = 0
+ambient_light_source = 3
+ambient_light_color = Color(1,0.92,0.8,1)
+ambient_light_energy = 0.7
+
+[sub_resource type="Shader" id="Shade"]
+code = "shader_type canvas_item;
+void fragment(){float rim=smoothstep(0.2,0.75,length((UV-vec2(0.5,0.46))*vec2(1.1,1.0)));COLOR=vec4(0.025,0.055,0.043,rim*0.6);}"
+
+[sub_resource type="ShaderMaterial" id="ShadeMaterial"]
+shader = SubResource("Shade")
+
+[sub_resource type="StyleBoxFlat" id="ChoiceNormal"]
+bg_color = Color(0.055,0.105,0.084,0.95)
+content_margin_top = 190.0
+content_margin_bottom = 20.0
+content_margin_left = 10.0
+content_margin_right = 10.0
+border_width_bottom = 2
+border_color = Color(0.62,0.52,0.28,1)
+
+[sub_resource type="StyleBoxFlat" id="ChoiceHover"]
+bg_color = Color(0.15,0.22,0.14,0.98)
+content_margin_top = 190.0
+content_margin_bottom = 20.0
+content_margin_left = 10.0
+content_margin_right = 10.0
+border_width_bottom = 2
+border_color = Color(0.62,0.52,0.28,1)
+
+[node name="ForestExpedition" type="Node3D"]
+script = ExtResource("script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("World")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-60,-28,0)
+light_color = Color(1,0.89,0.65,1)
+light_energy = 1.3
+shadow_enabled = true
+directional_shadow_max_distance = 130.0
+
+[node name="CameraRig" type="Node3D" parent="."]
+position = Vector3(0,0,0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position = Vector3(0,54,31.2)
+rotation_degrees = Vector3(-60,0,0)
+projection = 1
+size = 65.0
+current = true
+far = 180.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0,-1.0,0)
+mesh = SubResource("GroundMesh")
+
+[node name="Routes" type="Node3D" parent="."]
+
+
+[node name="Path0" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-18.0,-0.17,-20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path1" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-22.5,-0.17,-15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path2" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-13.5,-0.17,-15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path3" type="MeshInstance3D" parent="Routes"]
+position = Vector3(0.0,-0.17,-20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path4" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-4.5,-0.17,-15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path5" type="MeshInstance3D" parent="Routes"]
+position = Vector3(9.0,-0.17,-20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path6" type="MeshInstance3D" parent="Routes"]
+position = Vector3(18.0,-0.17,-20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path7" type="MeshInstance3D" parent="Routes"]
+position = Vector3(27.0,-0.17,-20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path8" type="MeshInstance3D" parent="Routes"]
+position = Vector3(31.5,-0.17,-15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path9" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-18.0,-0.17,-10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path10" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-22.5,-0.17,-5.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path11" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-9.0,-0.17,-10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path12" type="MeshInstance3D" parent="Routes"]
+position = Vector3(0.0,-0.17,-10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path13" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-4.5,-0.17,-5.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path14" type="MeshInstance3D" parent="Routes"]
+position = Vector3(9.0,-0.17,-10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path15" type="MeshInstance3D" parent="Routes"]
+position = Vector3(4.5,-0.17,-5.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path16" type="MeshInstance3D" parent="Routes"]
+position = Vector3(13.5,-0.17,-5.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path17" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-27.0,-0.17,0.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path18" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-31.5,-0.17,5.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path19" type="MeshInstance3D" parent="Routes"]
+position = Vector3(0.0,-0.17,0.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path20" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-4.5,-0.17,5.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path21" type="MeshInstance3D" parent="Routes"]
+position = Vector3(9.0,-0.17,0.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path22" type="MeshInstance3D" parent="Routes"]
+position = Vector3(18.0,-0.17,0.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path23" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-31.5,-0.17,15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path24" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-18.0,-0.17,10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path25" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-9.0,-0.17,10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path26" type="MeshInstance3D" parent="Routes"]
+position = Vector3(0.0,-0.17,10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path27" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-4.5,-0.17,15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path28" type="MeshInstance3D" parent="Routes"]
+position = Vector3(9.0,-0.17,10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path29" type="MeshInstance3D" parent="Routes"]
+position = Vector3(18.0,-0.17,10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path30" type="MeshInstance3D" parent="Routes"]
+position = Vector3(27.0,-0.17,10.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path31" type="MeshInstance3D" parent="Routes"]
+position = Vector3(22.5,-0.17,15.0)
+mesh = SubResource("VerticalPath")
+
+[node name="Path32" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-18.0,-0.17,20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path33" type="MeshInstance3D" parent="Routes"]
+position = Vector3(-9.0,-0.17,20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path34" type="MeshInstance3D" parent="Routes"]
+position = Vector3(0.0,-0.17,20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path35" type="MeshInstance3D" parent="Routes"]
+position = Vector3(9.0,-0.17,20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Path36" type="MeshInstance3D" parent="Routes"]
+position = Vector3(18.0,-0.17,20.0)
+mesh = SubResource("HorizontalPath")
+
+[node name="Nodes" type="Node3D" parent="."]
+
+
+[node name="Node0" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-22.5,0,-20)
+node_id = 0
+
+[node name="Node1" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-13.5,0,-20)
+node_id = 1
+
+[node name="Node2" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-4.5,0,-20)
+node_id = 2
+
+[node name="Node3" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(4.5,0,-20)
+node_id = 3
+
+[node name="Node4" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(13.5,0,-20)
+node_id = 4
+
+[node name="Node5" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(22.5,0,-20)
+node_id = 5
+
+[node name="Node6" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(31.5,0,-20)
+node_id = 6
+
+[node name="Node7" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-22.5,0,-10)
+node_id = 7
+
+[node name="Node8" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-13.5,0,-10)
+node_id = 8
+
+[node name="Node9" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-4.5,0,-10)
+node_id = 9
+
+[node name="Node10" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(4.5,0,-10)
+node_id = 10
+
+[node name="Node11" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(13.5,0,-10)
+node_id = 11
+
+[node name="Node12" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(31.5,0,-10)
+node_id = 12
+
+[node name="Node13" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-31.5,0,0)
+node_id = 13
+
+[node name="Node14" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-22.5,0,0)
+node_id = 14
+
+[node name="Node15" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-4.5,0,0)
+node_id = 15
+
+[node name="Node16" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(4.5,0,0)
+node_id = 16
+
+[node name="Node17" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(13.5,0,0)
+node_id = 17
+
+[node name="Node18" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(22.5,0,0)
+node_id = 18
+
+[node name="Node19" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-31.5,0,10)
+node_id = 19
+
+[node name="Node20" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-22.5,0,10)
+node_id = 20
+
+[node name="Node21" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-13.5,0,10)
+node_id = 21
+
+[node name="Node22" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-4.5,0,10)
+node_id = 22
+
+[node name="Node23" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(4.5,0,10)
+node_id = 23
+
+[node name="Node24" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(13.5,0,10)
+node_id = 24
+
+[node name="Node25" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(22.5,0,10)
+node_id = 25
+
+[node name="Node26" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(31.5,0,10)
+node_id = 26
+
+[node name="Node27" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-31.5,0,20)
+node_id = 27
+
+[node name="Node28" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-22.5,0,20)
+node_id = 28
+
+[node name="Node29" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-13.5,0,20)
+node_id = 29
+
+[node name="Node30" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(-4.5,0,20)
+node_id = 30
+
+[node name="Node31" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(4.5,0,20)
+node_id = 31
+
+[node name="Node32" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(13.5,0,20)
+node_id = 32
+
+[node name="Node33" parent="Nodes" instance=ExtResource("route_node")]
+position = Vector3(22.5,0,20)
+node_id = 33
+
+[node name="Forest" type="Node3D" parent="."]
+
+
+[node name="Tree1" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(39.326,-0.22,11.212)
+rotation_degrees = Vector3(0,197.83,0)
+scale = Vector3(1.084,1.084,1.084)
+
+[node name="Tree2" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(29.915,-0.22,-28.107)
+rotation_degrees = Vector3(0,36.60,0)
+scale = Vector3(0.829,0.829,0.829)
+
+[node name="Tree3" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-43.388,-0.22,29.595)
+rotation_degrees = Vector3(0,263.69,0)
+scale = Vector3(0.699,0.699,0.699)
+
+[node name="Tree4" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(5.554,-0.22,14.477)
+rotation_degrees = Vector3(0,119.74,0)
+scale = Vector3(0.885,0.885,0.885)
+
+[node name="Tree5" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-15.168,-0.22,-24.651)
+rotation_degrees = Vector3(0,109.10,0)
+scale = Vector3(0.818,0.818,0.818)
+
+[node name="Tree8" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(4.682,-0.22,27.992)
+rotation_degrees = Vector3(0,2.15,0)
+scale = Vector3(0.864,0.864,0.864)
+
+[node name="Tree9" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(32.418,-0.22,2.588)
+rotation_degrees = Vector3(0,302.15,0)
+scale = Vector3(0.711,0.711,0.711)
+
+[node name="Tree10" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(39.551,-0.22,29.069)
+rotation_degrees = Vector3(0,47.19,0)
+scale = Vector3(1.095,1.095,1.095)
+
+[node name="Tree11" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(41.154,-0.22,3.804)
+rotation_degrees = Vector3(0,144.12,0)
+scale = Vector3(0.916,0.916,0.916)
+
+[node name="Tree13" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(39.616,-0.22,-31.251)
+rotation_degrees = Vector3(0,91.32,0)
+scale = Vector3(1.098,1.098,1.098)
+
+[node name="Tree15" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(25.886,-0.22,29.855)
+rotation_degrees = Vector3(0,105.93,0)
+scale = Vector3(0.853,0.853,0.853)
+
+[node name="Tree16" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-43.939,-0.22,17.288)
+rotation_degrees = Vector3(0,53.45,0)
+scale = Vector3(1.121,1.121,1.121)
+
+[node name="Tree19" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-44.291,-0.22,-0.660)
+rotation_degrees = Vector3(0,13.14,0)
+scale = Vector3(0.869,0.869,0.869)
+
+[node name="Tree21" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(6.789,-0.22,28.194)
+rotation_degrees = Vector3(0,338.81,0)
+scale = Vector3(0.861,0.861,0.861)
+
+[node name="Tree22" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-22.339,-0.22,28.243)
+rotation_degrees = Vector3(0,12.74,0)
+scale = Vector3(0.796,0.796,0.796)
+
+[node name="Tree23" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(43.978,-0.22,-17.079)
+rotation_degrees = Vector3(0,278.30,0)
+scale = Vector3(0.987,0.987,0.987)
+
+[node name="Tree24" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-44.421,-0.22,10.541)
+rotation_degrees = Vector3(0,90.03,0)
+scale = Vector3(0.864,0.864,0.864)
+
+[node name="Tree25" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-20.390,-0.22,-27.584)
+rotation_degrees = Vector3(0,294.94,0)
+scale = Vector3(1.089,1.089,1.089)
+
+[node name="Tree26" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-38.159,-0.22,-12.265)
+rotation_degrees = Vector3(0,224.79,0)
+scale = Vector3(0.799,0.799,0.799)
+
+[node name="Tree27" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(38.686,-0.22,-0.572)
+rotation_degrees = Vector3(0,124.31,0)
+scale = Vector3(0.715,0.715,0.715)
+
+[node name="Tree28" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-37.323,-0.22,10.985)
+rotation_degrees = Vector3(0,219.54,0)
+scale = Vector3(0.864,0.864,0.864)
+
+[node name="Tree29" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-14.232,-0.22,-2.495)
+rotation_degrees = Vector3(0,100.68,0)
+scale = Vector3(0.698,0.698,0.698)
+
+[node name="Tree31" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-40.974,-0.22,20.707)
+rotation_degrees = Vector3(0,335.39,0)
+scale = Vector3(0.933,0.933,0.933)
+
+[node name="Tree33" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-44.540,-0.22,25.738)
+rotation_degrees = Vector3(0,185.67,0)
+scale = Vector3(0.782,0.782,0.782)
+
+[node name="Tree36" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(8.726,-0.22,-25.406)
+rotation_degrees = Vector3(0,289.71,0)
+scale = Vector3(0.951,0.951,0.951)
+
+[node name="Tree37" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-29.008,-0.22,-6.492)
+rotation_degrees = Vector3(0,338.83,0)
+scale = Vector3(0.806,0.806,0.806)
+
+[node name="Tree38" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(33.593,-0.22,24.425)
+rotation_degrees = Vector3(0,120.02,0)
+scale = Vector3(1.035,1.035,1.035)
+
+[node name="Tree39" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-44.050,-0.22,1.359)
+rotation_degrees = Vector3(0,108.69,0)
+scale = Vector3(1.119,1.119,1.119)
+
+[node name="Tree40" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-27.259,-0.22,30.824)
+rotation_degrees = Vector3(0,38.36,0)
+scale = Vector3(0.686,0.686,0.686)
+
+[node name="Tree42" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(26.948,-0.22,26.694)
+rotation_degrees = Vector3(0,190.82,0)
+scale = Vector3(0.898,0.898,0.898)
+
+[node name="Tree43" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-14.451,-0.22,-2.476)
+rotation_degrees = Vector3(0,5.52,0)
+scale = Vector3(1.051,1.051,1.051)
+
+[node name="Tree44" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(41.130,-0.22,-2.904)
+rotation_degrees = Vector3(0,30.98,0)
+scale = Vector3(1.014,1.014,1.014)
+
+[node name="Tree46" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-0.483,-0.22,-12.334)
+rotation_degrees = Vector3(0,95.60,0)
+scale = Vector3(1.044,1.044,1.044)
+
+[node name="Tree48" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-26.545,-0.22,-10.332)
+rotation_degrees = Vector3(0,42.81,0)
+scale = Vector3(0.982,0.982,0.982)
+
+[node name="Tree49" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-9.572,-0.22,28.420)
+rotation_degrees = Vector3(0,184.05,0)
+scale = Vector3(0.749,0.749,0.749)
+
+[node name="Tree52" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-10.662,-0.22,25.532)
+rotation_degrees = Vector3(0,51.38,0)
+scale = Vector3(0.724,0.724,0.724)
+
+[node name="Tree53" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(0.330,-0.22,6.687)
+rotation_degrees = Vector3(0,24.60,0)
+scale = Vector3(0.726,0.726,0.726)
+
+[node name="Tree55" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-40.981,-0.22,-17.894)
+rotation_degrees = Vector3(0,315.31,0)
+scale = Vector3(1.132,1.132,1.132)
+
+[node name="Tree57" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(20.278,-0.22,-26.204)
+rotation_degrees = Vector3(0,275.14,0)
+scale = Vector3(0.926,0.926,0.926)
+
+[node name="Tree58" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-44.432,-0.22,-25.356)
+rotation_degrees = Vector3(0,172.83,0)
+scale = Vector3(0.762,0.762,0.762)
+
+[node name="Tree59" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(23.484,-0.22,-5.175)
+rotation_degrees = Vector3(0,5.75,0)
+scale = Vector3(0.976,0.976,0.976)
+
+[node name="Tree60" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(17.716,-0.22,21.982)
+rotation_degrees = Vector3(0,226.85,0)
+scale = Vector3(0.829,0.829,0.829)
+
+[node name="Tree61" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(45.485,-0.22,-31.896)
+rotation_degrees = Vector3(0,152.48,0)
+scale = Vector3(0.867,0.867,0.867)
+
+[node name="Tree62" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-28.093,-0.22,8.431)
+rotation_degrees = Vector3(0,76.29,0)
+scale = Vector3(0.898,0.898,0.898)
+
+[node name="Tree63" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-8.653,-0.22,3.764)
+rotation_degrees = Vector3(0,155.04,0)
+scale = Vector3(1.073,1.073,1.073)
+
+[node name="Tree65" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(45.883,-0.22,-4.989)
+rotation_degrees = Vector3(0,338.76,0)
+scale = Vector3(1.136,1.136,1.136)
+
+[node name="Tree66" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(27.737,-0.22,-20.961)
+rotation_degrees = Vector3(0,301.32,0)
+scale = Vector3(0.823,0.823,0.823)
+
+[node name="Tree68" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(23.480,-0.22,-11.305)
+rotation_degrees = Vector3(0,25.73,0)
+scale = Vector3(0.895,0.895,0.895)
+
+[node name="Tree69" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-35.878,-0.22,-30.366)
+rotation_degrees = Vector3(0,267.67,0)
+scale = Vector3(0.966,0.966,0.966)
+
+[node name="Tree70" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-39.166,-0.22,-29.322)
+rotation_degrees = Vector3(0,99.72,0)
+scale = Vector3(1.028,1.028,1.028)
+
+[node name="Tree71" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(8.703,-0.22,-11.452)
+rotation_degrees = Vector3(0,148.41,0)
+scale = Vector3(0.916,0.916,0.916)
+
+[node name="Tree74" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-33.730,-0.22,-30.093)
+rotation_degrees = Vector3(0,318.31,0)
+scale = Vector3(0.994,0.994,0.994)
+
+[node name="Tree75" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-0.042,-0.22,-9.856)
+rotation_degrees = Vector3(0,328.11,0)
+scale = Vector3(0.881,0.881,0.881)
+
+[node name="Tree76" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-28.050,-0.22,0.482)
+rotation_degrees = Vector3(0,335.00,0)
+scale = Vector3(0.932,0.932,0.932)
+
+[node name="Tree77" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(0.678,-0.22,5.222)
+rotation_degrees = Vector3(0,234.53,0)
+scale = Vector3(0.705,0.705,0.705)
+
+[node name="Tree78" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(3.682,-0.22,-27.143)
+rotation_degrees = Vector3(0,348.68,0)
+scale = Vector3(1.142,1.142,1.142)
+
+[node name="Tree79" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(43.830,-0.22,14.911)
+rotation_degrees = Vector3(0,8.01,0)
+scale = Vector3(0.929,0.929,0.929)
+
+[node name="Tree80" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(17.315,-0.22,-14.769)
+rotation_degrees = Vector3(0,344.32,0)
+scale = Vector3(1.036,1.036,1.036)
+
+[node name="Tree81" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-0.664,-0.22,25.836)
+rotation_degrees = Vector3(0,185.68,0)
+scale = Vector3(0.849,0.849,0.849)
+
+[node name="Tree82" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-16.030,-0.22,14.848)
+rotation_degrees = Vector3(0,70.67,0)
+scale = Vector3(0.804,0.804,0.804)
+
+[node name="Tree83" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(30.399,-0.22,-15.545)
+rotation_degrees = Vector3(0,256.58,0)
+scale = Vector3(1.099,1.099,1.099)
+
+[node name="Tree84" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-17.388,-0.22,-25.062)
+rotation_degrees = Vector3(0,64.17,0)
+scale = Vector3(0.788,0.788,0.788)
+
+[node name="Tree85" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(18.095,-0.22,25.926)
+rotation_degrees = Vector3(0,90.85,0)
+scale = Vector3(1.119,1.119,1.119)
+
+[node name="Tree87" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(17.571,-0.22,-21.290)
+rotation_degrees = Vector3(0,132.24,0)
+scale = Vector3(0.715,0.715,0.715)
+
+[node name="Tree88" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-39.432,-0.22,23.575)
+rotation_degrees = Vector3(0,159.83,0)
+scale = Vector3(1.111,1.111,1.111)
+
+[node name="Tree89" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(6.297,-0.22,25.294)
+rotation_degrees = Vector3(0,346.54,0)
+scale = Vector3(0.807,0.807,0.807)
+
+[node name="Tree90" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(30.389,-0.22,-24.504)
+rotation_degrees = Vector3(0,309.49,0)
+scale = Vector3(1.063,1.063,1.063)
+
+[node name="Tree92" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(45.822,-0.22,-25.670)
+rotation_degrees = Vector3(0,209.14,0)
+scale = Vector3(0.968,0.968,0.968)
+
+[node name="Tree93" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-37.037,-0.22,15.882)
+rotation_degrees = Vector3(0,71.60,0)
+scale = Vector3(0.715,0.715,0.715)
+
+[node name="Tree95" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-28.835,-0.22,-8.904)
+rotation_degrees = Vector3(0,319.18,0)
+scale = Vector3(1.073,1.073,1.073)
+
+[node name="Tree97" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-41.770,-0.22,17.519)
+rotation_degrees = Vector3(0,302.78,0)
+scale = Vector3(0.665,0.665,0.665)
+
+[node name="Tree100" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(37.028,-0.22,-14.758)
+rotation_degrees = Vector3(0,142.86,0)
+scale = Vector3(0.826,0.826,0.826)
+
+[node name="Tree102" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(38.187,-0.22,-17.618)
+rotation_degrees = Vector3(0,82.02,0)
+scale = Vector3(0.827,0.827,0.827)
+
+[node name="Tree103" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(37.510,-0.22,1.994)
+rotation_degrees = Vector3(0,152.87,0)
+scale = Vector3(0.897,0.897,0.897)
+
+[node name="Tree105" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(8.465,-0.22,-17.458)
+rotation_degrees = Vector3(0,154.23,0)
+scale = Vector3(1.076,1.076,1.076)
+
+[node name="Tree106" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(38.780,-0.22,9.627)
+rotation_degrees = Vector3(0,143.91,0)
+scale = Vector3(1.050,1.050,1.050)
+
+[node name="Tree107" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(3.467,-0.22,-27.740)
+rotation_degrees = Vector3(0,185.01,0)
+scale = Vector3(0.779,0.779,0.779)
+
+[node name="Tree108" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-37.602,-0.22,-19.647)
+rotation_degrees = Vector3(0,330.17,0)
+scale = Vector3(0.700,0.700,0.700)
+
+[node name="Tree109" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-23.361,-0.22,30.910)
+rotation_degrees = Vector3(0,293.97,0)
+scale = Vector3(0.782,0.782,0.782)
+
+[node name="Tree110" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(27.725,-0.22,-4.768)
+rotation_degrees = Vector3(0,205.78,0)
+scale = Vector3(1.099,1.099,1.099)
+
+[node name="Tree112" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-0.939,-0.22,-8.944)
+rotation_degrees = Vector3(0,123.53,0)
+scale = Vector3(0.934,0.934,0.934)
+
+[node name="Tree113" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(17.089,-0.22,29.032)
+rotation_degrees = Vector3(0,179.75,0)
+scale = Vector3(0.890,0.890,0.890)
+
+[node name="Tree114" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-18.176,-0.22,19.841)
+rotation_degrees = Vector3(0,351.19,0)
+scale = Vector3(0.735,0.735,0.735)
+
+[node name="Tree115" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-42.545,-0.22,-3.868)
+rotation_degrees = Vector3(0,225.90,0)
+scale = Vector3(0.793,0.793,0.793)
+
+[node name="Tree116" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-37.678,-0.22,-13.285)
+rotation_degrees = Vector3(0,128.39,0)
+scale = Vector3(0.660,0.660,0.660)
+
+[node name="Tree117" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(27.280,-0.22,-30.798)
+rotation_degrees = Vector3(0,286.62,0)
+scale = Vector3(0.840,0.840,0.840)
+
+[node name="Tree118" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-41.057,-0.22,2.995)
+rotation_degrees = Vector3(0,107.59,0)
+scale = Vector3(1.119,1.119,1.119)
+
+[node name="Tree119" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-2.501,-0.22,-4.969)
+rotation_degrees = Vector3(0,74.44,0)
+scale = Vector3(0.665,0.665,0.665)
+
+[node name="Tree121" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(39.346,-0.22,13.262)
+rotation_degrees = Vector3(0,224.81,0)
+scale = Vector3(0.878,0.878,0.878)
+
+[node name="Tree122" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(29.130,-0.22,-2.618)
+rotation_degrees = Vector3(0,174.26,0)
+scale = Vector3(0.891,0.891,0.891)
+
+[node name="Tree123" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(4.809,-0.22,31.405)
+rotation_degrees = Vector3(0,93.03,0)
+scale = Vector3(1.060,1.060,1.060)
+
+[node name="Tree124" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-37.052,-0.22,21.928)
+rotation_degrees = Vector3(0,96.63,0)
+scale = Vector3(0.917,0.917,0.917)
+
+[node name="Tree126" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-39.905,-0.22,-7.156)
+rotation_degrees = Vector3(0,187.67,0)
+scale = Vector3(1.013,1.013,1.013)
+
+[node name="Tree127" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(31.674,-0.22,14.421)
+rotation_degrees = Vector3(0,65.72,0)
+scale = Vector3(0.812,0.812,0.812)
+
+[node name="Tree128" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-41.023,-0.22,-28.637)
+rotation_degrees = Vector3(0,245.67,0)
+scale = Vector3(0.801,0.801,0.801)
+
+[node name="Tree129" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(3.379,-0.22,31.171)
+rotation_degrees = Vector3(0,351.02,0)
+scale = Vector3(0.695,0.695,0.695)
+
+[node name="Tree130" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(26.185,-0.22,26.204)
+rotation_degrees = Vector3(0,103.03,0)
+scale = Vector3(1.038,1.038,1.038)
+
+[node name="Tree131" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-40.268,-0.22,4.817)
+rotation_degrees = Vector3(0,320.28,0)
+scale = Vector3(1.105,1.105,1.105)
+
+[node name="Tree132" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(31.132,-0.22,24.737)
+rotation_degrees = Vector3(0,137.26,0)
+scale = Vector3(1.008,1.008,1.008)
+
+[node name="Tree133" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(35.572,-0.22,-21.102)
+rotation_degrees = Vector3(0,56.46,0)
+scale = Vector3(0.910,0.910,0.910)
+
+[node name="Tree135" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-8.375,-0.22,-3.332)
+rotation_degrees = Vector3(0,354.67,0)
+scale = Vector3(1.047,1.047,1.047)
+
+[node name="Tree136" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-18.494,-0.22,-29.123)
+rotation_degrees = Vector3(0,345.63,0)
+scale = Vector3(0.817,0.817,0.817)
+
+[node name="Tree137" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(14.038,-0.22,-25.419)
+rotation_degrees = Vector3(0,188.32,0)
+scale = Vector3(1.089,1.089,1.089)
+
+[node name="Tree139" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-40.078,-0.22,-16.674)
+rotation_degrees = Vector3(0,203.32,0)
+scale = Vector3(1.047,1.047,1.047)
+
+[node name="Tree140" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-23.512,-0.22,-15.333)
+rotation_degrees = Vector3(0,211.35,0)
+scale = Vector3(0.989,0.989,0.989)
+
+[node name="Tree141" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-22.308,-0.22,26.382)
+rotation_degrees = Vector3(0,3.47,0)
+scale = Vector3(1.125,1.125,1.125)
+
+[node name="Tree145" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(18.796,-0.22,-23.710)
+rotation_degrees = Vector3(0,275.16,0)
+scale = Vector3(0.909,0.909,0.909)
+
+[node name="Tree146" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(17.752,-0.22,-2.417)
+rotation_degrees = Vector3(0,299.43,0)
+scale = Vector3(1.085,1.085,1.085)
+
+[node name="Tree150" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(24.489,-0.22,28.320)
+rotation_degrees = Vector3(0,328.08,0)
+scale = Vector3(1.144,1.144,1.144)
+
+[node name="Tree152" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-28.847,-0.22,-14.610)
+rotation_degrees = Vector3(0,133.51,0)
+scale = Vector3(0.761,0.761,0.761)
+
+[node name="Tree153" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-18.897,-0.22,-7.554)
+rotation_degrees = Vector3(0,306.28,0)
+scale = Vector3(0.920,0.920,0.920)
+
+[node name="Tree154" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-28.889,-0.22,-15.199)
+rotation_degrees = Vector3(0,224.70,0)
+scale = Vector3(0.708,0.708,0.708)
+
+[node name="Tree155" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-30.045,-0.22,-17.772)
+rotation_degrees = Vector3(0,26.99,0)
+scale = Vector3(0.996,0.996,0.996)
+
+[node name="Tree157" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(9.780,-0.22,19.370)
+rotation_degrees = Vector3(0,31.60,0)
+scale = Vector3(0.804,0.804,0.804)
+
+[node name="Tree158" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(23.587,-0.22,15.139)
+rotation_degrees = Vector3(0,287.42,0)
+scale = Vector3(0.827,0.827,0.827)
+
+[node name="Tree159" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-38.414,-0.22,1.671)
+rotation_degrees = Vector3(0,111.86,0)
+scale = Vector3(0.691,0.691,0.691)
+
+[node name="Tree161" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(33.778,-0.22,18.224)
+rotation_degrees = Vector3(0,346.03,0)
+scale = Vector3(1.144,1.144,1.144)
+
+[node name="Tree162" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-19.991,-0.22,24.816)
+rotation_degrees = Vector3(0,216.08,0)
+scale = Vector3(0.770,0.770,0.770)
+
+[node name="Tree164" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-37.007,-0.22,17.405)
+rotation_degrees = Vector3(0,179.91,0)
+scale = Vector3(0.959,0.959,0.959)
+
+[node name="Tree165" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-33.407,-0.22,-15.414)
+rotation_degrees = Vector3(0,321.79,0)
+scale = Vector3(0.894,0.894,0.894)
+
+[node name="Tree166" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(40.850,-0.22,-16.886)
+rotation_degrees = Vector3(0,201.25,0)
+scale = Vector3(0.783,0.783,0.783)
+
+[node name="Tree168" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-43.353,-0.22,-10.822)
+rotation_degrees = Vector3(0,277.11,0)
+scale = Vector3(0.833,0.833,0.833)
+
+[node name="Tree169" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(42.142,-0.22,-15.583)
+rotation_degrees = Vector3(0,11.78,0)
+scale = Vector3(0.681,0.681,0.681)
+
+[node name="Tree171" parent="Forest" instance=ExtResource("tree_oak")]
+position = Vector3(-40.866,-0.22,-19.533)
+rotation_degrees = Vector3(0,319.81,0)
+scale = Vector3(0.746,0.746,0.746)
+
+[node name="Tree172" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-29.487,-0.22,-25.263)
+rotation_degrees = Vector3(0,125.57,0)
+scale = Vector3(1.118,1.118,1.118)
+
+[node name="Tree173" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(43.963,-0.22,-18.953)
+rotation_degrees = Vector3(0,9.69,0)
+scale = Vector3(0.676,0.676,0.676)
+
+[node name="Tree175" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(-4.261,-0.22,-29.907)
+rotation_degrees = Vector3(0,162.42,0)
+scale = Vector3(1.107,1.107,1.107)
+
+[node name="Tree179" parent="Forest" instance=ExtResource("tree_pine")]
+position = Vector3(42.915,-0.22,18.813)
+rotation_degrees = Vector3(0,299.61,0)
+scale = Vector3(0.653,0.653,0.653)
+
+[node name="Canvas" type="CanvasLayer" parent="."]
+
+
+[node name="UI" type="Control" parent="Canvas"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("theme")
+
+[node name="Vignette" type="ColorRect" parent="Canvas/UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShadeMaterial")
+
+[node name="Top" type="HBoxContainer" parent="Canvas/UI"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 32.0
+offset_top = 24.0
+offset_right = -32.0
+offset_bottom = 115.0
+mouse_filter = 2
+
+[node name="TitleBlock" type="VBoxContainer" parent="Canvas/UI/Top"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="Canvas/UI/Top/TitleBlock"]
+layout_mode = 2
+text = "林海远征"
+theme_override_font_sizes/font_size = 32
+
+[node name="Journey" type="Label" parent="Canvas/UI/Top/TitleBlock"]
+layout_mode = 2
+text = "单人肉鸽 · 第一层"
+theme_override_colors/font_color = Color(0.72,0.81,0.66,1)
+
+[node name="XP" type="ProgressBar" parent="Canvas/UI/Top/TitleBlock"]
+layout_mode = 2
+custom_minimum_size = Vector2(190,5)
+size_flags_horizontal = 0
+show_percentage = false
+
+[node name="Gold" type="HBoxContainer" parent="Canvas/UI/Top"]
+layout_mode = 2
+custom_minimum_size = Vector2(136,65)
+alignment = 2
+
+[node name="Icon" type="SubViewportContainer" parent="Canvas/UI/Top/Gold"]
+layout_mode = 2
+custom_minimum_size = Vector2(64,64)
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Top/Gold/Icon"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(64,64)
+render_target_update_mode = 1
+own_world_3d = true
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Top/Gold/Icon/Viewport"]
+environment = SubResource("IconEnvironment")
+
+[node name="Model" parent="Canvas/UI/Top/Gold/Icon/Viewport" instance=ExtResource("coin")]
+
+
+[node name="Light" type="DirectionalLight3D" parent="Canvas/UI/Top/Gold/Icon/Viewport"]
+rotation_degrees = Vector3(-35,-30,0)
+light_energy = 1.7
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Top/Gold/Icon/Viewport"]
+position = Vector3(0,1.3,5)
+rotation_degrees = Vector3(-14,0,0)
+projection = 1
+size = 2.7
+current = true
+
+[node name="Value" type="Label" parent="Canvas/UI/Top/Gold"]
+layout_mode = 2
+text = "—"
+theme_override_font_sizes/font_size = 28
+
+[node name="Bread" type="HBoxContainer" parent="Canvas/UI/Top"]
+layout_mode = 2
+custom_minimum_size = Vector2(136,65)
+alignment = 2
+
+[node name="Icon" type="SubViewportContainer" parent="Canvas/UI/Top/Bread"]
+layout_mode = 2
+custom_minimum_size = Vector2(64,64)
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Top/Bread/Icon"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(64,64)
+render_target_update_mode = 1
+own_world_3d = true
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Top/Bread/Icon/Viewport"]
+environment = SubResource("IconEnvironment")
+
+[node name="Model" parent="Canvas/UI/Top/Bread/Icon/Viewport" instance=ExtResource("bread")]
+
+
+[node name="Light" type="DirectionalLight3D" parent="Canvas/UI/Top/Bread/Icon/Viewport"]
+rotation_degrees = Vector3(-35,-30,0)
+light_energy = 1.7
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Top/Bread/Icon/Viewport"]
+position = Vector3(0,1.3,5)
+rotation_degrees = Vector3(-14,0,0)
+projection = 1
+size = 2.7
+current = true
+
+[node name="Value" type="Label" parent="Canvas/UI/Top/Bread"]
+layout_mode = 2
+text = "—"
+theme_override_font_sizes/font_size = 28
+
+[node name="Action" type="HBoxContainer" parent="Canvas/UI/Top"]
+layout_mode = 2
+custom_minimum_size = Vector2(136,65)
+alignment = 2
+
+[node name="Icon" type="SubViewportContainer" parent="Canvas/UI/Top/Action"]
+layout_mode = 2
+custom_minimum_size = Vector2(64,64)
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Top/Action/Icon"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(64,64)
+render_target_update_mode = 1
+own_world_3d = true
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Top/Action/Icon/Viewport"]
+environment = SubResource("IconEnvironment")
+
+[node name="Model" parent="Canvas/UI/Top/Action/Icon/Viewport" instance=ExtResource("boot")]
+
+
+[node name="Light" type="DirectionalLight3D" parent="Canvas/UI/Top/Action/Icon/Viewport"]
+rotation_degrees = Vector3(-35,-30,0)
+light_energy = 1.7
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Top/Action/Icon/Viewport"]
+position = Vector3(0,1.3,5)
+rotation_degrees = Vector3(-14,0,0)
+projection = 1
+size = 2.7
+current = true
+
+[node name="Value" type="Label" parent="Canvas/UI/Top/Action"]
+layout_mode = 2
+text = "—"
+theme_override_font_sizes/font_size = 28
+
+[node name="Rail" type="VBoxContainer" parent="Canvas/UI"]
+layout_mode = 0
+anchor_top = 0.33
+offset_left = 24.0
+offset_top = 0.0
+offset_right = 154.0
+offset_bottom = 340.0
+
+[node name="Army" type="Button" parent="Canvas/UI/Rail"]
+layout_mode = 2
+custom_minimum_size = Vector2(125,54)
+text = "编 队"
+
+[node name="Recruit" type="Button" parent="Canvas/UI/Rail"]
+layout_mode = 2
+custom_minimum_size = Vector2(125,54)
+text = "招 募"
+
+[node name="Load" type="Button" parent="Canvas/UI/Rail"]
+layout_mode = 2
+custom_minimum_size = Vector2(125,54)
+text = "读取存档"
+
+[node name="Pause" type="Button" parent="Canvas/UI/Rail"]
+layout_mode = 2
+custom_minimum_size = Vector2(125,54)
+text = "暂停菜单"
+
+[node name="Menu" type="Button" parent="Canvas/UI/Rail"]
+layout_mode = 2
+custom_minimum_size = Vector2(125,54)
+text = "返回大厅"
+
+[node name="Bottom" type="PanelContainer" parent="Canvas/UI"]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 190.0
+offset_top = -104.0
+offset_right = -28.0
+offset_bottom = -24.0
+
+[node name="Content" type="HBoxContainer" parent="Canvas/UI/Bottom"]
+layout_mode = 2
+
+
+[node name="Label" type="Label" parent="Canvas/UI/Bottom/Content"]
+layout_mode = 2
+text = "收 藏 品"
+theme_override_colors/font_color = Color(0.86,0.70,0.40,1)
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas/UI/Bottom/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="Relics" type="HBoxContainer" parent="Canvas/UI/Bottom/Content/Scroll"]
+layout_mode = 2
+
+
+[node name="Relic0" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic1" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic2" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic3" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic4" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic5" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic6" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Relic7" type="Button" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+visible = false
+text = "收藏品"
+custom_minimum_size = Vector2(120,46)
+
+[node name="Empty" type="Label" parent="Canvas/UI/Bottom/Content/Scroll/Relics"]
+layout_mode = 2
+text = "尚未获得收藏品 · 在林海中寻找军团的机遇"
+theme_override_font_sizes/font_size = 16
+
+[node name="Hint" type="Label" parent="Canvas/UI"]
+layout_mode = 0
+anchor_top = 1.0
+offset_left = 194.0
+offset_top = -137.0
+offset_right = 1100.0
+offset_bottom = -110.0
+text = "点击节点查看详情 · 中键拖动地图 · 滚轮缩放"
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+
+[node name="Preview" type="PanelContainer" parent="Canvas/UI"]
+visible = false
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -425.0
+offset_top = 132.0
+offset_right = -28.0
+offset_bottom = -158.0
+grow_horizontal = 0
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas/UI/Preview"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="Canvas/UI/Preview/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Kind" type="Label" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+text = "作战 / 难度 1"
+theme_override_colors/font_color = Color(0.88,0.72,0.42,1)
+theme_override_font_sizes/font_size = 16
+
+[node name="Name" type="Label" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+text = "前哨站"
+theme_override_font_sizes/font_size = 32
+
+[node name="MapView" type="SubViewportContainer" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,160)
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Preview/Scroll/Content/MapView"]
+size = Vector2i(352,160)
+render_target_update_mode = 2
+own_world_3d = true
+handle_input_locally = false
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Preview/Scroll/Content/MapView/Viewport"]
+environment = SubResource("World")
+
+[node name="Model" parent="Canvas/UI/Preview/Scroll/Content/MapView/Viewport" instance=ExtResource("preview")]
+
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Preview/Scroll/Content/MapView/Viewport"]
+position = Vector3(0,80,46)
+rotation_degrees = Vector3(-60,0,0)
+projection = 1
+size = 76
+current = true
+
+[node name="Light" type="DirectionalLight3D" parent="Canvas/UI/Preview/Scroll/Content/MapView/Viewport"]
+rotation_degrees = Vector3(-55,-30,0)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Detail" type="Label" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+text = "摧毁所有敌方建筑与部队。"
+autowrap_mode = 2
+custom_minimum_size = Vector2(290,0)
+theme_override_font_sizes/font_size = 17
+
+[node name="Options" type="VBoxContainer" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Option0" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
+layout_mode = 2
+visible = false
+custom_minimum_size = Vector2(0,58)
+text = "选项"
+alignment = 0
+theme_override_font_sizes/font_size = 16
+
+[node name="Option1" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
+layout_mode = 2
+visible = false
+custom_minimum_size = Vector2(0,58)
+text = "选项"
+alignment = 0
+theme_override_font_sizes/font_size = 16
+
+[node name="Option2" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
+layout_mode = 2
+visible = false
+custom_minimum_size = Vector2(0,58)
+text = "选项"
+alignment = 0
+theme_override_font_sizes/font_size = 16
+
+[node name="Option3" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
+layout_mode = 2
+visible = false
+custom_minimum_size = Vector2(0,58)
+text = "选项"
+alignment = 0
+theme_override_font_sizes/font_size = 16
+
+[node name="Option4" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
+layout_mode = 2
+visible = false
+custom_minimum_size = Vector2(0,58)
+text = "选项"
+alignment = 0
+theme_override_font_sizes/font_size = 16
+
+[node name="Option5" type="Button" parent="Canvas/UI/Preview/Scroll/Content/Options"]
+layout_mode = 2
+visible = false
+custom_minimum_size = Vector2(0,58)
+text = "选项"
+alignment = 0
+theme_override_font_sizes/font_size = 16
+
+[node name="Primary" type="Button" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+text = "进入节点  ·  行动力 −1"
+custom_minimum_size = Vector2(0,52)
+
+[node name="Secondary" type="Button" parent="Canvas/UI/Preview/Scroll/Content"]
+layout_mode = 2
+text = "关闭预览"
+
+[node name="Setup" type="ColorRect" parent="Canvas/UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.018,0.045,0.035,0.87)
+visible = false
+
+[node name="Margin" type="MarginContainer" parent="Canvas/UI/Setup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 100.0
+offset_top = 80.0
+offset_right = -100.0
+offset_bottom = -60.0
+
+[node name="Content" type="VBoxContainer" parent="Canvas/UI/Setup/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Eyebrow" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
+layout_mode = 2
+text = "林 海 远 征  /  第一层"
+theme_override_colors/font_color = Color(0.87,0.72,0.43,1)
+
+[node name="Title" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
+layout_mode = 2
+text = "选择你的战略"
+theme_override_font_sizes/font_size = 44
+
+[node name="Description" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
+layout_mode = 2
+text = "先决定军团的优势，再选择初始部队。"
+autowrap_mode = 2
+
+[node name="Choices" type="HBoxContainer" parent="Canvas/UI/Setup/Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 22
+
+[node name="Choice0" type="Button" parent="Canvas/UI/Setup/Margin/Content/Choices"]
+layout_mode = 2
+custom_minimum_size = Vector2(270,330)
+size_flags_horizontal = 3
+text = "战略 1"
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("ChoiceNormal")
+theme_override_styles/hover = SubResource("ChoiceHover")
+theme_override_styles/pressed = SubResource("ChoiceHover")
+
+[node name="Illustration" type="SubViewportContainer" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = 210.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0/Illustration"]
+transparent_bg = true
+own_world_3d = true
+size = Vector2i(400,200)
+render_target_update_mode = 2
+handle_input_locally = false
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0/Illustration/Viewport"]
+environment = SubResource("IconEnvironment")
+
+[node name="Models" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0/Illustration/Viewport" instance=ExtResource("setup0")]
+
+
+[node name="Sun" type="DirectionalLight3D" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0/Illustration/Viewport"]
+rotation_degrees = Vector3(-45,-28,0)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice0/Illustration/Viewport"]
+position = Vector3(0,9,13)
+rotation_degrees = Vector3(-30,0,0)
+projection = 1
+size = 9.8
+current = true
+
+[node name="Choice1" type="Button" parent="Canvas/UI/Setup/Margin/Content/Choices"]
+layout_mode = 2
+custom_minimum_size = Vector2(270,330)
+size_flags_horizontal = 3
+text = "战略 2"
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("ChoiceNormal")
+theme_override_styles/hover = SubResource("ChoiceHover")
+theme_override_styles/pressed = SubResource("ChoiceHover")
+
+[node name="Illustration" type="SubViewportContainer" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = 210.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1/Illustration"]
+transparent_bg = true
+own_world_3d = true
+size = Vector2i(400,200)
+render_target_update_mode = 2
+handle_input_locally = false
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1/Illustration/Viewport"]
+environment = SubResource("IconEnvironment")
+
+[node name="Models" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1/Illustration/Viewport" instance=ExtResource("setup1")]
+
+
+[node name="Sun" type="DirectionalLight3D" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1/Illustration/Viewport"]
+rotation_degrees = Vector3(-45,-28,0)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice1/Illustration/Viewport"]
+position = Vector3(0,9,13)
+rotation_degrees = Vector3(-30,0,0)
+projection = 1
+size = 9.8
+current = true
+
+[node name="Choice2" type="Button" parent="Canvas/UI/Setup/Margin/Content/Choices"]
+layout_mode = 2
+custom_minimum_size = Vector2(270,330)
+size_flags_horizontal = 3
+text = "战略 3"
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("ChoiceNormal")
+theme_override_styles/hover = SubResource("ChoiceHover")
+theme_override_styles/pressed = SubResource("ChoiceHover")
+
+[node name="Illustration" type="SubViewportContainer" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2"]
+layout_mode = 0
+anchor_right = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = 210.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2/Illustration"]
+transparent_bg = true
+own_world_3d = true
+size = Vector2i(400,200)
+render_target_update_mode = 2
+handle_input_locally = false
+
+[node name="Environment" type="WorldEnvironment" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2/Illustration/Viewport"]
+environment = SubResource("IconEnvironment")
+
+[node name="Models" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2/Illustration/Viewport" instance=ExtResource("setup2")]
+
+
+[node name="Sun" type="DirectionalLight3D" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2/Illustration/Viewport"]
+rotation_degrees = Vector3(-45,-28,0)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="Canvas/UI/Setup/Margin/Content/Choices/Choice2/Illustration/Viewport"]
+position = Vector3(0,9,13)
+rotation_degrees = Vector3(-30,0,0)
+projection = 1
+size = 9.8
+current = true
+
+[node name="Footnote" type="Label" parent="Canvas/UI/Setup/Margin/Content"]
+layout_mode = 2
+text = "初始人口 20  /  军队在战斗之间恢复  /  作战失败结束本局"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 17
+
+[node name="Actions" type="HBoxContainer" parent="Canvas/UI/Setup/Margin/Content"]
+layout_mode = 2
+
+
+[node name="Back" type="Button" parent="Canvas/UI/Setup/Margin/Content/Actions"]
+layout_mode = 2
+text = "返回大厅"
+custom_minimum_size = Vector2(230,52)
+
+[node name="Continue" type="Button" parent="Canvas/UI/Setup/Margin/Content/Actions"]
+layout_mode = 2
+text = "继续上次远征"
+custom_minimum_size = Vector2(230,52)
+
+[node name="Alert" type="ColorRect" parent="Canvas/UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+color = Color(0.7,0.11,0.04,0.32)
+
+[node name="AlertTitle" type="Label" parent="Canvas/UI/Alert"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.35
+anchor_bottom = 0.35
+offset_left = -400.0
+offset_right = 400.0
+offset_bottom = 100.0
+text = "⚠  敌 军 围 剿"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1,0.75,0.46,1)
+
+[node name="ArmyPanel" parent="Canvas/UI" instance=ExtResource("army")]
+visible = false
+
+[node name="PauseMenu" type="ColorRect" parent="Canvas/UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+color = Color(0.015,0.04,0.03,0.78)
+
+[node name="Panel" type="PanelContainer" parent="Canvas/UI/PauseMenu"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -210.0
+offset_right = 240.0
+offset_bottom = 210.0
+
+[node name="Content" type="VBoxContainer" parent="Canvas/UI/PauseMenu/Panel"]
+layout_mode = 2
+
+
+[node name="Title" type="Label" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "远征暂歇"
+theme_override_font_sizes/font_size = 30
+
+[node name="Detail" type="Label" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "离开完整节点时自动保存。
+节点内部退出将回到最近检查点。"
+theme_override_font_sizes/font_size = 16
+
+[node name="Resume" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "继续探索"
+custom_minimum_size = Vector2(0,45)
+
+[node name="Settings" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "游戏设置"
+custom_minimum_size = Vector2(0,45)
+
+[node name="Load" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "读取节点存档"
+custom_minimum_size = Vector2(0,45)
+
+[node name="Menu" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "返回大厅"
+custom_minimum_size = Vector2(0,45)
+
+[node name="Quit" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
+layout_mode = 2
+text = "退出游戏"
+custom_minimum_size = Vector2(0,45)
+
+[node name="ReplaceRun" type="ConfirmationDialog" parent="Canvas/UI"]
+title = "开始新远征"
+dialog_text = "开始新局将替换最近的节点存档。"
+ok_button_text = "开始新局"
+cancel_button_text = "取消"
+
+[node name="LoadConfirm" type="ConfirmationDialog" parent="Canvas/UI"]
+title = "读取节点存档"
+dialog_text = "恢复最近完整节点的存档，当前节点内的进度将被放弃。"
+ok_button_text = "读取存档"
+cancel_button_text = "取消"
+
+[node name="Notice" type="AcceptDialog" parent="Canvas/UI"]
+title = "林海远征"
+ok_button_text = "知道了"

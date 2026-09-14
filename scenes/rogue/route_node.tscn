@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/rogue/rogue_route_node.gd" id="script"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/defense_tower.tscn" id="defense_tower"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/house.tscn" id="house"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/cart.tscn" id="cart"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/tent.tscn" id="tent"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/campfire.tscn" id="campfire"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/royal_banner.tscn" id="royal_banner"]
+
+[sub_resource type="StandardMaterial3D" id="Earth"]
+albedo_color = Color(0.39,0.43,0.25,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Ring"]
+albedo_color = Color(0.94,0.74,0.35,1)
+roughness = 0.9
+shading_mode = 0
+emission_enabled = true
+emission = Color(0.6,0.35,0.08,1)
+
+[sub_resource type="StandardMaterial3D" id="Red"]
+albedo_color = Color(0.9,0.24,0.12,1)
+roughness = 0.9
+shading_mode = 0
+
+[sub_resource type="CylinderMesh" id="Base"]
+top_radius = 1.65
+bottom_radius = 1.9
+height = 0.4
+radial_segments = 12
+material = SubResource("Earth")
+
+[sub_resource type="TorusMesh" id="RingMesh"]
+inner_radius = 1.75
+outer_radius = 2.05
+rings = 24
+ring_segments = 8
+material = SubResource("Ring")
+
+[sub_resource type="CylinderShape3D" id="Pick"]
+radius = 2.4
+height = 5.0
+
+[sub_resource type="SystemFont" id="Font"]
+font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei")
+
+[node name="RouteNode" type="Node3D"]
+script = ExtResource("script")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+mesh = SubResource("Base")
+
+[node name="Ring" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0,0.26,0)
+mesh = SubResource("RingMesh")
+
+[node name="Content" type="Node3D" parent="."]
+
+
+[node name="Battle" parent="Content" instance=ExtResource("defense_tower")]
+visible = false
+scale = Vector3(0.43,0.43,0.43)
+
+[node name="Shop" parent="Content" instance=ExtResource("house")]
+visible = false
+scale = Vector3(0.48,0.48,0.48)
+
+[node name="Event" parent="Content" instance=ExtResource("cart")]
+visible = false
+scale = Vector3(0.55,0.55,0.55)
+
+[node name="Camp" parent="Content" instance=ExtResource("tent")]
+visible = false
+scale = Vector3(0.6,0.6,0.6)
+
+[node name="Road" parent="Content" instance=ExtResource("royal_banner")]
+visible = false
+scale = Vector3(0.45,0.45,0.45)
+
+[node name="Label" type="Label3D" parent="."]
+position = Vector3(0,0.55,2.8)
+billboard = 1
+no_depth_test = true
+font = SubResource("Font")
+font_size = 46
+pixel_size = 0.019
+outline_size = 10
+modulate = Color(0.94,0.96,0.84,1)
+text = "林间小径"
+
+[node name="Flag" type="Label3D" parent="."]
+position = Vector3(0,4.3,0)
+billboard = 1
+no_depth_test = true
+font = SubResource("Font")
+font_size = 66
+pixel_size = 0.018
+outline_size = 12
+text = ""
+
+[node name="Pick" type="Area3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+input_ray_pickable = true
+monitoring = false
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Pick"]
+position = Vector3(0,1.8,0)
+shape = SubResource("Pick")

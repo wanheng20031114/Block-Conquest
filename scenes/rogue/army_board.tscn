@@ -1,0 +1,147 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/rogue/rogue_army_board.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/headquarters.tscn" id="2"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.075, 0.135, 0.11, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.86, 0.91, 0.81, 1)
+ambient_light_energy = 0.7
+tonemap_mode = 2
+
+[sub_resource type="Shader" id="GridShader"]
+code = "shader_type spatial;\nrender_mode cull_disabled;\nvarying vec3 world_position;\nvoid vertex() { world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }\nvoid fragment() { vec2 g = abs(fract(world_position.xz * 0.5 - 0.5) - 0.5) / max(fwidth(world_position.xz * 0.5), vec2(0.001)); float line = 1.0 - min(min(g.x, g.y), 1.0); ALBEDO = mix(vec3(0.17, 0.25, 0.18), vec3(0.29, 0.37, 0.26), line * 0.6); ROUGHNESS = 1.0; }"
+
+[sub_resource type="ShaderMaterial" id="GroundMaterial"]
+shader = SubResource("GridShader")
+
+[sub_resource type="PlaneMesh" id="Ground"]
+material = SubResource("GroundMaterial")
+size = Vector2(25, 25)
+
+[sub_resource type="StandardMaterial3D" id="Amber"]
+shading_mode = 0
+albedo_color = Color(0.94, 0.69, 0.32, 1)
+
+[sub_resource type="TorusMesh" id="Ring"]
+material = SubResource("Amber")
+inner_radius = 0.88
+outer_radius = 1.0
+rings = 32
+ring_segments = 8
+
+[sub_resource type="PrismMesh" id="Arrow"]
+material = SubResource("Amber")
+size = Vector3(0.45, 0.7, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="FootprintMaterial"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.88, 0.57, 0.23, 0.3)
+
+[sub_resource type="BoxMesh" id="Footprint"]
+material = SubResource("FootprintMaterial")
+size = Vector3(11.3, 0.12, 10.3)
+
+[sub_resource type="BoxMesh" id="BorderHorizontal"]
+material = SubResource("Amber")
+size = Vector3(24, 0.06, 0.045)
+
+[sub_resource type="BoxMesh" id="BorderVertical"]
+material = SubResource("Amber")
+size = Vector3(0.045, 0.06, 24)
+
+[node name="ArmyBoard" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="ArmySurface" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 2
+expand_mode = 1
+stretch_mode = 0
+
+[node name="ArmyViewport" type="SubViewport" parent="."]
+unique_name_in_owner = true
+own_world_3d = true
+size = Vector2i(1000, 800)
+msaa_3d = 2
+render_target_update_mode = 0
+
+[node name="World" type="Node3D" parent="ArmyViewport"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="ArmyViewport/World"]
+environment = SubResource("Environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="ArmyViewport/World"]
+rotation_degrees = Vector3(-52, -30, 0)
+light_color = Color(1, 0.87, 0.66, 1)
+light_energy = 1.3
+shadow_enabled = true
+
+[node name="ArmyCamera" type="Camera3D" parent="ArmyViewport/World"]
+unique_name_in_owner = true
+position = Vector3(0, 31, 22)
+projection = 1
+current = true
+size = 31.0
+far = 120.0
+
+[node name="ArmyGround" type="MeshInstance3D" parent="ArmyViewport/World"]
+unique_name_in_owner = true
+mesh = SubResource("Ground")
+
+[node name="NorthEdge" type="MeshInstance3D" parent="ArmyViewport/World"]
+position = Vector3(0, 0.04, -12)
+mesh = SubResource("BorderHorizontal")
+
+[node name="SouthEdge" type="MeshInstance3D" parent="ArmyViewport/World"]
+position = Vector3(0, 0.04, 12)
+mesh = SubResource("BorderHorizontal")
+
+[node name="WestEdge" type="MeshInstance3D" parent="ArmyViewport/World"]
+position = Vector3(-12, 0.04, 0)
+mesh = SubResource("BorderVertical")
+
+[node name="EastEdge" type="MeshInstance3D" parent="ArmyViewport/World"]
+position = Vector3(12, 0.04, 0)
+mesh = SubResource("BorderVertical")
+
+[node name="ArmyFootprint" type="MeshInstance3D" parent="ArmyViewport/World"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0, 0.08, 0)
+mesh = SubResource("Footprint")
+
+[node name="ArmyBase" parent="ArmyViewport/World" instance=ExtResource("2")]
+unique_name_in_owner = true
+visible = false
+
+[node name="ArmyModels" type="Node3D" parent="ArmyViewport/World"]
+unique_name_in_owner = true
+
+[node name="ArmyMarker" type="Node3D" parent="ArmyViewport/World"]
+unique_name_in_owner = true
+visible = false
+
+[node name="ArmyRing" type="MeshInstance3D" parent="ArmyViewport/World/ArmyMarker"]
+unique_name_in_owner = true
+mesh = SubResource("Ring")
+
+[node name="Arrow" type="MeshInstance3D" parent="ArmyViewport/World/ArmyMarker"]
+position = Vector3(0, 0.04, -1.35)
+rotation_degrees = Vector3(-90, 0, 0)
+mesh = SubResource("Arrow")

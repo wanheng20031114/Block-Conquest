@@ -1,0 +1,166 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/defense_tower.tscn" id="defense_tower"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/barracks.tscn" id="barracks"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/tree_pine.tscn" id="tree_pine"]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/headquarters.tscn" id="headquarters"]
+
+[sub_resource type="StandardMaterial3D" id="Ground"]
+albedo_color = Color(0.25,0.34,0.20,1)
+roughness = 0.9
+
+
+[sub_resource type="StandardMaterial3D" id="Road"]
+albedo_color = Color(0.51,0.45,0.30,1)
+roughness = 0.9
+
+
+[sub_resource type="BoxMesh" id="GroundMesh"]
+size = Vector3(112,1,64)
+material = SubResource("Ground")
+
+[sub_resource type="BoxMesh" id="RoadMesh"]
+size = Vector3(106,0.05,7)
+material = SubResource("Road")
+
+[node name="Preview" type="Node3D"]
+
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0,-0.65,0)
+mesh = SubResource("GroundMesh")
+
+[node name="Road" type="MeshInstance3D" parent="."]
+mesh = SubResource("RoadMesh")
+
+[node name="Outpost" type="Node3D" parent="."]
+
+
+[node name="Tower0" parent="Outpost" instance=ExtResource("defense_tower")]
+position = Vector3(-8,0,-15)
+
+[node name="Tower1" parent="Outpost" instance=ExtResource("defense_tower")]
+position = Vector3(-8,0,15)
+
+[node name="Tower2" parent="Outpost" instance=ExtResource("defense_tower")]
+position = Vector3(15,0,0)
+
+[node name="Tower3" parent="Outpost" instance=ExtResource("defense_tower")]
+position = Vector3(36,0,-16)
+
+[node name="Tower4" parent="Outpost" instance=ExtResource("defense_tower")]
+position = Vector3(36,0,16)
+
+[node name="Barracks0" parent="Outpost" instance=ExtResource("barracks")]
+position = Vector3(9,0,-20)
+
+[node name="Barracks1" parent="Outpost" instance=ExtResource("barracks")]
+position = Vector3(9,0,20)
+
+[node name="Barracks2" parent="Outpost" instance=ExtResource("barracks")]
+position = Vector3(42,0,0)
+
+[node name="Siege" type="Node3D" parent="."]
+visible = false
+
+[node name="HQ" parent="Siege" instance=ExtResource("headquarters")]
+
+
+[node name="Tree0" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-52.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree1" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-47.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree2" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-43.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree3" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-38.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree4" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-34.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree5" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-29.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree6" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-25.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree7" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-20.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree8" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-16.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree9" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-11.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree10" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-7.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree11" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(-2.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree12" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(2.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree13" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(6.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree14" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(11.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree15" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(15.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree16" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(20.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree17" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(24.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree18" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(29.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree19" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(33.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree20" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(38.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree21" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(42.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree22" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(47.0,0,28)
+scale = Vector3(1.2,1.2,1.2)
+
+[node name="Tree23" parent="." instance=ExtResource("tree_pine")]
+position = Vector3(51.5,0,-28)
+scale = Vector3(1.2,1.2,1.2)

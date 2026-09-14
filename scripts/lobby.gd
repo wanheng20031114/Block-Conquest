@@ -37,6 +37,9 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = true
 	%Version.text = "v%s   /   即时战略" % NetworkProtocol.RELEASE_ID
 	var arguments: PackedStringArray = OS.get_cmdline_user_args()
+	if "--rogue" in arguments:
+		call_deferred("_on_open_rogue")
+		return
 	if "--lobby-capture" not in arguments:
 		for flag: String in ["--capture", "--smoke-test", "--ui-smoke", "--2v2", "--3v3", "--4v4", "--2v2v2", "--ffa"]:
 			if flag in arguments:
@@ -156,6 +159,20 @@ func _on_open_sandbox() -> void:
 	_transitioning = true
 	if session.start_sandbox() != OK:
 		_transitioning = false
+
+func _on_open_rogue() -> void:
+	if _transitioning:
+		return
+	_transitioning = true
+	relay.leave_room()
+	relay.disconnect_relay()
+	session.online = false
+	session.config.clear()
+	session.rogue.state = null
+	var error: Error = get_tree().change_scene_to_file("res://scenes/rogue/rogue_map.tscn")
+	if error != OK:
+		_transitioning = false
+		_set_message("无法载入林海远征，请检查游戏文件。", true)
 
 func _on_close_codex() -> void:
 	%Codex.grab_focus()

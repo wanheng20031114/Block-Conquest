@@ -1,0 +1,74 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/archer.tscn" id="archer"]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/cannon.tscn" id="cannon"]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/engineer.tscn" id="engineer"]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/shield_guard.tscn" id="shield_guard"]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/spearman.tscn" id="spearman"]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/swordsman.tscn" id="swordsman"]
+
+[sub_resource type="StandardMaterial3D" id="Earth"]
+albedo_color = Color(0.23,0.32,0.19,1)
+roughness = 0.9
+
+
+[sub_resource type="CylinderMesh" id="Stage"]
+top_radius = 5.5
+bottom_radius = 5.8
+height = 0.35
+radial_segments = 12
+material = SubResource("Earth")
+
+[node name="Models" type="Node3D"]
+
+
+[node name="Stage" type="MeshInstance3D" parent="."]
+position = Vector3(0,-0.3,0)
+mesh = SubResource("Stage")
+
+[node name="Strategy" type="Node3D" parent="."]
+visible = true
+
+[node name="Unit0" parent="Strategy" instance=ExtResource("shield_guard")]
+position = Vector3(-3.0,0,-1.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit1" parent="Strategy" instance=ExtResource("swordsman")]
+position = Vector3(0.0,0,-1.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit2" parent="Strategy" instance=ExtResource("spearman")]
+position = Vector3(3.0,0,-1.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Pack" type="Node3D" parent="."]
+visible = false
+
+[node name="Unit0" parent="Pack" instance=ExtResource("shield_guard")]
+position = Vector3(-3.0,0,-1.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit1" parent="Pack" instance=ExtResource("spearman")]
+position = Vector3(0.0,0,-1.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit2" parent="Pack" instance=ExtResource("archer")]
+position = Vector3(3.0,0,-1.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit3" parent="Pack" instance=ExtResource("archer")]
+position = Vector3(-3.0,0,2.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit4" parent="Pack" instance=ExtResource("cannon")]
+position = Vector3(0.0,0,2.0)
+rotation_degrees = Vector3(0,-22,0)
+
+[node name="Unit5" parent="Pack" instance=ExtResource("engineer")]
+position = Vector3(3.0,0,2.0)
+rotation_degrees = Vector3(0,-22,0)
