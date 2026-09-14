@@ -66,15 +66,15 @@ def main():
     texture_style('ledge','ledge',(34,16,34,16),(26,12,26,12))
     texture_style('button','button',(24,18,24,18),(26,7,26,7))
     texture_style('hover','button',(24,18,24,18),(26,7,26,7),'Color(1.04, 1.04, 1.02, 1)')
-    texture_style('pressed','primary',(24,18,24,18),(26,7,26,7))
+    texture_style('pressed','primary',(24,18,24,18),(26,7,26,7),'Color(1.10, 1.10, 1.10, 1)')
     texture_style('disabled','button',(24,18,24,18),(26,7,26,7),'Color(0.91, 0.93, 0.9, 0.85)')
-    texture_style('primary','primary',(24,18,24,18),(28,9,28,9))
-    texture_style('primary_hover','primary',(24,18,24,18),(28,9,28,9),'Color(1.05, 1.06, 1.03, 1)')
+    texture_style('primary','primary',(24,18,24,18),(28,9,28,9),'Color(1.10, 1.10, 1.10, 1)')
+    texture_style('primary_hover','primary',(24,18,24,18),(28,9,28,9),'Color(1.15, 1.16, 1.13, 1)')
     texture_style('button_compact','compact',(20,14,20,14),(22,4,22,4))
     texture_style('compact_hover','compact',(20,14,20,14),(22,4,22,4),'Color(1.04, 1.04, 1.02, 1)')
-    texture_style('compact_pressed','tab',(20,14,20,14),(22,4,22,4))
-    texture_style('tab','tab',(20,14,20,14),(24,5,24,5))
-    texture_style('tab_idle','tab_idle',(20,14,20,14),(24,5,24,5))
+    texture_style('compact_pressed','tab',(20,14,20,14),(22,4,22,4),'Color(1.12, 1.12, 1.12, 1)')
+    texture_style('tab','tab',(20,14,20,14),(24,5,24,5),'Color(1.12, 1.12, 1.12, 1)')
+    texture_style('tab_idle','tab_idle',(20,14,20,14),(24,5,24,5),'Color(1.16, 1.16, 1.16, 1)')
     flat_style('inset','0.94, 0.92, 0.85, 1','0.76, 0.79, 0.70, 0.8')
     flat_style('focus','0, 0, 0, 0','0.33, 0.53, 0.48, 0.75',2,(0,0,0,0))
     flat_style('selection','0.69, 0.79, 0.64, 0.95','0.54, 0.68, 0.56, 1',1,(8,5,8,5))
@@ -117,16 +117,18 @@ def main():
               'MedievalCompact/styles/normal = ExtResource("button_compact")',
               'MedievalCompact/styles/hover = ExtResource("compact_hover")',
               'MedievalCompact/styles/pressed = ExtResource("compact_pressed")',
+              'MedievalCompact/styles/hover_pressed = ExtResource("compact_pressed")',
               'MedievalCompact/styles/disabled = ExtResource("button_compact")',
               'MedievalCompact/font_sizes/font_size = 16',
               'MedievalTab/base_type = &"Button"',
               'MedievalTab/styles/normal = ExtResource("tab_idle")',
               'MedievalTab/styles/hover = ExtResource("tab")',
-              'MedievalTab/styles/pressed = ExtResource("tab")']
+              'MedievalTab/styles/pressed = ExtResource("tab")',
+              'MedievalTab/styles/hover_pressed = ExtResource("tab")']
     for kind in ('Button','OptionButton','MenuButton','CheckButton','CheckBox'):
         for state,style in [('normal','button'),('hover','hover'),('pressed','pressed'),('hover_pressed','pressed'),('disabled','disabled'),('focus','focus')]:
             lines.append(f'{kind}/styles/{state} = ExtResource("{style}")')
-        for state,color in [('font_color','0.25, 0.31, 0.29, 1'),('font_hover_color','0.18, 0.30, 0.25, 1'),('font_pressed_color','0.18, 0.30, 0.25, 1'),('font_disabled_color','0.57, 0.57, 0.51, 1'),('font_focus_color','0.18, 0.30, 0.25, 1')]:
+        for state,color in [('font_color','0.16, 0.23, 0.20, 1'),('font_hover_color','0.13, 0.20, 0.17, 1'),('font_pressed_color','0.13, 0.20, 0.17, 1'),('font_hover_pressed_color','0.13, 0.20, 0.17, 1'),('font_disabled_color','0.32, 0.38, 0.34, 1'),('font_focus_color','0.13, 0.20, 0.17, 1')]:
             lines.append(f'{kind}/colors/{state} = Color({color})')
     lines += ['OptionButton/icons/arrow = ExtResource("arrow")','OptionButton/constants/arrow_margin = 10']
     for kind in ('CheckBox','CheckButton'):
@@ -136,16 +138,43 @@ def main():
         lines.append(f'{kind}/styles/panel = ExtResource("panel")')
     lines += ['PopupMenu/styles/hover = ExtResource("selection")','PopupMenu/colors/font_color = Color(0.22,0.28,0.27,1)',
               'PopupMenu/colors/font_hover_color = Color(0.18,0.30,0.25,1)','PopupMenu/font_sizes/font_size = 17',
+              'PopupMenu/colors/font_disabled_color = Color(0.32,0.38,0.34,1)',
+              'PopupMenu/colors/font_accelerator_color = Color(0.28,0.35,0.30,1)',
+              'PopupMenu/colors/font_separator_color = Color(0.28,0.35,0.30,1)',
               'TooltipPanel/styles/panel = ExtResource("panel_compact")','TooltipLabel/font_sizes/font_size = 16',
-              'RichTextLabel/colors/default_color = Color(0.22,0.28,0.27,1)']
+              'TooltipLabel/colors/font_color = Color(0.22,0.28,0.27,1)',
+              'RichTextLabel/colors/default_color = Color(0.22,0.28,0.27,1)',
+              'RichTextLabel/colors/font_selected_color = Color(0.13,0.20,0.17,1)',
+              'RichTextLabel/colors/selection_color = Color(0.69,0.79,0.64,1)']
     for kind in ('LineEdit','TextEdit','ItemList','Tree'):
         lines += [f'{kind}/styles/normal = ExtResource("inset")',f'{kind}/styles/panel = ExtResource("inset")',
                   f'{kind}/styles/focus = ExtResource("focus")',f'{kind}/styles/read_only = ExtResource("inset")',
                   f'{kind}/colors/font_color = Color(0.22,0.28,0.27,1)',f'{kind}/colors/font_selected_color = Color(0.18,0.30,0.25,1)',
                   f'{kind}/colors/selection_color = Color(0.69,0.79,0.64,1)']
-    lines += ['LineEdit/colors/caret_color = Color(0.25,0.4,0.35,1)','LineEdit/colors/font_placeholder_color = Color(0.52,0.57,0.51,1)',
+    lines += ['LineEdit/colors/caret_color = Color(0.25,0.4,0.35,1)',
+              'LineEdit/colors/font_placeholder_color = Color(0.32,0.38,0.34,1)',
+              'LineEdit/colors/font_uneditable_color = Color(0.32,0.38,0.34,1)',
+              'TextEdit/colors/font_placeholder_color = Color(0.32,0.38,0.34,1)',
+              'TextEdit/colors/font_readonly_color = Color(0.32,0.38,0.34,1)',
               'ItemList/styles/selected = ExtResource("selection")','ItemList/styles/selected_focus = ExtResource("selection")',
               'ItemList/styles/hovered = ExtResource("selection")',
+              'ItemList/styles/hovered_selected = ExtResource("selection")',
+              'ItemList/styles/hovered_selected_focus = ExtResource("selection")',
+              'ItemList/colors/font_hovered_color = Color(0.13,0.20,0.17,1)',
+              'ItemList/colors/font_hovered_selected_color = Color(0.13,0.20,0.17,1)',
+              'Tree/styles/selected = ExtResource("selection")',
+              'Tree/styles/selected_focus = ExtResource("selection")',
+              'Tree/styles/hovered = ExtResource("selection")',
+              'Tree/styles/hovered_dimmed = ExtResource("inset")',
+              'Tree/styles/hovered_selected = ExtResource("selection")',
+              'Tree/styles/hovered_selected_focus = ExtResource("selection")',
+              'Tree/colors/font_hovered_color = Color(0.13,0.20,0.17,1)',
+              'Tree/colors/font_hovered_selected_color = Color(0.13,0.20,0.17,1)',
+              'Tree/colors/font_hovered_dimmed_color = Color(0.28,0.35,0.30,1)',
+              'Tree/colors/font_disabled_color = Color(0.32,0.38,0.34,1)',
+              'Tree/colors/custom_button_font_highlight = Color(0.13,0.20,0.17,1)',
+              'ProgressBar/colors/font_color = Color(0.13,0.20,0.17,1)',
+              'ProgressBar/constants/outline_size = 0',
               'ProgressBar/styles/background = ExtResource("track")','ProgressBar/styles/fill = ExtResource("fill")']
     for kind in ('HSlider','VSlider'):
         lines += [f'{kind}/styles/slider = ExtResource("track")',f'{kind}/styles/grabber_area = ExtResource("fill")',
@@ -157,7 +186,14 @@ def main():
                   f'{kind}/styles/grabber_highlight = ExtResource("fill")',f'{kind}/styles/grabber_pressed = ExtResource("fill")']
     for kind in ('TabBar','TabContainer'):
         lines += [f'{kind}/styles/tab_selected = ExtResource("pressed")',f'{kind}/styles/tab_unselected = ExtResource("button")',
-                  f'{kind}/styles/tab_hovered = ExtResource("hover")',f'{kind}/styles/panel = ExtResource("panel")']
+                  f'{kind}/styles/tab_hovered = ExtResource("hover")',f'{kind}/styles/panel = ExtResource("panel")',
+                  f'{kind}/styles/tab_disabled = ExtResource("disabled")',f'{kind}/styles/tab_focus = ExtResource("focus")',
+                  f'{kind}/colors/font_selected_color = Color(0.13,0.20,0.17,1)',
+                  f'{kind}/colors/font_hovered_color = Color(0.13,0.20,0.17,1)',
+                  f'{kind}/colors/font_unselected_color = Color(0.22,0.28,0.27,1)',
+                  f'{kind}/colors/font_disabled_color = Color(0.32,0.38,0.34,1)']
+    for state in ('font_color','font_hover_color','font_focus_color','font_pressed_color'):
+        lines.append(f'LinkButton/colors/{state} = Color(0.13,0.20,0.17,1)')
     lines += ['VBoxContainer/constants/separation = 10','HBoxContainer/constants/separation = 12']
     write('theme.tres','\n'.join(lines)+'\n')
     print('Medieval theme:',len(pieces),'generated material crops; shared native Theme and StyleBox resources')

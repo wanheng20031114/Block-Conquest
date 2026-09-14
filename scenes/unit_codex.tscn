@@ -167,7 +167,9 @@ theme_override_styles/tab_selected = SubResource("TabSelected")
 theme_override_styles/tab_unselected = SubResource("TabPage")
 theme_override_styles/tab_hovered = SubResource("TabSelected")
 theme_override_colors/font_selected_color = Color(0.23, 0.30, 0.29, 1)
-theme_override_colors/font_unselected_color = Color(0.40, 0.45, 0.41, 1)
+theme_override_colors/font_unselected_color = Color(0.34, 0.39, 0.35, 1)
+theme_override_colors/font_hovered_color = Color(0.23, 0.30, 0.29, 1)
+theme_override_colors/font_disabled_color = Color(0.36, 0.41, 0.35, 1)
 
 [node name="Entries" type="ItemList" parent="Margin/Content/Body/Catalog"]
 unique_name_in_owner = true
@@ -182,6 +184,8 @@ theme_override_font_sizes/font_size = 20
 theme_override_constants/v_separation = 15
 theme_override_colors/font_color = Color(0.23, 0.30, 0.29, 1)
 theme_override_colors/font_selected_color = Color(0.23, 0.30, 0.29, 1)
+theme_override_colors/font_hovered_color = Color(0.23, 0.30, 0.29, 1)
+theme_override_colors/font_hovered_selected_color = Color(0.23, 0.30, 0.29, 1)
 allow_reselect = true
 
 [node name="Count" type="Label" parent="Margin/Content/Body/Catalog"]

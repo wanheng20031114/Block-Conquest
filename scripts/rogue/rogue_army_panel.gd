@@ -310,7 +310,8 @@ func _cancel_recruit() -> void:
 
 func _set_status(message: String, error: bool = false) -> void:
 	%ArmyStatus.text = message
-	%ArmyStatus.modulate = Color("f0bca0") if error else Color("cbd9bd")
+	%ArmyStatus.modulate = Color.WHITE
+	%ArmyStatus.add_theme_color_override("font_color", Color("8a3d35") if error else Color("385840"))
 
 static func _number(value: float) -> String:
 	return str(int(value)) if is_equal_approx(value, roundf(value)) else "%.1f" % value

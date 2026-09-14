@@ -19,6 +19,17 @@
 | 两行事件、招募选项 | 高至少 76 | 标题与资源费用有明确间隔，随内容增高 |
 | 正文、面板标题 | 正文 18–20，标题 26–30 | 面板内边距通常 16–24；长内容滚动 |
 
+## 交互状态与文字对比度
+
+奶油色、浅绿底板上的文字始终使用深灰绿。悬停通过底板提亮与边框反馈，选中通过浅绿底板反馈；不能把浅底上的字改成白色。禁用状态降低底板饱和度并略淡化文字，费用和原因仍须能读清。编队错误提示用深红 `#8a3d35`，成功提示用深绿 `#385840`，配合说明文字表达状态。
+
+- 同时定义普通、悬停、按下、按下并悬停、键盘焦点和禁用状态。Godot 的缺省主题是深底浅字，遗漏任一状态都会重新引入白字。
+- `ItemList` 需覆盖 `font_hovered_color`、`font_hovered_selected_color` 以及 `hovered_selected`、`hovered_selected_focus` 底板；`Button` 需覆盖 `font_hover_pressed_color` 和 `font_focus_color`；页签需覆盖 `font_hovered_color`。局部 Theme 和场景内覆盖也按相同规则检查。
+- 下拉菜单、提示、输入框占位字和只读字、文本选区都应成对设置前景与背景。不要用全控件浅色 `modulate` 代替语义字色。
+- 项目验收目标：可操作正文及按钮文字至少 **4.5:1**，禁用文字至少 **3:1**。禁用 3:1 是项目额外要求，非 WCAG 的禁用控件要求。计算必须包含纹理、透明底板与按压动画调制，不能只比较两个设计色值。
+
+原生状态名称见 [ItemList](https://docs.godotengine.org/en/4.6/classes/class_itemlist.html) 和 [Button](https://docs.godotengine.org/en/4.6/classes/class_button.html)；正文对比度依据见 [WCAG 对比度说明](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)。本轮实测范围和结果见 [交互配色验证](ui-contrast-validation.md)。
+
 ## 素材比例与九宫格
 
 宽按钮、短按钮、方形槽位和大型纸卡应分别提供匹配比例的素材。不要把一张宽按钮原图同时塞进方形队列、窄标签和高面板。
