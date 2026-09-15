@@ -1254,12 +1254,12 @@ func _die() -> void:
 	remove_from_group("units")
 	remove_from_group("friendly_units" if team == 0 else "enemy_units")
 	var fall: Tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).set_parallel(true)
-	fall.tween_property(model_pivot, "rotation:z", 1.35 if randf() > 0.5 else -1.35, 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	fall.tween_property(model_pivot, "position:y", _stats.death_rest_height, 0.42)
-	fall.chain().tween_interval(2.0)
+	fall.tween_property(model_pivot, "rotation:z", 1.35 if randf() > 0.5 else -1.35, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	fall.tween_property(model_pivot, "position:y", _stats.death_rest_height, 0.3)
+	fall.chain().tween_interval(0.4)
 	for mesh: GeometryInstance3D in _model.find_children("*", "GeometryInstance3D", true, false):
 		_corpse_meshes.append(mesh)
-	fall.chain().tween_method(_fade_corpse, 0.0, 1.0, 1.8)
+	fall.chain().tween_method(_fade_corpse, 0.0, 1.0, 0.6)
 	fall.chain().tween_callback(queue_free)
 
 func _fade_corpse(amount: float) -> void:
