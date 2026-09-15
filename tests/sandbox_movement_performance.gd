@@ -12,6 +12,7 @@ var natural_health := false
 var short_check := false
 var map_mode := "1v1"
 var seconds := 20.0
+var render_scale := 1.0
 var phases: Array[Dictionary] = []
 var failures: Array[String] = []
 var checks := 0
@@ -34,11 +35,13 @@ func _run() -> void:
 		if argument.begins_with("--run-id="): run_id = argument.trim_prefix("--run-id=")
 		if argument.begins_with("--output="): output = argument.trim_prefix("--output=")
 		if argument.begins_with("--seconds="): seconds = argument.trim_prefix("--seconds=").to_float()
+		if argument.begins_with("--render-scale="): render_scale = argument.trim_prefix("--render-scale=").to_float()
 		if argument.begins_with("--map="): map_mode = argument.trim_prefix("--map=")
 	profiled = ProjectSettings.get_setting("movement_probe/profiled", false)
 	natural_health = "--natural-health" in OS.get_cmdline_user_args()
 	short_check = "--harness-check" in OS.get_cmdline_user_args()
 	_check(not output.is_empty(), "explicit evidence output directory")
+	_check(is_finite(render_scale) and render_scale >= 0.25 and render_scale <= 2.0, "valid explicit render scale")
 	_check(DisplayServer.get_name() != "headless" or short_check, "rendered performance measurements")
 	if not failures.is_empty():
 		quit(1)
@@ -67,10 +70,12 @@ func _run() -> void:
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		DisplayServer.window_set_size(Vector2i(1600, 900))
+	root.scaling_3d_scale = render_scale
 	RenderingServer.viewport_set_measure_render_time(root.get_viewport_rid(), true)
 	probe = PROBE.instantiate()
 	game.add_child(probe)
 	quality = {"msaa": root.msaa_3d, "taa": root.use_taa, "scale": root.scaling_3d_scale,
+		"window_size": [root.size.x, root.size.y], "scaling_mode": root.scaling_3d_mode,
 		"tps": Engine.physics_ticks_per_second, "max_physics_steps": Engine.max_physics_steps_per_frame,
 		"batching": game.unit_batches_enabled, "path_map_cache": game.get_node("PathBudget").cache_map_iterations,
 		"static_motion": game.get_node("StaticMotionGrid").fast_path_enabled,
@@ -139,6 +144,7 @@ func _damaged(_unit: Node3D, amount: float) -> void:
 	damage_amount += amount
 
 func _measure(label: String, duration: float) -> void:
+	var started_unix := Time.get_unix_time_from_system()
 	var since := Time.get_ticks_usec()
 	var previous := since
 	var first_tick := Engine.get_physics_frames()
@@ -160,8 +166,10 @@ func _measure(label: String, duration: float) -> void:
 		var tick_count := tick - previous_tick
 		intervals.append(frame_ms)
 		steps.append(float(tick_count))
-		gpu.append(RenderingServer.viewport_get_measured_render_time_gpu(root.get_viewport_rid()))
-		samples.append({"frame_ms": frame_ms, "physics_steps": tick_count, "entries_usec": MovementProbeCounters.take_frame()})
+		var measured_gpu := RenderingServer.viewport_get_measured_render_time_gpu(root.get_viewport_rid())
+		gpu.append(measured_gpu)
+		samples.append({"frame_ms": frame_ms, "physics_steps": tick_count, "entries_usec": MovementProbeCounters.take_frame(),
+			"gpu_ms": measured_gpu, "render_cpu_ms": RenderingServer.viewport_get_measured_render_time_cpu(root.get_viewport_rid())})
 		previous = now
 		previous_tick = tick
 		if now >= next_monitor:
@@ -174,11 +182,14 @@ func _measure(label: String, duration: float) -> void:
 				alive += 1
 				if unit.velocity.length_squared() > 0.01: moving += 1
 				if unit._congestion_wait > 0.0: waiting += 1
-			monitors.append({"alive": alive, "moving": moving, "waiting": waiting, "damage": damage_events - first_damage})
+			monitors.append({"alive": alive, "moving": moving, "waiting": waiting, "damage": damage_events - first_damage,
+				"draw_calls": root.get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE, Viewport.RENDER_INFO_DRAW_CALLS_IN_FRAME),
+				"primitives": root.get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE, Viewport.RENDER_INFO_PRIMITIVES_IN_FRAME),
+				"video_memory_bytes": Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)})
 	var elapsed := (Time.get_ticks_usec() - since) / 1000000.0
 	var counters := MovementProbeCounters.finish()
 	var logic: Array[float] = probe.end_sample()
-	var phase := {"name": label, "duration_s": elapsed, "frames": intervals.size(), "ticks": Engine.get_physics_frames() - first_tick,
+	var phase := {"name": label, "started_unix": started_unix, "duration_s": elapsed, "frames": intervals.size(), "ticks": Engine.get_physics_frames() - first_tick,
 		"fps": intervals.size() / elapsed, "tps": (Engine.get_physics_frames() - first_tick) / elapsed,
 		"frame_ms": distribution(intervals), "physics_steps": distribution(steps), "gpu_ms": distribution(gpu),
 		"scene_physics_ms": distribution(logic), "path_query_ms": distribution(probe.path_query_ms),

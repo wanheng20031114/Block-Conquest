@@ -94,9 +94,10 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--seconds", type=int, default=20)
+    parser.add_argument("--render-scale", type=float, default=1.0)
     parser.add_argument("--natural-health", action="store_true")
     parser.add_argument("--harness-check", action="store_true")
     parser.add_argument("--runtime", choices=["release", "debug", "profiler"], default="release")
     args = parser.parse_args()
-    flags = (["--natural-health"] if args.natural_health else []) + (["--harness-check"] if args.harness_check else [])
+    flags = (["--natural-health"] if args.natural_health else []) + (["--harness-check"] if args.harness_check else []) + [f"--render-scale={args.render_scale}"]
     run(args.build, args.output, args.run_id, args.seconds, flags, args.runtime)

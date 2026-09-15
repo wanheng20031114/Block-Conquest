@@ -121,7 +121,7 @@ def native_process(command: list[str], log_base: Path, timeout: int) -> dict:
     return {"pid": process.pid, "exit_code": code, "command": command}
 
 
-def build(output: Path, variant: str, base: Path | None = None) -> None:
+def build(output: Path, variant: str, base: Path | None = None, refresh_harness: bool = False) -> None:
     output = output.resolve()
     if output.exists():
         raise ValueError("Use a fresh output directory; previous evidence must be preserved")
@@ -154,6 +154,12 @@ def build(output: Path, variant: str, base: Path | None = None) -> None:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
             hashes[relative] = digest(source)
+    # Explicitly update this diagnostic entry point while preserving frozen gameplay.
+    if refresh_harness:
+        relative = "tests/sandbox_movement_performance.gd"
+        source = ROOT / relative
+        shutil.copy2(source, project / relative)
+        hashes[relative] = digest(source)
     (project / "artifacts").mkdir(exist_ok=True)
     shutil.copytree((base / "source" if base else ROOT) / ".godot/imported", project / ".godot/imported")
     from movement_corridor_probe import corridor_differential_sources
@@ -203,7 +209,7 @@ texture_format/s3tc_bptc=true
     shutil.copy2(TEMPLATE, bundle / "movement.exe")
     frozen = {str(path.relative_to(project)).replace("\\", "/"): digest(path)
               for path in project.rglob("*") if path.is_file() and ".godot" not in path.relative_to(project).parts}
-    receipt = {"variant": variant, "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+    receipt = {"variant": variant, "harness_refreshed": refresh_harness, "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                "workspace_status": subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True),
                "input_sha256": hashes, "frozen_source_sha256": frozen,
                "editor_sha256": digest(EDITOR), "template_sha256": digest(TEMPLATE),
@@ -216,6 +222,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--base", type=Path)
+    parser.add_argument("--refresh-harness", action="store_true", help="Copy the current diagnostic entry point while retaining frozen game files")
     parser.add_argument("--variant", choices=["baseline", "profile", "path", "short-axis", "combined"], default="baseline")
     args = parser.parse_args()
-    build(args.output, args.variant, args.base)
+    build(args.output, args.variant, args.base, args.refresh_harness)
