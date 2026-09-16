@@ -119,6 +119,18 @@ def save_part(folder, name, pieces):
     return len(mesh.faces)
 
 
+def trail_hat():
+    # Fit the crown around the capsule's rounded top on the same central axis.
+    # The ribbon follows the crown profile, with a small surface clearance.
+    crown = [(2.535,.351),(2.60,.343),(2.69,.310),
+             (2.76,.235),(2.805,.120),(2.82,.045)]
+    ribbon = [(y,float(np.interp(y,*np.array(crown).T))+.008)
+              for y in [2.568,2.60,2.624]]
+    return [(ellipsoid((.49,.043,.45),(0,2.54,0),sub=2),'leather'),
+            (lathe(crown,BODY_SECTIONS),'wood'),
+            (lathe(ribbon,BODY_SECTIONS,caps=False),'team')]
+
+
 def build():
     OUT.mkdir(parents=True, exist_ok=True)
     WEAPON.mkdir(parents=True, exist_ok=True)
@@ -143,9 +155,7 @@ def build():
     parts['Beret']=[(ellipsoid((.36,.12,.34),(-.065,2.61,.10),rot=(.1,0,-.18),sub=2),'cloth'),
                     (lathe([(2.54,.26),(2.59,.28)],32,pos=(0,0,.12)),'leather'),
                     (ellipsoid((.07,.016,.07),(-.11,2.726,.10),sub=2),'gold')]
-    parts['TrailHat']=[(ellipsoid((.49,.043,.45),(0,2.54,.10),rot=(.08,0,0),sub=2),'leather'),
-                       (ellipsoid((.29,.19,.27),(0,2.61,.14),sub=2),'wood'),
-                       (lathe([(2.58,.287),(2.63,.27)],32,pos=(0,0,.14)),'team')]
+    parts['TrailHat']=trail_hat()
     parts['Backpack']=[(box((.47,.62,.22),(0,1.50,.42),bevel=.07),'leather'),
                        (box((.50,.20,.24),(0,1.74,.435),bevel=.035),'wood'),
                        (box((.08,.27,.03),(0,1.64,.571),bevel=.006),'gold')]
