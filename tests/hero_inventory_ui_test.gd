@@ -29,6 +29,32 @@ func click(button: BaseButton) -> void:
 		event.pressed = down
 		root.push_input(event,true)
 	await process_frame
+func drag_item(source: Control,destination: Control) -> void:
+	var start := source.get_global_rect().get_center()
+	var end := destination.get_global_rect().get_center()
+	var down := InputEventMouseButton.new()
+	down.position = start
+	down.global_position = start
+	down.button_index = MOUSE_BUTTON_LEFT
+	down.pressed = true
+	root.push_input(down,true)
+	await process_frame
+	var previous := start
+	for step: int in range(1,7):
+		var motion := InputEventMouseMotion.new()
+		motion.position = start.lerp(end,step/6.0)
+		motion.global_position = motion.position
+		motion.relative = motion.position-previous
+		motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+		root.push_input(motion,true)
+		previous = motion.position
+		await process_frame
+	var up := InputEventMouseButton.new()
+	up.position = end
+	up.global_position = end
+	up.button_index = MOUSE_BUTTON_LEFT
+	root.push_input(up,true)
+	await process_frame
 func run() -> void:
 	create_timer(45,true,false,true).timeout.connect(func():quit(3))
 	change_scene_to_file("res://scenes/sandbox.tscn")
@@ -138,6 +164,38 @@ func run() -> void:
 	controller.interface._draft = customized
 	controller.interface.get_node("%ResetAppearance").pressed.emit()
 	check(controller.interface._draft.expression==0 and controller.interface._draft.headwear==0 and not controller.interface._draft.feather and controller.interface._draft.name==customized.name,"reset returns to concept C face and preserves identity")
+	controller.interface.close_panels()
+	# The toolbar compacts stacks without changing ownership, binding or timers.
+	var counts_before := [inventory.count(&"healing_potion"),inventory.count(&"windwalk_potion")]
+	var shortcuts_before := inventory.hotbar.duplicate()
+	var cooldowns_before := inventory.cooldowns.duplicate()
+	controller.interface.open_inventory()
+	await create_timer(.2).timeout
+	await click(controller.interface.get_node("%SortInventory"))
+	check([inventory.count(&"healing_potion"),inventory.count(&"windwalk_potion")]==counts_before,"native sort button conserves all supplies")
+	check(inventory.hotbar==shortcuts_before and inventory.cooldowns==cooldowns_before,"sorting preserves shortcut references and shared cooldown")
+	check(inventory.slots.size()==24 and inventory.slots.all(func(s: Dictionary):return s.count<=5),"sorting retains capacity and stack limits")
+	var wind_slot: int = -1
+	for index: int in inventory.slots.size():
+		if inventory.slots[index].id==&"windwalk_potion": wind_slot = index; break
+	await drag_item(controller.interface.get_node("%BagGrid").get_child(wind_slot),controller.interface.get_node("%BagHotbar").get_child(4))
+	check(inventory.hotbar[4]==&"windwalk_potion","real mouse drag binds the item to its shortcut")
+	await click(controller.interface.get_node("%BagGrid").get_child(wind_slot))
+	check(not controller.interface.get_node("%ItemEffect").text.contains("%d") and controller.interface.get_node("%ItemEffect").text.contains("20%"),"item effect displays formatted runtime values")
+	await click(controller.interface.get_node("%EquippedWeapon"))
+	check(controller.interface.get_node("%ItemName").text==hero.weapon.definition.display_name and not controller.interface.get_node("%UseItem").visible,"equipment selection shows actual weapon details without item-use action")
+	check(controller.interface.get_node("%ItemCooldown").text.contains("0.65") and controller.interface.get_node("%ItemCooldown").text.contains("1.8"),"weapon details display actual attack and reload intervals")
+	var render_mode: int = controller.interface.get_node("%WeaponIconViewport").render_target_update_mode
+	check(render_mode!=SubViewport.UPDATE_ALWAYS,"static weapon thumbnail does not render continuously")
+	for resolution: Vector2i in [Vector2i(1280,720),Vector2i(1280,800),Vector2i(1920,1080)]:
+		root.size = resolution
+		await process_frame
+		await process_frame
+		var canvas := Rect2(Vector2.ZERO,root.get_visible_rect().size)
+		for id: String in ["%Left","%Right","%Shortcuts","%CloseInventory"]:
+			var control: Control = controller.interface.get_node(id)
+			var transformed := Rect2(control.get_global_transform().origin,control.size*control.get_global_transform().get_scale())
+			check(canvas.encloses(transformed),"%s stays on-screen at %s" % [id,resolution])
 	controller.interface.close_panels()
 	await game.prepare_shutdown()
 	game.queue_free()

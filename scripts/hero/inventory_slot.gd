@@ -1,9 +1,15 @@
 class_name HeroInventorySlot
 extends Button
 const DRAG_PREVIEW := preload("res://scenes/hero/item_drag_preview.tscn")
+const FILLED := preload("res://assets/ui/hero/styles/slot.tres")
+const EMPTY := preload("res://assets/ui/hero/styles/slot_empty.tres")
+const SELECTED := preload("res://assets/ui/hero/styles/slot_selected.tres")
 @export var slot_index: int = 0
 @export var is_shortcut: bool = false
 var inventory: HeroInventory
+var selected := false
+var key_prefix := ""
+var _surface: StyleBox
 
 func item_id() -> StringName:
 	if inventory==null: return &""
@@ -12,12 +18,25 @@ func item_id() -> StringName:
 func refresh() -> void:
 	var id := item_id()
 	var item: HeroItemDefinition = HeroInventory.ITEMS.get(id)
+	var surface: StyleBox = SELECTED if selected else (FILLED if item != null else EMPTY)
+	if _surface != surface:
+		_surface = surface
+		add_theme_stylebox_override("normal", surface)
 	$Icon.texture = item.icon if item != null else null
 	$Count.text = str(inventory.count(id) if is_shortcut else inventory.slots[slot_index].count) if item != null else ""
-	$Key.text = str(slot_index+1) if is_shortcut else ""
+	$Count.visible = item != null
+	$Name.text = item.display_name if item != null else ""
+	$Name.visible = item != null
+	$Key.text = key_prefix+str(slot_index+1) if is_shortcut else ""
+	$Key.offset_left = -24.0 if not key_prefix.is_empty() else -12.0
+	$Key.offset_right = 24.0 if not key_prefix.is_empty() else 12.0
 	$Key.visible = is_shortcut
-	$Cooldown.visible = item != null and inventory.cooldowns.get(id,0.0)>0
-	$Cooldown.value = inventory.cooldowns.get(id,0.0)/item.cooldown if item != null else 0.0
+	var remaining: float = inventory.cooldowns.get(id,0.0) if item != null else 0.0
+	$Cooldown.visible = remaining > 0.0
+	$Cooldown.value = remaining/item.cooldown if item != null else 0.0
+	$CooldownTime.visible = remaining > 0.0
+	$CooldownTime.text = "%.1fs" % remaining
+	$Icon.modulate = Color(.52,.60,.65,.78) if remaining > 0.0 else Color.WHITE
 	tooltip_text = item.display_name+"\n"+item.description if item != null else ("从背包拖入道具" if is_shortcut else "空格")
 
 func _get_drag_data(_at: Vector2) -> Variant:

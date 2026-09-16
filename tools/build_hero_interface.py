@@ -2,6 +2,7 @@
 from pathlib import Path
 import re
 from build_hero_theme import build_theme
+import hero_ui_layout
 build_theme()
 ROOT=Path(__file__).resolve().parents[1]
 lines=['[gd_scene format=3]',
@@ -36,6 +37,7 @@ def button(name,parent,text,extra=''):
 
 
 full='anchors_preset = 15\nanchor_right = 1.0\nanchor_bottom = 1.0\ngrow_horizontal = 2\ngrow_vertical = 2\n'
+hero_ui_layout.resources(lines)
 node('HeroInterface','CanvasLayer',props='layer = 20\nscript = ExtResource("script")')
 node('WeaponViewport','SubViewport','.', 'transparent_bg = true\nsize = Vector2i(1280,720)\nmsaa_3d = 2\nown_world_3d = true\nrender_target_update_mode = 0',True)
 node('Environment','WorldEnvironment','WeaponViewport','environment = SubResource("weapon_world")')
@@ -44,27 +46,11 @@ node('Camera','Camera3D','WeaponViewport','current = true\nfov = 65.0\nnear = .0
 node('GunPivot','Node3D','WeaponViewport','position = Vector3(.32,-.29,-.54)\nscale = Vector3(.65,.65,.65)',True)
 lines.append('[node name="Gun" parent="WeaponViewport/GunPivot" instance=ExtResource("weapon")]')
 node('MuzzleFlash','MeshInstance3D','WeaponViewport/GunPivot','position = Vector3(0,.08,-.985)\nvisible = false\nmesh = SubResource("flash_mesh")',True)
+hero_ui_layout.weapon_preview(node,lines)
 node('Root','Control','.',full+'mouse_filter = 2\ntheme = ExtResource("theme")')
 node('WeaponView','TextureRect','Root',full+'mouse_filter = 2\ntexture = SubResource("gun_texture")\nexpand_mode = 1\nstretch_mode = 5\nvisible = false',True)
 node('Crosshair','Label','Root','anchor_left = .5\nanchor_top = .5\nanchor_right = .5\nanchor_bottom = .5\noffset_left = -15.0\noffset_top = -20.0\noffset_right = 15.0\noffset_bottom = 20.0\ntext = "+"\nhorizontal_alignment = 1\nvertical_alignment = 1\nmouse_filter = 2\ntheme_override_font_sizes/font_size = 28\ntheme_override_colors/font_color = Color(1,.98,.88,1)\ntheme_override_colors/font_shadow_color = Color(.12,.12,.10,1)\ntheme_override_constants/shadow_offset_x = 1\ntheme_override_constants/shadow_offset_y = 1\nvisible = false',True)
-node('Dock','PanelContainer','Root','anchor_left = .5\nanchor_top = 1.0\nanchor_right = .5\nanchor_bottom = 1.0\noffset_left = -350.0\noffset_top = -112.0\noffset_right = 350.0\noffset_bottom = -22.0\ntheme_override_styles/panel = ExtResource("compact")\nvisible = false',True)
-node('Rows','VBoxContainer','Root/Dock','layout_mode = 2\ntheme_override_constants/separation = 8')
-node('Stats','HBoxContainer','Root/Dock/Rows','layout_mode = 2\ntheme_override_constants/separation = 24')
-node('Player','VBoxContainer','Root/Dock/Rows/Stats','layout_mode = 2\nsize_flags_horizontal = 3\ntheme_override_constants/separation = 3')
-node('Identity','HBoxContainer','Root/Dock/Rows/Stats/Player','layout_mode = 2')
-label('HeroName','Root/Dock/Rows/Stats/Player/Identity','远行者',size=18)
-label('Health','Root/Dock/Rows/Stats/Player/Identity','200 / 200',size=16)
-node('HealthMeter','ProgressBar','Root/Dock/Rows/Stats/Player','layout_mode = 2\ncustom_minimum_size = Vector2(180,5)\nsize_flags_horizontal = 0\nmax_value = 200.0\nvalue = 200.0\nshow_percentage = false',True)
-label('Ammo','Root/Dock/Rows/Stats','10 / 10 · 无限备弹','vertical_alignment = 1',22)
-node('Actions','HBoxContainer','Root/Dock/Rows','layout_mode = 2\ntheme_override_constants/separation = 12')
-button('Control','Root/Dock/Rows/Actions','操控英雄 F5','size_flags_horizontal = 3')
-button('Reload','Root/Dock/Rows/Actions','换弹 R')
-button('Edit','Root/Dock/Rows/Actions','编辑形象')
-button('Run','Root/Dock/Rows/Actions','开始交战')
-node('Hotbar','HBoxContainer','Root/Dock/Rows','layout_mode = 2\nalignment = 1\ntheme_override_constants/separation = 10',True)
-for index in range(5):
-    lines.append(f'[node name="Slot{index}" parent="Root/Dock/Rows/Hotbar" instance=ExtResource("item_slot")]\nlayout_mode = 2\nslot_index = {index}\nis_shortcut = true')
-button('InventoryButton','Root/Dock/Rows/Hotbar','I','icon = ExtResource("bag_icon")\nexpand_icon = true\ntheme_override_constants/icon_max_width = 40\ncustom_minimum_size = Vector2(80,72)\ntooltip_text = "背包 I"')
+hero_ui_layout.hud(node,label,button,lines)
 node('FPSHint','Label','Root','anchor_left = .5\nanchor_right = .5\noffset_left = -350.0\noffset_right = 350.0\noffset_top = 20.0\noffset_bottom = 58.0\ntext = "WASD 移动 · 左键开火 · R 换弹 · Space 跳跃 · F5 返回 · Esc 菜单"\nhorizontal_alignment = 1\nmouse_filter = 2\ntheme_override_font_sizes/font_size = 15\ntheme_override_colors/font_color = Color(1,.96,.85,1)\ntheme_override_colors/font_shadow_color = Color(.1,.1,.1,1)\ntheme_override_constants/shadow_offset_y = 1\nvisible = false',True)
 node('Notice','Label','Root','anchor_left = .5\nanchor_top = .15\nanchor_right = .5\nanchor_bottom = .15\noffset_left = -450.0\noffset_right = 450.0\noffset_bottom = 50.0\nhorizontal_alignment = 1\nmouse_filter = 2\ntheme_override_colors/font_color = Color(1,.92,.67,1)\ntheme_override_colors/font_shadow_color = Color(.1,.1,.1,1)\ntheme_override_constants/shadow_offset_y = 2',True)
 node('Creator','ColorRect','Root',full+'color = Color(.03,.04,.04,.24)\nvisible = false',True)
@@ -122,33 +108,5 @@ button('Resume',pause,'继续第一人称')
 button('ReturnRTS',pause,'返回 RTS 视角')
 button('Settings',pause,'第一人称与游戏设置')
 button('BackMenu',pause,'返回主菜单')
-node('Inventory','ColorRect','Root',full+'color = Color(.03,.04,.04,.16)\nvisible = false',True)
-node('Left','PanelContainer','Root/Inventory','offset_left = 55.0\noffset_top = 125.0\noffset_right = 615.0\noffset_bottom = 660.0\ntheme_override_styles/panel = ExtResource("paper")')
-node('Rows','VBoxContainer','Root/Inventory/Left','layout_mode = 2\ntheme_override_constants/separation = 14')
-bag='Root/Inventory/Left/Rows'
-node('Heading','HBoxContainer',bag,'layout_mode = 2\ntheme_override_constants/separation = 16')
-node('BagIcon','TextureRect',bag+'/Heading','layout_mode = 2\ncustom_minimum_size = Vector2(52,52)\ntexture = ExtResource("bag_icon")\nexpand_mode = 1\nstretch_mode = 5')
-label('BagTitle',bag+'/Heading','背包','size_flags_horizontal = 3',28)
-label('BagCapacity',bag+'/Heading','2 / 24 格',size=18)
-node('BagGrid','GridContainer',bag,'layout_mode = 2\ncolumns = 6\ntheme_override_constants/h_separation = 8\ntheme_override_constants/v_separation = 8',True)
-for index in range(24):
-    lines.append(f'[node name="Slot{index}" parent="{bag}/BagGrid" instance=ExtResource("item_slot")]\nlayout_mode = 2\ncustom_minimum_size = Vector2(80,80)\nslot_index = {index}')
-label('BagHelp',bag,'拖动整理 · 拖入底部快捷位\n每格最多 5 瓶，同种药剂共享冷却。',size=15)
-node('Right','PanelContainer','Root/Inventory','anchor_left = 1.0\nanchor_right = 1.0\noffset_left = -435.0\noffset_right = -55.0\noffset_top = 125.0\noffset_bottom = 660.0\ntheme_override_styles/panel = ExtResource("paper")')
-node('Details','VBoxContainer','Root/Inventory/Right','layout_mode = 2\ncustom_minimum_size = Vector2(335,0)\ntheme_override_constants/separation = 14')
-detail='Root/Inventory/Right/Details'
-node('ItemArt','TextureRect',detail,'layout_mode = 2\ncustom_minimum_size = Vector2(0,95)\nexpand_mode = 1\nstretch_mode = 5\ntexture_filter = 1',True)
-label('ItemName',detail,'选择一件物品',size=24)
-label('ItemDescription',detail,'背包中存放你的随行补给。','autowrap_mode = 2\nsize_flags_vertical = 3',17)
-label('ItemCooldown',detail,'',size=16)
-button('UseItem',detail,'使用物品')
-label('WeaponStats',detail,'已装备 · 连发火枪\n攻击 20 + 20 = 40\n射程 20 · 10 发弹匣 · 无限备弹','autowrap_mode = 2',17)
-node('Bottom','VBoxContainer','Root/Inventory','anchor_left = .5\nanchor_right = .5\nanchor_top = 1.0\nanchor_bottom = 1.0\noffset_left = -210.0\noffset_right = 210.0\noffset_top = -178.0\noffset_bottom = -40.0\ntheme_override_constants/separation = 8')
-bag_bottom='Root/Inventory/Bottom'
-label('BagShortcuts',bag_bottom,'快捷栏','horizontal_alignment = 1',17)
-node('BagHotbar','HBoxContainer',bag_bottom,'layout_mode = 2\nalignment = 1\ncustom_minimum_size = Vector2(0,95)\ntheme_override_constants/separation = 10',True)
-for index in range(5):
-    lines.append(f'[node name="Slot{index}" parent="{bag_bottom}/BagHotbar" instance=ExtResource("item_slot")]\nlayout_mode = 2\nsize_flags_vertical = 0\nslot_index = {index}\nis_shortcut = true')
-label('ShortcutHelp',bag_bottom,'1–5 使用 · RTS 为 Alt + 1–5 · 右键解除绑定','horizontal_alignment = 1',14)
-button('CloseInventory','Root/Inventory','返回  I / Esc','layout_mode = 0\nanchor_left = 1.0\nanchor_right = 1.0\noffset_left = -215.0\noffset_right = -55.0\noffset_top = 62.0\noffset_bottom = 105.0')
+hero_ui_layout.inventory(node,label,button,lines)
 (ROOT/'scenes/hero/hero_interface.tscn').write_text(re.sub(r'(?<![A-Za-z0-9_])\.(\d)',r'0.\1','\n\n'.join(lines)+'\n'),encoding='utf-8')

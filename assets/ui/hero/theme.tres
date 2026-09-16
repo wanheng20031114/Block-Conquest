@@ -12,6 +12,11 @@
 [ext_resource type="StyleBox" path="res://assets/ui/hero/styles/track.tres" id="track"]
 [ext_resource type="StyleBox" path="res://assets/ui/hero/styles/fill.tres" id="fill"]
 [ext_resource type="StyleBox" path="res://assets/ui/hero/styles/empty.tres" id="empty"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/header.tres" id="header"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/primary.tres" id="primary"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/primary_hover.tres" id="primary_hover"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/glass_frame.tres" id="glass_frame"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/chip.tres" id="chip"]
 [resource]
 default_font = ExtResource("font")
 default_font_size = 17
@@ -68,6 +73,15 @@ CheckButton/colors/font_hover_pressed_color = Color(0.96,0.95,0.88,1)
 CheckButton/colors/font_focus_color = Color(0.96,0.95,0.88,1)
 CheckButton/colors/font_disabled_color = Color(0.65,0.68,0.66,0.65)
 PanelContainer/styles/panel = ExtResource("panel")
+HeroHeader/base_type = &"PanelContainer"
+HeroHeader/styles/panel = ExtResource("header")
+HeroPrimary/base_type = &"Button"
+HeroPrimary/styles/normal = ExtResource("primary")
+HeroPrimary/styles/hover = ExtResource("primary_hover")
+HeroPrimary/styles/pressed = ExtResource("primary")
+HeroPrimary/colors/font_color = Color(0.12,0.29,0.38,1)
+HeroPrimary/colors/font_hover_color = Color(0.07,0.22,0.30,1)
+HeroPrimary/colors/font_pressed_color = Color(0.07,0.22,0.30,1)
 TabContainer/styles/panel = ExtResource("empty")
 TabContainer/styles/tab_selected = ExtResource("selected")
 TabContainer/styles/tab_unselected = ExtResource("button")

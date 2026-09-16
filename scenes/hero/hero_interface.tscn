@@ -16,6 +16,30 @@
 
 [ext_resource type="Texture2D" path="res://assets/ui/hero/backpack.png" id="bag_icon"]
 
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/weapon.tres" id="weapon_style"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/header.tres" id="header_style"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/glass_frame.tres" id="glass_frame_style"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/chip.tres" id="chip_style"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/keycap.tres" id="keycap_style"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/health_track.tres" id="health_track_style"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/health_fill.tres" id="health_fill_style"]
+
+[ext_resource type="Font" path="res://assets/ui/hero/font_bold.tres" id="bold"]
+
+[ext_resource type="Font" path="res://assets/ui/hero/font_numbers.tres" id="numbers"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/hero/health_heart.png" id="health_heart"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/hero/speed_boot.png" id="speed_boot"]
+
+[ext_resource type="Shader" path="res://assets/ui/hero/glass.gdshader" id="glass_shader"]
+
 [sub_resource type="Environment" id="studio"]
 background_mode = 0
 ambient_light_source = 2
@@ -41,6 +65,21 @@ height = 0.08
 radial_segments = 6
 rings = 2
 material = SubResource("flash_mat")
+
+[sub_resource type="ViewportTexture" id="weapon_icon"]
+viewport_path = NodePath("WeaponIconViewport")
+
+[sub_resource type="ShaderMaterial" id="glass_bag"]
+shader = ExtResource("glass_shader")
+shader_parameter/panel_size = Vector2(460,710)
+
+[sub_resource type="ShaderMaterial" id="glass_detail"]
+shader = ExtResource("glass_shader")
+shader_parameter/panel_size = Vector2(330,544)
+
+[sub_resource type="ShaderMaterial" id="glass_shortcuts"]
+shader = ExtResource("glass_shader")
+shader_parameter/panel_size = Vector2(492,145)
 
 [node name="HeroInterface" type="CanvasLayer"]
 layer = 20
@@ -80,6 +119,37 @@ unique_name_in_owner = true
 position = Vector3(0,0.08,-0.985)
 visible = false
 mesh = SubResource("flash_mesh")
+
+[node name="WeaponIconViewport" type="SubViewport" parent="."]
+unique_name_in_owner = true
+transparent_bg = true
+size = Vector2i(512,256)
+msaa_3d = 2
+own_world_3d = true
+render_target_update_mode = 1
+
+[node name="World" type="WorldEnvironment" parent="WeaponIconViewport"]
+environment = SubResource("studio")
+
+[node name="Key" type="DirectionalLight3D" parent="WeaponIconViewport"]
+rotation_degrees = Vector3(-35,-35,0)
+light_color = Color(1,0.94,0.84,1)
+light_energy = 1.5
+
+[node name="Fill" type="DirectionalLight3D" parent="WeaponIconViewport"]
+rotation_degrees = Vector3(20,145,0)
+light_color = Color(0.64,0.83,1,1)
+light_energy = 0.6
+
+[node name="Camera" type="Camera3D" parent="WeaponIconViewport"]
+position = Vector3(3,1.35,1.6)
+rotation_degrees = Vector3(-20,62,0)
+projection = 1
+size = 0.95
+current = true
+
+[node name="Musket" parent="WeaponIconViewport" instance=ExtResource("weapon")]
+rotation_degrees = Vector3(0,0,-12)
 
 [node name="Root" type="Control" parent="."]
 anchors_preset = 15
@@ -124,140 +194,359 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 visible = false
 
-[node name="Dock" type="PanelContainer" parent="Root"]
+[node name="HudLayout" type="Control" parent="Root"]
 unique_name_in_owner = true
-anchor_left = 0.5
+mouse_filter = 2
+offset_right = 1600.0
+offset_bottom = 900.0
+
+[node name="Dock" type="Control" parent="Root/HudLayout"]
+unique_name_in_owner = true
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -350.0
-offset_top = -112.0
-offset_right = 350.0
-offset_bottom = -22.0
-theme_override_styles/panel = ExtResource("compact")
+offset_top = -205.0
+offset_bottom = -35.0
+mouse_filter = 2
 visible = false
 
-[node name="Rows" type="VBoxContainer" parent="Root/Dock"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Stats" type="HBoxContainer" parent="Root/Dock/Rows"]
-layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="Player" type="VBoxContainer" parent="Root/Dock/Rows/Stats"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 3
-
-[node name="Identity" type="HBoxContainer" parent="Root/Dock/Rows/Stats/Player"]
-layout_mode = 2
-
-[node name="HeroName" type="Label" parent="Root/Dock/Rows/Stats/Player/Identity"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "远行者"
-theme_override_font_sizes/font_size = 18
-theme_override_constants/line_spacing = 2
+[node name="Rows" type="Control" parent="Root/HudLayout/Dock"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 
-[node name="Health" type="Label" parent="Root/Dock/Rows/Stats/Player/Identity"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "200 / 200"
-theme_override_font_sizes/font_size = 16
-theme_override_constants/line_spacing = 2
+[node name="Actions" type="HBoxContainer" parent="Root/HudLayout/Dock/Rows"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -40.0
+offset_right = 500.0
+offset_bottom = 38.0
+theme_override_constants/separation = 10
 
-
-[node name="HealthMeter" type="ProgressBar" parent="Root/Dock/Rows/Stats/Player"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(180,5)
-size_flags_horizontal = 0
-max_value = 200.0
-value = 200.0
-show_percentage = false
-
-[node name="Ammo" type="Label" parent="Root/Dock/Rows/Stats"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "10 / 10 · 无限备弹"
-theme_override_font_sizes/font_size = 22
-theme_override_constants/line_spacing = 2
-vertical_alignment = 1
-
-[node name="Actions" type="HBoxContainer" parent="Root/Dock/Rows"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Control" type="Button" parent="Root/Dock/Rows/Actions"]
+[node name="Control" type="Button" parent="Root/HudLayout/Dock/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "操控英雄 F5"
 custom_minimum_size = Vector2(0,40)
-size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
 
-[node name="Reload" type="Button" parent="Root/Dock/Rows/Actions"]
+[node name="Reload" type="Button" parent="Root/HudLayout/Dock/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "换弹 R"
 custom_minimum_size = Vector2(0,40)
+theme_override_font_sizes/font_size = 15
 
-
-[node name="Edit" type="Button" parent="Root/Dock/Rows/Actions"]
+[node name="Edit" type="Button" parent="Root/HudLayout/Dock/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "编辑形象"
 custom_minimum_size = Vector2(0,40)
+theme_override_font_sizes/font_size = 15
 
-
-[node name="Run" type="Button" parent="Root/Dock/Rows/Actions"]
+[node name="Run" type="Button" parent="Root/HudLayout/Dock/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "开始交战"
 custom_minimum_size = Vector2(0,40)
+theme_override_font_sizes/font_size = 15
 
+[node name="Vitals" type="Control" parent="Root/HudLayout/Dock/Rows"]
+unique_name_in_owner = true
+offset_left = 48.0
+offset_right = 318.0
+offset_top = 75.0
+offset_bottom = 157.0
+mouse_filter = 2
 
-[node name="Hotbar" type="HBoxContainer" parent="Root/Dock/Rows"]
+[node name="HeroName" type="Label" parent="Root/HudLayout/Dock/Rows/Vitals"]
 unique_name_in_owner = true
 layout_mode = 2
+text = "远行者"
+theme_override_font_sizes/font_size = 20
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("bold")
+mouse_filter = 2
+offset_top = 0.0
+offset_right = 260.0
+
+[node name="HealthMeter" type="ProgressBar" parent="Root/HudLayout/Dock/Rows/Vitals"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 35.0
+offset_right = 260.0
+offset_bottom = 65.0
+max_value = 200
+value = 200
+show_percentage = false
+theme_override_styles/background = ExtResource("health_track_style")
+theme_override_styles/fill = ExtResource("health_fill_style")
+mouse_filter = 2
+
+[node name="Heart" type="TextureRect" parent="Root/HudLayout/Dock/Rows/Vitals"]
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = ExtResource("health_heart")
+offset_left = -11.0
+offset_right = 29.0
+offset_top = 30.0
+offset_bottom = 70.0
+
+[node name="Health" type="Label" parent="Root/HudLayout/Dock/Rows/Vitals"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "200 / 200"
+theme_override_font_sizes/font_size = 20
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+mouse_filter = 2
+offset_left = 27.0
+offset_right = 245.0
+offset_top = 35.0
+offset_bottom = 65.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Armor" type="Label" parent="Root/HudLayout/Dock/Rows/Vitals"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "护甲  3 / 3"
+theme_override_font_sizes/font_size = 13
+theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+mouse_filter = 2
+offset_top = 68.0
+offset_right = 260.0
+
+[node name="Boost" type="Control" parent="Root/HudLayout/Dock/Rows"]
+unique_name_in_owner = true
+offset_left = 342.0
+offset_right = 414.0
+offset_top = 87.0
+offset_bottom = 159.0
+visible = false
+mouse_filter = 2
+
+[node name="Boot" type="TextureRect" parent="Root/HudLayout/Dock/Rows/Boost"]
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = ExtResource("speed_boot")
+offset_right = 56.0
+offset_bottom = 50.0
+
+[node name="BoostTime" type="Label" parent="Root/HudLayout/Dock/Rows/Boost"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+20% · 10s"
+theme_override_font_sizes/font_size = 14
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+offset_top = 49.0
+offset_right = 76.0
+theme_override_colors/font_color = Color(0.59,0.9,1,1)
+
+[node name="Loadout" type="HBoxContainer" parent="Root/HudLayout/Dock/Rows"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -238.0
+offset_right = 490.0
+offset_top = 65.0
+offset_bottom = 146.0
 alignment = 1
+theme_override_constants/separation = 22
+
+[node name="WeaponCard" type="Button" parent="Root/HudLayout/Dock/Rows/Loadout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+custom_minimum_size = Vector2(132,82)
+theme_override_styles/normal = ExtResource("weapon_style")
+theme_override_styles/hover = ExtResource("weapon_style")
+theme_override_styles/focus = ExtResource("weapon_style")
+tooltip_text = "连发火枪 · R 换弹"
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="WeaponArt" type="TextureRect" parent="Root/HudLayout/Dock/Rows/Loadout/WeaponCard"]
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = SubResource("weapon_icon")
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 3.0
+offset_right = -3.0
+offset_top = -3.0
+offset_bottom = -13.0
+
+[node name="WeaponTitle" type="Label" parent="Root/HudLayout/Dock/Rows/Loadout/WeaponCard"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "连发火枪"
+theme_override_font_sizes/font_size = 13
+theme_override_constants/line_spacing = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("bold")
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -23.0
+horizontal_alignment = 1
+
+[node name="Ammo" type="Label" parent="Root/HudLayout/Dock/Rows/Loadout/WeaponCard"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "10 / 10"
+theme_override_font_sizes/font_size = 20
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+mouse_filter = 2
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -44.0
+offset_right = 44.0
+offset_top = -27.0
+offset_bottom = -1.0
+horizontal_alignment = 1
+theme_override_styles/normal = ExtResource("chip_style")
+
+[node name="ReloadMeter" type="ProgressBar" parent="Root/HudLayout/Dock/Rows/Loadout/WeaponCard"]
+unique_name_in_owner = true
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_right = -8.0
+offset_top = -4.0
+max_value = 1.0
+show_percentage = false
+mouse_filter = 2
+visible = false
+
+[node name="WeaponKey" type="Label" parent="Root/HudLayout/Dock/Rows/Loadout/WeaponCard"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "R"
+theme_override_font_sizes/font_size = 16
+theme_override_constants/line_spacing = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.11,0.17,0.21,1)
+theme_override_constants/shadow_offset_y = 0
+theme_override_styles/normal = ExtResource("keycap_style")
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -12.0
+offset_right = 12.0
+offset_top = 6.0
+offset_bottom = 29.0
+
+[node name="Hotbar" type="HBoxContainer" parent="Root/HudLayout/Dock/Rows/Loadout"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Slot0" parent="Root/Dock/Rows/Hotbar" instance=ExtResource("item_slot")]
+[node name="Slot0" parent="Root/HudLayout/Dock/Rows/Loadout/Hotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
+custom_minimum_size = Vector2(78,82)
 slot_index = 0
 is_shortcut = true
 
-[node name="Slot1" parent="Root/Dock/Rows/Hotbar" instance=ExtResource("item_slot")]
+[node name="Slot1" parent="Root/HudLayout/Dock/Rows/Loadout/Hotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
+custom_minimum_size = Vector2(78,82)
 slot_index = 1
 is_shortcut = true
 
-[node name="Slot2" parent="Root/Dock/Rows/Hotbar" instance=ExtResource("item_slot")]
+[node name="Slot2" parent="Root/HudLayout/Dock/Rows/Loadout/Hotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
+custom_minimum_size = Vector2(78,82)
 slot_index = 2
 is_shortcut = true
 
-[node name="Slot3" parent="Root/Dock/Rows/Hotbar" instance=ExtResource("item_slot")]
+[node name="Slot3" parent="Root/HudLayout/Dock/Rows/Loadout/Hotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
+custom_minimum_size = Vector2(78,82)
 slot_index = 3
 is_shortcut = true
 
-[node name="Slot4" parent="Root/Dock/Rows/Hotbar" instance=ExtResource("item_slot")]
+[node name="Slot4" parent="Root/HudLayout/Dock/Rows/Loadout/Hotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
+custom_minimum_size = Vector2(78,82)
 slot_index = 4
 is_shortcut = true
 
-[node name="InventoryButton" type="Button" parent="Root/Dock/Rows/Hotbar"]
+[node name="InventoryButton" type="Button" parent="Root/HudLayout/Dock/Rows/Loadout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+custom_minimum_size = Vector2(78,82)
+tooltip_text = "背包 I"
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="Icon" type="TextureRect" parent="Root/HudLayout/Dock/Rows/Loadout/InventoryButton"]
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = ExtResource("bag_icon")
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 6.0
+offset_right = -6.0
+offset_bottom = -18.0
+
+[node name="InventoryLabel" type="Label" parent="Root/HudLayout/Dock/Rows/Loadout/InventoryButton"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "背包"
+theme_override_font_sizes/font_size = 13
+theme_override_constants/line_spacing = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("bold")
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -22.0
+horizontal_alignment = 1
+
+[node name="InventoryKey" type="Label" parent="Root/HudLayout/Dock/Rows/Loadout/InventoryButton"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "I"
-icon = ExtResource("bag_icon")
-expand_icon = true
-theme_override_constants/icon_max_width = 40
-custom_minimum_size = Vector2(80,72)
-tooltip_text = "背包 I"
+theme_override_font_sizes/font_size = 16
+theme_override_constants/line_spacing = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.11,0.17,0.21,1)
+theme_override_constants/shadow_offset_y = 0
+theme_override_styles/normal = ExtResource("keycap_style")
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -12.0
+offset_right = 12.0
+offset_top = 6.0
+offset_bottom = 29.0
 
 [node name="FPSHint" type="Label" parent="Root"]
 unique_name_in_owner = true
@@ -656,321 +945,603 @@ custom_minimum_size = Vector2(0,40)
 
 [node name="Inventory" type="ColorRect" parent="Root"]
 unique_name_in_owner = true
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03,0.04,0.04,0.16)
+color = Color(0.025,0.045,0.085,0.08)
 visible = false
 
-[node name="Left" type="PanelContainer" parent="Root/Inventory"]
-offset_left = 55.0
-offset_top = 125.0
-offset_right = 615.0
-offset_bottom = 660.0
-theme_override_styles/panel = ExtResource("paper")
+[node name="BackdropCopy" type="BackBufferCopy" parent="Root/Inventory"]
+copy_mode = 2
 
-[node name="Rows" type="VBoxContainer" parent="Root/Inventory/Left"]
-layout_mode = 2
-theme_override_constants/separation = 14
+[node name="InventoryLayout" type="Control" parent="Root/Inventory"]
+unique_name_in_owner = true
+mouse_filter = 2
+offset_right = 1600.0
+offset_bottom = 900.0
 
-[node name="Heading" type="HBoxContainer" parent="Root/Inventory/Left/Rows"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="BagIcon" type="TextureRect" parent="Root/Inventory/Left/Rows/Heading"]
-layout_mode = 2
-custom_minimum_size = Vector2(52,52)
-texture = ExtResource("bag_icon")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="BagTitle" type="Label" parent="Root/Inventory/Left/Rows/Heading"]
+[node name="BagHeroName" type="Label" parent="Root/Inventory/InventoryLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "背包"
-theme_override_font_sizes/font_size = 28
+text = "远行者"
+theme_override_font_sizes/font_size = 27
 theme_override_constants/line_spacing = 2
-size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("bold")
+offset_left = 38.0
+offset_top = 44.0
+offset_right = 492.0
 
-[node name="BagCapacity" type="Label" parent="Root/Inventory/Left/Rows/Heading"]
+[node name="BagContext" type="Label" parent="Root/Inventory/InventoryLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "2 / 24 格"
-theme_override_font_sizes/font_size = 18
+text = "随身装备"
+theme_override_font_sizes/font_size = 14
 theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+offset_left = 38.0
+offset_top = 80.0
 
-
-[node name="BagGrid" type="GridContainer" parent="Root/Inventory/Left/Rows"]
+[node name="Left" type="Control" parent="Root/Inventory/InventoryLayout"]
 unique_name_in_owner = true
-layout_mode = 2
-columns = 6
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
+offset_left = 32.0
+offset_right = 492.0
+offset_top = 108.0
+offset_bottom = 818.0
 
-[node name="Slot0" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 0
-
-[node name="Slot1" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 1
-
-[node name="Slot2" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 2
-
-[node name="Slot3" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 3
-
-[node name="Slot4" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 4
-
-[node name="Slot5" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 5
-
-[node name="Slot6" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 6
-
-[node name="Slot7" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 7
-
-[node name="Slot8" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 8
-
-[node name="Slot9" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 9
-
-[node name="Slot10" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 10
-
-[node name="Slot11" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 11
-
-[node name="Slot12" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 12
-
-[node name="Slot13" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 13
-
-[node name="Slot14" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 14
-
-[node name="Slot15" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 15
-
-[node name="Slot16" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 16
-
-[node name="Slot17" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 17
-
-[node name="Slot18" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 18
-
-[node name="Slot19" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 19
-
-[node name="Slot20" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 20
-
-[node name="Slot21" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 21
-
-[node name="Slot22" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 22
-
-[node name="Slot23" parent="Root/Inventory/Left/Rows/BagGrid" instance=ExtResource("item_slot")]
-layout_mode = 2
-custom_minimum_size = Vector2(80,80)
-slot_index = 23
-
-[node name="BagHelp" type="Label" parent="Root/Inventory/Left/Rows"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "拖动整理 · 拖入底部快捷位\n每格最多 5 瓶，同种药剂共享冷却。"
-theme_override_font_sizes/font_size = 15
-theme_override_constants/line_spacing = 2
-
-
-[node name="Right" type="PanelContainer" parent="Root/Inventory"]
-anchor_left = 1.0
+[node name="Shadow" type="Panel" parent="Root/Inventory/InventoryLayout/Left"]
 anchor_right = 1.0
-offset_left = -435.0
-offset_right = -55.0
-offset_top = 125.0
-offset_bottom = 660.0
-theme_override_styles/panel = ExtResource("paper")
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("glass_frame_style")
 
-[node name="Details" type="VBoxContainer" parent="Root/Inventory/Right"]
+[node name="Glass" type="ColorRect" parent="Root/Inventory/InventoryLayout/Left"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("glass_bag")
+
+[node name="Margin" type="MarginContainer" parent="Root/Inventory/InventoryLayout/Left"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Rows" type="VBoxContainer" parent="Root/Inventory/InventoryLayout/Left/Margin"]
 layout_mode = 2
-custom_minimum_size = Vector2(335,0)
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 
-[node name="ItemArt" type="TextureRect" parent="Root/Inventory/Right/Details"]
+[node name="EquipmentHeader" type="PanelContainer" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows"]
+layout_mode = 2
+theme_type_variation = &"HeroHeader"
+
+[node name="EquipmentTitle" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/EquipmentHeader"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0,95)
-expand_mode = 1
-stretch_mode = 5
-texture_filter = 1
-
-[node name="ItemName" type="Label" parent="Root/Inventory/Right/Details"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "选择一件物品"
-theme_override_font_sizes/font_size = 24
-theme_override_constants/line_spacing = 2
-
-
-[node name="ItemDescription" type="Label" parent="Root/Inventory/Right/Details"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "背包中存放你的随行补给。"
+text = "装备"
 theme_override_font_sizes/font_size = 17
 theme_override_constants/line_spacing = 2
-autowrap_mode = 2
-size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("bold")
 
-[node name="ItemCooldown" type="Label" parent="Root/Inventory/Right/Details"]
+
+[node name="Equipment" type="HBoxContainer" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EquippedWeapon" type="Button" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
+custom_minimum_size = Vector2(184,98)
+theme_override_styles/normal = ExtResource("weapon_style")
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="Musket" type="TextureRect" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/EquippedWeapon"]
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = SubResource("weapon_icon")
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_top = -8.0
+offset_bottom = -14.0
+
+[node name="EquippedLabel" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/EquippedWeapon"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "连发火枪"
+theme_override_font_sizes/font_size = 14
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("bold")
+mouse_filter = 2
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -25.0
+horizontal_alignment = 1
+
+[node name="BagEquipment" type="Panel" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment"]
+layout_mode = 2
+custom_minimum_size = Vector2(86,98)
+theme_override_styles/panel = ExtResource("header_style")
+
+[node name="Bag" type="TextureRect" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/BagEquipment"]
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = ExtResource("bag_icon")
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_bottom = -20.0
+
+[node name="BagEquipmentTitle" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/BagEquipment"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "随行背包"
+theme_override_font_sizes/font_size = 12
+theme_override_constants/line_spacing = 2
+mouse_filter = 2
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -23.0
+horizontal_alignment = 1
+
+[node name="HeroSummary" type="VBoxContainer" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 7
+
+[node name="BagArmor" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/HeroSummary"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "护甲 3 / 3"
+theme_override_font_sizes/font_size = 15
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+
+
+[node name="BagSpeed" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/HeroSummary"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "移速 4.2"
+theme_override_font_sizes/font_size = 15
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+
+
+[node name="BagHealth" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/Equipment/HeroSummary"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "200 / 200"
+theme_override_font_sizes/font_size = 15
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+
+
+[node name="BagHeading" type="PanelContainer" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows"]
+layout_mode = 2
+theme_type_variation = &"HeroHeader"
+
+[node name="Row" type="HBoxContainer" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagHeading"]
+layout_mode = 2
+
+[node name="BagCapacity" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagHeading/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "背包  2 / 24"
+theme_override_font_sizes/font_size = 18
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("bold")
+size_flags_horizontal = 3
+
+[node name="SortInventory" type="Button" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagHeading/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "整理"
+custom_minimum_size = Vector2(82,30)
+theme_type_variation = &"HeroPrimary"
+theme_override_font_sizes/font_size = 14
+
+[node name="BagGrid" type="GridContainer" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 5
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="Slot0" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 0
+
+[node name="Slot1" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 1
+
+[node name="Slot2" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 2
+
+[node name="Slot3" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 3
+
+[node name="Slot4" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 4
+
+[node name="Slot5" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 5
+
+[node name="Slot6" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 6
+
+[node name="Slot7" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 7
+
+[node name="Slot8" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 8
+
+[node name="Slot9" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 9
+
+[node name="Slot10" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 10
+
+[node name="Slot11" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 11
+
+[node name="Slot12" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 12
+
+[node name="Slot13" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 13
+
+[node name="Slot14" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 14
+
+[node name="Slot15" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 15
+
+[node name="Slot16" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 16
+
+[node name="Slot17" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 17
+
+[node name="Slot18" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 18
+
+[node name="Slot19" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 19
+
+[node name="Slot20" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 20
+
+[node name="Slot21" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 21
+
+[node name="Slot22" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 22
+
+[node name="Slot23" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows/BagGrid" instance=ExtResource("item_slot")]
+layout_mode = 2
+custom_minimum_size = Vector2(78,78)
+slot_index = 23
+
+[node name="BagHelp" type="Label" parent="Root/Inventory/InventoryLayout/Left/Margin/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "拖动物品整理 · 拖入下方快捷位"
+theme_override_font_sizes/font_size = 13
+theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+size_flags_vertical = 3
+vertical_alignment = 2
+
+[node name="Right" type="Control" parent="Root/Inventory/InventoryLayout"]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -362.0
+offset_right = -32.0
+offset_top = 178.0
+offset_bottom = 722.0
+
+[node name="Shadow" type="Panel" parent="Root/Inventory/InventoryLayout/Right"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("glass_frame_style")
+
+[node name="Glass" type="ColorRect" parent="Root/Inventory/InventoryLayout/Right"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("glass_detail")
+
+[node name="Margin" type="MarginContainer" parent="Root/Inventory/InventoryLayout/Right"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Rows" type="VBoxContainer" parent="Root/Inventory/InventoryLayout/Right/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DetailHeader" type="PanelContainer" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+layout_mode = 2
+theme_type_variation = &"HeroHeader"
+
+[node name="Row" type="HBoxContainer" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows/DetailHeader"]
+layout_mode = 2
+
+[node name="ItemKind" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows/DetailHeader/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "恢复用品"
+theme_override_font_sizes/font_size = 14
+theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+size_flags_horizontal = 3
+
+[node name="ItemStock" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows/DetailHeader/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "持有 3"
+theme_override_font_sizes/font_size = 14
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("numbers")
+
+
+[node name="ItemArt" type="TextureRect" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+unique_name_in_owner = true
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+texture = ExtResource("health_heart")
+layout_mode = 2
+custom_minimum_size = Vector2(0,160)
+
+[node name="ItemName" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "恢复药剂"
+theme_override_font_sizes/font_size = 27
+theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("bold")
+
+
+[node name="ItemDescription" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "恢复生命。"
 theme_override_font_sizes/font_size = 16
 theme_override_constants/line_spacing = 2
+autowrap_mode = 2
+custom_minimum_size = Vector2(0,50)
+size_flags_vertical = 3
 
+[node name="DetailStats" type="PanelContainer" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("header_style")
 
-[node name="UseItem" type="Button" parent="Root/Inventory/Right/Details"]
+[node name="Rows" type="VBoxContainer" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows/DetailStats"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ItemEffect" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows/DetailStats/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "使用物品"
-custom_minimum_size = Vector2(0,40)
-
-
-[node name="WeaponStats" type="Label" parent="Root/Inventory/Right/Details"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "已装备 · 连发火枪\n攻击 20 + 20 = 40\n射程 20 · 10 发弹匣 · 无限备弹"
+text = "恢复 60 生命"
 theme_override_font_sizes/font_size = 17
 theme_override_constants/line_spacing = 2
-autowrap_mode = 2
+theme_override_fonts/font = ExtResource("bold")
 
-[node name="Bottom" type="VBoxContainer" parent="Root/Inventory"]
+
+[node name="ItemCooldown" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows/DetailStats/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "冷却 10 秒"
+theme_override_font_sizes/font_size = 14
+theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+
+
+[node name="UseItem" type="Button" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "使用药剂"
+custom_minimum_size = Vector2(0,42)
+theme_type_variation = &"HeroPrimary"
+
+[node name="ItemFootnote" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "拖入快捷位，可在战斗中使用。"
+theme_override_font_sizes/font_size = 12
+theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+horizontal_alignment = 1
+
+[node name="Shortcuts" type="Control" parent="Root/Inventory/InventoryLayout"]
+unique_name_in_owner = true
 anchor_left = 0.5
 anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = -210.0
-offset_right = 210.0
-offset_top = -178.0
-offset_bottom = -40.0
-theme_override_constants/separation = 8
+offset_left = -222.0
+offset_right = 270.0
+offset_top = -187.0
+offset_bottom = -42.0
 
-[node name="BagShortcuts" type="Label" parent="Root/Inventory/Bottom"]
+[node name="Shadow" type="Panel" parent="Root/Inventory/InventoryLayout/Shortcuts"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("glass_frame_style")
+
+[node name="Glass" type="ColorRect" parent="Root/Inventory/InventoryLayout/Shortcuts"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("glass_shortcuts")
+
+[node name="Margin" type="MarginContainer" parent="Root/Inventory/InventoryLayout/Shortcuts"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Rows" type="VBoxContainer" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BagShortcuts" type="Label" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "快捷栏"
+text = "快捷补给"
 theme_override_font_sizes/font_size = 17
 theme_override_constants/line_spacing = 2
+theme_override_fonts/font = ExtResource("bold")
 horizontal_alignment = 1
 
-[node name="BagHotbar" type="HBoxContainer" parent="Root/Inventory/Bottom"]
+[node name="BagHotbar" type="HBoxContainer" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
-custom_minimum_size = Vector2(0,95)
+custom_minimum_size = Vector2(0,78)
 theme_override_constants/separation = 10
 
-[node name="Slot0" parent="Root/Inventory/Bottom/BagHotbar" instance=ExtResource("item_slot")]
+[node name="Slot0" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows/BagHotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
-size_flags_vertical = 0
+custom_minimum_size = Vector2(78,78)
 slot_index = 0
 is_shortcut = true
 
-[node name="Slot1" parent="Root/Inventory/Bottom/BagHotbar" instance=ExtResource("item_slot")]
+[node name="Slot1" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows/BagHotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
-size_flags_vertical = 0
+custom_minimum_size = Vector2(78,78)
 slot_index = 1
 is_shortcut = true
 
-[node name="Slot2" parent="Root/Inventory/Bottom/BagHotbar" instance=ExtResource("item_slot")]
+[node name="Slot2" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows/BagHotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
-size_flags_vertical = 0
+custom_minimum_size = Vector2(78,78)
 slot_index = 2
 is_shortcut = true
 
-[node name="Slot3" parent="Root/Inventory/Bottom/BagHotbar" instance=ExtResource("item_slot")]
+[node name="Slot3" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows/BagHotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
-size_flags_vertical = 0
+custom_minimum_size = Vector2(78,78)
 slot_index = 3
 is_shortcut = true
 
-[node name="Slot4" parent="Root/Inventory/Bottom/BagHotbar" instance=ExtResource("item_slot")]
+[node name="Slot4" parent="Root/Inventory/InventoryLayout/Shortcuts/Margin/Rows/BagHotbar" instance=ExtResource("item_slot")]
 layout_mode = 2
-size_flags_vertical = 0
+custom_minimum_size = Vector2(78,78)
 slot_index = 4
 is_shortcut = true
 
-[node name="ShortcutHelp" type="Label" parent="Root/Inventory/Bottom"]
+[node name="ShortcutHelp" type="Label" parent="Root/Inventory/InventoryLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "1–5 使用 · RTS 为 Alt + 1–5 · 右键解除绑定"
-theme_override_font_sizes/font_size = 14
+text = "1–5 使用 · 右键解除绑定"
+theme_override_font_sizes/font_size = 13
 theme_override_constants/line_spacing = 2
+theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -222.0
+offset_right = 270.0
+offset_top = -29.0
 horizontal_alignment = 1
 
-[node name="CloseInventory" type="Button" parent="Root/Inventory"]
+[node name="CloseInventory" type="Button" parent="Root/Inventory/InventoryLayout"]
 unique_name_in_owner = true
-text = "返回  I / Esc"
+text = "返回   I / Esc"
 custom_minimum_size = Vector2(0,40)
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -215.0
-offset_right = -55.0
-offset_top = 62.0
-offset_bottom = 105.0
+offset_left = -206.0
+offset_right = -32.0
+offset_top = 70.0
+offset_bottom = 112.0

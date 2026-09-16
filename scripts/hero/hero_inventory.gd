@@ -61,6 +61,24 @@ func assign(index: int,id: StringName) -> bool:
 	changed.emit()
 	return true
 
+func sort_stacks() -> void:
+	# Compact by item type, without recreating inventory, bindings or cooldowns.
+	var totals: Dictionary = {}
+	for slot: Dictionary in slots:
+		if slot.count > 0: totals[slot.id] = totals.get(slot.id,0) + slot.count
+	var ids: Array = totals.keys()
+	ids.sort()
+	var arranged: Array[Dictionary] = []
+	for id: StringName in ids:
+		var remaining: int = totals[id]
+		while remaining > 0:
+			var amount: int = mini(remaining,ITEMS[id].stack_limit)
+			arranged.append({"id":id,"count":amount})
+			remaining -= amount
+	while arranged.size() < CAPACITY: arranged.append({"id":&"","count":0})
+	slots = arranged
+	changed.emit()
+
 func use(id: StringName, hero: HeroUnit) -> String:
 	if not hero.alive: return "英雄已阵亡"
 	if not ITEMS.has(id) or count(id)==0: return "没有这种药剂"
