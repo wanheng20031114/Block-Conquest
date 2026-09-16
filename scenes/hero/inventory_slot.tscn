@@ -15,14 +15,13 @@ theme_override_styles/focus = ExtResource("hover")
 metadata/ui_motion_hover_scale = 1.0
 script = ExtResource("script")
 [node name="Icon" type="TextureRect" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 2.0
-offset_right = -3.0
-offset_bottom = -6.0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -28.0
+offset_right = 28.0
+offset_bottom = 56.0
 mouse_filter = 2
-texture_filter = 2
+texture_filter = 1
 expand_mode = 1
 stretch_mode = 5
 [node name="Count" type="Label" parent="."]

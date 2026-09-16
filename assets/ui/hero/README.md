@@ -2,9 +2,9 @@
 
 `theme.tres` 与 `styles/` 是独立的原生主题，不影响 RTS 和其他模式的菜单。
 
-`healing_potion.png`、`windwalk_potion.png`、`health_heart.png`、`speed_boot.png` 为 2026-09-16 生图工具生成的原创透明立体图标。原始 2×2 图集有原生 RGBA；仅分格、按 Alpha 裁切、等比缩放并透明补边为 320×320。未提取参考游戏的图标，未按背景 RGB 推断透明度。对应旧像素药剂图已替换。
+`healing_potion.png`、`windwalk_potion.png` 直接使用 `Documents/arc-nice/resources/texture/consumables/` 的同名 32×32 像素原图。用户明确要求药品采用这套像素素材，不采用高光玻璃瓶、写实宝石质感的生图风格。
 
-`backpack.png` 沿用已有透明背包图。所有图标使用 `TextureRect.KEEP_ASPECT_CENTERED`、线性过滤；不拉伸变形。
+药剂在背包格子、快捷栏、拖拽与详情中均使用最近邻过滤，保持像素边缘清晰。`backpack.png`、`health_heart.png`、`speed_boot.png` 沿用已有图标与线性过滤。所有图标等比居中，不拉伸变形；详情切换至真实火枪时恢复线性过滤。
 
 火枪缩略图不是静态图片：`hero_interface.tscn` 的 `WeaponIconViewport` 使用实际 `repeating_musket.tscn`，只渲染一次，并由装备栏、HUD 与详情共用。
 

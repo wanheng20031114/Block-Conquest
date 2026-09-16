@@ -38,6 +38,8 @@
 
 [ext_resource type="Texture2D" path="res://assets/ui/hero/speed_boot.png" id="speed_boot"]
 
+[ext_resource type="Texture2D" path="res://assets/ui/hero/healing_potion.png" id="healing_potion"]
+
 [ext_resource type="Shader" path="res://assets/ui/hero/glass.gdshader" id="glass_shader"]
 
 [sub_resource type="Environment" id="studio"]
@@ -1365,10 +1367,10 @@ unique_name_in_owner = true
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
-texture_filter = 2
-texture = ExtResource("health_heart")
+texture_filter = 1
+texture = ExtResource("healing_potion")
 layout_mode = 2
-custom_minimum_size = Vector2(0,160)
+custom_minimum_size = Vector2(0,128)
 
 [node name="ItemName" type="Label" parent="Root/Inventory/InventoryLayout/Right/Margin/Rows"]
 unique_name_in_owner = true

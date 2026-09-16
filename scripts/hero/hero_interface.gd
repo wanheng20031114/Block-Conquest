@@ -206,6 +206,8 @@ func _refresh_inventory(hero: HeroUnit) -> void:
 	if _showing_weapon:
 		var weapon := hero.weapon.definition
 		%ItemArt.texture = %WeaponIconViewport.get_texture()
+		%ItemArt.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		%ItemArt.custom_minimum_size.y = 160.0
 		%ItemName.text = weapon.display_name
 		%ItemKind.text = "已装备 · 远程武器"
 		%ItemStock.text = "%d / %d 发" % [hero.weapon.rounds,weapon.magazine_size]
@@ -217,6 +219,8 @@ func _refresh_inventory(hero: HeroUnit) -> void:
 		return
 	var item: HeroItemDefinition = HeroInventory.ITEMS.get(_selected_item)
 	%ItemArt.texture = item.icon if item != null else null
+	%ItemArt.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	%ItemArt.custom_minimum_size.y = 128.0
 	%ItemName.text = item.display_name if item != null else "选择一件物品"
 	%ItemDescription.text = item.description if item != null else "选择背包中的物品查看效果。"
 	%ItemKind.text = ("恢复用品" if item.effect==HeroItemDefinition.Effect.HEAL else "增益用品") if item != null else "物品详情"

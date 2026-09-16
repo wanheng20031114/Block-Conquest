@@ -15,7 +15,7 @@ def resources(lines):
         extra.append(f'[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/{name}.tres" id="{name}_style"]')
     for name in ['bold','numbers']:
         extra.append(f'[ext_resource type="Font" path="res://assets/ui/hero/font_{name}.tres" id="{name}"]')
-    for name in ['health_heart','speed_boot']:
+    for name in ['health_heart','speed_boot','healing_potion']:
         extra.append(f'[ext_resource type="Texture2D" path="res://assets/ui/hero/{name}.png" id="{name}"]')
     extra.append('[ext_resource type="Shader" path="res://assets/ui/hero/glass.gdshader" id="glass_shader"]')
     lines[index:index] = extra
@@ -35,8 +35,8 @@ def weapon_preview(node, lines):
 
 
 def layout_helpers(node, label):
-    def art(name, parent, resource, props='', unique=False):
-        node(name,'TextureRect',parent,IGNORE+'expand_mode = 1\nstretch_mode = 5\ntexture_filter = 2\ntexture = '+resource+'\n'+props,unique)
+    def art(name, parent, resource, props='', unique=False, pixel=False):
+        node(name,'TextureRect',parent,IGNORE+'expand_mode = 1\nstretch_mode = 5\ntexture_filter = '+('1' if pixel else '2')+'\ntexture = '+resource+'\n'+props,unique)
     def keycap(name,parent,text,props=''):
         label(name,parent,text,IGNORE+NUMBERS+'horizontal_alignment = 1\nvertical_alignment = 1\ntheme_override_colors/font_color = Color(.11,.17,.21,1)\ntheme_override_constants/shadow_offset_y = 0\ntheme_override_styles/normal = ExtResource("keycap_style")\n'+props,16)
     def glass(name,parent,material,props):
@@ -122,7 +122,7 @@ def inventory(node,label,button,lines):
     node('Row','HBoxContainer',detail+'/DetailHeader','layout_mode = 2')
     label('ItemKind',detail+'/DetailHeader/Row','恢复用品',MUTED+'size_flags_horizontal = 3',14)
     label('ItemStock',detail+'/DetailHeader/Row','持有 3',NUMBERS,size=14)
-    art('ItemArt',detail,'ExtResource("health_heart")','layout_mode = 2\ncustom_minimum_size = Vector2(0,160)',True)
+    art('ItemArt',detail,'ExtResource("healing_potion")','layout_mode = 2\ncustom_minimum_size = Vector2(0,128)',True,pixel=True)
     label('ItemName',detail,'恢复药剂',BOLD,size=27)
     label('ItemDescription',detail,'恢复生命。','autowrap_mode = 2\ncustom_minimum_size = Vector2(0,50)\nsize_flags_vertical = 3',16)
     node('DetailStats','PanelContainer',detail,'layout_mode = 2\ntheme_override_styles/panel = ExtResource("header_style")')
