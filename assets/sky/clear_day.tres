@@ -1,0 +1,14 @@
+[gd_resource type="Sky" load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sky/clear_day.png" id="panorama"]
+[ext_resource type="Texture2D" path="res://assets/sky/sandbox_lighting.exr" id="lighting"]
+[ext_resource type="Shader" path="res://assets/sky/clear_day.gdshader" id="shader"]
+
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+shader_parameter/panorama = ExtResource("panorama")
+shader_parameter/lighting_panorama = ExtResource("lighting")
+
+[resource]
+process_mode = 1
+sky_material = SubResource("material")
