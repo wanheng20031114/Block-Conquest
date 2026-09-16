@@ -38,6 +38,8 @@ var kills: int:
 	get: return get_player(local_owner_id).kills
 var buildings_destroyed: int = 0
 var selection: Array[Node3D] = []
+# Local selection intent, independent of deaths and network visibility pruning.
+var selection_revision: int = 0
 var control_groups: Dictionary = {}
 var _production_group_kind: String = ""
 var rally_point := Vector3(-10, 0, 24)
@@ -371,6 +373,7 @@ func select_entities(entities: Array, additive: bool = false, toggle: bool = fal
 				entity.set_selected(false)
 				selection.erase(entity)
 	if not additive:
+		selection_revision += 1
 		for entity in selection:
 			if is_instance_valid(entity):
 				entity.set_selected(false)

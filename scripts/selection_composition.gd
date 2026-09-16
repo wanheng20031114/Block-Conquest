@@ -9,6 +9,7 @@ var focus_key := ""
 var page := 0
 var total_count := 0
 var total_supply := 0
+var _selection_revision := -1
 @onready var slots: Array[Node] = %Slots.get_children()
 
 func _ready() -> void:
@@ -48,9 +49,13 @@ func refresh() -> void:
 	var heroes: Array[Dictionary] = groups.filter(func(group: Dictionary): return group.kind == "hero")
 	groups = heroes + groups.filter(func(group: Dictionary): return group.kind != "hero")
 	var composition_changed: bool = old_keys != groups.map(func(group: Dictionary): return group.key)
-	if composition_changed or not grouped.has(focus_key):
+	var new_selection: bool = _selection_revision != game.selection_revision
+	_selection_revision = game.selection_revision
+	if new_selection or not grouped.has(focus_key):
 		focus_key = groups[0].key if not groups.is_empty() else ""
-	if composition_changed: page = 0
+	if composition_changed or new_selection:
+		var keys: Array = groups.map(func(group: Dictionary): return group.key)
+		page = maxi(0, keys.find(focus_key)) / slots.size()
 	_draw_groups()
 
 func focused_group() -> Dictionary:
