@@ -164,7 +164,6 @@ func refresh() -> void:
 	%Dock.visible = controller.has_hero() and not controller._menu_active
 	if not controller.has_hero(): return
 	var hero := controller.hero
-	%HeroName.text = hero.display_name
 	%Health.text = "%d / %d" % [hero.hp,hero.max_hp]
 	%HealthMeter.max_value = hero.max_hp
 	%HealthMeter.value = hero.hp
@@ -172,7 +171,10 @@ func refresh() -> void:
 	%WeaponTitle.text = "装填中" if hero.weapon.reload_remaining>0.0 else hero.weapon.definition.display_name
 	%ReloadMeter.visible = hero.weapon.reload_remaining>0.0
 	%ReloadMeter.value = 1.0-hero.weapon.reload_remaining/hero.weapon.definition.reload_seconds
-	%Armor.text = "护甲  %d / %d" % [hero._stats.melee_armor,hero._stats.ranged_armor]
+	var defense_bonus: float = controller.game.get_player(hero.owner_id).get_defense_bonus() if hero._stats.military else 0.0
+	%Armor.text = "近战护甲 %d · 远程护甲 %d" % [
+		DamageResolver.armor_for_channel(hero._stats,CombatDefinition.DamageChannel.MELEE,defense_bonus),
+		DamageResolver.armor_for_channel(hero._stats,CombatDefinition.DamageChannel.RANGED,defense_bonus)]
 	%Boost.visible = hero.speed_boost_remaining>0.0
 	%BoostTime.text = "+%d%% · %ds" % [roundi((hero.speed_boost_multiplier-1.0)*100),ceili(hero.speed_boost_remaining)]
 	%Control.text = "返回 RTS  F5" if controller.first_person else "操控英雄  F5"

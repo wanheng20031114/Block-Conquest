@@ -15,7 +15,7 @@ def resources(lines):
         extra.append(f'[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/{name}.tres" id="{name}_style"]')
     for name in ['bold','numbers']:
         extra.append(f'[ext_resource type="Font" path="res://assets/ui/hero/font_{name}.tres" id="{name}"]')
-    for name in ['health_heart','speed_boot','healing_potion']:
+    for name in ['speed_boot','healing_potion']:
         extra.append(f'[ext_resource type="Texture2D" path="res://assets/ui/hero/{name}.png" id="{name}"]')
     extra.append('[ext_resource type="Shader" path="res://assets/ui/hero/glass.gdshader" id="glass_shader"]')
     lines[index:index] = extra
@@ -59,13 +59,11 @@ def hud(node,label,button,lines):
     node('Actions','HBoxContainer',base+'/Rows','anchor_left = .5\nanchor_right = .5\noffset_left = -40.0\noffset_right = 500.0\noffset_bottom = 38.0\ntheme_override_constants/separation = 10')
     for name,title in [('Control','操控英雄 F5'),('Reload','换弹 R'),('Edit','编辑形象'),('Run','开始交战')]:
         button(name,base+'/Rows/Actions',title,'theme_override_font_sizes/font_size = 15')
-    node('Vitals','Control',base+'/Rows','offset_left = 48.0\noffset_right = 318.0\noffset_top = 75.0\noffset_bottom = 157.0\nmouse_filter = 2',True)
+    node('Vitals','Control',base+'/Rows','offset_left = 48.0\noffset_right = 318.0\noffset_top = 110.0\noffset_bottom = 157.0\nmouse_filter = 2',True)
     vitals=base+'/Rows/Vitals'
-    label('HeroName',vitals,'远行者',BOLD+IGNORE+'offset_top = 0.0\noffset_right = 260.0',20)
-    node('HealthMeter','ProgressBar',vitals,'offset_left = 0.0\noffset_top = 35.0\noffset_right = 260.0\noffset_bottom = 65.0\nmax_value = 200\nvalue = 200\nshow_percentage = false\ntheme_override_styles/background = ExtResource("health_track_style")\ntheme_override_styles/fill = ExtResource("health_fill_style")\nmouse_filter = 2',True)
-    art('Heart',vitals,'ExtResource("health_heart")','offset_left = -11.0\noffset_right = 29.0\noffset_top = 30.0\noffset_bottom = 70.0')
-    label('Health',vitals,'200 / 200',NUMBERS+IGNORE+'offset_left = 27.0\noffset_right = 245.0\noffset_top = 35.0\noffset_bottom = 65.0\nhorizontal_alignment = 1\nvertical_alignment = 1',20)
-    label('Armor',vitals,'护甲  3 / 3',MUTED+IGNORE+'offset_top = 68.0\noffset_right = 260.0',13)
+    node('HealthMeter','ProgressBar',vitals,'offset_right = 260.0\noffset_bottom = 30.0\nmax_value = 200\nvalue = 200\nshow_percentage = false\ntheme_override_styles/background = ExtResource("health_track_style")\ntheme_override_styles/fill = ExtResource("health_fill_style")\nmouse_filter = 2',True)
+    label('Health',vitals,'200 / 200',NUMBERS+IGNORE+'offset_right = 260.0\noffset_bottom = 30.0\nhorizontal_alignment = 1\nvertical_alignment = 1',20)
+    label('Armor',vitals,'近战护甲 3 · 远程护甲 3',MUTED+IGNORE+'offset_top = 34.0\noffset_right = 260.0',14)
     node('Boost','Control',base+'/Rows','offset_left = 342.0\noffset_right = 414.0\noffset_top = 87.0\noffset_bottom = 159.0\nvisible = false\nmouse_filter = 2',True)
     art('Boot',base+'/Rows/Boost','ExtResource("speed_boot")','offset_right = 56.0\noffset_bottom = 50.0')
     label('BoostTime',base+'/Rows/Boost','+20% · 10s',NUMBERS+'offset_top = 49.0\noffset_right = 76.0\ntheme_override_colors/font_color = Color(.59,.9,1,1)',14)

@@ -4,7 +4,9 @@
 
 `healing_potion.png`、`windwalk_potion.png` 直接使用 `Documents/arc-nice/resources/texture/consumables/` 的同名 32×32 像素原图。用户明确要求药品采用这套像素素材，不采用高光玻璃瓶、写实宝石质感的生图风格。
 
-药剂在背包格子、快捷栏、拖拽与详情中均使用最近邻过滤，保持像素边缘清晰。`backpack.png`、`health_heart.png`、`speed_boot.png` 沿用已有图标与线性过滤。所有图标等比居中，不拉伸变形；详情切换至真实火枪时恢复线性过滤。
+药剂在背包格子、快捷栏、拖拽与详情中均使用最近邻过滤，保持像素边缘清晰。`backpack.png`、`speed_boot.png` 沿用已有图标与线性过滤。所有图标等比居中，不拉伸变形；详情切换至真实火枪时恢复线性过滤。
+
+生命区仅保留血条、当前 / 最大生命数字与下方明确标注的近战、远程护甲。护甲显示沿用伤害系统的当前防御计算；不再显示玩家名和爱心装饰。
 
 火枪缩略图不是静态图片：`hero_interface.tscn` 的 `WeaponIconViewport` 使用实际 `repeating_musket.tscn`，只渲染一次，并由装备栏、HUD 与详情共用。
 

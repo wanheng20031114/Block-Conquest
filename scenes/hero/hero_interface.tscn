@@ -34,8 +34,6 @@
 
 [ext_resource type="Font" path="res://assets/ui/hero/font_numbers.tres" id="numbers"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/hero/health_heart.png" id="health_heart"]
-
 [ext_resource type="Texture2D" path="res://assets/ui/hero/speed_boot.png" id="speed_boot"]
 
 [ext_resource type="Texture2D" path="res://assets/ui/hero/healing_potion.png" id="healing_potion"]
@@ -260,44 +258,20 @@ theme_override_font_sizes/font_size = 15
 unique_name_in_owner = true
 offset_left = 48.0
 offset_right = 318.0
-offset_top = 75.0
+offset_top = 110.0
 offset_bottom = 157.0
 mouse_filter = 2
 
-[node name="HeroName" type="Label" parent="Root/HudLayout/Dock/Rows/Vitals"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "远行者"
-theme_override_font_sizes/font_size = 20
-theme_override_constants/line_spacing = 2
-theme_override_fonts/font = ExtResource("bold")
-mouse_filter = 2
-offset_top = 0.0
-offset_right = 260.0
-
 [node name="HealthMeter" type="ProgressBar" parent="Root/HudLayout/Dock/Rows/Vitals"]
 unique_name_in_owner = true
-offset_left = 0.0
-offset_top = 35.0
 offset_right = 260.0
-offset_bottom = 65.0
+offset_bottom = 30.0
 max_value = 200
 value = 200
 show_percentage = false
 theme_override_styles/background = ExtResource("health_track_style")
 theme_override_styles/fill = ExtResource("health_fill_style")
 mouse_filter = 2
-
-[node name="Heart" type="TextureRect" parent="Root/HudLayout/Dock/Rows/Vitals"]
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-texture_filter = 2
-texture = ExtResource("health_heart")
-offset_left = -11.0
-offset_right = 29.0
-offset_top = 30.0
-offset_bottom = 70.0
 
 [node name="Health" type="Label" parent="Root/HudLayout/Dock/Rows/Vitals"]
 unique_name_in_owner = true
@@ -307,22 +281,20 @@ theme_override_font_sizes/font_size = 20
 theme_override_constants/line_spacing = 2
 theme_override_fonts/font = ExtResource("numbers")
 mouse_filter = 2
-offset_left = 27.0
-offset_right = 245.0
-offset_top = 35.0
-offset_bottom = 65.0
+offset_right = 260.0
+offset_bottom = 30.0
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Armor" type="Label" parent="Root/HudLayout/Dock/Rows/Vitals"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "护甲  3 / 3"
-theme_override_font_sizes/font_size = 13
+text = "近战护甲 3 · 远程护甲 3"
+theme_override_font_sizes/font_size = 14
 theme_override_constants/line_spacing = 2
 theme_override_colors/font_color = Color(0.66,0.76,0.84,1)
 mouse_filter = 2
-offset_top = 68.0
+offset_top = 34.0
 offset_right = 260.0
 
 [node name="Boost" type="Control" parent="Root/HudLayout/Dock/Rows"]
