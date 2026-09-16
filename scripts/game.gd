@@ -784,7 +784,7 @@ func on_entity_died(entity: Node3D) -> void:
 		if entity._stats.is_construction():
 			player.farmers -= 1
 		else:
-			player.military_supply -= BalanceCatalog.unit(entity.unit_type).supply
+			player.military_supply -= entity._stats.supply
 		var killer: int = entity.defeated_by_owner
 		if killer >= 0 and killer < players.size() and get_player(killer).alliance_id != entity.alliance_id:
 			get_player(killer).kills += 1
@@ -1008,7 +1008,7 @@ func register_entity(entity: Node3D) -> void:
 		if entity._stats.is_construction():
 			player.farmers += 1
 		else:
-			player.military_supply += BalanceCatalog.unit(entity.unit_type).supply
+			player.military_supply += entity._stats.supply
 
 func are_hostile(a: Node3D, b: Node3D) -> bool:
 	return a.alliance_id != b.alliance_id

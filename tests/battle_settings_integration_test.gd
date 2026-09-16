@@ -68,6 +68,9 @@ func _run() -> void:
 	game = current_scene
 	while not game._match_ready:
 		await process_frame
+	# scene_changed precedes the reveal curtain releasing the new scene's input.
+	if root.get_node("Session/Transition").busy:
+		await root.get_node("Session/Transition").completed
 	game.tests_running = true
 	game.bots.clear()
 	game.set_process(false)
@@ -195,6 +198,8 @@ func _run() -> void:
 	_click(hud.get_node("%MenuButton"))
 	check(game._closing and game.finished and audio._stopping and game.get_node("IncomeTimer").is_stopped(), "native MenuButton enters prepare_shutdown before changing scenes")
 	await scene_changed
+	if root.get_node("Session/Transition").busy:
+		await root.get_node("Session/Transition").completed
 	await process_frame
 	check(current_scene.scene_file_path == "res://scenes/lobby.tscn" and not paused, "menu return reaches real lobby with tree unpaused")
 	check(game_reference.get_ref() == null and get_nodes_in_group("units").is_empty(), "old battle and live unit nodes are released")

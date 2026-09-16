@@ -25,6 +25,10 @@ func _ready() -> void:
 	%Volume.value_changed.connect(_slider_changed.bind("volume_percent"))
 	%CameraSpeed.value_changed.connect(_slider_changed.bind("camera_speed"))
 	%ZoomSpeed.value_changed.connect(_slider_changed.bind("zoom_speed"))
+	%FPFov.value_changed.connect(_slider_changed.bind("fp_fov"))
+	%FPSensitivity.value_changed.connect(_slider_changed.bind("fp_sensitivity"))
+	%FPInvert.toggled.connect(_toggle_changed.bind("fp_invert_y"))
+	%FPHeadBob.toggled.connect(_toggle_changed.bind("fp_head_bob"))
 	for row: HBoxContainer in %HotkeyRows.get_children():
 		row.get_node("Bind").pressed.connect(begin_rebind.bind(String(row.get_meta("action"))))
 	%RestoreDefaults.pressed.connect(_restore_defaults)
@@ -56,6 +60,10 @@ func refresh(values: Dictionary) -> void:
 	%Volume.set_value_no_signal(draft.volume_percent)
 	%CameraSpeed.set_value_no_signal(draft.camera_speed)
 	%ZoomSpeed.set_value_no_signal(draft.zoom_speed)
+	%FPFov.set_value_no_signal(draft.fp_fov)
+	%FPSensitivity.set_value_no_signal(draft.fp_sensitivity)
+	%FPInvert.set_pressed_no_signal(draft.fp_invert_y)
+	%FPHeadBob.set_pressed_no_signal(draft.fp_head_bob)
 	_update_labels()
 	_update_hotkeys()
 	%Status.text = "Esc 返回上层 · 对局中 %s 暂停 / 继续" % settings.hotkey_text("rts_pause")
@@ -68,6 +76,8 @@ func _update_labels() -> void:
 	%VolumeValue.text = "%d%%" % int(draft.volume_percent)
 	%CameraValue.text = "%.2f ×" % float(draft.camera_speed)
 	%ZoomValue.text = "%.2f ×" % float(draft.zoom_speed)
+	%FPFovLabel.text = "水平视野角   %d°" % int(draft.fp_fov)
+	%FPSensitivityLabel.text = "鼠标灵敏度   %.2f ×" % float(draft.fp_sensitivity)
 
 func _option_changed(index: int, key: String) -> void:
 	if not _refreshing: draft[key] = index
@@ -93,8 +103,8 @@ func show_page(page: String) -> void:
 	for child: Control in pages.get_children(): child.visible = String(child.name) == page
 	for category: Button in %Categories.get_children(): category.set_pressed_no_signal(String(category.name) == page)
 	UIMotion.reveal(pages.get_node(page), Vector2(0, 8))
-	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头与操作", "Hotkeys":"热键"}[page]
-	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"调节战场音效；当前版本不播放背景音乐。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。"}[page]
+	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头与操作", "Hotkeys":"热键", "FirstPerson":"第一人称"}[page]
+	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"调节战场音效；当前版本不播放背景音乐。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。", "FirstPerson":"沙盒英雄的视野角、鼠标与舒适性。"}[page]
 	if not draft.is_empty(): _update_hotkeys()
 
 func begin_rebind(action: String) -> void:

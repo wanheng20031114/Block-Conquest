@@ -36,6 +36,7 @@ func bind_game(controller: Node3D) -> void:
 	%Remove.pressed.connect(game.remove_selected)
 	%Back.pressed.connect(game.return_to_menu)
 	%Settings.pressed.connect(func(): game.settings.open_menu())
+	%MyHero.pressed.connect(func(): game.hero_controller.interface.open_creator())
 	refresh()
 
 func refresh() -> void:
@@ -51,6 +52,7 @@ func refresh() -> void:
 	%Select.set_pressed_no_signal(not game.placing)
 	%Rotate.text = "朝向 %d°   R" % int(rad_to_deg(game.paint_rotation))
 	%Run.text = "暂停交战   F5" if game.running else "开始交战   F5"
+	if game.hero_controller.has_hero(): %Run.text = "暂停交战" if game.running else "开始交战"
 	%Run.disabled = game._busy
 	%State.text = "正在载入地图…" if game._busy else ("交战中" if game.running else "布阵中 · 部队已暂停")
 	%Population.text = "%d / 500 单位" % game.sandbox_unit_count

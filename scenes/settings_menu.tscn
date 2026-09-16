@@ -168,6 +168,61 @@ theme_override_constants/separation = 15
 layout_mode = 2
 theme_override_constants/separation = 15
 
+[node name="FirstPerson" type="Button" parent="Menu/Center/Panel/Layout/Body/Categories"]
+layout_mode = 2
+custom_minimum_size = Vector2(155,48)
+text = "第一人称"
+toggle_mode = true
+
+[node name="FirstPerson" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages"]
+layout_mode = 2
+theme_override_constants/separation = 18
+visible = false
+
+[node name="FPFovLabel" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "水平视野角 90°"
+
+[node name="FPFov" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0,32)
+min_value = 70.0
+max_value = 110.0
+step = 1.0
+value = 90.0
+
+[node name="FPSensitivityLabel" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "鼠标灵敏度 1.00 ×"
+
+[node name="FPSensitivity" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0,32)
+min_value = 0.25
+max_value = 3.0
+step = 0.05
+value = 1.0
+
+[node name="FPInvert" type="CheckBox" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "反转纵向视角"
+
+[node name="FPHeadBob" type="CheckBox" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "启用轻微行走起伏（默认关闭）"
+
+[node name="FPHelp" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
+layout_mode = 2
+text = "默认保持平稳眼高，不添加镜头震动或侧倾。\n跳跃只改变表现高度，不跨越障碍，也不规避攻击。\nF5 切换控制 · WASD 移动 · 左键开火 · R 换弹"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 16
+
 [node name="WindowModeRow" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Graphics"]
 layout_mode = 2
 custom_minimum_size = Vector2(0,46)

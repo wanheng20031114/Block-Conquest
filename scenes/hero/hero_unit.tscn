@@ -1,0 +1,20 @@
+[gd_scene format=3]
+[ext_resource type="PackedScene" path="res://scenes/unit.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/hero/hero_unit.gd" id="script"]
+[ext_resource type="Script" path="res://scripts/hero/weapon_runtime.gd" id="runtime"]
+[ext_resource type="Script" path="res://scripts/hero/hero_inventory.gd" id="inventory"]
+[ext_resource type="Resource" path="res://data/sandbox/heroes/capsule.tres" id="body"]
+[ext_resource type="Resource" path="res://data/sandbox/weapons/repeating_musket.tres" id="weapon"]
+[ext_resource type="PackedScene" path="res://assets/models/heroes/capsule.tscn" id="model"]
+[node name="Hero" instance=ExtResource("base")]
+script = ExtResource("script")
+unit_type = "hero"
+definition_override = ExtResource("body")
+model_scene_override = ExtResource("model")
+disable_mode = 1
+[node name="WeaponRuntime" type="Node" parent="."]
+script = ExtResource("runtime")
+definition = ExtResource("weapon")
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("inventory")

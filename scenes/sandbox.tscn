@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/order_plan_overlay.tscn" id="order_plan"]
 
 [ext_resource type="Script" path="res://scripts/sandbox.gd" id="game"]
+[ext_resource type="PackedScene" path="res://scenes/hero/sandbox_hero_controller.tscn" id="hero_controller"]
 
 [ext_resource type="Script" path="res://scripts/rts_camera.gd" id="camera"]
 
@@ -226,3 +227,5 @@ mouse_filter = 2
 script = ExtResource("selection")
 
 [node name="PlacementPreview" parent="." instance=ExtResource("sandbox_preview")]
+
+[node name="HeroController" parent="." instance=ExtResource("hero_controller")]

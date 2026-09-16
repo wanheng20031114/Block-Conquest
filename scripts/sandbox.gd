@@ -14,6 +14,7 @@ var _paint_query := PhysicsShapeQueryParameters3D.new()
 var _ghost: UnitVisual
 var _ghost_check: float = 0.0
 var _busy: bool = true
+@onready var hero_controller: SandboxHeroController = $HeroController
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = false
@@ -38,7 +39,8 @@ func _ready() -> void:
 	_paint_query.collision_mask = 2 | 4 | 128
 	_paint_query.margin = 0.03
 	hud.bind_game(self)
-	settings.pause_requested.connect(handle_pause_action)
+	hero_controller.bind(self)
+	settings.pause_requested.connect(_settings_pause_action)
 	camera_rig.focus_at(Vector3.ZERO, true)
 	set_paint_kind("swordsman")
 	set_running(false)
@@ -120,6 +122,10 @@ func handle_pause_action() -> void:
 	if not _busy:
 		set_running(not running)
 
+func _settings_pause_action() -> void:
+	if hero_controller.has_hero(): hero_controller.toggle_view()
+	else: handle_pause_action()
+
 func set_placing(value: bool) -> void:
 	placing = value
 	if value:
@@ -151,11 +157,14 @@ func set_faction(owner: int) -> void:
 	hud.refresh()
 
 func placement_valid(at: Vector3, kind: String) -> bool:
+	return placement_valid_for_definition(at,BalanceCatalog.unit(kind))
+
+func placement_valid_for_definition(at: Vector3, definition: UnitDefinition) -> bool:
 	if not at.is_finite() or at.distance_squared_to(clamp_to_map(at)) > 0.001:
 		return false
 	if not $ConstructionNavigation.contains_walkable_point(at):
 		return false
-	_placement_shape.radius = BalanceCatalog.unit(kind).radius + 0.06
+	_placement_shape.radius = definition.radius + 0.06
 	_paint_query.transform.origin = at + Vector3.UP
 	return get_world_3d().direct_space_state.intersect_shape(_paint_query, 1).is_empty()
 
@@ -189,6 +198,8 @@ func remove_selected() -> void:
 	for entity: Node3D in selection.duplicate():
 		if not entity is BattleUnit:
 			continue
+		if entity == hero_controller.hero:
+			hero_controller.set_first_person(false)
 		forget_entity_selection(entity)
 		entities_by_id.erase(entity.entity_id)
 		sandbox_unit_count -= 1
@@ -204,6 +215,7 @@ func remove_selected() -> void:
 	hud.refresh()
 
 func clear_units() -> void:
+	hero_controller.set_first_person(false)
 	select_entities([])
 	command_bus.pending.clear()
 	control_groups.clear()
@@ -241,6 +253,10 @@ func return_to_menu() -> void:
 	Session.back_to_lobby()
 
 func _input(event: InputEvent) -> void:
+	if hero_controller.handle_input(event):
+		get_viewport().set_input_as_handled()
+		return
+	if hero_controller.blocks_rts(): return
 	if settings.is_open() or _busy:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -267,6 +283,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if hero_controller.blocks_rts(): return
 	if _busy or settings.is_open():
 		return
 	if event is InputEventMouseButton and event.pressed:
@@ -324,3 +341,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func rotate_placement() -> void:
 	paint_rotation = wrapf(paint_rotation + PI * 0.5, 0.0, TAU)
 	hud.refresh()
+
+func prepare_shutdown() -> void:
+	hero_controller.shutdown()
+	await super.prepare_shutdown()

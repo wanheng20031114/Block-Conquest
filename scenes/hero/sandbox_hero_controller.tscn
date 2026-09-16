@@ -1,0 +1,16 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/hero/sandbox_hero_controller.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/hero/hero_interface.tscn" id="ui"]
+[node name="HeroController" type="Node3D"]
+script = ExtResource("script")
+process_physics_priority = -10
+physics_interpolation_mode = 2
+[node name="View" type="Node3D" parent="."]
+[node name="Pitch" type="Node3D" parent="View"]
+[node name="Camera3D" type="Camera3D" parent="View/Pitch"]
+cull_mask = 786431
+near = 0.06
+far = 180.0
+fov = 58.7
+[node name="Listener" type="AudioListener3D" parent="View/Pitch/Camera3D"]
+[node name="Interface" parent="." instance=ExtResource("ui")]

@@ -22,6 +22,12 @@ class ContentManifestTest(unittest.TestCase):
             layout = root / 'scenes/maps/duel_layout.json'
             layout.write_bytes(b'{"width": 100}\n')
             original = MANIFEST.manifest_bytes(root)
+            local_hero = root / 'data/sandbox/heroes/capsule.tres'
+            local_hero.parent.mkdir(parents=True)
+            local_hero.write_text('hp = 200\n', encoding='utf-8')
+            self.assertEqual(original, MANIFEST.manifest_bytes(root), 'Offline hero must not fork the relay rules contract')
+            local_hero.write_text('hp = 201\n', encoding='utf-8')
+            self.assertEqual(original, MANIFEST.manifest_bytes(root), 'Local trial balance remains outside network games')
             layout.write_bytes(b'{"width": 100}\r\n')
             self.assertEqual(original, MANIFEST.manifest_bytes(root), 'Windows line endings alone must not fork compatibility')
             layout.write_bytes(b'{"width": 120}\n')

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="HeroItemDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/hero/item_definition.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/ui/hero/windwalk_potion.png" id="icon"]
+[resource]
+script = ExtResource("script")
+id = &"windwalk_potion"
+display_name = "加速药剂"
+description = "移动速度提高 20%，持续 10 秒，不叠加。使用冷却 15 秒。"
+icon = ExtResource("icon")
+effect = 1
+amount = 1.2
+duration = 10.0
+cooldown = 15.0

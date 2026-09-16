@@ -1,0 +1,7 @@
+[gd_scene format=3]
+[ext_resource type="ArrayMesh" path="res://assets/models/weapons/repeating_musket/Musket.res" id="mesh"]
+[node name="RepeatingMusket" type="Node3D"]
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("mesh")
+[node name="Muzzle" type="Marker3D" parent="."]
+position = Vector3(0, 0.08, -0.96)

@@ -1,0 +1,288 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/hero/hero_visual.gd" id="script"]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/repeating_musket.tscn" id="weapon"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Body.res" id="Body"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Face.res" id="Face"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/FaceSmile.res" id="FaceSmile"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/FaceHappy.res" id="FaceHappy"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/FaceWink.res" id="FaceWink"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/FaceFocused.res" id="FaceFocused"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/FaceSurprised.res" id="FaceSurprised"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/FaceSleepy.res" id="FaceSleepy"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Belt.res" id="Belt"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Bandolier.res" id="Bandolier"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/BackMark.res" id="BackMark"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Hat.res" id="Hat"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Beret.res" id="Beret"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/TrailHat.res" id="TrailHat"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Backpack.res" id="Backpack"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Nose.res" id="Nose"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Glasses.res" id="Glasses"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Scarf.res" id="Scarf"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Moustache.res" id="Moustache"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Feather.res" id="Feather"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/Arms.res" id="Arms"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/LegLeft.res" id="LegLeft"]
+
+[ext_resource type="ArrayMesh" path="res://assets/models/heroes/capsule/LegRight.res" id="LegRight"]
+
+[sub_resource type="Animation" id="Animation_idle"]
+resource_name = "idle"
+length = 2.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Rig:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0.0, 1.3, 2.6), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.012000, 0.000000), Vector3(0.000000, 0.000000, 0.000000)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Rig/LegLeft:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0.0, 2.6), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000)]}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Rig/LegRight:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {"times": PackedFloat32Array(0.0, 2.6), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000)]}
+
+[sub_resource type="Animation" id="Animation_walk"]
+resource_name = "walk"
+length = 0.48
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Rig:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0.0, 0.12, 0.24, 0.36, 0.48), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.025000, 0.000000), Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.025000, 0.000000), Vector3(0.000000, 0.000000, 0.000000)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Rig/LegLeft:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0.0, 0.12, 0.24, 0.36, 0.48), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(0.500000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000), Vector3(-0.500000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000)]}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Rig/LegRight:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {"times": PackedFloat32Array(0.0, 0.12, 0.24, 0.36, 0.48), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(-0.500000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000), Vector3(0.500000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000)]}
+
+[sub_resource type="Animation" id="Animation_strike"]
+resource_name = "strike"
+length = 0.65
+loop_mode = 0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Rig/Aim:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.065, 0.32), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector3(0.000000, 1.450000, 0.000000), Vector3(0.000000, 1.458000, 0.075000), Vector3(0.000000, 1.450000, 0.000000)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Rig/Aim:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.36, 0.65), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.000000, 0.000000), Vector3(0.000000, 0.650000, 0.000000)]}
+
+[sub_resource type="Animation" id="Animation_reload"]
+resource_name = "reload"
+length = 1.8
+loop_mode = 0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Rig/Aim:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.25, 1.5, 1.8), "transitions": PackedFloat32Array(1, 1, 1, 1), "update": 0, "values": [Vector3(0.000000, 0.650000, 0.000000), Vector3(0.400000, 0.650000, -0.150000), Vector3(0.400000, 0.650000, -0.150000), Vector3(0.000000, 0.650000, 0.000000)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Rig/Aim:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 1.8), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [Vector3(0.000000, 1.450000, 0.000000), Vector3(0.000000, 1.450000, 0.000000)]}
+
+[sub_resource type="AnimationLibrary" id="move"]
+_data = {&"idle": SubResource("Animation_idle"), &"walk": SubResource("Animation_walk")}
+
+[sub_resource type="AnimationLibrary" id="attack"]
+_data = {&"strike": SubResource("Animation_strike"), &"reload": SubResource("Animation_reload")}
+
+[node name="CapsuleHero" type="Node3D"]
+script = ExtResource("script")
+kind = "hero"
+projectile_socket = NodePath("Rig/Aim/WeaponSocket/Weapon/Muzzle")
+
+[node name="Rig" type="Node3D" parent="."]
+
+[node name="Aim" type="Node3D" parent="Rig"]
+position = Vector3(0,1.45,0)
+rotation = Vector3(0,0.65,0)
+
+[node name="Accessories" type="Node3D" parent="Rig"]
+
+[node name="Expressions" type="Node3D" parent="Rig"]
+
+[node name="Body" type="MeshInstance3D" parent="Rig"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Body")
+
+[node name="Face" type="MeshInstance3D" parent="Rig"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Face")
+
+[node name="FaceSmile" type="MeshInstance3D" parent="Rig/Expressions"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("FaceSmile")
+
+[node name="FaceHappy" type="MeshInstance3D" parent="Rig/Expressions"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("FaceHappy")
+visible = false
+
+[node name="FaceWink" type="MeshInstance3D" parent="Rig/Expressions"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("FaceWink")
+visible = false
+
+[node name="FaceFocused" type="MeshInstance3D" parent="Rig/Expressions"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("FaceFocused")
+visible = false
+
+[node name="FaceSurprised" type="MeshInstance3D" parent="Rig/Expressions"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("FaceSurprised")
+visible = false
+
+[node name="FaceSleepy" type="MeshInstance3D" parent="Rig/Expressions"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("FaceSleepy")
+visible = false
+
+[node name="Belt" type="MeshInstance3D" parent="Rig"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Belt")
+
+[node name="Bandolier" type="MeshInstance3D" parent="Rig"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Bandolier")
+
+[node name="BackMark" type="MeshInstance3D" parent="Rig"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("BackMark")
+
+[node name="Hat" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Hat")
+
+[node name="Beret" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Beret")
+visible = false
+
+[node name="TrailHat" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("TrailHat")
+visible = false
+
+[node name="Backpack" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Backpack")
+visible = false
+
+[node name="Nose" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Nose")
+visible = false
+
+[node name="Glasses" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Glasses")
+visible = false
+
+[node name="Scarf" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Scarf")
+visible = false
+
+[node name="Moustache" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Moustache")
+visible = false
+
+[node name="Feather" type="MeshInstance3D" parent="Rig/Accessories"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Feather")
+visible = false
+
+[node name="Arms" type="MeshInstance3D" parent="Rig/Aim"]
+position = Vector3(0.000000, 0.000000, 0.000000)
+mesh = ExtResource("Arms")
+
+[node name="LegLeft" type="MeshInstance3D" parent="Rig"]
+position = Vector3(-0.210000, 0.350000, 0.000000)
+mesh = ExtResource("LegLeft")
+
+[node name="LegRight" type="MeshInstance3D" parent="Rig"]
+position = Vector3(0.210000, 0.350000, 0.000000)
+mesh = ExtResource("LegRight")
+
+[node name="WeaponSocket" type="Marker3D" parent="Rig/Aim"]
+position = Vector3(0.32,0,-0.10)
+
+[node name="Weapon" parent="Rig/Aim/WeaponSocket" instance=ExtResource("weapon")]
+
+[node name="Locomotion" type="AnimationPlayer" parent="."]
+callback_mode_process = 0
+libraries = {&"": SubResource("move")}
+autoplay = "idle"
+
+[node name="Attack" type="AnimationPlayer" parent="."]
+callback_mode_process = 0
+libraries = {&"": SubResource("attack")}
+
+[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="."]
+aabb = AABB(-1,0,-1.4,2,3,2.2)
+
+[connection signal="screen_entered" from="VisibilityNotifier" to="." method="_on_screen_entered"]
+
+[connection signal="screen_exited" from="VisibilityNotifier" to="." method="_on_screen_exited"]

@@ -1,0 +1,94 @@
+[gd_resource type="Theme" format=3]
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="font"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/panel.tres" id="panel"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/button.tres" id="button"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/hover.tres" id="hover"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/selected.tres" id="selected"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/inset.tres" id="inset"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/popup.tres" id="popup"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/slot.tres" id="slot"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/slot_hover.tres" id="slot_hover"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/keycap.tres" id="keycap"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/track.tres" id="track"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/fill.tres" id="fill"]
+[ext_resource type="StyleBox" path="res://assets/ui/hero/styles/empty.tres" id="empty"]
+[resource]
+default_font = ExtResource("font")
+default_font_size = 17
+Label/colors/font_color = Color(0.96,0.95,0.88,1)
+Label/colors/font_shadow_color = Color(0.025,0.03,0.03,0.7)
+Label/constants/shadow_offset_y = 1
+Label/constants/line_spacing = 2
+Button/styles/normal = ExtResource("button")
+Button/styles/hover = ExtResource("hover")
+Button/styles/pressed = ExtResource("selected")
+Button/styles/hover_pressed = ExtResource("selected")
+Button/styles/disabled = ExtResource("button")
+Button/styles/focus = ExtResource("hover")
+Button/colors/font_color = Color(0.96,0.95,0.88,1)
+Button/colors/font_hover_color = Color(0.96,0.95,0.88,1)
+Button/colors/font_pressed_color = Color(0.96,0.95,0.88,1)
+Button/colors/font_hover_pressed_color = Color(0.96,0.95,0.88,1)
+Button/colors/font_focus_color = Color(0.96,0.95,0.88,1)
+Button/colors/font_disabled_color = Color(0.65,0.68,0.66,0.65)
+OptionButton/styles/normal = ExtResource("button")
+OptionButton/styles/hover = ExtResource("hover")
+OptionButton/styles/pressed = ExtResource("selected")
+OptionButton/styles/hover_pressed = ExtResource("selected")
+OptionButton/styles/disabled = ExtResource("button")
+OptionButton/styles/focus = ExtResource("hover")
+OptionButton/colors/font_color = Color(0.96,0.95,0.88,1)
+OptionButton/colors/font_hover_color = Color(0.96,0.95,0.88,1)
+OptionButton/colors/font_pressed_color = Color(0.96,0.95,0.88,1)
+OptionButton/colors/font_hover_pressed_color = Color(0.96,0.95,0.88,1)
+OptionButton/colors/font_focus_color = Color(0.96,0.95,0.88,1)
+OptionButton/colors/font_disabled_color = Color(0.65,0.68,0.66,0.65)
+CheckBox/styles/normal = ExtResource("button")
+CheckBox/styles/hover = ExtResource("hover")
+CheckBox/styles/pressed = ExtResource("selected")
+CheckBox/styles/hover_pressed = ExtResource("selected")
+CheckBox/styles/disabled = ExtResource("button")
+CheckBox/styles/focus = ExtResource("hover")
+CheckBox/colors/font_color = Color(0.96,0.95,0.88,1)
+CheckBox/colors/font_hover_color = Color(0.96,0.95,0.88,1)
+CheckBox/colors/font_pressed_color = Color(0.96,0.95,0.88,1)
+CheckBox/colors/font_hover_pressed_color = Color(0.96,0.95,0.88,1)
+CheckBox/colors/font_focus_color = Color(0.96,0.95,0.88,1)
+CheckBox/colors/font_disabled_color = Color(0.65,0.68,0.66,0.65)
+CheckButton/styles/normal = ExtResource("button")
+CheckButton/styles/hover = ExtResource("hover")
+CheckButton/styles/pressed = ExtResource("selected")
+CheckButton/styles/hover_pressed = ExtResource("selected")
+CheckButton/styles/disabled = ExtResource("button")
+CheckButton/styles/focus = ExtResource("hover")
+CheckButton/colors/font_color = Color(0.96,0.95,0.88,1)
+CheckButton/colors/font_hover_color = Color(0.96,0.95,0.88,1)
+CheckButton/colors/font_pressed_color = Color(0.96,0.95,0.88,1)
+CheckButton/colors/font_hover_pressed_color = Color(0.96,0.95,0.88,1)
+CheckButton/colors/font_focus_color = Color(0.96,0.95,0.88,1)
+CheckButton/colors/font_disabled_color = Color(0.65,0.68,0.66,0.65)
+PanelContainer/styles/panel = ExtResource("panel")
+TabContainer/styles/panel = ExtResource("empty")
+TabContainer/styles/tab_selected = ExtResource("selected")
+TabContainer/styles/tab_unselected = ExtResource("button")
+TabContainer/styles/tab_hovered = ExtResource("hover")
+TabContainer/colors/font_selected_color = Color(0.96,0.95,0.88,1)
+TabContainer/colors/font_unselected_color = Color(0.70,0.75,0.72,1)
+TabContainer/constants/side_margin = 0
+PopupPanel/styles/panel = ExtResource("popup")
+PopupMenu/styles/panel = ExtResource("popup")
+PopupMenu/styles/hover = ExtResource("hover")
+PopupMenu/colors/font_color = Color(0.96,0.95,0.88,1)
+PopupMenu/colors/font_hover_color = Color(1,0.91,0.65,1)
+LineEdit/styles/normal = ExtResource("inset")
+LineEdit/styles/focus = ExtResource("hover")
+LineEdit/colors/font_color = Color(0.96,0.95,0.88,1)
+LineEdit/colors/caret_color = Color(0.96,0.95,0.88,1)
+LineEdit/colors/selection_color = Color(0.4,0.47,0.38,1)
+ProgressBar/styles/background = ExtResource("track")
+ProgressBar/styles/fill = ExtResource("fill")
+TooltipPanel/styles/panel = ExtResource("popup")
+TooltipLabel/colors/font_color = Color(0.96,0.95,0.88,1)
+TooltipLabel/font_sizes/font_size = 16
+VBoxContainer/constants/separation = 10
+HBoxContainer/constants/separation = 12

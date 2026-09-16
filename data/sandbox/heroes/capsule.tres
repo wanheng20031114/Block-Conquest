@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="UnitDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/data/unit_definition.gd" id="script"]
+[resource]
+script = ExtResource("script")
+id = &"hero"
+name = "远行者"
+description = "可直接操控的胶囊英雄，装备独立的连发火枪。"
+hp = 200.0
+damage = 20.0
+melee_armor = 3.0
+ranged_armor = 3.0
+damage_channel = 1
+combat_class = &"infantry"
+range = 20.0
+cooldown = 0.65
+attack_windup_seconds = 0.0
+health_bar_height = 3.0
+collision_height = 2.68
+speed = 4.2
+radius = 0.5
+sight = 22.0
+projectile = "bullet"
+supply = 1

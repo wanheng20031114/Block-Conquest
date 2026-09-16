@@ -16,7 +16,10 @@ def canonical_bytes(path: Path) -> bytes:
 
 
 def manifest_bytes(root: Path = ROOT) -> bytes:
-    paths = sorted([*root.glob('data/**/*.tres'), *root.glob('scenes/maps/*')])
+    # Sandbox-only prototypes cannot be recruited or deserialized in network
+    # matches. Keep their local balancing outside the relay's rules contract.
+    rules = [p for p in root.glob('data/**/*.tres') if 'sandbox' != p.relative_to(root / 'data').parts[0]]
+    paths = sorted([*rules, *root.glob('scenes/maps/*')])
     files = {path.relative_to(root).as_posix(): hashlib.sha256(canonical_bytes(path)).hexdigest()
              for path in paths if path.is_file()}
     protocol_source = (root / 'scripts/network/network_protocol.gd').read_text(encoding='utf-8')

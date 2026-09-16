@@ -41,6 +41,10 @@ var resolution := Vector2i(1600, 900)
 var vsync := true
 var fps_limit := 120
 var bindings: Dictionary = {}
+var fp_fov := 90.0
+var fp_sensitivity := 1.0
+var fp_invert_y := false
+var fp_head_bob := false
 var _display_previous: Dictionary = {}
 var _previous_window: Dictionary = {}
 var _close_after_confirm := false
@@ -82,21 +86,27 @@ func defaults() -> Dictionary:
 	for action: String in ACTIONS: keys[action] = ACTIONS[action][2].duplicate()
 	return {"edge_scroll_enabled": true, "camera_speed": 1.0, "zoom_speed": 1.0,
 		"volume_percent": DEFAULT_VOLUME_PERCENT, "muted": false, "window_mode": 0,
-		"resolution": Vector2i(1600, 900), "vsync": true, "fps_limit": 120, "bindings": keys}
+		"resolution": Vector2i(1600, 900), "vsync": true, "fps_limit": 120, "bindings": keys,
+		"fp_fov":90.0,"fp_sensitivity":1.0,"fp_invert_y":false,"fp_head_bob":false}
 
 func snapshot() -> Dictionary:
 	return {"edge_scroll_enabled": edge_scroll_enabled, "camera_speed": camera_speed, "zoom_speed": zoom_speed,
 		"volume_percent": volume_percent, "muted": muted, "window_mode": window_mode,
-		"resolution": resolution, "vsync": vsync, "fps_limit": fps_limit, "bindings": bindings.duplicate(true)}
+		"resolution": resolution, "vsync": vsync, "fps_limit": fps_limit, "bindings": bindings.duplicate(true),
+		"fp_fov":fp_fov,"fp_sensitivity":fp_sensitivity,"fp_invert_y":fp_invert_y,"fp_head_bob":fp_head_bob}
 
 func _sanitize(values: Dictionary) -> Dictionary:
 	var result := defaults()
-	for key: String in ["edge_scroll_enabled", "muted", "vsync"]:
+	for key: String in ["edge_scroll_enabled", "muted", "vsync", "fp_invert_y", "fp_head_bob"]:
 		if values.get(key) is bool: result[key] = values[key]
 	for key: String in ["camera_speed", "zoom_speed", "volume_percent"]:
 		var value: Variant = values.get(key)
 		if (value is float or value is int) and is_finite(float(value)):
 			result[key] = clampf(float(value), 0.25 if key != "volume_percent" else 0.0, 3.0 if key != "volume_percent" else 100.0)
+	for key: String in ["fp_fov","fp_sensitivity"]:
+		var value: Variant = values.get(key)
+		if (value is float or value is int) and is_finite(float(value)):
+			result[key] = clampf(float(value),70.0 if key=="fp_fov" else .25,110.0 if key=="fp_fov" else 3.0)
 	if values.get("window_mode") is int and values.window_mode in [0, 1, 2]: result.window_mode = values.window_mode
 	if values.get("fps_limit") is int and values.fps_limit in FPS_OPTIONS: result.fps_limit = values.fps_limit
 	if values.get("resolution") is Vector2i:

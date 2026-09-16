@@ -1,0 +1,30 @@
+{
+  "body_radial_segments": 48,
+  "parts": {
+    "Body": 2016,
+    "Face": 1472,
+    "FaceSmile": 268,
+    "FaceHappy": 76,
+    "FaceWink": 172,
+    "FaceFocused": 282,
+    "FaceSurprised": 360,
+    "FaceSleepy": 68,
+    "Belt": 280,
+    "Bandolier": 358,
+    "BackMark": 68,
+    "Hat": 748,
+    "Beret": 768,
+    "TrailHat": 768,
+    "Backpack": 132,
+    "Nose": 320,
+    "Glasses": 196,
+    "Scarf": 652,
+    "Moustache": 68,
+    "Feather": 360,
+    "Arms": 1408,
+    "LegLeft": 160,
+    "LegRight": 160
+  },
+  "weapon": 492,
+  "default_visible_triangles": 7430
+}
