@@ -48,6 +48,42 @@ func run() -> void:
 	var remaining := hero.weapon.reload_remaining
 	controller.set_first_person(true)
 	check(controller.first_person and hero.directly_controlled and not game.hud.visible,"F5 mode shares one entity and hides RTS")
+	# Test the actual input path: 800 raw counts (one inch at 800 DPI) must
+	# rotate 17.6 degrees at CS2 sensitivity 1, irrespective of stretched UI input.
+	var old_sensitivity: float = game.settings.fp_sensitivity
+	var old_fov: float = game.settings.fp_fov
+	var old_invert: bool = game.settings.fp_invert_y
+	game.settings.fp_invert_y = false
+	for sensitivity: float in [0.35, 1.0, 2.0]:
+		game.settings.fp_sensitivity = sensitivity
+		for fov: float in [70.0, 110.0]:
+			game.settings.fp_fov = fov
+			controller.yaw = 0.0
+			controller.pitch = 0.0
+			var motion := InputEventMouseMotion.new()
+			motion.screen_relative = Vector2(800,100)
+			motion.relative = Vector2(400,50)
+			controller.handle_input(motion)
+			check(absf(rad_to_deg(controller.yaw)+17.6*sensitivity)<0.0001, "CS2 horizontal rotation ignores FOV and stretched relative input")
+			check(absf(rad_to_deg(controller.pitch)+2.2*sensitivity)<0.0001, "CS2 vertical rotation uses the same scale")
+	game.settings.fp_sensitivity = 1.0
+	controller.yaw = 0.0
+	var small_motion := InputEventMouseMotion.new()
+	small_motion.screen_relative = Vector2(8,0)
+	for packet: int in 100: controller.handle_input(small_motion)
+	check(absf(rad_to_deg(controller.yaw)+17.6)<0.0001, "split and accumulated mouse packets turn by the same angle")
+	game.settings.fp_invert_y = true
+	controller.pitch = 0.0
+	small_motion.screen_relative = Vector2(0,100)
+	controller.handle_input(small_motion)
+	check(absf(rad_to_deg(controller.pitch)-2.2)<0.0001, "invert Y changes direction without changing sensitivity")
+	controller._look_captured = false
+	controller.handle_input(small_motion)
+	check(absf(rad_to_deg(controller.pitch)-2.2)<0.0001, "uncaptured mouse motion cannot rotate the hero")
+	controller._look_captured = true
+	game.settings.fp_sensitivity = old_sensitivity
+	game.settings.fp_fov = old_fov
+	game.settings.fp_invert_y = old_invert
 	check(not controller.camera.get_cull_mask_value(19),"FP excludes body and every attached cosmetic")
 	for mesh: MeshInstance3D in hero._model.find_children("*","MeshInstance3D",true,false):
 		check(mesh.layers==HeroUnit.BODY_LAYER,"body layer includes "+str(mesh.name))
@@ -113,7 +149,7 @@ func run() -> void:
 	check(not controller.has_hero() and game.sandbox_unit_count==0,"clear sandbox removes owned hero")
 	check(not game.settings.defaults().fp_head_bob and game.settings.defaults().fp_fov==90,"comfort defaults")
 	var clean: Dictionary = game.settings._sanitize({"fp_fov":999,"fp_sensitivity":-2,"fp_head_bob":false})
-	check(clean.fp_fov==110 and clean.fp_sensitivity==.25,"FP settings clamp values")
+	check(clean.fp_fov==110 and clean.fp_sensitivity==.05,"FP settings clamp values")
 	await game.prepare_shutdown()
 	game.queue_free()
 	await process_frame

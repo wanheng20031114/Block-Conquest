@@ -40,6 +40,13 @@ func run() -> void:
 	check(settings.resolve_key(key_event(KEY_P)) == KEY_NONE, "pause defaults to F5 without the previous P alias")
 	settings.open_menu()
 	check(settings.is_open() and not paused, "opening settings does not pause a match")
+	var sensitivity: SpinBox = settings.menu.get_node("%FPSensitivityValue")
+	var sensitivity_slider: HSlider = settings.menu.get_node("%FPSensitivity")
+	sensitivity.value = 0.35
+	check(is_equal_approx(sensitivity_slider.value, 0.35) and is_equal_approx(settings.menu.draft.fp_sensitivity, 0.35), "precise CS2 input shares native slider and draft")
+	check(settings.fp_sensitivity == 1.0, "sensitivity draft does not change live controls before Apply")
+	sensitivity_slider.value = 2.17
+	check(is_equal_approx(sensitivity.value, 2.17), "sensitivity slider updates the numeric entry")
 	settings.menu.begin_rebind("rts_select_army")
 	settings.menu._input(key_event(KEY_ESCAPE, false))
 	check(settings.is_open() and settings.menu.rebinding_action.is_empty(), "Esc cancels key capture before closing the menu")
@@ -56,7 +63,9 @@ func run() -> void:
 	settings.menu.draft.zoom_speed = 0.75
 	settings.menu.draft.edge_scroll_enabled = false
 	settings.menu.draft.fps_limit = 90
-	settings.apply_preferences(settings.menu.draft)
+	sensitivity.get_line_edit().text = "1.37"
+	settings.menu._apply(false)
+	check(is_equal_approx(settings.fp_sensitivity, 1.37), "Apply commits typed sensitivity without requiring Enter first")
 	check(settings.resolve_key(key_event(KEY_J)) == KEY_F2 and settings.resolve_key(key_event(KEY_F2)) == KEY_NONE, "applied remapping replaces old aliases")
 	check(Engine.max_fps == 90, "FPS preference is applied to the native engine")
 	check(AudioServer.is_bus_mute(0) and absf(db_to_linear(AudioServer.get_bus_volume_db(0)) - 0.43) < 0.0001, "sound settings reach the real mixer")
@@ -64,23 +73,36 @@ func run() -> void:
 	var saved := ConfigFile.new()
 	check(saved.load(settings.settings_path) == OK and saved.get_value("settings", "fps_limit") == 90, "native preferences persist")
 	check(saved.get_value("hotkeys", "rts_select_army") == [KEY_J], "hotkey list persists without losing types")
+	check(saved.get_value("meta", "fp_sensitivity_scale") == "cs2", "preferences record CS2 units to prevent repeated conversion")
 	var restored: GameSettings = load("res://scenes/settings_menu.tscn").instantiate()
 	restored.settings_path = settings.settings_path
 	root.add_child(restored)
 	check(restored.bindings.rts_select_army == [KEY_J] and restored.muted and restored.fps_limit == 90, "a fresh native settings scene loads the saved configuration")
+	check(is_equal_approx(restored.fp_sensitivity, 1.37), "CS2 sensitivity survives saving and reloading unchanged")
 	restored.queue_free()
 	await process_frame
 	# Simulate the previous complete preferences file: keep custom controls and
 	# audio, add the new cancel action, and migrate only the old pause defaults.
 	saved.set_value("hotkeys", "rts_pause", [KEY_F5, KEY_P])
 	saved.erase_section_key("hotkeys", "rts_cancel")
+	saved.erase_section_key("meta", "fp_sensitivity_scale")
+	saved.set_value("settings", "fp_sensitivity", 0.35)
 	check(saved.save(settings.settings_path) == OK, "legacy preference fixture saved in the isolated test path")
 	var migrated: GameSettings = load("res://scenes/settings_menu.tscn").instantiate()
 	migrated.settings_path = settings.settings_path
 	root.add_child(migrated)
 	check(migrated.bindings.rts_pause == [KEY_F5] and migrated.bindings.rts_cancel == [KEY_ESCAPE], "old F5/P default migrates while adding Esc cancellation")
 	check(migrated.bindings.rts_select_army == [KEY_J] and migrated.muted and migrated.fps_limit == 90, "migration preserves unrelated player preferences and custom hotkeys")
+	check(is_equal_approx(migrated.fp_sensitivity * GameSettings.FP_MOUSE_RADIANS_PER_COUNT, 0.0007), "legacy 0.35 retains its turn distance on the CS2 scale")
+	var migrated_sensitivity := migrated.fp_sensitivity
+	check(migrated._save() == OK, "converted sensitivity can be saved")
 	migrated.queue_free()
+	await process_frame
+	var reopened: GameSettings = load("res://scenes/settings_menu.tscn").instantiate()
+	reopened.settings_path = settings.settings_path
+	root.add_child(reopened)
+	check(is_equal_approx(reopened.fp_sensitivity, migrated_sensitivity), "converted sensitivity is never converted a second time")
+	reopened.queue_free()
 	await process_frame
 	var before := settings.snapshot()
 	var candidate := before.duplicate(true)
@@ -104,11 +126,14 @@ func run() -> void:
 	settings.open_menu()
 	settings.menu._restore_defaults()
 	check(settings.menu.draft.bindings.rts_select_army == [KEY_F2, KEY_G] and settings.menu.draft.fps_limit == 120, "Restore Defaults restores all controls and aliases in the draft")
+	check(settings.menu.draft.fp_sensitivity == 1.0 and sensitivity.value == 1.0 and sensitivity_slider.value == 1.0, "Restore Defaults restores sensitivity in CS2 units across both controls")
 	settings.close_menu()
 	var malformed := settings.defaults()
 	malformed.camera_speed = NAN
 	malformed.bindings.rts_stop = [KEY_F12]
 	var sanitized := settings._sanitize(malformed)
 	check(sanitized.camera_speed == 1.0 and sanitized.bindings.rts_stop == [KEY_S], "invalid config values cannot corrupt native input or camera speed")
+	check(settings._sanitize({"fp_sensitivity":0.35}).fp_sensitivity == 0.35, "a low CS2 value is not treated as a legacy multiplier")
+	check(settings._sanitize({"fp_sensitivity":999}).fp_sensitivity == 20.0 and settings._sanitize({"fp_sensitivity":NAN}).fp_sensitivity == 1.0, "CS2 range validation handles out-of-range and non-finite preferences")
 	print("SETTINGS_RESULT ", checks, " checks / ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)

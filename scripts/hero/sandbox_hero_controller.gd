@@ -159,8 +159,11 @@ func handle_input(event: InputEvent) -> bool:
 		return first_person
 	if first_person:
 		if event is InputEventMouseMotion and _look_captured:
-			yaw -= event.screen_relative.x*.002*game.settings.fp_sensitivity
-			pitch = clampf(pitch-event.screen_relative.y*.002*game.settings.fp_sensitivity*(-1 if game.settings.fp_invert_y else 1),deg_to_rad(-80),deg_to_rad(80))
+			# Unscaled captured input keeps cm/360 independent of resolution,
+			# viewport stretch, FOV and frame rate. Both axes use the CS2 scale.
+			var radians_per_count: float = GameSettings.FP_MOUSE_RADIANS_PER_COUNT * game.settings.fp_sensitivity
+			yaw -= event.screen_relative.x * radians_per_count
+			pitch = clampf(pitch-event.screen_relative.y*radians_per_count*(-1 if game.settings.fp_invert_y else 1),deg_to_rad(-80),deg_to_rad(80))
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 			if _look_captured: hero.trigger_held = event.pressed
 			elif event.pressed: _capture(true)

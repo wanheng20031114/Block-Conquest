@@ -8,6 +8,10 @@ signal pause_requested
 
 const FPS_OPTIONS: Array[int] = [30, 60, 90, 120, 144, 165, 240, 0]
 const DEFAULT_VOLUME_PERCENT := 50.0
+# CS2's default m_yaw / m_pitch: degrees per raw mouse count at sensitivity 1.
+const FP_MOUSE_RADIANS_PER_COUNT := deg_to_rad(0.022)
+const FP_SENSITIVITY_MIN := 0.05
+const FP_SENSITIVITY_MAX := 20.0
 const ACTIONS := {
 	"rts_attack_move": ["攻击前进", KEY_A, [KEY_A]], "rts_stop": ["停止", KEY_S, [KEY_S]],
 	"rts_hold": ["坚守", KEY_H, [KEY_H]], "rts_select_base": ["选择大本营", KEY_B, [KEY_B, KEY_HOME]],
@@ -66,6 +70,12 @@ func _ready() -> void:
 	if config.load(settings_path) == OK:
 		for key: String in values:
 			if key != "bindings": values[key] = config.get_value("settings", key, values[key])
+		# Old files stored a multiplier of 0.002 radians/count. Convert only
+		# saved legacy values; new installs keep the CS2-scale default of 1.
+		if config.has_section_key("settings", "fp_sensitivity") and config.get_value("meta", "fp_sensitivity_scale", "legacy") == "legacy":
+			var old_sensitivity: Variant = values.fp_sensitivity
+			if (old_sensitivity is float or old_sensitivity is int) and is_finite(float(old_sensitivity)):
+				values.fp_sensitivity = clampf(float(old_sensitivity), 0.25, 3.0) * 0.002 / FP_MOUSE_RADIANS_PER_COUNT
 		for action: String in ACTIONS:
 			values.bindings[action] = config.get_value("hotkeys", action, values.bindings[action])
 		# Migrate only the previous default alias pair; keep deliberate custom bindings.
@@ -106,7 +116,7 @@ func _sanitize(values: Dictionary) -> Dictionary:
 	for key: String in ["fp_fov","fp_sensitivity"]:
 		var value: Variant = values.get(key)
 		if (value is float or value is int) and is_finite(float(value)):
-			result[key] = clampf(float(value),70.0 if key=="fp_fov" else .25,110.0 if key=="fp_fov" else 3.0)
+			result[key] = clampf(float(value),70.0 if key=="fp_fov" else FP_SENSITIVITY_MIN,110.0 if key=="fp_fov" else FP_SENSITIVITY_MAX)
 	if values.get("window_mode") is int and values.window_mode in [0, 1, 2]: result.window_mode = values.window_mode
 	if values.get("fps_limit") is int and values.fps_limit in FPS_OPTIONS: result.fps_limit = values.fps_limit
 	if values.get("resolution") is Vector2i:
@@ -250,6 +260,7 @@ func revert_display() -> void:
 
 func _save() -> Error:
 	var config := ConfigFile.new()
+	config.set_value("meta", "fp_sensitivity_scale", "cs2")
 	var values := snapshot()
 	for key: String in values:
 		if key != "bindings": config.set_value("settings", key, values[key])

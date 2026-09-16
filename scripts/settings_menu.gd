@@ -26,6 +26,7 @@ func _ready() -> void:
 	%CameraSpeed.value_changed.connect(_slider_changed.bind("camera_speed"))
 	%ZoomSpeed.value_changed.connect(_slider_changed.bind("zoom_speed"))
 	%FPFov.value_changed.connect(_slider_changed.bind("fp_fov"))
+	%FPSensitivity.share(%FPSensitivityValue)
 	%FPSensitivity.value_changed.connect(_slider_changed.bind("fp_sensitivity"))
 	%FPInvert.toggled.connect(_toggle_changed.bind("fp_invert_y"))
 	%FPHeadBob.toggled.connect(_toggle_changed.bind("fp_head_bob"))
@@ -77,7 +78,6 @@ func _update_labels() -> void:
 	%CameraValue.text = "%.2f ×" % float(draft.camera_speed)
 	%ZoomValue.text = "%.2f ×" % float(draft.zoom_speed)
 	%FPFovLabel.text = "水平视野角   %d°" % int(draft.fp_fov)
-	%FPSensitivityLabel.text = "鼠标灵敏度   %.2f ×" % float(draft.fp_sensitivity)
 
 func _option_changed(index: int, key: String) -> void:
 	if not _refreshing: draft[key] = index
@@ -160,6 +160,8 @@ func _restore_defaults() -> void:
 
 func _apply(close_after: bool) -> void:
 	rebinding_action = ""
+	%FPSensitivityValue.apply()
+	draft.fp_sensitivity = %FPSensitivityValue.value
 	settings.apply_preferences(draft, close_after)
 
 func set_status(message: String) -> void:
