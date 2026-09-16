@@ -43,6 +43,8 @@ func _run() -> void:
 	game = current_scene
 	while not game._match_ready:
 		await process_frame
+	if root.get_node("Session").transition.busy:
+		await root.get_node("Session").transition.completed
 	game.tests_running = true
 	game.bots.clear()
 	game.set_physics_process(false)
@@ -173,9 +175,12 @@ func _run() -> void:
 		_inspect_layout()
 	await _click(hud.get_node("%QueuePrevious"))
 	check(hud._queue_page == 0 and hud._queue_actions[0].target == barracks.entity_id, "previous page restores first building queue")
-	check(hud._actions[4].id == "knight" and not hud.buttons[4].disabled, "full representative barracks does not disable knight production in another selected barracks with space")
+	# The barracks gained crossbowmen and musketeers; knight is on page two.
+	await _click(hud.buttons.back())
+	var knight_slot: int = hud._actions.find_custom(func(action): return action.id == "knight")
+	check(knight_slot >= 0 and not hud.buttons[knight_slot].disabled, "full representative barracks does not disable knight production in another selected barracks with space")
 	gold_before = player.gold
-	await _click(hud.buttons[4])
+	await _click(hud.buttons[knight_slot])
 	check(game.command_bus.pending.size() == 1 and game.command_bus.pending[0].buildings == [barracks.entity_id, barracks2.entity_id], "native recruit button submits selected producer identities to authority")
 	game.command_bus.tick()
 	hud.refresh()

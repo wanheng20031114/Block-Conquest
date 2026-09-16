@@ -297,7 +297,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_B, KEY_HOME: select_headquarters()
 			KEY_G, KEY_F2: select_army()
 			KEY_SPACE: focus_selection()
-			KEY_TAB: cycle_production_group()
+			KEY_TAB: hud.cycle_selection_group(event.shift_pressed)
 			KEY_Q: hud.trigger_action_slot(0)
 			KEY_W: hud.trigger_action_slot(1)
 			KEY_E: hud.trigger_action_slot(2)
@@ -1047,17 +1047,7 @@ func selected_production() -> BattleBuilding:
 	return buildings[0] if not buildings.is_empty() else null
 
 func cycle_production_group() -> void:
-	var buildings := own_selected_buildings()
-	if buildings.is_empty():
-		return
-	var kinds: Array[String] = []
-	for building: BattleBuilding in buildings:
-		if building.building_type not in kinds:
-			kinds.append(building.building_type)
-	var current: String = selected_production().building_type
-	_production_group_kind = kinds[(kinds.find(current) + 1) % kinds.size()]
-	hud.refresh()
-	hud.toast("%s · Tab 切换建筑类别" % selected_production().display_name, 2.0)
+	hud.cycle_selection_group()
 
 static func vector_data(at: Vector3) -> Array:
 	return [at.x, at.y, at.z]

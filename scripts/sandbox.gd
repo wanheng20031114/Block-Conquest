@@ -321,10 +321,15 @@ func _unhandled_input(event: InputEvent) -> void:
 					set_attack_mode(false)
 	if event is InputEventKey and event.pressed and not event.echo:
 		var key: Key = settings.resolve_key(event)
+		if not placing and key in [KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y]:
+			if hud.trigger_action_slot([KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y].find(key)):
+				get_viewport().set_input_as_handled()
+				return
 		if key >= KEY_1 and key <= KEY_9:
 			use_control_group(key - KEY_0, event.ctrl_pressed, event.shift_pressed)
 			return
 		match key:
+			KEY_TAB: hud.cycle_selection_group(event.shift_pressed)
 			KEY_F2, KEY_G: select_army()
 			KEY_SPACE: focus_selection()
 			KEY_DELETE: remove_selected()

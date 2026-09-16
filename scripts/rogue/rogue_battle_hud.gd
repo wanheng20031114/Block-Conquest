@@ -22,6 +22,8 @@ func _ready() -> void:
 
 func bind_game(controller: Node3D) -> void:
 	game = controller
+	$Commands/Margin/Content/Composition.bind(game, _portraits)
+	$Commands/Margin/Content/Composition.focus_changed.connect(_refresh_selection)
 	%Minimap.game = game
 	%Minimap.map_clicked.connect(game._on_minimap_clicked)
 	%Army.pressed.connect(game.select_army)
@@ -88,6 +90,10 @@ func refresh() -> void:
 	%Attack.set_pressed_no_signal(game.attack_mode)
 
 func _refresh_selection() -> void:
+	var composition: SelectionComposition = $Commands/Margin/Content/Composition
+	composition.refresh()
+	composition.visible = game.selection.size() > 1
+	%ArmyList.visible = not composition.visible
 	%SelectedStats.tooltip_text = ""
 	%SelectionHP.visible = not game.selection.is_empty()
 	%SelectionHPText.visible = not game.selection.is_empty()
@@ -98,32 +104,18 @@ func _refresh_selection() -> void:
 		%SelectedPortrait.texture = null
 		_selected_preview = ""
 		return
-	var first: Node3D = game.selection[0]
+	var first: Node3D = composition.focused_entity()
 	_selected_preview = first.unit_type if first is BattleUnit else first.building_type
 	%SelectedPortrait.texture = _portraits[_selected_preview]
-	var total_hp: float = 0.0
-	var maximum: float = 0.0
-	var counts: Dictionary = {}
-	for entity: Node3D in game.selection:
-		total_hp += entity.hp
-		maximum += entity.max_hp
-		counts[entity.display_name] = int(counts.get(entity.display_name, 0)) + 1
-	%SelectionHP.max_value = maximum
-	%SelectionHP.value = total_hp
-	%SelectionHPText.text = "生命 %d / %d" % [ceili(total_hp), ceili(maximum)]
-	if game.selection.size() > 1:
-		%SelectedRole.text = "远征军 · 联合编队"
-		%Selection.text = "已选择 %d 个目标" % game.selection.size()
-		var composition: PackedStringArray = []
-		for kind: String in counts:
-			composition.append("%s ×%d" % [kind, counts[kind]])
-		%SelectedStats.text = "%d 种兵力 · %d 个可指挥单位\nCtrl + 编队键保存当前选择" % [counts.size(), game.own_selected_units().size()]
-		%SelectedStats.tooltip_text = "\n".join(composition)
-		return
+	var group: Dictionary = composition.focused_group()
+	%SelectionHP.max_value = maxf(1.0, group.max_hp)
+	%SelectionHP.value = group.hp
+	%SelectionHPText.text = "生命 %d / %d" % [ceili(group.hp), ceili(group.max_hp)]
 	var definition: CombatDefinition = first.get_combat_definition()
 	var own: bool = first.owner_id == game.local_owner_id
 	%SelectedRole.text = ("远征军" if own else "敌方") + " · " + _formation_label(definition)
 	%Selection.text = first.display_name
+	if game.selection.size() > 1: %Selection.text += " ×%d" % composition.focused_group().members.size()
 	var attack_bonus: float = 0.0
 	var defense_bonus: float = 0.0
 	if first is BattleUnit and definition.military:
@@ -135,6 +127,9 @@ func _refresh_selection() -> void:
 	var armor: String = "近甲 %s / 远甲 %s" % [_number(DamageResolver.armor_for_channel(definition, CombatDefinition.DamageChannel.MELEE, defense_bonus)), _number(DamageResolver.armor_for_channel(definition, CombatDefinition.DamageChannel.RANGED, defense_bonus))]
 	%SelectedStats.text = attack + "\n" + armor + " · " + first.order_name
 	%SelectedStats.tooltip_text = definition.description + "\n" + attack + "\n" + armor
+
+func cycle_selection_group(reverse: bool = false) -> bool:
+	return $Commands/Margin/Content/Composition.cycle(reverse)
 
 func _formation_label(definition: CombatDefinition) -> String:
 	if definition.combat_class in [&"infantry", &"archer"]:

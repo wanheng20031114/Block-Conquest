@@ -1,0 +1,62 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/selection_composition.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/selection_type_slot.tscn" id="slot"]
+[node name="Composition" type="VBoxContainer"]
+script = ExtResource("script")
+theme_override_constants/separation = 4
+mouse_filter = 1
+[node name="Heading" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+[node name="Summary" type="Label" parent="Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "所选部队"
+[node name="Previous" type="Button" parent="Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(24,20)
+focus_mode = 0
+text = "‹"
+tooltip_text = "上一页兵种"
+[node name="Page" type="Label" parent="Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "1/1"
+[node name="Next" type="Button" parent="Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(24,20)
+focus_mode = 0
+text = "›"
+tooltip_text = "下一页兵种"
+[node name="Slots" type="GridContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+[node name="Type0" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type1" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type2" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type3" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type4" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type5" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type6" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Type7" parent="Slots" instance=ExtResource("slot")]
+layout_mode = 2
+[node name="Hint" type="Label" parent="."]
+layout_mode = 2
+text = "点击查看 · Ctrl 仅选 · Shift 移出 · Tab 切换"
+theme_override_font_sizes/font_size = 10
+mouse_filter = 2

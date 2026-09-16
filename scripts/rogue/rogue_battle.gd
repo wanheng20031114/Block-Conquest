@@ -313,6 +313,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_G, KEY_F2: select_army()
 			KEY_SPACE: focus_selection()
 			KEY_HOME: select_headquarters()
+			KEY_TAB: hud.cycle_selection_group(event.shift_pressed)
 
 func submit_local(command: Dictionary) -> Dictionary:
 	if str(command.get("kind", "")) not in ["move", "attack", "support", "stop", "hold"]:

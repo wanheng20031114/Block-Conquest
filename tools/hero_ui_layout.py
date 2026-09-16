@@ -56,9 +56,6 @@ def hud(node,label,button,lines):
     node('Dock','Control','Root/HudLayout','anchor_top = 1.0\nanchor_right = 1.0\nanchor_bottom = 1.0\noffset_top = -205.0\noffset_bottom = -35.0\nmouse_filter = 2\nvisible = false',True)
     base='Root/HudLayout/Dock'
     node('Rows','Control',base,FULL+IGNORE)
-    node('Actions','HBoxContainer',base+'/Rows','anchor_left = .5\nanchor_right = .5\noffset_left = -40.0\noffset_right = 500.0\noffset_bottom = 38.0\ntheme_override_constants/separation = 10')
-    for name,title in [('Control','操控英雄 F5'),('Reload','换弹 R'),('Edit','编辑形象'),('Run','开始交战')]:
-        button(name,base+'/Rows/Actions',title,'theme_override_font_sizes/font_size = 15')
     node('Vitals','Control',base+'/Rows','offset_left = 48.0\noffset_right = 318.0\noffset_top = 110.0\noffset_bottom = 157.0\nmouse_filter = 2',True)
     vitals=base+'/Rows/Vitals'
     node('HealthMeter','ProgressBar',vitals,'offset_right = 260.0\noffset_bottom = 30.0\nmax_value = 200\nvalue = 200\nshow_percentage = false\ntheme_override_styles/background = ExtResource("health_track_style")\ntheme_override_styles/fill = ExtResource("health_fill_style")\nmouse_filter = 2',True)

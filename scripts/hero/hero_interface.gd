@@ -37,11 +37,6 @@ func bind(value: SandboxHeroController) -> void:
 	%CancelCreator.pressed.connect(close_panels)
 	%ApplyCreator.pressed.connect(func():
 		if controller.create_or_update(_draft): close_panels())
-	%Control.pressed.connect(controller.toggle_view)
-	%Reload.pressed.connect(func():
-		if controller.has_hero() and controller.game.running: controller.hero.weapon.begin_reload())
-	%Edit.pressed.connect(open_creator)
-	%Run.pressed.connect(controller.game.handle_pause_action)
 	%Resume.pressed.connect(func(): controller._menu_was_running=true; close_panels())
 	%ReturnRTS.pressed.connect(func(): close_panels(); controller.set_first_person(false))
 	%Settings.pressed.connect(func(): controller.game.settings.open_menu())
@@ -137,7 +132,6 @@ func set_first_person(value: bool) -> void:
 	%Crosshair.visible = value
 	%FPSHint.visible = value
 	%WeaponViewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if value else SubViewport.UPDATE_DISABLED
-	%Dock.get_node("Rows/Actions").visible = not value
 	_layout()
 	refresh()
 
@@ -147,12 +141,10 @@ func _layout() -> void:
 	for layout: Control in [%HudLayout,%InventoryLayout]:
 		layout.scale = Vector2.ONE*factor
 		layout.size = viewport_size/factor
-	# The RTS minimap occupies the lower left; reserve that same native HUD area.
-	var rts := controller != null and not controller.first_person
-	%Vitals.position.x = (controller.game.hud.get_node("Sidebar").get_global_rect().end.x+24.0)/factor if rts else 48.0
-	%Boost.position.x = %Vitals.position.x+276.0 if rts else 342.0
-	%Loadout.offset_left = -74.0 if rts else -238.0
-	%Loadout.offset_right = 654.0 if rts else 490.0
+	%Vitals.position.x = 48.0
+	%Boost.position.x = 342.0
+	%Loadout.offset_left = -238.0
+	%Loadout.offset_right = 490.0
 
 func refresh() -> void:
 	if controller == null: return
@@ -161,7 +153,7 @@ func refresh() -> void:
 	%Crosshair.visible = show_weapon
 	%FPSHint.visible = show_weapon
 	%WeaponViewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if show_weapon else SubViewport.UPDATE_DISABLED
-	%Dock.visible = controller.has_hero() and not controller._menu_active
+	%Dock.visible = controller.first_person and controller.has_hero() and not controller._menu_active
 	if not controller.has_hero(): return
 	var hero := controller.hero
 	%Health.text = "%d / %d" % [hero.hp,hero.max_hp]
@@ -177,16 +169,13 @@ func refresh() -> void:
 		DamageResolver.armor_for_channel(hero._stats,CombatDefinition.DamageChannel.RANGED,defense_bonus)]
 	%Boost.visible = hero.speed_boost_remaining>0.0
 	%BoostTime.text = "+%d%% · %ds" % [roundi((hero.speed_boost_multiplier-1.0)*100),ceili(hero.speed_boost_remaining)]
-	%Control.text = "返回 RTS  F5" if controller.first_person else "操控英雄  F5"
-	%Run.text = "暂停交战" if controller.game.running else "开始交战"
 	%FPSHint.text = "F5  返回 RTS     I  背包     Esc  菜单" if controller.game.running else "模拟已暂停 · Esc 打开菜单继续交战"
-	%Reload.disabled = not controller.game.running or hero.weapon.reload_remaining>0 or hero.weapon.rounds==10
 	for bar: HBoxContainer in [%Hotbar,%BagHotbar]:
 		if not bar.is_visible_in_tree(): continue
 		for slot: Node in bar.get_children():
 			if slot is HeroInventorySlot:
 				slot.inventory = hero.inventory
-				slot.key_prefix = "" if controller.first_person else "Alt+"
+				slot.shortcut_key = str(slot.slot_index+1) if controller.first_person else controller.game.settings.hotkey_text("rts_slot_%d" % (slot.slot_index+1))
 				slot.refresh()
 	if %Inventory.visible:
 		_refresh_inventory(hero)
@@ -196,7 +185,7 @@ func _refresh_inventory(hero: HeroUnit) -> void:
 	%BagArmor.text = "护甲 %d / %d" % [hero._stats.melee_armor,hero._stats.ranged_armor]
 	%BagSpeed.text = "移速 %.1f" % hero.speed
 	%BagHealth.text = "%d / %d" % [hero.hp,hero.max_hp]
-	%ShortcutHelp.text = "1–5 使用 · 右键解除绑定" if controller.first_person else "Alt + 1–5 使用 · 右键解除绑定"
+	%ShortcutHelp.text = "1–5 使用 · 右键解除绑定" if controller.first_person else "对应 RTS 技能槽 · 右键解除绑定"
 	if _selected_slot>=0 and hero.inventory.slots[_selected_slot].id!=_selected_item: _selected_slot = -1
 	for slot: HeroInventorySlot in %BagGrid.get_children():
 		slot.inventory = hero.inventory
@@ -213,7 +202,7 @@ func _refresh_inventory(hero: HeroUnit) -> void:
 		%ItemName.text = weapon.display_name
 		%ItemKind.text = "已装备 · 远程武器"
 		%ItemStock.text = "%d / %d 发" % [hero.weapon.rounds,weapon.magazine_size]
-		%ItemDescription.text = "木质枪托与黄铜枪机。\n无限备弹，按 R 手动装填。"
+		%ItemDescription.text = "木质枪托与黄铜枪机。\n无限备弹，按 %s 手动装填。" % ("R" if controller.first_person else controller.game.settings.hotkey_text("rts_slot_6"))
 		%ItemEffect.text = "攻击 %d + %d = %d" % [hero.attack_damage,weapon.attack_bonus,hero.attack_damage+weapon.attack_bonus]
 		%ItemCooldown.text = "射程 %.0f · 间隔 %.2f 秒\n装填 %.1f 秒 · 弹匣 %d 发" % [weapon.range,weapon.interval,weapon.reload_seconds,weapon.magazine_size]
 		%UseItem.hide()

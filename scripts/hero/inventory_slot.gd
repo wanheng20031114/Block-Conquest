@@ -8,7 +8,7 @@ const SELECTED := preload("res://assets/ui/hero/styles/slot_selected.tres")
 @export var is_shortcut: bool = false
 var inventory: HeroInventory
 var selected := false
-var key_prefix := ""
+var shortcut_key := ""
 var _surface: StyleBox
 
 func item_id() -> StringName:
@@ -27,9 +27,10 @@ func refresh() -> void:
 	$Count.visible = item != null
 	$Name.text = item.display_name if item != null else ""
 	$Name.visible = item != null
-	$Key.text = key_prefix+str(slot_index+1) if is_shortcut else ""
-	$Key.offset_left = -24.0 if not key_prefix.is_empty() else -12.0
-	$Key.offset_right = 24.0 if not key_prefix.is_empty() else 12.0
+	$Key.text = shortcut_key if is_shortcut else ""
+	var key_half_width := maxf(12.0, shortcut_key.length()*6.0)
+	$Key.offset_left = -key_half_width
+	$Key.offset_right = key_half_width
 	$Key.visible = is_shortcut
 	var remaining: float = inventory.cooldowns.get(id,0.0) if item != null else 0.0
 	$Cooldown.visible = remaining > 0.0

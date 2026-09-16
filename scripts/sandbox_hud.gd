@@ -2,15 +2,20 @@ extends Control
 ## Native sandbox controls share the battle controller's small HUD contract.
 var game: Node3D
 var _message_time: float = 0.0
+var _preview_team: int = -1
+var portraits: Dictionary = {}
 const KINDS: PackedStringArray = ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
 
 func _ready() -> void:
 	UIMotion.bind_buttons(self)
 	UIMotion.reveal.call_deferred($Top, Vector2(0, -8))
 	UIMotion.reveal.call_deferred($Sidebar, Vector2(-12, 0))
+	for kind: String in $ModelPreviews.KINDS: portraits[kind] = $ModelPreviews.portrait(kind)
+	portraits["hero"] = $HeroPortrait.get_texture()
 
 func bind_game(controller: Node3D) -> void:
 	game = controller
+	$UnitPanel.bind(game, portraits)
 	for mode: String in NetworkProtocol.MODES:
 		var map: MapDefinition = load(NetworkProtocol.map_path(mode))
 		%Map.add_item(map.display_name)
@@ -63,6 +68,21 @@ func refresh() -> void:
 		var entity: Node3D = game.selection[0]
 		%Selection.text = "中立 · 黄金矿脉" if entity is ResourceVein else "%s · %s%s" % [game.players[entity.owner_id].display_name, entity.display_name, " · 共 %d 个" % game.selection.size() if game.selection.size() > 1 else ""]
 	%Remove.disabled = not game.selection.any(func(entity: Node3D): return entity is BattleUnit)
+	var portrait_owner: int = game.selection[0].owner_id if not game.selection.is_empty() and game.selection[0].owner_id >= 0 else game.local_owner_id
+	if _preview_team != portrait_owner:
+		_preview_team = portrait_owner
+		$ModelPreviews.set_team(FactionPalette.SANDBOX_OFFSET + _preview_team)
+	if game.hero_controller.has_hero(): $HeroPortrait.sync_appearance(game.hero_controller.profile)
+	$UnitPanel.refresh()
+
+func trigger_action_slot(index: int) -> bool:
+	return $UnitPanel.trigger_action_slot(index)
+
+func cycle_selection_group(reverse: bool = false) -> bool:
+	return $UnitPanel.cycle_selection_group(reverse)
+
+func selected_hero() -> HeroUnit:
+	return $UnitPanel.focused_hero()
 
 func toast(message: String, seconds: float = 2.0) -> void:
 	%Notice.text = message

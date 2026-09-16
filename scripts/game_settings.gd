@@ -24,7 +24,7 @@ const ACTIONS := {
 	"rts_pause": ["暂停 / 战场菜单 / 继续", KEY_F5, [KEY_F5]], "rts_help": ["操作帮助", KEY_F1, [KEY_F1]],
 	"rts_photo": ["隐藏 / 显示界面", KEY_F10, [KEY_F10]], "rts_fullscreen": ["切换全屏", KEY_F11, [KEY_F11]],
 	"rts_mute": ["静音", KEY_M, [KEY_M]], "rts_idle_worker": ["选择空闲农民", KEY_PERIOD, [KEY_PERIOD]],
-	"rts_cycle_buildings": ["切换编队中的建筑", KEY_TAB, [KEY_TAB]],
+	"rts_cycle_buildings": ["切换所选兵种 / 建筑", KEY_TAB, [KEY_TAB]],
 	"rts_group1": ["编队 1", KEY_1, [KEY_1]], "rts_group2": ["编队 2", KEY_2, [KEY_2]],
 	"rts_group3": ["编队 3", KEY_3, [KEY_3]], "rts_group4": ["编队 4", KEY_4, [KEY_4]],
 	"rts_group5": ["编队 5", KEY_5, [KEY_5]], "rts_group6": ["编队 6", KEY_6, [KEY_6]],

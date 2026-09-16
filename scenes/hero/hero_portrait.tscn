@@ -1,0 +1,31 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/hero/hero_portrait.gd" id="script"]
+[ext_resource type="PackedScene" path="res://assets/models/heroes/capsule.tscn" id="model"]
+[sub_resource type="Environment" id="studio"]
+background_mode = 1
+background_color = Color(0,0,0,0)
+ambient_light_source = 3
+ambient_light_color = Color(0.77,0.83,0.94,1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+[node name="HeroPortrait" type="SubViewport"]
+script = ExtResource("script")
+size = Vector2i(192,216)
+transparent_bg = true
+own_world_3d = true
+gui_disable_input = true
+msaa_3d = 2
+render_target_update_mode = 1
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("studio")
+[node name="Key" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-40,145,0)
+light_color = Color(1,0.93,0.79,1)
+light_energy = 0.8
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(4,2.7,-6)
+rotation_degrees = Vector3(-10,146.3,0)
+projection = 1
+size = 3.4
+current = true
+[node name="Model" parent="." instance=ExtResource("model")]

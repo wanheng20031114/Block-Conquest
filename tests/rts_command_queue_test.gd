@@ -218,7 +218,7 @@ func _groups_and_production() -> void:
 		check(game.recruit("swordsman"), "group_recruit_submitted_%d" % index)
 	game.command_bus.tick()
 	check(barracks.production.training.size() == 2 and second_barracks.production.training.size() == 2, "same_tick_group_purchases_spread_across_buildings")
-	check(game.get_player(0).gold == gold - 4 * 45, "one_group_keypress_buys_one_unit")
+	check(game.get_player(0).gold == gold - 4 * BalanceCatalog.unit("swordsman").cost, "one_group_keypress_buys_one_unit")
 	check(command({"kind": "rally", "buildings": [barracks.entity_id, second_barracks.entity_id], "at": [6, 0, 7]}).ok, "authority_accepts_group_rally")
 	check(barracks.rally_point == Vector3(6, 0, 7) and second_barracks.rally_point == barracks.rally_point, "all_selected_buildings_receive_rally")
 	var before_rally: Vector3 = barracks.rally_point

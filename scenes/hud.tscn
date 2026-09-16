@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/model_previews.tscn" id="previews"]
 
 [ext_resource type="PackedScene" path="res://scenes/production_queue_slot.tscn" id="queue_slot"]
+[ext_resource type="PackedScene" path="res://scenes/selection_composition.tscn" id="composition"]
 
 [node name="Interface" type="Control"]
 layout_mode = 3
@@ -289,6 +290,13 @@ offset_top = 13
 offset_right = 316
 offset_bottom = 149
 mouse_filter = 2
+
+[node name="Composition" parent="CommandBar" instance=ExtResource("composition")]
+visible = false
+offset_left = 16.0
+offset_top = 4.0
+offset_right = 316.0
+offset_bottom = 152.0
 
 [node name="SelectionCaption" type="Label" parent="CommandBar"]
 unique_name_in_owner = true
@@ -1268,7 +1276,7 @@ offset_left = 283
 offset_top = 169
 offset_right = 700
 offset_bottom = 500
-text = "选择单位或建筑 / 框选 / 同类选择（Shift 追加）\n移动、攻击、采矿、施工、集结 / 排队执行\n攻击前进 / 停止 / 坚守；Shift 可追加坚守\n覆盖编队 / 追加，单位与建筑均可编入\n召回编队 / 定位 / 切换选中建筑类别\n平移镜头；窗口外仍可边缘移动，可在设置关闭\n缩放 / 定位所选对象\n大本营 / 全部战斗单位 / 空闲农民\n当前面板从左至右生产、建造或研究\n农民快速放置防御塔（Shift 连续建造）\n销毁所选己方单位或建筑，完工资产无退款\n取消指派或队尾项目 / 暂停菜单（联机仅房主）\n点击格子取消指定项目 / 设置可重绑按键\n单机金币 +100 / 隐藏界面 / 全屏 / 静音"
+text = "选择单位或建筑 / 框选 / 同类选择（Shift 追加）\n移动、攻击、采矿、施工、集结 / 排队执行\n攻击前进 / 停止 / 坚守；Shift 可追加坚守\n覆盖编队 / 追加，单位与建筑均可编入\n召回编队 / 定位 / 切换所选兵种或建筑\n平移镜头；窗口外仍可边缘移动，可在设置关闭\n缩放 / 定位所选对象\n大本营 / 全部战斗单位 / 空闲农民\n当前面板从左至右生产、建造或研究\n农民快速放置防御塔（Shift 连续建造）\n销毁所选己方单位或建筑，完工资产无退款\n取消指派或队尾项目 / 暂停菜单（联机仅房主）\n点击格子取消指定项目 / 设置可重绑按键\n单机金币 +100 / 隐藏界面 / 全屏 / 静音"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 13

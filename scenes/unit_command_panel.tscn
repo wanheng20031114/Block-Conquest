@@ -1,0 +1,156 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/unit_command_panel.gd" id="script"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/battle_controls.tres" id="theme"]
+[ext_resource type="StyleBox" path="res://assets/ui/medieval/battle_backboard.tres" id="board"]
+[ext_resource type="PackedScene" path="res://scenes/selection_composition.tscn" id="composition"]
+[ext_resource type="PackedScene" path="res://scenes/unit_ability_slot.tscn" id="ability"]
+[node name="UnitCommandPanel" type="PanelContainer"]
+script = ExtResource("script")
+theme = ExtResource("theme")
+theme_override_styles/panel = ExtResource("board")
+visible = false
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+[node name="Columns" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+[node name="Details" type="HBoxContainer" parent="Margin/Columns"]
+layout_mode = 2
+custom_minimum_size = Vector2(304,0)
+theme_override_constants/separation = 8
+[node name="Portrait" type="TextureRect" parent="Margin/Columns/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(90,128)
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+[node name="Info" type="VBoxContainer" parent="Margin/Columns/Details"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(206,0)
+theme_override_constants/separation = 4
+[node name="Role" type="Label" parent="Margin/Columns/Details/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "当前查看"
+theme_override_font_sizes/font_size = 11
+[node name="UnitName" type="Label" parent="Margin/Columns/Details/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "所选单位"
+theme_override_font_sizes/font_size = 20
+clip_text = true
+text_overrun_behavior = 3
+[node name="Health" type="ProgressBar" parent="Margin/Columns/Details/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0,7)
+show_percentage = false
+step = 0.01
+mouse_filter = 2
+[node name="HealthText" type="Label" parent="Margin/Columns/Details/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+[node name="Stats" type="Label" parent="Margin/Columns/Details/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+autowrap_mode = 2
+[node name="Separator" type="VSeparator" parent="Margin/Columns"]
+layout_mode = 2
+[node name="Composition" parent="Margin/Columns" instance=ExtResource("composition")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(294,0)
+[node name="Separator2" type="VSeparator" parent="Margin/Columns"]
+layout_mode = 2
+[node name="Commands" type="VBoxContainer" parent="Margin/Columns"]
+layout_mode = 2
+custom_minimum_size = Vector2(382,0)
+theme_override_constants/separation = 5
+[node name="Common" type="HBoxContainer" parent="Margin/Columns/Commands"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,28)
+theme_override_constants/separation = 5
+[node name="Attack" type="Button" parent="Margin/Columns/Commands/Common"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+text = "攻击前进 A"
+theme_override_font_sizes/font_size = 13
+[node name="Stop" type="Button" parent="Margin/Columns/Commands/Common"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "停止 S"
+theme_override_font_sizes/font_size = 13
+[node name="Hold" type="Button" parent="Margin/Columns/Commands/Common"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "坚守 H"
+theme_override_font_sizes/font_size = 13
+[node name="AbilityTitle" type="Label" parent="Margin/Columns/Commands"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "单位指令"
+theme_override_font_sizes/font_size = 11
+[node name="Abilities" type="HBoxContainer" parent="Margin/Columns/Commands"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 5
+[node name="Slot0" parent="Margin/Columns/Commands/Abilities" instance=ExtResource("ability")]
+layout_mode = 2
+[node name="Slot1" parent="Margin/Columns/Commands/Abilities" instance=ExtResource("ability")]
+layout_mode = 2
+[node name="Slot2" parent="Margin/Columns/Commands/Abilities" instance=ExtResource("ability")]
+layout_mode = 2
+[node name="Slot3" parent="Margin/Columns/Commands/Abilities" instance=ExtResource("ability")]
+layout_mode = 2
+[node name="Slot4" parent="Margin/Columns/Commands/Abilities" instance=ExtResource("ability")]
+layout_mode = 2
+[node name="Slot5" parent="Margin/Columns/Commands/Abilities" instance=ExtResource("ability")]
+layout_mode = 2
+[node name="UnitHint" type="Label" parent="Margin/Columns/Commands"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 12
+autowrap_mode = 2
+[node name="Utility" type="HBoxContainer" parent="Margin/Columns/Commands"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,26)
+theme_override_constants/separation = 5
+[node name="Focus" type="Button" parent="Margin/Columns/Commands/Utility"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "定位 Space"
+theme_override_font_sizes/font_size = 12
+[node name="Inventory" type="Button" parent="Margin/Columns/Commands/Utility"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "背包 I"
+theme_override_font_sizes/font_size = 12
+[node name="Control" type="Button" parent="Margin/Columns/Commands/Utility"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "第一人称 F5"
+theme_override_font_sizes/font_size = 12

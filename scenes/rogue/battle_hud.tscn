@@ -1,4 +1,5 @@
 [gd_scene format=3]
+[ext_resource type="PackedScene" path="res://scenes/selection_composition.tscn" id="composition"]
 [ext_resource type="Theme" path="res://assets/ui/medieval/battle_controls.tres" id="battle_controls"]
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/battle_backboard.tres" id="battle_board"]
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/parchment.tres" id="medieval_paper"]
@@ -217,6 +218,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(458, 0)
 theme_override_constants/separation = 6
+
+[node name="Composition" parent="Commands/Margin/Content" instance=ExtResource("composition")]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(458,0)
 
 [node name="Heading" type="HBoxContainer" parent="Commands/Margin/Content/ArmyList"]
 layout_mode = 2

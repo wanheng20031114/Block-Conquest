@@ -4,6 +4,9 @@
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="medieval_title"]
 [ext_resource type="Script" path="res://scripts/sandbox_hud.gd" id="script"]
 [ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
+[ext_resource type="PackedScene" path="res://scenes/unit_command_panel.tscn" id="unit_panel"]
+[ext_resource type="PackedScene" path="res://scenes/model_previews.tscn" id="previews"]
+[ext_resource type="PackedScene" path="res://scenes/hero/hero_portrait.tscn" id="hero_portrait"]
 [sub_resource type="ButtonGroup" id="Factions"]
 [sub_resource type="ButtonGroup" id="Kinds"]
 [sub_resource type="ButtonGroup" id="Tools"]
@@ -15,6 +18,16 @@ anchor_bottom = 1.0
 mouse_filter = 2
 theme = ExtResource("theme")
 script = ExtResource("script")
+[node name="ModelPreviews" parent="." instance=ExtResource("previews")]
+[node name="HeroPortrait" parent="." instance=ExtResource("hero_portrait")]
+[node name="UnitPanel" parent="." instance=ExtResource("unit_panel")]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 312.0
+offset_top = -218.0
+offset_right = -16.0
+offset_bottom = -16.0
 [node name="Top" type="PanelContainer" parent="."]
 anchor_right = 1.0
 offset_left = 16.0
@@ -661,9 +674,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 324.0
-offset_top = -56.0
+offset_top = -252.0
 offset_right = -28.0
-offset_bottom = -22.0
+offset_bottom = -224.0
 mouse_filter = 2
 text = ""
 theme_override_constants/shadow_offset_x = 1

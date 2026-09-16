@@ -91,6 +91,8 @@ func _ready() -> void:
 
 func bind_game(controller: Node3D) -> void:
 	game = controller
+	$CommandBar/Composition.bind(game, portraits)
+	$CommandBar/Composition.focus_changed.connect(_on_composition_focus)
 	%Minimap.game = controller
 	refresh_sound_settings()
 	game.settings.changed.connect(refresh_sound_settings)
@@ -197,7 +199,16 @@ func refresh() -> void:
 	timer_label.text = "%02d:%02d" % [int(game.elapsed) / 60, int(game.elapsed) % 60]
 	objective_label.text = "摧毁敌队全部军事建筑"
 	%EnemyCount.text = "已发现敌军 %d    击败 %d" % [game.enemy_count(), game.kills]
+	$CommandBar/Composition.refresh()
+	var focused: Node3D = $CommandBar/Composition.focused_entity()
+	if focused is BattleBuilding and focused.owner_id == game.local_owner_id:
+		game._production_group_kind = focused.building_type
 	_refresh_actions()
+	var multiple: bool = game.selection.size() > 1
+	$CommandBar/Composition.visible = multiple
+	$CommandBar/Selection.visible = not multiple or _actions.is_empty()
+	$CommandBar/Selection.position.x = 342.0 if multiple else 16.0
+	$CommandBar/Recruitment.visible = not multiple or not _actions.is_empty()
 	var selected_owner_id: int = -1
 	if game.selection.is_empty():
 		selected_name.text = "等待指令"
@@ -266,32 +277,29 @@ func refresh() -> void:
 					selected_stats.text = "%s · %s\n研究队列 %d / 6 · 点击格子取消退款" % [upgrade.name, "等待前置科技" if production.research_waiting_for_prerequisite() else "%d%%" % roundi(production.research_elapsed / upgrade.research_seconds * 100), production.research_queue.size()]
 
 	else:
-		selected_name.text = "%d 个单位与建筑" % game.selection.size()
-		selected_role.text = "你的军团 · 联合编队"
+		var group: Dictionary = $CommandBar/Composition.focused_group()
+		var first: Node3D = $CommandBar/Composition.focused_entity()
+		selected_name.text = "%s ×%d" % [group.name, group.members.size()]
+		selected_role.text = "当前查看 · 整队 %d 人口" % $CommandBar/Composition.total_supply
 		selected_role.modulate = Color("90bcda")
-		var total_hp: float = 0.0
-		var maximum: float = 0.0
-		var counts: Dictionary = {}
-		for entity in game.selection:
-			total_hp += entity.hp
-			maximum += entity.max_hp
-			counts[entity.display_name] = counts.get(entity.display_name, 0) + 1
-		var descriptions: Array[String] = []
-		for key in counts:
-			descriptions.append(key + " " + str(counts[key]))
-		selected_stats.text = " · ".join(descriptions)
-		var production_focus: BattleBuilding = game.selected_production()
-		var first = production_focus if production_focus != null else game.selection[0]
 		selected_owner_id = first.owner_id
-		if production_focus != null:
-			selected_role.text = "生产：%s · %s 切换类别" % [production_focus.display_name, game.settings.hotkey_text("rts_cycle_buildings")]
-		_selected_preview = first.building_type if first is BattleBuilding else first.unit_type
+		_selected_preview = group.kind
 		selected_portrait.texture = portraits[_selected_preview]
-		hp_bar.visible = true
-		hp_label.visible = true
-		hp_bar.max_value = maximum
-		hp_bar.value = total_hp
-		hp_label.text = "%d / %d" % [int(total_hp), int(maximum)]
+		hp_bar.visible = group.max_hp > 0
+		hp_label.visible = hp_bar.visible
+		hp_bar.max_value = maxf(1.0, group.max_hp)
+		hp_bar.value = group.hp
+		hp_label.text = "%d / %d" % [ceili(group.hp), ceili(group.max_hp)]
+		selected_stats.text = first.order_name
+		if first is BattleBuilding:
+			selected_role.text = "生产：%s · %s 切换类别" % [first.display_name, game.settings.hotkey_text("rts_cycle_buildings")]
+		elif first is BattleUnit:
+			var definition: UnitDefinition = first.get_combat_definition()
+			var own: bool = first.owner_id == game.local_owner_id and definition.military
+			var defense_bonus: int = player.get_defense_bonus() if own else 0
+			selected_stats.text = "攻击 %d · 近甲 %d / 远甲 %d\n%s · %s" % [definition.damage + (player.get_attack_bonus() if own else 0),
+				DamageResolver.armor_for_channel(definition, CombatDefinition.DamageChannel.MELEE, defense_bonus),
+				DamageResolver.armor_for_channel(definition, CombatDefinition.DamageChannel.RANGED, defense_bonus), definition.formation_label(), first.order_name]
 	_refresh_selection_owner(selected_owner_id)
 	%AttackButton.button_pressed = game.attack_mode
 	var has_units: bool = not game.own_selected_units().is_empty()
@@ -323,6 +331,14 @@ func _refresh_selection_owner(owner_id: int) -> void:
 	selection_caption.tooltip_text = "所属%s：%s" % [controller_label, owner.display_name]
 	selection_caption.mouse_filter = Control.MOUSE_FILTER_STOP
 
+func _on_composition_focus() -> void:
+	var entity: Node3D = $CommandBar/Composition.focused_entity()
+	if entity is BattleBuilding: game._production_group_kind = entity.building_type
+	refresh()
+
+func cycle_selection_group(reverse: bool = false) -> bool:
+	return $CommandBar/Composition.cycle(reverse)
+
 func trigger_action_slot(index: int) -> void:
 	if index < 0 or index >= _actions.size() or buttons[index].disabled or not buttons[index].visible:
 		return
@@ -349,11 +365,16 @@ func _refresh_actions() -> void:
 	_actions.clear()
 	%BuildPanel.hide()
 	var building: BattleBuilding = game.selected_production()
+	var focused: Node3D = $CommandBar/Composition.focused_entity()
+	if game.selection.size() > 1:
+		building = focused if focused is BattleBuilding and focused.owner_id == game.local_owner_id else null
 	var action_building: int = building.entity_id if building != null else 0
 	if action_building != _action_building:
 		_action_page = 0
 		_action_building = action_building
 	var workers: bool = building == null and not game.own_selected_workers().is_empty()
+	if game.selection.size() > 1:
+		workers = focused is BattleUnit and focused.owner_id == game.local_owner_id and focused.get_combat_definition().is_construction()
 	$CommandBar/Recruitment/RecruitTitle.text = "建造" if workers else "生产与研究"
 	%RecruitHint.text = "选中农民或生产建筑"
 	if workers:

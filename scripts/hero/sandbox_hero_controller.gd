@@ -139,10 +139,10 @@ func handle_input(event: InputEvent) -> bool:
 	if event is InputEventKey:
 		var key: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
 		if event.pressed and not event.echo:
-			if key==KEY_I and has_hero():
+			if key==KEY_I and has_hero() and (first_person or game.hud.selected_hero() == hero):
 				interface.open_inventory()
 				return true
-			if key>=KEY_1 and key<=KEY_5 and has_hero() and (first_person or event.alt_pressed):
+			if key>=KEY_1 and key<=KEY_5 and has_hero() and first_person:
 				interface.use_shortcut(key-KEY_1)
 				return true
 			if key == KEY_F5 and has_hero():
