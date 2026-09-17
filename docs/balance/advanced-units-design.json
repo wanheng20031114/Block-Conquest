@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "revision": "integer-v1",
+  "date": "2026-09-18",
+  "scope": "Design fixtures only. Only musketeer is registered in sandbox/codex.",
+  "units": [
+    {
+      "id": "swordsman",
+      "hp": 135,
+      "damage": 11,
+      "melee_armor": 2,
+      "ranged_armor": 2,
+      "armor_penetration": 0,
+      "bonuses": {"cavalry": 6}
+    },
+    {
+      "id": "shield_guard",
+      "hp": 180,
+      "damage": 7,
+      "melee_armor": 3,
+      "ranged_armor": 8,
+      "armor_penetration": 0,
+      "bonuses": {}
+    },
+    {
+      "id": "spearman",
+      "hp": 90,
+      "damage": 7,
+      "melee_armor": 1,
+      "ranged_armor": 1,
+      "armor_penetration": 0,
+      "bonuses": {"cavalry": 24}
+    },
+    {
+      "id": "archer",
+      "hp": 70,
+      "damage": 13,
+      "melee_armor": 0,
+      "ranged_armor": 6,
+      "armor_penetration": 0,
+      "bonuses": {}
+    },
+    {
+      "id": "crossbowman",
+      "hp": 70,
+      "damage": 11,
+      "melee_armor": 0,
+      "ranged_armor": 2,
+      "armor_penetration": 3,
+      "bonuses": {}
+    },
+    {
+      "id": "musketeer",
+      "hp": 90,
+      "damage": 27,
+      "melee_armor": 0,
+      "ranged_armor": 1,
+      "armor_penetration": 3,
+      "bonuses": {}
+    },
+    {
+      "id": "knight",
+      "hp": 145,
+      "damage": 11,
+      "melee_armor": 2,
+      "ranged_armor": 8,
+      "armor_penetration": 0,
+      "bonuses": {"ranged_infantry": 3, "siege": 13}
+    },
+    {
+      "id": "light_cavalry",
+      "hp": 105,
+      "damage": 8,
+      "melee_armor": 1,
+      "ranged_armor": 4,
+      "armor_penetration": 0,
+      "bonuses": {"ranged_infantry": 3}
+    },
+    {
+      "id": "war_elephant",
+      "hp": 435,
+      "damage": 39,
+      "melee_armor": 2,
+      "ranged_armor": 3,
+      "armor_penetration": 0,
+      "bonuses": {}
+    }
+  ]
+}

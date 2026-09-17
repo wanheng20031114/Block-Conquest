@@ -22,26 +22,46 @@ func _run() -> void:
 	var advanced := variant.definition()
 	check(UnitVariantCatalog.ADVANCED.size() == 1 and not BalanceCatalog.UNITS.has("musketeer_advanced"), "Only current accepted-stage sample is registered, outside recruitment roster")
 	check(base.hp == 75 and base.damage == 22 and base.ranged_armor == 1 and base.armor_penetration == 3, "Normal resource unchanged")
-	check(advanced.hp == 90 and is_equal_approx(advanced.damage, 26.4) and advanced.melee_armor == 0 and is_equal_approx(advanced.ranged_armor, 1.2) and is_equal_approx(advanced.armor_penetration, 3.6), "Advanced combat values")
+	check(advanced.hp == 90 and advanced.damage == 27 and advanced.melee_armor == 0 and advanced.ranged_armor == 1 and advanced.armor_penetration == 3, "Authored integer advanced combat values")
+	check(variant.definition() == advanced and advanced != base, "Grade definition is cached independently of the normal resource")
 	check(advanced.range == 7 and advanced.speed == 3.6 and advanced.cooldown == 2.2 and advanced.attack_windup_seconds == .35 and advanced.radius == base.radius, "Role, timing, footprint preserved")
 	check(advanced.is_ranged_infantry() and advanced.validation_errors().is_empty(), "Advanced remains valid ranged infantry")
 	check(DamageResolver.resolve(DamageResolver.snapshot(BalanceCatalog.unit("knight"), 0, 1, 1), advanced) == 12, "Cavalry counter still applies")
-	check(is_equal_approx(DamageResolver.resolve(DamageResolver.snapshot(BalanceCatalog.unit("triple_cannon"), 0, 1, 1), advanced), 28.8), "Infantry counter still applies")
+	check(DamageResolver.resolve(DamageResolver.snapshot(BalanceCatalog.unit("triple_cannon"), 0, 1, 1), advanced) == 29, "Infantry counter still applies")
+	var design: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://docs/balance/advanced-units-design.json"))
+	var fixtures: Dictionary[String, UnitDefinition] = {}
+	for row: Dictionary in design.units:
+		var fixture := UnitVariantDefinition.new()
+		fixture.base = BalanceCatalog.unit(row.id)
+		for property: String in ["hp", "damage", "melee_armor", "ranged_armor", "armor_penetration"]:
+			check(float(row[property]) == floorf(float(row[property])), row.id + " integer " + property)
+			fixture.set(property, int(row[property]))
+		for group: String in row.bonuses:
+			check(float(row.bonuses[group]) == floorf(float(row.bonuses[group])), row.id + " integer counter bonus")
+			fixture.bonuses[StringName(group)] = int(row.bonuses[group])
+		fixtures[row.id] = fixture.definition()
+	check(fixtures.size() == FAMILIES.size(), "All nine design fixtures, no excluded families")
+	check(fixtures["musketeer"].damage == advanced.damage and fixtures["musketeer"].hp == advanced.hp and fixtures["musketeer"].armor_penetration == advanced.armor_penetration, "Shipped musketeer matches integer design")
+	var identical := 0
+	var within_one := 0
 	for attacker: String in FAMILIES:
 		for defender: String in FAMILIES:
 			var a := BalanceCatalog.unit(attacker)
 			var d := BalanceCatalog.unit(defender)
 			# These temporary definitions are analytical fixtures, never catalogue entries.
-			var av := UnitVariantDefinition.new()
-			av.base = a
-			var dv := UnitVariantDefinition.new()
-			dv.base = d
+			var av := fixtures[attacker]
+			var dv := fixtures[defender]
 			var damage: float = DamageResolver.resolve(DamageResolver.snapshot(a, 0, 0, 0), d)
-			var scaled: float = DamageResolver.resolve(DamageResolver.snapshot(av.definition(), 0, 0, 0), dv.definition())
+			var scaled: float = DamageResolver.resolve(DamageResolver.snapshot(av, 0, 0, 0), dv)
 			var old_hits := ceili((d.hp - .000001) / damage)
-			var new_hits := ceili((dv.definition().hp - .000001) / scaled)
-			check(old_hits == new_hits, "Same-grade baseline hits: " + attacker + " -> " + defender)
+			var new_hits := ceili((dv.hp - .000001) / scaled)
+			check(abs(new_hits - old_hits) <= old_hits * .1 + .000001, "Same-grade hits stay within 10 percent: " + attacker + " -> " + defender)
+			if old_hits == new_hits: identical += 1
+			if abs(new_hits - old_hits) <= 1: within_one += 1
+			if attacker == "musketeer" or (attacker == "spearman" and d.combat_class == &"cavalry") or (attacker in ["knight", "light_cavalry"] and d.is_ranged_infantry()):
+				check(old_hits == new_hits, "Gun and cavalry-counter breakpoints preserved: " + attacker + " -> " + defender)
 			study.append({"attacker": attacker, "defender": defender, "normal_damage": damage, "advanced_damage": scaled, "normal_hits": old_hits, "advanced_hits": new_hits})
+	check(identical == 55 and within_one == 75, "Report baseline: 55 exact and 75 within one hit of 81 cases")
 	var codex: Control = load("res://scenes/unit_codex.tscn").instantiate()
 	root.add_child(codex)
 	codex.select_entry(0, "musketeer")
@@ -49,7 +69,7 @@ func _run() -> void:
 	codex.get_node("%AdvancedGrade").pressed.emit()
 	check(codex.advanced and codex.selected_id == "musketeer" and codex._entries.size() == count, "Codex toggle preserves page and entry count")
 	check(codex._preview_unit.grade == &"advanced" and codex.get_node("%EntryTitle").text == "高级火枪手", "Codex advanced model and title")
-	check("26.4" in codex.get_node("%Stats").text and "3.6" in codex.get_node("%Stats").text and "训练费用" not in codex.get_node("%Stats").text, "Codex displays fractional stats and sandbox availability")
+	check("27" in codex.get_node("%Stats").text and "26.4" not in codex.get_node("%Stats").text and "训练费用" not in codex.get_node("%Stats").text, "Codex displays authored integer attack and sandbox availability")
 	codex.select_entry(0, "priest")
 	check(not codex.advanced and not codex.get_node("%GradeRow").visible, "Unsupported family has no grade toggle")
 	codex.select_entry(1, "castle")
@@ -77,7 +97,7 @@ func _run() -> void:
 	check(composition.focused_entity() == elite, "Advanced subgroup focus")
 	var payload := DamageResolver.snapshot(advanced, 0, 1, 1)
 	for shot: int in 3: elite.receive_hit(payload)
-	check(elite.alive and is_equal_approx(elite.hp, 10.8), "Three same-grade hits leave 10.8 HP")
+	check(elite.alive and elite.hp == 9, "Three same-grade hits leave nine HP")
 	elite.receive_hit(payload)
 	check(not elite.alive and elite.hp == 0, "Fourth actual hit kills, matching normal matchup")
 	game.set_paint_kind("farmer")
@@ -96,7 +116,7 @@ func _run() -> void:
 	var began: float = game.elapsed
 	while target.hp == target.max_hp and game.elapsed - began < 4:
 		await physics_frame
-	check(is_equal_approx(target.max_hp - target.hp, 23.0), "Real advanced bullet applies 26.4 damage, 3.6 penetration against seven armor")
+	check(target.max_hp - target.hp == 23, "Real advanced bullet applies 27 damage, three penetration against seven armor")
 	game.set_running(false)
 	FileAccess.open(OUTPUT + "results.json", FileAccess.WRITE).store_string(JSON.stringify({"checks": checks, "failures": failures, "same_grade_study": study}, "\t"))
 	print("ADVANCED_MUSKETEER ", checks, " checks; ", failures.size(), " failures")
