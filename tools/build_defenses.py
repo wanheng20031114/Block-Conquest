@@ -189,24 +189,27 @@ def heavy_fortress():
     base, mount, barrel = Model(), Model(), Model()
     # A broad, chamfered artillery fort. Low battered walls and angular bastions
     # distinguish it from the castle's narrow round towers and high keep.
-    outline = [(-4.7,-5.47),(4.7,-5.47),(5.97,-4.2),(5.97,4.2),
-               (4.7,5.47),(-4.7,5.47),(-5.97,4.2),(-5.97,-4.2)]
+    foundation_top = .36
+    masonry_seat = foundation_top-.03
+    # The chamfer must also support the diagonal vertices of all four bastions.
+    outline = [(-4.98,-5.47),(4.98,-5.47),(5.97,-4.48),(5.97,4.48),
+               (4.98,5.47),(-4.98,5.47),(-5.97,4.48),(-5.97,-4.48)]
     footing = Model()
-    footing.polygon(outline,.36,"granite",axis="y")
-    base.absorb(footing,pos=(0,.18,0))
+    footing.polygon(outline,foundation_top,"granite",axis="y")
+    base.absorb(footing,pos=(0,foundation_top/2,0))
     base.box((10.65,.24,9.52),(0,.48,0),"granite",bevel=.12)
     base.box((10.24,2.75,9.0),(0,1.93,0),"mortar",bevel=.16)
     for yaw,w,z in ((0,10.25,4.5),(math.pi,10.25,4.5),
                     (math.pi/2,9.0,5.12),(-math.pi/2,9.0,5.12)):
         wall = Model()
         # Dense granite at ground level carries the lighter masonry above.
-        stone_rows(wall,w,1.056,.14,(0,.61,z),rows=2,block=1.3,material="granite")
+        stone_rows(wall,w,1.086,.14,(0,.58,z),rows=2,block=1.3,material="granite")
         stone_rows(wall,w,1.584,.14,(0,1.666,z),rows=3,block=1.3)
         wall.box((w+.1,.22,.44),(0,3.33,z),"stone_light",bevel=.045)
         for x in np.linspace(-w*.42,w*.42,5):
             # Splayed buttresses make the wall base visibly substantial.
             support=Model()
-            support.polygon([(-.3,.54),(.3,.54),(.22,2.8),(-.22,2.8)],.45,"granite_light")
+            support.polygon([(-.3,masonry_seat),(.3,masonry_seat),(.22,2.8),(-.22,2.8)],.45,"granite_light")
             wall.absorb(support,pos=(x,0,z+.17))
         base.absorb(wall,rot=yaw)
     base.box((10.4,.18,9.2),(0,3.5,0),"stone_light",bevel=.06)
@@ -219,7 +222,9 @@ def heavy_fortress():
             seam_r=1.69-(seam_y-.54)*.23/2.78
             base.cone(1.69,seam_r,seam_y-.54,(x,(seam_y+.54)/2,z),"granite",8)
             base.cone(seam_r,1.46,3.32-seam_y,(x,(seam_y+3.32)/2,z),"stone",8)
-            base.cylinder(1.72,.21,(x,.61,z),"granite",8)
+            # Keep the collar's top and width, but seat its bottom into the footing.
+            collar_top=.715
+            base.cylinder(1.72,collar_top-masonry_seat,(x,(collar_top+masonry_seat)/2,z),"granite",8)
             base.ring(1.58,1.675,.09,(x,1.2,z),"granite_light",8)
             for y,r in ((seam_y,seam_r),(3.26,1.49)):
                 base.ring(r-.07,r+.045,.16,(x,y,z),"iron",8)
@@ -255,7 +260,9 @@ def heavy_fortress():
             door.cylinder(.042,.025,(x,y,4.94),"iron_light",6,(math.pi/2,0,0))
     base.absorb(door,rot=math.pi)
     for n in range(3):
-        base.box((2.65+n*.19,.14,.37),(0,.49-n*.14,-4.84-n*.23),"stone_light",bevel=.027)
+        # Solid risers support the tread overhangs beyond the rectangular plinth.
+        step_top=.56-n*.14
+        base.box((2.65+n*.19,step_top,.37),(0,step_top/2,-4.84-n*.23),"stone_light",bevel=.027)
     # A low rear magazine with a blue roof; no competing tall central tower.
     base.box((3.35,.55,2.05),(0,3.94,3.08),"stone",bevel=.055)
     tiled_roof(base,3.65,2.35,4.22,4.91,center=(0,3.08),blue=True)

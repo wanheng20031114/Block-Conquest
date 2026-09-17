@@ -59,6 +59,13 @@ func _run() -> void:
 		await capture("angle_%03d" % angle,viewport)
 	codex._anchor.rotation.y = 0
 	var original: Transform3D = codex._camera.transform
+	var original_size: float = codex._camera.size
+	codex._camera.position = Vector3(12,2.3,-20)
+	codex._camera.look_at(Vector3(0,1.0,0),Vector3.UP)
+	codex._camera.size = 13.5
+	codex._request_preview_redraw()
+	await capture("foundation_low",viewport)
+	codex._camera.size = original_size
 	codex._camera.position = Vector3(1,20,-3)
 	codex._camera.look_at(Vector3(0,2,0),Vector3.UP)
 	codex._request_preview_redraw()
