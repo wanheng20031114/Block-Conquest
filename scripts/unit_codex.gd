@@ -2,7 +2,7 @@ extends Control
 ## A native catalogue backed by the same resources as recruitment and combat.
 signal closed
 
-const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower", "cannon_tower", "castle"]
+const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower", "cannon_tower", "castle", "heavy_fortress"]
 const CLASS_NAMES: Dictionary = CombatDefinition.GROUP_NAMES
 const FAMILY_FILTERS: Array[StringName] = [&"", &"infantry", &"ranged_infantry", &"melee_infantry", &"cavalry", &"siege"]
 const BUILDING_DESCRIPTIONS: Dictionary = {
@@ -12,6 +12,7 @@ const BUILDING_DESCRIPTIONS: Dictionary = {
 	"academy": "训练牧师，并研究军队、人口与采矿科技。训练和研究独立进行，已完成的研究永久保留。",
 	"defense_tower": "自动攻击范围内的敌人。无法驻军，需要部队保护。",
 	"cannon_tower": "厚石炮台上的回转重炮，自动攻击单个敌人。没有溅射或驻军，适合封锁路口，需要防备远处的攻城器。",
+	"heavy_fortress": "宽厚的棱堡承载两门独立重炮，优先分散火力，敌人不足时集火。炮弹造成范围伤害，适合守护关键防线。",
 	"castle": "围墙与四角堡楼守护中央主堡。三门火炮独立瞄准与装填，优先分散火力，敌人不足时集中射击。单发造成单体伤害。",
 }
 const MODEL_PATHS: Dictionary = {
@@ -22,6 +23,7 @@ const MODEL_PATHS: Dictionary = {
 	"defense_tower": "res://assets/models/environment/defense_tower.tscn",
 	"cannon_tower": "res://assets/models/environment/cannon_tower.tscn",
 	"castle": "res://assets/models/environment/castle.tscn",
+	"heavy_fortress": "res://assets/models/environment/heavy_fortress.tscn",
 }
 const TECH_MODELS: Dictionary = {&"attack": "swordsman", &"defense": "knight", &"workforce": "farmer", &"army_capacity": "barracks", &"mining": "farmer", &"cannon_range": "cannon", &"recovery": "farmer"}
 const UNIT_FRAMING: Dictionary = {
@@ -143,7 +145,10 @@ func _select_preview_action(action: PreviewAction) -> void:
 		_cycle_seconds = BalanceCatalog.building(selected_id).cooldown
 		_preview_paused = false
 		_preview_complete = false
-		_preview_artillery.sample_fire(0.0 if action == PreviewAction.ATTACK else DefensiveTowerVisual.FIRE_LENGTH)
+		if action == PreviewAction.ATTACK:
+			_preview_artillery.sample_fire(0.0)
+		else:
+			_preview_artillery.sample_rest()
 		_update_preview_controls()
 		_refresh_preview_activity()
 		return
@@ -363,12 +368,16 @@ func _on_entry_selected(index: int) -> void:
 			content += _combat_rows(building)
 			if building.weapon_count > 1:
 				content += _row("独立火炮", "%d 门 · 各自装填" % building.weapon_count)
+			if building.splash_radius > 0.0:
+				content += _row("爆炸半径", _number(building.splash_radius) + " · 无友伤")
 			var recruits: PackedStringArray = []
 			for kind: String in building.produces:
 				recruits.append(BalanceCatalog.unit(kind).name)
 			if not recruits.is_empty():
 				content += _row("训练部队", "、".join(recruits))
 			%Special.text = "需一座已完工兵营才能建造。" if selected_id in ["factory", "academy"] else "由一名农民施工。支持连续建造与接手未完成工地。"
+			if building.splash_radius > 0.0:
+				%Special.text = "落点范围内的敌人承受等额伤害，分别扣除远程护甲；不伤及友军。不受军队攻防与加长炮管科技影响。"
 			if selected_id == "headquarters":
 				%Special.text = "每位玩家最多拥有一座大本营（含工地）。大本营被毁后可以重建。"
 			elif not building.cost_progression.is_empty():
@@ -492,6 +501,9 @@ func _set_preview(kind: String) -> void:
 			_select_preview_action(PreviewAction.IDLE)
 		center = 3.7 if kind == "headquarters" else 3.0
 		_base_camera_size = 14.5 if kind == "headquarters" else 9.5
+		if kind == "heavy_fortress":
+			center = 3.0
+			_base_camera_size = 16.4
 		if kind == "castle":
 			center = 3.5
 			_base_camera_size = 13.2
@@ -501,11 +513,12 @@ func _set_preview(kind: String) -> void:
 	_camera.position = Vector3(5, 4, -7) if unit else Vector3(15, 12, 21 if kind == "headquarters" else -21)
 	_camera.look_at(Vector3(0, center, 0), Vector3.UP)
 	_pedestal.scale = Vector3(1.4, 1.0, 1.4) if unit else Vector3(4.7, 1.0, 4.7)
+	if kind == "heavy_fortress": _pedestal.scale = Vector3(5.9,1.0,5.9)
 	%PreviewAnimationControls.visible = (category == 0 and unit) or _preview_artillery != null
 	%PreviewWalk.visible = unit
 	%PreviewGather.visible = kind in ["farmer", "engineer", "priest"]
 	%PreviewGather.text = "治疗" if kind == "priest" else ("维修" if kind == "engineer" else "采矿")
-	%PreviewAttack.text = "开炮" if kind in ["cannon", "heavy_cannon", "triple_cannon", "cannon_tower", "castle"] else ("投射" if kind == "catapult" else "攻击")
+	%PreviewAttack.text = "开炮" if kind in ["cannon", "heavy_cannon", "triple_cannon", "cannon_tower", "castle", "heavy_fortress"] else ("投射" if kind == "catapult" else "攻击")
 	_reset_view()
 	_refresh_preview_activity()
 

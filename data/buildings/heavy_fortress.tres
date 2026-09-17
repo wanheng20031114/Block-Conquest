@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="BuildingDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"heavy_fortress"
+name = "重型要塞"
+description = "宽厚的棱堡承载两门独立重炮，爆炸覆盖落点周围的敌军。昂贵且占地宽广，适合守护关键防线。"
+combat_class = &"building"
+damage_channel = 1
+hp = 5400
+cost = 1800
+build_seconds = 80.0
+radius = 6.0
+size = Vector3(12, 7.2, 11)
+bar_height = 8.1
+damage = 80
+range = 13.0
+cooldown = 4.5
+weapon_count = 2
+model = "heavy_fortress"
+projectile = "cannon"
+melee_armor = 15
+ranged_armor = 15
+splash_radius = 2.4

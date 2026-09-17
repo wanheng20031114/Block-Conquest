@@ -22,7 +22,6 @@ const ROLE_NAMES: PackedStringArray = ["作战", "支援", "建设"]
 ## Each weapon owns a target, windup and cooldown; no shared volley clock.
 @export_range(1, 3) var independent_weapons: int = 1
 @export var weapon_arc_degrees: float = 0.0
-@export var splash_radius: float = 0.0
 @export var projectile: String = ""
 @export var production_building: StringName
 @export var training_seconds: float = 0.0

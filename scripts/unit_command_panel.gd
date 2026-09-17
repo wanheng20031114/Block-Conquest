@@ -109,6 +109,8 @@ func _stats_text(entity: Node3D) -> String:
 		_number(DamageResolver.armor_for_channel(definition,CombatDefinition.DamageChannel.RANGED,defense_bonus)), entity.order_name]
 	if entity is HeroUnit:
 		result += "\n弹匣 %d/%d · %s" % [entity.weapon.rounds,entity.weapon.definition.magazine_size,"装填 %.1fs" % entity.weapon.reload_remaining if entity.weapon.reload_remaining>0 else "无限备弹"]
+	if definition.splash_radius > 0.0:
+		result += "\n溅射半径 %s · 无友伤" % _number(definition.splash_radius)
 	return result
 
 func _number(value: float) -> String:

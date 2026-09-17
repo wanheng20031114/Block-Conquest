@@ -116,13 +116,20 @@ func validate_resource_values() -> void:
 	# saved exported property. Exercise the actual ResourceLoader values in PCK.
 	var began := checks
 	var production := {"headquarters": ["farmer"], "barracks": ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry"],
-		"factory": ["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"], "academy": ["priest"], "defense_tower": [], "cannon_tower": [], "castle": [], "enemy_keep": ["farmer"], "tower": [], "house": []}
-	var defensive_damage := {"headquarters": 40, "enemy_keep": 40, "defense_tower": 16, "cannon_tower": 48, "castle": 28, "tower": 17}
+		"factory": ["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"], "academy": ["priest"], "defense_tower": [], "cannon_tower": [], "castle": [], "heavy_fortress": [], "enemy_keep": ["farmer"], "tower": [], "house": []}
+	var defensive_damage := {"headquarters": 40, "enemy_keep": 40, "defense_tower": 16, "cannon_tower": 48, "castle": 28, "heavy_fortress": 80, "tower": 17}
 	for kind: String in production:
 		var building := BalanceCatalog.building(kind)
+		var armor: int = {"castle":12,"heavy_fortress":15}.get(kind,10)
 		check(Array(building.produces) == production[kind], "packaged_production_members_" + kind)
-		check(building.id == StringName(kind) and building.hp >= 1000.0 and building.melee_armor == 10.0 and building.ranged_armor == 10.0 and building.damage == defensive_damage.get(kind, 0),
+		check(building.id == StringName(kind) and building.hp >= 1000.0 and building.melee_armor == armor and building.ranged_armor == armor and building.damage == defensive_damage.get(kind, 0),
 			"packaged_building_combat_values_" + kind)
+	var fortress := BalanceCatalog.building("heavy_fortress")
+	check(fortress.hp == 5400 and fortress.cost == 1800 and fortress.build_seconds == 80 and fortress.size == Vector3(12,7.2,11)
+		and fortress.range == 13 and fortress.cooldown == 4.5 and fortress.weapon_count == 2 and fortress.splash_radius == 2.4
+		and fortress.projectile == "cannon" and fortress.bonuses.is_empty(), "packaged_fortress_approved_values")
+	check(BalanceCatalog.building("castle").splash_radius == 0 and BalanceCatalog.building("cannon_tower").splash_radius == 0,
+		"packaged_existing_cannons_remain_single_target")
 	for kind: String in BalanceCatalog.UNITS:
 		var unit := BalanceCatalog.unit(kind)
 		check(unit.validation_errors().is_empty(), "packaged_classification_" + kind)

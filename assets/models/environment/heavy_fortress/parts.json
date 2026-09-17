@@ -1,0 +1,30 @@
+[
+  {
+    "part": "base",
+    "families": [
+      "Stone",
+      "Timber",
+      "Metal",
+      "Roof",
+      "Fabric"
+    ],
+    "triangles": 20802
+  },
+  {
+    "part": "mount",
+    "families": [
+      "Metal",
+      "Timber"
+    ],
+    "triangles": 672
+  },
+  {
+    "part": "barrel",
+    "families": [
+      "Metal",
+      "Stone",
+      "Fabric"
+    ],
+    "triangles": 1568
+  }
+]

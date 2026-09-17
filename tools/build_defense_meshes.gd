@@ -3,7 +3,7 @@ extends SceneTree
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	var kind: String = args[0] if args.size() == 1 else "cannon_tower"
-	assert(kind in ["cannon_tower", "castle"])
+	assert(kind in ["cannon_tower", "castle", "heavy_fortress"])
 	var folder := "res://assets/models/environment/" + kind + "/"
 	var parts: Array = JSON.parse_string(FileAccess.get_file_as_string(folder + "parts.json"))
 	for entry: Dictionary in parts:
@@ -16,7 +16,7 @@ func _initialize() -> void:
 			assert(family in entry.families)
 			var material := ShaderMaterial.new()
 			material.shader = load("res://assets/models/environment/building_surface.gdshader")
-			material.set_shader_parameter("building_height", 8.0 if kind == "castle" else 5.2)
+			material.set_shader_parameter("building_height", {"castle":8.0,"cannon_tower":5.2,"heavy_fortress":7.2}[kind])
 			material.set_shader_parameter("metalness", .55 if family == "Metal" else 0.0)
 			material.set_shader_parameter("surface_roughness", .48 if family == "Metal" else .84)
 			var mesh: ArrayMesh = instance.mesh

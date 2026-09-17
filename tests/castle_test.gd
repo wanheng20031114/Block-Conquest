@@ -25,7 +25,7 @@ func _run() -> void:
 	check(definition.hp == 3600 and definition.cost == 950 and definition.build_seconds == 55,"castle durability and economy")
 	check(definition.damage == 28 and definition.cooldown == 2.8 and definition.range == 12.5 and definition.weapon_count == 3,"three independent 28 damage guns")
 	check(definition.melee_armor == 12 and definition.ranged_armor == 12 and definition.produces.is_empty(),"castle armor and defensive role")
-	check(not BalanceCatalog.BUILDINGS.has("heavy_fortress"),"fortress remains unimplemented")
+	check(definition.splash_radius == 0,"castle stays single target after fortress integration")
 	game.set_paint_kind("castle")
 	check(game.hud.get_node("%BuildingKinds/castle").button_pressed,"castle has native sandbox placement button")
 	var at := Vector3.ZERO
@@ -158,7 +158,7 @@ func _run() -> void:
 	game.select_entities([worker]); game.hud.refresh()
 	check(game.hud._actions.size() == 6 and game.hud._actions[5].kind == "action_page","worker buildings paginate through existing six slots")
 	game.hud._on_recruit(5)
-	check(game.hud._actions[0].id == "castle" and game.hud._actions[1].id == "headquarters","castle and headquarters accessible on second page")
+	check(game.hud._actions[0].id == "castle" and game.hud._actions[1].id == "heavy_fortress" and game.hud._actions[2].id == "headquarters","castle, fortress and headquarters accessible on second page")
 	game.hud._on_recruit(0)
 	check(game.build_mode and game.build_kind == "castle","visible castle action dispatches matching build command")
 	var location: Vector3 = game.find_build_location(0,"castle",game.headquarters.global_position)

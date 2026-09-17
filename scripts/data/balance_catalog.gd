@@ -30,6 +30,7 @@ const BUILDINGS: Dictionary = {
 	"defense_tower": preload("res://data/buildings/defense_tower.tres"),
 	"cannon_tower": preload("res://data/buildings/cannon_tower.tres"),
 	"castle": preload("res://data/buildings/castle.tres"),
+	"heavy_fortress": preload("res://data/buildings/heavy_fortress.tres"),
 	"enemy_keep": preload("res://data/buildings/enemy_keep.tres"),
 	"tower": preload("res://data/buildings/tower.tres"),
 	"house": preload("res://data/buildings/house.tres"),

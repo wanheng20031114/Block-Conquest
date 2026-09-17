@@ -1,7 +1,6 @@
 class_name DefensiveTowerVisual
 extends Node3D
 ## Authored battery: one transform hierarchy and AnimationPlayer per gun.
-const FIRE_LENGTH := DefensiveGunVisual.FIRE_LENGTH
 @export var gun_paths: Array[NodePath] = [NodePath("Gun")]
 var guns: Array[DefensiveGunVisual] = []
 
@@ -18,6 +17,10 @@ func set_manual() -> void:
 func sample_fire(phase: float) -> void:
 	for gun: DefensiveGunVisual in guns:
 		gun.sample_fire(phase)
+
+func sample_rest() -> void:
+	for gun: DefensiveGunVisual in guns:
+		gun.sample_fire(gun.fire_length)
 
 func sample_remote(a: Array, b: Array, weight: float, playback: float) -> void:
 	for index: int in guns.size():

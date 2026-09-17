@@ -33,7 +33,7 @@ func _run() -> void:
 	check(definition.projectile == "cannon" and definition.damage == 48 and definition.cooldown == 2.4 and definition.range == 12, "single cannon weapon definition")
 	check(definition.bonuses.is_empty() and definition.armor_penetration == 0, "no hidden class bonus or penetration")
 	check(BalanceCatalog.building("defense_tower").name == "箭塔", "existing tower is named Arrow Tower")
-	check(not BalanceCatalog.BUILDINGS.has("heavy_fortress"), "heavy fortress remains behind its individual acceptance gate")
+	check(definition.splash_radius == 0, "cannon tower stays single target after fortress integration")
 	game.set_paint_kind("cannon_tower")
 	check(game.hud.get_node("%BuildingKinds/cannon_tower").button_pressed and not game.hud.get_node("%CountRow").visible, "native sandbox cannon placement entry")
 	var at := Vector3.ZERO

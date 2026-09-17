@@ -4,6 +4,7 @@ extends RefCounted
 ## survive source death; target armor is read at impact, in one shared damage path.
 
 static var _shared_blast_query: PhysicsShapeQueryParameters3D
+static var _blast_query_capacity: int = 64
 var _source: Node3D
 var _target: Node3D
 var _payload: DamagePayload
@@ -83,6 +84,14 @@ func impact() -> void:
 	if _visual_only:
 		return
 	var damage_source: Node3D = _source if is_instance_valid(_source) else null
+	if _payload.splash_radius > 0.0:
+		if _game.is_authority:
+			_apply_blast(damage_source)
+		if _kind == "stone":
+			_game.spawn_effect(_end - Vector3.UP * 0.7, "stone_hit", Color("efbb76"))
+		else:
+			_game.spawn_effect(_end, "explosion", Color("ead098"))
+		return
 	if _kind in ["arrow", "bolt", "bullet", "cannon"]:
 		var impact_kind: String = "explosion" if _kind == "cannon" else ("bullet_hit" if _kind == "bullet" else "arrow_hit")
 		var impact_at: Vector3 = _end
@@ -99,30 +108,39 @@ func impact() -> void:
 			if _game.is_authority:
 				_target.receive_hit(_payload, damage_source)
 		_game.spawn_effect(impact_at, impact_kind, Color("ead098"))
-	elif _kind == "stone":
-		if _game.is_authority:
-			# Queries are sequential on the main thread. Both standalone and pooled
-			# stones share this native shape/query; intersect_shape returns its own hits.
-			if _shared_blast_query == null:
-				var shape := SphereShape3D.new()
-				shape.radius = BalanceCatalog.unit(&"catapult").splash_radius + 0.25
-				_shared_blast_query = PhysicsShapeQueryParameters3D.new()
-				_shared_blast_query.shape = shape
-			_shared_blast_query.collision_mask = collision_mask
-			_shared_blast_query.transform.origin = Vector3(_end.x, 1.0, _end.z)
-			var hits: Array[Dictionary] = _game.get_world_3d().direct_space_state.intersect_shape(_shared_blast_query, 256)
-			for hit: Dictionary in hits:
-				var entity: Node3D = hit.collider
-				if not is_instance_valid(entity) or not entity.alive or entity.alliance_id == _payload.alliance_id:
-					continue
-				var building: bool = entity.is_in_group("buildings")
-				var contact: Vector3 = entity.get_attack_position(_end) if building else entity.global_position
-				var separation: Vector3 = contact - _end
-				separation.y = 0.0
-				var distance: float = maxf(0.0, separation.length() - (0.0 if building else entity.radius))
-				if distance <= BalanceCatalog.unit(&"catapult").splash_radius:
-					entity.receive_hit(_payload, damage_source)
-		_game.spawn_effect(_end - Vector3.UP * 0.7, "stone_hit", Color("efbb76"))
+
+func _apply_blast(damage_source: Node3D) -> void:
+	# A launch-time snapshot keeps different explosives independent, including
+	# after their source dies. The query is reused only before damage callbacks.
+	var payload := _payload
+	var impact_at := _end
+	if _shared_blast_query == null:
+		_shared_blast_query = PhysicsShapeQueryParameters3D.new()
+		_shared_blast_query.shape = SphereShape3D.new()
+	_shared_blast_query.shape.radius = payload.splash_radius + 0.25
+	_shared_blast_query.collision_mask = collision_mask
+	_shared_blast_query.transform.origin = Vector3(impact_at.x, 1.0, impact_at.z)
+	var space := _game.get_world_3d().direct_space_state
+	var hits := space.intersect_shape(_shared_blast_query, _blast_query_capacity)
+	# Normal blasts issue one local query. Grow only when saturated: presentation
+	# budgets and query limits must never silently drop authoritative damage.
+	while hits.size() == _blast_query_capacity:
+		_blast_query_capacity *= 2
+		hits = space.intersect_shape(_shared_blast_query, _blast_query_capacity)
+	var damaged: Dictionary = {}
+	for hit: Dictionary in hits:
+		var entity: Node3D = hit.collider
+		if not is_instance_valid(entity) or not entity.alive or entity.alliance_id == payload.alliance_id or damaged.has(hit.collider_id):
+			continue
+		var building: bool = entity.is_in_group("buildings")
+		var contact: Vector3 = entity.get_attack_position(impact_at) if building else entity.global_position
+		var separation: Vector3 = contact - impact_at
+		separation.y = 0.0
+		var reach: float = payload.splash_radius + (0.0 if building else entity.radius)
+		var distance_squared := separation.length_squared()
+		if distance_squared <= reach * reach or is_equal_approx(distance_squared, reach * reach):
+			damaged[hit.collider_id] = true
+			entity.receive_hit(payload, damage_source)
 
 func reset() -> void:
 	# Idle records must not retain entities, world roots, or attack snapshots.

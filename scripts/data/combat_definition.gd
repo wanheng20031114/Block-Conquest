@@ -23,6 +23,8 @@ const GROUP_NAMES: Dictionary = {&"infantry": "步兵", &"ranged_infantry": "远
 @export var bonuses: Dictionary = {}
 @export var range: float = 0.0
 @export var cooldown: float = 1.0
+## Ground-plane impact radius. Zero keeps the projectile strictly single-target.
+@export_range(0.0, 20.0) var splash_radius: float = 0.0
 
 func is_ranged_infantry() -> bool:
 	return combat_class == &"infantry" and damage_channel == DamageChannel.RANGED
@@ -46,6 +48,7 @@ func validation_errors() -> PackedStringArray:
 	if not CLASS_NAMES.has(combat_class): errors.append("未知兵种类别: " + combat_class)
 	if damage_channel not in [DamageChannel.MELEE, DamageChannel.RANGED]: errors.append("未知攻击方式")
 	if armor_penetration < 0.0: errors.append("穿甲值不能为负")
+	if not is_finite(splash_radius) or splash_radius < 0.0: errors.append("溅射半径必须为非负有限数")
 	for group: StringName in bonuses:
 		if not GROUP_NAMES.has(group): errors.append("未知附伤类别: " + group)
 		if float(bonuses[group]) < 0.0: errors.append("附伤不能为负")

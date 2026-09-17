@@ -185,10 +185,124 @@ def castle():
     print("Castle base:",sum(p["triangles"] for p in parts),"triangles; cannon assemblies are shared native scene instances")
 
 
+def heavy_fortress():
+    base, mount, barrel = Model(), Model(), Model()
+    # A broad, chamfered artillery fort. Low battered walls and angular bastions
+    # distinguish it from the castle's narrow round towers and high keep.
+    outline = [(-4.7,-5.47),(4.7,-5.47),(5.97,-4.2),(5.97,4.2),
+               (4.7,5.47),(-4.7,5.47),(-5.97,4.2),(-5.97,-4.2)]
+    footing = Model()
+    footing.polygon(outline,.36,"granite",axis="y")
+    base.absorb(footing,pos=(0,.18,0))
+    base.box((10.65,.24,9.52),(0,.48,0),"stone_light",bevel=.12)
+    base.box((10.24,2.75,9.0),(0,1.93,0),"mortar",bevel=.16)
+    for yaw,w,z in ((0,10.25,4.5),(math.pi,10.25,4.5),
+                    (math.pi/2,9.0,5.12),(-math.pi/2,9.0,5.12)):
+        wall = Model()
+        stone_rows(wall,w,2.64,.14,(0,.61,z),rows=5,block=1.3)
+        wall.box((w+.1,.22,.44),(0,3.33,z),"stone_light",bevel=.045)
+        for x in np.linspace(-w*.42,w*.42,5):
+            # Splayed buttresses make the wall base visibly substantial.
+            support=Model()
+            support.polygon([(-.3,.54),(.3,.54),(.22,2.8),(-.22,2.8)],.45,"granite_light")
+            wall.absorb(support,pos=(x,0,z+.17))
+        base.absorb(wall,rot=yaw)
+    base.box((10.4,.18,9.2),(0,3.5,0),"stone_light",bevel=.06)
+    base.box((9.85,.12,8.7),(0,3.65,0),"paving",bevel=.04)
+    # Four squat eight-sided bastions, with dark reinforcement courses.
+    for x in (-4.25,4.25):
+        for z in (-3.7,3.7):
+            base.cone(1.69,1.46,2.78,(x,1.93,z),"stone",8)
+            base.cylinder(1.72,.21,(x,.61,z),"granite_light",8)
+            for y,r in ((1.2,1.65),(2.1,1.58),(3.26,1.49)):
+                base.ring(r-.07,r+.025,.11,(x,y,z),"granite",8)
+            for side in range(8):
+                a=(side+.5)*math.tau/8
+                base.box((.53,.59,.055),(x+math.sin(a)*1.397,2.82,z+math.cos(a)*1.397),"stone_light",rot=(0,a,0),bevel=.018)
+            base.cylinder(1.64,.23,(x,3.47,z),"stone_light",8)
+            base.cylinder(1.48,.10,(x,3.64,z),"wood_dark",8)
+            for side in range(8):
+                a=(side+.5)*math.tau/8
+                base.box((.65,.65,.35),(x+math.sin(a)*1.42,4.0,z+math.cos(a)*1.42),"stone",rot=(0,a,0),bevel=.045)
+                base.box((.71,.11,.40),(x+math.sin(a)*1.42,4.38,z+math.cos(a)*1.42),"stone_light",rot=(0,a,0),bevel=.025)
+    # Low curtain parapets keep both heavy guns' full rotation clear.
+    for yaw,w,z in ((0,6.2,4.48),(math.pi,6.2,4.48),(math.pi/2,5.5,5.07),(-math.pi/2,5.5,5.07)):
+        wall=Model()
+        wall.box((w,.39,.39),(0,3.96,z),"stone",bevel=.03)
+        for x in np.linspace(-w*.46,w*.46,7):
+            wall.box((.48,.35,.43),(x,4.31,z),"stone_light",bevel=.028)
+        base.absorb(wall,rot=yaw)
+    # Central gate and thick, iron-banded doors beneath a team-coloured shield.
+    door=Model()
+    arched_gate(door,2.0,2.48,.26,(0,.56,4.66),portcullis=True)
+    base.absorb(door,rot=math.pi)
+    for n in range(3):
+        base.box((2.65+n*.19,.14,.37),(0,.49-n*.14,-4.84-n*.23),"stone_light",bevel=.027)
+    # A low rear magazine with a blue roof; no competing tall central tower.
+    base.box((3.35,.55,2.05),(0,3.94,3.08),"stone",bevel=.055)
+    tiled_roof(base,3.65,2.35,4.22,4.91,center=(0,3.08),blue=True)
+    for x in (-.87,.87):
+        base.box((.32,.37,.06),(x,3.95,1.99),"dark",bevel=.012)
+    # Cannonball emblems and fabric stay readable at normal battle zoom.
+    for yaw,z in ((math.pi,4.77),(math.pi/2,5.57),(-math.pi/2,5.57)):
+        crest=Model()
+        crest.polygon([(-.72,2.89),(.72,2.89),(.72,1.67),(0,1.19),(-.72,1.67)],.085,"gold_dark")
+        crest.polygon([(-.63,2.8),(.63,2.8),(.63,1.73),(0,1.3),(-.63,1.73)],.12,"blue")
+        for x,y in ((-.23,1.93),(.23,1.93),(0,2.32)):
+            crest.cylinder(.17,.07,(x,y,.115),"gold_light",10,(math.pi/2,0,0))
+        # Front crest sits on a raised gate lintel; side crests on curtain walls.
+        if yaw==math.pi:
+            base.absorb(crest,pos=(0,2.39,-4.75),rot=yaw,scale=(.65,.65,1))
+        else:
+            base.absorb(crest,pos=(math.sin(yaw)*z,0,0),rot=yaw)
+    # A single standard at the rear, well outside the barrel sweep.
+    standard=Model()
+    standard.cylinder(.09,2.25,(0,5.81,0),"wood_dark",10)
+    standard.cone(.15,0,.28,(0,7.05,0),"gold",8)
+    flag=Model()
+    flag.polygon([(0,6.82),(1.45,6.82),(1.18,6.30),(1.45,5.90),(0,5.9)],.045,"blue")
+    standard.absorb(flag)
+    for facing in (-1,1):
+        standard.box((.12,.53,.025),(.57,6.36,facing*.04),"gold_light")
+        standard.box((.53,.12,.025),(.57,6.36,facing*.055),"gold_light")
+    base.absorb(standard,pos=(0,0,4.18))
+    # Two separate circular traversing platforms sit on the wide stone deck.
+    for x in (-3.45,3.45):
+        base.cylinder(1.78,.56,(x,4.0,-.7),"granite",16)
+        base.cylinder(1.86,.18,(x,4.35,-.7),"stone_light",16)
+        base.cylinder(1.68,.12,(x,4.50,-.7),"wood_dark",20)
+        base.ring(1.44,1.62,.09,(x,4.60,-.7),"iron_light",24)
+        base.ring(1.47,1.52,.045,(x,4.67,-.7),"gold",24)
+    # Independent reinforced carriages and a wider, hollow heavy barrel.
+    mount.cylinder(1.40,.20,(0,.10,0),"iron",24)
+    mount.box((2.25,.22,2.3),(0,.31,.1),"wood_dark",bevel=.065)
+    for x in (-.91,.91):
+        mount.box((.31,1.21,1.83),(x,.95,.18),"wood_light",bevel=.065)
+        for z in (-.56,.73):
+            mount.box((.35,1.05,.18),(x,.91,z),"iron",bevel=.025)
+        mount.cylinder(.29,.45,(x,1.4,0),"iron_light",16,(0,0,math.pi/2))
+        mount.cylinder(.16,.035,(x+math.copysign(.243,x),1.4,0),"gold",12,(0,0,math.pi/2))
+    mount.box((1.50,.24,.35),(0,.60,1.0),"iron",bevel=.04)
+    barrel.cone(.53,.64,3.19,(0,0,-.59),"iron",24,(math.pi/2,0,0))
+    barrel.ring(.35,.59,.43,(0,0,-2.39),"iron",24,(math.pi/2,0,0))
+    barrel.ring(.35,.65,.17,(0,0,-2.68),"iron_light",24,(math.pi/2,0,0))
+    barrel.cylinder(.355,.015,(0,0,-2.18),"dark",24,(math.pi/2,0,0))
+    barrel.cone(.63,.37,.48,(0,0,1.24),"iron",20,(math.pi/2,0,0))
+    barrel.cylinder(.18,.25,(0,0,1.60),"gold",16,(math.pi/2,0,0))
+    for z,r in ((-1.38,.58),(.70,.66)):
+        barrel.ring(r-.03,r+.038,.16,(0,0,z),"gold_dark",24,(math.pi/2,0,0))
+        barrel.ring(r-.005,r+.046,.078,(0,0,z),"blue",24,(math.pi/2,0,0))
+    barrel.box((.13,.11,.19),(0,.59,-1.96),"iron_light",bevel=.018)
+    barrel.box((.17,.14,.20),(0,.64,.79),"gold",bevel=.025)
+    parts=[export_part(n,m) for n,m in (("base",base),("mount",mount),("barrel",barrel))]
+    write_asset(OUT / "parts.json",json.dumps(parts,indent=2)+"\n")
+    print("Heavy fortress:",parts[0]["triangles"]+2*sum(p["triangles"] for p in parts[1:]),"triangles including both guns")
+
+
 if __name__ == "__main__":
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("building", choices=["cannon_tower", "castle"])
+    parser.add_argument("building", choices=["cannon_tower", "castle", "heavy_fortress"])
     args=parser.parse_args()
     OUT=ROOT / "assets/models/environment" / args.building
     OUT.mkdir(parents=True, exist_ok=True)
-    {"cannon_tower":cannon_tower,"castle":castle}[args.building]()
+    {"cannon_tower":cannon_tower,"castle":castle,"heavy_fortress":heavy_fortress}[args.building]()

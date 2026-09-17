@@ -19,10 +19,11 @@ const MODELS: Dictionary = {
 	"tower": preload("res://assets/models/environment/tower.tscn"),
 	"cannon_tower": preload("res://assets/models/environment/cannon_tower.tscn"),
 	"castle": preload("res://assets/models/environment/castle.tscn"),
+	"heavy_fortress": preload("res://assets/models/environment/heavy_fortress.tscn"),
 	"house": preload("res://assets/models/environment/house.tscn"),
 }
 
-@export_enum("headquarters", "enemy_keep", "barracks", "tower", "house", "defense_tower", "cannon_tower", "castle", "factory", "academy") var building_type: String = "headquarters"
+@export_enum("headquarters", "enemy_keep", "barracks", "tower", "house", "defense_tower", "cannon_tower", "castle", "heavy_fortress", "factory", "academy") var building_type: String = "headquarters"
 @export var team: int = 0
 @export var owner_id: int = -1
 var alliance_id: int = 0

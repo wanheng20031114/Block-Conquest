@@ -69,25 +69,28 @@ func _run() -> void:
 					_check(is_equal_approx(upgraded_damage, expected), label + " upgrade %d/%d" % [attack_level, defense_level])
 		for key: String in BalanceCatalog.BUILDINGS:
 			var structure: BuildingDefinition = BalanceCatalog.building(key)
-			_check(structure.hp >= 1000 and structure.melee_armor == 10 and structure.ranged_armor == 10, key + " durable ten-armor structure")
+			var expected_armor: int = {"castle":12,"heavy_fortress":15}.get(key,10)
+			_check(structure.hp >= 1000 and structure.melee_armor == expected_armor and structure.ranged_armor == expected_armor, key + " approved defensive armor")
 			for attack_level: int in range(4):
 				var bonus: float = ATTACK_BONUS[attack_level] if attacker.military else 0
 				var damage: float = DamageResolver.resolve(DamageResolver.snapshot(attacker, bonus, 0, 0), structure)
-				_check(is_equal_approx(damage, maxf(1.0, BUILDING_RAW_DAMAGE[attacker_index] + bonus)), str(attacker.id) + " building damage " + key + " level " + str(attack_level))
+				_check(is_equal_approx(damage, maxf(1.0, BUILDING_RAW_DAMAGE[attacker_index] + bonus - (expected_armor-10))), str(attacker.id) + " building damage " + key + " level " + str(attack_level))
 	_test_upgrade_catalog()
 	_test_snapshot()
 	_test_siege()
 	_test_production_data()
 	_test_defensive_buildings()
 	var report := {"checks": checks, "failures": failures}
-	var file := FileAccess.open("res://artifacts/balance_matrix_results.json", FileAccess.WRITE)
+	DirAccess.make_dir_recursive_absolute("res://.local/validation")
+	var file := FileAccess.open("res://.local/validation/balance_matrix_results.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "  "))
 	file.close()
 	print("BALANCE_MATRIX ", checks, " checks; ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)
 
 func _test_defensive_buildings() -> void:
-	var expected: Dictionary = {"headquarters": [38, 35, 33], "enemy_keep": [38, 35, 33], "defense_tower": [17, 14, 18], "tower": [15, 12, 10]}
+	var expected: Dictionary = {"headquarters": [38, 35, 33], "enemy_keep": [38, 35, 33], "defense_tower": [17, 14, 18], "tower": [15, 12, 10],
+		"cannon_tower":[46,43,41],"castle":[26,23,21],"heavy_fortress":[78,75,73]}
 	for kind: String in expected:
 		var definition := BalanceCatalog.building(kind)
 		for index: int in 3:

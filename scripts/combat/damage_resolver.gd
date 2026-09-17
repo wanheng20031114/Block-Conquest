@@ -7,6 +7,7 @@ static func snapshot(definition: CombatDefinition, attack_bonus: float, owner_id
 	payload.base_damage = definition.damage
 	payload.attack_bonus = attack_bonus
 	payload.armor_penetration = definition.armor_penetration
+	payload.splash_radius = definition.splash_radius
 	payload.bonuses = definition.bonuses.duplicate()
 	payload.channel = definition.damage_channel
 	payload.owner_id = owner_id
