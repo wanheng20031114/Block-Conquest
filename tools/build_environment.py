@@ -302,7 +302,7 @@ class Model:
         return {"bounds": bounds.tolist(), "triangles": sum(len(g.faces) for g in scene.geometry.values()), "meshes": len(scene.geometry)}
 
 
-def stone_rows(m, w, h, d, center=(0, 0, 0), block=1.05, rows=None):
+def stone_rows(m, w, h, d, center=(0, 0, 0), block=1.05, rows=None, material="stone"):
     x, y, z = center
     rows = rows or max(1, round(h / .40))
     course = h / rows
@@ -311,7 +311,7 @@ def stone_rows(m, w, h, d, center=(0, 0, 0), block=1.05, rows=None):
         offset = (row % 2) * .5
         divisions = [-w / 2] + [(-w / 2 + (i + offset) * w / count) for i in range(count + 1) if -w / 2 + .08 < -w / 2 + (i + offset) * w / count < w / 2 - .08] + [w / 2]
         for left, right in zip(divisions, divisions[1:]):
-            m.box((right-left-.025, course-.024, d), (x+(left+right)/2, y+(row+.5)*course, z), "stone", bevel=.045, variation=RNG.uniform(-.06, .10))
+            m.box((right-left-.025, course-.024, d), (x+(left+right)/2, y+(row+.5)*course, z), material, bevel=.045, variation=RNG.uniform(-.06, .10))
 
 
 def window(m, x, y, z, width=.78, height=1.08, shutters=True):

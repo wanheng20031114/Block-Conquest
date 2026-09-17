@@ -194,12 +194,14 @@ def heavy_fortress():
     footing = Model()
     footing.polygon(outline,.36,"granite",axis="y")
     base.absorb(footing,pos=(0,.18,0))
-    base.box((10.65,.24,9.52),(0,.48,0),"stone_light",bevel=.12)
+    base.box((10.65,.24,9.52),(0,.48,0),"granite",bevel=.12)
     base.box((10.24,2.75,9.0),(0,1.93,0),"mortar",bevel=.16)
     for yaw,w,z in ((0,10.25,4.5),(math.pi,10.25,4.5),
                     (math.pi/2,9.0,5.12),(-math.pi/2,9.0,5.12)):
         wall = Model()
-        stone_rows(wall,w,2.64,.14,(0,.61,z),rows=5,block=1.3)
+        # Dense granite at ground level carries the lighter masonry above.
+        stone_rows(wall,w,1.056,.14,(0,.61,z),rows=2,block=1.3,material="granite")
+        stone_rows(wall,w,1.584,.14,(0,1.666,z),rows=3,block=1.3)
         wall.box((w+.1,.22,.44),(0,3.33,z),"stone_light",bevel=.045)
         for x in np.linspace(-w*.42,w*.42,5):
             # Splayed buttresses make the wall base visibly substantial.
@@ -212,19 +214,31 @@ def heavy_fortress():
     # Four squat eight-sided bastions, with dark reinforcement courses.
     for x in (-4.25,4.25):
         for z in (-3.7,3.7):
-            base.cone(1.69,1.46,2.78,(x,1.93,z),"stone",8)
-            base.cylinder(1.72,.21,(x,.61,z),"granite_light",8)
-            for y,r in ((1.2,1.65),(2.1,1.58),(3.26,1.49)):
-                base.ring(r-.07,r+.025,.11,(x,y,z),"granite",8)
+            # Match the original wall taper; the material seam gains a forged belt.
+            seam_y=1.666
+            seam_r=1.69-(seam_y-.54)*.23/2.78
+            base.cone(1.69,seam_r,seam_y-.54,(x,(seam_y+.54)/2,z),"granite",8)
+            base.cone(seam_r,1.46,3.32-seam_y,(x,(seam_y+3.32)/2,z),"stone",8)
+            base.cylinder(1.72,.21,(x,.61,z),"granite",8)
+            base.ring(1.58,1.675,.09,(x,1.2,z),"granite_light",8)
+            for y,r in ((seam_y,seam_r),(3.26,1.49)):
+                base.ring(r-.07,r+.045,.16,(x,y,z),"iron",8)
+            armor_slope=.23/2.78*math.cos(math.pi/8)
             for side in range(8):
                 a=(side+.5)*math.tau/8
-                base.box((.53,.59,.055),(x+math.sin(a)*1.397,2.82,z+math.cos(a)*1.397),"stone_light",rot=(0,a,0),bevel=.018)
-            base.cylinder(1.64,.23,(x,3.47,z),"stone_light",8)
+                # These plates follow the battered wall, including their fasteners.
+                armor=Model()
+                armor.box((.53,.59,.08),(0,2.82,1.418),"iron",rot=(-math.atan(armor_slope),0,0),bevel=.018)
+                for dy in (-.19,.19):
+                    armor.cylinder(.046,.028,(0,2.82+dy,1.47-dy*armor_slope),"iron_light",6,(math.pi/2-math.atan(armor_slope),0,0))
+                armor.cylinder(.055,.035,(0,seam_y,(seam_r+.045)*math.cos(math.pi/8)+.014),"iron_light",6,(math.pi/2,0,0))
+                base.absorb(armor,pos=(x,0,z),rot=a)
+            base.cylinder(1.64,.23,(x,3.47,z),"granite_light",8)
             base.cylinder(1.48,.10,(x,3.64,z),"wood_dark",8)
             for side in range(8):
                 a=(side+.5)*math.tau/8
                 base.box((.65,.65,.35),(x+math.sin(a)*1.42,4.0,z+math.cos(a)*1.42),"stone",rot=(0,a,0),bevel=.045)
-                base.box((.71,.11,.40),(x+math.sin(a)*1.42,4.38,z+math.cos(a)*1.42),"stone_light",rot=(0,a,0),bevel=.025)
+                base.box((.71,.11,.40),(x+math.sin(a)*1.42,4.38,z+math.cos(a)*1.42),"granite_light",rot=(0,a,0),bevel=.025)
     # Low curtain parapets keep both heavy guns' full rotation clear.
     for yaw,w,z in ((0,6.2,4.48),(math.pi,6.2,4.48),(math.pi/2,5.5,5.07),(-math.pi/2,5.5,5.07)):
         wall=Model()
@@ -235,6 +249,10 @@ def heavy_fortress():
     # Central gate and thick, iron-banded doors beneath a team-coloured shield.
     door=Model()
     arched_gate(door,2.0,2.48,.26,(0,.56,4.66),portcullis=True)
+    for y in (.9744,1.67):
+        door.box((1.90,.19,.075),(0,y,4.89),"iron",bevel=.015)
+        for x in (-.73,-.28,.28,.73):
+            door.cylinder(.042,.025,(x,y,4.94),"iron_light",6,(math.pi/2,0,0))
     base.absorb(door,rot=math.pi)
     for n in range(3):
         base.box((2.65+n*.19,.14,.37),(0,.49-n*.14,-4.84-n*.23),"stone_light",bevel=.027)

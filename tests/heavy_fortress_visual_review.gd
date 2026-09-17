@@ -91,7 +91,7 @@ func _run() -> void:
 	game.camera_rig.position = Vector3.ZERO
 	game.hud.hide()
 	var heavy_fortress: BattleBuilding = game.spawn_building("heavy_fortress",0,Vector3.ZERO)
-	var tower: BattleBuilding = game.spawn_building("cannon_tower",0,Vector3(-12,0,1))
+	var castle: BattleBuilding = game.spawn_building("castle",0,Vector3(-12,0,1))
 	var hq: BattleBuilding = game.spawn_building("headquarters",0,Vector3(14,0,2))
 	game.spawn_unit("engineer",0,Vector3(2,0,-6.5))
 	game.spawn_unit("cannon",0,Vector3(-4,0,-7))
@@ -100,7 +100,7 @@ func _run() -> void:
 	game.camera.size = 38
 	await create_timer(.3).timeout
 	await capture("comparison",root)
-	tower.hide(); hq.hide()
+	castle.hide(); hq.hide()
 	game.camera.position = Vector3(12,14,-20)
 	game.camera.look_at(Vector3(0,3,0),Vector3.UP)
 	game.camera.size = 21

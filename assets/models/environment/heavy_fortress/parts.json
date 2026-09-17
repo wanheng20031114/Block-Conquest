@@ -3,12 +3,12 @@
     "part": "base",
     "families": [
       "Stone",
-      "Timber",
       "Metal",
+      "Timber",
       "Roof",
       "Fabric"
     ],
-    "triangles": 20802
+    "triangles": 23498
   },
   {
     "part": "mount",
