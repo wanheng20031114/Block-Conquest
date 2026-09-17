@@ -73,7 +73,7 @@ func refresh() -> void:
 	var occupied: Dictionary = {}
 	for building: Node3D in get_tree().get_nodes_in_group("buildings"):
 		if building.alive:
-			for cell: Vector2i in footprint_cells(building.global_position, building.get_combat_definition().size):
+			for cell: Vector2i in footprint_cells(building.global_position, building.get_footprint_size()):
 				occupied[cell] = true
 	var changed: bool = occupied != _blocked_cells or rebuild_count == 0
 	if not changed:

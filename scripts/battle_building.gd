@@ -17,10 +17,11 @@ const MODELS: Dictionary = {
 	"factory": preload("res://assets/models/environment/factory.tscn"),
 	"academy": preload("res://assets/models/environment/academy.tscn"),
 	"tower": preload("res://assets/models/environment/tower.tscn"),
+	"cannon_tower": preload("res://assets/models/environment/cannon_tower.tscn"),
 	"house": preload("res://assets/models/environment/house.tscn"),
 }
 
-@export_enum("headquarters", "enemy_keep", "barracks", "tower", "house", "defense_tower", "factory", "academy") var building_type: String = "headquarters"
+@export_enum("headquarters", "enemy_keep", "barracks", "tower", "house", "defense_tower", "cannon_tower", "factory", "academy") var building_type: String = "headquarters"
 @export var team: int = 0
 @export var owner_id: int = -1
 var alliance_id: int = 0
@@ -53,6 +54,8 @@ var _target_query: PhysicsShapeQueryParameters3D
 var _space_state: PhysicsDirectSpaceState3D
 var _builder: WeakRef
 var _construction_meshes: Array[MeshInstance3D] = []
+var artillery: DefensiveTowerVisual
+var last_fired: float = -1.0
 
 @onready var health_bar: MeshInstance3D = $HealthBar
 @onready var selection_ring: MeshInstance3D = $SelectionRing
@@ -91,6 +94,8 @@ func _ready() -> void:
 	else:
 		_model = MODELS[_stats.model].instantiate()
 		model_pivot.add_child(_model)
+	artillery = _model as DefensiveTowerVisual
+	assert((_stats.projectile == "cannon") == (artillery != null), "Cannon buildings require an authored artillery model")
 	var relation := FactionPalette.relation(owner_id, alliance_id, _game)
 	FactionPalette.apply_model(_model, relation)
 	var shape: BoxShape3D = $CollisionShape3D.shape
@@ -142,10 +147,21 @@ func _physics_process(delta: float) -> void:
 	# A target may walk out between the staggered scan and the next shot.
 	# Match unit attacks: range starts at the wall and ends at the target's
 	# outside edge. Recheck this exact range and faction on every release.
-	if _can_shoot_target(_target) and _cooldown <= 0.0:
+	if not _can_shoot_target(_target):
+		return
+	if artillery != null and not artillery.aim_at(_target.global_position + Vector3.UP, delta):
+		return
+	if _cooldown <= 0.0:
 		_cooldown = _stats.cooldown
-		sound_requested.emit(&"bow_release", get_projectile_origin())
-		_game.spawn_projectile(self, _target, DamageResolver.snapshot(_stats, 0, owner_id, alliance_id), "arrow")
+		# Capture the muzzle before recoil, and let the existing effect pool own
+		# the cannon sound. One attack creates one projectile and one muzzle burst.
+		_game.spawn_projectile(self, _target, DamageResolver.snapshot(_stats, 0, owner_id, alliance_id), _stats.projectile)
+		if artillery != null:
+			_game.spawn_effect(get_projectile_origin(), "muzzle", Color("ffbd68"))
+			last_fired = _game.elapsed
+			artillery.fire()
+		else:
+			sound_requested.emit(&"bow_release", get_projectile_origin())
 
 func _can_shoot_target(entity: Node3D) -> bool:
 	if not is_instance_valid(entity) or not entity.alive or entity.alliance_id == alliance_id:
@@ -245,7 +261,15 @@ func get_attack_position(from_position: Vector3) -> Vector3:
 	var half_size: Vector3 = _stats.size * 0.5
 	return to_global(Vector3(clampf(local_point.x, -half_size.x, half_size.x), 0.0, clampf(local_point.z, -half_size.z, half_size.z)))
 
+func get_footprint_size() -> Vector3:
+	# Axis-aligned navigation coverage of the authored rotated collision box.
+	var size: Vector3 = _stats.size
+	return Vector3(absf(basis.x.x) * size.x + absf(basis.z.x) * size.z, size.y,
+		absf(basis.x.z) * size.x + absf(basis.z.z) * size.z)
+
 func get_projectile_origin() -> Vector3:
+	if artillery != null:
+		return artillery.muzzle.global_position
 	return $ProjectileOrigin.global_position
 
 func get_hit_effect() -> String:

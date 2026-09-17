@@ -5,6 +5,7 @@ var _message_time: float = 0.0
 var _preview_team: int = -1
 var portraits: Dictionary = {}
 const KINDS: PackedStringArray = ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
+const BUILDING_KINDS: PackedStringArray = ["defense_tower", "cannon_tower", "headquarters"]
 
 func _ready() -> void:
 	UIMotion.bind_buttons(self)
@@ -26,6 +27,8 @@ func bind_game(controller: Node3D) -> void:
 	for kind: String in KINDS:
 		var button: Button = %Kinds.get_node(kind)
 		button.pressed.connect(game.set_paint_kind.bind(kind))
+	for kind: String in BUILDING_KINDS:
+		%BuildingKinds.get_node(kind).pressed.connect(game.set_paint_kind.bind(kind))
 	for index: int in FactionPalette.SANDBOX_COLORS.size():
 		var button: Button = %Colors.get_child(index)
 		button.text = "%02d" % (index + 1)
@@ -53,6 +56,10 @@ func refresh() -> void:
 		%Colors.get_child(index).set_pressed_no_signal(index == game.local_owner_id)
 	for kind: String in KINDS:
 		%Kinds.get_node(kind).set_pressed_no_signal(kind == game.paint_kind)
+	for kind: String in BUILDING_KINDS:
+		%BuildingKinds.get_node(kind).set_pressed_no_signal(kind == game.paint_kind)
+	%Count.editable = not game.painting_building()
+	%CountRow.visible = not game.painting_building()
 	%Place.set_pressed_no_signal(game.placing)
 	%Select.set_pressed_no_signal(not game.placing)
 	%Rotate.text = "朝向 %d°   R" % int(rad_to_deg(game.paint_rotation))
@@ -60,14 +67,14 @@ func refresh() -> void:
 	if game.hero_controller.has_hero(): %Run.text = "暂停交战" if game.running else "开始交战"
 	%Run.disabled = game._busy
 	%State.text = "正在载入地图…" if game._busy else ("交战中" if game.running else "布阵中 · 部队已暂停")
-	%Population.text = "%d / 500 单位" % game.sandbox_unit_count
+	%Population.text = "%d / 500 单位 · %d / 64 建筑" % [game.sandbox_unit_count, game.get_node("Buildings").get_child_count()]
 	%Elapsed.text = "%02d:%02d" % [int(game.elapsed) / 60, int(game.elapsed) % 60]
 	if game.selection.is_empty():
 		%Selection.text = "选择模式：框选当前阵营，右键下令"
 	else:
 		var entity: Node3D = game.selection[0]
 		%Selection.text = "中立 · 黄金矿脉" if entity is ResourceVein else "%s · %s%s" % [game.players[entity.owner_id].display_name, entity.display_name, " · 共 %d 个" % game.selection.size() if game.selection.size() > 1 else ""]
-	%Remove.disabled = not game.selection.any(func(entity: Node3D): return entity is BattleUnit)
+	%Remove.disabled = not game.selection.any(func(entity: Node3D): return entity is BattleUnit or entity is BattleBuilding)
 	var portrait_owner: int = game.selection[0].owner_id if not game.selection.is_empty() and game.selection[0].owner_id >= 0 else game.local_owner_id
 	if _preview_team != portrait_owner:
 		_preview_team = portrait_owner

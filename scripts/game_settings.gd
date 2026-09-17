@@ -19,7 +19,7 @@ const ACTIONS := {
 	"rts_slot_1": ["第一项生产 / 建造 / 研究", KEY_Q, [KEY_Q]], "rts_slot_2": ["第二项生产 / 建造 / 研究", KEY_W, [KEY_W]],
 	"rts_slot_3": ["第三项生产 / 建造 / 研究", KEY_E, [KEY_E]], "rts_slot_4": ["第四项生产 / 建造 / 研究", KEY_R, [KEY_R]],
 	"rts_slot_5": ["第五项生产 / 建造 / 研究", KEY_T, [KEY_T]], "rts_slot_6": ["第六项生产 / 建造 / 研究", KEY_Y, [KEY_Y]],
-	"rts_build_tower": ["放置防御塔", KEY_V, [KEY_V]], "rts_destroy": ["删除所选己方资产", KEY_DELETE, [KEY_DELETE]],
+	"rts_build_tower": ["放置箭塔", KEY_V, [KEY_V]], "rts_destroy": ["删除所选己方资产", KEY_DELETE, [KEY_DELETE]],
 	"rts_cancel": ["取消指派 / 队尾生产或研究", KEY_ESCAPE, [KEY_ESCAPE]],
 	"rts_pause": ["暂停 / 战场菜单 / 继续", KEY_F5, [KEY_F5]], "rts_help": ["操作帮助", KEY_F1, [KEY_F1]],
 	"rts_photo": ["隐藏 / 显示界面", KEY_F10, [KEY_F10]], "rts_fullscreen": ["切换全屏", KEY_F11, [KEY_F11]],

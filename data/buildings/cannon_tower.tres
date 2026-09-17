@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BuildingDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"cannon_tower"
+name = "炮塔"
+description = "厚石炮台上的回转重炮，自动攻击单个敌人。火力强、装填较慢，需要防备远处的攻城器。"
+combat_class = &"building"
+damage_channel = 1
+hp = 1500
+cost = 350
+build_seconds = 30.0
+radius = 2.5
+size = Vector3(5, 5.2, 5)
+bar_height = 5.95
+damage = 48
+range = 12.0
+cooldown = 2.4
+model = "cannon_tower"
+projectile = "cannon"
+melee_armor = 10
+ranged_armor = 10

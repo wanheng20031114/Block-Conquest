@@ -22,6 +22,8 @@ func _run() -> void:
 	await scene_changed
 	game = current_scene
 	game.tests_running = true
+	game.bots.clear()
+	game.set_physics_process(false)
 	game.get_node("EnemyTimer").stop()
 	game.get_node("IncomeTimer").stop()
 	for unit: Node in get_nodes_in_group("units"):
@@ -66,7 +68,7 @@ func _run() -> void:
 	var farmer: BattleUnit = _unit("farmer", 0, at + Vector3(3.6, 0, 0))
 	var second: BattleUnit = _unit("farmer", 0, at + Vector3(0, 0, 3.6))
 	var enemy: BattleUnit = _unit("swordsman", 1, at + Vector3(8, 0, 0))
-	_check(not tower.is_constructed and is_equal_approx(tower.hp, 80.0), "new site starts unfinished with foundation HP")
+	_check(not tower.is_constructed and is_equal_approx(tower.hp, 100.0), "new site starts unfinished with foundation HP")
 	_check(not tower.try_claim_builder(enemy), "enemy military cannot claim construction")
 	_check(tower.try_claim_builder(farmer), "friendly farmer claims the worksite")
 	_check(not tower.try_claim_builder(second), "second farmer cannot accelerate an occupied worksite")
@@ -84,22 +86,22 @@ func _run() -> void:
 	_check(tower.try_claim_builder(second), "another farmer can take over an abandoned worksite")
 	tower.receive_damage(50.0, enemy)
 	tower.contribute_work(second, 5.0)
-	_check(is_equal_approx(tower.construction_progress, 0.5) and is_equal_approx(tower.hp, 390.0), "construction preserves damage while adding structural HP")
+	_check(is_equal_approx(tower.construction_progress, 0.5) and is_equal_approx(tower.hp, 500.0), "construction preserves damage while adding structural HP")
 	tower.release_builder(second)
 	tower.contribute_work(second, 10.0)
 	_check(is_equal_approx(tower.construction_progress, 0.5), "released farmer cannot continue remote construction")
 	_check(tower.try_claim_builder(second), "paused worksite can be reclaimed")
 	tower.contribute_work(second, 10.0)
-	_check(tower.is_constructed and is_equal_approx(tower.hp, 750.0), "twenty contributed seconds finish tower and retain damage")
+	_check(tower.is_constructed and is_equal_approx(tower.hp, 950.0), "twenty contributed seconds finish tower and retain damage")
 	_check(not tower.construction_bar.visible and not tower.scaffolding.visible, "completed tower removes scaffold and progress bar")
-	enemy.position = at + Vector3(14.0 + enemy.radius + 0.1, 0, 0)
+	enemy.position = at + Vector3(15.0 + enemy.radius + 0.1, 0, 0)
 	tower._target = enemy
 	tower._scan_time = 10.0
 	tower._cooldown = 0.0
 	shots = game.get_node("ProjectilePool").launch_count
 	tower._physics_process(0.01)
-	_check(game.get_node("ProjectilePool").launch_count == shots, "cached target more than twelve metres outside the wall cannot receive a shot")
-	enemy.position = at + Vector3(14.0 + enemy.radius - 0.1, 0, 0)
+	_check(game.get_node("ProjectilePool").launch_count == shots, "cached target more than thirteen metres outside the wall cannot receive a shot")
+	enemy.position = at + Vector3(15.0 + enemy.radius - 0.1, 0, 0)
 	tower._physics_process(0.01)
 	_check(game.get_node("ProjectilePool").launch_count == shots + 1, "finished tower automatically fires at a nearby enemy")
 	tower._target = farmer
@@ -108,7 +110,7 @@ func _run() -> void:
 	tower._physics_process(0.01)
 	_check(game.get_node("ProjectilePool").launch_count == shots, "tower rechecks faction before firing")
 	var diagonal: Vector3 = Vector3(1, 0, 1).normalized()
-	enemy.position = at + Vector3(2, 0, 2) + diagonal * (12.0 + enemy.radius - 0.1)
+	enemy.position = at + Vector3(2, 0, 2) + diagonal * (13.0 + enemy.radius - 0.1)
 	_check(tower._can_shoot_target(enemy), "diagonal range consistently measures wall corner to target edge")
 	await _sync()
 	shots = game.get_node("ProjectilePool").launch_count
@@ -133,7 +135,7 @@ func _run() -> void:
 	second.position = at + Vector3(0, 0, 3.6)
 	cancel_site.try_claim_builder(second)
 	cancel_site.contribute_work(second, 5.0)
-	_check(cancel_site.cancel_construction() == 75, "quarter-built tower cancellation returns seventy-five gold")
+	_check(cancel_site.cancel_construction() == 112, "quarter-built tower refunds floor of remaining 150-gold payment")
 	_check(cancel_site.cancel_construction() == 0, "repeat cancellation cannot refund twice")
 	navigation.refresh()
 	await _sync()
@@ -147,7 +149,7 @@ func _run() -> void:
 	_check(not completed.demolish(), "repeat demolition cannot destroy the same tower twice")
 	var retired: BattleBuilding = _tower(at)
 	_check(not retired.demolish(), "unfinished site uses refundable cancellation instead of finished-tower demolition")
-	_check(not game.headquarters.demolish(), "headquarters cannot be removed through tower demolition")
+	_check(game.headquarters.demolish(), "explicit demolition supports headquarters under current destroy-asset rules")
 	var retired_ref: WeakRef = weakref(retired)
 	retired.get_node("DebrisLifetime").wait_time = 0.05
 	retired.cancel_construction()
@@ -180,6 +182,7 @@ func _tower(at: Vector3) -> BattleBuilding:
 	tower.building_type = "defense_tower"
 	tower.team = 0
 	tower.under_construction = true
+	tower.actual_paid_gold = 150
 	tower.position = at
 	game.get_node("Buildings").add_child(tower)
 	tower.set_physics_process(false)
@@ -204,30 +207,26 @@ func _find_open_site() -> Vector3:
 	return Vector3(0, -100, 0)
 
 func _demolition_overlap() -> void:
-	var keep: BattleBuilding = game.get_node("Buildings/EnemyKeep")
-	var at: Vector3 = keep.global_position
+	# Current maps instantiate player buildings; they have no legacy EnemyKeep
+	# node or per-ruin ClearedNavigation region. Exercise the shared cell mesh.
+	var at: Vector3 = _find_open_site()
+	var keep: BattleBuilding = game.spawn_building("barracks", 1, at)
+	keep.set_physics_process(false)
+	navigation.refresh()
+	await _sync()
+	_check(not navigation.contains_walkable_point(at), "existing building occupies shared navigation")
 	keep.receive_damage(5000.0)
 	navigation.refresh()
 	await _sync()
+	_check(navigation.contains_walkable_point(at), "demolition restores underlying map cells")
 	var tower: BattleBuilding = _tower(at)
 	navigation.refresh()
 	await _sync()
-	var patch: NavigationRegion3D = game.get_node("ClearedNavigation/EnemyKeep")
-	var mesh: NavigationMesh = patch.navigation_mesh
-	var vertices: PackedVector3Array = mesh.get_vertices()
-	var clear: bool = true
-	for index: int in mesh.get_polygon_count():
-		var center: Vector3 = Vector3.ZERO
-		var polygon: PackedInt32Array = mesh.get_polygon(index)
-		for vertex: int in polygon:
-			center += vertices[vertex]
-		center /= float(polygon.size())
-		clear = clear and (absf(center.x - at.x) >= 3.15 or absf(center.z - at.z) >= 3.15)
-	_check(patch.enabled and clear, "tower on demolished building also carves that building's navigation patch")
+	_check(not navigation.contains_walkable_point(at) and _avoids_footprint(_path(at + Vector3(-7,0,0), at + Vector3(7,0,0)), at), "replacement tower carves a native detour across demolished ground")
 	tower.cancel_construction()
 	navigation.refresh()
 	await _sync()
-	_check(patch.navigation_mesh == load("res://assets/navigation/EnemyKeep_cleared.tres"), "removing final tower restores the immutable demolition mesh")
+	_check(navigation.contains_walkable_point(at), "removing replacement tower restores the shared map cells")
 
 func _sync() -> void:
 	# Loading a large battlefield may catch up several physics ticks inside one

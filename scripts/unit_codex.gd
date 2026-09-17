@@ -2,7 +2,7 @@ extends Control
 ## A native catalogue backed by the same resources as recruitment and combat.
 signal closed
 
-const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower"]
+const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower", "cannon_tower"]
 const CLASS_NAMES: Dictionary = CombatDefinition.GROUP_NAMES
 const FAMILY_FILTERS: Array[StringName] = [&"", &"infantry", &"ranged_infantry", &"melee_infantry", &"cavalry", &"siege"]
 const BUILDING_DESCRIPTIONS: Dictionary = {
@@ -11,6 +11,7 @@ const BUILDING_DESCRIPTIONS: Dictionary = {
 	"factory": "制造投石车、加农炮、重型火炮、三管短炮并训练工程兵，为前线提供火力和维修支援。",
 	"academy": "训练牧师，并研究军队、人口与采矿科技。训练和研究独立进行，已完成的研究永久保留。",
 	"defense_tower": "自动攻击范围内的敌人。无法驻军，需要部队保护。",
+	"cannon_tower": "厚石炮台上的回转重炮，自动攻击单个敌人。没有溅射或驻军，适合封锁路口，需要防备远处的攻城器。",
 }
 const MODEL_PATHS: Dictionary = {
 	"headquarters": "res://assets/models/environment/headquarters.tscn",
@@ -18,6 +19,7 @@ const MODEL_PATHS: Dictionary = {
 	"factory": "res://assets/models/environment/factory.tscn",
 	"academy": "res://assets/models/environment/academy.tscn",
 	"defense_tower": "res://assets/models/environment/defense_tower.tscn",
+	"cannon_tower": "res://assets/models/environment/cannon_tower.tscn",
 }
 const TECH_MODELS: Dictionary = {&"attack": "swordsman", &"defense": "knight", &"workforce": "farmer", &"army_capacity": "barracks", &"mining": "farmer", &"cannon_range": "cannon", &"recovery": "farmer"}
 const UNIT_FRAMING: Dictionary = {
@@ -32,6 +34,7 @@ var _model: Node3D
 var _dragging: bool = false
 var _base_camera_size: float = 3.2
 var _preview_unit: UnitVisual
+var _preview_artillery: DefensiveTowerVisual
 var _preview_action: PreviewAction = PreviewAction.IDLE
 var _preview_paused: bool = false
 var _preview_complete: bool = false
@@ -97,6 +100,17 @@ func _process(delta: float) -> void:
 		_refresh_preview_activity()
 	if category == 0 and _preview_unit != null and not _preview_paused:
 		_advance_preview(delta)
+	elif _preview_artillery != null and not _preview_paused and _preview_action == PreviewAction.ATTACK:
+		_cycle_elapsed += delta
+		if _cycle_elapsed >= _cycle_seconds:
+			if _preview_loop:
+				_cycle_elapsed = fposmod(_cycle_elapsed, _cycle_seconds)
+			else:
+				_preview_complete = true
+				_preview_paused = true
+				_update_preview_controls()
+				_refresh_preview_activity()
+		_preview_artillery.sample_fire(_cycle_elapsed)
 
 func _on_codex_visibility_changed() -> void:
 	if not is_node_ready():
@@ -107,7 +121,7 @@ func _on_codex_visibility_changed() -> void:
 
 func _refresh_preview_activity() -> void:
 	var showing: bool = is_visible_in_tree() and not _entries.is_empty()
-	var playing: bool = showing and category == 0 and _preview_unit != null and not _preview_paused
+	var playing: bool = showing and not _preview_paused and ((category == 0 and _preview_unit != null) or (_preview_artillery != null and _preview_action == PreviewAction.ATTACK))
 	if _preview_unit != null:
 		_preview_unit.set_support_particles_paused(not playing)
 	%Healing.set_paused(not playing)
@@ -122,6 +136,15 @@ func _request_preview_redraw() -> void:
 
 func _select_preview_action(action: PreviewAction) -> void:
 	_preview_action = action
+	if _preview_artillery != null:
+		_cycle_elapsed = 0.0
+		_cycle_seconds = BalanceCatalog.building(selected_id).cooldown
+		_preview_paused = false
+		_preview_complete = false
+		_preview_artillery.sample_fire(0.0 if action == PreviewAction.ATTACK else DefensiveTowerVisual.FIRE_LENGTH)
+		_update_preview_controls()
+		_refresh_preview_activity()
+		return
 	if _preview_unit.kind == "spearman":
 		# The horizontal thrust has a wider silhouette than the upright carry pose.
 		_base_camera_size = 5.8 if action == PreviewAction.ATTACK else UNIT_FRAMING["spearman"].y
@@ -334,6 +357,7 @@ func _on_entry_selected(index: int) -> void:
 			%Description.text = BUILDING_DESCRIPTIONS[selected_id]
 			content += _row("建造费用", "%d 金币" % building.cost + (" · 开局免费" if selected_id == "headquarters" else ""))
 			content += _row("建造时间", _number(building.build_seconds) + " 秒")
+			content += _row("占地", "%s × %s" % [_number(building.size.x), _number(building.size.z)])
 			content += _combat_rows(building)
 			var recruits: PackedStringArray = []
 			for kind: String in building.produces:
@@ -434,6 +458,7 @@ func _number(value: float) -> String:
 
 func _set_preview(kind: String) -> void:
 	_preview_unit = null
+	_preview_artillery = null
 	%SupportPreview.hide()
 	%Healing.stop()
 	if is_instance_valid(_model):
@@ -456,15 +481,24 @@ func _set_preview(kind: String) -> void:
 		_base_camera_size = UNIT_FRAMING[kind].y
 	else:
 		FactionPalette.apply_model(_model, 0)
+		_preview_artillery = _model as DefensiveTowerVisual
+		if _preview_artillery != null:
+			_preview_loop = true
+			%LoopPreview.set_pressed_no_signal(true)
+			_select_preview_action(PreviewAction.IDLE)
 		center = 3.7 if kind == "headquarters" else 3.0
 		_base_camera_size = 14.5 if kind == "headquarters" else 9.5
+		if kind == "cannon_tower":
+			center = 2.35
+			_base_camera_size = 7.8
 	_camera.position = Vector3(5, 4, -7) if unit else Vector3(15, 12, 21 if kind == "headquarters" else -21)
 	_camera.look_at(Vector3(0, center, 0), Vector3.UP)
 	_pedestal.scale = Vector3(1.4, 1.0, 1.4) if unit else Vector3(4.7, 1.0, 4.7)
-	%PreviewAnimationControls.visible = category == 0 and unit
+	%PreviewAnimationControls.visible = (category == 0 and unit) or _preview_artillery != null
+	%PreviewWalk.visible = unit
 	%PreviewGather.visible = kind in ["farmer", "engineer", "priest"]
 	%PreviewGather.text = "治疗" if kind == "priest" else ("维修" if kind == "engineer" else "采矿")
-	%PreviewAttack.text = "开炮" if kind in ["cannon", "heavy_cannon", "triple_cannon"] else ("投射" if kind == "catapult" else "攻击")
+	%PreviewAttack.text = "开炮" if kind in ["cannon", "heavy_cannon", "triple_cannon", "cannon_tower"] else ("投射" if kind == "catapult" else "攻击")
 	_reset_view()
 	_refresh_preview_activity()
 

@@ -42,7 +42,7 @@ func initialize(game: Node3D, source: Node3D, target: Node3D, payload: DamagePay
 	collision_mask = CombatLayers.hostile_entities(payload.alliance_id)
 	_start = source.get_projectile_origin() if barrel_index == 0 else source.get_projectile_origin(barrel_index)
 	_end = target.global_position + Vector3.UP * (2.0 if target.is_in_group("buildings") else 1.0)
-	if source.is_in_group("buildings"):
+	if source is BattleBuilding and source.artillery == null:
 		_start += (_end - _start).normalized() * source.radius * 0.7
 	var distance: float = _start.distance_to(_end)
 	match kind:

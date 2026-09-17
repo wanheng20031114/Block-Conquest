@@ -2,6 +2,7 @@ extends "res://scripts/game.gd"
 ## Offline scenario authoring uses the real combat, orders, navigation and pools.
 ## It has its own lifecycle: no roster handshake, economy, fog or victory checks.
 const UNIT_LIMIT := 500
+const BUILDING_LIMIT := 64
 var running: bool = false
 var placing: bool = true
 var paint_kind: String = "swordsman"
@@ -10,6 +11,7 @@ var paint_rotation: float = 0.0
 var map_mode: String = "1v1"
 var sandbox_unit_count: int = 0
 var _placement_shape := CylinderShape3D.new()
+var _building_placement_shape := BoxShape3D.new()
 var _paint_query := PhysicsShapeQueryParameters3D.new()
 var _ghost: UnitVisual
 var _ghost_check: float = 0.0
@@ -64,6 +66,11 @@ func spawn_unit(kind: String, faction: int, at: Vector3, id: int = 0) -> Node3D:
 	unit.disable_mode = CollisionObject3D.DISABLE_MODE_KEEP_ACTIVE
 	return unit
 
+func spawn_building(kind: String, owner: int, at: Vector3, construction: bool = false, id: int = 0) -> BattleBuilding:
+	var building: BattleBuilding = super.spawn_building(kind, owner, at, construction, id)
+	building.disable_mode = CollisionObject3D.DISABLE_MODE_KEEP_ACTIVE
+	return building
+
 func register_entity(entity: Node3D) -> void:
 	super.register_entity(entity)
 	if entity is BattleUnit:
@@ -98,21 +105,28 @@ func _process(delta: float) -> void:
 		overlay.box_end = get_viewport().get_mouse_position()
 		overlay.box_visible = overlay.box_start.distance_to(overlay.box_end) > 6.0
 	var show_ghost: bool = placing and not _busy and not settings.is_open() and get_viewport().gui_get_hovered_control() == null
-	$PlacementPreview.visible = show_ghost
+	$PlacementPreview.visible = show_ghost and not painting_building()
+	$BuildingPreview.visible = show_ghost and painting_building()
 	if show_ghost:
 		var at: Vector3 = camera_rig.world_at(get_viewport().get_mouse_position())
 		$PlacementPreview.position = at
 		$PlacementPreview.rotation.y = paint_rotation
+		$BuildingPreview.position = snap_build_position(at)
+		$BuildingPreview.rotation.y = paint_rotation
 		_ghost_check -= delta
 		if _ghost_check <= 0.0:
 			_ghost_check = 0.10
 			var valid: bool = placement_valid(at, paint_kind)
-			_ghost.set_team(presentation_faction(local_owner_id, local_owner_id) if valid else FactionPalette.ENEMY)
+			if painting_building():
+				$BuildingPreview.set_valid(valid)
+			else:
+				_ghost.set_team(presentation_faction(local_owner_id, local_owner_id) if valid else FactionPalette.ENEMY)
 
 func set_running(value: bool) -> void:
 	running = value
 	var mode: ProcessMode = Node.PROCESS_MODE_INHERIT if running else Node.PROCESS_MODE_DISABLED
 	$Units.process_mode = mode
+	$Buildings.process_mode = mode
 	$ProjectilePool.process_mode = mode
 	$EffectPool.process_mode = mode
 	# Keep physics-space queries and the camera alive while troops are paused.
@@ -141,6 +155,8 @@ func set_paint_kind(kind: String) -> void:
 		if model.visible:
 			_ghost = model
 			model.set_team(presentation_faction(local_owner_id, local_owner_id))
+	if painting_building():
+		$BuildingPreview.configure(kind, BalanceCatalog.building(kind).size)
 	set_placing(true)
 	_ghost_check = 0.0
 
@@ -157,7 +173,33 @@ func set_faction(owner: int) -> void:
 	hud.refresh()
 
 func placement_valid(at: Vector3, kind: String) -> bool:
+	if BalanceCatalog.BUILDINGS.has(kind):
+		return building_placement_valid(snap_build_position(at), kind)
 	return placement_valid_for_definition(at,BalanceCatalog.unit(kind))
+
+func painting_building() -> bool:
+	return BalanceCatalog.BUILDINGS.has(paint_kind)
+
+func building_placement_valid(at: Vector3, kind: String) -> bool:
+	if not at.is_finite() or $Buildings.get_child_count() >= BUILDING_LIMIT:
+		return false
+	var definition: BuildingDefinition = BalanceCatalog.building(kind)
+	var basis := Basis(Vector3.UP, paint_rotation)
+	var extent: Vector3 = (basis * definition.size).abs() * .5
+	if absf(at.x) + extent.x > map_size.x * .5 - 2 or absf(at.z) + extent.z > map_size.y * .5 - 2:
+		return false
+	for corner: Vector3 in [Vector3(-extent.x, 0, -extent.z), Vector3(extent.x, 0, -extent.z), Vector3(-extent.x, 0, extent.z), Vector3(extent.x, 0, extent.z), Vector3.ZERO]:
+		if not $ConstructionNavigation.contains_walkable_point(at + corner): return false
+	# Reserve footprints immediately, before physics publishes a same-frame spawn.
+	for existing: BattleBuilding in $Buildings.get_children():
+		if not existing.alive: continue
+		var other: Vector3 = existing.get_footprint_size() * .5
+		var separation: Vector3 = (existing.position - at).abs()
+		if separation.x < extent.x + other.x and separation.z < extent.z + other.z: return false
+	_building_placement_shape.size = definition.size - Vector3(.01, 0, .01)
+	_paint_query.shape = _building_placement_shape
+	_paint_query.transform = Transform3D(basis, at + Vector3.UP * definition.size.y * .5)
+	return get_world_3d().direct_space_state.intersect_shape(_paint_query, 1).is_empty()
 
 func placement_valid_for_definition(at: Vector3, definition: UnitDefinition) -> bool:
 	if not at.is_finite() or at.distance_squared_to(clamp_to_map(at)) > 0.001:
@@ -165,12 +207,25 @@ func placement_valid_for_definition(at: Vector3, definition: UnitDefinition) -> 
 	if not $ConstructionNavigation.contains_walkable_point(at):
 		return false
 	_placement_shape.radius = definition.radius + 0.06
-	_paint_query.transform.origin = at + Vector3.UP
+	_paint_query.shape = _placement_shape
+	_paint_query.transform = Transform3D(Basis.IDENTITY, at + Vector3.UP)
 	return get_world_3d().direct_space_state.intersect_shape(_paint_query, 1).is_empty()
 
 func place_units(at: Vector3) -> int:
 	if _busy or finished:
 		return 0
+	if painting_building():
+		var point: Vector3 = snap_build_position(at)
+		if not building_placement_valid(point, paint_kind):
+			hud.toast("这里无法放置建筑，或已达到64座上限", 2.5)
+			return 0
+		var building: BattleBuilding = spawn_building(paint_kind, local_owner_id, point)
+		building.rotation.y = paint_rotation
+		building.reset_physics_interpolation()
+		$ConstructionNavigation.refresh()
+		hud.toast("已放置%s · %s" % [building.display_name, players[local_owner_id].display_name], 2.5)
+		hud.refresh()
+		return 1
 	var available: int = UNIT_LIMIT - sandbox_unit_count
 	if available <= 0:
 		hud.toast("沙盘最多同时放置 500 个单位", 3.0)
@@ -196,6 +251,9 @@ func place_units(at: Vector3) -> int:
 
 func remove_selected() -> void:
 	for entity: Node3D in selection.duplicate():
+		if entity is BattleBuilding:
+			_remove_building(entity)
+			continue
 		if not entity is BattleUnit:
 			continue
 		if entity == hero_controller.hero:
@@ -212,7 +270,19 @@ func remove_selected() -> void:
 		entity.navigation_agent.avoidance_enabled = false
 		entity.set_physics_process(false)
 		entity.queue_free()
+	$ConstructionNavigation.refresh()
+	$StaticMotionGrid.invalidate()
 	hud.refresh()
+
+func _remove_building(building: BattleBuilding) -> void:
+	forget_entity_selection(building)
+	entities_by_id.erase(building.entity_id)
+	building.alive = false
+	building.collision_layer = 0
+	building.remove_from_group("buildings")
+	building.remove_from_group("entities")
+	building.set_physics_process(false)
+	building.queue_free()
 
 func clear_units() -> void:
 	hero_controller.set_first_person(false)
@@ -229,6 +299,10 @@ func clear_units() -> void:
 		unit.set_physics_process(false)
 		unit.queue_free()
 	sandbox_unit_count = 0
+	for building: BattleBuilding in $Buildings.get_children():
+		_remove_building(building)
+	$ConstructionNavigation.refresh()
+	$StaticMotionGrid.invalidate()
 	for player: PlayerState in players:
 		player.farmers = 0
 		player.military_supply = 0
@@ -314,7 +388,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					var target := entity_at(event.position)
 					if is_instance_valid(target) and target is ResourceVein:
 						command_gather(target, event.shift_pressed)
-					elif is_instance_valid(target) and target is BattleUnit and target.owner_id != local_owner_id:
+					elif is_instance_valid(target) and (target is BattleUnit or target is BattleBuilding) and target.owner_id != local_owner_id:
 						command_attack(target, event.shift_pressed)
 					else:
 						command_move(camera_rig.world_at(event.position), attack_mode, event.shift_pressed)

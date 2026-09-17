@@ -434,7 +434,7 @@ def render(data: dict[str, Any]) -> str:
             a, d = attacker["id"], defender["id"]
             parts += [f"### {names[a]} → {names[d]}", "", table(["攻击科技 ↓ / 防御科技 →", *LEVELS], [
                 [LEVELS[al], *[cell(lookup[a, d, al, dl]) for dl in range(4)]] for al in range(4)]), ""]
-    parts += ["## 建筑耐久与拆除效率", "", "本节列出所有可建造建筑，开局赠送的箭塔使用同一份防御塔数据。建筑没有军事防御科技；只需列出攻击方四级科技。工地未完工时的即时剩余生命取决于施工进度，本表统一采用完工满血建筑。", ""]
+    parts += ["## 建筑耐久与拆除效率", "", "本节列出所有可建造建筑，开局赠送的箭塔使用同一份箭塔数据。建筑没有军事防御科技；只需列出攻击方四级科技。工地未完工时的即时剩余生命取决于施工进度，本表统一采用完工满血建筑。", ""]
     parts.append(table(["建筑", "生命", "近甲 / 远甲", "成本", "建造秒", "攻击", "射程", "间隔"], [
         [b["name"], number(b["hp"]), f"{number(b['melee_armor'])} / {number(b['ranged_armor'])}", b["cost"], number(b["build_seconds"]), number(b["damage"]), number(b["range"]), number(b["cooldown"])] for b in data["buildings"]]))
     parts += ["", "大本营开局赠送，成本列为重建费用。", ""]

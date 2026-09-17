@@ -579,6 +579,44 @@ theme_override_font_sizes/font_size = 15
 toggle_mode = true
 button_group = SubResource("Kinds")
 
+[node name="BuildingTitle" type="Label" parent="Sidebar/Scroll/Content"]
+layout_mode = 2
+text = "防御建筑"
+theme_override_font_sizes/font_size = 15
+
+[node name="BuildingKinds" type="GridContainer" parent="Sidebar/Scroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 5
+
+[node name="defense_tower" type="Button" parent="Sidebar/Scroll/Content/BuildingKinds"]
+layout_mode = 2
+text = "箭塔"
+custom_minimum_size = Vector2(75, 34)
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+toggle_mode = true
+button_group = SubResource("Kinds")
+
+[node name="cannon_tower" type="Button" parent="Sidebar/Scroll/Content/BuildingKinds"]
+layout_mode = 2
+text = "炮塔"
+custom_minimum_size = Vector2(75, 34)
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+toggle_mode = true
+button_group = SubResource("Kinds")
+
+[node name="headquarters" type="Button" parent="Sidebar/Scroll/Content/BuildingKinds"]
+layout_mode = 2
+text = "大本营"
+custom_minimum_size = Vector2(75, 34)
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+toggle_mode = true
+button_group = SubResource("Kinds")
+
 [node name="CountRow" type="HBoxContainer" parent="Sidebar/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -657,7 +695,7 @@ theme_override_font_sizes/font_size = 14
 [node name="Clear" type="Button" parent="Sidebar/Scroll/Content/EditRow"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "清空部队"
+text = "清空沙盘"
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 

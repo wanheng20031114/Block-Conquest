@@ -2,7 +2,7 @@ extends SceneTree
 ## Read-only audit of the same resources and resolver used by live combat.
 ## Run through generate_balance_report.py; this fixture does not create a match.
 
-const BUILDING_IDS: Array[StringName] = [&"headquarters", &"barracks", &"factory", &"academy", &"defense_tower"]
+const BUILDING_IDS: Array[StringName] = [&"headquarters", &"barracks", &"factory", &"academy", &"defense_tower", &"cannon_tower"]
 const LEVELS := 4
 
 func _initialize() -> void:

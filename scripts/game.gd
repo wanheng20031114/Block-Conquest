@@ -527,7 +527,7 @@ func placement_error(at: Vector3, owner: int = -1, kind: String = "") -> String:
 	for building: BattleBuilding in get_tree().get_nodes_in_group("buildings"):
 		if not building.alive:
 			continue
-		var combined_half: Vector3 = (definition.size + building.get_combat_definition().size) * 0.5
+		var combined_half: Vector3 = (definition.size + building.get_footprint_size()) * 0.5
 		var offset: Vector3 = building.global_position - at
 		if absf(offset.x) < combined_half.x - 0.005 and absf(offset.z) < combined_half.z - 0.005:
 			return "这里已有建筑或工地"

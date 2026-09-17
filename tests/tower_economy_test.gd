@@ -31,6 +31,8 @@ func _run() -> void:
 	game = current_scene
 	while not game._match_ready:
 		await process_frame
+	while root.get_node("Session").transition.busy:
+		await process_frame
 	game.tests_running = true
 	game.bots.clear()
 	game.set_physics_process(false)

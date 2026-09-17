@@ -110,8 +110,8 @@ for index, (name, hotkey, cost) in enumerate(zip(['剑士','弓箭手','骑士',
     label('Cost',path,'◈ '+str(cost),4,105,78,19,12,'Color(0.92,0.79,0.49,1)',horizontal_alignment='1')
 s.node('BuildPanel','Control','CommandBar/Recruitment',**rect(0,0,560,152),visible='false',unique_name_in_owner='true',mouse_filter='2')
 s.node('TowerPortrait','TextureRect','CommandBar/Recruitment/BuildPanel',**rect(4,8,132,137),expand_mode='1',stretch_mode='5',mouse_filter='2',unique_name_in_owner='true')
-label('BuildInfo','CommandBar/Recruitment/BuildPanel','防御塔 · 100 金币\n施工 20 秒 · 自动攻击 · 无需驻军',151,14,405,42,14,unique=True)
-button('BuildButton','CommandBar/Recruitment/BuildPanel','建造防御塔  [V]',151,65,232,39)
+label('BuildInfo','CommandBar/Recruitment/BuildPanel','箭塔 · 首座 150 金币\n施工 20 秒 · 自动攻击 · 无需驻军',151,14,405,42,14,unique=True)
+button('BuildButton','CommandBar/Recruitment/BuildPanel','建造箭塔  [V]',151,65,232,39)
 button('CancelSiteButton','CommandBar/Recruitment/BuildPanel','取消施工  [Delete]',151,113,232,27,visible='false',**{'theme_override_font_sizes/font_size':'11'})
 button('IdleWorkerButton','CommandBar/Recruitment/BuildPanel','空闲农民  [.]',394,65,160,39,**{'theme_override_font_sizes/font_size':'12'})
 label('BuildQueueHint','CommandBar/Recruitment/BuildPanel','Shift 连续下单 · 右键工地接手',151,114,405,24,11,'Color(0.79,0.75,0.61,1)',unique=True)
@@ -140,7 +140,7 @@ label('Eyebrow','HelpOverlay/Paper','FIELD MANUAL   /   战地手册',34,25,650,
 label('Title','HelpOverlay/Paper','指挥你的军队',34,62,650,42,30,bold=True)
 label('Intro','HelpOverlay/Paper','摧毁敌队全部军事建筑。每人上限：60 军事单位、10 农民（含训练）。',34,118,650,30,14)
 left='左键 / 框选 / 双击\nShift + 左键 / 右键\n右键 / Shift + 右键\nA + 左键 / S / H\nCtrl + 1—9 / Shift + 1—9\n1—9 / 双按数字\n屏幕边缘 / 中键 / 方向键\n滚轮 / 空格\nB / G / .\n农民 / 生产建筑\n学院\nDelete / Ctrl + Delete\nEsc / P\nF12 / F10 / F11 / M'
-right='选择部队 / 框选 / 选择视野内同类\n追加选择 / 追加移动、采矿或建造任务\n移动、攻击或集结 / 排队执行指令\n攻击前进 / 停止 / 原地坚守\n建立或覆盖编队 / 追加所选部队\n召回编队 / 镜头定位\n移动镜头，移至四角可斜向移动\n缩放 / 定位所选部队\n大本营 / 全部军事单位 / 空闲农民\n选中后使用下方建造或生产面板\n研究全军攻防升级；农民不受军事科技影响\n取消工地 / 拆除完工防御塔（无退款）\n菜单（联机不暂停）/ 房主暂停或继续对局\n单机金币 +100 / 隐藏界面 / 全屏 / 静音'
+right='选择部队 / 框选 / 选择视野内同类\n追加选择 / 追加移动、采矿或建造任务\n移动、攻击或集结 / 排队执行指令\n攻击前进 / 停止 / 原地坚守\n建立或覆盖编队 / 追加所选部队\n召回编队 / 镜头定位\n移动镜头，移至四角可斜向移动\n缩放 / 定位所选部队\n大本营 / 全部军事单位 / 空闲农民\n选中后使用下方建造或生产面板\n研究全军攻防升级；农民不受军事科技影响\n取消工地 / 拆除完工箭塔（无退款）\n菜单（联机不暂停）/ 房主暂停或继续对局\n单机金币 +100 / 隐藏界面 / 全屏 / 静音'
 label('Keys','HelpOverlay/Paper',left,38,169,245,331,13,'Color(0.88,0.76,0.50,1)',**{'theme_override_constants/line_spacing':'5'})
 label('Actions','HelpOverlay/Paper',right,283,169,417,331,13,**{'theme_override_constants/line_spacing':'5'})
 label('Economy','HelpOverlay/Paper','大本营训练农民 10 秒 · 兵营 / 军工厂即时出兵 · 取消训练或研究全额退款\n每矿 6 个采集位置 · 每人每 3 秒 +3 金币 · Shift 可连续指派建造与采矿',36,508,670,38,11,'Color(0.65,0.70,0.65,1)')

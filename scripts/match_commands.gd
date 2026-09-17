@@ -166,7 +166,7 @@ func execute(command: Dictionary, owner: int) -> Dictionary:
 					victim.receive_damage(victim.hp)
 		"build":
 			var building_type: String = str(command.get("building_type", ""))
-			if building_type not in ["headquarters", "barracks", "factory", "academy", "defense_tower"]:
+			if building_type not in ["headquarters", "barracks", "factory", "academy", "defense_tower", "cannon_tower"]:
 				return failure("无效建筑")
 			var workers: Array[BattleUnit] = []
 			for unit: BattleUnit in entities:

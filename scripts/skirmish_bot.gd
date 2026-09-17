@@ -363,7 +363,7 @@ func _composition() -> Dictionary:
 func _known_fortifications() -> int:
 	var count: int = 0
 	for record: Dictionary in _memory.values():
-		if record.building and record.kind in ["headquarters", "defense_tower", "tower"]:
+		if record.building and BalanceCatalog.building(record.kind).damage > 0.0:
 			count += 1
 	return count
 

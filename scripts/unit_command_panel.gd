@@ -55,6 +55,9 @@ func refresh() -> void:
 	%AbilityTitle.text = "英雄能力 / 道具" if hero != null else "单位指令"
 	%UnitHint.visible = hero == null
 	%UnitHint.text = "右键移动 / 攻击\n当前选择的所有己方单位接收行军指令。"
+	if entity is BattleBuilding:
+		%AbilityTitle.text = "建筑状态"
+		%UnitHint.text = "自动攻击射程内敌人\nDelete 移除所选建筑" if entity._stats.damage > 0 else "固定建筑\nDelete 移除所选建筑"
 	if hero == null: return
 	for index: int in ability_buttons.size():
 		var button: Button = ability_buttons[index]
@@ -90,8 +93,9 @@ func _stats_text(entity: Node3D) -> String:
 	var definition: CombatDefinition = entity.get_combat_definition()
 	var own: bool = entity.owner_id == game.local_owner_id
 	var player: PlayerState = game.get_player(entity.owner_id)
-	var attack_bonus: float = player.get_attack_bonus() if own and definition.military else 0.0
-	var defense_bonus: float = player.get_defense_bonus() if own and definition.military else 0.0
+	var military_unit: bool = definition is UnitDefinition and definition.military
+	var attack_bonus: float = player.get_attack_bonus() if own and military_unit else 0.0
+	var defense_bonus: float = player.get_defense_bonus() if own and military_unit else 0.0
 	var damage: float = definition.damage + attack_bonus
 	var attack_range: float = definition.range
 	if entity is HeroUnit:

@@ -1,7 +1,7 @@
 extends Control
 
 const UNIT_ORDER := ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
-const BUILD_ORDER := ["barracks", "factory", "academy", "defense_tower", "headquarters"]
+const BUILD_ORDER := ["barracks", "factory", "academy", "defense_tower", "cannon_tower", "headquarters"]
 var _actions: Array[Dictionary] = []
 var _queue_actions: Array[Dictionary] = []
 var _queue_buttons: Array[Button] = []
@@ -37,7 +37,7 @@ func _ready() -> void:
 	UIMotion.bind_buttons(self)
 	UIMotion.reveal.call_deferred($Resources, Vector2(0, -8))
 	UIMotion.reveal.call_deferred($CommandBar, Vector2(0, 12))
-	for kind in UNIT_ORDER + ["headquarters", "gold_vein", "defense_tower", "barracks", "factory", "academy"]:
+	for kind in UNIT_ORDER + ["headquarters", "gold_vein", "defense_tower", "cannon_tower", "barracks", "factory", "academy"]:
 		portraits[kind] = $ModelPreviews.portrait(kind)
 	portraits["attack_upgrade"] = preload("res://assets/ui/attack_upgrade.png")
 	portraits["defense_upgrade"] = preload("res://assets/ui/defense_upgrade.png")
@@ -115,7 +115,7 @@ func refresh_hotkey_labels() -> void:
 	%HoldButton.text = "坚守  " + game.settings.hotkey_text("rts_hold")
 	%BaseButton.text = "大本营  " + game.settings.hotkey_text("rts_select_base")
 	%ArmyButton.text = "选择全部军队  " + game.settings.hotkey_text("rts_select_army")
-	%BuildButton.text = "建造防御塔  [" + game.settings.hotkey_text("rts_build_tower") + "]"
+	%BuildButton.text = "建造箭塔  [" + game.settings.hotkey_text("rts_build_tower") + "]"
 	%CancelSiteButton.text = "取消施工  [" + game.settings.hotkey_text("rts_destroy") + "]"
 	%IdleWorkerButton.text = "空闲农民  [" + game.settings.hotkey_text("rts_idle_worker") + "]"
 	%HelpButton.tooltip_text = "战地手册  [" + game.settings.hotkey_text("rts_help") + "]"
@@ -391,8 +391,8 @@ func _refresh_actions() -> void:
 	elif building != null:
 		if not building.is_constructed:
 			_actions.append({"kind": "cancel_site", "id": "", "target": building.entity_id, "portrait": building.building_type, "name": "取消施工", "cost": 0, "hint": "返还 %d 金币（实际支付额的未完成部分）" % building.construction_refund()})
-		elif building.building_type == "defense_tower":
-			_actions.append({"kind": "demolish", "id": "", "portrait": "defense_tower", "name": "拆除防御塔", "cost": 0, "hint": game.settings.hotkey_text("rts_destroy") + " · 不返还金币"})
+		elif building.building_type in ["defense_tower", "cannon_tower"]:
+			_actions.append({"kind": "demolish", "id": "", "portrait": building.building_type, "name": "拆除" + building.display_name, "cost": 0, "hint": game.settings.hotkey_text("rts_destroy") + " · 不返还金币"})
 		else:
 			for kind: String in building.get_combat_definition().produces:
 				var definition := BalanceCatalog.unit(kind)
@@ -404,7 +404,7 @@ func _refresh_actions() -> void:
 					if level < BalanceCatalog.UPGRADE_TRACKS[track]:
 						var upgrade := BalanceCatalog.upgrade("%s_%d" % [track, level + 1])
 						_actions.append({"kind": "research", "id": upgrade.id, "portrait": track + "_upgrade", "name": upgrade.name, "cost": upgrade.cost, "hint": _upgrade_hint(upgrade)})
-		%RecruitHint.text = "右键设置集结点 · 研究取消全额退款" if building.building_type == "academy" else "右键设置集结点"
+		%RecruitHint.text = "右键设置集结点 · 研究取消全额退款" if building.building_type == "academy" else ("自动攻击射程内敌人 · 无法驻军" if building.building_type in ["defense_tower", "cannon_tower"] else "右键设置集结点")
 		_paginate_actions(building)
 	for index in range(buttons.size()):
 		var button := buttons[index]

@@ -9,6 +9,7 @@ extends CombatDefinition
 @export var bar_height: float = 5.9
 @export var model: String
 @export var produces: PackedStringArray = PackedStringArray()
+@export_enum("arrow", "cannon") var projectile: String = "arrow"
 
 func cost_after_placements(paid_placements: int) -> int:
 	if cost_progression.is_empty():

@@ -288,6 +288,9 @@ func _entity_public_state(entity: Node3D) -> Dictionary:
 		state.merge({"category": "building", "kind": building.building_type,
 			"construction": building.under_construction, "progress": building.construction_progress,
 			"rotation": vector_data(building.rotation)})
+		if building.artillery != null:
+			state["turret"] = {"yaw": building.artillery.turret.rotation.y,
+				"pitch": building.artillery.elevation.rotation.x, "fired": building.last_fired}
 	return state
 
 func _entity_state(entity: Node3D, recipient: int) -> Dictionary:
@@ -381,6 +384,8 @@ func render(delta: float) -> void:
 		entity.model_pivot.rotation.y = lerp_angle(float(a.yaw), float(b.yaw), weight)
 		if entity is BattleUnit:
 			_present_unit(entity, a, b, weight, delta)
+		elif entity is BattleBuilding and entity.artillery != null:
+			entity.artillery.sample_remote(a.turret, b.turret, weight, _playback_time)
 	game.elapsed = maxf(0.0, _playback_time)
 	while not _visual_queue.is_empty() and float(_visual_queue[0].time) <= _playback_time + 0.000001:
 		var event: Dictionary = _visual_queue.pop_front()
@@ -530,6 +535,8 @@ func _create_replica(state: Dictionary) -> Node3D:
 		var building: BattleBuilding = game.spawn_building(state.kind, int(state.owner), vector(state.p), bool(state.construction), int(state.id))
 		building.set_physics_process(false)
 		building.production.set_physics_process(false)
+		if building.artillery != null:
+			building.artillery.animation.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 		entity = building
 	# Picking collision remains enabled; remote motion never enters RVO or physics.
 	entity.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -696,6 +703,8 @@ func _valid_snapshot(snapshot: Dictionary) -> bool:
 			return false
 		if state.has("actual_paid_gold") and (state.get("category") != "building" or int(state.owner) != game.local_owner_id):
 			return false
+		if state.has("turret") and state.get("category") != "building":
+			return false
 		if state.get("category") == "unit":
 			if not state.get("kind") in BalanceCatalog.UNITS or not state.get("moving") is bool or not state.get("working") is bool:
 				return false
@@ -730,6 +739,16 @@ func _valid_snapshot(snapshot: Dictionary) -> bool:
 					return false
 		elif state.get("category") == "building":
 			if not state.get("kind") in BalanceCatalog.BUILDINGS or not state.get("construction") is bool or not _number(state.get("progress"), 0, 1) or not _vector(state.get("rotation")):
+				return false
+			if BalanceCatalog.building(state.kind).projectile == "cannon":
+				var turret: Variant = state.get("turret")
+				if not turret is Dictionary or turret.size() != 3:
+					return false
+				if not _number(turret.get("yaw"), -PI, PI) or not _number(turret.get("pitch"), DefensiveTowerVisual.MIN_PITCH - .00001, DefensiveTowerVisual.MAX_PITCH + .00001):
+					return false
+				if not _number(turret.get("fired"), -1, float(snapshot.time)) or (float(turret.fired) < 0.0 and float(turret.fired) != -1.0):
+					return false
+			elif state.has("turret"):
 				return false
 			if int(state.owner) == game.local_owner_id and not _valid_production(state):
 				return false
