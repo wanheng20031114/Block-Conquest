@@ -67,7 +67,7 @@ func refresh(values: Dictionary) -> void:
 	%FPHeadBob.set_pressed_no_signal(draft.fp_head_bob)
 	_update_labels()
 	_update_hotkeys()
-	%Status.text = "Esc 返回上层 · 对局中 %s 暂停 / 继续" % settings.hotkey_text("rts_pause")
+	%Status.text = "Esc 返回上层 · 点击「应用」保存设置"
 	_refreshing = false
 
 func _update_labels() -> void:

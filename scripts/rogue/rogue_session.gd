@@ -32,9 +32,9 @@ func has_checkpoint() -> bool:
 	return FileAccess.file_exists(save_path)
 
 func save_checkpoint() -> Error:
-	if state == null or state.data.is_empty(): return _fail("尚未开始肉鸽远征", ERR_UNCONFIGURED)
+	if state == null or state.data.is_empty(): return _fail("尚未开始远征", ERR_UNCONFIGURED)
 	if not state.can_checkpoint():
-		return _fail("当前节点尚未退出，最近的安全存档保持不变", ERR_BUSY)
+		return _fail("当前节点尚未完成，最近的存档保持不变", ERR_BUSY)
 	var reason: String = state.checkpoint_error()
 	if not reason.is_empty(): return _fail(reason, ERR_INVALID_DATA)
 	var payload: String = JSON.stringify(state.export_checkpoint())
@@ -50,7 +50,7 @@ func save_checkpoint() -> Error:
 	var verification: Dictionary = _read_checkpoint(temporary)
 	if verification.is_empty(): return ERR_FILE_CORRUPT
 	var result: Error = DirAccess.rename_absolute(ProjectSettings.globalize_path(temporary), ProjectSettings.globalize_path(save_path))
-	if result != OK: return _fail("无法替换检查点，原存档保持不变", result)
+	if result != OK: return _fail("无法更新远征存档，原存档保持不变", result)
 	error_message = ""
 	return OK
 
@@ -171,28 +171,28 @@ func _publish_mutation(persist: bool, previous: Dictionary) -> Error:
 
 func _read_checkpoint(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
-		_fail("尚无肉鸽存档，请先开始一局远征", ERR_FILE_NOT_FOUND)
+		_fail("尚无远征存档，请先开始一次远征", ERR_FILE_NOT_FOUND)
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		_fail("无法读取肉鸽存档", FileAccess.get_open_error())
+		_fail("无法读取远征存档", FileAccess.get_open_error())
 		return {}
 	var text: String = file.get_as_text()
 	file.close()
 	var parser := JSON.new()
 	if parser.parse(text) != OK or typeof(parser.data) != TYPE_DICTIONARY:
-		_fail("肉鸽存档损坏：文件不是有效的存档数据", ERR_FILE_CORRUPT)
+		_fail("远征存档损坏：文件不是有效的存档数据", ERR_FILE_CORRUPT)
 		return {}
 	var envelope: Dictionary = parser.data
 	if typeof(envelope.get("format")) not in [TYPE_INT, TYPE_FLOAT] or float(envelope.format) != 1.0 or typeof(envelope.get("snapshot")) != TYPE_STRING or typeof(envelope.get("sha256")) != TYPE_STRING:
-		_fail("肉鸽存档格式不受支持", ERR_FILE_CORRUPT)
+		_fail("无法读取此版本的远征存档", ERR_FILE_CORRUPT)
 		return {}
 	var payload: String = envelope.snapshot
 	if payload.sha256_text() != envelope.sha256:
-		_fail("肉鸽存档校验失败，文件可能未完整写入", ERR_FILE_CORRUPT)
+		_fail("远征存档校验失败，文件可能未完整写入", ERR_FILE_CORRUPT)
 		return {}
 	if parser.parse(payload) != OK or typeof(parser.data) != TYPE_DICTIONARY:
-		_fail("肉鸽检查点内容无效", ERR_FILE_CORRUPT)
+		_fail("远征存档内容无效", ERR_FILE_CORRUPT)
 		return {}
 	var candidate := RogueRunState.new()
 	if candidate.import_checkpoint(parser.data) != OK:
@@ -210,7 +210,7 @@ func _prepare_singleplayer() -> void:
 
 func _change_scene(path: String) -> Error:
 	var result: Error = get_parent().change_scene(path)
-	if result != OK: return _fail("无法加载肉鸽场景，请检查游戏文件", result)
+	if result != OK: return _fail("无法加载远征场景，请检查游戏文件", result)
 	return OK
 
 func _fail(message: String, code: Error) -> Error:

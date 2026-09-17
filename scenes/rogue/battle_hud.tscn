@@ -704,7 +704,7 @@ horizontal_alignment = 1
 [node name="PauseBody" type="Label" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "暂离后将从最近一次节点结算存档继续。"
+text = "退出后可从最近存档点继续，当前战斗进度不会保存。"
 theme_override_font_sizes/font_size = 18
 mouse_filter = 2
 autowrap_mode = 2
@@ -731,7 +731,7 @@ custom_minimum_size = Vector2(300, 42)
 [node name="Leave" type="Button" parent="PausePanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "暂离到主菜单"
+text = "返回主菜单"
 mouse_default_cursor_shape = 2
 focus_mode = 0
 size_flags_horizontal = 4

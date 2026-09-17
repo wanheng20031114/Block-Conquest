@@ -424,7 +424,7 @@ custom_minimum_size = Vector2(141,50)
 theme_override_styles/normal = ExtResource("button_compact")
 theme_override_styles/hover = ExtResource("compact_hover")
 theme_override_styles/pressed = ExtResource("compact_pressed")
-text = "返回大厅"
+text = "返回主菜单"
 theme_override_fonts/font = ExtResource("title_font")
 theme_override_font_sizes/font_size = 20
 
@@ -657,7 +657,7 @@ theme_override_font_sizes/font_size = 16
 
 [node name="Primary" type="Button" parent="Canvas/UI/Preview/Scroll/Content"]
 layout_mode = 2
-text = "进入节点  ·  行动力 −1"
+text = "前往此处  ·  行动力 −1"
 custom_minimum_size = Vector2(0,52)
 
 [node name="Secondary" type="Button" parent="Canvas/UI/Preview/Scroll/Content"]
@@ -1050,7 +1050,7 @@ theme_override_constants/separation = 18
 
 [node name="Back" type="Button" parent="Canvas/UI/Setup/Margin/Content/Actions"]
 layout_mode = 2
-text = "返回大厅"
+text = "返回主菜单"
 custom_minimum_size = Vector2(230,52)
 
 [node name="Continue" type="Button" parent="Canvas/UI/Setup/Margin/Content/Actions"]
@@ -1125,8 +1125,8 @@ theme_override_fonts/font = ExtResource("title_font")
 
 [node name="Detail" type="Label" parent="Canvas/UI/PauseMenu/Panel/Content"]
 layout_mode = 2
-text = "离开完整节点时自动保存。
-节点内部退出将回到最近检查点。"
+text = "完成节点后自动保存。
+中途退出会失去本节点尚未保存的进度。"
 theme_override_font_sizes/font_size = 16
 
 [node name="Resume" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
@@ -1149,7 +1149,7 @@ focus_next = NodePath("../Load")
 
 [node name="Load" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
 layout_mode = 2
-text = "读取节点存档"
+text = "返回最近存档点"
 custom_minimum_size = Vector2(0,45)
 focus_neighbor_top = NodePath("../Settings")
 focus_neighbor_bottom = NodePath("../Menu")
@@ -1158,7 +1158,7 @@ focus_next = NodePath("../Menu")
 
 [node name="Menu" type="Button" parent="Canvas/UI/PauseMenu/Panel/Content"]
 layout_mode = 2
-text = "返回大厅"
+text = "返回主菜单"
 custom_minimum_size = Vector2(0,45)
 focus_neighbor_top = NodePath("../Load")
 focus_neighbor_bottom = NodePath("../Quit")
@@ -1176,13 +1176,13 @@ focus_next = NodePath("../Resume")
 
 [node name="ReplaceRun" type="ConfirmationDialog" parent="Canvas/UI"]
 title = "开始新远征"
-dialog_text = "开始新局将替换最近的节点存档。"
-ok_button_text = "开始新局"
+dialog_text = "开始新的远征将覆盖当前远征存档。是否继续？"
+ok_button_text = "开始新远征"
 cancel_button_text = "取消"
 
 [node name="LoadConfirm" type="ConfirmationDialog" parent="Canvas/UI"]
-title = "读取节点存档"
-dialog_text = "恢复最近完整节点的存档，当前节点内的进度将被放弃。"
+title = "返回最近存档点"
+dialog_text = "将返回最近存档点，放弃当前尚未保存的进度。是否继续？"
 ok_button_text = "读取存档"
 cancel_button_text = "取消"
 

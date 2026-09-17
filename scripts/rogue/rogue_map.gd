@@ -5,7 +5,7 @@ const PACK_IDS: Array[String] = ["steady", "ranged", "mobile"]
 const OUTPOST: RogueBattleDefinition = preload("res://data/rogue/battles/outpost.tres")
 const SIEGE: RogueBattleDefinition = preload("res://data/rogue/battles/siege.tres")
 const EVENT_TEXT: Dictionary = {
-	"bread_cart": ["林间面包车", "一辆满载吐司的马车陷在林道的泥泞里。车夫愿意拿口粮换取援手。"],
+	"bread_cart": ["陷入泥泞的粮车", "一辆满载吐司的马车陷在林道的泥泞里。车夫愿意拿口粮换取援手。"],
 	"lost_guard": ["失散守军", "一小队长矛兵守在旧路标旁。他们已经与大部队失联数日。"],
 	"hunter_camp": ["废弃猎营", "湿冷的猎营里留着一束干燥箭材，以及一些还能卖钱的铁器。"],
 	"mist_chest": ["雾中木箱", "树根下的木箱压着一只旧钱袋。更深处还藏着什么，谁也说不准。"],
@@ -127,7 +127,7 @@ func _refresh() -> void:
 			else:
 				preview.hide()
 		"node":
-			ui.get_node("Hint").text = "离开节点后自动保存 · 中途退出将恢复最近完整节点"
+			ui.get_node("Hint").text = "完成节点后自动保存 · 中途退出将回到最近存档点"
 			_show_content()
 		"reward":
 			_show_relic_choices("紧急作战胜利", str(data.last_result))
@@ -181,7 +181,7 @@ func _show_setup() -> void:
 	setup_content.get_node("Footnote").text = "初始人口 20，战斗后全军恢复。离开节点时自动保存。"
 	setup_content.get_node("Title").text = "选择你的战略" if _setup_step == 0 else "选择初始部队"
 	setup_content.get_node("Description").text = "第 1 步，共 2 步 · 为这次远征选择一项优势" if _setup_step == 0 else "第 2 步，共 2 步 · 已选%s，每套部队均占 18 人口" % RogueCatalog.STRATEGIES[_strategy].name
-	setup_content.get_node("Actions/Back").text = "返回大厅" if _setup_step == 0 else "重新选择战略"
+	setup_content.get_node("Actions/Back").text = "返回主菜单" if _setup_step == 0 else "重新选择战略"
 	var choices: Array = []
 	if _setup_step == 0:
 		choices = [["远程优先战略", "远程基础攻击力 +10%"], ["近战分队", "近战基础攻击力 +10%\n所有单位近战护甲 +1"], ["射程优先战略", "远程步兵射程 +1"]]
@@ -291,7 +291,7 @@ func _show_preview(id: int) -> void:
 	if not adjacent and not current:
 		detail += "\n\n需要先抵达与此处直接相连的节点。"
 	content.get_node("Detail").text = detail
-	content.get_node("Primary").text = "当前驻扎位置" if current else "进入节点  ·  行动力 −1"
+	content.get_node("Primary").text = "当前驻扎位置" if current else "前往此处  ·  行动力 −1"
 	content.get_node("Primary").disabled = current or not adjacent
 
 func _show_content() -> void:
@@ -401,17 +401,17 @@ func _show_terminal(phase: String) -> void:
 		ui.get_node(element).hide()
 	setup_content.get_node("Actions/Continue").hide()
 	setup_content.get_node("Title").text = "第一层 · 突围成功" if phase == "intermission" else "远征失败"
-	setup_content.get_node("Description").text = "军团已完成突围，行动力恢复。军队与成长已保存，第二层暂未开放。" if phase == "intermission" else "本次作战失败。最近的节点检查点仍然保留，可以读档再次挑战。"
+	setup_content.get_node("Description").text = "第一层探索已完成，军团进度已保存。当前版本仅开放第一层。" if phase == "intermission" else "本次作战失败。最近的存档仍然保留，可以读档再次挑战。"
 	setup_content.get_node("Footnote").text = "Lv.%d  ·  出战人口 %d / %d  ·  金币 %d  ·  面包 %d" % [rogue.state.data.level, rogue.state.population(), rogue.state.population_cap(), rogue.state.data.gold, rogue.state.data.bread]
-	var labels: Array = ["整理军队","开始新远征","返回大厅"] if phase == "intermission" else ["读取节点存档","开始新远征","返回大厅"]
-	var descriptions: Array = ["检视军团，调整阵位", "重选战略与初始部队", "军团成长已经保存"] if phase == "intermission" else ["从最近完整节点再次出发", "重选战略与初始部队", "保留存档，暂别林海"]
+	var labels: Array = ["整理军队","开始新远征","返回主菜单"] if phase == "intermission" else ["返回最近存档点","开始新远征","返回主菜单"]
+	var descriptions: Array = ["检视军团，调整阵位", "重选战略与初始部队", "军团成长已经保存"] if phase == "intermission" else ["从最近存档点再次出发", "重选战略与初始部队", "保留存档，暂别林海"]
 	for index: int in 3:
 		var choice: Button = setup_content.get_node("Choices/Choice%d" % index)
 		choice.get_node("Title").text = labels[index]
 		choice.get_node("Effect").text = descriptions[index]
 		choice.get_node("Motto").text = ""
 		choice.tooltip_text = descriptions[index]
-	setup_content.get_node("Actions/Back").text = "返回大厅"
+	setup_content.get_node("Actions/Back").text = "返回主菜单"
 	_setup_step = 0
 
 func _option(index: int, text_value: String, disabled: bool = false) -> void:

@@ -6,7 +6,7 @@
 script = ExtResource("1_definition")
 id = &"musketeer"
 name = "火枪手"
-description = "高单发伤害的昂贵远程步兵。每发子弹无视3点护甲，射程较短、装填较慢，需要前排掩护，谨防骑兵突袭。"
+description = "单发威力强，能够穿透部分护甲。射程较短、装填缓慢，适合在阵线后方集中射击。"
 attack_windup_seconds = 0.35
 hp = 75.0
 damage = 22.0

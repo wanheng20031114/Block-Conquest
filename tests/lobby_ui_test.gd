@@ -260,7 +260,7 @@ func _run() -> void:
 	await click(control("Codex"))
 	var codex: Control = control("UnitCodex")
 	check(codex.visible, "native codex entry opens the full catalogue")
-	var counts: Array[int] = [BalanceCatalog.UNITS.size(), 5, 14]
+	var counts: Array[int] = [BalanceCatalog.UNITS.size(), 8, 14]
 	for category in range(3):
 		codex._on_category_changed(category)
 		check(codex.get_node("%Entries").item_count == counts[category], "catalogue category " + str(category) + " contains every current resource")

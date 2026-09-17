@@ -12,7 +12,7 @@ const BUILDING_DESCRIPTIONS: Dictionary = {
 	"academy": "训练牧师，并研究军队、人口与采矿科技。训练和研究独立进行，已完成的研究永久保留。",
 	"defense_tower": "自动攻击范围内的敌人。无法驻军，需要部队保护。",
 	"cannon_tower": "厚石炮台上的回转重炮，自动攻击单个敌人。没有溅射或驻军，适合封锁路口，需要防备远处的攻城器。",
-	"heavy_fortress": "宽厚的棱堡承载两门独立重炮，优先分散火力，敌人不足时集火。炮弹造成范围伤害，适合守护关键防线。",
+	"heavy_fortress": "两门重炮镇守防线，炮弹能同时打击成群敌军。造价高昂，占地宽阔，适合扼守要道。",
 	"castle": "围墙与四角堡楼守护中央主堡。三门火炮独立瞄准与装填，优先分散火力，敌人不足时集中射击。单发造成单体伤害。",
 }
 const MODEL_PATHS: Dictionary = {
@@ -422,7 +422,7 @@ func _combat_rows(definition: CombatDefinition) -> String:
 	rows += _row("远程护甲", _number(definition.ranged_armor))
 	if definition.damage > 0.0:
 		rows += _row("攻击力", _number(definition.damage) + (" · 近战" if definition.damage_channel == CombatDefinition.DamageChannel.MELEE else " · 远程"))
-		rows += _row("每炮间隔" if (definition is UnitDefinition and definition.independent_weapons > 1) or (definition is BuildingDefinition and definition.weapon_count > 1) else "攻击间隔", _number(definition.cooldown) + " 秒")
+		rows += _row("单炮攻击间隔" if (definition is UnitDefinition and definition.independent_weapons > 1) or (definition is BuildingDefinition and definition.weapon_count > 1) else "攻击间隔", _number(definition.cooldown) + " 秒")
 		rows += _row("射程", _number(definition.range))
 		if definition.armor_penetration > 0.0:
 			rows += _row("固定穿甲", "无视 %s 点护甲" % _number(definition.armor_penetration))
@@ -434,17 +434,17 @@ func _unit_notes(unit: UnitDefinition) -> String:
 	if unit.armor_penetration > 0.0:
 		return "穿甲在防御科技后计算，剩余护甲最低为0；攻击科技提高攻击力，穿甲固定为%s。对建筑同样有效，类别附伤另行计算。" % _number(unit.armor_penetration)
 	if unit.support_kind == &"heal":
-		return "治疗己方和盟友的步兵、骑兵、弓手、农民及其他牧师；不能治疗自身、攻城器或建筑。同一目标同时一名牧师治疗。移动中断施法，手动指定可跟随；攻击科技只提高挥拳伤害。"
+		return "治疗己方和盟友的步兵、骑兵、农民及其他牧师，包括远程步兵；不能治疗自身、攻城器或建筑。同一目标同时一名牧师治疗。移动中断施法，手动指定可跟随；攻击科技只提高挥拳伤害。"
 	if unit.support_kind == &"repair":
 		return "免费维修己方和盟友的受损攻城器，工作满1秒恢复5生命。同一目标同时一人维修。不能维修建筑或战象；右键指定目标，停止命令中断维修。"
 	if unit.id == &"light_cavalry":
-		return "移动速度6.8、视野20的轻装侦察骑兵，适合迂回与追击落单弓手。装备较轻，正面交战需要谨慎，完整承受长矛兵等单位的反骑兵附加伤害。"
+		return "适合迂回侦察，对远程步兵造成额外伤害，包括弓箭手、弩手和火枪手。装备较轻，正面交战需要谨慎；仍会受到长矛兵等单位的反骑兵附加伤害。"
 	if unit.id == &"war_elephant":
 		return "昂贵的骑兵单位，以象牙顶击单个目标，没有范围伤害。长矛兵与剑士的反骑兵附加伤害完整生效，适合在友军支援下承受正面攻击。"
 	if unit.id == &"shield_guard":
 		return "高远程护甲适合承受箭雨，持盾短剑攻击单个目标。护甲全方向生效，攻击与防御研究同时影响现有和新训练的盾卫。"
 	if unit.id == &"catapult":
-		return "半径 %s 的范围伤害，范围内伤害一致。巨石落点在发射时确定，可以躲避；不会伤及友军。" % _number(unit.splash_radius)
+		return "造成半径 %s 的范围伤害，伤害不会随目标离落点的距离衰减，各目标分别扣除护甲。巨石发射后落点固定，可以躲避；不会伤及友军。" % _number(unit.splash_radius)
 	if unit.independent_weapons > 1:
 		return "三根炮管各有2.4秒冷却，空闲炮管可单独开火。自动优先分散，目标不足时集火；手动指定时三管集火。优先步兵，无溅射；步兵附伤也作用于远程步兵与农民。不受加长炮管科技影响。"
 	if unit.cannon_range_upgrades:

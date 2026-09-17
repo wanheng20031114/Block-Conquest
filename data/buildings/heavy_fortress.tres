@@ -6,7 +6,7 @@
 script = ExtResource("definition")
 id = &"heavy_fortress"
 name = "重型要塞"
-description = "宽厚的棱堡承载两门独立重炮，爆炸覆盖落点周围的敌军。昂贵且占地宽广，适合守护关键防线。"
+description = "两门重炮镇守防线，炮弹能同时打击成群敌军。造价高昂，占地宽阔，适合扼守要道。"
 combat_class = &"building"
 damage_channel = 1
 hp = 5400

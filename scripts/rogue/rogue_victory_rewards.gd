@@ -59,7 +59,7 @@ func render_settlement(settlement: Dictionary, _state: RogueRunState) -> void:
 	status.text = "奖励已领取" if _submitted else "确认领取后，继续处理本次获得的招募券与收藏品。"
 	claim.text = "已领取" if _submitted else "领取奖励"
 	if siege:
-		status.text = "整备已完成" if _submitted else "军队与成长将保留到层间整备，第二层暂未开放。"
+		status.text = "整备已完成" if _submitted else "确认结算后保存军团进度。当前版本仅开放第一层。"
 		claim.text = "已完成整备" if _submitted else "完成整备"
 	claim.disabled = _submitted
 	show()

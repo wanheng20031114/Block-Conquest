@@ -244,7 +244,7 @@ func _on_request_timeout() -> void:
 		return
 	_pending_request = false
 	relay.disconnect_relay()
-	_set_message("服务器暂未回应。可以重试，或立即开始单人对战。", true)
+	_set_message("服务器暂未回应。可以重试，或先开始单人遭遇战。", true)
 	_refresh_request_buttons()
 
 func _refresh_request_buttons() -> void:
@@ -276,7 +276,7 @@ func _on_slot_timeout() -> void:
 	if _pending_slots.is_empty():
 		return
 	_pending_slots.clear()
-	_set_message("席位更新未获确认，请重试。", true)
+	_set_message("房间设置暂未更新，请重试。", true)
 	if not room.is_empty():
 		_refresh_room_controls()
 

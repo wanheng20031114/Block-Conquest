@@ -242,7 +242,7 @@ text = "启用轻微行走起伏（默认关闭）"
 
 [node name="FPHelp" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/FirstPerson"]
 layout_mode = 2
-text = "相同鼠标 DPI 下，灵敏度与 CS2 默认轴倍率 1∶1 对应。\n默认保持平稳眼高，不添加镜头震动或侧倾。\n跳跃只改变表现高度，不跨越障碍，也不规避攻击。\nF5 切换控制 · WASD 移动 · 左键开火 · R 换弹"
+text = "相同鼠标 DPI 下，灵敏度与 CS2 默认轴倍率 1∶1 对应。\n默认保持平稳视角。跳跃不能越过障碍或躲避攻击。\n沙盒中拥有英雄时，F5 切换俯视与第一人称。\n第一人称：WASD 移动 · 左键开火 · R 换弹 · Esc 菜单"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 16
 
