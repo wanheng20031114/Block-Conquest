@@ -7,6 +7,8 @@ extends SceneTree
 const KINDS: PackedStringArray = ["swordsman", "archer", "knight", "catapult", "cannon", "farmer", "spearman", "shield_guard", "war_elephant", "light_cavalry", "engineer", "priest", "heavy_cannon", "triple_cannon", "crossbowman", "musketeer"]
 const OUTPUT := "res://assets/models/units/batched/"
 const MANAGER := "res://scenes/unit_render_batches.tscn"
+const VARIANT_KINDS: PackedStringArray = ["musketeer_advanced"]
+const VARIANT_MANAGER := "res://scenes/sandbox_variant_batches.tscn"
 const TOLERANCE := 0.00003
 var _checks: int = 0
 var _errors: Array[String] = []
@@ -26,27 +28,33 @@ func _run() -> void:
 		printerr("Expected a result JSON path followed by optional unit kinds to rebuild")
 		quit(2)
 		return
-	var selected: PackedStringArray = args.slice(1) if args.size() > 1 else KINDS
+	var variants: bool = "--variants" in args
+	var kinds: PackedStringArray = VARIANT_KINDS if variants else KINDS
+	var manager: String = VARIANT_MANAGER if variants else MANAGER
+	var selected: PackedStringArray = args.slice(1) if args.size() > 1 else kinds
+	if variants:
+		selected.remove_at(selected.find("--variants"))
+		if selected.is_empty(): selected = kinds
 	for kind: String in selected:
-		if kind not in KINDS:
+		if kind not in kinds:
 			printerr("Unknown unit kind: ", kind)
 			quit(2)
 			return
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
-	for kind: String in KINDS:
+	for kind: String in kinds:
 		# Read all part metadata for the shared manager, but only write the
 		# requested model. Existing editor-authored scenes retain their bytes.
 		_convert(kind, kind in selected)
 	if _errors.is_empty():
-		_write(MANAGER, _manager_text())
-		for kind: String in KINDS:
+		_write(manager, _manager_text())
+		for kind: String in kinds:
 			_validate(kind)
 	_check(_pose_comparisons >= _parts.size() * 6, "Every rigid part receives nonempty native animation samples")
 	var result_file := FileAccess.open(args[0], FileAccess.WRITE)
 	_check(result_file != null, "Result file is writable")
 	var result := {"godot": Engine.get_version_info().string, "checks": _checks,
 		"errors": _errors, "parts": _parts, "sources": _sources,
-		"manager": MANAGER, "manager_sha256": FileAccess.get_sha256(MANAGER),
+		"manager": manager, "manager_sha256": FileAccess.get_sha256(manager),
 		"max_transform_error": _max_transform_error, "max_socket_error": _max_socket_error,
 		"pose_comparisons": _pose_comparisons, "socket_comparisons": _socket_comparisons,
 		"tolerance": TOLERANCE,
@@ -94,6 +102,8 @@ func _convert(kind: String, write_model: bool = true) -> void:
 			continue
 		var resource_id: String = match_mesh.get_string(1)
 		if not _check(mesh_resources.has(resource_id), kind + " mesh resource is an original ArrayMesh"):
+			continue
+		if not _check(FileAccess.file_exists(mesh_resources[resource_id]), kind + " mesh must be baked before batch conversion"):
 			continue
 		var path: String = _attribute(header, "parent") + "/" + _attribute(header, "name")
 		# Refuse to lose renderer-specific authoring if future art adds it.
@@ -151,7 +161,7 @@ func _validate(kind: String) -> void:
 	for path: NodePath in part_paths:
 		var source_mesh: MeshInstance3D = original.get_node(path)
 		var proxy: Node3D = converted.get_node(path)
-		_check(converted.batch_parts[path] == source_mesh.mesh, kind + "/" + String(path) + " reuses original mesh resource")
+		_check(source_mesh.mesh != null and converted.batch_parts[path] == source_mesh.mesh, kind + "/" + String(path) + " reuses a loaded original mesh resource")
 		_check(source_mesh.transform.is_equal_approx(proxy.transform) and source_mesh.visible == proxy.visible, kind + "/" + String(path) + " retains authored pose and visibility")
 	# Native AnimationPlayer sampling with the original paths. Remove only the
 	# presentation script during this isolated data check to avoid random idle

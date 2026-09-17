@@ -75,10 +75,11 @@ func register_model(model: UnitVisual, relation: int, authority: bool = true) ->
 	entry.id = id
 	entry.custom = FactionPalette.model_color(relation).srgb_to_linear()
 	entry.custom.a = 1.0
-	var kind_count: int = int(_kind_count.get(model.kind, 0)) + 1
-	_kind_count[model.kind] = kind_count
+	var presentation: String = model.presentation_key()
+	var kind_count: int = int(_kind_count.get(presentation, 0)) + 1
+	_kind_count[presentation] = kind_count
 	for path: NodePath in model.batch_parts:
-		var key := StringName(model.kind + "::" + String(path))
+		var key := StringName(presentation + "::" + String(path))
 		assert(_batch_by_key.has(key), "Missing authored part batch: " + String(key))
 		var batch: PartBatch = _batch_by_key[key]
 		assert(batch.mesh.mesh == model.batch_parts[path], "Batch must preserve its original mesh and LODs")
@@ -110,7 +111,8 @@ func unregister_model(model: UnitVisual) -> void:
 	for part_index: int in entry.batches.size():
 		entry.parts[part_index].visibility_changed.disconnect(_on_part_visibility_changed.bind(id, part_index))
 		_remove_part(entry, part_index)
-	_kind_count[model.kind] = int(_kind_count[model.kind]) - 1
+	var presentation: String = model.presentation_key()
+	_kind_count[presentation] = int(_kind_count[presentation]) - 1
 	var last: int = _models.size() - 1
 	if index != last:
 		_models[index] = _models[last]

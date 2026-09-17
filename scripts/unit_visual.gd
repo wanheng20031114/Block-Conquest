@@ -10,6 +10,10 @@ extends Node3D
 @export_node_path("Skeleton3D") var rigid_skin_skeleton: NodePath
 @export var rigid_skin_socket_bone: StringName
 @export var batch_parts: Dictionary[NodePath, Mesh] = {}
+@export var grade: StringName
+
+func presentation_key() -> String:
+	return kind if grade.is_empty() else kind + "_" + String(grade)
 
 @onready var locomotion: AnimationPlayer = $Locomotion
 @onready var attack: AnimationPlayer = $Attack

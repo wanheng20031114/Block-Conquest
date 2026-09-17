@@ -748,6 +748,10 @@ func spawn_unit(kind: String, faction: int, at: Vector3, id: int = 0) -> Node3D:
 	unit.prune_stationary_avoidance = stationary_avoidance_pruning_enabled
 	if unit_batches_enabled:
 		unit.render_batches = $UnitRenderBatches
+	return attach_unit(unit, faction, at, id)
+
+## Configure definition/model before entering the tree and running BattleUnit._ready.
+func attach_unit(unit: BattleUnit, faction: int, at: Vector3, id: int = 0) -> BattleUnit:
 	unit.entity_id = id
 	unit.owner_id = faction
 	unit.alliance_id = get_player(faction).alliance_id

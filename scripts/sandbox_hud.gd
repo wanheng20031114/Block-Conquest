@@ -11,7 +11,7 @@ func _ready() -> void:
 	UIMotion.bind_buttons(self)
 	UIMotion.reveal.call_deferred($Top, Vector2(0, -8))
 	UIMotion.reveal.call_deferred($Sidebar, Vector2(-12, 0))
-	for kind: String in $ModelPreviews.KINDS: portraits[kind] = $ModelPreviews.portrait(kind)
+	for kind: String in $ModelPreviews.kinds(): portraits[kind] = $ModelPreviews.portrait(kind)
 	portraits["hero"] = $HeroPortrait.get_texture()
 
 func bind_game(controller: Node3D) -> void:
@@ -36,6 +36,8 @@ func bind_game(controller: Node3D) -> void:
 		button.get_node("Swatch").color = FactionPalette.SANDBOX_COLORS[index]
 		button.pressed.connect(game.set_faction.bind(index))
 	%Count.value_changed.connect(func(value: float): game.paint_count = int(value))
+	%NormalGrade.pressed.connect(game.set_paint_advanced.bind(false))
+	%AdvancedGrade.pressed.connect(game.set_paint_advanced.bind(true))
 	%Rotate.pressed.connect(game.rotate_placement)
 	%Place.pressed.connect(game.set_placing.bind(true))
 	%Select.pressed.connect(game.set_placing.bind(false))
@@ -59,6 +61,9 @@ func refresh() -> void:
 	for kind: String in BUILDING_KINDS:
 		%BuildingKinds.get_node(kind).set_pressed_no_signal(kind == game.paint_kind)
 	%Count.editable = not game.painting_building()
+	%GradeRow.visible = UnitVariantCatalog.ADVANCED.has(game.paint_kind)
+	%NormalGrade.set_pressed_no_signal(not game.paint_advanced)
+	%AdvancedGrade.set_pressed_no_signal(game.paint_advanced)
 	%CountRow.visible = not game.painting_building()
 	%Place.set_pressed_no_signal(game.placing)
 	%Select.set_pressed_no_signal(not game.placing)

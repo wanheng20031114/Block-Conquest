@@ -12,8 +12,8 @@ LEFT_GRIP = np.array((-.085,-.09,-.10))
 RIGHT_GRIP = np.array((.02,-.10,.10))
 
 
-def build_musketeer():
-    s = Sculpture('musketeer')
+def build_musketeer(advanced=False):
+    s = Sculpture('musketeer_advanced' if advanced else 'musketeer')
     body=s.joint('Body',(0,1.05,0))
     s.add(body,lathe([(-.32,.265),(-.10,.235),(.20,.265),(.29,.19)],10),'blue')
     s.r(body,(0,.25,0),(0,.4,0),.11,'skin',8)
@@ -48,6 +48,9 @@ def build_musketeer():
     s.add(head,brim,'wooddark')
     s.add(head,lathe([(.163,.242),(.265,.22),(.34,.175),(.347,.10)],10),'wooddark')
     s.add(head,lathe([(.168,.246),(.218,.238)],10,caps=False),'blue')
+    if advanced:
+        # A restrained silver ribbon edge; reserve crowns and tall crests for royal.
+        s.add(head,lathe([(.213,.240),(.229,.236)],10,caps=False),'steel')
     s.b(head,(.073,.064,.027),(-.15,.204,-.197),'gold',rot=(0,.6,0),bevel=.009)
     feather=polygon([(-.025,-.13),(-.064,.02),(-.042,.19),(0,.30),(.041,.17),(.035,.015)],.017,
                     pos=(-.246,.35,.04),rot=(0,0,.36))
@@ -65,10 +68,15 @@ def build_musketeer():
         arm=s.joint('Arm'+side,(sign*.30,1.32,-.065))
         s.e(arm,(.125,.125,.132),(sign*.014,0,0),'blue')
         s.r(arm,(0,-.015,0),(sign*.045,-.24,0),.083,'blue',8)
+        if advanced:
+            s.e(arm,(.142,.085,.147),(sign*.017,.038,0),'steel')
+            s.b(arm,(.032,.10,.19),(sign*.119,.005,0),'darksteel',rot=(0,0,sign*-.2),bevel=.012)
         fore=s.joint('Forearm'+side,(sign*.045,-.24,0),arm)
         s.e(fore,(.083,.082,.083),(0,0,0),'blue')
         s.r(fore,(0,-.025,0),(sign*.023,-.17,-.04),.070,'blue',8,r2=.06)
         s.r(fore,(sign*.017,-.115,-.026),(sign*.025,-.181,-.042),.077,'ivory',8,r2=.067)
+        if advanced:
+            s.r(fore,(sign*.016,-.105,-.022),(sign*.023,-.151,-.035),.079,'steel',8,r2=.073)
         s.e(fore,(.062,.065,.07),(sign*.025,-.235,-.055),'skin')
         s.b(fore,(.029,.055,.041),(sign*-.014,-.233,-.103),'skin',bevel=.008)
     for name,x in [('LegLeft',-.155),('LegRight',.155)]:
@@ -86,6 +94,9 @@ def build_musketeer():
     s.add(gun,polygon([(-.01,.02),(.31,-.02),(.35,-.14),(.27,-.18),(.035,-.105)],.115,
                      rot=(0,-math.pi/2,0)),'wooddark')
     s.b(gun,(.12,.025,.17),(0,-.145,.28),'bronze',rot=(-.2,0,0),bevel=.005)
+    if advanced:
+        s.b(gun,(.124,.142,.032),(0,-.086,.30),'steel',rot=(-.2,0,0),bevel=.006)
+        s.b(gun,(.014,.065,.17),(.060,-.085,.20),'steel',bevel=.005)
     # Hollow barrel: the last rings turn inward to a dark recessed bore.
     profile=[(-.86,.043),(-.825,.043),(.10,.061),(.14,.061)]
     s.add(gun,lathe(profile,10,pos=(0,.067,0),rot=(math.pi/2,0,0),caps=False),'darksteel')
@@ -150,7 +161,7 @@ def pose(s,time=0,attack=False):
 def write_musketeer_scene(s):
     parts=list(s.parts)
     lines=['[gd_scene format=3]','[ext_resource type="Script" path="res://scripts/unit_visual.gd" id="1_script"]']
-    for i,p in enumerate(parts): lines.append(f'[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer/{p}.res" id="{i+2}_{p}"]')
+    for i,p in enumerate(parts): lines.append(f'[ext_resource type="ArrayMesh" path="res://assets/models/units/{s.name}/{p}.res" id="{i+2}_{p}"]')
     rest=pose(s)
     idle=[(path,[value,value]) for path,value in rest.items()]
     walk=[(path,[value,value]) for path,value in rest.items()]
@@ -168,7 +179,7 @@ def write_musketeer_scene(s):
     lines += [anim_resource('idle',2.6,idle,True),anim_resource('walk',.72,walk,True),anim_resource('strike',2.16,strike),
         '[sub_resource type="AnimationLibrary" id="AnimationLibrary_locomotion"]\n_data = {&"idle": SubResource("Animation_idle"), &"walk": SubResource("Animation_walk")}',
         '[sub_resource type="AnimationLibrary" id="AnimationLibrary_attack"]\n_data = {&"strike": SubResource("Animation_strike")}',
-        '[node name="Musketeer" type="Node3D"]\nscript = ExtResource("1_script")\nkind = "musketeer"\nprojectile_socket = NodePath("Rig/Action/Waist/Musket/ProjectileSocket")',
+        '[node name="Musketeer" type="Node3D"]\nscript = ExtResource("1_script")\nkind = "musketeer"\n'+('grade = &"advanced"\n' if s.name.endswith('_advanced') else '')+'projectile_socket = NodePath("Rig/Action/Waist/Musket/ProjectileSocket")',
         '[node name="Rig" type="Node3D" parent="."]','[node name="Action" type="Node3D" parent="Rig"]']
     emitted=set()
     def emit(part):
@@ -191,4 +202,4 @@ def write_musketeer_scene(s):
         '[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="."]\naabb = AABB(-2,-1,-2,4,4,4)',
         '[connection signal="screen_entered" from="VisibilityNotifier" to="." method="_on_screen_entered"]',
         '[connection signal="screen_exited" from="VisibilityNotifier" to="." method="_on_screen_exited"]']
-    (OUT/'musketeer.tscn').write_text('\n\n'.join(lines)+'\n',encoding='utf-8')
+    (OUT/(s.name+'.tscn')).write_text('\n\n'.join(lines)+'\n',encoding='utf-8')

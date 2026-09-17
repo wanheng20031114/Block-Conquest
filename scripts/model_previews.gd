@@ -2,6 +2,12 @@ extends Node
 ## Cached isolated native render targets. Only the active portrait advances at 15 Hz.
 const KINDS: Array[String] = ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer", "headquarters", "gold_vein", "defense_tower", "cannon_tower", "castle", "heavy_fortress", "barracks", "factory", "academy"]
 const FRAME_TIME := 1.0 / 15.0
+@export var additional_portraits: PackedStringArray = []
+
+func kinds() -> Array[String]:
+	var result: Array[String] = KINDS.duplicate()
+	result.append_array(additional_portraits)
+	return result
 
 var _viewports: Dictionary[String, SubViewport] = {}
 var _idle_players: Dictionary[String, AnimationPlayer] = {}
@@ -10,7 +16,7 @@ var _animated_kind: String = ""
 @onready var _tick: Timer = $PreviewTick
 
 func _ready() -> void:
-	for kind: String in KINDS:
+	for kind: String in kinds():
 		var viewport: SubViewport = get_node(kind)
 		var model: Node3D = viewport.get_node("World/Model")
 		_viewports[kind] = viewport
@@ -18,7 +24,7 @@ func _ready() -> void:
 		model.process_mode = Node.PROCESS_MODE_DISABLED
 		var camera: Camera3D = viewport.get_node("World/Camera3D")
 		camera.look_at(viewport.get_node("World/LookAt").global_position, Vector3.UP)
-		if BalanceCatalog.UNITS.has(kind):
+		if model is UnitVisual:
 			model.set_team(0)
 			var idle: AnimationPlayer = model.get_node("Locomotion")
 			var attack: AnimationPlayer = model.get_node("Attack")
@@ -34,7 +40,7 @@ func portrait(kind: String) -> Texture2D:
 	return _viewports[kind].get_texture()
 
 func set_animated(kind: String) -> void:
-	assert(kind.is_empty() or kind in KINDS, "Unknown portrait: " + kind)
+	assert(kind.is_empty() or _viewports.has(kind), "Unknown portrait: " + kind)
 	if _animated_kind == kind:
 		return
 	# Keep any pending UPDATE_ONCE from set_team(): production buttons share the
@@ -47,8 +53,8 @@ func set_animated(kind: String) -> void:
 	_advance_portrait()
 
 func set_team(team: int) -> void:
-	for kind: String in KINDS:
-		if BalanceCatalog.UNITS.has(kind):
+	for kind: String in _viewports:
+		if _models[kind] is UnitVisual:
 			_models[kind].set_team(team)
 		elif kind != "gold_vein":
 			FactionPalette.apply_model(_models[kind], team)

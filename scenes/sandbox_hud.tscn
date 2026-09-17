@@ -5,11 +5,13 @@
 [ext_resource type="Script" path="res://scripts/sandbox_hud.gd" id="script"]
 [ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://scenes/unit_command_panel.tscn" id="unit_panel"]
-[ext_resource type="PackedScene" path="res://scenes/model_previews.tscn" id="previews"]
+[ext_resource type="PackedScene" path="res://scenes/sandbox_model_previews.tscn" id="previews"]
 [ext_resource type="PackedScene" path="res://scenes/hero/hero_portrait.tscn" id="hero_portrait"]
 [sub_resource type="ButtonGroup" id="Factions"]
 [sub_resource type="ButtonGroup" id="Kinds"]
 [sub_resource type="ButtonGroup" id="Tools"]
+[sub_resource type="ButtonGroup" id="Grades"]
+
 [node name="SandboxHUD" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -427,6 +429,28 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "兵种"
 theme_override_font_sizes/font_size = 14
+
+[node name="GradeRow" type="HBoxContainer" parent="Sidebar/Scroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NormalGrade" type="Button" parent="Sidebar/Scroll/Content/GradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "普通"
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("Grades")
+
+[node name="AdvancedGrade" type="Button" parent="Sidebar/Scroll/Content/GradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "高级"
+toggle_mode = true
+button_group = SubResource("Grades")
 
 [node name="Kinds" type="GridContainer" parent="Sidebar/Scroll/Content"]
 unique_name_in_owner = true

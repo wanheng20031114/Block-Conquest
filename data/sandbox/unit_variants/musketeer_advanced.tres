@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitVariantDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_variant_definition.gd" id="script"]
+[ext_resource type="Resource" path="res://data/units/musketeer.tres" id="base"]
+[ext_resource type="PackedScene" path="res://assets/models/units/musketeer_advanced.tscn" id="model"]
+[ext_resource type="PackedScene" path="res://assets/models/units/batched/musketeer_advanced.tscn" id="batch"]
+
+[resource]
+script = ExtResource("script")
+base = ExtResource("base")
+grade = &"advanced"
+display_name = "高级火枪手"
+combat_scale = 1.2
+model = ExtResource("model")
+batched_model = ExtResource("batch")

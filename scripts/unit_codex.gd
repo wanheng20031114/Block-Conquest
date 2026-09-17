@@ -33,6 +33,7 @@ const UNIT_FRAMING: Dictionary = {
 enum PreviewAction { IDLE, WALK, ATTACK, GATHER }
 var category: int = 0
 var selected_id: String = ""
+var advanced: bool = false
 var _entries: Array[String] = []
 var _model: Node3D
 var _dragging: bool = false
@@ -72,6 +73,8 @@ func _ready() -> void:
 	%RoleFilter.item_selected.connect(_on_filters_changed)
 	%ClearFilters.pressed.connect(_clear_filters)
 	%Entries.item_selected.connect(_on_entry_selected)
+	%NormalGrade.pressed.connect(select_advanced.bind(false))
+	%AdvancedGrade.pressed.connect(select_advanced.bind(true))
 	%Portrait.gui_input.connect(_on_preview_input)
 	%CloseCodex.pressed.connect(close_codex)
 	%ResetView.pressed.connect(_reset_view)
@@ -326,9 +329,19 @@ func select_entry(value: int, id: String) -> void:
 	%Entries.ensure_current_is_visible()
 	_on_entry_selected(index)
 
+func select_advanced(value: bool) -> void:
+	assert(not value or (category == 0 and UnitVariantCatalog.ADVANCED.has(selected_id)))
+	advanced = value
+	_on_entry_selected(_entries.find(selected_id))
+
 func _on_entry_selected(index: int) -> void:
+	if selected_id != _entries[index] or category != 0:
+		advanced = false
 	selected_id = _entries[index]
-	var definition: Resource = _definition(selected_id)
+	var definition: Resource = UnitVariantCatalog.ADVANCED[selected_id].definition() if advanced else _definition(selected_id)
+	%GradeRow.visible = category == 0 and UnitVariantCatalog.ADVANCED.has(selected_id)
+	%NormalGrade.set_pressed_no_signal(not advanced)
+	%AdvancedGrade.set_pressed_no_signal(advanced)
 	%EntryTitle.text = definition.name
 	%UnitTags.visible = category == 0
 	var content: String = ""
@@ -340,9 +353,12 @@ func _on_entry_selected(index: int) -> void:
 			%ChannelTag.text = unit.channel_label()
 			%RoleTag.text = unit.role_label()
 			%Description.text = unit.description
-			content += _row("训练费用", "%d 金币" % unit.cost)
-			content += _row("训练时间", _number(unit.training_seconds) + " 秒")
-			content += _row("生产建筑", BalanceCatalog.building(unit.production_building).name)
+			if advanced:
+				content += _row("可用模式", "仅限沙盒")
+			else:
+				content += _row("训练费用", "%d 金币" % unit.cost)
+				content += _row("训练时间", _number(unit.training_seconds) + " 秒")
+				content += _row("生产建筑", BalanceCatalog.building(unit.production_building).name)
 			content += _row("人口", "%d 军事人口" % unit.supply if unit.military else "1 名农民")
 			content += _combat_rows(unit)
 			if unit.independent_weapons > 1:
@@ -414,7 +430,7 @@ func _on_entry_selected(index: int) -> void:
 			_set_preview(TECH_MODELS[upgrade.track])
 	%Stats.text = "[table=2]" + content + "[/table]"
 	%DetailScroll.scroll_vertical = 0
-	%DataNote.text = "初始数值 · 未研究科技" if category != 2 else "升级效果为本级完成后的总效果"
+	%DataNote.text = "高级数值 · 未研究科技 · 仅限沙盒" if advanced else ("初始数值 · 未研究科技" if category != 2 else "升级效果为本级完成后的总效果")
 
 func _combat_rows(definition: CombatDefinition) -> String:
 	var rows: String = _row("生命值", _number(definition.hp))
@@ -479,6 +495,8 @@ func _set_preview(kind: String) -> void:
 		_model.queue_free()
 	var unit: bool = BalanceCatalog.UNITS.has(kind)
 	var packed: PackedScene = load("res://assets/models/units/%s.tscn" % kind if unit else MODEL_PATHS[kind])
+	if category == 0 and advanced:
+		packed = UnitVariantCatalog.ADVANCED[kind].model
 	_model = packed.instantiate()
 	_anchor.add_child(_model)
 	var center: float = 3.0

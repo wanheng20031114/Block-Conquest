@@ -29,7 +29,7 @@ func refresh() -> void:
 	total_supply = 0
 	for entity: Node3D in game.selection:
 		if not is_instance_valid(entity) or not entity.alive or not game.can_see_entity(game.local_owner_id, entity): continue
-		var kind: String = entity.unit_type if entity is BattleUnit else (entity.building_type if entity is BattleBuilding else "gold_vein")
+		var kind: String = String(entity.get_combat_definition().id) if entity is BattleUnit else (entity.building_type if entity is BattleBuilding else "gold_vein")
 		var key := "%d:%s" % [entity.owner_id, kind]
 		if not grouped.has(key):
 			grouped[key] = {"key":key, "kind":kind, "name":entity.display_name, "owner":entity.owner_id, "members":[], "hp":0.0, "max_hp":0.0, "supply":0}

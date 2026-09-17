@@ -6,6 +6,7 @@ const BUILDING_LIMIT := 64
 var running: bool = false
 var placing: bool = true
 var paint_kind: String = "swordsman"
+var paint_advanced: bool = false
 var paint_count: int = 1
 var paint_rotation: float = 0.0
 var map_mode: String = "1v1"
@@ -70,6 +71,18 @@ func spawn_building(kind: String, owner: int, at: Vector3, construction: bool = 
 	var building: BattleBuilding = super.spawn_building(kind, owner, at, construction, id)
 	building.disable_mode = CollisionObject3D.DISABLE_MODE_KEEP_ACTIVE
 	return building
+
+func spawn_variant(kind: String, faction: int, at: Vector3) -> BattleUnit:
+	assert(UnitVariantCatalog.ADVANCED.has(kind))
+	var variant: UnitVariantDefinition = UnitVariantCatalog.ADVANCED[kind]
+	var unit: BattleUnit = UNIT_SCENE.instantiate()
+	unit.unit_type = kind
+	unit.definition_override = variant.definition()
+	unit.model_scene_override = variant.batched_model if unit_batches_enabled else variant.model
+	unit.prune_stationary_avoidance = stationary_avoidance_pruning_enabled
+	unit.disable_mode = CollisionObject3D.DISABLE_MODE_KEEP_ACTIVE
+	if unit_batches_enabled: unit.render_batches = $VariantRenderBatches
+	return attach_unit(unit, faction, at)
 
 func register_entity(entity: Node3D) -> void:
 	super.register_entity(entity)
@@ -150,8 +163,9 @@ func set_placing(value: bool) -> void:
 
 func set_paint_kind(kind: String) -> void:
 	paint_kind = kind
+	if not UnitVariantCatalog.ADVANCED.has(kind): paint_advanced = false
 	for model: UnitVisual in $PlacementPreview/Models.get_children():
-		model.visible = model.kind == kind
+		model.visible = model.kind == kind and (model.grade == &"advanced") == paint_advanced
 		if model.visible:
 			_ghost = model
 			model.set_team(presentation_faction(local_owner_id, local_owner_id))
@@ -159,6 +173,11 @@ func set_paint_kind(kind: String) -> void:
 		$BuildingPreview.configure(kind, BalanceCatalog.building(kind).size)
 	set_placing(true)
 	_ghost_check = 0.0
+
+func set_paint_advanced(value: bool) -> void:
+	assert(not value or UnitVariantCatalog.ADVANCED.has(paint_kind))
+	paint_advanced = value
+	set_paint_kind(paint_kind)
 
 func set_faction(owner: int) -> void:
 	select_entities([])
@@ -241,11 +260,12 @@ func place_units(at: Vector3) -> int:
 		var point: Vector3 = at + basis * offset
 		if not placement_valid(point, paint_kind):
 			continue
-		var unit: BattleUnit = spawn_unit(paint_kind, local_owner_id, point)
+		var unit: BattleUnit = spawn_variant(paint_kind, local_owner_id, point) if paint_advanced else spawn_unit(paint_kind, local_owner_id, point)
 		unit.model_pivot.rotation.y = paint_rotation
 		unit.reset_physics_interpolation()
 		placed += 1
-	hud.toast("已放置 %d 名%s · %s" % [placed, UNIT_NAMES[paint_kind], players[local_owner_id].display_name] if placed > 0 else "这里被占用，或无法通行", 2.5)
+	var unit_name: String = UnitVariantCatalog.ADVANCED[paint_kind].display_name if paint_advanced else UNIT_NAMES[paint_kind]
+	hud.toast("已放置 %d 名%s · %s" % [placed, unit_name, players[local_owner_id].display_name] if placed > 0 else "这里被占用，或无法通行", 2.5)
 	hud.refresh()
 	return placed
 

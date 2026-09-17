@@ -1,0 +1,163 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_render_batches.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/models/units/batched/unit_batch_surface.tres" id="2_material"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/Body.res" id="mesh_0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/Head.res" id="mesh_1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/ArmLeft.res" id="mesh_2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/ForearmLeft.res" id="mesh_3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/ArmRight.res" id="mesh_4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/ForearmRight.res" id="mesh_5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/Musket.res" id="mesh_6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/Hammer.res" id="mesh_7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/Ramrod.res" id="mesh_8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/LegLeft.res" id="mesh_9"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/musketeer_advanced/LegRight.res" id="mesh_10"]
+
+[sub_resource type="MultiMesh" id="batch_0"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_0")
+
+[sub_resource type="MultiMesh" id="batch_1"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_1")
+
+[sub_resource type="MultiMesh" id="batch_2"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_2")
+
+[sub_resource type="MultiMesh" id="batch_3"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_3")
+
+[sub_resource type="MultiMesh" id="batch_4"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_4")
+
+[sub_resource type="MultiMesh" id="batch_5"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_5")
+
+[sub_resource type="MultiMesh" id="batch_6"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_6")
+
+[sub_resource type="MultiMesh" id="batch_7"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_7")
+
+[sub_resource type="MultiMesh" id="batch_8"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_8")
+
+[sub_resource type="MultiMesh" id="batch_9"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_9")
+
+[sub_resource type="MultiMesh" id="batch_10"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_10")
+
+[node name="UnitRenderBatches" type="Node3D"]
+process_priority = 1000
+physics_interpolation_mode = 2
+script = ExtResource("1_script")
+
+[node name="Musketeer Advanced_Rig_Action_Waist_Body" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_0")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/Body"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_Head" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_1")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/Head"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_ArmLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_2")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/ArmLeft"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_ArmLeft_ForearmLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_3")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/ArmLeft/ForearmLeft"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_ArmRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_4")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/ArmRight"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_ArmRight_ForearmRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_5")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/ArmRight/ForearmRight"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_Musket" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_6")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/Musket"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_Musket_Hammer" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_7")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/Musket/Hammer"
+
+[node name="Musketeer Advanced_Rig_Action_Waist_Musket_Ramrod" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_8")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/Waist/Musket/Ramrod"
+
+[node name="Musketeer Advanced_Rig_Action_LegLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_9")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/LegLeft"
+
+[node name="Musketeer Advanced_Rig_Action_LegRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_10")
+metadata/batch_key = &"musketeer_advanced::Rig/Action/LegRight"

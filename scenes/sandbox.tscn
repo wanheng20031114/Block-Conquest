@@ -57,6 +57,8 @@
 [ext_resource type="PackedScene" path="res://scenes/sandbox_preview.tscn" id="sandbox_preview"]
 [ext_resource type="Sky" path="res://assets/sky/clear_day.tres" id="sky"]
 
+[ext_resource type="PackedScene" path="res://scenes/sandbox_variant_batches.tscn" id="variant_batches"]
+
 [sub_resource type="Environment" id="world"]
 background_mode = 2
 sky = ExtResource("sky")
@@ -222,3 +224,5 @@ script = ExtResource("selection")
 [node name="PlacementPreview" parent="." instance=ExtResource("sandbox_preview")]
 
 [node name="HeroController" parent="." instance=ExtResource("hero_controller")]
+
+[node name="VariantRenderBatches" parent="." instance=ExtResource("variant_batches")]

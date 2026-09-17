@@ -87,6 +87,8 @@ radial_segments = 16
 [sub_resource type="ButtonGroup" id="PreviewActionGroup"]
 resource_local_to_scene = true
 
+[sub_resource type="ButtonGroup" id="Grades"]
+
 [node name="UnitCodex" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -376,6 +378,28 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
+
+[node name="GradeRow" type="HBoxContainer" parent="Margin/Content/Body/DetailScroll/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NormalGrade" type="Button" parent="Margin/Content/Body/DetailScroll/Details/GradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "普通"
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("Grades")
+
+[node name="AdvancedGrade" type="Button" parent="Margin/Content/Body/DetailScroll/Details/GradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "高级"
+toggle_mode = true
+button_group = SubResource("Grades")
 
 [node name="EntryTitle" type="Label" parent="Margin/Content/Body/DetailScroll/Details"]
 unique_name_in_owner = true
