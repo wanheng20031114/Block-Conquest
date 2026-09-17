@@ -326,7 +326,7 @@ _data = {
 &"strike": SubResource("Animation_aq5pr")
 }
 
-[node name="Musketeer" type="Node3D" unique_id=1218549454]
+[node name="Musketeer" type="Node3D" unique_id=23371219]
 script = ExtResource("1_script")
 batch_parts = Dictionary[NodePath, Mesh]({
 NodePath("Rig/Action/Waist/Body"): ExtResource("2_Body"),
@@ -345,59 +345,59 @@ kind = "musketeer"
 projectile_socket = NodePath("Rig/Action/Waist/Musket/ProjectileSocket")
 grade = &"advanced"
 
-[node name="Rig" type="Node3D" parent="." unique_id=576450073]
+[node name="Rig" type="Node3D" parent="." unique_id=336364479]
 
-[node name="Action" type="Node3D" parent="Rig" unique_id=223961099]
+[node name="Action" type="Node3D" parent="Rig" unique_id=902237004]
 
-[node name="Waist" type="Node3D" parent="Rig/Action" unique_id=1898113417]
+[node name="Waist" type="Node3D" parent="Rig/Action" unique_id=1057369180]
 transform = Transform3D(0.9553365, 0, -0.29552022, 0, 1, 0, 0.29552022, 0, 0.9553365, 0, 1.05, 0)
 
-[node name="Body" type="Node3D" parent="Rig/Action/Waist" unique_id=1343929853]
+[node name="Body" type="Node3D" parent="Rig/Action/Waist" unique_id=1387428274]
 
-[node name="Head" type="Node3D" parent="Rig/Action/Waist" unique_id=604774792]
+[node name="Head" type="Node3D" parent="Rig/Action/Waist" unique_id=2079943588]
 transform = Transform3D(0.9553365, 0, 0.29552022, 0, 1, 0, -0.29552022, 0, 0.9553365, 0, 0.59, 0)
 
-[node name="ArmLeft" type="Node3D" parent="Rig/Action/Waist" unique_id=1878745137]
+[node name="ArmLeft" type="Node3D" parent="Rig/Action/Waist" unique_id=1467474712]
 transform = Transform3D(-0.15417498, -0.6374327, -0.7549236, -0.9759058, 0.21763861, 0.015538375, 0.15439583, 0.73912984, -0.6556287, -0.3, 0.27, -0.065)
 
-[node name="ForearmLeft" type="Node3D" parent="Rig/Action/Waist/ArmLeft" unique_id=1919352030]
+[node name="ForearmLeft" type="Node3D" parent="Rig/Action/Waist/ArmLeft" unique_id=289031244]
 transform = Transform3D(0.83530706, 0.39286605, -0.38460174, -0.51022977, 0.81449497, -0.27615863, 0.20476282, 0.4269125, 0.8808053, -0.045, -0.24, 0)
 
-[node name="ArmRight" type="Node3D" parent="Rig/Action/Waist" unique_id=1003140009]
+[node name="ArmRight" type="Node3D" parent="Rig/Action/Waist" unique_id=2134518957]
 transform = Transform3D(-0.56742847, -0.81637746, 0.10748414, 0.8230654, -0.5661744, 0.04483197, 0.02425496, 0.113905415, 0.9931955, 0.3, 0.27, -0.065)
 
-[node name="ForearmRight" type="Node3D" parent="Rig/Action/Waist/ArmRight" unique_id=1636030135]
+[node name="ForearmRight" type="Node3D" parent="Rig/Action/Waist/ArmRight" unique_id=1869301120]
 transform = Transform3D(-0.8522335, -0.3415712, 0.39626646, 0.34782434, -0.9357313, -0.058524538, 0.39078924, 0.08795454, 0.9162684, 0.045, -0.24, 0)
 
-[node name="Musket" type="Node3D" parent="Rig/Action/Waist" unique_id=241153826]
+[node name="Musket" type="Node3D" parent="Rig/Action/Waist" unique_id=982126279]
 transform = Transform3D(0.9553365, -0.05290686, 0.2907457, 0, 0.9838437, 0.17902958, -0.29552022, -0.1710335, 0.93990177, 0.2, 0.42, -0.23)
 
-[node name="Hammer" type="Node3D" parent="Rig/Action/Waist/Musket" unique_id=175724078]
+[node name="Hammer" type="Node3D" parent="Rig/Action/Waist/Musket" unique_id=1511428004]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.074, 0.081, 0.075)
 
-[node name="Ramrod" type="Node3D" parent="Rig/Action/Waist/Musket" unique_id=1035004920]
+[node name="Ramrod" type="Node3D" parent="Rig/Action/Waist/Musket" unique_id=693605085]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.067, -1)
 visible = false
 
-[node name="ProjectileSocket" type="Marker3D" parent="Rig/Action/Waist/Musket" unique_id=437450416]
+[node name="ProjectileSocket" type="Marker3D" parent="Rig/Action/Waist/Musket" unique_id=1174334239]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.067, -0.863)
 
-[node name="LegLeft" type="Node3D" parent="Rig/Action" unique_id=733504674]
+[node name="LegLeft" type="Node3D" parent="Rig/Action" unique_id=315135536]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.155, 0.74, 0)
 
-[node name="LegRight" type="Node3D" parent="Rig/Action" unique_id=2120892280]
+[node name="LegRight" type="Node3D" parent="Rig/Action" unique_id=398227493]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.155, 0.74, 0)
 
-[node name="Locomotion" type="AnimationPlayer" parent="." unique_id=914861974]
+[node name="Locomotion" type="AnimationPlayer" parent="." unique_id=768141490]
 callback_mode_process = 0
 libraries/ = SubResource("AnimationLibrary_locomotion")
 autoplay = &"idle"
 
-[node name="Attack" type="AnimationPlayer" parent="." unique_id=983388958]
+[node name="Attack" type="AnimationPlayer" parent="." unique_id=1967430092]
 callback_mode_process = 0
 libraries/ = SubResource("AnimationLibrary_attack")
 
-[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="." unique_id=545137816]
+[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="." unique_id=2075503414]
 aabb = AABB(-2, -1, -2, 4, 4, 4)
 
 [connection signal="screen_entered" from="VisibilityNotifier" to="." method="_on_screen_entered"]

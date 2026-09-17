@@ -1,7 +1,7 @@
 """Musketeer: saved rigid rig, shoulder fire and a muzzle-loading ramrod cycle."""
 import math
 import numpy as np
-from build_units import Sculpture, OUT, lathe, polygon, anim_resource, vec, farmer_arm_pose, godot_rotation
+from build_units import Sculpture, OUT, lathe, polygon, anim_resource, vec, farmer_arm_pose, godot_rotation, tm
 
 TIMES = [0,.22,.35,.40,.58,.85,1.02,1.20,1.34,1.46,1.60,1.72,1.94,2.16]
 PITCH = [-.18,0,0,.065,-.05,1.50,1.50,1.50,1.50,1.50,1.50,1.40,.42,-.18]
@@ -10,25 +10,95 @@ ANCHOR = np.array((.20,.42,-.23))
 LOADING_ANCHOR = np.array((.09,-.41,-.36))
 LEFT_GRIP = np.array((-.085,-.09,-.10))
 RIGHT_GRIP = np.array((.02,-.10,.10))
+COAT_PROFILE = [(-.32,.265),(-.10,.235),(.20,.265),(.29,.19)]
+FRONT_ARMOR = [(-.10,.272),(.10,.292),(.205,.282),(.242,.250)]
+BACK_ARMOR = [(-.10,.266),(.12,.286),(.218,.271)]
+
+
+def closed_strip(vertices, width):
+    """Close a pair of authored surface grids with real thickness at every edge."""
+    layer=len(vertices)//2
+    rows=layer//width
+    faces=[]
+    def quad(a,b,c,d): faces.extend(((a,b,c),(a,c,d)))
+    for row in range(rows-1):
+        for col in range(width-1):
+            a=row*width+col
+            quad(a,a+1,a+1+width,a+width)
+            quad(a+layer,a+width+layer,a+width+1+layer,a+1+layer)
+    boundary=list(range(width))
+    boundary += [row*width+width-1 for row in range(1,rows)]
+    boundary += list(range(layer-2,layer-width-1,-1))
+    boundary += [row*width for row in range(rows-2,0,-1)]
+    for a,b in zip(boundary,boundary[1:]+boundary[:1]): quad(a,a+layer,b+layer,b)
+    mesh=tm.Trimesh(vertices=vertices,faces=faces,process=False)
+    mesh.fix_normals()
+    assert mesh.is_watertight, 'Musketeer fittings must have closed edges'
+    return mesh
+
+
+def curved_plate(profile, center, half_span=65, sections=8):
+    """A closed, 0.025-thick plate that follows the round coat instead of floating."""
+    angles=np.radians(np.linspace(center-half_span,center+half_span,sections+1))
+    vertices=[(math.cos(a)*(r-inset),y,math.sin(a)*(r-inset))
+              for inset in (0,.025) for y,r in profile for a in angles]
+    return closed_strip(vertices,sections+1)
+
+
+def coat_radius(y, front):
+    radius=float(np.interp(y,*np.array(COAT_PROFILE).T))
+    armor=FRONT_ARMOR if front else BACK_ARMOR
+    if armor[0][0]<=y<=armor[-1][0]:
+        radius=max(radius,float(np.interp(y,*np.array(armor).T)))
+    return radius
+
+
+def fitted_band(front):
+    slope=.55 if front else -.55
+    sideways=np.array((1,-slope))/math.sqrt(1+slope*slope)
+    vertices=[]
+    for thickness in (.026,.008):
+        for y in np.linspace(-.255,.252,18):
+            for side in (-1,1):
+                x,at_y=np.array((slope*y,y))+side*.0375*sideways
+                radius=coat_radius(at_y,front)+thickness
+                z=math.sqrt(radius*radius-x*x)*(-1 if front else 1)
+                vertices.append((x,at_y,z))
+    return closed_strip(vertices,2)
 
 
 def build_musketeer(advanced=False):
     s = Sculpture('musketeer_advanced' if advanced else 'musketeer')
     body=s.joint('Body',(0,1.05,0))
-    s.add(body,lathe([(-.32,.265),(-.10,.235),(.20,.265),(.29,.19)],10),'blue')
+    s.add(body,lathe(COAT_PROFILE,10),'blue')
     s.r(body,(0,.25,0),(0,.4,0),.11,'skin',8)
     s.add(body,lathe([(.25,.145),(.30,.132)],10,caps=False),'ivory')
     # Open coat, cream collar and a broad leather bandolier with powder measures.
     for sign in (-1,1):
-        s.b(body,(.115,.24,.037),(sign*.125,.145,-.233),'leather',rot=(0,0,sign*-.15),bevel=.012)
+        if not advanced:
+            s.b(body,(.115,.24,.037),(sign*.125,.145,-.233),'leather',rot=(0,0,sign*-.15),bevel=.012)
         s.b(body,(.080,.074,.041),(sign*.073,.255,-.198),'ivory',rot=(0,0,sign*.35),bevel=.008)
-    s.b(body,(.065,.57,.040),(0,-.005,-.255),'leatherlight',rot=(0,0,-.58),bevel=.009)
-    s.b(body,(.065,.54,.03),(0,.025,.229),'leather',rot=(0,0,.58),bevel=.005)
+    if advanced:
+        # Broad steel panels remain readable from the RTS camera; blue coat sides
+        # and sleeves retain team identity. Straps sit outside the curved armor.
+        s.add(body,curved_plate(FRONT_ARMOR,270),'steel')
+        s.add(body,curved_plate(BACK_ARMOR,90),'darksteel')
+        s.add(body,curved_plate([(-.105,.276),(-.073,.280)],270),'edge')
+        for sign in (-1,1):
+            s.r(body,(sign*.16,.187,-.248),(sign*.14,.219,-.232),.012,'edge',6)
+        s.add(body,fitted_band(True),'leatherlight')
+        s.add(body,fitted_band(False),'leather')
+    else:
+        s.b(body,(.065,.57,.040),(0,-.005,-.255),'leatherlight',rot=(0,0,-.58),bevel=.009)
+        s.b(body,(.065,.54,.03),(0,.025,.229),'leather',rot=(0,0,.58),bevel=.005)
     for index in range(4):
         x=-.10+index*.066
         y=.13-index*.088
-        s.r(body,(x,y,-.293),(x+.009,y-.076,-.303),.027,'woodlight',6)
-        s.r(body,(x,y-.001,-.293),(x+.002,y-.021,-.296),.031,'bronze',6)
+        top=-math.sqrt(coat_radius(y,True)**2-x*x)-.026 if advanced else -.293
+        bottom=-math.sqrt(coat_radius(y-.076,True)**2-(x+.009)**2)-.026 if advanced else -.303
+        s.r(body,(x,y,top),(x+.009,y-.076,bottom),.027,'woodlight',6)
+        cap_bottom=top+(bottom-top)*.27 if advanced else -.296
+        s.r(body,(x,y-.001,top),(x+.002,y-.021,cap_bottom),.031,'bronze',6)
     s.add(body,lathe([(-.19,.247),(-.12,.246)],10,caps=False),'leather')
     s.b(body,(.093,.074,.027),(0,-.155,-.262),'bronzelight',bevel=.007)
     s.b(body,(.048,.034,.031),(0,-.155,-.277),'leather',bevel=.003)
@@ -45,12 +115,15 @@ def build_musketeer(advanced=False):
     brim=lathe([(0,.385),(.033,.385)],12,pos=(0,.136,0))
     for vertex in brim.vertices:
         if vertex[0] < -.18: vertex[1] += (-vertex[0]-.18)*.42
-    s.add(head,brim,'wooddark')
-    s.add(head,lathe([(.163,.242),(.265,.22),(.34,.175),(.347,.10)],10),'wooddark')
+    hat_color='black' if advanced else 'wooddark'
+    s.add(head,brim,hat_color)
+    s.add(head,lathe([(.163,.242),(.265,.22),(.34,.175),(.347,.10)],10),hat_color)
     s.add(head,lathe([(.168,.246),(.218,.238)],10,caps=False),'blue')
     if advanced:
-        # A restrained silver ribbon edge; reserve crowns and tall crests for royal.
-        s.add(head,lathe([(.213,.240),(.229,.236)],10,caps=False),'steel')
+        s.add(head,lathe([(.215,.241),(.247,.232)],10,caps=False),'edge')
+        # A second, shorter feather makes the veteran hat legible in silhouette.
+        s.add(head,polygon([(-.025,-.10),(-.078,.04),(-.062,.20),(-.02,.26),(.028,.15),(.03,.015)],.022,
+                          pos=(-.275,.33,.075),rot=(0,.18,.85)),'ivory')
     s.b(head,(.073,.064,.027),(-.15,.204,-.197),'gold',rot=(0,.6,0),bevel=.009)
     feather=polygon([(-.025,-.13),(-.064,.02),(-.042,.19),(0,.30),(.041,.17),(.035,.015)],.017,
                     pos=(-.246,.35,.04),rot=(0,0,.36))
@@ -69,14 +142,17 @@ def build_musketeer(advanced=False):
         s.e(arm,(.125,.125,.132),(sign*.014,0,0),'blue')
         s.r(arm,(0,-.015,0),(sign*.045,-.24,0),.083,'blue',8)
         if advanced:
-            s.e(arm,(.142,.085,.147),(sign*.017,.038,0),'steel')
-            s.b(arm,(.032,.10,.19),(sign*.119,.005,0),'darksteel',rot=(0,0,sign*-.2),bevel=.012)
+            s.e(arm,(.178,.106,.170),(sign*.023,.025,0),'darksteel')
+            s.e(arm,(.169,.090,.163),(sign*.023,.050,0),'steel')
+            s.b(arm,(.082,.10,.235),(sign*.125,-.071,0),'steel',rot=(0,0,sign*-.28),bevel=.017)
+            s.b(arm,(.091,.028,.240),(sign*.135,-.111,0),'edge',rot=(0,0,sign*-.28),bevel=.008)
         fore=s.joint('Forearm'+side,(sign*.045,-.24,0),arm)
         s.e(fore,(.083,.082,.083),(0,0,0),'blue')
         s.r(fore,(0,-.025,0),(sign*.023,-.17,-.04),.070,'blue',8,r2=.06)
         s.r(fore,(sign*.017,-.115,-.026),(sign*.025,-.181,-.042),.077,'ivory',8,r2=.067)
         if advanced:
-            s.r(fore,(sign*.016,-.105,-.022),(sign*.023,-.151,-.035),.079,'steel',8,r2=.073)
+            s.r(fore,(sign*.010,-.048,-.010),(sign*.023,-.156,-.035),.082,'steel',8,r2=.073)
+            s.r(fore,(sign*.024,-.147,-.033),(sign*.025,-.173,-.040),.077,'edge',8,r2=.071)
         s.e(fore,(.062,.065,.07),(sign*.025,-.235,-.055),'skin')
         s.b(fore,(.029,.055,.041),(sign*-.014,-.233,-.103),'skin',bevel=.008)
     for name,x in [('LegLeft',-.155),('LegRight',.155)]:
@@ -84,6 +160,8 @@ def build_musketeer(advanced=False):
         s.r(leg,(0,0,0),(0,-.46,0),.09,'ivory',8)
         s.r(leg,(0,-.35,0),(0,-.61,0),.106,'leather',8)
         s.r(leg,(0,-.345,0),(0,-.405,0),.119,'leatherlight',8)
+        if advanced:
+            s.b(leg,(.133,.113,.035),(0,-.294,-.090),'steel',bevel=.014)
         s.b(leg,(.20,.16,.29),(0,-.635,-.07),'leather',bevel=.024)
         s.b(leg,(.21,.035,.30),(0,-.712,-.07),'wooddark',bevel=.008)
 
@@ -95,8 +173,8 @@ def build_musketeer(advanced=False):
                      rot=(0,-math.pi/2,0)),'wooddark')
     s.b(gun,(.12,.025,.17),(0,-.145,.28),'bronze',rot=(-.2,0,0),bevel=.005)
     if advanced:
-        s.b(gun,(.124,.142,.032),(0,-.086,.30),'steel',rot=(-.2,0,0),bevel=.006)
-        s.b(gun,(.014,.065,.17),(.060,-.085,.20),'steel',bevel=.005)
+        s.b(gun,(.127,.146,.036),(0,-.086,.30),'edge',rot=(-.2,0,0),bevel=.006)
+        s.b(gun,(.018,.089,.225),(.061,-.078,.17),'steel',bevel=.007)
     # Hollow barrel: the last rings turn inward to a dark recessed bore.
     profile=[(-.86,.043),(-.825,.043),(.10,.061),(.14,.061)]
     s.add(gun,lathe(profile,10,pos=(0,.067,0),rot=(math.pi/2,0,0),caps=False),'darksteel')
@@ -105,7 +183,8 @@ def build_musketeer(advanced=False):
     s.add(gun,lathe([(-.771,.0265),(-.768,.0265)],10,pos=(0,.067,0),rot=(math.pi/2,0,0)),'black')
     # Bands are neutral steel; team identity stays on coat and hat ribbon.
     for z in [-.67,-.30,.04]:
-        s.r(gun,(0,.067,z-.012),(0,.067,z+.012),.063,'steel',10)
+        width=.021 if advanced else .012
+        s.r(gun,(0,.067,z-width),(0,.067,z+width),.064 if advanced else .063,'edge' if advanced else 'steel',10)
     s.b(gun,(.020,.028,.038),(0,.119,-.72),'steel',bevel=.002)
     s.b(gun,(.10,.046,.11),(.035,.025,.045),'bronze',bevel=.010)
     s.r(gun,(.036,-.059,.035),(.036,-.11,.075),.008,'steel',6)
