@@ -5,7 +5,7 @@ var _message_time: float = 0.0
 var _preview_team: int = -1
 var portraits: Dictionary = {}
 const KINDS: PackedStringArray = ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
-const BUILDING_KINDS: PackedStringArray = ["defense_tower", "cannon_tower", "headquarters"]
+const BUILDING_KINDS: PackedStringArray = ["defense_tower", "cannon_tower", "castle", "headquarters"]
 
 func _ready() -> void:
 	UIMotion.bind_buttons(self)

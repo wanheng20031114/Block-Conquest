@@ -1,10 +1,11 @@
 {
   "build": "0.11.0",
-  "protocol": 17,
+  "protocol": 18,
   "files": {
     "data/buildings/academy.tres": "c46d4e8a0a2951829041ff993634641240caea0b2cc8d1708d2291c72ccd4bea",
     "data/buildings/barracks.tres": "086794e84ea3fc2407733509c39ed8e79f2b73567eff7b08f888fb284e23623a",
     "data/buildings/cannon_tower.tres": "f76d0dd533a72a371769ab79e7d282390aa7560fcefa532d0c8ee0d239f2715d",
+    "data/buildings/castle.tres": "f8fb83f2ec6206d37307bda9817631c6a98708138793a61c82348ccd7eeeee24",
     "data/buildings/defense_tower.tres": "beb70e113ea8f6f858cf1066af9c78920b26315510958c426ec0d7d356326b9b",
     "data/buildings/enemy_keep.tres": "6c393418bbe472611fd4176c658463fcb6536347e66d0d08d119216e62782109",
     "data/buildings/factory.tres": "da15beac155e581b69cbbce71f799155e5d8d13868d23e81a802f6b277d7568e",

@@ -72,9 +72,9 @@ func _run() -> void:
 	_check(not tower.try_claim_builder(enemy), "enemy military cannot claim construction")
 	_check(tower.try_claim_builder(farmer), "friendly farmer claims the worksite")
 	_check(not tower.try_claim_builder(second), "second farmer cannot accelerate an occupied worksite")
-	tower._target = enemy
+	tower.weapons[0].target = enemy
 	tower._scan_time = 10.0
-	tower._cooldown = 0.0
+	tower.weapons[0].cooldown = 0.0
 	var shots: int = game.get_node("ProjectilePool").launch_count
 	tower._physics_process(0.1)
 	_check(game.get_node("ProjectilePool").launch_count == shots, "unfinished tower cannot fire")
@@ -95,17 +95,17 @@ func _run() -> void:
 	_check(tower.is_constructed and is_equal_approx(tower.hp, 950.0), "twenty contributed seconds finish tower and retain damage")
 	_check(not tower.construction_bar.visible and not tower.scaffolding.visible, "completed tower removes scaffold and progress bar")
 	enemy.position = at + Vector3(15.0 + enemy.radius + 0.1, 0, 0)
-	tower._target = enemy
+	tower.weapons[0].target = enemy
 	tower._scan_time = 10.0
-	tower._cooldown = 0.0
+	tower.weapons[0].cooldown = 0.0
 	shots = game.get_node("ProjectilePool").launch_count
 	tower._physics_process(0.01)
 	_check(game.get_node("ProjectilePool").launch_count == shots, "cached target more than thirteen metres outside the wall cannot receive a shot")
 	enemy.position = at + Vector3(15.0 + enemy.radius - 0.1, 0, 0)
 	tower._physics_process(0.01)
 	_check(game.get_node("ProjectilePool").launch_count == shots + 1, "finished tower automatically fires at a nearby enemy")
-	tower._target = farmer
-	tower._cooldown = 0.0
+	tower.weapons[0].target = farmer
+	tower.weapons[0].cooldown = 0.0
 	shots = game.get_node("ProjectilePool").launch_count
 	tower._physics_process(0.01)
 	_check(game.get_node("ProjectilePool").launch_count == shots, "tower rechecks faction before firing")
@@ -114,11 +114,11 @@ func _run() -> void:
 	_check(tower._can_shoot_target(enemy), "diagonal range consistently measures wall corner to target edge")
 	await _sync()
 	shots = game.get_node("ProjectilePool").launch_count
-	tower._target = null
+	tower.weapons[0].target = null
 	tower._scan_time = 0.0
-	tower._cooldown = 0.0
+	tower.weapons[0].cooldown = 0.0
 	tower._physics_process(0.01)
-	_check(tower._target == enemy and game.get_node("ProjectilePool").launch_count == shots + 1, "native broadphase acquires and fires at enemies near the diagonal range limit")
+	_check(tower.weapons[0].target == enemy and game.get_node("ProjectilePool").launch_count == shots + 1, "native broadphase acquires and fires at enemies near the diagonal range limit")
 	enemy.position += diagonal * 0.2
 	_check(not tower._can_shoot_target(enemy), "diagonal target beyond the same edge range is rejected")
 	_check(tower.cancel_construction() == 0 and tower.alive, "completed tower cannot be canceled for a refund")

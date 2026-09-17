@@ -31,14 +31,14 @@ func _run() -> void:
 	var target: BattleUnit = host.spawn_unit("war_elephant", 2, Vector3(0,0,-10))
 	host.visible_ids.append(target.entity_id)
 	host.elapsed = 2
-	tower.last_fired = 1.8
-	tower.artillery.turret.rotation.y = .7
-	tower.artillery.elevation.rotation.x = -.12
+	tower.weapons[0].last_fired = 1.8
+	tower.artillery.guns[0].turret.rotation.y = .7
+	tower.artillery.guns[0].elevation.rotation.x = -.12
 	ally.construction_progress = .5
 	target.receive_hit(DamageResolver.snapshot(tower._stats, 0, 0, 0), tower)
 	var snapshot := wire(sender.build_snapshot(0))
-	check(NetworkProtocol.VERSION == 17, "new building presentation contract increments protocol")
-	check(state_for(snapshot, tower.entity_id).turret.fired == 1.8, "release timestamp encoded without target identity")
+	check(NetworkProtocol.VERSION == 18, "building battery contract increments protocol")
+	check(state_for(snapshot, tower.entity_id).turrets[0].fired == 1.8, "release timestamp encoded without target identity")
 	check(state_for(snapshot, hidden.entity_id).is_empty(), "hidden enemy tower is omitted")
 	check(not state_for(snapshot, ally.entity_id).has("production"), "allied construction omits private queues")
 	var client: Node3D = FIXTURE.instantiate()
@@ -51,8 +51,8 @@ func _run() -> void:
 	check(receiver.last_received_tick == 0, "client accepts cannon building through actual snapshot decoder")
 	var replica: BattleBuilding = client.entities_by_id[tower.entity_id]
 	receiver.render(.1)
-	check(is_equal_approx(replica.artillery.turret.rotation.y,.7) and is_equal_approx(replica.artillery.elevation.rotation.x,-.12), "client displays yaw and elevation on correct independent parts")
-	check(replica.artillery.animation.current_animation == "fire", "client samples saved recoil animation")
+	check(is_equal_approx(replica.artillery.guns[0].turret.rotation.y,.7) and is_equal_approx(replica.artillery.guns[0].elevation.rotation.x,-.12), "client displays yaw and elevation on correct independent parts")
+	check(replica.artillery.guns[0].animation.current_animation == "fire", "client samples saved recoil animation")
 	check(replica.model_pivot.rotation.y == 0 and not replica.is_physics_processing(), "replica stone base fixed and combat disabled")
 	var client_target: BattleUnit = client.entities_by_id[target.entity_id]
 	var flight := ProjectileFlight.new()
@@ -63,7 +63,7 @@ func _run() -> void:
 	for invalid: Variant in [null, {}, {"yaw": NAN,"pitch":0,"fired":-1}, {"yaw":0,"pitch":2,"fired":-1}, {"yaw":0,"pitch":0,"fired":2.1}, {"yaw":0,"pitch":0,"fired":-.5}, {"yaw":0,"pitch":0,"fired":0,"target":target.entity_id}]:
 		var bad: Dictionary = snapshot.duplicate(true)
 		bad.tick = 1
-		state_for(bad, tower.entity_id).turret = invalid
+		state_for(bad, tower.entity_id).turrets = [invalid]
 		receiver.receive_snapshot(bad)
 		check(receiver.last_received_tick == 0, "reject malformed turret state " + str(invalid))
 	var bad_arrow: Dictionary = snapshot.duplicate(true)
@@ -71,15 +71,15 @@ func _run() -> void:
 	state_for(bad_arrow, tower.entity_id).kind = "defense_tower"
 	check(not receiver._valid_snapshot(bad_arrow), "arrow tower cannot carry cannon presentation fields")
 	var bad_unit: Dictionary = snapshot.duplicate(true)
-	state_for(bad_unit,target.entity_id).turret = state_for(snapshot,tower.entity_id).turret
+	state_for(bad_unit,target.entity_id).turrets = state_for(snapshot,tower.entity_id).turrets
 	check(not receiver._valid_snapshot(bad_unit), "unit cannot inject building weapon state")
 	host.simulation_tick = 2
 	host.elapsed = 3
-	tower.artillery.turret.rotation.y = -.8
-	tower.last_fired = 2.9
+	tower.artillery.guns[0].turret.rotation.y = -.8
+	tower.weapons[0].last_fired = 2.9
 	receiver.receive_snapshot(wire(sender.build_snapshot(0)))
 	receiver.render(1.0)
-	check(receiver.last_received_tick == 2 and is_equal_approx(replica.artillery.turret.rotation.y,-.8), "later snapshots interpolate fresh turret direction")
+	check(receiver.last_received_tick == 2 and is_equal_approx(replica.artillery.guns[0].turret.rotation.y,-.8), "later snapshots interpolate fresh turret direction")
 	check(client_target.hp == 315, "subsequent snapshots preserve authoritative HP")
 	client.queue_free(); host.queue_free()
 	await process_frame

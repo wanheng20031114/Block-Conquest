@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BuildingDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"castle"
+name = "城堡"
+description = "围墙与四角堡楼守护中央主堡。三门火炮独立瞄准、独立装填，优先分散火力，敌人不足时集中射击。"
+combat_class = &"building"
+damage_channel = 1
+hp = 3600
+cost = 950
+build_seconds = 55.0
+radius = 4.5
+size = Vector3(9, 8.05, 8)
+bar_height = 8.8
+damage = 28
+range = 12.5
+cooldown = 2.8
+weapon_count = 3
+model = "castle"
+projectile = "cannon"
+melee_armor = 12
+ranged_armor = 12

@@ -1,0 +1,40 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/defensive_tower_visual.gd" id="visual"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/defensive_cannon.tscn" id="gun"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/castle/base_stone.res" id="stone"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/castle/base_timber.res" id="timber"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/castle/base_metal.res" id="metal"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/castle/base_fabric.res" id="fabric"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/castle/base_roof.res" id="roof"]
+
+[node name="Castle" type="Node3D"]
+script = ExtResource("visual")
+gun_paths = Array[NodePath]([NodePath("LeftGun"), NodePath("RightGun"), NodePath("KeepGun")])
+
+[node name="Stone" type="MeshInstance3D" parent="."]
+mesh = ExtResource("stone")
+
+[node name="Timber" type="MeshInstance3D" parent="."]
+mesh = ExtResource("timber")
+
+[node name="Metal" type="MeshInstance3D" parent="."]
+mesh = ExtResource("metal")
+
+[node name="Fabric" type="MeshInstance3D" parent="."]
+mesh = ExtResource("fabric")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+mesh = ExtResource("roof")
+
+[node name="LeftGun" parent="." instance=ExtResource("gun")]
+position = Vector3(-3.05, 5.43, -2.5)
+scale = Vector3(0.72, 0.72, 0.72)
+
+[node name="RightGun" parent="." instance=ExtResource("gun")]
+position = Vector3(3.05, 5.43, -2.5)
+scale = Vector3(0.72, 0.72, 0.72)
+
+[node name="KeepGun" parent="." instance=ExtResource("gun")]
+position = Vector3(0, 6.67, 1.08)
+scale = Vector3(0.8, 0.8, 0.8)

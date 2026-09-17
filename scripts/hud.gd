@@ -1,7 +1,7 @@
 extends Control
 
 const UNIT_ORDER := ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry", "catapult", "cannon", "heavy_cannon", "triple_cannon", "engineer", "priest", "farmer"]
-const BUILD_ORDER := ["barracks", "factory", "academy", "defense_tower", "cannon_tower", "headquarters"]
+const BUILD_ORDER := ["barracks", "factory", "academy", "defense_tower", "cannon_tower", "castle", "headquarters"]
 var _actions: Array[Dictionary] = []
 var _queue_actions: Array[Dictionary] = []
 var _queue_buttons: Array[Button] = []
@@ -37,7 +37,7 @@ func _ready() -> void:
 	UIMotion.bind_buttons(self)
 	UIMotion.reveal.call_deferred($Resources, Vector2(0, -8))
 	UIMotion.reveal.call_deferred($CommandBar, Vector2(0, 12))
-	for kind in UNIT_ORDER + ["headquarters", "gold_vein", "defense_tower", "cannon_tower", "barracks", "factory", "academy"]:
+	for kind in UNIT_ORDER + ["headquarters", "gold_vein", "defense_tower", "cannon_tower", "castle", "barracks", "factory", "academy"]:
 		portraits[kind] = $ModelPreviews.portrait(kind)
 	portraits["attack_upgrade"] = preload("res://assets/ui/attack_upgrade.png")
 	portraits["defense_upgrade"] = preload("res://assets/ui/defense_upgrade.png")
@@ -264,7 +264,10 @@ func refresh() -> void:
 			var portrait_kind: String = entity.building_type if entity.building_type in portraits else "headquarters"
 			selected_portrait.texture = portraits[portrait_kind]
 			_selected_preview = portrait_kind
-			selected_stats.text = "近甲 10 / 远甲 10\n" + entity.order_name
+			var building_stats: BuildingDefinition = entity.get_combat_definition()
+			selected_stats.text = "近甲 %d / 远甲 %d\n%s" % [building_stats.melee_armor, building_stats.ranged_armor, entity.order_name]
+			if building_stats.weapon_count > 1:
+				selected_stats.text = "%d门炮 · 每炮%d / %.1f秒\n近甲%d / 远甲%d · 射程%.1f" % [building_stats.weapon_count, building_stats.damage, building_stats.cooldown, building_stats.melee_armor, building_stats.ranged_armor, building_stats.range]
 			if entity.owner_id == game.local_owner_id:
 				var production: BuildingProduction = entity.get_node("Production")
 				if not entity.is_constructed:
@@ -391,7 +394,7 @@ func _refresh_actions() -> void:
 	elif building != null:
 		if not building.is_constructed:
 			_actions.append({"kind": "cancel_site", "id": "", "target": building.entity_id, "portrait": building.building_type, "name": "取消施工", "cost": 0, "hint": "返还 %d 金币（实际支付额的未完成部分）" % building.construction_refund()})
-		elif building.building_type in ["defense_tower", "cannon_tower"]:
+		elif building.building_type in ["defense_tower", "cannon_tower", "castle"]:
 			_actions.append({"kind": "demolish", "id": "", "portrait": building.building_type, "name": "拆除" + building.display_name, "cost": 0, "hint": game.settings.hotkey_text("rts_destroy") + " · 不返还金币"})
 		else:
 			for kind: String in building.get_combat_definition().produces:
@@ -404,8 +407,8 @@ func _refresh_actions() -> void:
 					if level < BalanceCatalog.UPGRADE_TRACKS[track]:
 						var upgrade := BalanceCatalog.upgrade("%s_%d" % [track, level + 1])
 						_actions.append({"kind": "research", "id": upgrade.id, "portrait": track + "_upgrade", "name": upgrade.name, "cost": upgrade.cost, "hint": _upgrade_hint(upgrade)})
-		%RecruitHint.text = "右键设置集结点 · 研究取消全额退款" if building.building_type == "academy" else ("自动攻击射程内敌人 · 无法驻军" if building.building_type in ["defense_tower", "cannon_tower"] else "右键设置集结点")
-		_paginate_actions(building)
+		%RecruitHint.text = "右键设置集结点 · 研究取消全额退款" if building.building_type == "academy" else ("自动攻击射程内敌人 · 无法驻军" if building.building_type in ["defense_tower", "cannon_tower", "castle"] else "右键设置集结点")
+	_paginate_actions(building)
 	for index in range(buttons.size()):
 		var button := buttons[index]
 		button.visible = index < _actions.size()
@@ -438,11 +441,14 @@ func _paginate_actions(building: BattleBuilding) -> void:
 	var pages: int = ceili(float(_actions.size()) / page_size)
 	_action_page = mini(_action_page, pages - 1)
 	_actions = _actions.slice(_action_page * page_size, (_action_page + 1) * page_size)
-	var topic: String = "科技" if building.building_type == "academy" else "兵种"
+	var topic: String = "建筑" if building == null else ("科技" if building.building_type == "academy" else "兵种")
 	_actions.append({"kind": "action_page", "id": "", "page": (_action_page + 1) % pages,
-		"portrait": building.building_type, "name": ("返回" if _action_page == pages - 1 else "更多") + topic,
+		"portrait": building.building_type if building != null else "farmer", "name": ("返回" if _action_page == pages - 1 else "更多") + topic,
 		"cost": 0, "hint": "当前第 %d / %d 页 · 切换查看其余项目" % [_action_page + 1, pages]})
-	%RecruitHint.text = "第 %d / %d 页 · 右键设置集结点" % [_action_page + 1, pages]
+	if building == null and game.build_mode:
+		%RecruitHint.text += " · 第 %d / %d 页" % [_action_page + 1, pages]
+	else:
+		%RecruitHint.text = "第 %d / %d 页 · " % [_action_page + 1, pages] + ("Shift 连续指派" if building == null else "右键设置集结点")
 
 func _upgrade_hint(upgrade: UpgradeDefinition) -> String:
 	if upgrade.track == &"cannon_range":

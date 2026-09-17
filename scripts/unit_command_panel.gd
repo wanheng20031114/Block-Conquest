@@ -101,7 +101,10 @@ func _stats_text(entity: Node3D) -> String:
 	if entity is HeroUnit:
 		damage += entity.weapon.definition.attack_bonus
 		attack_range = entity.weapon.definition.range
-	var result := "%s %s · 射程 %s\n近甲 %s · 远甲 %s\n%s" % ["远攻" if definition.damage_channel==CombatDefinition.DamageChannel.RANGED else "近攻", _number(damage), _number(attack_range),
+	var damage_label: String = _number(damage)
+	if definition is BuildingDefinition and definition.weapon_count > 1:
+		damage_label += " × %d" % definition.weapon_count
+	var result := "%s %s · 射程 %s\n近甲 %s · 远甲 %s\n%s" % ["远攻" if definition.damage_channel==CombatDefinition.DamageChannel.RANGED else "近攻", damage_label, _number(attack_range),
 		_number(DamageResolver.armor_for_channel(definition,CombatDefinition.DamageChannel.MELEE,defense_bonus)),
 		_number(DamageResolver.armor_for_channel(definition,CombatDefinition.DamageChannel.RANGED,defense_bonus)), entity.order_name]
 	if entity is HeroUnit:

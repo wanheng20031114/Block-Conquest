@@ -35,19 +35,19 @@ func _run() -> void:
 	var clears_stone := true
 	# Inspect the exported tube vertices at the lowest allowed pitch, across a
 	# full sweep and all recoil extremes. Corner caps end at y=3.75.
-	model.elevation.rotation.x = DefensiveTowerVisual.MIN_PITCH
+	model.guns[0].elevation.rotation.x = DefensiveGunVisual.MIN_PITCH
 	for yaw: int in range(0,360,15):
-		model.turret.rotation.y = deg_to_rad(yaw)
+		model.guns[0].turret.rotation.y = deg_to_rad(yaw)
 		for phase: float in [0.0,.07,.9]:
 			model.sample_fire(phase)
-			for mesh: MeshInstance3D in model.get_node("Turret/Elevation/Barrel").find_children("*", "MeshInstance3D", true, false):
+			for mesh: MeshInstance3D in model.get_node("Gun/Turret/Elevation/Barrel").find_children("*", "MeshInstance3D", true, false):
 				for vertex: Vector3 in mesh.mesh.get_faces():
 					var point: Vector3 = model.to_local(mesh.to_global(vertex))
 					if absf(absf(point.x)-1.96) < .38 and absf(absf(point.z)-1.96) < .38 and point.y < 3.80:
 						clears_stone = false
 	check(clears_stone, "full rotation and recoil clear stone caps by at least five centimetres")
-	model.elevation.rotation.x = 0
-	model.turret.rotation.y = 0
+	model.guns[0].elevation.rotation.x = 0
+	model.guns[0].turret.rotation.y = 0
 	model.sample_fire(.9)
 	await capture("codex", root)
 	var viewport: SubViewport = codex.get_node("%CodexViewport")
@@ -56,12 +56,12 @@ func _run() -> void:
 		codex._request_preview_redraw()
 		await capture("angle_%03d" % angle, viewport)
 	codex._anchor.rotation.y = 0
-	model.turret.rotation.y = PI * .25
-	model.elevation.rotation.x = DefensiveTowerVisual.MIN_PITCH
+	model.guns[0].turret.rotation.y = PI * .25
+	model.guns[0].elevation.rotation.x = DefensiveGunVisual.MIN_PITCH
 	codex._request_preview_redraw()
 	await capture("diagonal_clearance", viewport)
-	model.turret.rotation.y = 0
-	model.elevation.rotation.x = 0
+	model.guns[0].turret.rotation.y = 0
+	model.guns[0].elevation.rotation.x = 0
 	var original: Transform3D = codex._camera.transform
 	codex._camera.position = Vector3(1,12,-2)
 	codex._camera.look_at(Vector3(0,2,0),Vector3.UP)
@@ -75,11 +75,11 @@ func _run() -> void:
 	codex._select_preview_action(2)
 	codex._process(.07)
 	codex._toggle_preview_pause()
-	var phase: float = model.animation.current_animation_position
+	var phase: float = model.guns[0].animation.current_animation_position
 	await capture("recoil", viewport)
-	check(is_equal_approx(model.animation.current_animation_position,phase), "pause holds authored recoil")
+	check(is_equal_approx(model.guns[0].animation.current_animation_position,phase), "pause holds authored recoil")
 	codex._select_preview_action(0)
-	check(model.get_node("Turret/Elevation/Barrel").position == Vector3.ZERO, "idle resets paused recoil")
+	check(model.get_node("Gun/Turret/Elevation/Barrel").position == Vector3.ZERO, "idle resets paused recoil")
 	codex.queue_free()
 	await process_frame
 	change_scene_to_file("res://scenes/sandbox.tscn")
@@ -119,9 +119,9 @@ func _run() -> void:
 	game.set_running(true)
 	for unit: BattleUnit in game.get_node("Units").get_children(): unit.set_physics_process(false)
 	for building: BattleBuilding in game.get_node("Buildings").get_children(): building.set_physics_process(false)
-	tower._target = target
+	tower.weapons[0].target = target
 	tower._scan_time = 100
-	tower._cooldown = 0
+	tower.weapons[0].cooldown = 0
 	tower._physics_process(.5)
 	await create_timer(.05).timeout
 	await capture("firing", root)

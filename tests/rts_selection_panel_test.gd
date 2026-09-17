@@ -215,7 +215,7 @@ func normal_battle() -> void:
 	check(composition.visible and composition.total_count == 10, "normal battle shows selected army composition")
 	check(game.hud._actions.is_empty(), "soldier subgroup does not show selected worker construction actions")
 	await click(type_slot(composition,"farmer"))
-	check(game.hud._actions.all(func(action): return action.kind == "build") and not game.hud._actions.is_empty(), "worker subgroup exposes native construction actions")
+	check(game.hud._actions.all(func(action): return action.kind in ["build", "action_page"]) and game.hud._actions.any(func(action): return action.kind == "build"), "worker subgroup exposes native construction actions and pagination")
 	await click(type_slot(composition,"archer"))
 	check(game.hud._actions.is_empty() and game.selection == army, "returning to archers retains whole mixed selection")
 	check(game.hud.selected_name.text.contains("弓箭手 ×2"), "focused type shows matching count and stats")

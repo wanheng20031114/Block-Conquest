@@ -33,7 +33,7 @@ func _run() -> void:
 	check(definition.projectile == "cannon" and definition.damage == 48 and definition.cooldown == 2.4 and definition.range == 12, "single cannon weapon definition")
 	check(definition.bonuses.is_empty() and definition.armor_penetration == 0, "no hidden class bonus or penetration")
 	check(BalanceCatalog.building("defense_tower").name == "箭塔", "existing tower is named Arrow Tower")
-	check(not BalanceCatalog.BUILDINGS.has("castle") and not BalanceCatalog.BUILDINGS.has("heavy_fortress"), "later buildings remain behind individual acceptance gates")
+	check(not BalanceCatalog.BUILDINGS.has("heavy_fortress"), "heavy fortress remains behind its individual acceptance gate")
 	game.set_paint_kind("cannon_tower")
 	check(game.hud.get_node("%BuildingKinds/cannon_tower").button_pressed and not game.hud.get_node("%CountRow").visible, "native sandbox cannon placement entry")
 	var at := Vector3.ZERO
@@ -70,14 +70,14 @@ func _run() -> void:
 	for unit: BattleUnit in [enemy, neighbor, friend]:
 		unit.set_physics_process(false)
 		unit.navigation_agent.avoidance_enabled = false
-	tower.artillery.animation.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	tower.artillery.guns[0].animation.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	var pool: BattleProjectilePool = game.get_node("ProjectilePool")
 	pool.set_physics_process(false)
 	pool.launched.connect(func(flight: ProjectileFlight): shots.append({"start": flight._start, "target": flight._target, "kind": flight._kind, "time": game.elapsed}))
 	await settle()
-	tower._target = enemy
+	tower.weapons[0].target = enemy
 	tower._scan_time = 100
-	tower._cooldown = 0
+	tower.weapons[0].cooldown = 0
 	var muzzle: Vector3 = tower.get_projectile_origin()
 	tower._physics_process(1.0 / 60)
 	check(shots.size() == 1 and shots[0].kind == "cannon", "one attack launches one cannonball")
@@ -94,7 +94,7 @@ func _run() -> void:
 	tower._physics_process(.101)
 	check(shots.size() == 2, "next shot follows independent 2.4 second building cooldown")
 	pool.reset_all()
-	tower._cooldown = 0
+	tower.weapons[0].cooldown = 0
 	enemy.position = at + Vector3(0, 0, 10)
 	await settle()
 	tower._physics_process(1.0 / 60)
@@ -102,18 +102,18 @@ func _run() -> void:
 	for tick: int in 70: tower._physics_process(1.0 / 60)
 	check(shots.size() == 3 and tower.model_pivot.rotation == Vector3.ZERO, "turret rotates without rotating masonry")
 	tower.artillery.sample_fire(.07)
-	check(is_equal_approx(tower.artillery.get_node("Turret/Elevation/Barrel").position.z, .36), "saved animation has visible recoil")
-	check(tower.artillery.muzzle.position == Vector3(0, 0, -2.445), "muzzle is parented to the recoiling barrel")
+	check(is_equal_approx(tower.artillery.guns[0].get_node("Turret/Elevation/Barrel").position.z, .36), "saved animation has visible recoil")
+	check(tower.artillery.guns[0].muzzle.position == Vector3(0, 0, -2.445), "muzzle is parented to the recoiling barrel")
 	tower.artillery.sample_fire(.9)
-	check(tower.artillery.get_node("Turret/Elevation/Barrel").position == Vector3.ZERO, "recoil returns precisely to mount")
+	check(tower.artillery.guns[0].get_node("Turret/Elevation/Barrel").position == Vector3.ZERO, "recoil returns precisely to mount")
 	pool.reset_all()
 	enemy.position = at + Vector3(0, 0, -(2.5 + 12 + enemy.radius))
 	check(tower._can_shoot_target(enemy), "range includes exact wall-to-unit-edge boundary")
 	enemy.position.z -= .02
 	check(not tower._can_shoot_target(enemy), "range rejects target beyond wall boundary")
 	check(not tower._can_shoot_target(friend), "allied target cannot be shot")
-	tower._target = enemy
-	tower._cooldown = 0
+	tower.weapons[0].target = enemy
+	tower.weapons[0].cooldown = 0
 	tower._physics_process(.1)
 	check(shots.size() == 3, "expired target cannot fire between scans")
 	var arrow: BattleBuilding = game.spawn_building("defense_tower", 0, at + Vector3(8, 0, 0))
@@ -172,7 +172,7 @@ func _run() -> void:
 	var location: Vector3 = game.find_build_location(0, "cannon_tower", game.headquarters.global_position)
 	check(location.is_finite(), "real construction finds valid 5 by 5 site")
 	game.select_entities([worker]); game.hud.refresh()
-	check(game.hud._actions.size() == 6 and game.hud._actions.any(func(action): return action.id == "cannon_tower"), "six native worker actions include cannon tower")
+	check(game.hud._actions.size() == 6 and game.hud._actions.any(func(action): return action.id == "cannon_tower"), "first worker action page still includes cannon tower")
 	game.set_build_mode(true, "cannon_tower")
 	check(game.build_mode and game.get_node("BuildingPreview/Model") is DefensiveTowerVisual, "normal construction preview uses authored turret")
 	player.gold = 349

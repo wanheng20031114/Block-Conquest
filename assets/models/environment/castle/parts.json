@@ -1,0 +1,13 @@
+[
+  {
+    "part": "base",
+    "families": [
+      "Stone",
+      "Timber",
+      "Metal",
+      "Roof",
+      "Fabric"
+    ],
+    "triangles": 28604
+  }
+]

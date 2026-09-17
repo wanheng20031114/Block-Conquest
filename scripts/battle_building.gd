@@ -18,10 +18,11 @@ const MODELS: Dictionary = {
 	"academy": preload("res://assets/models/environment/academy.tscn"),
 	"tower": preload("res://assets/models/environment/tower.tscn"),
 	"cannon_tower": preload("res://assets/models/environment/cannon_tower.tscn"),
+	"castle": preload("res://assets/models/environment/castle.tscn"),
 	"house": preload("res://assets/models/environment/house.tscn"),
 }
 
-@export_enum("headquarters", "enemy_keep", "barracks", "tower", "house", "defense_tower", "cannon_tower", "factory", "academy") var building_type: String = "headquarters"
+@export_enum("headquarters", "enemy_keep", "barracks", "tower", "house", "defense_tower", "cannon_tower", "castle", "factory", "academy") var building_type: String = "headquarters"
 @export var team: int = 0
 @export var owner_id: int = -1
 var alliance_id: int = 0
@@ -47,15 +48,13 @@ var _stats: BuildingDefinition
 var definition_override: BuildingDefinition
 var _game: Node
 var _model: Node3D
-var _target: Node3D
+var weapons: Array[BuildingWeaponState] = []
 var _scan_time: float = 0.0
-var _cooldown: float = 1.0
 var _target_query: PhysicsShapeQueryParameters3D
 var _space_state: PhysicsDirectSpaceState3D
 var _builder: WeakRef
 var _construction_meshes: Array[MeshInstance3D] = []
 var artillery: DefensiveTowerVisual
-var last_fired: float = -1.0
 
 @onready var health_bar: MeshInstance3D = $HealthBar
 @onready var selection_ring: MeshInstance3D = $SelectionRing
@@ -96,6 +95,10 @@ func _ready() -> void:
 		model_pivot.add_child(_model)
 	artillery = _model as DefensiveTowerVisual
 	assert((_stats.projectile == "cannon") == (artillery != null), "Cannon buildings require an authored artillery model")
+	if artillery != null:
+		assert(artillery.guns.size() == _stats.weapon_count)
+	for index: int in _stats.weapon_count:
+		weapons.append(BuildingWeaponState.new())
 	var relation := FactionPalette.relation(owner_id, alliance_id, _game)
 	FactionPalette.apply_model(_model, relation)
 	var shape: BoxShape3D = $CollisionShape3D.shape
@@ -127,48 +130,67 @@ func _ready() -> void:
 	reset_physics_interpolation()
 
 func _physics_process(delta: float) -> void:
-	if not _game.is_authority or not alive or under_construction or float(_stats.damage) <= 0.0:
+	if not _game.is_authority or _game.finished or not alive or under_construction or float(_stats.damage) <= 0.0:
 		return
 	_scan_time -= delta
-	_cooldown -= delta
 	if _scan_time <= 0.0:
 		_scan_time = randf_range(0.3, 0.4)
-		_target = null
-		var closest: float = INF
-		_target_query.transform.origin = global_position + Vector3.UP
-		for hit: Dictionary in _space_state.intersect_shape(_target_query, 64):
-			var entity: Node3D = hit.collider
-			if not _can_shoot_target(entity):
-				continue
-			var distance: float = global_position.distance_squared_to(entity.global_position)
-			if distance < closest:
-				closest = distance
-				_target = entity
-	# A target may walk out between the staggered scan and the next shot.
-	# Match unit attacks: range starts at the wall and ends at the target's
-	# outside edge. Recheck this exact range and faction on every release.
-	if not _can_shoot_target(_target):
-		return
-	if artillery != null and not artillery.aim_at(_target.global_position + Vector3.UP, delta):
-		return
-	if _cooldown <= 0.0:
-		_cooldown = _stats.cooldown
-		# Capture the muzzle before recoil, and let the existing effect pool own
-		# the cannon sound. One attack creates one projectile and one muzzle burst.
-		_game.spawn_projectile(self, _target, DamageResolver.snapshot(_stats, 0, owner_id, alliance_id), _stats.projectile)
+		_acquire_weapon_targets()
+	for index: int in weapons.size():
+		var weapon: BuildingWeaponState = weapons[index]
+		weapon.cooldown = maxf(0.0, weapon.cooldown - delta)
+		# Exact range and faction validation at release; targets can leave or die
+		# between the shared staggered scan and this gun's independent reload.
+		if not _can_shoot_target(weapon.target):
+			continue
+		if artillery != null and not artillery.guns[index].aim_at(weapon.target.global_position + Vector3.UP, delta):
+			continue
+		if weapon.cooldown > 0.0:
+			continue
+		weapon.cooldown = _stats.cooldown
+		_game.spawn_projectile(self, weapon.target, DamageResolver.snapshot(_stats, 0, owner_id, alliance_id), _stats.projectile, index)
+		# Launch observers can synchronously destroy this building or end a match.
+		if not alive or _game.finished:
+			return
 		if artillery != null:
-			_game.spawn_effect(get_projectile_origin(), "muzzle", Color("ffbd68"))
-			last_fired = _game.elapsed
-			artillery.fire()
+			_game.spawn_effect(get_projectile_origin(index), "muzzle", Color("ffbd68"))
+			weapon.last_fired = _game.elapsed
+			artillery.guns[index].fire()
 		else:
 			sound_requested.emit(&"bow_release", get_projectile_origin())
+
+func _acquire_weapon_targets() -> void:
+	# One bounded native query per building, not one query per gun. Keep only
+	# the nearest N distinct enemies, with entity id breaking distance ties.
+	var candidates: Array[Node3D] = []
+	_target_query.transform.origin = global_position + Vector3.UP
+	for hit: Dictionary in _space_state.intersect_shape(_target_query, 64):
+		var entity: Node3D = hit.collider
+		if not _can_shoot_target(entity) or entity in candidates:
+			continue
+		var distance: float = global_position.distance_squared_to(entity.global_position)
+		var slot: int = 0
+		while slot < candidates.size():
+			var other_distance: float = global_position.distance_squared_to(candidates[slot].global_position)
+			if distance < other_distance or (is_equal_approx(distance, other_distance) and entity.entity_id < candidates[slot].entity_id):
+				break
+			slot += 1
+		if slot < weapons.size():
+			candidates.insert(slot, entity)
+			if candidates.size() > weapons.size(): candidates.pop_back()
+	for index: int in weapons.size():
+		weapons[index].target = candidates[index % candidates.size()] if not candidates.is_empty() else null
 
 func _can_shoot_target(entity: Node3D) -> bool:
 	if not is_instance_valid(entity) or not entity.alive or entity.alliance_id == alliance_id:
 		return false
 	var offset: Vector3 = entity.global_position - get_attack_position(entity.global_position)
 	offset.y = 0.0
-	return offset.length_squared() <= pow(float(_stats.range) + entity.radius, 2.0)
+	var distance_squared: float = offset.length_squared()
+	var range_squared: float = pow(float(_stats.range) + entity.radius, 2.0)
+	# World transforms use float32: an exact boundary translated across the map
+	# can differ by a few millionths. Preserve an inclusive edge consistently.
+	return distance_squared <= range_squared or is_equal_approx(distance_squared, range_squared)
 
 func try_claim_builder(worker: Node3D) -> bool:
 	if not alive or not under_construction or not is_instance_valid(worker):
@@ -216,7 +238,7 @@ func contribute_work(worker: Node3D, delta: float) -> void:
 		under_construction = false
 		_builder = null
 		order_name = "自动防御"
-		_cooldown = 0.25
+		for weapon: BuildingWeaponState in weapons: weapon.cooldown = 0.25
 		_scan_time = 0.0
 		_update_construction_visuals()
 		construction_completed.emit(self)
@@ -267,9 +289,9 @@ func get_footprint_size() -> Vector3:
 	return Vector3(absf(basis.x.x) * size.x + absf(basis.z.x) * size.z, size.y,
 		absf(basis.x.z) * size.x + absf(basis.z.z) * size.z)
 
-func get_projectile_origin() -> Vector3:
+func get_projectile_origin(index: int = 0) -> Vector3:
 	if artillery != null:
-		return artillery.muzzle.global_position
+		return artillery.guns[index].muzzle.global_position
 	return $ProjectileOrigin.global_position
 
 func get_hit_effect() -> String:

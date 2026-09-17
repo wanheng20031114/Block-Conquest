@@ -10,6 +10,7 @@ extends CombatDefinition
 @export var model: String
 @export var produces: PackedStringArray = PackedStringArray()
 @export_enum("arrow", "cannon") var projectile: String = "arrow"
+@export_range(1, 4) var weapon_count: int = 1
 
 func cost_after_placements(paid_placements: int) -> int:
 	if cost_progression.is_empty():

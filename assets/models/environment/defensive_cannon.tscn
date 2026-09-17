@@ -1,0 +1,58 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/defensive_gun_visual.gd" id="visual"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/cannon_tower/mount_timber.res" id="mount_timber"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/cannon_tower/mount_metal.res" id="mount_metal"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/cannon_tower/barrel_metal.res" id="barrel_metal"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/cannon_tower/barrel_stone.res" id="barrel_stone"]
+[ext_resource type="ArrayMesh" path="res://assets/models/environment/cannon_tower/barrel_fabric.res" id="barrel_fabric"]
+
+[sub_resource type="Animation" id="reset"]
+resource_name = "RESET"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Turret/Elevation/Barrel:position")
+tracks/0/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [Vector3(0, 0, 0)]}
+
+[sub_resource type="Animation" id="fire"]
+resource_name = "fire"
+length = 0.9
+tracks/0/type = "value"
+tracks/0/path = NodePath("Turret/Elevation/Barrel:position")
+tracks/0/interp = 1
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.07, 0.16, 0.5, 0.9), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector3(0, 0, 0), Vector3(0, 0, 0.36), Vector3(0, 0, 0.34), Vector3(0, 0, 0.13), Vector3(0, 0, 0)]}
+
+[sub_resource type="AnimationLibrary" id="animations"]
+_data = {&"RESET": SubResource("reset"), &"fire": SubResource("fire")}
+
+[node name="DefensiveCannon" type="Node3D"]
+script = ExtResource("visual")
+
+[node name="Turret" type="Node3D" parent="."]
+
+[node name="Timber" type="MeshInstance3D" parent="Turret"]
+mesh = ExtResource("mount_timber")
+
+[node name="Metal" type="MeshInstance3D" parent="Turret"]
+mesh = ExtResource("mount_metal")
+
+[node name="Elevation" type="Node3D" parent="Turret"]
+position = Vector3(0, 1.18, 0)
+
+[node name="Barrel" type="Node3D" parent="Turret/Elevation"]
+
+[node name="Metal" type="MeshInstance3D" parent="Turret/Elevation/Barrel"]
+mesh = ExtResource("barrel_metal")
+
+[node name="Bore" type="MeshInstance3D" parent="Turret/Elevation/Barrel"]
+mesh = ExtResource("barrel_stone")
+
+[node name="TeamBands" type="MeshInstance3D" parent="Turret/Elevation/Barrel"]
+mesh = ExtResource("barrel_fabric")
+
+[node name="Muzzle" type="Marker3D" parent="Turret/Elevation/Barrel"]
+position = Vector3(0, 0, -2.445)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+callback_mode_process = 0
+libraries = {&"": SubResource("animations")}

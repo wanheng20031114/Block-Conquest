@@ -159,9 +159,9 @@ func _auto_defense(owner: int) -> void:
 	await physics_frame
 	check(not tower._can_shoot_target(ally), "owner_%d_opening_tower_never_targets_own_or_teammate_unit" % owner)
 	tower._scan_time = 0.0
-	tower._cooldown = 0.0
+	tower.weapons[0].cooldown = 0.0
 	tower._physics_process(1.0 / 30.0)
-	check(tower._target == enemy, "owner_%d_opening_tower_autonomously_acquires_enemy" % owner)
+	check(tower.weapons[0].target == enemy, "owner_%d_opening_tower_autonomously_acquires_enemy" % owner)
 	for tick: int in range(90):
 		if enemy.hp < enemy.max_hp:
 			break

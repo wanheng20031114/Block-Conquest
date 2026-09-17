@@ -2,7 +2,7 @@ extends Control
 ## A native catalogue backed by the same resources as recruitment and combat.
 signal closed
 
-const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower", "cannon_tower"]
+const BUILDING_IDS: Array[String] = ["headquarters", "barracks", "factory", "academy", "defense_tower", "cannon_tower", "castle"]
 const CLASS_NAMES: Dictionary = CombatDefinition.GROUP_NAMES
 const FAMILY_FILTERS: Array[StringName] = [&"", &"infantry", &"ranged_infantry", &"melee_infantry", &"cavalry", &"siege"]
 const BUILDING_DESCRIPTIONS: Dictionary = {
@@ -12,6 +12,7 @@ const BUILDING_DESCRIPTIONS: Dictionary = {
 	"academy": "训练牧师，并研究军队、人口与采矿科技。训练和研究独立进行，已完成的研究永久保留。",
 	"defense_tower": "自动攻击范围内的敌人。无法驻军，需要部队保护。",
 	"cannon_tower": "厚石炮台上的回转重炮，自动攻击单个敌人。没有溅射或驻军，适合封锁路口，需要防备远处的攻城器。",
+	"castle": "围墙与四角堡楼守护中央主堡。三门火炮独立瞄准与装填，优先分散火力，敌人不足时集中射击。单发造成单体伤害。",
 }
 const MODEL_PATHS: Dictionary = {
 	"headquarters": "res://assets/models/environment/headquarters.tscn",
@@ -20,6 +21,7 @@ const MODEL_PATHS: Dictionary = {
 	"academy": "res://assets/models/environment/academy.tscn",
 	"defense_tower": "res://assets/models/environment/defense_tower.tscn",
 	"cannon_tower": "res://assets/models/environment/cannon_tower.tscn",
+	"castle": "res://assets/models/environment/castle.tscn",
 }
 const TECH_MODELS: Dictionary = {&"attack": "swordsman", &"defense": "knight", &"workforce": "farmer", &"army_capacity": "barracks", &"mining": "farmer", &"cannon_range": "cannon", &"recovery": "farmer"}
 const UNIT_FRAMING: Dictionary = {
@@ -359,6 +361,8 @@ func _on_entry_selected(index: int) -> void:
 			content += _row("建造时间", _number(building.build_seconds) + " 秒")
 			content += _row("占地", "%s × %s" % [_number(building.size.x), _number(building.size.z)])
 			content += _combat_rows(building)
+			if building.weapon_count > 1:
+				content += _row("独立火炮", "%d 门 · 各自装填" % building.weapon_count)
 			var recruits: PackedStringArray = []
 			for kind: String in building.produces:
 				recruits.append(BalanceCatalog.unit(kind).name)
@@ -409,7 +413,7 @@ func _combat_rows(definition: CombatDefinition) -> String:
 	rows += _row("远程护甲", _number(definition.ranged_armor))
 	if definition.damage > 0.0:
 		rows += _row("攻击力", _number(definition.damage) + (" · 近战" if definition.damage_channel == CombatDefinition.DamageChannel.MELEE else " · 远程"))
-		rows += _row("每管间隔" if definition is UnitDefinition and definition.independent_weapons > 1 else "攻击间隔", _number(definition.cooldown) + " 秒")
+		rows += _row("每炮间隔" if (definition is UnitDefinition and definition.independent_weapons > 1) or (definition is BuildingDefinition and definition.weapon_count > 1) else "攻击间隔", _number(definition.cooldown) + " 秒")
 		rows += _row("射程", _number(definition.range))
 		if definition.armor_penetration > 0.0:
 			rows += _row("固定穿甲", "无视 %s 点护甲" % _number(definition.armor_penetration))
@@ -488,6 +492,9 @@ func _set_preview(kind: String) -> void:
 			_select_preview_action(PreviewAction.IDLE)
 		center = 3.7 if kind == "headquarters" else 3.0
 		_base_camera_size = 14.5 if kind == "headquarters" else 9.5
+		if kind == "castle":
+			center = 3.5
+			_base_camera_size = 13.2
 		if kind == "cannon_tower":
 			center = 2.35
 			_base_camera_size = 7.8
@@ -498,7 +505,7 @@ func _set_preview(kind: String) -> void:
 	%PreviewWalk.visible = unit
 	%PreviewGather.visible = kind in ["farmer", "engineer", "priest"]
 	%PreviewGather.text = "治疗" if kind == "priest" else ("维修" if kind == "engineer" else "采矿")
-	%PreviewAttack.text = "开炮" if kind in ["cannon", "heavy_cannon", "triple_cannon", "cannon_tower"] else ("投射" if kind == "catapult" else "攻击")
+	%PreviewAttack.text = "开炮" if kind in ["cannon", "heavy_cannon", "triple_cannon", "cannon_tower", "castle"] else ("投射" if kind == "catapult" else "攻击")
 	_reset_view()
 	_refresh_preview_activity()
 

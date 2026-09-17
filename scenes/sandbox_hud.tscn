@@ -608,6 +608,15 @@ theme_override_font_sizes/font_size = 15
 toggle_mode = true
 button_group = SubResource("Kinds")
 
+[node name="castle" type="Button" parent="Sidebar/Scroll/Content/BuildingKinds"]
+layout_mode = 2
+text = "城堡"
+custom_minimum_size = Vector2(75, 34)
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+toggle_mode = true
+button_group = SubResource("Kinds")
+
 [node name="headquarters" type="Button" parent="Sidebar/Scroll/Content/BuildingKinds"]
 layout_mode = 2
 text = "大本营"

@@ -1,5 +1,5 @@
 extends SceneTree
-## Real native bodies, fog and authoritative elimination across all six alliances.
+## Real native bodies, fog and authoritative elimination across every FFA alliance.
 var game: Node3D
 var checks: int = 0
 var failures: Array[String] = []
@@ -36,6 +36,7 @@ func _load_mode(mode: String, shuffled: bool = false) -> void:
 		building.production.set_physics_process(false)
 	await physics_frame
 	await physics_frame
+	while session.transition.busy: await process_frame
 
 func _unit(kind: String, owner: int, at: Vector3) -> BattleUnit:
 	var result: BattleUnit = game.spawn_unit(kind, owner, at)
@@ -50,11 +51,12 @@ func _discard(entity: Node3D) -> void:
 func _run() -> void:
 	await _load_mode("ffa")
 	var fog: FogOfWar = game.get_node("FogOfWar")
-	check(fog.alliance_count == 6 and fog.grid_size == Vector2i(80, 80), "six_independent_full_size_fog_masks")
-	for owner: int in range(6):
+	var faction_count: int = game.players.size()
+	check(fog.alliance_count == faction_count and fog.grid_size == Vector2i(96, 96), "independent_fog_masks_cover_current_192_metre_ffa_map")
+	for owner: int in range(faction_count):
 		var home: Vector3 = game.get_spawn_marker(owner).global_position
 		check(fog.position_visible(owner, home), "owner_%d_sees_own_start" % owner)
-		for other: int in range(6):
+		for other: int in range(faction_count):
 			if other != owner:
 				check(not fog.position_visible(other, home), "owner_%d_does_not_share_vision_with_%d" % [owner, other])
 		var snapshot := fog.snapshot_for(owner)
@@ -66,8 +68,8 @@ func _run() -> void:
 		invalid.revealed_building_alliances.pop_back()
 		check(not fog.apply_snapshot(invalid), "owner_%d_rejects_wrong_reveal_array_length" % owner)
 		game.is_authority = true
-	for attacker: int in range(6):
-		for defender: int in range(6):
+	for attacker: int in range(faction_count):
+		for defender: int in range(faction_count):
 			if attacker == defender:
 				continue
 			var source := _unit("archer", attacker, Vector3(-5, 0, 0))
@@ -81,15 +83,15 @@ func _run() -> void:
 			source._refresh_target()
 			check(source.target == target, "native_acquisition_%d_attacks_%d_not_friendly" % [attacker, defender])
 			tower._scan_time = 0
-			tower._cooldown = 100
+			tower.weapons[0].cooldown = 100
 			tower._physics_process(0.1)
-			check(tower._target == target, "native_tower_%d_targets_alliance_%d" % [attacker, defender])
+			check(tower.weapons[0].target == target, "native_tower_%d_targets_alliance_%d" % [attacker, defender])
 			var stone: BattleProjectile = game.PROJECTILE_SCENE.instantiate()
 			game.effect_container.add_child(stone)
 			stone.initialize(source, target, DamageResolver.snapshot(BalanceCatalog.unit("catapult"), 0, attacker, attacker), "stone")
 			stone.set_physics_process(false)
 			stone._impact()
-			check(is_equal_approx(target.hp, 76.0), "native_stone_%d_hits_alliance_%d" % [attacker, defender])
+			check(is_equal_approx(target.hp, 86.0), "native_stone_%d_hits_alliance_%d" % [attacker, defender])
 			check(friendly.hp == friendly.max_hp, "native_stone_%d_preserves_own_units_%d" % [attacker, defender])
 			stone.queue_free()
 			_discard(source)
@@ -99,17 +101,17 @@ func _run() -> void:
 			await physics_frame
 			await physics_frame
 	game.tests_running = false
-	for eliminated: int in range(5):
+	for eliminated: int in range(faction_count-1):
 		for building: BattleBuilding in game.owned_entities(eliminated, "buildings"):
 			building.receive_damage(building.hp)
 		game.check_victory()
 		check(game.get_player(eliminated).eliminated, "faction_%d_is_eliminated" % eliminated)
-		check(game.finished == (eliminated == 4), "faction_%d_elimination_only_ends_when_one_remains" % eliminated)
+		check(game.finished == (eliminated == faction_count-2), "faction_%d_elimination_only_ends_when_one_remains" % eliminated)
 		var before: int = game.get_player(eliminated).gold
 		game._on_income()
 		check(game.get_player(eliminated).gold == before, "eliminated_%d_receives_no_income" % eliminated)
 		check(not game.command_bus.execute({"kind": "stop"}, eliminated).ok, "eliminated_%d_cannot_issue_commands" % eliminated)
-	check(not game.get_player(5).eliminated, "sixth_faction_can_win_after_host_faction_dies")
+	check(not game.get_player(faction_count-1).eliminated, "last_faction_can_win_after_host_faction_dies")
 	await game.prepare_shutdown()
 	await _load_mode("3v3", true)
 	for owner: int in range(6):

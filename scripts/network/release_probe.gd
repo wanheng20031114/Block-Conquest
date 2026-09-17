@@ -116,8 +116,8 @@ func validate_resource_values() -> void:
 	# saved exported property. Exercise the actual ResourceLoader values in PCK.
 	var began := checks
 	var production := {"headquarters": ["farmer"], "barracks": ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "musketeer", "knight", "war_elephant", "light_cavalry"],
-		"factory": ["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"], "academy": ["priest"], "defense_tower": [], "cannon_tower": [], "enemy_keep": ["farmer"], "tower": [], "house": []}
-	var defensive_damage := {"headquarters": 40, "enemy_keep": 40, "defense_tower": 16, "cannon_tower": 48, "tower": 17}
+		"factory": ["catapult", "cannon", "engineer", "heavy_cannon", "triple_cannon"], "academy": ["priest"], "defense_tower": [], "cannon_tower": [], "castle": [], "enemy_keep": ["farmer"], "tower": [], "house": []}
+	var defensive_damage := {"headquarters": 40, "enemy_keep": 40, "defense_tower": 16, "cannon_tower": 48, "castle": 28, "tower": 17}
 	for kind: String in production:
 		var building := BalanceCatalog.building(kind)
 		check(Array(building.produces) == production[kind], "packaged_production_members_" + kind)
