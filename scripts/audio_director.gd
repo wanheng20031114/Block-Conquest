@@ -45,6 +45,10 @@ func set_world_paused(value: bool) -> void:
 func play_ui(kind: StringName) -> void:
 	_play(kind, Vector3.ZERO, false)
 
+func set_listener(listener: AudioListener3D) -> void:
+	_listener = listener
+	_listener.make_current()
+
 func play_world(kind: StringName, at: Vector3) -> void:
 	_play(kind, at, true)
 

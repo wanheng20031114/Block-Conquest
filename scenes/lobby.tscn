@@ -253,6 +253,14 @@ tooltip_text = "单人肉鸽 · 森林探索、军团编队与前哨站作战"
 alignment = 1
 theme_override_fonts/font = ExtResource("med_title")
 
+[node name="MobaMode" type="Button" parent="CanvasLayer/UI/MainMenu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "MOBA卡牌模式 test1"
+tooltip_text = "单人测试 · 指挥英雄、打出援军卡牌、突破林地防线"
+
 [node name="Codex" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -1320,3 +1328,4 @@ one_shot = true
 
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/Sandbox" to="." method="_on_open_sandbox"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/RogueMode" to="." method="_on_open_rogue"]
+[connection signal="pressed" from="CanvasLayer/UI/MainMenu/MobaMode" to="." method="_on_open_moba"]

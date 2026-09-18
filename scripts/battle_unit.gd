@@ -64,7 +64,12 @@ var defeated_by_owner: int = -1
 var selected: bool = false
 var display_name: String = ""
 var radius: float = 0.5
-var speed: float = 3.5
+var _base_speed: float = 3.5
+## Match-owned movement effects multiply the normal/potion speed without editing definitions.
+var movement_multiplier: float = 1.0
+var speed: float:
+	get: return _base_speed * movement_multiplier
+	set(value): _base_speed = value
 var _base_or_replicated_range: float = 1.0
 var attack_range: float:
 	get:

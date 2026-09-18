@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MobaCardDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/moba/card_definition.gd" id="script"]
+[resource]
+script = ExtResource("script")
+id = &"cannon"
+title = "火炮支援"
+cost = 255
+units = PackedStringArray("cannon")
+description = "派出1门加农炮。远距离攻击防御建筑，畏惧贴身。"
+category = "远程拆塔"
+color = Color(0.93725, 0.58431, 0.18431, 1)

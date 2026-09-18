@@ -5,6 +5,7 @@ signal fired
 signal reload_started
 signal changed
 @export var definition: HeroWeaponDefinition
+@export var infinite_ammo: bool = false
 var rounds: int = 10
 var cooldown: float = 0.0
 var reload_remaining: float = 0.0
@@ -23,6 +24,7 @@ func advance(delta: float) -> void:
 			changed.emit()
 
 func begin_reload() -> bool:
+	if infinite_ammo: return false
 	if rounds == definition.magazine_size or reload_remaining > 0.0:
 		return false
 	reload_remaining = definition.reload_seconds
@@ -33,10 +35,10 @@ func begin_reload() -> bool:
 func consume_shot() -> bool:
 	if cooldown > .000001 or reload_remaining > 0.0:
 		return false
-	if rounds <= 0:
+	if not infinite_ammo and rounds <= 0:
 		begin_reload()
 		return false
-	rounds -= 1
+	if not infinite_ammo: rounds -= 1
 	shots_fired += 1
 	cooldown = definition.interval+minf(cooldown,0.0)
 	fired.emit()
@@ -44,7 +46,7 @@ func consume_shot() -> bool:
 	return true
 
 func finish_shot() -> void:
-	if rounds == 0: begin_reload()
+	if not infinite_ammo and rounds == 0: begin_reload()
 
 func payload(body: CombatDefinition, owner: int, alliance: int) -> DamagePayload:
 	var result := DamageResolver.snapshot(body,definition.attack_bonus,owner,alliance)

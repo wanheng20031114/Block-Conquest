@@ -72,6 +72,18 @@ func start_sandbox(map_mode: String = "1v1") -> Error:
 		load_failed.emit("无法载入自由沙盘，请检查游戏文件后重试")
 	return error
 
+func start_moba_test1() -> Error:
+	if transition.busy: return ERR_BUSY
+	relay.leave_room()
+	relay.disconnect_relay()
+	online = false
+	config = {"mode": "moba_test1"}
+	var error := change_scene("res://scenes/moba/test1.tscn")
+	if error != OK:
+		config.clear()
+		load_failed.emit("无法载入 MOBA 卡牌测试场景，请检查游戏文件后重试")
+	return error
+
 func _load_match_scene() -> Error:
 	var error := change_scene("res://scenes/main.tscn")
 	if error != OK:
@@ -100,7 +112,7 @@ func change_scene(path: String) -> Error:
 func _on_transition_failed(path: String, _error: Error) -> void:
 	# Resource validation is synchronous. If SceneTree itself cannot instantiate
 	# the validated scene, the curtain still opens and the old screen can retry.
-	if path in ["res://scenes/main.tscn", "res://scenes/sandbox.tscn"]:
+	if path in ["res://scenes/main.tscn", "res://scenes/sandbox.tscn", "res://scenes/moba/test1.tscn"]:
 		if online:
 			relay.leave_room()
 		online = false

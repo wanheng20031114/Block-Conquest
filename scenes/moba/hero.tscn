@@ -1,0 +1,12 @@
+[gd_scene format=3]
+[ext_resource type="PackedScene" path="res://scenes/hero/hero_unit.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/moba/hero.gd" id="hero"]
+[ext_resource type="Resource" path="res://data/sandbox/heroes/capsule.tres" id="body"]
+[ext_resource type="PackedScene" path="res://assets/models/heroes/capsule.tscn" id="model"]
+[node name="Hero" instance=ExtResource("base")]
+script = ExtResource("hero")
+unit_type = "hero"
+definition_override = ExtResource("body")
+model_scene_override = ExtResource("model")
+[node name="WeaponRuntime" parent="." index="6"]
+infinite_ammo = true

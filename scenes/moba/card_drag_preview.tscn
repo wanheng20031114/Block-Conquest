@@ -1,0 +1,10 @@
+[gd_scene format=3]
+[ext_resource type="PackedScene" path="res://scenes/moba/card.tscn" id="card"]
+[node name="CardDragPreview" type="Control"]
+mouse_filter = 2
+[node name="Card" parent="." instance=ExtResource("card")]
+offset_left = -72.0
+offset_top = -184.0
+offset_right = 72.0
+offset_bottom = 18.0
+mouse_filter = 2

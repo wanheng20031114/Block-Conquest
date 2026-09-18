@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MobaDeckDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/moba/deck_definition.gd" id="script"]
+[ext_resource type="Script" path="res://scripts/moba/card_definition.gd" id="card_script"]
+[ext_resource type="Resource" path="res://data/moba/cards/spears.tres" id="spears"]
+[ext_resource type="Resource" path="res://data/moba/cards/archers.tres" id="archers"]
+[ext_resource type="Resource" path="res://data/moba/cards/swords.tres" id="swords"]
+[ext_resource type="Resource" path="res://data/moba/cards/guards.tres" id="guards"]
+[ext_resource type="Resource" path="res://data/moba/cards/crossbows.tres" id="crossbows"]
+[ext_resource type="Resource" path="res://data/moba/cards/muskets.tres" id="muskets"]
+[ext_resource type="Resource" path="res://data/moba/cards/knights.tres" id="knights"]
+[ext_resource type="Resource" path="res://data/moba/cards/scouts.tres" id="scouts"]
+[ext_resource type="Resource" path="res://data/moba/cards/elephant.tres" id="elephant"]
+[ext_resource type="Resource" path="res://data/moba/cards/cannon.tres" id="cannon"]
+[resource]
+script = ExtResource("script")
+cards = Array[ExtResource("card_script")]([ExtResource("spears"), ExtResource("archers"), ExtResource("swords"), ExtResource("guards"), ExtResource("crossbows"), ExtResource("muskets"), ExtResource("knights"), ExtResource("scouts"), ExtResource("elephant"), ExtResource("cannon")])
+opening_hand = PackedStringArray("spears", "archers", "swords", "guards", "cannon")

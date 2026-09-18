@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MobaCardDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/moba/card_definition.gd" id="script"]
+[resource]
+script = ExtResource("script")
+id = &"knights"
+title = "骑士突击"
+cost = 225
+units = PackedStringArray("knight", "knight")
+description = "派出2名骑士。切入后排，克制远程步兵。"
+category = "反远程步兵"
+color = Color(0.69412, 0.53333, 0.74118, 1)

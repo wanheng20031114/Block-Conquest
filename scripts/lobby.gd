@@ -152,6 +152,11 @@ func _on_open_sandbox() -> void:
 	if session.start_sandbox() != OK:
 		_transitioning = false
 
+func _on_open_moba() -> void:
+	if _transitioning: return
+	_transitioning = true
+	if session.start_moba_test1() != OK: _transitioning = false
+
 func _on_open_rogue() -> void:
 	if _transitioning:
 		return

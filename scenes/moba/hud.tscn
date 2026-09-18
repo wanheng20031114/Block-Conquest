@@ -1,0 +1,546 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/moba/hud.gd" id="script"]
+[ext_resource type="Theme" path="res://assets/ui/moba/theme.tres" id="theme"]
+[ext_resource type="PackedScene" path="res://scenes/moba/card.tscn" id="card"]
+[ext_resource type="Script" path="res://scripts/moba/minimap.gd" id="minimap"]
+[ext_resource type="Script" path="res://scripts/moba/card_drop.gd" id="drop"]
+[ext_resource type="PackedScene" path="res://scenes/model_previews.tscn" id="portraits"]
+[ext_resource type="PackedScene" path="res://scenes/hero/hero_portrait.tscn" id="hero_portrait"]
+[ext_resource type="PackedScene" path="res://scenes/moba/weapon_view.tscn" id="weapon"]
+[node name="Interface" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("script")
+theme = ExtResource("theme")
+
+[node name="ModelPreviews" parent="." instance=ExtResource("portraits")]
+
+
+[node name="HeroPortrait" parent="." instance=ExtResource("hero_portrait")]
+
+
+[node name="WeaponView" parent="." instance=ExtResource("weapon")]
+
+
+[node name="Layout" type="Control" parent="."]
+unique_name_in_owner = true
+offset_left = 0
+offset_top = 0
+offset_right = 1600
+offset_bottom = 900
+mouse_filter = 2
+
+[node name="Top" type="Panel" parent="Layout"]
+unique_name_in_owner = true
+offset_left = 24
+offset_top = 20
+offset_right = 1576
+offset_bottom = 82
+anchor_right = 1.0
+offset_right = -24.0
+
+[node name="ModeTitle" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 18
+offset_top = 8
+offset_right = 198
+offset_bottom = 35
+text = "MOBA 卡牌"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="ModeSubtitle" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 20
+offset_top = 36
+offset_right = 220
+offset_bottom = 54
+text = "TEST 1   /   林地防线"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.47059, 0.53725, 0.56863, 1)
+
+[node name="OurBase" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 265
+offset_top = 9
+offset_right = 515
+offset_bottom = 32
+text = "我方大本营  2200"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="OurHealth" type="ProgressBar" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 265
+offset_top = 39
+offset_right = 503
+offset_bottom = 46
+show_percentage = false
+
+[node name="Clock" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 692
+offset_top = 7
+offset_right = 812
+offset_bottom = 35
+text = "00:00"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 25
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="Wave" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 665
+offset_top = 36
+offset_right = 850
+offset_bottom = 56
+text = "下一波 8秒"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.47059, 0.53725, 0.56863, 1)
+
+[node name="EnemyBase" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 895
+offset_top = 9
+offset_right = 1145
+offset_bottom = 32
+text = "敌方大本营  2200"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="EnemyHealth" type="ProgressBar" parent="Layout/Top"]
+unique_name_in_owner = true
+offset_left = 895
+offset_top = 39
+offset_right = 1133
+offset_bottom = 46
+show_percentage = false
+
+[node name="Gold" type="Label" parent="Layout/Top"]
+unique_name_in_owner = true
+anchor_left = 1
+anchor_right = 1
+anchor_top = 0
+anchor_bottom = 0
+offset_left = -278
+offset_top = 11
+offset_right = -98
+offset_bottom = 47
+text = "金币  240"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 25
+theme_override_colors/font_color = Color(0.85098, 0.55686, 0.14118, 1)
+
+[node name="Pause" type="Button" parent="Layout/Top"]
+unique_name_in_owner = true
+anchor_left = 1
+anchor_right = 1
+anchor_top = 0
+anchor_bottom = 0
+offset_left = -85
+offset_top = 10
+offset_right = -16
+offset_bottom = 52
+text = "菜单"
+focus_mode = 0
+
+[node name="Toast" type="Label" parent="Layout"]
+unique_name_in_owner = true
+offset_left = 440
+offset_top = 94
+offset_right = 1390
+offset_bottom = 130
+text = ""
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="MapPanel" type="Panel" parent="Layout"]
+unique_name_in_owner = true
+anchor_left = 0
+anchor_right = 0
+anchor_top = 1
+anchor_bottom = 1
+offset_left = 24
+offset_top = -217
+offset_right = 334
+offset_bottom = -24
+
+
+[node name="MapTitle" type="Label" parent="Layout/MapPanel"]
+unique_name_in_owner = true
+offset_left = 16
+offset_top = 10
+offset_right = 226
+offset_bottom = 34
+text = "林地防线"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="ArmyCount" type="Label" parent="Layout/MapPanel"]
+unique_name_in_owner = true
+offset_left = 16
+offset_top = 40
+offset_right = 294
+offset_bottom = 64
+text = "我方 0 · 敌方 0"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.44314, 0.50588, 0.5451, 1)
+
+[node name="Minimap" type="Control" parent="Layout/MapPanel"]
+unique_name_in_owner = true
+offset_left = 16
+offset_top = 73
+offset_right = 294
+offset_bottom = 151
+script = ExtResource("minimap")
+clip_contents = true
+
+[node name="MapHint" type="Label" parent="Layout/MapPanel"]
+unique_name_in_owner = true
+offset_left = 16
+offset_top = 159
+offset_right = 299
+offset_bottom = 181
+text = "点击查看 · 右键移动英雄"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.44314, 0.50588, 0.5451, 1)
+
+[node name="Hand" type="Control" parent="Layout"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1
+anchor_bottom = 1
+offset_left = -392
+offset_top = -226
+offset_right = 392
+offset_bottom = -24
+mouse_filter = 2
+
+[node name="Card0" parent="Layout/Hand" instance=ExtResource("card")]
+offset_left = 0
+offset_top = 0
+offset_right = 144
+offset_bottom = 202
+
+
+[node name="Card1" parent="Layout/Hand" instance=ExtResource("card")]
+offset_left = 160
+offset_top = 0
+offset_right = 304
+offset_bottom = 202
+
+
+[node name="Card2" parent="Layout/Hand" instance=ExtResource("card")]
+offset_left = 320
+offset_top = 0
+offset_right = 464
+offset_bottom = 202
+
+
+[node name="Card3" parent="Layout/Hand" instance=ExtResource("card")]
+offset_left = 480
+offset_top = 0
+offset_right = 624
+offset_bottom = 202
+
+
+[node name="Card4" parent="Layout/Hand" instance=ExtResource("card")]
+offset_left = 640
+offset_top = 0
+offset_right = 784
+offset_bottom = 202
+
+
+[node name="HandHint" type="Label" parent="Layout"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1
+anchor_bottom = 1
+offset_left = -392
+offset_top = -250
+offset_right = 408
+offset_bottom = -229
+text = "1—5 出牌  ·  双击或拖向战场  ·  所有援军从大本营出发"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="HeroPanel" type="Panel" parent="Layout"]
+unique_name_in_owner = true
+anchor_left = 1
+anchor_right = 1
+anchor_top = 1
+anchor_bottom = 1
+offset_left = -336
+offset_top = -237
+offset_right = -24
+offset_bottom = -24
+
+
+[node name="Portrait" type="TextureRect" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 12
+offset_top = 12
+offset_right = 81
+offset_bottom = 92
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroName" type="Label" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 90
+offset_top = 12
+offset_right = 296
+offset_bottom = 40
+text = "远行者"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="HeroHealth" type="ProgressBar" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 90
+offset_top = 47
+offset_right = 292
+offset_bottom = 60
+show_percentage = false
+
+[node name="HeroHP" type="Label" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 90
+offset_top = 61
+offset_right = 280
+offset_bottom = 84
+text = "200 / 200"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.44314, 0.50588, 0.5451, 1)
+
+[node name="HeroStats" type="Label" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 16
+offset_top = 91
+offset_right = 301
+offset_bottom = 115
+text = "近甲 3 · 远甲 3 · 无限弹药"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.44314, 0.50588, 0.5451, 1)
+
+[node name="Recovery" type="Button" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 14
+offset_top = 120
+offset_right = 152
+offset_bottom = 163
+text = "E  肉体强化"
+focus_mode = 0
+
+[node name="Morale" type="Button" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 160
+offset_top = 120
+offset_right = 298
+offset_bottom = 163
+text = "R  士气昂扬"
+focus_mode = 0
+
+[node name="FocusHero" type="Button" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 14
+offset_top = 172
+offset_right = 92
+offset_bottom = 201
+text = "定位"
+focus_mode = 0
+
+[node name="ViewMode" type="Button" parent="Layout/HeroPanel"]
+unique_name_in_owner = true
+offset_left = 100
+offset_top = 172
+offset_right = 298
+offset_bottom = 201
+text = "F5  第一人称"
+focus_mode = 0
+
+[node name="FPSHint" type="Label" parent="Layout"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0
+anchor_bottom = 0
+offset_left = -430
+offset_top = 99
+offset_right = 500
+offset_bottom = 131
+text = "WASD 移动 · 左键射击 · E / R 技能 · Tab 鼠标 · F5 返回"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="DropZone" type="Control" parent="Layout"]
+unique_name_in_owner = true
+offset_left = 0
+offset_top = 90
+offset_right = 1600
+offset_bottom = 640
+mouse_filter = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = -258.0
+script = ExtResource("drop")
+
+[node name="DropHint" type="Panel" parent="Layout/DropZone"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0
+anchor_bottom = 0
+offset_left = -250
+offset_top = 55
+offset_right = 250
+offset_bottom = 121
+visible = false
+mouse_filter = 2
+
+[node name="DropText" type="Label" parent="Layout/DropZone/DropHint"]
+unique_name_in_owner = true
+offset_left = 24
+offset_top = 12
+offset_right = 484
+offset_bottom = 52
+text = "松开：从大本营派出援军"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.26275, 0.53725, 0.38824, 1)
+
+[node name="Crosshair" type="Label" parent="Layout"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -10
+offset_top = -18
+offset_right = 14
+offset_bottom = 16
+text = "+"
+horizontal_alignment = 1
+mouse_filter = 2
+theme_override_colors/font_color = Color(1,1,1,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 27
+visible = false
+
+[node name="Modal" type="ColorRect" parent="Layout"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.15,0.24,0.28,0.45)
+visible = false
+
+[node name="Dialog" type="Panel" parent="Layout/Modal"]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -210
+offset_top = -190
+offset_right = 210
+offset_bottom = 190
+
+
+[node name="DialogTitle" type="Label" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 22
+offset_right = 390
+offset_bottom = 64
+text = "对局暂停"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+[node name="DialogDetail" type="Label" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 70
+offset_right = 390
+offset_bottom = 128
+text = "兵线、金币与技能计时已暂停"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.44314, 0.50588, 0.5451, 1)
+
+[node name="Resume" type="Button" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 140
+offset_right = 390
+offset_bottom = 183
+text = "继续对局"
+focus_mode = 0
+
+[node name="Restart" type="Button" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 194
+offset_right = 390
+offset_bottom = 237
+text = "重新开始"
+focus_mode = 0
+
+[node name="Settings" type="Button" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 248
+offset_right = 390
+offset_bottom = 291
+text = "设置"
+focus_mode = 0
+
+[node name="Back" type="Button" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 302
+offset_right = 390
+offset_bottom = 345
+text = "返回主菜单"
+focus_mode = 0

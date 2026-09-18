@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="BuildingDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"heavy_fortress"
+name = "重型要塞"
+description = "两门重炮镇守防线，炮弹能同时打击成群敌军。造价高昂，占地宽阔，适合扼守要道。"
+combat_class = &"building"
+damage_channel = 1
+hp = 2600
+cost = 1800
+build_seconds = 80.0
+radius = 6.0
+size = Vector3(12, 7.2, 11)
+bar_height = 8.1
+damage = 42
+range = 13
+cooldown = 4.5
+weapon_count = 2
+model = "heavy_fortress"
+projectile = "cannon"
+melee_armor = 7
+ranged_armor = 7
+splash_radius = 1.8
+
+produces = PackedStringArray()

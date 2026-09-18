@@ -1,0 +1,71 @@
+[gd_scene format=3]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/repeating_musket.tscn" id="weapon"]
+[sub_resource type="Environment" id="weapon_world"]
+background_mode = 0
+ambient_light_source = 2
+ambient_light_color = Color(1,0.94,0.85,1)
+ambient_light_energy = 0.6
+
+[sub_resource type="ViewportTexture" id="gun_texture"]
+viewport_path = NodePath("WeaponViewport")
+
+[sub_resource type="StandardMaterial3D" id="flash_mat"]
+shading_mode = 0
+albedo_color = Color(1,0.81,0.38,1)
+
+[sub_resource type="SphereMesh" id="flash_mesh"]
+radius = 0.04
+height = 0.08
+radial_segments = 6
+rings = 2
+material = SubResource("flash_mat")
+
+[node name="WeaponView" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+visible = false
+[node name="WeaponViewport" type="SubViewport" parent="."]
+unique_name_in_owner = true
+transparent_bg = true
+size = Vector2i(1280,720)
+msaa_3d = 2
+own_world_3d = true
+render_target_update_mode = 0
+
+[node name="Environment" type="WorldEnvironment" parent="WeaponViewport"]
+environment = SubResource("weapon_world")
+
+[node name="Light" type="DirectionalLight3D" parent="WeaponViewport"]
+rotation_degrees = Vector3(-40,-25,0)
+light_color = Color(1,0.91,0.73,1)
+light_energy = 1.3
+
+[node name="Camera" type="Camera3D" parent="WeaponViewport"]
+current = true
+fov = 65.0
+near = 0.03
+far = 6.0
+
+[node name="GunPivot" type="Node3D" parent="WeaponViewport"]
+unique_name_in_owner = true
+position = Vector3(0.32,-0.29,-0.54)
+scale = Vector3(0.65,0.65,0.65)
+
+[node name="Gun" parent="WeaponViewport/GunPivot" instance=ExtResource("weapon")]
+
+[node name="MuzzleFlash" type="MeshInstance3D" parent="WeaponViewport/GunPivot"]
+unique_name_in_owner = true
+position = Vector3(0,0.08,-0.985)
+visible = false
+mesh = SubResource("flash_mesh")
+
+[node name="Image" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = SubResource("gun_texture")
+expand_mode = 1
+stretch_mode = 5

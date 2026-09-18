@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MobaCardDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/moba/card_definition.gd" id="script"]
+[resource]
+script = ExtResource("script")
+id = &"crossbows"
+title = "弩手小队"
+cost = 180
+units = PackedStringArray("crossbowman", "crossbowman", "crossbowman")
+description = "派出3名弩手。近距离快速射击，穿透部分护甲。"
+category = "快速穿甲"
+color = Color(0.1451, 0.56078, 0.74118, 1)

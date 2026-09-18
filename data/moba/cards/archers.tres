@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MobaCardDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/moba/card_definition.gd" id="script"]
+[resource]
+script = ExtResource("script")
+id = &"archers"
+title = "弓箭小队"
+cost = 140
+units = PackedStringArray("archer", "archer", "archer", "archer")
+description = "派出4名弓箭手。在前排掩护下持续射击。"
+category = "远程压制"
+color = Color(0.1451, 0.56078, 0.74118, 1)

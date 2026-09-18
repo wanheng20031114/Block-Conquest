@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MobaCardDefinition" format=3]
+[ext_resource type="Script" path="res://scripts/moba/card_definition.gd" id="script"]
+[resource]
+script = ExtResource("script")
+id = &"guards"
+title = "盾卫前列"
+cost = 155
+units = PackedStringArray("shield_guard", "shield_guard")
+description = "派出2名盾卫。重甲前排，抵御远程火力。"
+category = "重甲前排"
+color = Color(0.32549, 0.49804, 0.61176, 1)
