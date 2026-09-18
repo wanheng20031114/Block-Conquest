@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/moba_ground/flagstone.png" id="stone"]
+
+[resource]
+resource_name = "防线石铺庭院"
+albedo_color = Color(0.81, 0.84, 0.81, 1)
+albedo_texture = ExtResource("stone")
+roughness = 0.96
+metallic_specular = 0.1
+texture_filter = 5

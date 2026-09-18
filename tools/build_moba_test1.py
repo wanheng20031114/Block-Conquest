@@ -5,7 +5,7 @@ The result is editable native Godot scenes, never a runtime node generator.
 """
 from pathlib import Path
 import math, random, json, re
-from build_rogue_forest import Mesh
+from build_moba_ground import build as build_ground
 
 ROOT = Path(__file__).resolve().parents[1]
 def write(rel, text):
@@ -71,58 +71,14 @@ color = {color(tint)}
 
 def landscape():
     rng=random.Random(71032)
-    mesh=Mesh('ground_moba')
-    for z in range(-28,28):
-        for x in range(-100,100):
-            # Two broad approach tracks around friendly strongholds join at midfield.
-            mesh.tri((x,-.025,z),(x+1,-.025,z),(x+1,-.025,z+1),(.4,.5,.3))
-            mesh.tri((x,-.025,z),(x+1,-.025,z+1),(x,-.025,z+1),(.4,.5,.3))
-    # Shared edge colors blend dirt into grass without square path boundaries.
-    for i in range(len(mesh.v)//3):
-        x,_,z=mesh.v[i*3:i*3+3]
-        ax=abs(x)
-        t=min(1,max(0,(ax-12)/23))
-        lane=10*t*t*(3-2*t)
-        if ax>77: lane*=max(0,(94-ax)/17)
-        distance=abs(abs(z)-lane)-2.6
-        for a,b,r in [(-87,0,8),(87,0,8),(-61,0,8),(61,0,8),(-37,0,7),(37,0,7),(-15,-9,4.8),(-15,9,4.8),(15,-9,4.8),(15,9,4.8)]:
-            distance=min(distance,math.hypot(x-a,z-b)-r)
-        distance+=.45*math.sin(ax*.63)*math.sin(z*.57)+.2*math.sin(z*1.8+ax)
-        t=min(1,max(0,(.8-distance)/1.7)); t=t*t*(3-2*t)
-        variation=1+.022*math.sin(ax*.7+z*.5)
-        mesh.c[i*4:i*4+4]=[variation*(grass*(1-t)+dirt*t) for grass,dirt in zip((.39,.51,.33),(.62,.55,.4))]+[1]
-    write('.local/moba-test1/ground.json',json.dumps({'vertices':mesh.v,'normals':mesh.n,'colors':mesh.c,'uv':mesh.uv},separators=(',',':')))
-    write('tools/bake_moba_ground.gd','''extends SceneTree
-func _initialize() -> void:
-	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://.local/moba-test1/ground.json"))
-	var arrays: Array = []
-	arrays.resize(Mesh.ARRAY_MAX)
-	var vertices := PackedVector3Array()
-	var normals := PackedVector3Array()
-	var colors := PackedColorArray()
-	var uv := PackedVector2Array()
-	for i: int in range(0, source.vertices.size(), 3):
-		vertices.append(Vector3(source.vertices[i], source.vertices[i+1], source.vertices[i+2]))
-		normals.append(Vector3(source.normals[i], source.normals[i+1], source.normals[i+2]))
-	for i: int in range(0, source.colors.size(), 4): colors.append(Color(source.colors[i], source.colors[i+1], source.colors[i+2], 1))
-	for i: int in range(0, source.uv.size(), 2): uv.append(Vector2(source.uv[i], source.uv[i+1]))
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_COLOR] = colors
-	arrays[Mesh.ARRAY_TEX_UV] = uv
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	mesh.surface_set_material(0, load("res://assets/models/environment/rogue_forest/ground_paint.tres"))
-	var result := ResourceSaver.save(mesh, "res://assets/models/environment/moba/ground.res")
-	print("MOBA_GROUND result=", result, " vertices=", vertices.size())
-	quit(0 if result == OK else 1)
-''')
     (ROOT/'assets/models/environment/moba').mkdir(parents=True,exist_ok=True)
     assets=['tree_oak','tree_birch','tree_pine','tree_aspen','moss_rock','canvas_tent','camp_supplies','fire_circle','split_fence','stump','fallen_log','waystone','grass','flowers','fern','bush','leaf_litter','pebbles']
     resources=[f'[ext_resource type="PackedScene" path="res://assets/models/environment/rogue_forest/{a}.tscn" id="{a}"]' for a in assets]
+    resources.append('[ext_resource type="PackedScene" path="res://scenes/moba/ground_details.tscn" id="ground_details"]')
     resources+=['[ext_resource type="ArrayMesh" path="res://assets/models/environment/moba/ground.res" id="ground"]','[ext_resource type="NavigationMesh" path="res://scenes/moba/navigation.tres" id="nav"]']
     resources+=['[sub_resource type="BoxShape3D" id="floor"]\nsize = Vector3(200, 1, 56)', '[sub_resource type="CylinderShape3D" id="trunk"]\nradius = 0.38\nheight = 5.0', '[sub_resource type="CylinderShape3D" id="rock"]\nradius = 1.4\nheight = 2.8']
     nodes=['[node name="ForestFrontier" type="Node3D"]','[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]\nnavigation_mesh = ExtResource("nav")','[node name="Environment" type="Node3D" parent="."]','[node name="Ground" type="StaticBody3D" parent="Environment"]\ncollision_layer = 1\ncollision_mask = 0','[node name="Collision" type="CollisionShape3D" parent="Environment/Ground"]\nposition = Vector3(0, -0.5, 0)\nshape = SubResource("floor")','[node name="Mesh" type="MeshInstance3D" parent="Environment/Ground"]\nmesh = ExtResource("ground")','[node name="NaturalObstacles" type="Node3D" parent="Environment"]','[node name="Dressing" type="Node3D" parent="Environment"]']
+    nodes.append('[node name="SurfaceDetails" parent="Environment" instance=ExtResource("ground_details")]')
     obstacles=[]
     serial=0
     def place(asset,x,z,scale=1,angle=0,solid=None):
@@ -173,6 +129,7 @@ func _initialize() -> void:
     # Resources must precede all subresources in the serialized native scene.
     resources.sort(key=lambda line: line.startswith('[sub_resource'))
     write('scenes/moba/test1_map.tscn','[gd_scene format=3]\n'+'\n'.join(resources+nodes)+'\n')
+    build_ground()
     print('MOBA_MAP',len(obstacles),'obstacles',len(polys),'walkable source cells')
 
 # UI has a separate authoring tool so visual revisions do not regenerate the map.

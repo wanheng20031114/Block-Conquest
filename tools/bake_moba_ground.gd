@@ -1,6 +1,16 @@
 extends SceneTree
+
 func _initialize() -> void:
-	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://.local/moba-test1/ground.json"))
+	var meshes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://.local/moba-ground/meshes.json"))
+	for name: String in meshes:
+		var result := bake(name, meshes[name])
+		if result != OK:
+			push_error("Failed to save MOBA surface " + name)
+			quit(1)
+			return
+	quit()
+
+func bake(name: String, source: Dictionary) -> Error:
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	var vertices := PackedVector3Array()
@@ -18,7 +28,7 @@ func _initialize() -> void:
 	arrays[Mesh.ARRAY_TEX_UV] = uv
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	mesh.surface_set_material(0, load("res://assets/models/environment/rogue_forest/ground_paint.tres"))
-	var result := ResourceSaver.save(mesh, "res://assets/models/environment/moba/ground.res")
-	print("MOBA_GROUND result=", result, " vertices=", vertices.size())
-	quit(0 if result == OK else 1)
+	mesh.surface_set_material(0, load(source.material))
+	var result := ResourceSaver.save(mesh, "res://assets/models/environment/moba/" + name + ".res")
+	print("MOBA_GROUND ", name, " result=", result, " triangles=", vertices.size() / 3)
+	return result
