@@ -42,13 +42,6 @@ def spear_greave(s, part):
     s.b(part,(.194,.035,.172),(0,-.50,-.010),"leather",bevel=.008)
 
 
-def spear_cap(s, part):
-    # Reuse the original fitted brim; a second cylinder would cut into the
-    # tilted cloth crown. Only the small side badge is added above that brim.
-    s.b(part,(.060,.067,.028),(.187,.204,-.165),"steel",rot=(0,-.60,-.09),bevel=.012)
-    s.e(part,(.018,.020,.012),(.195,.204,-.181),"gold",sub=0)
-
-
 def spear_shield(s, part):
     # The original small wooden board stays visible between two narrow straps.
     for x in (-.24-.085,-.24+.085):
@@ -105,14 +98,6 @@ def archer_torso(s, part):
             s.e(part,(.016,.016,.013),(sign*.224,y,z),"gold",sub=0)
         s.b(part,(.195,.115,.06),(sign*.14,-.272,-.207),"leatherlight",rot=(0,0,-sign*.10),bevel=.018)
     archer_strap(s,part)
-
-
-def archer_hood(s, part):
-    s.b(part,(.421,.032,.235),(0,.15,-.171),"leather",bevel=.013)
-    for sign in (-1,1):
-        s.b(part,(.061,.055,.052),(sign*.215,.116,-.192),"leatherlight",rot=(0,0,sign*.20),bevel=.013)
-    s.e(part,(.032,.035,.018),(-.192,.160,-.272),"gold",sub=0)
-    s.b(part,(.070,.10,.029),(0,.19,.273),"leather",rot=(-.22,0,0),bevel=.009)
 
 
 def archer_shoulder(s, part, sign):

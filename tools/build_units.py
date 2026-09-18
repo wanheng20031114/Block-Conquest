@@ -254,6 +254,8 @@ def helmet(s, p, center, knight=False, fitted_rivets=False):
 
 
 def infantry(name, archer=False, advanced=False):
+    if name in ("spearman", "archer"):
+        import unit_infantry_headwear as headwear
     if advanced:
         assert name in ("swordsman", "spearman", "archer"), "Unknown advanced infantry family"
         import unit_advanced_infantry as veteran
@@ -279,18 +281,15 @@ def infantry(name, archer=False, advanced=False):
             s.b(body,(.32,.40,.13),(0,.08,-.23),"leatherlight",bevel=.06)
             s.b(body,(.09,.69,.05),(0,.06,-.275),"leather",rot=(0,0,-.38))
             s.b(body,(.20,.045,.055),(-.05,.15,-.315),"gold",rot=(0,0,-.38))
-        # Rolled hood and dark felt cap framing an expressive face.
+        # Cloth hood and a fitted, continuous crown leave the face exposed.
         s.e(head,(.28,.29,.27),(0,-.01,.01),"blue",sub=2)
         s.e(head,(.213,.221,.198),(0,-.015,-.139),"skin",sub=1)
-        s.b(head,(.41,.065,.23),(0,.113,-.17),"blue",bevel=.035)
-        s.e(head,(.27,.13,.26),(0,.21,.01),"blue")
+        headwear.archer_cap(s, head, advanced)
         for xx in (-.081,.081):
             s.b(head,(.040,.025,.014),(xx,.020,-.320),"black",bevel=.004)
             s.b(head,(.07,.026,.017),(xx,.067,-.305),"leather",rot=(0,0,xx),bevel=.004)
         s.e(head,(.045,.064,.074),(0,-.044,-.311),"skin")
         s.b(head,(.14,.044,.041),(0,-.106,-.3),"leather",bevel=.011)
-        if advanced:
-            field_veteran.archer_hood(s, head)
         # Leather quiver, contrasting lip, individual shafts and fletching.
         quiver_offset = .055 if advanced else 0.0
         s.add(body,lathe([(-.29,.108),(.28,.145),(.32,.145)],10,(.19,.03,.29+quiver_offset),(0,0,-.14)),"leather")
@@ -328,10 +327,9 @@ def infantry(name, archer=False, advanced=False):
             # light, open silhouette next to the swordsman's armored helmet.
             s.e(head,(.225,.235,.215),(0,-.005,-.055),"skin")
             s.e(head,(.225,.19,.17),(0,.055,.038),"leather")
-            s.e(head,(.245,.135,.23),(.018,.205,-.005),"blue",rot=(0,0,-.10))
-            s.add(head,lathe([(.115,.223),(.163,.228)],12,(0,0,-.015),caps=False),"leather" if advanced else "leatherlight")
-            s.b(head,(.115,.075,.035),(-.104,.117,-.210),"leather",rot=(0,0,-.22),bevel=.012)
-            s.b(head,(.09,.055,.035),(.024,.129,-.217),"leather",rot=(0,0,.12),bevel=.012)
+            headwear.spearman_cap(s, head, advanced)
+            s.b(head,(.115,.040,.035),(-.104,.085,-.210),"leather",rot=(0,0,-.22),bevel=.012)
+            s.b(head,(.09,.035,.035),(.024,.094,-.217),"leather",rot=(0,0,.12),bevel=.012)
             for sign in (-1,1):
                 s.e(head,(.045,.066,.039),(sign*.223,.007,-.057),"skin")
                 s.b(head,(.035,.115,.11),(sign*.211,.018,.015),"leather",bevel=.012)
@@ -343,8 +341,6 @@ def infantry(name, archer=False, advanced=False):
             s.e(head,(.04,.055,.05),(0,-.035,-.270),"skin")
             s.b(head,(.060,.014,.015),(0,-.103,-.250),"leather",bevel=.003)
             s.r(head,(0,-.29,.005),(0,-.16,.005),.104,"skin",8)
-            if advanced:
-                field_veteran.spear_cap(s, head)
         else:
             helmet(s,head,(0,.055,-.10),fitted_rivets=advanced)
             if advanced:
