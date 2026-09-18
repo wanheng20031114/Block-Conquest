@@ -151,7 +151,7 @@ def generate(source: Path) -> str:
     table(['攻击者 ↓／目标 →']+[name(k) for k in ids],[[name(a)]+[change(hit(a,d,3,3),hit(adv(a),adv(d),3,3)) for d in ids] for a in ids])
     say('牧师的每秒10点治疗和战地休整的恢复量保持不变，高级单位恢复相同比例生命需要更长时间。工程兵仍不能维修这些非攻城器单位。视野、射程、移动、攻击前摇、人口与单位体积未被等级放大。')
     say()
-    say(f'本次数值附录由Godot直接计算 **{len(data["matchups"]):,}组单位算例 + {len(data["building_matchups"]):,}组建筑算例**，覆盖25个分析定义（16普通＋9高级设计）和全部16种攻防科技组合。高级设计定义仅在导出器和测试中临时创建；这不代表另外八种已经接入游戏，也不代表完成了11,300场真实战斗。')
+    say(f'本次数值附录由Godot直接计算 **{len(data["matchups"]):,}组单位算例 + {len(data["building_matchups"]):,}组建筑算例**，覆盖25个分析定义（16普通＋9高级设计）和全部16种攻防科技组合。导出器为九种高级设计创建临时分析定义，并核对已实装资源；这不代表全部高级单位已经接入游戏，也不代表完成了11,300场真实战斗。')
     say()
     return '\n'.join(out)
 

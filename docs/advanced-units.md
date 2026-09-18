@@ -1,6 +1,6 @@
 # 高级战斗单位完整设计报告（整数版）
 
-数值版本：`integer-v1`，2026-09-18。**全套整数数值与高级火枪手 v2 已获认可。本批高级剑士、高级盾卫已完成建模和试装，等待验收。按用户最新要求，每批制作两个，确认后才开始下一批。** 本批记录见[高级步兵首批验收](advanced-infantry-batch.md)。
+数值版本：`integer-v1`，2026-09-18。**全套整数数值、高级火枪手 v2、高级剑士与高级盾卫已获认可。本批高级长矛兵、高级弓箭手已完成建模和试装，等待验收。每批制作两个，确认后才开始下一批。** 本批记录见[高级长矛兵与高级弓箭手验收](advanced-spear-archer-batch.md)。
 
 ## 一、范围与设计目标
 
@@ -276,7 +276,7 @@
 
 牧师的每秒10点治疗和战地休整的恢复量保持不变，高级单位恢复相同比例生命需要更长时间。工程兵仍不能维修这些非攻城器单位。视野、射程、移动、攻击前摇、人口与单位体积未被等级放大。
 
-本次数值附录由Godot直接计算 **10,000组单位算例 + 1,300组建筑算例**，覆盖25个分析定义（16普通＋9高级设计）和全部16种攻防科技组合。高级设计定义仅在导出器和测试中临时创建；这不代表另外八种已经接入游戏，也不代表完成了11,300场真实战斗。
+本次数值附录由Godot直接计算 **10,000组单位算例 + 1,300组建筑算例**，覆盖25个分析定义（16普通＋9高级设计）和全部16种攻防科技组合。导出器为九种高级设计创建临时分析定义，并核对已实装资源；这不代表全部高级单位已经接入游戏，也不代表完成了11,300场真实战斗。
 <!-- END ADVANCED BALANCE -->
 
 ## 八、逐兵种设计理由
@@ -349,9 +349,9 @@
 
 - `scripts/data/unit_variant_definition.gd`：从统一浮点倍率改为明确的整数属性和整数附伤；仍缓存普通定义的独立副本，不修改普通兵种资源。
 - `data/sandbox/unit_variants/musketeer_advanced.tres`：90生命、27攻击、0／1护甲、3穿甲；其余定位参数继承普通火枪手。
-- 高级目录已注册火枪手、剑士和盾卫；剑士为135生命、11攻击、2／2护甲、对骑兵+6，盾卫为180生命、7攻击、3／8护甲。其余六个定义仍只用于离线设计分析，没有模型、可放置入口或隐藏招募入口。
+- 高级目录已注册火枪手、剑士、盾卫、长矛兵和弓箭手。新增长矛兵为90生命、7攻击、1／1护甲、对骑兵+24；弓箭手为70生命、13攻击、0／6护甲。其余四个定义仍只用于离线设计分析，没有模型、可放置入口或隐藏招募入口。
 - 已认可的高级火枪手模型与动画保持原样；原版单位数值、地图和用户其他未提交修改均保留。
-- 用户删除的旧 `report/` 文件已在上一任务提交清理；新报告不恢复已删除的早期截图、大型测试输出或临时日志。本批验证图只留在被忽略的 `.local/advanced-units/infantry/`。
+- 用户删除的旧 `report/` 文件已在此前任务提交清理；新报告不恢复已删除的早期截图、大型测试输出或临时日志。本批验证图只留在被忽略的 `.local/advanced-units/spearman-archer/`；已通过的剑士与盾卫截图已清理。
 
 编辑入口：
 
@@ -360,12 +360,15 @@
 | 高级火枪手可编辑场景 | `assets/models/units/musketeer_advanced.tscn` |
 | 高级剑士可编辑场景 | `assets/models/units/swordsman_advanced.tscn` |
 | 高级盾卫可编辑场景 | `assets/models/units/shield_guard_advanced.tscn` |
+| 高级长矛兵可编辑场景 | `assets/models/units/spearman_advanced.tscn` |
+| 高级弓箭手可编辑场景 | `assets/models/units/archer_advanced.tscn` |
 | 分件网格 | `assets/models/units/musketeer_advanced/` |
 | 批量渲染场景 | `assets/models/units/batched/musketeer_advanced.tscn` |
 | 模型构造函数 | `tools/unit_musketeer.py` 中 `build_musketeer(advanced=True)` |
 | 当前试装数值 | `data/sandbox/unit_variants/musketeer_advanced.tres` |
-| 当前两种步兵模型构造 | `tools/build_units.py` 与 `tools/unit_advanced_infantry.py` |
-| 当前两种步兵试装数值 | `data/sandbox/unit_variants/swordsman_advanced.tres`、`shield_guard_advanced.tres` |
+| 已通过的剑士与盾卫构造 | `tools/build_units.py` 与 `tools/unit_advanced_infantry.py` |
+| 当前长矛兵与弓箭手构造 | `tools/build_units.py` 与 `tools/unit_advanced_spear_archer.py` |
+| 当前两种单位试装数值 | `data/sandbox/unit_variants/spearman_advanced.tres`、`archer_advanced.tres` |
 | 全兵种设计数据 | `docs/balance/advanced-units-design.json` |
 | 真实伤害导出器 | `tools/export_advanced_unit_balance.gd` |
 | 报告数值表生成器 | `tools/generate_advanced_unit_report.py` |
@@ -390,6 +393,6 @@ python tools/generate_advanced_unit_report.py .local/advanced-units/integer-bala
 | 图鉴真实渲染 | 整数属性显示复核，使用实际Godot渲染画面 |
 | 性能范围 | 本轮为资源数值与离线报告，无新节点、粒子、逐帧处理或寻敌流程；未重复500单位压力测试 |
 
-当前结论：**高级剑士＋高级盾卫等待用户验收；数值继续使用本报告，没有重新平衡。** 后续批次为长矛兵＋弓箭手、弩手＋骑士、轻骑兵＋战象。下一批长矛兵和弓箭手尚未制作，必须等当前批次明确通过后开始。本批独立验证记录见[高级步兵首批验收](advanced-infantry-batch.md)。
+当前结论：**高级剑士＋高级盾卫已通过；高级长矛兵＋高级弓箭手等待用户验收；数值继续使用本报告，没有重新平衡。** 后续批次为弩手＋骑士、轻骑兵＋战象。下一批高级弩手和高级骑士尚未制作，必须等当前批次明确通过后开始。本批独立验证记录见[高级长矛兵与高级弓箭手验收](advanced-spear-archer-batch.md)。
 
 正式引入可招募对局前，还需要单独设计等级获得方式、费用与训练节奏，并进行带移动、射程、集火、治疗和混合兵种的实战平衡测试。本报告提供可复查的数值与外观基线，不把算术矩阵当作胜率结论。

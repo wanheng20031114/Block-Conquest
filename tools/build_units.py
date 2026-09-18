@@ -255,8 +255,9 @@ def helmet(s, p, center, knight=False, fitted_rivets=False):
 
 def infantry(name, archer=False, advanced=False):
     if advanced:
-        assert name == "swordsman", "Only the current sword infantry grade is authored"
+        assert name in ("swordsman", "spearman", "archer"), "Unknown advanced infantry family"
         import unit_advanced_infantry as veteran
+        import unit_advanced_spear_archer as field_veteran
     s = Sculpture(name + "_advanced" if advanced else name, kind=name, grade="advanced" if advanced else "")
     body=s.joint("Body",(0,1.05,0))
     head=s.joint("Head",(0,1.57,0))
@@ -272,9 +273,12 @@ def infantry(name, archer=False, advanced=False):
         s.b(body,(.15,.29,.09),(xx,-.27,-.15),"blue",rot=(0,0,-xx*.38))
         s.b(body,(.15,.026,.10),(xx,-.42,-.15),"gold",rot=(0,0,-xx*.38),bevel=.003)
     if archer:
-        s.b(body,(.32,.40,.13),(0,.08,-.23),"leatherlight",bevel=.06)
-        s.b(body,(.09,.69,.05),(0,.06,-.275),"leather",rot=(0,0,-.38))
-        s.b(body,(.20,.045,.055),(-.05,.15,-.315),"gold",rot=(0,0,-.38))
+        if advanced:
+            field_veteran.archer_torso(s, body)
+        else:
+            s.b(body,(.32,.40,.13),(0,.08,-.23),"leatherlight",bevel=.06)
+            s.b(body,(.09,.69,.05),(0,.06,-.275),"leather",rot=(0,0,-.38))
+            s.b(body,(.20,.045,.055),(-.05,.15,-.315),"gold",rot=(0,0,-.38))
         # Rolled hood and dark felt cap framing an expressive face.
         s.e(head,(.28,.29,.27),(0,-.01,.01),"blue",sub=2)
         s.e(head,(.213,.221,.198),(0,-.015,-.139),"skin",sub=1)
@@ -285,17 +289,25 @@ def infantry(name, archer=False, advanced=False):
             s.b(head,(.07,.026,.017),(xx,.067,-.305),"leather",rot=(0,0,xx),bevel=.004)
         s.e(head,(.045,.064,.074),(0,-.044,-.311),"skin")
         s.b(head,(.14,.044,.041),(0,-.106,-.3),"leather",bevel=.011)
+        if advanced:
+            field_veteran.archer_hood(s, head)
         # Leather quiver, contrasting lip, individual shafts and fletching.
-        s.add(body,lathe([(-.29,.108),(.28,.145),(.32,.145)],10,(.19,.03,.29),(0,0,-.14)),"leather")
-        s.add(body,lathe([(.23,.149),(.29,.149)],10,(.19,.03,.29),(0,0,-.14),caps=False),"gold")
+        quiver_offset = .055 if advanced else 0.0
+        s.add(body,lathe([(-.29,.108),(.28,.145),(.32,.145)],10,(.19,.03,.29+quiver_offset),(0,0,-.14)),"leather")
+        s.add(body,lathe([(.23,.149),(.29,.149)],10,(.19,.03,.29+quiver_offset),(0,0,-.14),caps=False),"gold")
         for i in range(6):
-            xx=.1+(i%3)*.067; zz=.25+(i//3)*.095; yy=.54+(.045*(i%2))
+            xx=.1+(i%3)*.067; zz=.25+(i//3)*.095+quiver_offset; yy=.54+(.045*(i%2))
             s.r(body,(xx,.13,zz),(xx+.045,yy,zz),.012,"woodlight",6)
             s.b(body,(.073,.103,.008),(xx+.038,yy-.018,zz),"ivory",rot=(0,0,-.12),bevel=.002)
+        if advanced:
+            field_veteran.archer_quiver(s, body)
     else:
         # Leave a visible throat gap between the breastplate and cheek guards.
         if advanced:
-            veteran.cuirass(s, body)
+            if name == "spearman":
+                field_veteran.spear_torso(s, body)
+            else:
+                veteran.cuirass(s, body)
         else:
             s.b(body,(.47,.35,.14),(0,.065,-.295 if name=="spearman" else -.20),"steel",bevel=.060)
             s.b(body,(.035,.31,.024),(0,.065,-.377 if name=="spearman" else -.282),"edge",bevel=.006)
@@ -306,17 +318,18 @@ def infantry(name, archer=False, advanced=False):
         if name=="spearman":
             # Keep the torso protected like the swordsman, including a readable
             # back plate. The exposed head and wooden shield carry the contrast.
-            s.b(body,(.46,.37,.13),(0,.075,.295),"steel",bevel=.055)
-            s.b(body,(.035,.30,.026),(0,.075,.370),"edge",bevel=.006)
-            for sign in (-1,1):
-                s.b(body,(.080,.28,.40),(sign*.27,.045,.005),"darksteel",bevel=.025)
-                s.b(body,(.12,.055,.12),(sign*.18,.21,.32),"leather",bevel=.012)
+            if not advanced:
+                s.b(body,(.46,.37,.13),(0,.075,.295),"steel",bevel=.055)
+                s.b(body,(.035,.30,.026),(0,.075,.370),"edge",bevel=.006)
+                for sign in (-1,1):
+                    s.b(body,(.080,.28,.40),(sign*.27,.045,.005),"darksteel",bevel=.025)
+                    s.b(body,(.12,.055,.12),(sign*.18,.21,.32),"leather",bevel=.012)
             # A soft cloth cap, cropped hair and exposed ears give the levy a
             # light, open silhouette next to the swordsman's armored helmet.
             s.e(head,(.225,.235,.215),(0,-.005,-.055),"skin")
             s.e(head,(.225,.19,.17),(0,.055,.038),"leather")
             s.e(head,(.245,.135,.23),(.018,.205,-.005),"blue",rot=(0,0,-.10))
-            s.add(head,lathe([(.115,.223),(.163,.228)],12,(0,0,-.015),caps=False),"leatherlight")
+            s.add(head,lathe([(.115,.223),(.163,.228)],12,(0,0,-.015),caps=False),"leather" if advanced else "leatherlight")
             s.b(head,(.115,.075,.035),(-.104,.117,-.210),"leather",rot=(0,0,-.22),bevel=.012)
             s.b(head,(.09,.055,.035),(.024,.129,-.217),"leather",rot=(0,0,.12),bevel=.012)
             for sign in (-1,1):
@@ -330,13 +343,20 @@ def infantry(name, archer=False, advanced=False):
             s.e(head,(.04,.055,.05),(0,-.035,-.270),"skin")
             s.b(head,(.060,.014,.015),(0,-.103,-.250),"leather",bevel=.003)
             s.r(head,(0,-.29,.005),(0,-.16,.005),.104,"skin",8)
+            if advanced:
+                field_veteran.spear_cap(s, head)
         else:
             helmet(s,head,(0,.055,-.10),fitted_rivets=advanced)
             if advanced:
                 veteran.helmet_fittings(s, head)
     for part,sign in ((left,-1),(right,1)):
         if advanced:
-            veteran.pauldron(s, part, sign)
+            if archer:
+                field_veteran.archer_shoulder(s, part, sign)
+            elif name == "spearman":
+                field_veteran.spear_shoulder(s, part, sign)
+            else:
+                veteran.pauldron(s, part, sign)
         else:
             s.e(part,(.235,.18,.24),(sign*.04,.018,0),"leather" if archer else "steel")
             if not archer:
@@ -361,7 +381,12 @@ def infantry(name, archer=False, advanced=False):
         local=lambda p: tuple(np.array(p)-origin)
         s.r(fore,local(elbow),local(wrist),.100,"steel" if not archer else "leatherlight",8)
         if advanced:
-            veteran.bracer(s, fore, local(elbow), local(wrist))
+            if archer:
+                field_veteran.archer_bracer(s, fore, local(elbow), local(wrist))
+            elif name == "spearman":
+                field_veteran.spear_bracer(s, fore, local(elbow), local(wrist))
+            else:
+                veteran.bracer(s, fore, local(elbow), local(wrist))
         cuff = (-.21,-.410,-.235) if shield_arm else (sign*.11,-.475,-.10)
         if sword_arm:
             cuff = (.23,-.385,-.395)
@@ -377,7 +402,12 @@ def infantry(name, archer=False, advanced=False):
         s.b(part,(.22,.045,.34),(0,-.714,-.07),"black",bevel=.012)
         s.b(part,(.21,.036,.18),(0,-.53,-.025),"gold" if not archer else "leatherlight",bevel=.01)
         if advanced:
-            veteran.greave(s, part)
+            if archer:
+                field_veteran.archer_gaiter(s, part)
+            elif name == "spearman":
+                field_veteran.spear_greave(s, part)
+            else:
+                veteran.greave(s, part)
     if archer:
         # Long laminated bow held ahead of the body; string has its own visible V.
         bow=s.joint("Bow",(-.115,-.54,-.13),parent=left)
@@ -385,6 +415,8 @@ def infantry(name, archer=False, advanced=False):
         for a,b in zip(bow_points,bow_points[1:]):
             s.r(bow,a,b,.032,"woodlight",8)
         s.r(bow,(0,-.10,0),(0,.10,0),.041,"leather",8)
+        if advanced:
+            field_veteran.archer_bow(s, bow, bow_points)
         for name in ("StringUpper","StringLower"):
             string=s.joint(name,(0,0,.14),parent=bow)
             s.r(string,(0,0,0),(0,1,0),.008,"rope",6)
@@ -409,6 +441,8 @@ def infantry(name, archer=False, advanced=False):
             for xx in (-.16,.16):
                 for yy in (-.12,.12):
                     s.e(left,(.012,.012,.007),(-.24+xx,-.37+yy,-.480),"darksteel")
+            if advanced:
+                field_veteran.spear_shield(s, left)
         else:
             if advanced:
                 veteran.sword_shield(s,left,(-.24,-.37,-.425))
@@ -429,6 +463,8 @@ def infantry(name, archer=False, advanced=False):
             s.add(spear,polygon([(-.035,0),(-.105,.17),(0,.52),(.105,.17),(.035,0)],.044,(0,1.35,0)),"edge")
             s.r(spear,(0,1.37,-.025),(0,1.79,-.025),.015,"steel",6,r2=.004)
             s.r(spear,(0,1.18,0),(0,1.22,0),.054,"gold",10)
+            if advanced:
+                field_veteran.spear_fittings(s, spear)
         else:
             blade = s.joint("Sword",(.25,-.415,-.45),parent=right)
             sword(s,blade,(0,0,0))
@@ -1573,6 +1609,10 @@ if __name__=="__main__":
         builders["swordsman_advanced"] = lambda: infantry("swordsman", advanced=True)
     if "shield_guard_advanced" in args.kinds:
         builders["shield_guard_advanced"] = lambda: shield_guard(advanced=True)
+    if "spearman_advanced" in args.kinds:
+        builders["spearman_advanced"] = lambda: infantry("spearman", advanced=True)
+    if "archer_advanced" in args.kinds:
+        builders["archer_advanced"] = lambda: infantry("archer", archer=True, advanced=True)
     for kind in args.kinds or builders:
         if kind not in builders:
             parser.error(f"Unknown unit: {kind}")

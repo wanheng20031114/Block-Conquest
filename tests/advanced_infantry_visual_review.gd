@@ -1,7 +1,8 @@
 extends SceneTree
 ## Real Vulkan codex, portrait, and sandbox captures for the current two-unit batch.
 const OUT := "res://.local/advanced-units/infantry/"
-const FAMILIES := ["swordsman", "shield_guard"]
+var families: Array[String] = ["swordsman", "shield_guard"]
+var output := OUT
 var checks := 0
 var failures: Array[String] = []
 
@@ -21,17 +22,23 @@ func capture(label: String, viewport: Viewport) -> void:
 	await process_frame
 	await process_frame
 	await RenderingServer.frame_post_draw
-	check(viewport.get_texture().get_image().save_png(OUT + label + ".png") == OK, "render " + label)
+	check(viewport.get_texture().get_image().save_png(output + label + ".png") == OK, "render " + label)
 
 func _run() -> void:
 	create_timer(90, true, false, true).timeout.connect(func(): quit(3))
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
+	var args := OS.get_cmdline_user_args()
+	if not args.is_empty():
+		families.assign(args)
+		output = "res://.local/advanced-units/" + "-".join(families) + "/"
+	for kind: String in families:
+		assert(kind in ["swordsman", "shield_guard", "spearman", "archer"])
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	root.size = Vector2i(1600, 900)
 	AudioServer.set_bus_mute(0, true)
 	var codex: Control = load("res://scenes/unit_codex.tscn").instantiate()
 	root.add_child(codex)
 	codex.open_codex()
-	for kind: String in FAMILIES:
+	for kind: String in families:
 		codex.select_entry(0, kind)
 		codex.select_advanced(true)
 		codex._select_preview_action(0)
@@ -60,13 +67,12 @@ func _run() -> void:
 		codex._select_preview_action(2)
 		codex.set_process(false)
 		var windup: float = UnitVariantCatalog.ADVANCED[kind].definition().attack_windup_seconds
-		for phase: float in [0.1, windup, 0.4, 0.6, 0.86]:
+		var phases: Array[float] = [0.1, windup, 0.4, 0.6, 0.86]
+		if kind == "archer": phases = [.1, .24, .27, .4, .6, .86, 1.1]
+		if kind == "spearman": phases = [.1, .16, .22, .43, .65, .88]
+		for phase: float in phases:
 			model.attack.seek(phase, true)
-			var sword: Node3D = model.get_node("Rig/Action/Waist/ArmRight/Sword")
-			var grip := Vector3(.215, -.425, -.405) if kind == "shield_guard" else Vector3(.25, -.415, -.45)
-			check(sword.position.is_equal_approx(grip), kind + " sword remains in hand at " + str(phase))
-			if kind == "shield_guard" and is_equal_approx(phase, windup):
-				check((sword.global_basis * Vector3.UP).dot(Vector3.FORWARD) > .95, "guard thrust matches .30s contact")
+			check_weapon_pose(model, kind, phase)
 			codex._request_preview_redraw()
 			await capture(kind + "-strike-%03d" % roundi(phase * 100), viewport)
 		codex._select_preview_action(1)
@@ -96,7 +102,7 @@ func _run() -> void:
 	await process_frame
 	var portraits: Node = load("res://scenes/sandbox_model_previews.tscn").instantiate()
 	root.add_child(portraits)
-	for kind: String in FAMILIES:
+	for kind: String in families:
 		portraits.portrait(kind + "_advanced")
 		await create_timer(.25).timeout
 		await RenderingServer.frame_post_draw
@@ -115,7 +121,7 @@ func _run() -> void:
 	game.camera_rig.set_process(false)
 	game.camera_rig.position = Vector3.ZERO
 	game.hud.hide()
-	for kind: String in FAMILIES:
+	for kind: String in families:
 		game.clear_units()
 		await process_frame
 		await process_frame
@@ -150,6 +156,29 @@ func _run() -> void:
 	game.queue_free()
 	await process_frame
 	await process_frame
-	FileAccess.open(OUT + "visual-results.json", FileAccess.WRITE).store_string(JSON.stringify({"checks": checks, "failures": failures}, "\t"))
+	FileAccess.open(output + "visual-results.json", FileAccess.WRITE).store_string(JSON.stringify({"checks": checks, "failures": failures, "families": families}, "\t"))
 	print("ADVANCED_INFANTRY_VISUAL ", checks, " checks; ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)
+
+func check_weapon_pose(model: UnitVisual, kind: String, phase: float) -> void:
+	if kind == "archer":
+		var bow: Node3D = model.find_child("Bow")
+		if is_equal_approx(phase, .24):
+			var hand: Node3D = model.find_child("ForearmRight")
+			check(hand.to_global(Vector3(.02, -.24, -.075)).distance_to(bow.to_global(Vector3(0, 0, .46))) < .025, "advanced archer hand meets drawn string")
+			check(model.find_child("StringUpper").position.z > .44, "archer string fully drawn")
+			check(bow.global_basis.y.dot(Vector3.UP) > .97, "archer aimed bow stays upright")
+		if is_equal_approx(phase, .27):
+			check(not model.find_child("Arrow").visible, "archer arrow releases at .27s")
+			check(model.find_child("StringUpper").position.z < .16, "archer string snaps at release")
+	elif kind == "spearman":
+		var spear: Node3D = model.get_node("Rig/Action/Waist/ArmRight/Spear")
+		check(spear.position.is_equal_approx(Vector3(.25, -.445, -.45)), "spear remains in gauntlet at " + str(phase))
+		if is_equal_approx(phase, .22):
+			check((spear.global_basis * Vector3.UP).dot(Vector3.FORWARD) > .98, "advanced spear points forward at contact")
+	else:
+		var sword: Node3D = model.get_node("Rig/Action/Waist/ArmRight/Sword")
+		var grip := Vector3(.215, -.425, -.405) if kind == "shield_guard" else Vector3(.25, -.415, -.45)
+		check(sword.position.is_equal_approx(grip), kind + " sword remains in hand at " + str(phase))
+		if kind == "shield_guard" and is_equal_approx(phase, .30):
+			check((sword.global_basis * Vector3.UP).dot(Vector3.FORWARD) > .95, "guard thrust matches .30s contact")

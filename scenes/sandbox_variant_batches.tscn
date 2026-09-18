@@ -27,6 +27,24 @@
 [ext_resource type="ArrayMesh" path="res://assets/models/units/shield_guard_advanced/Sword.res" id="mesh_22"]
 [ext_resource type="ArrayMesh" path="res://assets/models/units/shield_guard_advanced/LegLeft.res" id="mesh_23"]
 [ext_resource type="ArrayMesh" path="res://assets/models/units/shield_guard_advanced/LegRight.res" id="mesh_24"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/Body.res" id="mesh_25"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/Head.res" id="mesh_26"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/ArmLeft.res" id="mesh_27"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/ArmRight.res" id="mesh_28"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/Spear.res" id="mesh_29"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/LegLeft.res" id="mesh_30"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/spearman_advanced/LegRight.res" id="mesh_31"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/Body.res" id="mesh_32"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/Head.res" id="mesh_33"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/ArmLeft.res" id="mesh_34"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/Bow.res" id="mesh_35"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/StringUpper.res" id="mesh_36"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/StringLower.res" id="mesh_37"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/Arrow.res" id="mesh_38"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/ArmRight.res" id="mesh_39"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/ForearmRight.res" id="mesh_40"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/LegLeft.res" id="mesh_41"]
+[ext_resource type="ArrayMesh" path="res://assets/models/units/archer_advanced/LegRight.res" id="mesh_42"]
 
 [sub_resource type="MultiMesh" id="batch_0"]
 resource_local_to_scene = true
@@ -203,6 +221,132 @@ use_custom_data = true
 custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
 mesh = ExtResource("mesh_24")
 
+[sub_resource type="MultiMesh" id="batch_25"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_25")
+
+[sub_resource type="MultiMesh" id="batch_26"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_26")
+
+[sub_resource type="MultiMesh" id="batch_27"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_27")
+
+[sub_resource type="MultiMesh" id="batch_28"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_28")
+
+[sub_resource type="MultiMesh" id="batch_29"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_29")
+
+[sub_resource type="MultiMesh" id="batch_30"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_30")
+
+[sub_resource type="MultiMesh" id="batch_31"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_31")
+
+[sub_resource type="MultiMesh" id="batch_32"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_32")
+
+[sub_resource type="MultiMesh" id="batch_33"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_33")
+
+[sub_resource type="MultiMesh" id="batch_34"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_34")
+
+[sub_resource type="MultiMesh" id="batch_35"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_35")
+
+[sub_resource type="MultiMesh" id="batch_36"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_36")
+
+[sub_resource type="MultiMesh" id="batch_37"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_37")
+
+[sub_resource type="MultiMesh" id="batch_38"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_38")
+
+[sub_resource type="MultiMesh" id="batch_39"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_39")
+
+[sub_resource type="MultiMesh" id="batch_40"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_40")
+
+[sub_resource type="MultiMesh" id="batch_41"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_41")
+
+[sub_resource type="MultiMesh" id="batch_42"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-128, -8, -128, 256, 32, 256)
+mesh = ExtResource("mesh_42")
+
 [node name="UnitRenderBatches" type="Node3D"]
 process_priority = 1000
 physics_interpolation_mode = 2
@@ -357,3 +501,111 @@ physics_interpolation_mode = 2
 material_override = ExtResource("2_material")
 multimesh = SubResource("batch_24")
 metadata/batch_key = &"shield_guard_advanced::Rig/Action/LegRight"
+
+[node name="Spearman Advanced_Rig_Action_Waist_Body" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_25")
+metadata/batch_key = &"spearman_advanced::Rig/Action/Waist/Body"
+
+[node name="Spearman Advanced_Rig_Action_Waist_Head" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_26")
+metadata/batch_key = &"spearman_advanced::Rig/Action/Waist/Head"
+
+[node name="Spearman Advanced_Rig_Action_Waist_ArmLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_27")
+metadata/batch_key = &"spearman_advanced::Rig/Action/Waist/ArmLeft"
+
+[node name="Spearman Advanced_Rig_Action_Waist_ArmRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_28")
+metadata/batch_key = &"spearman_advanced::Rig/Action/Waist/ArmRight"
+
+[node name="Spearman Advanced_Rig_Action_Waist_ArmRight_Spear" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_29")
+metadata/batch_key = &"spearman_advanced::Rig/Action/Waist/ArmRight/Spear"
+
+[node name="Spearman Advanced_Rig_Action_LegLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_30")
+metadata/batch_key = &"spearman_advanced::Rig/Action/LegLeft"
+
+[node name="Spearman Advanced_Rig_Action_LegRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_31")
+metadata/batch_key = &"spearman_advanced::Rig/Action/LegRight"
+
+[node name="Archer Advanced_Rig_Action_Waist_Body" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_32")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/Body"
+
+[node name="Archer Advanced_Rig_Action_Waist_Head" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_33")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/Head"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_34")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmLeft"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmLeft_Bow" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_35")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmLeft/Bow"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmLeft_Bow_StringUpper" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_36")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmLeft/Bow/StringUpper"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmLeft_Bow_StringLower" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_37")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmLeft/Bow/StringLower"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmLeft_Bow_Arrow" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_38")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmLeft/Bow/Arrow"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_39")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmRight"
+
+[node name="Archer Advanced_Rig_Action_Waist_ArmRight_ForearmRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_40")
+metadata/batch_key = &"archer_advanced::Rig/Action/Waist/ArmRight/ForearmRight"
+
+[node name="Archer Advanced_Rig_Action_LegLeft" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_41")
+metadata/batch_key = &"archer_advanced::Rig/Action/LegLeft"
+
+[node name="Archer Advanced_Rig_Action_LegRight" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+material_override = ExtResource("2_material")
+multimesh = SubResource("batch_42")
+metadata/batch_key = &"archer_advanced::Rig/Action/LegRight"
