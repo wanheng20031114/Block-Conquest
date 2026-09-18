@@ -159,12 +159,12 @@ func card_error(owner: int, index: int, uid: int) -> String:
 func play_card(owner: int, index: int, uid: int) -> bool:
 	var error := card_error(owner, index, uid)
 	if not error.is_empty():
-		if owner == 0: hud.toast(error)
+		if owner == 0: hud.reject_card(index,error)
 		return false
 	var card: MobaCardDefinition = hands[owner].slots[index].card
 	# Reserve all positions before mutating money or card identity.
 	if not spawn_army(card.units, owner):
-		if owner == 0: hud.toast("大本营出口拥挤，请稍后再试")
+		if owner == 0: hud.reject_card(index,"大本营出口拥挤，请稍后再试")
 		return false
 	players[owner].gold -= card.cost
 	hands[owner].consume(index)

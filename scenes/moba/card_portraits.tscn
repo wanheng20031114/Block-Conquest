@@ -1,0 +1,34 @@
+[gd_scene format=3]
+[ext_resource type="PackedScene" path="res://scenes/model_previews.tscn" id="base"]
+[node name="ModelPreviews" instance=ExtResource("base")]
+
+
+[node name="Camera3D" parent="swordsman/World" index="5"]
+size = 2.13
+
+[node name="Camera3D" parent="shield_guard/World" index="5"]
+size = 2.35
+
+[node name="Camera3D" parent="spearman/World" index="5"]
+size = 2.75
+
+[node name="Camera3D" parent="archer/World" index="5"]
+size = 2.16
+
+[node name="Camera3D" parent="crossbowman/World" index="5"]
+size = 2.16
+
+[node name="Camera3D" parent="musketeer/World" index="5"]
+size = 2.5
+
+[node name="Camera3D" parent="knight/World" index="5"]
+size = 3.05
+
+[node name="Camera3D" parent="light_cavalry/World" index="5"]
+size = 2.75
+
+[node name="Camera3D" parent="war_elephant/World" index="5"]
+size = 4.15
+
+[node name="Camera3D" parent="cannon/World" index="5"]
+size = 2.95

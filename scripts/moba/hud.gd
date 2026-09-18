@@ -1,6 +1,16 @@
 extends Control
 var game: Node3D
 var toast_remaining: float = 0
+var drag_pointer := Vector2.ZERO
+var _hovered_card: Control
+var _gold_target: int = -1
+var _gold_tween: Tween
+var _toast_tween: Tween
+var _drop_tween: Tween
+var _display_gold: float = 0:
+	set(value):
+		_display_gold = value
+		%Gold.text = str(roundi(value))
 @onready var cards: Array[Node] = %Hand.get_children()
 @onready var weapon_view: Control = $WeaponView
 @onready var weapon_viewport: SubViewport = $WeaponView/WeaponViewport
@@ -49,7 +59,14 @@ func sync_hero(profile: Dictionary) -> void:
 
 func refresh() -> void:
 	if game == null: return
-	%Gold.text = "金币  %d" % game.players[0].gold
+	var gold: int = game.players[0].gold
+	if gold != _gold_target:
+		if _gold_tween: _gold_tween.kill()
+		if _gold_target < 0: _display_gold = gold
+		else:
+			_gold_tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			_gold_tween.tween_property(self, "_display_gold", float(gold), .22)
+		_gold_target = gold
 	%Clock.text = "%02d:%02d" % [int(game.elapsed) / 60, int(game.elapsed) % 60]
 	%Wave.text = "第 %d 波  ·  %.1f 秒" % [game.wave_counts[0] + 1, maxf(0, game.wave_due[0] - game.elapsed)]
 	%ArmyCount.text = "我方 %d / %d  ·  敌方 %d" % [game.army_counts[0], game.ARMY_CAP, game.army_counts[1]]
@@ -68,33 +85,39 @@ func refresh() -> void:
 		var portrait: Texture2D = $ModelPreviews.portrait(card.units[0]) if card != null else null
 		cards[index].present(entry, portrait, card != null and game.players[0].gold >= card.cost)
 	var hero: MobaHero = game.local_hero()
-	%Recovery.disabled = hero == null or not game.running or hero.recovery_cooldown > .000001
-	%Morale.disabled = hero == null or not game.running or hero.morale_cooldown > .000001
+	%Recovery.present(hero.recovery_cooldown if hero != null else 0.0, hero != null and game.running, hero != null and hero.recovery_ticks > 0)
+	%Morale.present(hero.morale_cooldown if hero != null else 0.0, hero != null and game.running, hero != null and hero.movement_multiplier > 1)
 	%FocusHero.disabled = hero == null
 	%ViewMode.disabled = hero == null or not game.running
 	if hero != null:
 		%HeroHealth.max_value = hero.max_hp
 		%HeroHealth.value = hero.hp
-		%HeroHP.text = "%d / %d%s" % [ceili(hero.hp), int(hero.max_hp), "   强化中" if hero.recovery_ticks > 0 else ""]
-		%Recovery.text = "E  肉体强化" if hero.recovery_cooldown <= .000001 else "E  %.1f 秒" % hero.recovery_cooldown
-		%Morale.text = "R  士气昂扬" if hero.morale_cooldown <= .000001 else "R  %.1f 秒" % hero.morale_cooldown
+		%HeroHP.text = "%d / %d" % [ceili(hero.hp), int(hero.max_hp)]
 		%HeroStats.text = "近甲 %d · 远甲 %d · %s" % [hero._stats.melee_armor, hero._stats.ranged_armor, "移速 +25%" if hero.movement_multiplier > 1 else "无限弹药"]
 	else:
 		%HeroHealth.value = 0
 		%HeroHP.text = "%.1f 秒后在大本营复活" % maxf(0, game.respawn_at[0] - game.elapsed)
-		%Recovery.text = "E  肉体强化"
-		%Morale.text = "R  士气昂扬"
+	if _hovered_card != null and _hovered_card.definition == null:
+		card_hover(_hovered_card, false)
 	%Minimap.queue_redraw()
 
 func _process(delta: float) -> void:
 	if toast_remaining > 0:
 		toast_remaining -= delta
-		if toast_remaining <= 0: %Toast.hide()
+		if toast_remaining <= 0: %ToastPanel.hide()
 
 func toast(message: String, duration: float = 3) -> void:
 	%Toast.text = message
-	%Toast.show()
+	%ToastPanel.show()
+	if _toast_tween: _toast_tween.kill()
+	%ToastPanel.modulate.a = 0
+	_toast_tween = create_tween()
+	_toast_tween.tween_property(%ToastPanel, "modulate:a", 1.0, .16)
 	toast_remaining = duration
+
+func reject_card(index: int, message: String) -> void:
+	toast(message)
+	if index >= 0 and index < cards.size(): cards[index].reject()
 
 func help_visible() -> bool: return %Modal.visible
 
@@ -117,7 +140,7 @@ func set_first_person(value: bool) -> void:
 	%Crosshair.visible = value
 	%FPSHint.visible = value
 	%ViewMode.text = "F5  返回俯视" if value else "F5  第一人称"
-	%Toast.position.y = 136 if value else 94
+	%ToastPanel.position.y = 136 if value else 97
 
 func set_hit_feedback(hit: bool) -> void:
 	%Crosshair.modulate = Color("f2c76a") if hit else Color.WHITE
@@ -127,15 +150,33 @@ func update_weapon(weapon: HeroWeaponRuntime) -> void:
 	$WeaponView/WeaponViewport/GunPivot.position.z = -.54 + recoil
 	$WeaponView/WeaponViewport/GunPivot/MuzzleFlash.visible = weapon.shots_fired > 0 and weapon.cooldown > weapon.definition.interval - .05
 
-func drag_started() -> void:
+func card_hover(card: Control, active: bool) -> void:
+	if active:
+		_hovered_card = card
+		$ModelPreviews.set_animated(card.definition.units[0])
+	elif _hovered_card == card:
+		_hovered_card = null
+		$ModelPreviews.set_animated("")
+
+func drag_started(at: Vector2) -> void:
+	drag_pointer = at
+	if _hovered_card != null: card_hover(_hovered_card, false)
 	%DropHint.show()
 	%DropText.text = "松开：从大本营派出援军"
+	if _drop_tween: _drop_tween.kill()
+	%DropHint.scale = Vector2.ONE * .95
+	%DropHint.modulate.a = .1
+	_drop_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_drop_tween.tween_property(%DropHint, "scale", Vector2.ONE, .16)
+	_drop_tween.tween_property(%DropHint, "modulate:a", 1.0, .16)
 
 func drag_finished() -> void:
+	if _drop_tween: _drop_tween.kill()
 	%DropHint.hide()
 
 func _input(event: InputEvent) -> void:
 	if not get_viewport().gui_is_dragging(): return
+	if event is InputEventMouseMotion or event is InputEventMouseButton: drag_pointer = event.position
 	var cancel: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT
 	cancel = cancel or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE)
 	if cancel:

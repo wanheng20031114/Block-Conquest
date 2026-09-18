@@ -175,96 +175,9 @@ func _initialize() -> void:
     write('scenes/moba/test1_map.tscn','[gd_scene format=3]\n'+'\n'.join(resources+nodes)+'\n')
     print('MOBA_MAP',len(obstacles),'obstacles',len(polys),'walkable source cells')
 
-class Scene:
-    def __init__(self): self.resources=[];self.nodes=[]
-    def ext(self,kind,path,id): self.resources.append(f'[ext_resource type="{kind}" path="res://{path}" id="{id}"]')
-    def node(self,name,kind,parent=None,rect=None,props='',anchor=None,instance=None,unique=False):
-        line=f'[node name="{name}"'+(f' type="{kind}"' if not instance else '')+(f' parent="{parent}"' if parent is not None else '')+(f' instance=ExtResource("{instance}")' if instance else '')+']\n'
-        if unique: line+='unique_name_in_owner = true\n'
-        if anchor:
-            ax,ay=anchor
-            line+=f'anchor_left = {ax}\nanchor_right = {ax}\nanchor_top = {ay}\nanchor_bottom = {ay}\n'
-        if rect:
-            x,y,w,h=rect
-            line+=f'offset_left = {x}\noffset_top = {y}\noffset_right = {x+w}\noffset_bottom = {y+h}\n'
-        line+=props+'\n';self.nodes.append(line)
-    def label(self,name,parent,text,rect,size=18,tint='344f5a',anchor=None):
-        self.node(name,'Label',parent,rect,f'text = {q(text)}\nmouse_filter = 2\nvertical_alignment = 1\ntheme_override_font_sizes/font_size = {size}\ntheme_override_colors/font_color = {color(tint)}',anchor,unique=True)
-    def button(self,name,parent,text,rect,anchor=None):
-        self.node(name,'Button',parent,rect,f'text = {q(text)}\nfocus_mode = 0',anchor,unique=True)
-    def save(self,path): write(path,'[gd_scene format=3]\n'+'\n'.join(self.resources+self.nodes)+'\n')
+# UI has a separate authoring tool so visual revisions do not regenerate the map.
+from build_moba_ui import build as build_ui
 
-def theme():
-    lines=['[gd_resource type="Theme" format=3]','[sub_resource type="SystemFont" id="font"]\nfont_names = PackedStringArray("Microsoft YaHei UI", "Noto Sans CJK SC")\nfont_weight = 600']
-    for id,tint in [('panel','ffffff'),('normal','edf1f2'),('hover','d8ece0'),('pressed','afd4be'),('disabled','e8eaee'),('focus','e6f1eb'),('track','e6eaf0'),('fill','58a779'),('card','ffffff')]:
-        lines.append(f'[sub_resource type="StyleBoxFlat" id="{id}"]\nbg_color = {color(tint,.98)}\ncorner_radius_top_left = 14\ncorner_radius_top_right = 14\ncorner_radius_bottom_left = 14\ncorner_radius_bottom_right = 14\ncontent_margin_left = 12.0\ncontent_margin_right = 12.0\ncontent_margin_top = 7.0\ncontent_margin_bottom = 7.0')
-    lines+=['[resource]','default_font = SubResource("font")','default_font_size = 18','Label/colors/font_color = '+color('344f5a'),'Button/colors/font_color = '+color('344f5a'),'Button/colors/font_hover_color = '+color('244b39'),'Button/colors/font_pressed_color = '+color('244b39'),'Button/colors/font_disabled_color = '+color('96a0a5'),'Panel/styles/panel = SubResource("panel")','PanelContainer/styles/panel = SubResource("panel")','ProgressBar/styles/background = SubResource("track")','ProgressBar/styles/fill = SubResource("fill")']
-    for id in ('normal','hover','pressed','disabled','focus'): lines.append(f'Button/styles/{id} = SubResource("{id}")')
-    write('assets/ui/moba/theme.tres','\n'.join(lines)+'\n')
-
-def card_scene():
-    s=Scene();s.ext('Script','scripts/moba/card_widget.gd','script');s.ext('Theme','assets/ui/moba/theme.tres','theme')
-    s.node('ArmyCard','Control',rect=(0,0,144,202),props='script = ExtResource("script")\ntheme = ExtResource("theme")\nmouse_filter = 0')
-    s.node('Visual','Panel','.',(0,0,144,202),'mouse_filter = 2\npivot_offset = Vector2(72,202)',unique=True)
-    s.node('Accent','ColorRect','Visual',(10,0,124,6),'mouse_filter = 2\ncolor = Color(0.34,0.65,0.47,1)',unique=True)
-    s.label('Title','Visual','长矛方阵',(11,10,122,28),18)
-    s.node('Portrait','TextureRect','Visual',(16,43,112,103),'mouse_filter = 2\nexpand_mode = 1\nstretch_mode = 5',unique=True)
-    s.label('Category','Visual','反骑兵',(12,144,119,22),13,'71818b')
-    s.label('Count','Visual','4 名',(12,172,70,22),16)
-    s.label('Cost','Visual','120',(77,170,56,26),22,'e3912e')
-    s.label('Key','Visual','1',(10,45,22,22),13,'71818b')
-    s.label('Refill','Visual','补牌中',(17,68,120,85),18,'71818b')
-    s.save('scenes/moba/card.tscn')
-
-def hud_scene():
-    s=Scene()
-    for kind,path,id in [('Script','scripts/moba/hud.gd','script'),('Theme','assets/ui/moba/theme.tres','theme'),('PackedScene','scenes/moba/card.tscn','card'),('Script','scripts/moba/minimap.gd','minimap'),('Script','scripts/moba/card_drop.gd','drop'),('PackedScene','scenes/model_previews.tscn','portraits'),('PackedScene','scenes/hero/hero_portrait.tscn','hero_portrait'),('PackedScene','scenes/moba/weapon_view.tscn','weapon')]: s.ext(kind,path,id)
-    s.node('Interface','Control',props='anchors_preset = 15\nanchor_right = 1.0\nanchor_bottom = 1.0\nmouse_filter = 2\nscript = ExtResource("script")\ntheme = ExtResource("theme")')
-    s.node('ModelPreviews',None,'.',instance='portraits')
-    s.node('HeroPortrait',None,'.',instance='hero_portrait')
-    s.node('WeaponView',None,'.',instance='weapon')
-    s.node('Layout','Control','.',(0,0,1600,900),'mouse_filter = 2',unique=True)
-    s.node('Top','Panel','Layout',(24,20,1552,62),'anchor_right = 1.0\noffset_right = -24.0',unique=True)
-    s.label('ModeTitle','Layout/Top','MOBA 卡牌',(18,8,180,27),24)
-    s.label('ModeSubtitle','Layout/Top','TEST 1   /   林地防线',(20,36,200,18),12,'788991')
-    s.label('OurBase','Layout/Top','我方大本营  2200',(265,9,250,23),17)
-    s.node('OurHealth','ProgressBar','Layout/Top',(265,39,238,7),'show_percentage = false',unique=True)
-    s.label('Clock','Layout/Top','00:00',(692,7,120,28),25)
-    s.label('Wave','Layout/Top','下一波 8秒',(665,36,185,20),13,'788991')
-    s.label('EnemyBase','Layout/Top','敌方大本营  2200',(895,9,250,23),17)
-    s.node('EnemyHealth','ProgressBar','Layout/Top',(895,39,238,7),'show_percentage = false',unique=True)
-    s.label('Gold','Layout/Top','金币  240',(-278,11,180,36),25,'d98e24',anchor=(1,0))
-    s.button('Pause','Layout/Top','菜单',(-85,10,69,42),anchor=(1,0))
-    s.label('Toast','Layout','',(440,94,950,36),18,'344f5a')
-    s.node('MapPanel','Panel','Layout',(24,-217,310,193),anchor=(0,1),unique=True)
-    s.label('MapTitle','Layout/MapPanel','林地防线',(16,10,210,24),18)
-    s.label('ArmyCount','Layout/MapPanel','我方 0 · 敌方 0',(16,40,278,24),13,'71818b')
-    s.node('Minimap','Control','Layout/MapPanel',(16,73,278,78),'script = ExtResource("minimap")\nclip_contents = true',unique=True)
-    s.label('MapHint','Layout/MapPanel','点击查看 · 右键移动英雄',(16,159,283,22),12,'71818b')
-    s.node('Hand','Control','Layout',(-392,-226,784,202),'mouse_filter = 2',anchor=(.5,1),unique=True)
-    for index in range(5): s.node(f'Card{index}',None,'Layout/Hand',(index*160,0,144,202),instance='card')
-    s.label('HandHint','Layout','1—5 出牌  ·  双击或拖向战场  ·  所有援军从大本营出发',(-392,-250,800,21),13,'344f5a',anchor=(.5,1))
-    s.node('HeroPanel','Panel','Layout',(-336,-237,312,213),anchor=(1,1),unique=True)
-    s.node('Portrait','TextureRect','Layout/HeroPanel',(12,12,69,80),'mouse_filter = 2\nexpand_mode = 1\nstretch_mode = 5',unique=True)
-    s.label('HeroName','Layout/HeroPanel','远行者',(90,12,206,28),20)
-    s.node('HeroHealth','ProgressBar','Layout/HeroPanel',(90,47,202,13),'show_percentage = false',unique=True)
-    s.label('HeroHP','Layout/HeroPanel','200 / 200',(90,61,190,23),14,'71818b')
-    s.label('HeroStats','Layout/HeroPanel','近甲 3 · 远甲 3 · 无限弹药',(16,91,285,24),13,'71818b')
-    s.button('Recovery','Layout/HeroPanel','E  肉体强化',(14,120,138,43))
-    s.button('Morale','Layout/HeroPanel','R  士气昂扬',(160,120,138,43))
-    s.button('FocusHero','Layout/HeroPanel','定位',(14,172,78,29))
-    s.button('ViewMode','Layout/HeroPanel','F5  第一人称',(100,172,198,29))
-    s.label('FPSHint','Layout','WASD 移动 · 左键射击 · E / R 技能 · Tab 鼠标 · F5 返回',(-430,99,930,32),16,'344f5a',anchor=(.5,0))
-    s.node('DropZone','Control','Layout',(0,90,1600,550),'mouse_filter = 1\nanchor_right = 1.0\nanchor_bottom = 1.0\noffset_right = 0.0\noffset_bottom = -258.0\nscript = ExtResource("drop")',unique=True)
-    s.node('DropHint','Panel','Layout/DropZone',(-250,55,500,66),'visible = false\nmouse_filter = 2',anchor=(.5,0),unique=True)
-    s.label('DropText','Layout/DropZone/DropHint','松开：从大本营派出援军',(24,12,460,40),22,'438963')
-    s.node('Crosshair','Label','Layout',(-10,-18,24,34),'text = "+"\nhorizontal_alignment = 1\nmouse_filter = 2\ntheme_override_colors/font_color = Color(1,1,1,1)\ntheme_override_colors/font_shadow_color = Color(0,0,0,1)\ntheme_override_constants/shadow_offset_x = 1\ntheme_override_constants/shadow_offset_y = 1\ntheme_override_font_sizes/font_size = 27\nvisible = false',anchor=(.5,.5),unique=True)
-    s.node('Modal','ColorRect','Layout',props='anchors_preset = 15\nanchor_right = 1.0\nanchor_bottom = 1.0\ncolor = Color(0.15,0.24,0.28,0.45)\nvisible = false',unique=True)
-    s.node('Dialog','Panel','Layout/Modal',(-210,-190,420,380),anchor=(.5,.5))
-    s.label('DialogTitle','Layout/Modal/Dialog','对局暂停',(30,22,360,42),28)
-    s.label('DialogDetail','Layout/Modal/Dialog','兵线、金币与技能计时已暂停',(30,70,360,58),15,'71818b')
-    for i,(name,title) in enumerate([('Resume','继续对局'),('Restart','重新开始'),('Settings','设置'),('Back','返回主菜单')]): s.button(name,'Layout/Modal/Dialog',title,(30,140+i*54,360,43))
-    s.save('scenes/moba/hud.tscn')
 
 def weapon_view():
     # Reuse the actual weapon model and its established separate first-person viewport.
@@ -318,4 +231,4 @@ far = 250.0
     write('scenes/moba/test1.tscn',src)
 
 if __name__=='__main__':
-    deck();landscape();theme();card_scene();weapon_view();hud_scene();battle_scene()
+    deck();landscape();build_ui();weapon_view();battle_scene()

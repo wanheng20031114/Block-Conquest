@@ -1,0 +1,6 @@
+[gd_resource type="AtlasTexture" format=3]
+[ext_resource type="Texture2D" path="res://assets/ui/moba/icons.png" id="atlas"]
+[resource]
+atlas = ExtResource("atlas")
+region = Rect2(503, 521, 326, 257)
+filter_clip = true

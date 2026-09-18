@@ -1,0 +1,135 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/moba/skill_button.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/ui/moba/recovery_icon.tres" id="icon"]
+[sub_resource type="Animation" id="cast"]
+resource_name = "cast"
+length = 0.38
+tracks/0/type = "value"
+tracks/0/path = NodePath("Content:scale")
+tracks/0/interp = 1
+tracks/0/enabled = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.1, 0.24, 0.38), "transitions": PackedFloat32Array(1, 1, 1, 1), "update": 0, "values": [Vector2(1,1), Vector2(0.96,0.96), Vector2(1.035,1.035), Vector2(1,1)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Content:modulate")
+tracks/1/interp = 1
+tracks/1/enabled = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.1, 0.38), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Color(1,1,1,1), Color(0.6,1,0.78,1), Color(1,1,1,1)]}
+
+[sub_resource type="Animation" id="ready"]
+resource_name = "ready"
+length = 0.45
+tracks/0/type = "value"
+tracks/0/path = NodePath("Content:modulate")
+tracks/0/interp = 1
+tracks/0/enabled = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.16, 0.45), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Color(1,1,1,1), Color(0.52,1,0.7,1), Color(1,1,1,1)]}
+
+[sub_resource type="AnimationLibrary" id="Motion_library"]
+_data = {&"cast": SubResource("cast"), &"ready": SubResource("ready")}
+
+[node name="SkillButton" type="Button"]
+unique_name_in_owner = true
+offset_left = 0
+offset_top = 0
+offset_right = 146
+offset_bottom = 86
+script = ExtResource("script")
+focus_mode = 0
+mouse_default_cursor_shape = 2
+
+[node name="Content" type="Control" parent="."]
+unique_name_in_owner = true
+offset_left = 0
+offset_top = 0
+offset_right = 146
+offset_bottom = 86
+mouse_filter = 2
+pivot_offset = Vector2(73,43)
+
+[node name="Icon" type="TextureRect" parent="Content"]
+unique_name_in_owner = true
+offset_left = 12
+offset_top = 10
+offset_right = 37
+offset_bottom = 37
+texture = ExtResource("icon")
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+
+[node name="Title" type="Label" parent="Content"]
+unique_name_in_owner = true
+offset_left = 43
+offset_top = 8
+offset_right = 138
+offset_bottom = 35
+text = "肉体强化"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+
+[node name="Detail" type="Label" parent="Content"]
+unique_name_in_owner = true
+offset_left = 12
+offset_top = 37
+offset_right = 139
+offset_bottom = 57
+text = "25生命/秒 · 5秒"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.47059, 0.56863, 0.60392, 1)
+
+
+[node name="Keycap" type="Panel" parent="Content"]
+unique_name_in_owner = true
+offset_left = 12
+offset_top = 60
+offset_right = 32
+offset_bottom = 78
+theme_type_variation = &"Inset"
+mouse_filter = 2
+
+
+[node name="Key" type="Label" parent="Content"]
+unique_name_in_owner = true
+offset_left = 12
+offset_top = 59
+offset_right = 32
+offset_bottom = 79
+text = "E"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="Content"]
+unique_name_in_owner = true
+offset_left = 40
+offset_top = 58
+offset_right = 136
+offset_bottom = 79
+text = "可释放"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.32941, 0.5451, 0.43137, 1)
+
+
+[node name="Cooldown" type="ProgressBar" parent="Content"]
+unique_name_in_owner = true
+offset_left = 12
+offset_top = 80
+offset_right = 134
+offset_bottom = 83
+show_percentage = false
+mouse_filter = 2
+
+
+[node name="Motion" type="AnimationPlayer" parent="."]
+unique_name_in_owner = true
+libraries = {&"": SubResource("Motion_library")}
