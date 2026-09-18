@@ -327,7 +327,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 1.075)
 mesh = ExtResource("13_Tail")
 
 [node name="Rider" type="MeshInstance3D" parent="Rig/Action/BodyMotion" unique_id=1613802554]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0.08)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.08, 0.12)
 mesh = ExtResource("14_Rider")
 
 [node name="RiderHead" type="MeshInstance3D" parent="Rig/Action/BodyMotion/Rider" unique_id=874464579]

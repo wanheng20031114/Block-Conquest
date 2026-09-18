@@ -112,7 +112,6 @@ def elephant_rider(s, rider):
     for sign in (-1,1):
         s.b(rider,(.25,.095,.28),(sign*.28,.334,-.012),'steel',rot=(0,0,-sign*.10),bevel=.024)
         s.b(rider,(.078,.096,.25),(sign*.40,.266,-.012),'darksteel',rot=(0,0,-sign*.20),bevel=.013)
-        s.b(rider,(.15,.12,.041),(sign*.417,-.30,-.156),'steel',bevel=.02)
 
 
 def elephant_rider_cap(s, part):

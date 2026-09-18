@@ -840,6 +840,7 @@ def light_horse_leg_pose(z, lift, rear, hip_height=.99):
 
 
 def war_elephant(advanced=False):
+    import unit_elephant_rider as seating
     if advanced:
         import unit_advanced_cavalry as veteran
     s = Sculpture("war_elephant_advanced" if advanced else "war_elephant",kind="war_elephant",grade="advanced" if advanced else "")
@@ -954,25 +955,9 @@ def war_elephant(advanced=False):
         s.b(body,(.91,.045,.12),(0,1.005,z),"edge" if advanced else "gold",bevel=.008)
     if advanced:
         veteran.elephant_saddle(s,body)
-    rider=s.joint("Rider",(0,.96,.08),parent=torso)
-    s.add(rider,lathe([(-.14,.23),(.02,.235),(.25,.29),(.34,.22)],8),"blue")
-    if advanced:
-        veteran.elephant_rider(s,rider)
-    else:
-        s.b(rider,(.41,.31,.11),(0,.14,-.20),"steel",bevel=.046)
-    s.b(rider,(.44,.075,.38),(0,-.045,0),"leather",bevel=.02)
-    s.b(rider,(.083,.075,.032),(0,-.038,-.213),"gold")
-    for side in (-1,1):
-        s.r(rider,(side*.14,-.06,0),(side*.39,-.27,-.07),.103,"leather",8)
-        s.r(rider,(side*.39,-.27,-.07),(side*.43,-.57,-.16),.095,"blue",8)
-        s.b(rider,(.18,.17,.29),(side*.43,-.60,-.23),"leather",bevel=.03)
-        s.e(rider,(.15,.12,.155),(side*.28,.25,-.01),"steel")
-        s.r(rider,(side*.28,.18,-.03),(side*.32,-.01,-.24),.083,"blue",8)
-        s.r(rider,(side*.32,-.01,-.24),(side*.16,.01,-.42),.073,"leather",8)
-        s.e(rider,(.073,.067,.079),(side*.14,.01,-.43),"skin")
-        # Hands hold a short padded rein loop fixed to the saddle. No second
-        # weapon or damage source is attached to the rider.
-        s.r(rider,(side*.14,.01,-.46),(side*.29,-.13,-.43),.016,"rope",6)
+    seating.seated_legs(s,body,advanced)
+    rider=s.joint("Rider",seating.RIDER_ORIGIN,parent=torso)
+    seating.upper_body(s,rider,advanced)
     rider_head=s.joint("RiderHead",(0,.57,-.015),parent=rider)
     s.e(rider_head,(.236,.246,.217),(0,-.005,-.008),"skin")
     if advanced:
