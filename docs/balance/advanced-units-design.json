@@ -2,7 +2,7 @@
   "schema_version": 1,
   "revision": "integer-v1",
   "date": "2026-09-18",
-  "scope": "Nine-family numerical design. Musketeer, swordsman, shield_guard, spearman and archer are implemented in sandbox/codex; the other four families remain design fixtures only.",
+  "scope": "Nine-family numerical design. Musketeer, swordsman, shield_guard, spearman, archer, crossbowman and knight are implemented in sandbox/codex; light_cavalry and war_elephant remain design fixtures only.",
   "units": [
     {
       "id": "swordsman",

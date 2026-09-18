@@ -1,5 +1,5 @@
 extends SceneTree
-## Sandbox/codex integration and real contact/arrow regression for a two-unit batch.
+## Sandbox/codex integration and real contact/projectile regression for a two-unit batch.
 var families: Array[String] = ["swordsman", "shield_guard"]
 const Probe = preload("res://tests/engagement_approach_test.gd").ApproachProbe
 const UNIT := preload("res://scenes/unit.tscn")
@@ -32,7 +32,7 @@ func _run() -> void:
 	if not args.is_empty():
 		families.assign(args)
 		output = "res://.local/advanced-units/" + "-".join(families) + "/"
-	for kind: String in families: assert(kind in ["swordsman", "shield_guard", "spearman", "archer"])
+	for kind: String in families: assert(kind in ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight"])
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	var design: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://docs/balance/advanced-units-design.json"))
 	for kind: String in families:
@@ -85,7 +85,7 @@ func _run() -> void:
 		game.set_placing(false)
 		var unit: BattleUnit = game.owned_entities(0, "units")[0]
 		var normal: BattleUnit = game.spawn_unit(kind, 0, Vector3(3, 0, 0))
-		check(unit.max_hp == UnitVariantCatalog.ADVANCED[kind].hp and unit._model.batch_parts.size() == (11 if kind == "archer" else 7), kind + " authored stats and original rigid-part count")
+		check(unit.max_hp == UnitVariantCatalog.ADVANCED[kind].hp and unit._model.batch_parts.size() == normal._model.batch_parts.size(), kind + " authored stats and original rigid-part count")
 		check(unit.render_batches == game.get_node("VariantRenderBatches"), kind + " variant batches")
 		game.select_entities([normal, unit])
 		game.hud.refresh()
@@ -115,9 +115,13 @@ func _run() -> void:
 		await clear()
 		game.set_paint_advanced(false)
 	for kind: String in families:
-		for cavalry: String in (["knight", "light_cavalry", "war_elephant"] if kind in ["spearman", "archer"] else ["knight", "light_cavalry"]):
-			await contact(kind, cavalry)
-	if "archer" in families: await arrow_commands()
+		var opponents: Array[String] = ["knight", "light_cavalry"]
+		if kind in ["spearman", "archer", "crossbowman"]: opponents.append("war_elephant")
+		if kind == "knight": opponents = ["spearman", "light_cavalry", "crossbowman"]
+		for opponent: String in opponents: await contact(kind, opponent)
+	for kind: String in ["archer", "crossbowman"]:
+		if kind in families: await projectile_commands(kind)
+	if "knight" in families: await knight_siege()
 	# A small active mixed army checks real combat using both current grades.
 	await clear()
 	for index: int in 10:
@@ -187,20 +191,21 @@ func contact(kind: String, cavalry: String) -> void:
 	check(infantry.turned_away_near_contact == 0 and opponent.turned_away_near_contact == 0, label + " no turn away near contact")
 	var definition := UnitVariantCatalog.ADVANCED[kind].definition()
 	var release := hit
-	if kind == "archer":
-		check(launches.size() >= 2, label + " sustained real arrows")
+	if not definition.projectile.is_empty():
+		check(launches.size() >= 2, label + " sustained real projectiles")
 		if not launches.is_empty():
 			release = launches[0].time
-			check(launches[0].kind == "arrow" and launches[0].origin_error < .001, label + " arrow starts at actual animated socket")
+			check(launches[0].kind == definition.projectile and launches[0].origin_error < .001, label + " projectile starts at actual animated socket")
 			check(hit > release, label + " damage waits for projectile flight")
 	check(start >= 0 and release > start and absf(release - start - definition.attack_windup_seconds) < .06, label + " contact or release matches authored windup")
 	check(first_damage == DamageResolver.resolve(DamageResolver.snapshot(definition, 0, 0, 0), BalanceCatalog.unit(cavalry)), label + " real hit uses advanced damage/counter bonus")
-	contacts.append({"kind": kind, "opponent": cavalry, "backwards_intents": infantry.backwards_intents, "retreat_distance": infantry.retreat_distance, "cavalry_retreat": opponent.retreat_distance, "windup_seconds": release - start, "first_damage": first_damage, "arrows": launches.size()})
+	contacts.append({"kind": kind, "opponent": cavalry, "backwards_intents": infantry.backwards_intents, "retreat_distance": infantry.retreat_distance, "opponent_retreat": opponent.retreat_distance, "windup_seconds": release - start, "first_damage": first_damage, "projectiles": launches.size()})
 
-func arrow_commands() -> void:
+func projectile_commands(kind: String) -> void:
 	await clear()
-	var archer := probe("archer", 0, Vector3.ZERO, true)
-	var target := probe("shield_guard", 1, Vector3(0, 0, -7), false)
+	var archer := probe(kind, 0, Vector3.ZERO, true)
+	var definition := UnitVariantCatalog.ADVANCED[kind].definition()
+	var target := probe("shield_guard", 1, Vector3(0, 0, -6), false)
 	target.set_physics_process(false)
 	var launches: Array[float] = []
 	var pool: BattleProjectilePool = game.get_node("ProjectilePool")
@@ -213,23 +218,38 @@ func arrow_commands() -> void:
 	archer.stop()
 	archer.set_physics_process(false)
 	await ticks(30)
-	check(launches.is_empty() and target.hp == target.max_hp, "stopping before arrow release cancels flight and damage")
+	check(launches.is_empty() and target.hp == target.max_hp, kind + " stopping before release cancels flight and damage")
 	archer.set_physics_process(true)
 	archer.issue_attack(target)
 	for step: int in 200:
 		# Reissuing the same target cannot bypass the unit's shared cooldown.
 		archer.issue_attack(target)
 		await ticks(1)
-	check(launches.size() >= 3, "repeated commands still complete bow attacks")
+	check(launches.size() >= 3, kind + " repeated commands still complete attacks")
 	var minimum_interval := INF
 	for index: int in range(1, launches.size()): minimum_interval = minf(minimum_interval, launches[index] - launches[index - 1])
-	check(minimum_interval >= 1.5 - .035, "repeated commands cannot accelerate the 1.5-second bow cooldown")
+	check(minimum_interval >= definition.cooldown - .035, kind + " repeated commands cannot bypass approved cooldown")
 	archer.stop()
 	archer.set_physics_process(false)
 	await ticks(60)
-	check(target.max_hp - target.hp == launches.size() * 6, "every arrow hits once for thirteen minus seven ranged armor")
+	var per_hit := DamageResolver.resolve(DamageResolver.snapshot(definition, 0, 0, 0), BalanceCatalog.unit("shield_guard"))
+	check(target.max_hp - target.hp == launches.size() * per_hit, kind + " each projectile hits once with correct armor penetration")
 	pool.launched.disconnect(record)
 	for cavalry: String in ["knight", "light_cavalry"]:
 		var a := BalanceCatalog.unit(cavalry)
-		var d := UnitVariantCatalog.ADVANCED["archer"].definition()
-		check(d.is_ranged_infantry() and DamageResolver.resolve(DamageResolver.snapshot(a, 0, 1, 1), d) == a.damage + a.bonuses[&"ranged_infantry"], cavalry + " retains ranged-infantry counter against advanced archer")
+		check(definition.is_ranged_infantry() and DamageResolver.resolve(DamageResolver.snapshot(a, 0, 1, 1), definition) == a.damage + a.bonuses[&"ranged_infantry"], cavalry + " retains ranged-infantry counter against advanced " + kind)
+
+func knight_siege() -> void:
+	await clear()
+	var knight := probe("knight", 0, Vector3.ZERO, true)
+	var cannon := probe("cannon", 1, Vector3(0, 0, -3), false)
+	cannon.set_physics_process(false)
+	knight.issue_attack(cannon)
+	game.set_running(true)
+	while cannon.hp == cannon.max_hp: await ticks(1)
+	check(cannon.max_hp - cannon.hp == 24, "advanced knight actual hit deals eleven plus thirteen to siege")
+	game.set_running(false)
+	var advanced := UnitVariantCatalog.ADVANCED["knight"].definition()
+	var spear := UnitVariantCatalog.ADVANCED["spearman"].definition()
+	check(DamageResolver.resolve(DamageResolver.snapshot(spear, 0, 0, 0), advanced) == 29, "advanced knight still takes full anti-cavalry bonus")
+	check(ceili(advanced.hp / 29.0) == 5, "advanced spear still defeats same-grade knight in five hits")

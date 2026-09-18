@@ -585,8 +585,10 @@ def shield_guard(advanced=False):
     return s
 
 
-def horse_knight():
-    s=Sculpture("knight")
+def horse_knight(advanced=False):
+    if advanced:
+        import unit_advanced_crossbow_knight as veteran
+    s=Sculpture("knight_advanced" if advanced else "knight", kind="knight", grade="advanced" if advanced else "")
     b=s.joint("Body",(0,1.10,0))
     # Strong horse silhouette: chest, barrel, rump and angular sloping neck.
     s.e(b,(.43,.44,.77),(0,0,.06),"horse",sub=2)
@@ -596,6 +598,8 @@ def horse_knight():
     s.e(b,(.225,.23,.37),(0,.72,-.89),"horse",rot=(.38,0,0),sub=1)
     s.e(b,(.207,.185,.22),(0,.56,-1.17),"horselight",sub=1)
     s.e(b,(.16,.11,.08),(0,.52,-1.36),"mane")
+    if advanced:
+        horse_skin = tm.util.concatenate(s.parts[b]["PaintedMatte"])
     for sign in (-1,1):
         s.add(b,polygon([(-.06,0),(.06,0),(.025,.25)],.11,(sign*.13,.9,-.79),(0,sign*.18,sign*.15)),"horse")
         s.e(b,(.017,.041,.041),(sign*.205,.76,-1.05),"black")
@@ -617,15 +621,24 @@ def horse_knight():
         s.b(b,(.047,.035,.89),(sign*.454,-.245,.08),"gold",rot=(.035,0,0),bevel=.006)
         s.b(b,(.051,.25,.042),(sign*.449,-.048,-.08),"goldlight",bevel=.005)
         s.b(b,(.051,.040,.22),(sign*.451,-.01,-.08),"goldlight",bevel=.005)
-        s.b(b,(.055,.44,.087),(sign*.32,.27,.10),"leather",rot=(0,0,sign*.18),bevel=.01)
-        s.add(b,ring(.09,.016,(sign*.37,.03,.09),(0,math.pi/2,0),n=10),"darksteel")
+        if advanced:
+            # Boots sit outside the cloth, with stirrups under the soles.
+            s.r(b,(sign*.32,.42,.10),(sign*.572,-.10,.08),.025,"leather",6)
+            for za,zb,ya,yb in [(-.12,-.12,.06,-.10),(.12,.12,.06,-.10),(-.12,.12,-.10,-.10)]:
+                s.r(b,(sign*.572,ya,za),(sign*.572,yb,zb),.014,"darksteel",6)
+        else:
+            s.b(b,(.055,.44,.087),(sign*.32,.27,.10),"leather",rot=(0,0,sign*.18),bevel=.01)
+            s.add(b,ring(.09,.016,(sign*.37,.03,.09),(0,math.pi/2,0),n=10),"darksteel")
     s.b(b,(.62,.13,.54),(0,.42,.12),"leatherlight",bevel=.05)
     s.b(b,(.54,.16,.095),(0,.53,.36),"leather",rot=(-.18,0,0),bevel=.025)
     s.b(b,(.44,.12,.095),(0,.50,-.15),"leather",bevel=.025)
     # Barding browplate follows horse forehead; triangular nose plate.
-    s.add(b,polygon([(-.15,.15),(.15,.15),(.13,-.10),(0,-.29),(-.13,-.10)],.03,
-                    (0,.74,-1.17),(.42,0,0)),"steel")
-    s.b(b,(.033,.25,.025),(0,.76,-1.245),"gold",rot=(.42,0,0),bevel=.006)
+    if advanced:
+        veteran.knight_horse_armor(s, b, horse_skin)
+    else:
+        s.add(b,polygon([(-.15,.15),(.15,.15),(.13,-.10),(0,-.29),(-.13,-.10)],.03,
+                        (0,.74,-1.17),(.42,0,0)),"steel")
+        s.b(b,(.033,.25,.025),(0,.76,-1.245),"gold",rot=(.42,0,0),bevel=.006)
     for idx,(xx,zz) in enumerate(((-.29,-.49),(.29,-.49),(-.32,.57),(.32,.57))):
         p=s.joint(("LegFrontLeft","LegFrontRight","LegRearLeft","LegRearRight")[idx],(xx,.99,zz))
         rear=idx>=2
@@ -640,32 +653,45 @@ def horse_knight():
     # Rider torso sits naturally above the saddle, with armor and tucked boots.
     rider=s.joint("Rider",(0,1.75,.08))
     s.add(rider,lathe([(-.24,.28),(-.1,.24),(.20,.32),(.30,.245)],8),"blue")
-    s.b(rider,(.46,.35,.16),(0,.10,-.21),"steel",bevel=.06)
-    s.b(rider,(.04,.32,.025),(0,.10,-.30),"gold",bevel=.006)
+    if advanced:
+        veteran.knight_cuirass(s, rider)
+    else:
+        s.b(rider,(.46,.35,.16),(0,.10,-.21),"steel",bevel=.06)
+        s.b(rider,(.04,.32,.025),(0,.10,-.30),"gold",bevel=.006)
     s.b(rider,(.49,.09,.39),(0,-.105,0),"leather",bevel=.02)
     s.b(rider,(.10,.075,.035),(0,-.10,-.214),"gold")
     for sign in (-1,1):
-        s.r(rider,(sign*.16,-.13,.06),(sign*.40,-.30,.10),.12,"darksteel",8)
-        s.r(rider,(sign*.40,-.3,.1),(sign*.41,-.57,-.005),.10,"steel",8)
-        s.b(rider,(.17,.16,.28),(sign*.41,-.66,-.075),"darksteel",bevel=.027)
+        knee_x, boot_x = (.56, .565) if advanced else (.40, .41)
+        s.r(rider,(sign*.16,-.13,.06),(sign*knee_x,-.30,.10),.12,"darksteel",8)
+        s.r(rider,(sign*knee_x,-.3,.1),(sign*boot_x,-.57,-.005),.10,"steel",8)
+        s.b(rider,(.17,.16,.28),(sign*boot_x,-.66,-.075),"darksteel",bevel=.027)
         s.b(rider,(.11,.43,.065),(sign*.22,-.20,-.16),"blue",rot=(0,0,sign*.25),bevel=.016)
     # Flowing short cloak: thick faceted asymmetric hem.
     s.add(rider,polygon([(-.29,.27),(.29,.27),(.37,-.28),(.13,-.43),(-.35,-.34)],.045,(0,-.02,.27),(-.20,0,0)),"blue")
     for xx in (-.23,0,.23):
         s.b(rider,(.015,.43,.013),(xx,-.03,.355),"gold",rot=(-.20,0,-xx*.24),bevel=.003)
     head=s.joint("Head",(0,2.18,.03))
-    helmet(s,head,(0,0,0),True)
+    if advanced:
+        veteran.knight_helmet(s, head)
+    else:
+        helmet(s,head,(0,0,0),True)
     for p,sign in ((s.joint("ArmLeft",(-.34,1.97,.06)),-1),(s.joint("ArmRight",(.34,1.97,.06)),1)):
-        s.e(p,(.235,.18,.24),(sign*.025,.01,0),"steel")
-        for yy in (0,-.075):
-            s.b(p,(.32,.035,.31),(sign*.04,yy,-.042),"edge",rot=(0,0,sign*.15),bevel=.014)
+        if advanced:
+            veteran.knight_shoulder(s, p, sign)
+        else:
+            s.e(p,(.235,.18,.24),(sign*.025,.01,0),"steel")
+            for yy in (0,-.075):
+                s.b(p,(.32,.035,.31),(sign*.04,yy,-.042),"edge",rot=(0,0,sign*.15),bevel=.014)
         elbow = (-.14,-.27,-.04) if sign < 0 else (sign*.085,-.29,-.05)
         wrist = (-.28,-.39,-.30) if sign < 0 else (sign*.08,-.43,-.16)
         hand = (-.29,-.41,-.32) if sign < 0 else (sign*.08,-.47,-.19)
         s.r(p,(0,-.1,0),elbow,.105,"blue",8)
         s.r(p,elbow,wrist,.101,"steel",8)
         s.e(p,(.10,.095,.10),hand,"darksteel")
-    shield(s,"ArmLeft",(-.30,-.35,-.465),True)
+    if advanced:
+        veteran.knight_shield(s, "ArmLeft")
+    else:
+        shield(s,"ArmLeft",(-.30,-.35,-.465),True)
     s.r("ArmLeft",(-.35,-.41,-.41),(-.23,-.41,-.41),.025,"leather",8)
     sword(s,"ArmRight",(.09,-.43,-.22),1.0)
     # Preserve all horse geometry while separating the neck/head for a recoil nod.
@@ -1609,6 +1635,10 @@ if __name__=="__main__":
         builders["spearman_advanced"] = lambda: infantry("spearman", advanced=True)
     if "archer_advanced" in args.kinds:
         builders["archer_advanced"] = lambda: infantry("archer", archer=True, advanced=True)
+    if "crossbowman_advanced" in args.kinds:
+        builders["crossbowman_advanced"] = lambda: build_crossbowman(advanced=True)
+    if "knight_advanced" in args.kinds:
+        builders["knight_advanced"] = lambda: horse_knight(advanced=True)
     for kind in args.kinds or builders:
         if kind not in builders:
             parser.error(f"Unknown unit: {kind}")

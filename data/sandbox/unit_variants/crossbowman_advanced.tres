@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitVariantDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_variant_definition.gd" id="script"]
+[ext_resource type="Resource" path="res://data/units/crossbowman.tres" id="base"]
+[ext_resource type="PackedScene" path="res://assets/models/units/crossbowman_advanced.tscn" id="model"]
+[ext_resource type="PackedScene" path="res://assets/models/units/batched/crossbowman_advanced.tscn" id="batch"]
+
+[resource]
+script = ExtResource("script")
+base = ExtResource("base")
+grade = &"advanced"
+display_name = "高级弩手"
+hp = 70
+damage = 11
+melee_armor = 0
+ranged_armor = 2
+armor_penetration = 3
+model = ExtResource("model")
+batched_model = ExtResource("batch")

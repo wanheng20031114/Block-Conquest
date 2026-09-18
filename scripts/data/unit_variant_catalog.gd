@@ -7,4 +7,6 @@ const ADVANCED: Dictionary[String, UnitVariantDefinition] = {
 	"shield_guard": preload("res://data/sandbox/unit_variants/shield_guard_advanced.tres"),
 	"spearman": preload("res://data/sandbox/unit_variants/spearman_advanced.tres"),
 	"archer": preload("res://data/sandbox/unit_variants/archer_advanced.tres"),
+	"crossbowman": preload("res://data/sandbox/unit_variants/crossbowman_advanced.tres"),
+	"knight": preload("res://data/sandbox/unit_variants/knight_advanced.tres"),
 }

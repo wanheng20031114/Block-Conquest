@@ -12,19 +12,24 @@ WEAPON_PITCH = [0, 0, -.018, .01, -.42, -.42, -.28, -.12, 0]
 DRAW = [.01, .01, -.28, -.28, -.28, -.10, .01, .01, .01]
 
 
-def build_crossbowman():
-    s = Sculpture('crossbowman')
+def build_crossbowman(advanced=False):
+    if advanced:
+        import unit_advanced_crossbow_knight as veteran
+    s = Sculpture('crossbowman_advanced' if advanced else 'crossbowman', kind='crossbowman', grade='advanced' if advanced else '')
     body = s.joint('Body', (0, 1.05, 0))
     head = s.joint('Head', (0, 1.64, 0))
     s.add(body, lathe([(-.30,.255),(-.04,.225),(.23,.27),(.29,.205)], 10), 'blue')
     s.r(body,(0,.24,0),(0,.40,0),.115,'skin',8)
     s.add(body,lathe([(.24,.15),(.29,.145)],10,caps=False),'blue')
     # Fitted leather jerkin leaves a broad team-colored skirt and sleeves.
-    s.b(body, (.40,.38,.08), (0,.06,-.225), 'leather', bevel=.035)
-    s.b(body, (.40,.38,.055), (0,.06,.23), 'leather', bevel=.025)
-    for sign in (-1,1):
-        s.b(body, (.072,.26,.057), (sign*.15,.155,-.243), 'leatherlight', rot=(0,0,sign*.10), bevel=.008)
-        s.b(body, (.079,.046,.018), (sign*.154,.09,-.278), 'bronzelight', bevel=.005)
+    if advanced:
+        veteran.crossbow_cuirass(s, body)
+    else:
+        s.b(body, (.40,.38,.08), (0,.06,-.225), 'leather', bevel=.035)
+        s.b(body, (.40,.38,.055), (0,.06,.23), 'leather', bevel=.025)
+        for sign in (-1,1):
+            s.b(body, (.072,.26,.057), (sign*.15,.155,-.243), 'leatherlight', rot=(0,0,sign*.10), bevel=.008)
+            s.b(body, (.079,.046,.018), (sign*.154,.09,-.278), 'bronzelight', bevel=.005)
     s.add(body, lathe([(-.225,.26),(-.15,.253)],10,caps=False), 'leatherlight')
     s.b(body, (.09,.066,.025), (0,-.182,-.256), 'bronzelight', bevel=.009)
     s.b(body, (.040,.032,.03), (0,-.182,-.27), 'leather', bevel=.003)
@@ -52,6 +57,8 @@ def build_crossbowman():
     for side,sign in [('Left',-1),('Right',1)]:
         arm=s.joint('Arm'+side,(sign*.30,1.32,-.065))
         s.e(arm,(.126,.128,.135),(sign*.014,0,0),'blue')
+        if advanced:
+            veteran.crossbow_shoulder(s, arm, sign)
         s.r(arm,(0,-.015,0),(sign*.045,-.24,0),.085,'blue',8)
         fore=s.joint('Forearm'+side,(sign*.045,-.24,0),arm)
         s.e(fore,(.085,.083,.085),(0,0,0),'blue')
@@ -59,6 +66,8 @@ def build_crossbowman():
         s.r(fore,(sign*.016,-.095,-.02),(sign*.025,-.178,-.041),.075,'leather',8,r2=.065)
         s.e(fore,(.062,.065,.07),(sign*.025,-.235,-.055),'skin')
         s.b(fore,(.031,.057,.041),(sign*-.014,-.233,-.103),'skin',bevel=.009)
+        if advanced:
+            veteran.crossbow_bracer(s, fore, sign)
     for name,x in [('LegLeft',-.155),('LegRight',.155)]:
         leg=s.joint(name,(x,.74,0))
         s.r(leg,(0,0,0),(0,-.51,0),.09,'wooddark',8)
@@ -97,6 +106,8 @@ def build_crossbowman():
     s.r(bolt,(0,0,-.27),(0,0,-.37),.029,'edge',4,r2=0)
     for sign in (-1,1):
         s.b(bolt,(.045,.009,.073),(sign*.022,0,.12),'ivory',rot=(0,sign*.12,0),bevel=.002)
+    if advanced:
+        veteran.crossbow_fittings(s, weapon, body)
     return s
 
 
@@ -128,7 +139,7 @@ def write_crossbowman_scene(s):
     parts=list(s.parts)
     lines=['[gd_scene format=3]','[ext_resource type="Script" path="res://scripts/unit_visual.gd" id="1_script"]']
     for i,p in enumerate(parts):
-        lines.append(f'[ext_resource type="ArrayMesh" path="res://assets/models/units/crossbowman/{p}.res" id="{i+2}_{p}"]')
+        lines.append(f'[ext_resource type="ArrayMesh" path="res://assets/models/units/{s.name}/{p}.res" id="{i+2}_{p}"]')
     rest=pose(s)
     idle=[(path,[value,value]) for path,value in rest.items()]
     walk=[(path,[value,value]) for path,value in rest.items()]
@@ -148,10 +159,11 @@ def write_crossbowman_scene(s):
     strike.append(('Rig:position',[(0,0,0)]*2))
     for tracks in (idle,walk):tracks.append((s.part_path('Bolt')+':visible',[True,True]))
     strike.append((s.part_path('Bolt')+':visible',[True,False,True],[0,.20,.74]))
+    grade_property = f'\ngrade = &"{s.grade}"' if s.grade else ''
     lines += [anim_resource('idle',2.6,idle,True),anim_resource('walk',.72,walk,True),anim_resource('strike',.96,strike),
         '[sub_resource type="AnimationLibrary" id="AnimationLibrary_locomotion"]\n_data = {&"idle": SubResource("Animation_idle"), &"walk": SubResource("Animation_walk")}',
         '[sub_resource type="AnimationLibrary" id="AnimationLibrary_attack"]\n_data = {&"strike": SubResource("Animation_strike")}',
-        '[node name="Crossbowman" type="Node3D"]\nscript = ExtResource("1_script")\nkind = "crossbowman"\nprojectile_socket = NodePath("Rig/Action/Waist/Crossbow/ProjectileSocket")',
+        f'[node name="Crossbowman" type="Node3D"]\nscript = ExtResource("1_script")\nkind = "crossbowman"{grade_property}\nprojectile_socket = NodePath("Rig/Action/Waist/Crossbow/ProjectileSocket")',
         '[node name="Rig" type="Node3D" parent="."]','[node name="Action" type="Node3D" parent="Rig"]']
     emitted=set()
     def emit(part):
@@ -175,4 +187,4 @@ def write_crossbowman_scene(s):
         '[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="."]\naabb = AABB(-2,-1,-2,4,4,4)',
         '[connection signal="screen_entered" from="VisibilityNotifier" to="." method="_on_screen_entered"]',
         '[connection signal="screen_exited" from="VisibilityNotifier" to="." method="_on_screen_exited"]']
-    (OUT/'crossbowman.tscn').write_text('\n\n'.join(lines)+'\n',encoding='utf-8')
+    (OUT/(s.name+'.tscn')).write_text('\n\n'.join(lines)+'\n',encoding='utf-8')

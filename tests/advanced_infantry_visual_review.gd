@@ -31,7 +31,7 @@ func _run() -> void:
 		families.assign(args)
 		output = "res://.local/advanced-units/" + "-".join(families) + "/"
 	for kind: String in families:
-		assert(kind in ["swordsman", "shield_guard", "spearman", "archer"])
+		assert(kind in ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight"])
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	root.size = Vector2i(1600, 900)
 	AudioServer.set_bus_mute(0, true)
@@ -53,7 +53,7 @@ func _run() -> void:
 		var triangles := 0
 		for mesh: MeshInstance3D in model.get_node("Rig").find_children("*", "MeshInstance3D", true, false):
 			triangles += mesh.mesh.get_faces().size() / 3
-		check(triangles <= 6500, kind + " <= 6500 triangles")
+		check(triangles <= (8000 if kind == "knight" else 6500), kind + " within triangle budget")
 		var viewport: SubViewport = codex.get_node("%CodexViewport")
 		for angle: int in [0, 45, 90, 180, 270]:
 			codex._anchor.rotation.y = deg_to_rad(angle)
@@ -70,6 +70,7 @@ func _run() -> void:
 		var phases: Array[float] = [0.1, windup, 0.4, 0.6, 0.86]
 		if kind == "archer": phases = [.1, .24, .27, .4, .6, .86, 1.1]
 		if kind == "spearman": phases = [.1, .16, .22, .43, .65, .88]
+		if kind == "crossbowman": phases = [.14, .20, .40, .55, .70, .82, .96]
 		for phase: float in phases:
 			model.attack.seek(phase, true)
 			check_weapon_pose(model, kind, phase)
@@ -78,7 +79,7 @@ func _run() -> void:
 		codex._select_preview_action(1)
 		codex.set_process(false)
 		var previous := 0.0
-		for phase: float in [.18, .36, .54, .72]:
+		for phase: float in ([.15, .30, .45, .60] if kind == "knight" else [.18, .36, .54, .72]):
 			var elapsed := phase - previous
 			var steps := ceili(elapsed * 120)
 			for step: int in steps:
@@ -90,12 +91,12 @@ func _run() -> void:
 		codex.set_process(false)
 		codex._camera.position = Vector3(0, 6, -.2)
 		codex._camera.look_at(Vector3(0, 1, 0), Vector3.UP)
-		codex._camera.size = 3.0
+		codex._camera.size = 4.0 if kind == "knight" else 3.0
 		codex._request_preview_redraw()
 		await capture(kind + "-top", viewport)
-		codex._camera.position = Vector3(0, 1.8, -6)
-		codex._camera.look_at(Vector3(0, 1.70, 0), Vector3.UP)
-		codex._camera.size = 1.3
+		codex._camera.position = Vector3(0, 2.3 if kind == "knight" else 1.8, -6)
+		codex._camera.look_at(Vector3(0, 1.92 if kind == "knight" else 1.70, 0), Vector3.UP)
+		codex._camera.size = 2.0 if kind == "knight" else 1.3
 		codex._request_preview_redraw()
 		await capture(kind + "-face", viewport)
 	codex.queue_free()
@@ -130,7 +131,7 @@ func _run() -> void:
 		var advanced: BattleUnit = game.spawn_variant(kind, 0, Vector3(-1.15, 0, 0))
 		game.camera.position = Vector3(3.6, 3.6, -9)
 		game.camera.look_at(Vector3(0, 1.0, 0), Vector3.UP)
-		game.camera.size = 5.5
+		game.camera.size = 6.4 if kind == "knight" else 5.5
 		await create_timer(.2).timeout
 		await capture(kind + "-comparison", root)
 		game.camera.size = 18
@@ -145,7 +146,7 @@ func _run() -> void:
 		game.hud.refresh()
 		await capture(kind + "-sandbox", root)
 		game.hud.hide()
-		game.camera.size = 5.5
+		game.camera.size = 6.4 if kind == "knight" else 5.5
 		game.camera.look_at(Vector3(0, 1, 0), Vector3.UP)
 		advanced.receive_damage(1000)
 		game.set_running(true)
@@ -176,6 +177,17 @@ func check_weapon_pose(model: UnitVisual, kind: String, phase: float) -> void:
 		check(spear.position.is_equal_approx(Vector3(.25, -.445, -.45)), "spear remains in gauntlet at " + str(phase))
 		if is_equal_approx(phase, .22):
 			check((spear.global_basis * Vector3.UP).dot(Vector3.FORWARD) > .98, "advanced spear points forward at contact")
+	elif kind == "crossbowman":
+		var bow: Node3D = model.find_child("Crossbow")
+		var hand: Node3D = model.find_child("ForearmLeft")
+		check(hand.to_global(Vector3(-.025, -.235, -.055)).distance_to(bow.to_global(Vector3(-.025, -.07, -.045))) < .025, "crossbow supporting hand stays on stock at " + str(phase))
+		if is_equal_approx(phase, .20):
+			check(not model.find_child("Bolt").visible, "crossbow bolt releases at .20s")
+		if is_equal_approx(phase, .82):
+			check(model.find_child("Bolt").visible, "crossbow bolt reseated during reload")
+	elif kind == "knight":
+		check(model.find_child("ArmRight").get_parent().name == &"Waist", "knight weapon and gauntlet share the arm at " + str(phase))
+		check(model.find_child("HorseHead").get_parent().name == &"Body", "knight horse armor follows the original head joint")
 	else:
 		var sword: Node3D = model.get_node("Rig/Action/Waist/ArmRight/Sword")
 		var grip := Vector3(.215, -.425, -.405) if kind == "shield_guard" else Vector3(.25, -.415, -.45)
