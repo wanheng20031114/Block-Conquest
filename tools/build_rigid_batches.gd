@@ -7,7 +7,7 @@ extends SceneTree
 const KINDS: PackedStringArray = ["swordsman", "archer", "knight", "catapult", "cannon", "farmer", "spearman", "shield_guard", "war_elephant", "light_cavalry", "engineer", "priest", "heavy_cannon", "triple_cannon", "crossbowman", "musketeer"]
 const OUTPUT := "res://assets/models/units/batched/"
 const MANAGER := "res://scenes/unit_render_batches.tscn"
-const VARIANT_KINDS: PackedStringArray = ["musketeer_advanced"]
+const VARIANT_KINDS: PackedStringArray = ["musketeer_advanced", "swordsman_advanced", "shield_guard_advanced"]
 const VARIANT_MANAGER := "res://scenes/sandbox_variant_batches.tscn"
 const TOLERANCE := 0.00003
 var _checks: int = 0

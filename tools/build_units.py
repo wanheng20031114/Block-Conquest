@@ -118,8 +118,10 @@ def ring(radius, minor, pos=(0, 0, 0), rot=(0, 0, 0), n=16, m=4):
 
 
 class Sculpture:
-    def __init__(self, name):
+    def __init__(self, name, kind=None, grade=""):
         self.name = name
+        self.kind = name if kind is None else kind
+        self.grade = grade
         self.parts = {}
         self.joints = {}
         self.parents = {}
@@ -226,7 +228,7 @@ def sword(s, p, center, length=.84):
     s.b(p,(.014,length-.18,.008),(x,y+.1+(length-.18)/2,z-.022),"steel",bevel=.002)
 
 
-def helmet(s, p, center, knight=False):
+def helmet(s, p, center, knight=False, fitted_rivets=False):
     x,y,z = center
     s.add(p, lathe([(-.12,.29),(0,.33),(.14,.29),(.24,.20),(.29,.075)],12,center),"steel")
     s.add(p, lathe([(-.13,.304),(-.08,.335),(-.045,.333)],12,center,caps=False),"gold" if knight else "edge")
@@ -237,7 +239,13 @@ def helmet(s, p, center, knight=False):
                         (x+sign*.155,y-.225,z-.262),(0,sign*.22,sign*.08)),"steel")
     s.b(p,(.059,.25,.048),(x,y-.16,z-.292),"edge",bevel=.012)
     s.b(p,(.43,.030,.04),(x,y-.101,z-.283),"edge",bevel=.006)
-    rivets(s,p,[(x+xx,y-.05,z-.319) for xx in (-.22,-.11,0,.11,.22)],.017)
+    if fitted_rivets:
+        # Follow the advanced helmet's twelve-sided brow band instead of putting
+        # all studs on one flat plane, which leaves the outer pair floating.
+        rivets(s,p,[(x+math.sin(math.radians(a))*.343,y-.05,z-math.cos(math.radians(a))*.343)
+                    for a in (-60,-30,0,30,60)],.017)
+    else:
+        rivets(s,p,[(x+xx,y-.05,z-.319) for xx in (-.22,-.11,0,.11,.22)],.017)
     # Crest ridge and cloth plume.
     s.b(p,(.052,.25,.12),(x,y+.20,z+.015),"gold" if knight else "edge",bevel=.022)
     if knight:
@@ -245,8 +253,11 @@ def helmet(s, p, center, knight=False):
             s.e(p,(.083,.12,.15),(x,y+.29-i*.016,z+.05+i*.10),"blue",rot=(.35,0,0))
 
 
-def infantry(name, archer=False):
-    s = Sculpture(name)
+def infantry(name, archer=False, advanced=False):
+    if advanced:
+        assert name == "swordsman", "Only the current sword infantry grade is authored"
+        import unit_advanced_infantry as veteran
+    s = Sculpture(name + "_advanced" if advanced else name, kind=name, grade="advanced" if advanced else "")
     body=s.joint("Body",(0,1.05,0))
     head=s.joint("Head",(0,1.57,0))
     left=s.joint("ArmLeft",(-.34,1.28,0))
@@ -283,11 +294,15 @@ def infantry(name, archer=False):
             s.b(body,(.073,.103,.008),(xx+.038,yy-.018,zz),"ivory",rot=(0,0,-.12),bevel=.002)
     else:
         # Leave a visible throat gap between the breastplate and cheek guards.
-        s.b(body,(.47,.35,.14),(0,.065,-.295 if name=="spearman" else -.20),"steel",bevel=.060)
-        s.b(body,(.035,.31,.024),(0,.065,-.377 if name=="spearman" else -.282),"edge",bevel=.006)
-        for sign in (-1,1):
-            for i in range(3):
-                s.b(body,(.20,.065,.095),(sign*.145,-.24-i*.060,-.175),"darksteel",rot=(0,0,-sign*.09),bevel=.016)
+        if advanced:
+            veteran.cuirass(s, body)
+        else:
+            s.b(body,(.47,.35,.14),(0,.065,-.295 if name=="spearman" else -.20),"steel",bevel=.060)
+            s.b(body,(.035,.31,.024),(0,.065,-.377 if name=="spearman" else -.282),"edge",bevel=.006)
+        if not advanced:
+            for sign in (-1,1):
+                for i in range(3):
+                    s.b(body,(.20,.065,.095),(sign*.145,-.24-i*.060,-.175),"darksteel",rot=(0,0,-sign*.09),bevel=.016)
         if name=="spearman":
             # Keep the torso protected like the swordsman, including a readable
             # back plate. The exposed head and wooden shield carry the contrast.
@@ -316,11 +331,16 @@ def infantry(name, archer=False):
             s.b(head,(.060,.014,.015),(0,-.103,-.250),"leather",bevel=.003)
             s.r(head,(0,-.29,.005),(0,-.16,.005),.104,"skin",8)
         else:
-            helmet(s,head,(0,.055,-.10))
+            helmet(s,head,(0,.055,-.10),fitted_rivets=advanced)
+            if advanced:
+                veteran.helmet_fittings(s, head)
     for part,sign in ((left,-1),(right,1)):
-        s.e(part,(.235,.18,.24),(sign*.04,.018,0),"leather" if archer else "steel")
-        if not archer:
-            s.b(part,(.32,.032,.31),(sign*.04,.024,-.042),"edge",rot=(0,0,sign*.13),bevel=.020)
+        if advanced:
+            veteran.pauldron(s, part, sign)
+        else:
+            s.e(part,(.235,.18,.24),(sign*.04,.018,0),"leather" if archer else "steel")
+            if not archer:
+                s.b(part,(.32,.032,.31),(sign*.04,.024,-.042),"edge",rot=(0,0,sign*.13),bevel=.020)
         # A shield is carried on a bent forearm ahead of the breastplate. The
         # shoulder remains at its authored joint; moving the entire ArmLeft
         # instead would detach the pauldron from the torso during a strike.
@@ -340,6 +360,8 @@ def infantry(name, archer=False):
             fore=s.joint("ForearmRight",tuple(origin),parent=right)
         local=lambda p: tuple(np.array(p)-origin)
         s.r(fore,local(elbow),local(wrist),.100,"steel" if not archer else "leatherlight",8)
+        if advanced:
+            veteran.bracer(s, fore, local(elbow), local(wrist))
         cuff = (-.21,-.410,-.235) if shield_arm else (sign*.11,-.475,-.10)
         if sword_arm:
             cuff = (.23,-.385,-.395)
@@ -354,6 +376,8 @@ def infantry(name, archer=False):
         s.b(part,(.213,.17,.33),(0,-.65,-.075),"leather",bevel=.044)
         s.b(part,(.22,.045,.34),(0,-.714,-.07),"black",bevel=.012)
         s.b(part,(.21,.036,.18),(0,-.53,-.025),"gold" if not archer else "leatherlight",bevel=.01)
+        if advanced:
+            veteran.greave(s, part)
     if archer:
         # Long laminated bow held ahead of the body; string has its own visible V.
         bow=s.joint("Bow",(-.115,-.54,-.13),parent=left)
@@ -386,7 +410,10 @@ def infantry(name, archer=False):
                 for yy in (-.12,.12):
                     s.e(left,(.012,.012,.007),(-.24+xx,-.37+yy,-.480),"darksteel")
         else:
-            shield(s,left,(-.24,-.37,-.425))
+            if advanced:
+                veteran.sword_shield(s,left,(-.24,-.37,-.425))
+            else:
+                shield(s,left,(-.24,-.37,-.425))
         # Back grip meets the gauntlet while the board clears the breastplate.
         s.r(left,(-.28,-.43,-.37),(-.16,-.43,-.37),.025,"leather",8)
         # A wrist pivot keeps the hilt inside the gauntlet while the blade leads
@@ -405,6 +432,8 @@ def infantry(name, archer=False):
         else:
             blade = s.joint("Sword",(.25,-.415,-.45),parent=right)
             sword(s,blade,(0,0,0))
+            if advanced:
+                veteran.sword_fittings(s, blade)
         # Sheath and a small hip pouch complete the back and side silhouette.
         s.b(body,(.082,.58,.084),(-.27,-.25,.1),"leather",rot=(0,0,-.16))
         s.b(body,(.15,.17,.12),(.265,-.13,.08),"leatherlight",bevel=.025)
@@ -415,24 +444,30 @@ def infantry(name, archer=False):
     return s
 
 
-def shield_guard():
+def shield_guard(advanced=False):
     """Armored infantry with an open eye slit and a tall forearm-mounted shield."""
-    s = Sculpture("shield_guard")
+    if advanced:
+        import unit_advanced_infantry as veteran
+    s = Sculpture("shield_guard_advanced" if advanced else "shield_guard", kind="shield_guard", grade="advanced" if advanced else "")
     body = s.joint("Body", (0, 1.05, 0))
     head = s.joint("Head", (0, 1.65, 0))
     left = s.joint("ArmLeft", (-.38, 1.31, 0))
     right = s.joint("ArmRight", (.38, 1.31, 0))
     legs = [s.joint("LegLeft", (-.18, .75, 0)), s.joint("LegRight", (.18, .75, 0))]
     s.add(body, lathe([(-.29,.30),(-.09,.27),(.22,.35),(.34,.28)], 8), "blue")
-    s.b(body, (.56,.40,.14), (0,.08,-.31), "steel", bevel=.07)
-    s.b(body, (.035,.35,.022), (0,.08,-.391), "edge", bevel=.007)
-    s.b(body, (.52,.39,.13), (0,.08,.31), "steel", bevel=.06)
-    s.b(body, (.035,.32,.023), (0,.08,.385), "edge", bevel=.006)
+    if advanced:
+        veteran.cuirass(s, body, heavy=True)
+    else:
+        s.b(body, (.56,.40,.14), (0,.08,-.31), "steel", bevel=.07)
+        s.b(body, (.035,.35,.022), (0,.08,-.391), "edge", bevel=.007)
+        s.b(body, (.52,.39,.13), (0,.08,.31), "steel", bevel=.06)
+        s.b(body, (.035,.32,.023), (0,.08,.385), "edge", bevel=.006)
     for sign in (-1,1):
         s.b(body, (.095,.32,.44), (sign*.28,.055,0), "darksteel", bevel=.025)
-        s.b(body, (.11,.045,.60), (sign*.19,.28,0), "leather", bevel=.012)
-        for i in range(3):
-            s.b(body, (.245,.075,.115), (sign*.145,-.23-i*.06,-.235), "steel", rot=(0,0,-sign*.06), bevel=.015)
+        if not advanced:
+            s.b(body, (.11,.045,.60), (sign*.19,.28,0), "leather", bevel=.012)
+            for i in range(3):
+                s.b(body, (.245,.075,.115), (sign*.145,-.23-i*.06,-.235), "steel", rot=(0,0,-sign*.06), bevel=.015)
         s.b(body, (.19,.28,.08), (sign*.17,-.30,.20), "blue", bevel=.02)
         s.b(body, (.19,.025,.09), (sign*.17,-.43,.20), "gold", bevel=.004)
     s.b(body, (.57,.105,.055), (0,-.15,-.305), "leather", bevel=.012)
@@ -456,31 +491,41 @@ def shield_guard():
     s.e(head, (.041,.059,.049), (0,-.009,-.286), "skin")
     s.b(head, (.065,.017,.018), (0,-.105,-.270), "leather", bevel=.003)
     s.b(head, (.039,.195,.033), (0,.012,-.329), "edge", bevel=.008)
+    if advanced:
+        veteran.helmet_fittings(s, head, heavy=True)
     for part, sign in ((left,-1),(right,1)):
-        s.e(part, (.24,.18,.25), (sign*.025,.008,0), "steel")
-        s.b(part, (.32,.034,.34), (sign*.03,.006,-.035), "edge", rot=(0,0,sign*.12), bevel=.02)
+        if advanced:
+            veteran.pauldron(s, part, sign, heavy=True)
+        else:
+            s.e(part, (.24,.18,.25), (sign*.025,.008,0), "steel")
+            s.b(part, (.32,.034,.34), (sign*.03,.006,-.035), "edge", rot=(0,0,sign*.12), bevel=.02)
         elbow = (-.075,-.275,-.06) if sign < 0 else (.105,-.27,-.055)
         wrist = (.035,-.345,-.315) if sign < 0 else (.20,-.415,-.355)
         hand = (.05,-.36,-.36) if sign < 0 else (.215,-.455,-.405)
         s.r(part, (sign*.035,-.075,0), elbow, .11, "blue", 8)
         s.e(part, (.118,.10,.115), elbow, "darksteel")
         s.r(part, elbow, wrist, .103, "steel", 8)
+        if advanced:
+            veteran.bracer(s, part, elbow, wrist)
         s.b(part, (.18,.075,.16), wrist, "edge", bevel=.025)
         s.e(part, (.095,.092,.10), hand, "darksteel")
     # The board is centered ahead of the left breast, leaving the sword lane free.
     center = (.055,-.31,-.56)
     outline = [(-.41,.51),(-.30,.63),(.30,.63),(.41,.51),(.39,-.47),(.26,-.61),(-.26,-.61),(-.39,-.47)]
-    s.add(left, polygon(outline,.12,center), "darksteel")
-    s.add(left, polygon([(x*.88,y*.93) for x,y in outline],.018,(center[0],center[1],-.488)), "wood")
-    s.add(left, polygon([(x*.86,y*.91) for x,y in outline],.025,(center[0],center[1],-.636)), "blue")
-    # Broad forged edging, restrained heraldry, visible back braces and grip.
-    for a,b in zip(outline, outline[1:]+outline[:1]):
-        s.r(left, (center[0]+a[0],center[1]+a[1],-.622), (center[0]+b[0],center[1]+b[1],-.622), .022, "edge", 6)
-    s.b(left, (.058,.97,.028), (center[0],center[1],-.666), "gold", bevel=.007)
-    s.b(left, (.48,.055,.029), (center[0],center[1]+.23,-.667), "gold", bevel=.007)
-    s.e(left, (.075,.075,.030), (center[0],center[1]+.23,-.693), "goldlight")
-    for x,y in outline:
-        s.r(left, (center[0]+x*.91,center[1]+y*.94,-.637), (center[0]+x*.91,center[1]+y*.94,-.654), .018, "gold", 6)
+    if advanced:
+        veteran.guard_shield(s, left, outline, center)
+    else:
+        s.add(left, polygon(outline,.12,center), "darksteel")
+        s.add(left, polygon([(x*.88,y*.93) for x,y in outline],.018,(center[0],center[1],-.488)), "wood")
+        s.add(left, polygon([(x*.86,y*.91) for x,y in outline],.025,(center[0],center[1],-.636)), "blue")
+        # Broad forged edging, restrained heraldry, visible back braces and grip.
+        for a,b in zip(outline, outline[1:]+outline[:1]):
+            s.r(left, (center[0]+a[0],center[1]+a[1],-.622), (center[0]+b[0],center[1]+b[1],-.622), .022, "edge", 6)
+        s.b(left, (.058,.97,.028), (center[0],center[1],-.666), "gold", bevel=.007)
+        s.b(left, (.48,.055,.029), (center[0],center[1]+.23,-.667), "gold", bevel=.007)
+        s.e(left, (.075,.075,.030), (center[0],center[1]+.23,-.693), "goldlight")
+        for x,y in outline:
+            s.r(left, (center[0]+x*.91,center[1]+y*.94,-.637), (center[0]+x*.91,center[1]+y*.94,-.654), .018, "gold", 6)
     for yy in (-.58,-.10):
         s.b(left, (.59,.065,.043), (center[0],yy,-.458), "leather", bevel=.009)
     s.r(left, (-.025,-.36,-.435), (-.025,-.36,-.35), .024, "steel", 6)
@@ -490,12 +535,17 @@ def shield_guard():
         s.r(part, (0,.01,0), (0,-.29,.02), .123, "darksteel", 8)
         s.e(part, (.132,.114,.12), (0,-.28,-.03), "steel")
         s.b(part, (.205,.27,.17), (0,-.44,-.018), "steel", bevel=.04)
-        s.b(part, (.035,.23,.022), (0,-.44,-.113), "edge", bevel=.005)
+        if not advanced:
+            s.b(part, (.035,.23,.022), (0,-.44,-.113), "edge", bevel=.005)
         s.b(part, (.225,.17,.34), (0,-.65,-.075), "leather", bevel=.044)
         s.b(part, (.235,.045,.35), (0,-.714,-.07), "black", bevel=.012)
         s.b(part, (.218,.038,.19), (0,-.535,-.025), "edge", bevel=.008)
+        if advanced:
+            veteran.greave(s, part, heavy=True)
     blade = s.joint("Sword", (.215,-.425,-.405), parent=right)
     sword(s, blade, (0,0,0), length=.63)
+    if advanced:
+        veteran.sword_fittings(s, blade)
     s.b(body, (.09,.47,.09), (.30,-.25,.15), "leather", rot=(0,0,.13), bevel=.018)
     waist = s.pivot("Waist", (0,1.05,0))
     for part in (body,head,left,right):
@@ -1218,7 +1268,7 @@ def attack_tracks(s):
     def pos(part,offsets,times):
         base=np.zeros(3) if part=="Action" else np.array(s.joints[part])
         tracks.append((prop(part,"position"),[tuple(base+np.array(o)) for o in offsets],times))
-    if s.name=="light_cavalry":
+    if s.kind=="light_cavalry":
         t=[0,.07,.145,.18,.20,.25,.40,.62,.85]
         rot("Waist",[(0,y,0) for y in [0,.06,.14,.12,-.12,-.18,-.08,.015,0]],t)
         rot("ArmRight",[(x,0,z) for x,z in [(0,0),(.15,-.10),(.31,-.20),(.32,-.18),(.80,-.07),(.88,.03),(.46,.03),(.08,0),(0,0)]],t)
@@ -1226,7 +1276,7 @@ def attack_tracks(s):
         rot("Head",[(0,y,0) for y in [0,-.03,-.07,-.06,.10,.12,.035,0,0]],t)
         rot("HorseHead",[(x,0,0) for x in [0,-.007,-.012,0,.025,.03,-.01,0,0]],t)
         return .85,tracks
-    if s.name=="war_elephant":
+    if s.kind=="war_elephant":
         t=[0,.16,.34,.48,.55,.66,.90,1.23,1.55]
         rot("HeadMotion",[(x,0,0) for x in [0,-.055,-.12,-.08,.22,.27,.10,-.025,0]],t)
         rot("BodyMotion",[(x,0,0) for x in [0,-.006,-.015,-.012,.018,.026,.008,-.004,0]],t)
@@ -1237,7 +1287,7 @@ def attack_tracks(s):
         pos("LegFrontRight",[(0,y,z) for y,z in [(0,0),(.035,-.015),(.17,-.065),(.09,-.10),(0,-.12),(0,-.12),(.015,-.055),(0,0),(0,0)]],t)
         rot("Rider",[(x,0,0) for x in [0,.025,.06,.04,-.06,-.075,-.015,.012,0]],t)
         return 1.55,tracks
-    if s.name=="shield_guard":
+    if s.kind=="shield_guard":
         t=[0,.10,.22,.30,.37,.52,.72,.96]
         rot("Waist",[(0,0,0),(.015,.045,0),(.025,.08,0),(-.035,-.07,0),(-.04,-.09,0),(-.02,-.04,0),(0,.01,0),(0,0,0)],t)
         rot("ArmRight",[(0,0,0),(.10,.015,-.045),(.20,.03,-.07),(.72,-.02,-.035),(.79,-.03,-.04),(.48,0,-.03),(.13,0,0),(0,0,0)],t)
@@ -1246,7 +1296,7 @@ def attack_tracks(s):
         rot("Head",[(0,y,0) for y in [0,-.02,-.05,.055,.06,.025,0,0]],t)
         pos("Action",[(0,y,z) for y,z in [(0,0),(-.006,.012),(-.01,.025),(-.015,-.09),(-.016,-.105),(-.008,-.04),(0,0),(0,0)]],t)
         return .96,tracks
-    if s.name=="spearman":
+    if s.kind=="spearman":
         # Lower the wrist-held shaft, drive its point straight forward, then recover.
         # Every pose returns to rest; the weapon pivot remains inside the gauntlet.
         t=[0,.08,.16,.22,.29,.43,.65,.88]
@@ -1257,7 +1307,7 @@ def attack_tracks(s):
         rot("Head",[(0,y,0) for y in [0,-.035,-.07,.08,.09,.035,0,0]],t)
         pos("Action",[(0,y,z) for y,z in [(0,0),(0,.035),(-.01,.06),(-.025,-.17),(-.03,-.20),(-.01,-.07),(0,0),(0,0)]],t)
         return .88,tracks
-    if s.name=="swordsman":
+    if s.kind=="swordsman":
         t=[0,.075,.15,.195,.22,.26,.35,.51,.69,.86]
         rot("Waist",[(0,0,0),(.02,.08,-.02),(.03,.16,-.04),(.02,.14,-.035),(-.06,-.10,.015),(-.075,-.16,.025),(-.035,-.10,.015),(.005,-.04,0),(0,.01,0),(0,0,0)],t)
         rot("ArmRight",[(0,0,0),(.20,0,-.18),(.42,.04,-.30),(.46,.03,-.28),(.95,0,-.12),(.98,-.06,-.10),(.78,-.08,-.10),(.48,-.03,-.08),(.14,0,-.03),(0,0,0)],t)
@@ -1268,7 +1318,7 @@ def attack_tracks(s):
         pos("LegLeft",[(0,0,0),(-.02,.02,-.02),(-.025,.045,-.075),(-.025,.018,-.13),(-.025,0,-.15),(-.025,0,-.15),(-.02,0,-.13),(-.012,.025,-.07),(0,.01,-.015),(0,0,0)],t)
         pos("LegRight",[(0,0,0),(.02,0,.03),(.025,0,.065),(.025,0,.065),(.03,0,.085),(.03,0,.085),(.02,0,.055),(.01,0,.02),(0,0,0),(0,0,0)],t)
         return .86,tracks
-    if s.name=="knight":
+    if s.kind=="knight":
         t=[0,.06,.13,.178,.20,.235,.33,.49,.71,.94]
         rot("Waist",[(0,0,0),(.015,.18,-.035),(.025,.42,-.08),(.02,.37,-.07),(-.11,-.42,.055),(-.12,-.59,.075),(-.045,-.34,.04),(.02,-.1,0),(0,.02,0),(0,0,0)],t)
         rot("ArmRight",[(0,0,0),(.48,-.18,-.38),(1.18,-.48,-.90),(1.12,-.45,-.87),(-1.32,.25,.43),(-1.49,.45,.63),(-.75,.25,.36),(-.14,.04,.08),(.035,0,0),(0,0,0)],t)
@@ -1281,7 +1331,7 @@ def attack_tracks(s):
         rot("HorseHead",[(0,0,0),(-.015,0,0),(-.065,-.015,0),(-.04,-.01,0),(.16,.025,0),(.115,.02,0),(-.065,-.015,0),(.025,0,0),(-.005,0,0),(0,0,0)],t)
         pos("Waist",[(0,0,0),(0,-.008,.01),(0,-.025,.025),(0,-.01,.015),(0,.018,-.045),(0,-.005,-.03),(0,-.024,.005),(0,.008,0),(0,0,0),(0,0,0)],t)
         return .94,tracks
-    if s.name=="archer":
+    if s.kind=="archer":
         t=[0,.075,.135,.205,.26,.27,.295,.35,.50,.72,.90,1.10]
         left=[(0,0,0),(.82,-.32,0),(1.60,-.65,0),(1.60,-.65,0),(1.60,-.65,0),(1.60,-.65,0),(1.58,-.65,0),(1.50,-.61,0),(.95,-.40,0),(.25,-.10,0),(0,0,0),(0,0,0)]
         draw=[.14,.17,.29,.46,.46,.14,.205,.14,.14,.14,.14,.14]
@@ -1309,7 +1359,7 @@ def attack_tracks(s):
         pos("Action",[(0,0,0),(0,-.018,.015),(0,-.025,.025),(0,-.015,.04),(0,-.015,.04),(0,0,.018),(0,.005,.006),(0,-.008,0),(0,-.012,0),(0,0,0),(0,0,0),(0,0,0)],t)
         pos("LegLeft",[(0,0,0),(-.025,0,-.03),(-.04,0,-.045),(-.04,0,-.045),(-.04,0,-.045),(-.04,0,-.045),(-.04,0,-.04),(-.03,0,-.035),(-.015,0,-.02),(0,0,0),(0,0,0),(0,0,0)],t)
         return 1.10,tracks
-    if s.name=="catapult":
+    if s.kind=="catapult":
         t=[0,.18,.32,.44,.48,.53,.61,.70,.86,1.08,1.34,1.53,1.72]
         rot("ThrowArm",[(x,0,0) for x in [0,.10,.22,.25,-1.60,-1.82,-1.56,-1.73,-1.54,-.92,-.20,.025,0]],t)
         pos("Action",[(0,0,0),(0,-.003,0),(0,-.008,-.006),(0,-.012,-.012),(0,.023,.015),(0,.012,.09),(0,-.012,.065),(0,.006,.028),(0,-.003,.008),(0,0,0),(0,0,0),(0,0,0),(0,0,0)],t)
@@ -1329,37 +1379,38 @@ def attack_tracks(s):
 
 
 def write_scene(s):
-    if s.name in ("musketeer", "musketeer_advanced"):
+    if s.kind in ("musketeer", "musketeer_advanced"):
         from unit_musketeer import write_musketeer_scene
         write_musketeer_scene(s)
         return
-    if s.name == "crossbowman":
+    if s.kind == "crossbowman":
         from unit_crossbowman import write_crossbowman_scene
         write_crossbowman_scene(s)
         return
-    if s.name == "triple_cannon":
+    if s.kind == "triple_cannon":
         from unit_triple_cannon import write_triple_cannon_scene
         write_triple_cannon_scene(s)
         return
-    if s.name == "heavy_cannon":
+    if s.kind == "heavy_cannon":
         from unit_heavy_cannon import write_heavy_cannon_scene
         write_heavy_cannon_scene(s)
         return
-    if s.name == "priest":
+    if s.kind == "priest":
         from unit_priest import write_priest_scene
         write_priest_scene(s)
         return
-    if s.name == "engineer":
+    if s.kind == "engineer":
         from unit_engineer import write_engineer_scene
         write_engineer_scene(s)
         return
-    if s.name=="farmer":
+    if s.kind=="farmer":
         write_farmer_scene(s)
         return
-    if s.name in ("catapult","cannon"):
+    if s.kind in ("catapult","cannon"):
         for part in [p for p in s.parts if p.startswith("Wheel")]:
             kick=s.pivot(part+"Kick",s.joints[part])
             s.reparent(part,kick)
+    grade_property = f'\ngrade = &"{s.grade}"' if s.grade else ""
     parts=list(s.parts)
     lines=[f'[gd_scene load_steps={len(parts)+7} format=3]',
            '[ext_resource type="Script" path="res://scripts/unit_visual.gd" id="1_script"]']
@@ -1367,15 +1418,15 @@ def write_scene(s):
         lines.append(f'[ext_resource type="ArrayMesh" path="res://assets/models/units/{s.name}/{p}.res" id="{i+2}_{p}"]')
     walk=[]
     idle=[]
-    if s.name in ("swordsman","spearman","archer","shield_guard"):
+    if s.kind in ("swordsman","spearman","archer","shield_guard"):
         for p,sign in (("LegLeft",1),("LegRight",-1)):
-            amplitude = .48 if s.name == "shield_guard" else .56
+            amplitude = .48 if s.kind == "shield_guard" else .56
             walk.append((f"Rig/{p}:rotation",[(sign*a,0,0) for a in (0,amplitude,0,-amplitude,0)]))
             idle.append((f"Rig/{p}:rotation",[(0,0,0),(0,0,0)]))
-        rise = .032 if s.name == "shield_guard" else .042
+        rise = .032 if s.kind == "shield_guard" else .042
         walk.append(("Rig:position",[(0,y,0) for y in (0,rise,0,rise,0)]))
         idle.append(("Rig:position",[(0,0,0),(0,.014,0),(0,0,0)]))
-    elif s.name=="war_elephant":
+    elif s.kind=="war_elephant":
         cycle=1.24
         times=[cycle*i/16 for i in range(17)]
         for p,phase in (("LegFrontLeft",0), ("LegRearLeft",.24),
@@ -1407,7 +1458,7 @@ def write_scene(s):
                 tracks.append((f"Rig/{part}:rotation",[(0,sign*y,0) for y in (0,.07,0,-.04,0)]))
             tracks.append(("Rig/TrunkSwing:rotation",[(x,0,z) for x,z in [(0,0),(.025,.028),(0,0),(-.02,-.025),(0,0)]]))
             tracks.append(("Rig/Tail:rotation",[(0,0,z) for z in (0,.10,0,-.08,0)]))
-    elif s.name=="light_cavalry":
+    elif s.kind=="light_cavalry":
         cycle=.48
         # Diagonal pairs alternate. Stance travel = speed * planted time;
         # knees fold on the forward recovery and hooves stay level at contact.
@@ -1441,7 +1492,7 @@ def write_scene(s):
             idle.append((f"Rig/{p}:position",[rest,rest]))
         walk.append(("Rig/BodyMotion:position",[(0,y,0) for y in (0,.032,0,.032,0)]))
         idle.append(("Rig/BodyMotion:position",[(0,0,0),(0,.012,0),(0,0,0)]))
-    elif s.name=="knight":
+    elif s.kind=="knight":
         for p,sign in (("LegFrontLeft",1),("LegFrontRight",-1),("LegRearLeft",-1),("LegRearRight",1)):
             walk.append((f"Rig/{p}:rotation",[(sign*a,0,0) for a in (0,.53,0,-.53,0)]))
             idle.append((f"Rig/{p}:rotation",[(0,0,0),(0,0,0)]))
@@ -1461,14 +1512,14 @@ def write_scene(s):
     walk=[remap(track) for track in walk]
     idle=[remap(track) for track in idle]
     duration,strike=attack_tracks(s)
-    socket_parent=s.part_path("Bow") if s.name=="archer" else s.part_path("ThrowArm") if s.name=="catapult" else s.part_path("Barrel") if s.name=="cannon" else "Rig/Action"
-    socket_position=(0,0,-.83) if s.name=="archer" else (0,.91,.89) if s.name=="catapult" else (0,-.10,-1.25) if s.name=="cannon" else (0,1.4,-.6)
-    walk_duration = .48 if s.name=="light_cavalry" else 1.24 if s.name=="war_elephant" else .60 if s.name=="knight" else .72
+    socket_parent=s.part_path("Bow") if s.kind=="archer" else s.part_path("ThrowArm") if s.kind=="catapult" else s.part_path("Barrel") if s.kind=="cannon" else "Rig/Action"
+    socket_position=(0,0,-.83) if s.kind=="archer" else (0,.91,.89) if s.kind=="catapult" else (0,-.10,-1.25) if s.kind=="cannon" else (0,1.4,-.6)
+    walk_duration = .48 if s.kind=="light_cavalry" else 1.24 if s.kind=="war_elephant" else .60 if s.kind=="knight" else .72
     lines += [anim_resource("walk",walk_duration,walk,True),
               anim_resource("idle",2.6,idle,True),anim_resource("strike",duration,strike),
               '[sub_resource type="AnimationLibrary" id="AnimationLibrary_locomotion"]\n_data = {&"idle": SubResource("Animation_idle"), &"walk": SubResource("Animation_walk")}',
               '[sub_resource type="AnimationLibrary" id="AnimationLibrary_attack"]\n_data = {&"strike": SubResource("Animation_strike")}',
-              f'[node name="{s.name.title()}" type="Node3D"]\nscript = ExtResource("1_script")\nkind = "{s.name}"\nprojectile_socket = NodePath("{socket_parent}/ProjectileSocket")',
+              f'[node name="{s.name.title()}" type="Node3D"]\nscript = ExtResource("1_script")\nkind = "{s.kind}"{grade_property}\nprojectile_socket = NodePath("{socket_parent}/ProjectileSocket")',
               '[node name="Rig" type="Node3D" parent="."]',
               '[node name="Action" type="Node3D" parent="Rig"]']
     emitted=set()
@@ -1485,9 +1536,9 @@ def write_scene(s):
             if p.startswith("String"):
                 tip_y=.57 if p=="StringUpper" else -.57
                 extra=f'\nrotation = {vec((math.atan2(-.02,tip_y),0,0))}\nscale = {vec((1,math.hypot(tip_y,.02),1))}'
-            if s.name in ("swordsman","shield_guard") and p == "Sword":
-                extra = f'\nrotation = {vec((0,0,-.16 if s.name == "shield_guard" else -.28))}'
-            if s.name == "spearman" and p == "Spear":
+            if s.kind in ("swordsman","shield_guard") and p == "Sword":
+                extra = f'\nrotation = {vec((0,0,-.16 if s.kind == "shield_guard" else -.28))}'
+            if s.kind == "spearman" and p == "Spear":
                 extra = f'\nrotation = {vec((-.30,0,0))}'
             lines.append(f'[node name="{p}" type="MeshInstance3D" parent="{parent}"]\nposition = {vec(s.joints[p])}\nmesh = ExtResource("{i+2}_{p}"){extra}')
         emitted.add(p)
@@ -1518,6 +1569,10 @@ if __name__=="__main__":
     # Sandbox grades are opt-in; never enter a default rebuild of the roster.
     if "musketeer_advanced" in args.kinds:
         builders["musketeer_advanced"] = lambda: build_musketeer(advanced=True)
+    if "swordsman_advanced" in args.kinds:
+        builders["swordsman_advanced"] = lambda: infantry("swordsman", advanced=True)
+    if "shield_guard_advanced" in args.kinds:
+        builders["shield_guard_advanced"] = lambda: shield_guard(advanced=True)
     for kind in args.kinds or builders:
         if kind not in builders:
             parser.error(f"Unknown unit: {kind}")

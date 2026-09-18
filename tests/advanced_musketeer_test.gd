@@ -20,7 +20,7 @@ func _run() -> void:
 	var variant: UnitVariantDefinition = UnitVariantCatalog.ADVANCED["musketeer"]
 	var base := BalanceCatalog.unit("musketeer")
 	var advanced := variant.definition()
-	check(UnitVariantCatalog.ADVANCED.size() == 1 and not BalanceCatalog.UNITS.has("musketeer_advanced"), "Only current accepted-stage sample is registered, outside recruitment roster")
+	check(UnitVariantCatalog.ADVANCED.has("musketeer") and not BalanceCatalog.UNITS.has("musketeer_advanced"), "Advanced musketeer remains registered outside recruitment roster")
 	check(base.hp == 75 and base.damage == 22 and base.ranged_armor == 1 and base.armor_penetration == 3, "Normal resource unchanged")
 	check(advanced.hp == 90 and advanced.damage == 27 and advanced.melee_armor == 0 and advanced.ranged_armor == 1 and advanced.armor_penetration == 3, "Authored integer advanced combat values")
 	check(variant.definition() == advanced and advanced != base, "Grade definition is cached independently of the normal resource")

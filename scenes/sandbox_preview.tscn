@@ -23,6 +23,8 @@
 [ext_resource type="PackedScene" path="res://assets/models/units/priest.tscn" id="priest"]
 
 [ext_resource type="PackedScene" path="res://assets/models/units/musketeer_advanced.tscn" id="advanced"]
+[ext_resource type="PackedScene" path="res://assets/models/units/swordsman_advanced.tscn" id="swordsman_advanced"]
+[ext_resource type="PackedScene" path="res://assets/models/units/shield_guard_advanced.tscn" id="shield_guard_advanced"]
 
 [node name="PlacementPreview" type="Node3D"]
 physics_interpolation_mode = 2
@@ -79,4 +81,10 @@ visible = false
 visible = false
 
 [node name="musketeer_advanced" parent="Models" instance=ExtResource("advanced")]
+visible = false
+
+[node name="swordsman_advanced" parent="Models" instance=ExtResource("swordsman_advanced")]
+visible = false
+
+[node name="shield_guard_advanced" parent="Models" instance=ExtResource("shield_guard_advanced")]
 visible = false

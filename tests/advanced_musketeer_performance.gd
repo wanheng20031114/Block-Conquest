@@ -1,6 +1,7 @@
 extends SceneTree
 ## Short, fixed-camera 500-unit presentation comparison, not a full battle benchmark.
 const OUT := "res://.local/advanced-units/performance.json"
+var families := PackedStringArray(["musketeer"])
 var game: Node3D
 var phases: Array[Dictionary] = []
 func _initialize() -> void:
@@ -18,8 +19,9 @@ func measure(advanced: bool, label: String) -> void:
 	await physics_frame
 	for index: int in 500:
 		var at := Vector3((index%25-12)*1.7,0,(index/25-10)*1.7)
-		if advanced: game.spawn_variant("musketeer",0,at)
-		else: game.spawn_unit("musketeer",0,at)
+		var kind := families[index % families.size()]
+		if advanced: game.spawn_variant(kind,0,at)
+		else: game.spawn_unit(kind,0,at)
 	game.set_running(true)
 	await create_timer(1.5).timeout
 	var frames: Array[float] = []
@@ -39,6 +41,9 @@ func measure(advanced: bool, label: String) -> void:
 	print("ADVANCED_PERFORMANCE ",JSON.stringify(phase))
 func _run() -> void:
 	create_timer(90,true,false,true).timeout.connect(func():quit(3))
+	var args := OS.get_cmdline_user_args()
+	if not args.is_empty(): families = args
+	for kind: String in families: assert(UnitVariantCatalog.ADVANCED.has(kind))
 	assert(DisplayServer.get_name() != "headless")
 	root.size = Vector2i(1600,900)
 	AudioServer.set_bus_mute(0,true)
@@ -63,7 +68,8 @@ func _run() -> void:
 	await physics_frame
 	await physics_frame
 	assert(game.get_node("VariantRenderBatches").registered_models == 0)
-	FileAccess.open(OUT,FileAccess.WRITE).store_string(JSON.stringify({"phases":phases,"renderer":RenderingServer.get_current_rendering_method(),"gpu":RenderingServer.get_video_adapter_name(),"limitations":"Single short idle-army presentation comparison in the modified sandbox. Not a before/after code baseline, active-combat benchmark, or statistical guarantee; editor remains open."},"\t"))
+	var output := OUT if args.is_empty() else "res://.local/advanced-units/performance-" + "-".join(families) + ".json"
+	FileAccess.open(output,FileAccess.WRITE).store_string(JSON.stringify({"families":families,"phases":phases,"renderer":RenderingServer.get_current_rendering_method(),"gpu":RenderingServer.get_video_adapter_name(),"limitations":"Single short idle-army presentation comparison in the modified sandbox. Not a before/after code baseline, active-combat benchmark, or statistical guarantee."},"\t"))
 	await game.prepare_shutdown()
 	game.queue_free()
 	await process_frame
