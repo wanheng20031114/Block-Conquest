@@ -1,6 +1,6 @@
 # 高级战斗单位完整设计报告（整数版）
 
-数值版本：`integer-v1`，2026-09-18。**全套整数数值及此前五种高级单位已获认可，长矛兵与弓箭手的帽子衔接修正已通过。本批高级弩手、高级骑士已完成建模和试装，等待验收。每批制作两个，确认后才开始下一批。** 本批记录见[高级弩手与高级骑士验收](advanced-crossbow-knight-batch.md)。
+数值版本：`integer-v1`，2026-09-18。**全套整数数值与前七种高级单位已获认可。本批高级轻骑兵、高级战象已完成建模和试装，等待验收；九种高级战斗单位均已接入沙盘和图鉴。** 本批记录见[高级轻骑兵与高级战象验收](advanced-light-elephant-batch.md)。
 
 ## 一、范围与设计目标
 
@@ -349,9 +349,9 @@
 
 - `scripts/data/unit_variant_definition.gd`：从统一浮点倍率改为明确的整数属性和整数附伤；仍缓存普通定义的独立副本，不修改普通兵种资源。
 - `data/sandbox/unit_variants/musketeer_advanced.tres`：90生命、27攻击、0／1护甲、3穿甲；其余定位参数继承普通火枪手。
-- 高级目录已注册火枪手、剑士、盾卫、长矛兵、弓箭手、弩手和骑士。本批弩手为70生命、11攻击、0／2护甲、3穿甲；骑士为145生命、11攻击、2／8护甲，对远程步兵+3、攻城器+13。轻骑兵和战象仍只用于离线设计分析，没有高级模型、可放置入口或隐藏招募入口。
+- 高级目录已注册全部九种战斗单位。本批轻骑兵为105生命、8攻击、1／4护甲、对远程步兵＋3；战象为435生命、39单体近战攻击、2／3护甲。均有原生模型、批量渲染模型、沙盘放置与原图鉴页面切换，没有隐藏招募入口。
 - 已认可的高级火枪手模型与动画保持原样；原版单位数值、地图和用户其他未提交修改均保留。
-- 用户删除的旧 `report/` 文件已在此前任务提交清理；新报告不恢复已删除的早期截图、大型测试输出或临时日志。本批必要展示图只留在被忽略的 `.local/advanced-units/crossbowman-knight/`；已通过批次的临时截图已清理。
+- 用户删除的旧 `report/` 文件已在此前任务提交清理；新报告不恢复已删除的早期截图、大型测试输出或临时日志。本批必要展示图只留在被忽略的 `.local/advanced-units/light_cavalry-war_elephant/`；已通过批次的临时截图已清理。
 
 编辑入口：
 
@@ -364,14 +364,17 @@
 | 高级弓箭手可编辑场景 | `assets/models/units/archer_advanced.tscn` |
 | 高级弩手可编辑场景 | `assets/models/units/crossbowman_advanced.tscn` |
 | 高级骑士可编辑场景 | `assets/models/units/knight_advanced.tscn` |
+| 高级轻骑兵可编辑场景 | `assets/models/units/light_cavalry_advanced.tscn` |
+| 高级战象可编辑场景 | `assets/models/units/war_elephant_advanced.tscn` |
 | 分件网格 | `assets/models/units/musketeer_advanced/` |
 | 批量渲染场景 | `assets/models/units/batched/musketeer_advanced.tscn` |
 | 模型构造函数 | `tools/unit_musketeer.py` 中 `build_musketeer(advanced=True)` |
 | 当前试装数值 | `data/sandbox/unit_variants/musketeer_advanced.tres` |
 | 已通过的剑士与盾卫构造 | `tools/build_units.py` 与 `tools/unit_advanced_infantry.py` |
 | 已通过的长矛兵与弓箭手构造 | `tools/build_units.py` 与 `tools/unit_advanced_spear_archer.py` |
-| 当前弩手与骑士构造 | `tools/build_units.py`、`tools/unit_crossbowman.py` 与 `tools/unit_advanced_crossbow_knight.py` |
-| 当前两种单位试装数值 | `data/sandbox/unit_variants/crossbowman_advanced.tres`、`knight_advanced.tres` |
+| 已通过的弩手与骑士构造 | `tools/build_units.py`、`tools/unit_crossbowman.py` 与 `tools/unit_advanced_crossbow_knight.py` |
+| 当前轻骑兵与战象构造 | `tools/build_units.py`、`tools/unit_advanced_cavalry.py` |
+| 当前两种单位试装数值 | `data/sandbox/unit_variants/light_cavalry_advanced.tres`、`war_elephant_advanced.tres` |
 | 全兵种设计数据 | `docs/balance/advanced-units-design.json` |
 | 真实伤害导出器 | `tools/export_advanced_unit_balance.gd` |
 | 报告数值表生成器 | `tools/generate_advanced_unit_report.py` |
@@ -396,6 +399,6 @@ python tools/generate_advanced_unit_report.py .local/advanced-units/integer-bala
 | 图鉴真实渲染 | 整数属性显示复核，使用实际Godot渲染画面 |
 | 性能范围 | 本轮为资源数值与离线报告，无新节点、粒子、逐帧处理或寻敌流程；未重复500单位压力测试 |
 
-当前结论：**高级长矛兵＋高级弓箭手（含帽子衔接修正）已通过；高级弩手＋高级骑士等待用户验收；数值继续使用本报告，没有重新平衡。** 最后一批高级轻骑兵＋高级战象尚未制作，必须等当前批次明确通过后开始。本批独立验证记录见[高级弩手与高级骑士验收](advanced-crossbow-knight-batch.md)。
+当前结论：**前七种高级单位均已通过；最后一批高级轻骑兵＋高级战象等待用户验收；数值继续使用本报告，没有重新平衡。** 九种模型均已制作，皇家版本未开始。本批完成162项集成、96项步态、九种高级单位同场交战与500单位显示对照；具体结果见[高级轻骑兵与高级战象验收](advanced-light-elephant-batch.md)。
 
 正式引入可招募对局前，还需要单独设计等级获得方式、费用与训练节奏，并进行带移动、射程、集火、治疗和混合兵种的实战平衡测试。本报告提供可复查的数值与外观基线，不把算术矩阵当作胜率结论。

@@ -31,7 +31,7 @@ func _run() -> void:
 		families.assign(args)
 		output = "res://.local/advanced-units/" + "-".join(families) + "/"
 	for kind: String in families:
-		assert(kind in ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight"])
+		assert(kind in ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "light_cavalry", "war_elephant"])
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	root.size = Vector2i(1600, 900)
 	AudioServer.set_bus_mute(0, true)
@@ -53,7 +53,7 @@ func _run() -> void:
 		var triangles := 0
 		for mesh: MeshInstance3D in model.get_node("Rig").find_children("*", "MeshInstance3D", true, false):
 			triangles += mesh.mesh.get_faces().size() / 3
-		check(triangles <= (8000 if kind == "knight" else 6500), kind + " within triangle budget")
+		check(triangles <= (10000 if kind == "war_elephant" else 8000 if kind in ["knight", "light_cavalry"] else 6500), kind + " within triangle budget")
 		var viewport: SubViewport = codex.get_node("%CodexViewport")
 		for angle: int in [0, 45, 90, 180, 270]:
 			codex._anchor.rotation.y = deg_to_rad(angle)
@@ -71,6 +71,8 @@ func _run() -> void:
 		if kind == "archer": phases = [.1, .24, .27, .4, .6, .86, 1.1]
 		if kind == "spearman": phases = [.1, .16, .22, .43, .65, .88]
 		if kind == "crossbowman": phases = [.14, .20, .40, .55, .70, .82, .96]
+		if kind == "light_cavalry": phases = [.07, .145, .20, .25, .40, .62, .85]
+		if kind == "war_elephant": phases = [.16, .34, .55, .66, .90, 1.23, 1.55]
 		for phase: float in phases:
 			model.attack.seek(phase, true)
 			check_weapon_pose(model, kind, phase)
@@ -79,7 +81,11 @@ func _run() -> void:
 		codex._select_preview_action(1)
 		codex.set_process(false)
 		var previous := 0.0
-		for phase: float in ([.15, .30, .45, .60] if kind == "knight" else [.18, .36, .54, .72]):
+		var walk_phases: Array[float] = [.18, .36, .54, .72]
+		if kind == "knight": walk_phases = [.15, .30, .45, .60]
+		if kind == "light_cavalry": walk_phases = [.12, .24, .36, .48]
+		if kind == "war_elephant": walk_phases = [.31, .62, .93, 1.24]
+		for phase: float in walk_phases:
 			var elapsed := phase - previous
 			var steps := ceili(elapsed * 120)
 			for step: int in steps:
@@ -91,12 +97,13 @@ func _run() -> void:
 		codex.set_process(false)
 		codex._camera.position = Vector3(0, 6, -.2)
 		codex._camera.look_at(Vector3(0, 1, 0), Vector3.UP)
-		codex._camera.size = 4.0 if kind == "knight" else 3.0
+		codex._camera.size = 5.5 if kind == "war_elephant" else 4.0 if kind in ["knight", "light_cavalry"] else 3.0
 		codex._request_preview_redraw()
 		await capture(kind + "-top", viewport)
-		codex._camera.position = Vector3(0, 2.3 if kind == "knight" else 1.8, -6)
-		codex._camera.look_at(Vector3(0, 1.92 if kind == "knight" else 1.70, 0), Vector3.UP)
-		codex._camera.size = 2.0 if kind == "knight" else 1.3
+		var face_height: float = 2.65 if kind == "war_elephant" else 2.10 if kind in ["knight", "light_cavalry"] else 1.70
+		codex._camera.position = Vector3(0, face_height + .20, -6)
+		codex._camera.look_at(Vector3(0, face_height, 0), Vector3.UP)
+		codex._camera.size = 2.8 if kind == "war_elephant" else 2.0 if kind in ["knight", "light_cavalry"] else 1.3
 		codex._request_preview_redraw()
 		await capture(kind + "-face", viewport)
 	codex.queue_free()
@@ -127,11 +134,15 @@ func _run() -> void:
 		await process_frame
 		await process_frame
 		# Camera faces +Z: positive X is the left side of the displayed comparison.
-		var normal: BattleUnit = game.spawn_unit(kind, 0, Vector3(1.15, 0, 0))
-		var advanced: BattleUnit = game.spawn_variant(kind, 0, Vector3(-1.15, 0, 0))
+		var spacing := 1.60 if kind == "war_elephant" else 1.15
+		var normal: BattleUnit = game.spawn_unit(kind, 0, Vector3(spacing, 0, 0))
+		var advanced: BattleUnit = game.spawn_variant(kind, 0, Vector3(-spacing, 0, 0))
 		game.camera.position = Vector3(3.6, 3.6, -9)
-		game.camera.look_at(Vector3(0, 1.0, 0), Vector3.UP)
-		game.camera.size = 6.4 if kind == "knight" else 5.5
+		if kind == "war_elephant": game.camera.position = Vector3(4.3, 5.2, -10)
+		var focus_height := 1.6 if kind == "war_elephant" else 1.0
+		var comparison_size := 7.9 if kind == "war_elephant" else 6.4 if kind in ["knight", "light_cavalry"] else 5.5
+		game.camera.look_at(Vector3(0, focus_height, 0), Vector3.UP)
+		game.camera.size = comparison_size
 		await create_timer(.2).timeout
 		await capture(kind + "-comparison", root)
 		game.camera.size = 18
@@ -146,8 +157,8 @@ func _run() -> void:
 		game.hud.refresh()
 		await capture(kind + "-sandbox", root)
 		game.hud.hide()
-		game.camera.size = 6.4 if kind == "knight" else 5.5
-		game.camera.look_at(Vector3(0, 1, 0), Vector3.UP)
+		game.camera.size = comparison_size
+		game.camera.look_at(Vector3(0, focus_height, 0), Vector3.UP)
 		advanced.receive_damage(1000)
 		game.set_running(true)
 		await create_timer(.35).timeout
@@ -185,6 +196,12 @@ func check_weapon_pose(model: UnitVisual, kind: String, phase: float) -> void:
 			check(not model.find_child("Bolt").visible, "crossbow bolt releases at .20s")
 		if is_equal_approx(phase, .82):
 			check(model.find_child("Bolt").visible, "crossbow bolt reseated during reload")
+	elif kind == "light_cavalry":
+		check(model.find_child("Sword").position.is_equal_approx(Vector3(.09, -.42, -.22)), "light cavalry retains sword grip at " + str(phase))
+		check(model.find_child("HorseHead").get_parent().name == &"Body", "light cavalry retains horse head joint")
+	elif kind == "war_elephant":
+		check(model.find_child("Head").get_parent().name == &"HeadMotion", "elephant forehead and tusk sockets follow head at " + str(phase))
+		check(model.find_child("RiderHead").get_parent().name == &"Rider", "elephant rider hat follows original rider joint")
 	elif kind == "knight":
 		check(model.find_child("ArmRight").get_parent().name == &"Waist", "knight weapon and gauntlet share the arm at " + str(phase))
 		check(model.find_child("HorseHead").get_parent().name == &"Body", "knight horse armor follows the original head joint")

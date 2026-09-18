@@ -15,6 +15,10 @@
 
 [ext_resource type="PackedScene" path="res://assets/models/units/knight_advanced.tscn" id="knight_advanced_model"]
 
+[ext_resource type="PackedScene" path="res://assets/models/units/light_cavalry_advanced.tscn" id="light_cavalry_advanced_model"]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/war_elephant_advanced.tscn" id="war_elephant_advanced_model"]
+
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.42, 0.50, 0.61, 1)
 sky_horizon_color = Color(0.78, 0.74, 0.65, 1)
@@ -39,7 +43,7 @@ ssao_intensity = 1.3
 ssao_power = 1.3
 
 [node name="ModelPreviews" instance=ExtResource("base")]
-additional_portraits = PackedStringArray("musketeer_advanced", "swordsman_advanced", "shield_guard_advanced", "spearman_advanced", "archer_advanced", "crossbowman_advanced", "knight_advanced")
+additional_portraits = PackedStringArray("musketeer_advanced", "swordsman_advanced", "shield_guard_advanced", "spearman_advanced", "archer_advanced", "crossbowman_advanced", "knight_advanced", "light_cavalry_advanced", "war_elephant_advanced")
 
 [node name="musketeer_advanced" type="SubViewport" parent="."]
 transparent_bg = true
@@ -290,6 +294,78 @@ position = Vector3(0, 1.22, -0.05)
 position = Vector3(4, 3.2, -6)
 projection = 1
 size = 3.65
+near = 0.1
+far = 60.0
+current = true
+
+[node name="light_cavalry_advanced" type="SubViewport" parent="."]
+transparent_bg = true
+own_world_3d = true
+msaa_3d = 2
+gui_disable_input = true
+size = Vector2i(192, 216)
+render_target_update_mode = 1
+
+[node name="World" type="Node3D" parent="light_cavalry_advanced"]
+
+[node name="Model" parent="light_cavalry_advanced/World" instance=ExtResource("light_cavalry_advanced_model")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="light_cavalry_advanced/World"]
+environment = SubResource("PortraitEnvironment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="light_cavalry_advanced/World"]
+rotation_degrees = Vector3(-42, 145, 0)
+light_color = Color(1, 0.88, 0.70, 1)
+light_energy = 1.25
+
+[node name="RimLight" type="DirectionalLight3D" parent="light_cavalry_advanced/World"]
+rotation_degrees = Vector3(-22, -35, 0)
+light_color = Color(0.64, 0.76, 1, 1)
+light_energy = 0.48
+
+[node name="LookAt" type="Marker3D" parent="light_cavalry_advanced/World"]
+position = Vector3(0, 1.28, -0.15)
+
+[node name="Camera3D" type="Camera3D" parent="light_cavalry_advanced/World"]
+position = Vector3(4, 3.2, -6)
+projection = 1
+size = 3.3
+near = 0.1
+far = 60.0
+current = true
+
+[node name="war_elephant_advanced" type="SubViewport" parent="."]
+transparent_bg = true
+own_world_3d = true
+msaa_3d = 2
+gui_disable_input = true
+size = Vector2i(192, 216)
+render_target_update_mode = 1
+
+[node name="World" type="Node3D" parent="war_elephant_advanced"]
+
+[node name="Model" parent="war_elephant_advanced/World" instance=ExtResource("war_elephant_advanced_model")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="war_elephant_advanced/World"]
+environment = SubResource("PortraitEnvironment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="war_elephant_advanced/World"]
+rotation_degrees = Vector3(-42, 145, 0)
+light_color = Color(1, 0.88, 0.70, 1)
+light_energy = 1.25
+
+[node name="RimLight" type="DirectionalLight3D" parent="war_elephant_advanced/World"]
+rotation_degrees = Vector3(-22, -35, 0)
+light_color = Color(0.64, 0.76, 1, 1)
+light_energy = 0.48
+
+[node name="LookAt" type="Marker3D" parent="war_elephant_advanced/World"]
+position = Vector3(0, 1.8, -0.2)
+
+[node name="Camera3D" type="Camera3D" parent="war_elephant_advanced/World"]
+position = Vector3(4, 3.2, -6)
+projection = 1
+size = 4.9
 near = 0.1
 far = 60.0
 current = true

@@ -712,8 +712,10 @@ def horse_knight(advanced=False):
     return s
 
 
-def light_cavalry():
-    s=Sculpture("light_cavalry")
+def light_cavalry(advanced=False):
+    if advanced:
+        import unit_advanced_cavalry as veteran
+    s=Sculpture("light_cavalry_advanced" if advanced else "light_cavalry",kind="light_cavalry",grade="advanced" if advanced else "")
     b=s.joint("Body",(0,1.10,0))
     # Same horse proportions as the knight, with an exposed chest and flanks.
     s.e(b,(.43,.44,.77),(0,0,.06),"horse",sub=2)
@@ -753,6 +755,8 @@ def light_cavalry():
     s.b(b,(.61,.13,.53),(0,.42,.12),"leatherlight",bevel=.05)
     s.b(b,(.52,.14,.095),(0,.51,.36),"leather",bevel=.025)
     s.b(b,(.42,.10,.095),(0,.49,-.15),"leather",bevel=.025)
+    if advanced:
+        veteran.scout_saddle(s,b)
     # Articulated knees and level hooves: the saved curves plant each hoof
     # at ground height and move it backwards at the actual 6.8 travel speed.
     for i,(xx,zz) in enumerate(((-.29,-.49),(.29,-.49),(-.32,.57),(.32,.57))):
@@ -767,9 +771,12 @@ def light_cavalry():
         s.b(hoof,(.166,.022,.23),(0,-.052,-.030),"darksteel",bevel=.006)
     rider=s.joint("Rider",(0,1.75,.08))
     s.add(rider,lathe([(-.23,.27),(-.10,.235),(.20,.30),(.29,.23)],8),"blue")
-    s.b(rider,(.42,.32,.11),(0,.105,-.22),"steel",bevel=.055)
-    s.b(rider,(.43,.28,.085),(0,.11,.19),"leather",bevel=.042)
-    s.b(rider,(.047,.28,.018),(0,.11,-.282),"edge",bevel=.004)
+    if advanced:
+        veteran.scout_cuirass(s,rider)
+    else:
+        s.b(rider,(.42,.32,.11),(0,.105,-.22),"steel",bevel=.055)
+        s.b(rider,(.43,.28,.085),(0,.11,.19),"leather",bevel=.042)
+        s.b(rider,(.047,.28,.018),(0,.11,-.282),"edge",bevel=.004)
     s.b(rider,(.47,.085,.39),(0,-.105,0),"leather",bevel=.02)
     s.b(rider,(.09,.066,.027),(0,-.10,-.212),"gold")
     # Seated legs belong to the horse/saddle rigid part. Waist twists animate
@@ -783,8 +790,11 @@ def light_cavalry():
     s.e(head,(.235,.246,.217),(0,-.005,-.008),"skin")
     # Simple cloth cap: team colour reads from above, with a thin leather
     # brow band above the eyes. The light rider has no metal helmet or crest.
-    s.e(head,(.255,.125,.239),(0,.203,.014),"blue")
-    s.b(head,(.429,.034,.055),(0,.131,-.202),"leather",bevel=.011)
+    if advanced:
+        veteran.scout_cap(s,head)
+    else:
+        s.e(head,(.255,.125,.239),(0,.203,.014),"blue")
+        s.b(head,(.429,.034,.055),(0,.131,-.202),"leather",bevel=.011)
     for sign in (-1,1):
         s.e(head,(.050,.072,.057),(sign*.227,-.005,.0),"skin")
         s.b(head,(.039,.029,.024),(sign*.085,.049,-.210),"black",bevel=.004)
@@ -800,6 +810,8 @@ def light_cavalry():
         s.r(arm,(0,-.055,0),elbow,.089,"blue",8)
         s.r(arm,elbow,hand,.071,"leather",8)
         s.e(arm,(.077,.078,.079),hand,"skin")
+        if advanced:
+            veteran.scout_arm(s,arm,sign,elbow,hand)
     blade=s.joint("Sword",(.09,-.42,-.22),parent="ArmRight")
     sword(s,blade,(0,0,0),.60)
     # Head pieces were authored in horse-body coordinates; localize once.
@@ -827,13 +839,17 @@ def light_horse_leg_pose(z, lift, rear, hip_height=.99):
     return upper,lower,-upper-lower
 
 
-def war_elephant():
-    s = Sculpture("war_elephant")
+def war_elephant(advanced=False):
+    if advanced:
+        import unit_advanced_cavalry as veteran
+    s = Sculpture("war_elephant_advanced" if advanced else "war_elephant",kind="war_elephant",grade="advanced" if advanced else "")
     torso = s.pivot("BodyMotion", (0, 1.68, .12))
     body = s.joint("Body", parent=torso)
     s.e(body, (.87, .78, 1.19), (0, 0, 0), "elephant", sub=2)
     s.e(body, (.72, .63, .58), (0, -.03, .77), "elephant", sub=1)
     s.e(body, (.72, .78, .63), (0, .06, -.67), "elephant", sub=1)
+    if advanced:
+        chest_skin=tm.util.concatenate(s.parts[body]["PaintedMatte"])
     # Thick column feet. Separate Step pivots own gait; the leg meshes own
     # attack motion, so stomping never overwrites the locomotion tracks.
     for name, xx, zz in [("LegFrontLeft", -.56, -.65), ("LegFrontRight", .56, -.65),
@@ -872,17 +888,23 @@ def war_elephant():
         radii=[.108,.093,.067,.038,.003]
         for i in range(4):
             s.r(head,points[i],points[i+1],radii[i],"ivory",9,r2=radii[i+1])
-        s.add(head,ring(.113,.016,points[0],(.95,side*.1,0),n=10),"gold")
+        if advanced:
+            veteran.tusk_socket(s,head,points[0],points[1])
+        else:
+            s.add(head,ring(.113,.016,points[0],(.95,side*.1,0),n=10),"gold")
     # A close-fitting riveted plate needs no straight cylindrical straps
     # crossing the forehead. Those rods pierced the old brow domes.
-    plate_rotation=(.22,0,0)
-    plate_transform=matrix((0,.30,-.566),plate_rotation)
-    s.add(head,polygon([(-.19,.30),(.19,.30),(.245,.03),(0,-.21),(-.245,.03)],.055,(0,.30,-.566),plate_rotation),"steel")
-    emblem=tuple((plate_transform@np.array((0,.02,-.043,1)))[:3])
-    s.b(head,(.033,.29,.032),emblem,"gold",rot=plate_rotation,bevel=.007)
-    for x,y in [(-.13,.20),(.13,.20),(-.12,-.05),(.12,-.05)]:
-        at=tuple((plate_transform@np.array((x,y,-.031,1)))[:3])
-        s.e(head,(.020,.020,.011),at,"gold",rot=plate_rotation)
+    if advanced:
+        veteran.elephant_forehead(s,head)
+    else:
+        plate_rotation=(.22,0,0)
+        plate_transform=matrix((0,.30,-.566),plate_rotation)
+        s.add(head,polygon([(-.19,.30),(.19,.30),(.245,.03),(0,-.21),(-.245,.03)],.055,(0,.30,-.566),plate_rotation),"steel")
+        emblem=tuple((plate_transform@np.array((0,.02,-.043,1)))[:3])
+        s.b(head,(.033,.29,.032),emblem,"gold",rot=plate_rotation,bevel=.007)
+        for x,y in [(-.13,.20),(.13,.20),(-.12,-.05),(.12,-.05)]:
+            at=tuple((plate_transform@np.array((x,y,-.031,1)))[:3])
+            s.e(head,(.020,.020,.011),at,"gold",rot=plate_rotation)
     for side in (-1,1):
         ear=s.joint("EarLeft" if side<0 else "EarRight",(side*.46,.16,.18),parent=head_motion)
         # Rounded upper lobe and tapered lower edge; deliberately less wide
@@ -921,15 +943,23 @@ def war_elephant():
         s.b(body,(.095,.63,.11),(side*.755,.22,-.39),"leather",rot=(0,0,side*.18))
         s.b(body,(.12,.12,.14),(side*.82,.06,-.39),"gold")
     # Breast plate stays below the head and is attached to a broad belly strap.
-    s.add(body,polygon([(-.40,.22),(.40,.22),(.34,-.22),(0,-.34),(-.34,-.22)],.075,(0,-.04,-1.01)),"steel")
-    s.b(body,(.055,.35,.034),(0,-.03,-1.063),"edge",bevel=.009)
+    if advanced:
+        veteran.elephant_breastplate(s,body,chest_skin)
+    else:
+        s.add(body,polygon([(-.40,.22),(.40,.22),(.34,-.22),(0,-.34),(-.34,-.22)],.075,(0,-.04,-1.01)),"steel")
+        s.b(body,(.055,.35,.034),(0,-.03,-1.063),"edge",bevel=.009)
     s.b(body,(.90,.17,.73),(0,.81,.17),"leatherlight",bevel=.045)
     for z in (-.20,.56):
         s.b(body,(.88,.19,.105),(0,.90,z),"wooddark",bevel=.03)
-        s.b(body,(.91,.045,.12),(0,1.005,z),"gold",bevel=.008)
+        s.b(body,(.91,.045,.12),(0,1.005,z),"edge" if advanced else "gold",bevel=.008)
+    if advanced:
+        veteran.elephant_saddle(s,body)
     rider=s.joint("Rider",(0,.96,.08),parent=torso)
     s.add(rider,lathe([(-.14,.23),(.02,.235),(.25,.29),(.34,.22)],8),"blue")
-    s.b(rider,(.41,.31,.11),(0,.14,-.20),"steel",bevel=.046)
+    if advanced:
+        veteran.elephant_rider(s,rider)
+    else:
+        s.b(rider,(.41,.31,.11),(0,.14,-.20),"steel",bevel=.046)
     s.b(rider,(.44,.075,.38),(0,-.045,0),"leather",bevel=.02)
     s.b(rider,(.083,.075,.032),(0,-.038,-.213),"gold")
     for side in (-1,1):
@@ -945,8 +975,11 @@ def war_elephant():
         s.r(rider,(side*.14,.01,-.46),(side*.29,-.13,-.43),.016,"rope",6)
     rider_head=s.joint("RiderHead",(0,.57,-.015),parent=rider)
     s.e(rider_head,(.236,.246,.217),(0,-.005,-.008),"skin")
-    s.e(rider_head,(.249,.162,.23),(0,.157,.02),"blue")
-    s.b(rider_head,(.44,.049,.081),(0,.17,-.186),"gold",bevel=.012)
+    if advanced:
+        veteran.elephant_rider_cap(s,rider_head)
+    else:
+        s.e(rider_head,(.249,.162,.23),(0,.157,.02),"blue")
+        s.b(rider_head,(.44,.049,.081),(0,.17,-.186),"gold",bevel=.012)
     for side in (-1,1):
         s.b(rider_head,(.038,.030,.026),(side*.085,.049,-.211),"black",bevel=.004)
         s.b(rider_head,(.073,.025,.025),(side*.085,.102,-.203),"leather",bevel=.004)
@@ -1639,6 +1672,10 @@ if __name__=="__main__":
         builders["crossbowman_advanced"] = lambda: build_crossbowman(advanced=True)
     if "knight_advanced" in args.kinds:
         builders["knight_advanced"] = lambda: horse_knight(advanced=True)
+    if "light_cavalry_advanced" in args.kinds:
+        builders["light_cavalry_advanced"] = lambda: light_cavalry(advanced=True)
+    if "war_elephant_advanced" in args.kinds:
+        builders["war_elephant_advanced"] = lambda: war_elephant(advanced=True)
     for kind in args.kinds or builders:
         if kind not in builders:
             parser.error(f"Unknown unit: {kind}")

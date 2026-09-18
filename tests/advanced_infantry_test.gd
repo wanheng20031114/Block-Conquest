@@ -32,7 +32,7 @@ func _run() -> void:
 	if not args.is_empty():
 		families.assign(args)
 		output = "res://.local/advanced-units/" + "-".join(families) + "/"
-	for kind: String in families: assert(kind in ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight"])
+	for kind: String in families: assert(kind in ["swordsman", "shield_guard", "spearman", "archer", "crossbowman", "knight", "light_cavalry", "war_elephant"])
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	var design: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://docs/balance/advanced-units-design.json"))
 	for kind: String in families:
@@ -102,7 +102,8 @@ func _run() -> void:
 		check(unit.position.is_equal_approx(paused_at), kind + " pause preserves position")
 		game.set_running(true)
 		await ticks(170)
-		check(unit.position.distance_to(Vector3(0, 0, 8)) < .8 and unit.waypoint_queue.is_empty(), kind + " queued navigation and resume")
+		print("ADVANCED_MOVE ", kind, " position=", unit.position, " queued=", unit.waypoint_queue, " speed=", unit._stats.speed, " order=", unit.order)
+		check(unit.position.distance_to(Vector3(0, 0, 8)) < maxf(.8, unit.radius) and unit.waypoint_queue.is_empty() and unit.order == BattleUnit.Order.IDLE, kind + " queued navigation finishes within its footprint after resume")
 		unit.hold()
 		check(unit.order == BattleUnit.Order.HOLD, kind + " hold order")
 		unit.stop()
@@ -118,10 +119,14 @@ func _run() -> void:
 		var opponents: Array[String] = ["knight", "light_cavalry"]
 		if kind in ["spearman", "archer", "crossbowman"]: opponents.append("war_elephant")
 		if kind == "knight": opponents = ["spearman", "light_cavalry", "crossbowman"]
+		if kind == "light_cavalry": opponents = ["spearman", "knight", "crossbowman"]
+		if kind == "war_elephant": opponents = ["spearman", "shield_guard", "knight"]
 		for opponent: String in opponents: await contact(kind, opponent)
 	for kind: String in ["archer", "crossbowman"]:
 		if kind in families: await projectile_commands(kind)
 	if "knight" in families: await knight_siege()
+	if "light_cavalry" in families: await scout_counters()
+	if "war_elephant" in families: await elephant_single_target()
 	# A small active mixed army checks real combat using both current grades.
 	await clear()
 	for index: int in 10:
@@ -132,6 +137,7 @@ func _run() -> void:
 	for owner: int in [0, 1]:
 		check(game.owned_entities(owner, "units").any(func(unit: BattleUnit): return unit.hp < unit.max_hp), "mixed army delivers actual damage to team " + str(owner))
 	await clear()
+	if "light_cavalry" in families and "war_elephant" in families: await complete_roster()
 	await game.prepare_shutdown()
 	game.queue_free()
 	await process_frame
@@ -253,3 +259,63 @@ func knight_siege() -> void:
 	var spear := UnitVariantCatalog.ADVANCED["spearman"].definition()
 	check(DamageResolver.resolve(DamageResolver.snapshot(spear, 0, 0, 0), advanced) == 29, "advanced knight still takes full anti-cavalry bonus")
 	check(ceili(advanced.hp / 29.0) == 5, "advanced spear still defeats same-grade knight in five hits")
+
+func scout_counters() -> void:
+	await clear()
+	var scout := probe("light_cavalry", 0, Vector3.ZERO, true)
+	var cannon := probe("cannon", 1, Vector3(0, 0, -3), false)
+	cannon.set_physics_process(false)
+	scout.issue_attack(cannon)
+	game.set_running(true)
+	while cannon.hp == cannon.max_hp: await ticks(1)
+	check(cannon.max_hp - cannon.hp == 8, "advanced scout has no inherited knight siege bonus")
+	game.set_running(false)
+	var advanced := UnitVariantCatalog.ADVANCED["light_cavalry"].definition()
+	var spear := UnitVariantCatalog.ADVANCED["spearman"].definition()
+	check(advanced.speed == 6.8 and advanced.sight == 20, "advanced scout retains fast movement and broad sight")
+	check(DamageResolver.resolve(DamageResolver.snapshot(spear, 0, 0, 0), advanced) == 30, "advanced scout receives full anti-cavalry damage")
+	check(ceili(advanced.hp / 30.0) == 4, "same-grade spear defeats scout in four hits")
+
+func elephant_single_target() -> void:
+	await clear()
+	var elephant := probe("war_elephant", 0, Vector3.ZERO, true)
+	var target := probe("shield_guard", 1, Vector3(0, 0, -2.7), false)
+	var nearby: Array[BattleUnit] = [probe("shield_guard", 1, Vector3(1.1, 0, -2.7), false), probe("shield_guard", 1, Vector3(-1.1, 0, -2.7), false)]
+	target.set_physics_process(false)
+	for unit: BattleUnit in nearby: unit.set_physics_process(false)
+	elephant.issue_attack(target)
+	game.set_running(true)
+	while target.hp == target.max_hp: await ticks(1)
+	check(target.max_hp - target.hp == 36, "advanced elephant delivers one 39-damage melee hit through three armor")
+	elephant.stop()
+	elephant.set_physics_process(false)
+	await ticks(45)
+	check(nearby.all(func(unit: BattleUnit): return unit.hp == unit.max_hp), "elephant stomp and tusks never damage neighboring enemies")
+	check(target.max_hp - target.hp == 36, "elephant rider produces no extra hit")
+	game.set_running(false)
+	var advanced := UnitVariantCatalog.ADVANCED["war_elephant"].definition()
+	var spear := UnitVariantCatalog.ADVANCED["spearman"].definition()
+	check(DamageResolver.resolve(DamageResolver.snapshot(spear, 0, 0, 0), advanced) == 29, "advanced elephant receives full anti-cavalry bonus")
+	check(advanced.supply == 2 and advanced.splash_radius == 0, "elephant retains current two population and zero splash")
+
+func complete_roster() -> void:
+	await clear()
+	check(UnitVariantCatalog.ADVANCED.size() == 9, "all nine approved advanced combat families are available")
+	for kind: String in ["farmer", "engineer", "priest", "catapult", "cannon", "heavy_cannon", "triple_cannon"]:
+		check(not UnitVariantCatalog.ADVANCED.has(kind), kind + " remains outside advanced scope")
+	var roster: Array[String] = []
+	roster.assign(UnitVariantCatalog.ADVANCED.keys())
+	var army: Array[BattleUnit] = []
+	for index: int in roster.size():
+		for owner: int in [0, 1]:
+			var unit := probe(roster[index], owner, Vector3((index - 4) * 3.0, 0, -5 if owner == 0 else 5), true)
+			army.append(unit)
+			unit.issue_move(Vector3((index - 4) * 3.0, 0, 5 if owner == 0 else -5), true)
+	game.set_running(true)
+	await ticks(330)
+	for kind: String in roster:
+		var same_kind := army.filter(func(unit: BattleUnit): return unit.unit_type == kind)
+		check(same_kind.any(func(unit: BattleUnit): return unit.attack_starts > 0), kind + " attacks in the complete advanced roster battle")
+	for owner: int in [0, 1]:
+		check(army.any(func(unit: BattleUnit): return unit.owner_id == owner and unit.hp < unit.max_hp), "all-grade battle causes real damage to team " + str(owner))
+	await clear()

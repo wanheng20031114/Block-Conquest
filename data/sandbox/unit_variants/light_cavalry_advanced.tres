@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="UnitVariantDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_variant_definition.gd" id="script"]
+[ext_resource type="Resource" path="res://data/units/light_cavalry.tres" id="base"]
+[ext_resource type="PackedScene" path="res://assets/models/units/light_cavalry_advanced.tscn" id="model"]
+[ext_resource type="PackedScene" path="res://assets/models/units/batched/light_cavalry_advanced.tscn" id="batch"]
+
+[resource]
+script = ExtResource("script")
+base = ExtResource("base")
+grade = &"advanced"
+display_name = "高级轻骑兵"
+hp = 105
+damage = 8
+melee_armor = 1
+ranged_armor = 4
+armor_penetration = 0
+bonuses = Dictionary[StringName, int]({&"ranged_infantry": 3})
+model = ExtResource("model")
+batched_model = ExtResource("batch")

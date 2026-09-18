@@ -29,6 +29,8 @@
 [ext_resource type="PackedScene" path="res://assets/models/units/archer_advanced.tscn" id="archer_advanced"]
 [ext_resource type="PackedScene" path="res://assets/models/units/crossbowman_advanced.tscn" id="crossbowman_advanced"]
 [ext_resource type="PackedScene" path="res://assets/models/units/knight_advanced.tscn" id="knight_advanced"]
+[ext_resource type="PackedScene" path="res://assets/models/units/light_cavalry_advanced.tscn" id="light_cavalry_advanced"]
+[ext_resource type="PackedScene" path="res://assets/models/units/war_elephant_advanced.tscn" id="war_elephant_advanced"]
 
 [node name="PlacementPreview" type="Node3D"]
 physics_interpolation_mode = 2
@@ -103,4 +105,10 @@ visible = false
 visible = false
 
 [node name="knight_advanced" parent="Models" instance=ExtResource("knight_advanced")]
+visible = false
+
+[node name="light_cavalry_advanced" parent="Models" instance=ExtResource("light_cavalry_advanced")]
+visible = false
+
+[node name="war_elephant_advanced" parent="Models" instance=ExtResource("war_elephant_advanced")]
 visible = false
