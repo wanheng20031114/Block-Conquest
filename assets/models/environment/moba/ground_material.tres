@@ -8,7 +8,7 @@
 [sub_resource type="FastNoiseLite" id="noise"]
 seed = 7319
 frequency = 0.025
-fractal_octaves = 3
+fractal_octaves = 1
 
 [sub_resource type="NoiseTexture2D" id="variation"]
 width = 256
@@ -18,7 +18,7 @@ generate_mipmaps = true
 noise = SubResource("noise")
 
 [resource]
-resource_name = "林地防线 · 草甸、夯土与林下腐殖土"
+resource_name = "林地防线 · 柔和草绿与奶油土路"
 shader = ExtResource("shader")
 shader_parameter/meadow = ExtResource("meadow")
 shader_parameter/earth = ExtResource("earth")

@@ -3,8 +3,8 @@
 [ext_resource type="Texture2D" path="res://assets/textures/moba_ground/flagstone.png" id="stone"]
 
 [resource]
-resource_name = "防线石铺庭院"
-albedo_color = Color(0.81, 0.84, 0.81, 1)
+resource_name = "防线庭院 · 简洁暖灰石块"
+albedo_color = Color(0.93, 0.95, 0.91, 1)
 albedo_texture = ExtResource("stone")
 roughness = 0.96
 metallic_specular = 0.1

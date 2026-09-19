@@ -1,9 +1,8 @@
-[gd_resource type="ShaderMaterial" format=3]
-
-[ext_resource type="Shader" path="res://assets/models/environment/moba/stone.gdshader" id="shader"]
-[ext_resource type="Texture2D" path="res://assets/textures/moba_ground/earth.png" id="grain"]
+[gd_resource type="StandardMaterial3D" format=3]
 
 [resource]
-resource_name = "嵌地旧石与路肩"
-shader = ExtResource("shader")
-shader_parameter/grain = ExtResource("grain")
+resource_name = "柔和倒角铺路石"
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+roughness = 0.96
+metallic_specular = 0.1
