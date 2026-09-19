@@ -83,7 +83,7 @@ tracks/9/enabled = true
 tracks/9/path = NodePath("Rig/Action/StepLeft")
 tracks/9/interp = 1
 tracks/9/loop_wrap = false
-tracks/9/keys = PackedFloat32Array(0, 1, -0.16, 0.74, 0, 2.8, 1, -0.16, 0.74, 0)
+tracks/9/keys = PackedFloat32Array(0, 1, 0.034, 0.74, 0, 2.8, 1, 0.034, 0.74, 0)
 tracks/10/type = "rotation_3d"
 tracks/10/imported = false
 tracks/10/enabled = true
@@ -97,7 +97,7 @@ tracks/11/enabled = true
 tracks/11/path = NodePath("Rig/Action/StepRight")
 tracks/11/interp = 1
 tracks/11/loop_wrap = false
-tracks/11/keys = PackedFloat32Array(0, 1, 0.16, 0.74, 0, 2.8, 1, 0.16, 0.74, 0)
+tracks/11/keys = PackedFloat32Array(0, 1, 0.034, 0.74, 0, 2.8, 1, 0.034, 0.74, 0)
 
 [sub_resource type="Animation" id="Animation_rg8pp"]
 resource_name = "walk"
@@ -116,7 +116,7 @@ tracks/1/enabled = true
 tracks/1/path = NodePath("Rig/Action/StepLeft")
 tracks/1/interp = 1
 tracks/1/loop_wrap = false
-tracks/1/keys = PackedFloat32Array(0, 1, -0.16, 0.728739, 0, 0.045, 1, -0.16, 0.732659, 0, 0.09, 1, -0.16, 0.735628, 0, 0.135, 1, -0.16, 0.737641, 0, 0.18, 1, -0.16, 0.738696, 0, 0.225, 1, -0.16, 0.738792, 0, 0.27, 1, -0.16, 0.737928, 0, 0.315, 1, -0.16, 0.736105, 0, 0.36, 1, -0.16, 0.738813, 0, 0.405, 1, -0.16, 0.744872, 0, 0.45, 1, -0.16, 0.749964, 0, 0.495, 1, -0.16, 0.754081, 0, 0.54, 1, -0.16, 0.757218, 0, 0.585, 1, -0.16, 0.759371, 0, 0.63, 1, -0.16, 0.760538, 0, 0.675, 1, -0.16, 0.763866, 0, 0.72, 1, -0.16, 0.78768, 0, 0.765, 1, -0.16, 0.805552, 0, 0.81, 1, -0.16, 0.814933, 0, 0.855, 1, -0.16, 0.813974, 0, 0.9, 1, -0.16, 0.810697, 0, 0.945, 1, -0.16, 0.803256, 0, 0.99, 1, -0.16, 0.785691, 0, 1.035, 1, -0.16, 0.759973, 0, 1.08, 1, -0.16, 0.728739, 0)
+tracks/1/keys = PackedFloat32Array(0, 1, 0.034, 0.728739, 0, 0.045, 1, 0.034, 0.732659, 0, 0.09, 1, 0.034, 0.735628, 0, 0.135, 1, 0.034, 0.737641, 0, 0.18, 1, 0.034, 0.738696, 0, 0.225, 1, 0.034, 0.738792, 0, 0.27, 1, 0.034, 0.737928, 0, 0.315, 1, 0.034, 0.736105, 0, 0.36, 1, 0.034, 0.738813, 0, 0.405, 1, 0.034, 0.744872, 0, 0.45, 1, 0.034, 0.749964, 0, 0.495, 1, 0.034, 0.754081, 0, 0.54, 1, 0.034, 0.757218, 0, 0.585, 1, 0.034, 0.759371, 0, 0.63, 1, 0.034, 0.760538, 0, 0.675, 1, 0.034, 0.763866, 0, 0.72, 1, 0.034, 0.78768, 0, 0.765, 1, 0.034, 0.805552, 0, 0.81, 1, 0.034, 0.814933, 0, 0.855, 1, 0.034, 0.813974, 0, 0.9, 1, 0.034, 0.810697, 0, 0.945, 1, 0.034, 0.803256, 0, 0.99, 1, 0.034, 0.785691, 0, 1.035, 1, 0.034, 0.759973, 0, 1.08, 1, 0.034, 0.728739, 0)
 tracks/2/type = "rotation_3d"
 tracks/2/imported = false
 tracks/2/enabled = true
@@ -130,7 +130,7 @@ tracks/3/enabled = true
 tracks/3/path = NodePath("Rig/Action/StepRight")
 tracks/3/interp = 1
 tracks/3/loop_wrap = false
-tracks/3/keys = PackedFloat32Array(0, 1, 0.16, 0.757218, 0, 0.045, 1, 0.16, 0.759371, 0, 0.09, 1, 0.16, 0.760538, 0, 0.135, 1, 0.16, 0.763866, 0, 0.18, 1, 0.16, 0.78768, 0, 0.225, 1, 0.16, 0.805552, 0, 0.27, 1, 0.16, 0.814933, 0, 0.315, 1, 0.16, 0.813974, 0, 0.36, 1, 0.16, 0.810697, 0, 0.405, 1, 0.16, 0.803256, 0, 0.45, 1, 0.16, 0.785691, 0, 0.495, 1, 0.16, 0.759973, 0, 0.54, 1, 0.16, 0.728739, 0, 0.585, 1, 0.16, 0.732659, 0, 0.63, 1, 0.16, 0.735628, 0, 0.675, 1, 0.16, 0.737641, 0, 0.72, 1, 0.16, 0.738696, 0, 0.765, 1, 0.16, 0.738792, 0, 0.81, 1, 0.16, 0.737928, 0, 0.855, 1, 0.16, 0.736105, 0, 0.9, 1, 0.16, 0.738813, 0, 0.945, 1, 0.16, 0.744872, 0, 0.99, 1, 0.16, 0.749964, 0, 1.035, 1, 0.16, 0.754081, 0, 1.08, 1, 0.16, 0.757218, 0)
+tracks/3/keys = PackedFloat32Array(0, 1, 0.034, 0.757218, 0, 0.045, 1, 0.034, 0.759371, 0, 0.09, 1, 0.034, 0.760538, 0, 0.135, 1, 0.034, 0.763866, 0, 0.18, 1, 0.034, 0.78768, 0, 0.225, 1, 0.034, 0.805552, 0, 0.27, 1, 0.034, 0.814933, 0, 0.315, 1, 0.034, 0.813974, 0, 0.36, 1, 0.034, 0.810697, 0, 0.405, 1, 0.034, 0.803256, 0, 0.45, 1, 0.034, 0.785691, 0, 0.495, 1, 0.034, 0.759973, 0, 0.54, 1, 0.034, 0.728739, 0, 0.585, 1, 0.034, 0.732659, 0, 0.63, 1, 0.034, 0.735628, 0, 0.675, 1, 0.034, 0.737641, 0, 0.72, 1, 0.034, 0.738696, 0, 0.765, 1, 0.034, 0.738792, 0, 0.81, 1, 0.034, 0.737928, 0, 0.855, 1, 0.034, 0.736105, 0, 0.9, 1, 0.034, 0.738813, 0, 0.945, 1, 0.034, 0.744872, 0, 0.99, 1, 0.034, 0.749964, 0, 1.035, 1, 0.034, 0.754081, 0, 1.08, 1, 0.034, 0.757218, 0)
 tracks/4/type = "rotation_3d"
 tracks/4/imported = false
 tracks/4/enabled = true
@@ -252,68 +252,70 @@ _data = {
 &"strike": SubResource("Animation_lwv36")
 }
 
-[node name="Zombie" type="Node3D" unique_id=1498567648]
+[node name="Zombie" type="Node3D" unique_id=1326321048]
 script = ExtResource("script")
 kind = "zombie"
 projectile_socket = NodePath("Rig/Action/Waist/ArmRight/ForearmRight/HandContact")
 metadata/faction = &"monsters"
 metadata/prototype = true
 
-[node name="Rig" type="Node3D" parent="." unique_id=479754162]
+[node name="Rig" type="Node3D" parent="." unique_id=932389151]
 
-[node name="Action" type="Node3D" parent="Rig" unique_id=1849893364]
+[node name="Action" type="Node3D" parent="Rig" unique_id=2144844500]
 
-[node name="Waist" type="Node3D" parent="Rig/Action" unique_id=780250799]
+[node name="Waist" type="Node3D" parent="Rig/Action" unique_id=1734861572]
 transform = Transform3D(0.9996875, 0.024997396, 0, -0.02488468, 0.99517983, -0.094857164, -0.0023711822, 0.09482752, 0.9954909, 0, 1.07, 0)
 
-[node name="Body" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=617589833]
+[node name="Body" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=845830819]
 mesh = ExtResource("Body")
 
-[node name="Head" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=276284942]
+[node name="Head" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=1185272043]
 transform = Transform3D(0.9996875, -0.024997396, 0, 0.024989584, 0.9993751, 0.024997396, -0.00062486983, -0.024989584, 0.9996875, 0, 0.64, -0.035)
 mesh = ExtResource("Head")
 
-[node name="ArmLeft" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=1144376869]
+[node name="ArmLeft" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=651472449]
 transform = Transform3D(0.9993512, 0.020876769, -0.02934978, -0.03586597, 0.6514509, -0.7578426, 0.0032986328, 0.7584036, 0.65177697, -0.365, 0.285, 0)
 mesh = ExtResource("ArmLeft")
 
-[node name="ForearmLeft" type="MeshInstance3D" parent="Rig/Action/Waist/ArmLeft" unique_id=1012174408]
+[node name="ForearmLeft" type="MeshInstance3D" parent="Rig/Action/Waist/ArmLeft" unique_id=106872754]
 transform = Transform3D(1, 0, 0, 0, 0.9689124, -0.24740396, 0, 0.24740396, 0.9689124, 0, -0.275, 0)
 mesh = ExtResource("ForearmLeft")
 
-[node name="ArmRight" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=187730400]
+[node name="ArmRight" type="MeshInstance3D" parent="Rig/Action/Waist" unique_id=1061996185]
 transform = Transform3D(0.9985779, -0.03367798, 0.04132847, 0.052583434, 0.7499646, -0.65938467, -0.00878815, 0.66062015, 0.7506689, 0.365, 0.285, 0)
 mesh = ExtResource("ArmRight")
 
-[node name="ForearmRight" type="MeshInstance3D" parent="Rig/Action/Waist/ArmRight" unique_id=1437506254]
+[node name="ForearmRight" type="MeshInstance3D" parent="Rig/Action/Waist/ArmRight" unique_id=1485865842]
 transform = Transform3D(1, 0, 0, 0, 0.95233357, -0.30505863, 0, 0.30505863, 0.95233357, 0, -0.275, 0)
 mesh = ExtResource("ForearmRight")
 
-[node name="HandContact" type="Marker3D" parent="Rig/Action/Waist/ArmRight/ForearmRight" unique_id=1233473328]
+[node name="HandContact" type="Marker3D" parent="Rig/Action/Waist/ArmRight/ForearmRight" unique_id=2024169994]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.345, -0.012)
 
-[node name="StepLeft" type="Node3D" parent="Rig/Action" unique_id=1162080888]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16, 0.74, 0)
+[node name="StepLeft" type="Node3D" parent="Rig/Action" unique_id=541396873]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.034, 0.74, 0)
 
-[node name="LegLeft" type="MeshInstance3D" parent="Rig/Action/StepLeft" unique_id=1746438923]
+[node name="LegLeft" type="MeshInstance3D" parent="Rig/Action/StepLeft" unique_id=2027963048]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.194, 0, 0)
 mesh = ExtResource("LegLeft")
 
-[node name="StepRight" type="Node3D" parent="Rig/Action" unique_id=244299964]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, 0.74, 0)
+[node name="StepRight" type="Node3D" parent="Rig/Action" unique_id=169340135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.034, 0.74, 0)
 
-[node name="LegRight" type="MeshInstance3D" parent="Rig/Action/StepRight" unique_id=1639447797]
+[node name="LegRight" type="MeshInstance3D" parent="Rig/Action/StepRight" unique_id=266714264]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.126, 0, 0)
 mesh = ExtResource("LegRight")
 
-[node name="Locomotion" type="AnimationPlayer" parent="." unique_id=912189534]
+[node name="Locomotion" type="AnimationPlayer" parent="." unique_id=1705832369]
 callback_mode_process = 0
 libraries/ = SubResource("locomotion")
 autoplay = &"idle"
 
-[node name="Attack" type="AnimationPlayer" parent="." unique_id=1808998945]
+[node name="Attack" type="AnimationPlayer" parent="." unique_id=1247571424]
 callback_mode_process = 0
 libraries/ = SubResource("attack")
 
-[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="." unique_id=935019700]
+[node name="VisibilityNotifier" type="VisibleOnScreenNotifier3D" parent="." unique_id=1651049948]
 aabb = AABB(-0.8, -0.05, -1.1, 1.6, 2.3, 1.7)
 
 [connection signal="screen_entered" from="VisibilityNotifier" to="." method="_on_screen_entered"]
