@@ -1,7 +1,53 @@
 """Opt-in monster study: a plain, unarmed zombie with saved rigid animations."""
 import math
+import numpy as np
+import trimesh as tm
 
-from build_units import P, OUT, Sculpture, anim_resource, vec
+from build_units import P, OUT, Sculpture, anim_resource, vec, ellipsoid, lathe
+
+
+def front_depth(surface, points):
+    """Fit ink to the actual front-facing triangles, not an enclosing sphere."""
+    triangles = surface.triangles
+    a = triangles[:, 0]
+    u, v = triangles[:, 1] - a, triangles[:, 2] - a
+    determinant = u[:, 0] * v[:, 1] - u[:, 1] * v[:, 0]
+    valid = abs(determinant) > 1e-10
+    a, u, v, determinant = a[valid], u[valid], v[valid], determinant[valid]
+    result = []
+    for x, y in points:
+        q = np.array((x, y)) - a[:, :2]
+        b = (q[:, 0] * v[:, 1] - q[:, 1] * v[:, 0]) / determinant
+        c = (u[:, 0] * q[:, 1] - u[:, 1] * q[:, 0]) / determinant
+        inside = (b >= -1e-7) & (c >= -1e-7) & (b + c <= 1 + 1e-7)
+        assert inside.any(), "Facial stroke must remain on the head"
+        result.append(np.min((a[:, 2] + b * u[:, 2] + c * v[:, 2])[inside]))
+    return np.asarray(result)
+
+
+def face_line(s, part, surface, points, width):
+    """A thin, closed ribbon embedded in the head; no floating face plate."""
+    points = np.asarray(points)
+    tangent = np.gradient(points, axis=0)
+    normal = np.column_stack((-tangent[:, 1], tangent[:, 0]))
+    normal /= np.linalg.norm(normal, axis=1)[:, None]
+    xy = np.stack((points + normal * width / 2, points - normal * width / 2), axis=1).reshape(-1, 2)
+    front = np.column_stack((xy, front_depth(surface, xy) - .004))
+    back = front + (0, 0, .010)
+    vertices = np.concatenate((front, back))
+    count = len(front)
+    faces = []
+    for i in range(0, count - 2, 2):
+        faces += [(i, i + 2, i + 1), (i + 1, i + 2, i + 3),
+                  (i + count, i + count + 1, i + count + 2),
+                  (i + count + 1, i + count + 3, i + count + 2)]
+    perimeter = list(range(0, count, 2)) + list(range(count - 1, 0, -2))
+    for a, b in zip(perimeter, perimeter[1:] + perimeter[:1]):
+        faces += [(a, b, b + count), (a, b + count, a + count)]
+    mesh = tm.Trimesh(vertices=vertices, faces=faces, process=False)
+    mesh.fix_normals()
+    assert mesh.is_watertight
+    s.add(part, mesh, "zombie_ink")
 
 
 def build_zombie():
@@ -11,49 +57,56 @@ def build_zombie():
         "zombie_coat": (87, 99, 91),
         "zombie_coat_edge": (104, 114, 101),
         "zombie_pants": (94, 80, 67),
+        "zombie_ink": (49, 65, 43),
     })
     s = Sculpture("zombie")
     body = s.joint("Body", (0, 1.07, 0))
     head = s.joint("Head", (0, 1.71, -.035))
-    s.b(body, (.54, .61, .37), (0, .045, 0), "zombie_coat", bevel=.037)
+    coat = lathe([(-.285, .245), (-.21, .275), (.16, .295), (.29, .255), (.35, .16)], 12)
+    # Shape the hem in the same closed surface, without detached cloth tabs.
+    coat.vertices[:12, 1] += np.array([0, -.035, -.025, .012, -.014, -.04,
+                                      -.014, 0, -.035, -.045, .012, -.02])
+    coat.apply_scale((1, 1, .72))
+    s.add(body, coat, "zombie_coat")
     # The trouser seat overlaps both thigh roots through the walking cycle.
-    s.b(body, (.44, .16, .28), (0, -.26, 0), "zombie_pants", bevel=.020)
-    s.b(body, (.24, .20, .23), (0, .38, -.02), "zombie_skin", bevel=.020)
-    # Large stepped hems read as worn cloth; no tiny shreds or painted wounds.
-    s.b(body, (.19, .13, .035), (-.15, -.278, -.17), "zombie_coat", bevel=.009)
-    s.b(body, (.15, .09, .035), (.17, -.26, .17), "zombie_coat", bevel=.008)
-    s.b(body, (.032, .45, .022), (.08, .055, -.183), "zombie_coat_edge", bevel=.003)
-    s.b(body, (.15, .12, .025), (-.125, -.12, .185), "zombie_coat_edge", bevel=.007)
-
-    # Flat facial features embed into the flat front face, instead of floating
-    # in front of a faceted sphere. A small bevel retains the game's lighting.
-    s.b(head, (.55, .59, .50), (0, .025, 0), "zombie_skin", bevel=.035)
+    s.e(body, (.237, .113, .155), (0, -.235, 0), "zombie_pants")
+    s.e(body, (.118, .12, .11), (0, .38, -.02), "zombie_skin")
+    # Rounded cheeks and crown keep the silhouette simple without a box head.
+    skin = ellipsoid((.30, .315, .26), (0, .025, 0), sub=2)
+    s.add(head, skin, "zombie_skin")
     for sign in (-1, 1):
-        s.b(head, (.074, .066, .012), (sign * .115, .05, -.253), "black", bevel=.003)
-        s.b(head, (.072, .12, .085), (sign * .28, -.025, .02), "zombie_skin", bevel=.014)
-    s.b(head, (.105, .026, .012), (.009, -.119, -.253), "zombie_shade", bevel=.002)
-    s.b(head, (.064, .061, .045), (0, -.035, -.259), "zombie_skin", bevel=.009)
+        # Two small smiling eyelids, drawn as curves rather than square pupils.
+        points = [(sign * .114 + (t - .5) * .112, .047 + .034 * math.sin(math.pi * t))
+                  for t in np.linspace(0, 1, 9)]
+        face_line(s, head, skin, points, .016)
+        s.e(head, (.048, .065, .045), (sign * .278, -.012, .015), "zombie_skin")
+    mouth = [((t - .5) * .087, -.117 + .018 * (2 * t - 1) ** 2) for t in np.linspace(0, 1, 9)]
+    face_line(s, head, skin, mouth, .011)
+    nose_z = front_depth(skin, [(0, -.030)])[0]
+    s.e(head, (.027, .031, .032), (0, -.030, nose_z + .009), "zombie_skin")
 
     for side, sign in (("Left", -1), ("Right", 1)):
         arm = s.joint("Arm" + side, (sign * .365, 1.355, 0))
-        s.b(arm, (.225, .28, .225), (0, -.10, 0), "zombie_coat", bevel=.027)
-        s.b(arm, (.175, .13, .175), (0, -.23, 0), "zombie_skin", bevel=.021)
+        s.add(arm, lathe([(.08, .065), (.04, .105), (-.11, .12), (-.225, .09)], 12), "zombie_coat")
+        s.e(arm, (.092, .082, .086), (0, -.23, 0), "zombie_skin")
         if side == "Left":
             # One narrow cloth band is the only team-colored surface.
-            s.b(arm, (.239, .075, .239), (0, -.135, 0), "blue", bevel=.014)
+            s.add(arm, lathe([(-.166, .111), (-.155, .119), (-.105, .128), (-.092, .124)], 12, caps=False), "blue")
         fore = s.joint("Forearm" + side, (0, -.275, 0), arm)
-        s.b(fore, (.153, .245, .164), (0, -.095, 0), "zombie_skin", bevel=.020)
-        s.b(fore, (.19, .17, .19), (0, -.266, -.012), "zombie_skin", bevel=.025)
-        # A thumb and two shallow knuckle divisions keep the hands readable.
-        s.b(fore, (.065, .105, .09), (-sign * .103, -.225, -.032), "zombie_skin", bevel=.018)
-        for x in (-.028, .029):
-            s.b(fore, (.008, .045, .010), (x, -.298, -.107), "zombie_shade", bevel=.001)
+        s.add(fore, lathe([(.025, .060), (0, .072), (-.15, .078), (-.215, .072)], 10), "zombie_skin")
+        s.e(fore, (.104, .104, .096), (0, -.26, -.012), "zombie_skin")
+        s.e(fore, (.038, .054, .045), (-sign * .098, -.223, -.032), "zombie_skin")
     for side, x in (("Left", -.16), ("Right", .16)):
         leg = s.joint("Leg" + side, (x, .74, 0))
-        s.b(leg, (.202, .37, .215), (0, -.16, 0), "zombie_pants", bevel=.024)
-        s.b(leg, (.076, .095, .023), (-.058, -.362, -.092), "zombie_pants", bevel=.006)
-        s.b(leg, (.151, .30, .164), (0, -.444, .005), "zombie_skin", bevel=.021)
-        s.b(leg, (.227, .16, .335), (0, -.65, -.061), "zombie_skin", bevel=.023)
+        pants = lathe([(-.36, .09), (-.285, .101), (0, .11), (.028, .088)], 10)
+        pants.vertices[:10, 1] += np.array([0, -.022, -.03, .01, -.012,
+                                           -.025, 0, -.015, -.032, -.012])
+        s.add(leg, pants, "zombie_pants")
+        s.e(leg, (.078, .172, .084), (0, -.44, .005), "zombie_skin")
+        foot = lathe([(-.725, .084), (-.707, .105), (-.645, .114), (-.596, .09), (-.576, .06)], 12)
+        foot.apply_scale((1, 1, 1.5))
+        foot.apply_translation((0, 0, -.061))
+        s.add(leg, foot, "zombie_skin")
         step = s.pivot("Step" + side, (x, .74, 0))
         s.reparent(leg, step)
     waist = s.pivot("Waist", (0, 1.07, 0))
