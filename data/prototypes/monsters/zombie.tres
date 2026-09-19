@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="UnitDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"zombie"
+name = "普通僵尸"
+description = "怪物阵营的普通僵尸，使用双手进行近战攻击。独立模型原型，尚未加入任何玩法。"
+hp = 100
+damage = 10
+melee_armor = 0
+ranged_armor = 0
+combat_class = &"infantry"
+damage_channel = 0
+attack_windup_seconds = 0.30
+health_bar_height = 2.20
+collision_height = 1.9
+radius = 0.48
+metadata/faction = &"monsters"
+metadata/prototype = true

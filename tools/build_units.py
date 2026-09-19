@@ -1455,6 +1455,10 @@ def attack_tracks(s):
 
 
 def write_scene(s):
+    if s.kind == "zombie":
+        from unit_zombie import write_zombie_scene
+        write_zombie_scene(s)
+        return
     if s.kind in ("musketeer", "musketeer_advanced"):
         from unit_musketeer import write_musketeer_scene
         write_musketeer_scene(s)
@@ -1642,6 +1646,10 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("kinds",nargs="*",help="Only rebuild these units (default: all)")
     args=parser.parse_args()
+    # Standalone monster study, deliberately absent from the playable roster.
+    if "zombie" in args.kinds:
+        from unit_zombie import build_zombie
+        builders["zombie"] = build_zombie
     # Sandbox grades are opt-in; never enter a default rebuild of the roster.
     if "musketeer_advanced" in args.kinds:
         builders["musketeer_advanced"] = lambda: build_musketeer(advanced=True)
