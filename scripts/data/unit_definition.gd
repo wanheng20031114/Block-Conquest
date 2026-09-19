@@ -50,9 +50,14 @@ func validation_errors() -> PackedStringArray:
 	var errors := super.validation_errors()
 	if combat_class == &"building": errors.append("单位不能使用建筑类别")
 	if role < Role.COMBAT or role > Role.CONSTRUCTION: errors.append("未知单位职责")
-	if is_support() != (not support_kind.is_empty()): errors.append("支援职责必须与支援能力一致")
-	if support_kind not in [&"", &"repair", &"heal"]: errors.append("未知支援能力")
+	errors.append_array(_support_validation_errors())
 	if is_construction() != (supply == 0): errors.append("建设单位使用农民名额，军事单位必须占人口")
 	if (damage_channel == DamageChannel.RANGED) != (not projectile.is_empty()): errors.append("攻击方式与投射物配置不一致")
 	if projectile not in ["", "arrow", "bolt", "bullet", "stone", "cannon"]: errors.append("未知投射物类型")
+	return errors
+
+func _support_validation_errors() -> PackedStringArray:
+	var errors := PackedStringArray()
+	if is_support() != (not support_kind.is_empty()): errors.append("支援职责必须与支援能力一致")
+	if support_kind not in [&"", &"repair", &"heal"]: errors.append("未知支援能力")
 	return errors

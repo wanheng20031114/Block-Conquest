@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/monster_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"zombie_archer"
+name = "弓箭僵尸"
+description = "基础远程怪物，依靠前排掩护与数量形成弓箭火力。独立模型原型，尚未加入任何玩法。"
+pve_tier = 1
+monster_faction = &"monsters"
+visual_scene_path = "res://assets/models/units/zombie_archer.tscn"
+hp = 80
+damage = 9
+melee_armor = 0
+ranged_armor = 0
+armor_penetration = 0
+combat_class = &"infantry"
+damage_channel = 1
+attack_windup_seconds = 0.45
+cooldown = 1.8
+range = 9
+speed = 2.8
+radius = 0.48
+sight = 13
+health_bar_height = 2.20
+collision_height = 1.9
+projectile = "arrow"
+metadata/prototype = true

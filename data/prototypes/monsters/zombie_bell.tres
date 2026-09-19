@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/monster_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"zombie_bell"
+name = "摇铃僵尸"
+description = "摇铃鼓舞附近尸群的支援怪物；本原型仅保存鼓舞数值与动作，尚未启用实战增益。独立模型原型，尚未加入任何玩法。"
+pve_tier = 3
+monster_faction = &"monsters"
+visual_scene_path = "res://assets/models/units/zombie_bell.tscn"
+hp = 170
+damage = 5
+melee_armor = 0
+ranged_armor = 2
+armor_penetration = 0
+combat_class = &"infantry"
+damage_channel = 0
+attack_windup_seconds = 0.35
+cooldown = 1.8
+range = 1
+speed = 2.6
+radius = 0.48
+sight = 12
+health_bar_height = 2.20
+collision_height = 1.9
+role = 1
+monster_ability = 1
+rally_radius = 5.0
+rally_speed_bonus = 0.20
+rally_duration = 4.0
+rally_period = 10.0
+metadata/prototype = true

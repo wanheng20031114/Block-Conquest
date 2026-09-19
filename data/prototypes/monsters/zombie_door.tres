@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/monster_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"zombie_door"
+name = "门板僵尸"
+description = "举破木门的重型前排，擅长抵挡远程火力，移动和攻击较慢。独立模型原型，尚未加入任何玩法。"
+pve_tier = 3
+monster_faction = &"monsters"
+visual_scene_path = "res://assets/models/units/zombie_door.tscn"
+hp = 240
+damage = 11
+melee_armor = 3
+ranged_armor = 8
+armor_penetration = 0
+combat_class = &"infantry"
+damage_channel = 0
+attack_windup_seconds = 0.4
+cooldown = 2
+range = 1
+speed = 2.3
+radius = 0.58
+sight = 12
+health_bar_height = 2.20
+collision_height = 1.9
+metadata/prototype = true

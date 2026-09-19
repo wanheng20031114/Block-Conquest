@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/monster_definition.gd" id="definition"]
+
+[resource]
+script = ExtResource("definition")
+id = &"zombie_musketeer"
+name = "火枪僵尸"
+description = "高单发火枪怪物，具有少量穿甲；举枪明显，装填缓慢。独立模型原型，尚未加入任何玩法。"
+pve_tier = 2
+monster_faction = &"monsters"
+visual_scene_path = "res://assets/models/units/zombie_musketeer.tscn"
+hp = 100
+damage = 24
+melee_armor = 0
+ranged_armor = 1
+armor_penetration = 2
+combat_class = &"infantry"
+damage_channel = 1
+attack_windup_seconds = 0.65
+cooldown = 3
+range = 7
+speed = 2.7
+radius = 0.48
+sight = 12
+health_bar_height = 2.20
+collision_height = 1.9
+projectile = "bullet"
+metadata/prototype = true

@@ -1455,6 +1455,10 @@ def attack_tracks(s):
 
 
 def write_scene(s):
+    if s.kind.startswith("zombie_"):
+        from zombie_variant_common import write_variant_scene
+        write_variant_scene(s)
+        return
     if s.kind == "zombie":
         from unit_zombie import write_zombie_scene
         write_zombie_scene(s)
@@ -1650,6 +1654,13 @@ if __name__=="__main__":
     if "zombie" in args.kinds:
         from unit_zombie import build_zombie
         builders["zombie"] = build_zombie
+    if any(kind.startswith("zombie_") for kind in args.kinds):
+        from zombie_variant_common import VARIANTS
+        import zombie_ranged, zombie_melee, zombie_special
+        for module, names in ((zombie_ranged, VARIANTS[:3]), (zombie_melee, VARIANTS[3:6]), (zombie_special, VARIANTS[6:])):
+            for name in names:
+                if name in args.kinds:
+                    builders[name] = getattr(module, "build_" + name)
     # Sandbox grades are opt-in; never enter a default rebuild of the roster.
     if "musketeer_advanced" in args.kinds:
         builders["musketeer_advanced"] = lambda: build_musketeer(advanced=True)

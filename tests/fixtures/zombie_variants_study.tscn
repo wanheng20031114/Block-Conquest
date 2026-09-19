@@ -1,0 +1,201 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_archer.tscn" id="archer"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_musketeer.tscn" id="musketeer"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_crossbowman.tscn" id="crossbowman"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_pitchfork.tscn" id="pitchfork"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_axe.tscn" id="axe"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_miner.tscn" id="miner"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_bell.tscn" id="bell"]
+[ext_resource type="PackedScene" path="res://assets/models/units/zombie_door.tscn" id="door"]
+[ext_resource type="Script" path="res://tests/zombie_variants_study.gd" id="study"]
+[ext_resource type="Theme" path="res://assets/ui/moba/theme.tres" id="theme"]
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 1
+background_color = Color(0.83, 0.84, 0.78, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.85, 0.90, 0.95, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+ssao_enabled = true
+ssao_radius = 0.38
+ssao_intensity = 1.25
+
+[sub_resource type="StandardMaterial3D" id="plinth_material"]
+albedo_color = Color(0.63, 0.68, 0.58, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="plinth"]
+material = SubResource("plinth_material")
+top_radius = 1.08
+bottom_radius = 1.08
+height = 0.075
+radial_segments = 12
+
+[node name="ZombieVariantsStudy" type="Node3D"]
+script = ExtResource("study")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-44, -30, 0)
+light_color = Color(1, 0.96, 0.85, 1)
+light_energy = 1.45
+shadow_enabled = true
+directional_shadow_max_distance = 20.0
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-22, 135, 0)
+light_color = Color(0.81, 0.9, 1, 1)
+light_energy = 0.5
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(3.3, 2.4, -5.4)
+current = true
+projection = 1
+size = 3.45
+near = 0.05
+far = 40.0
+
+[node name="Plinth" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.0375, 0)
+mesh = SubResource("plinth")
+
+[node name="Turntable" type="Node3D" parent="."]
+
+[node name="ZombieArcher" parent="Turntable" instance=ExtResource("archer")]
+
+[node name="ZombieMusketeer" parent="Turntable" instance=ExtResource("musketeer")]
+visible = false
+
+[node name="ZombieCrossbowman" parent="Turntable" instance=ExtResource("crossbowman")]
+visible = false
+
+[node name="ZombiePitchfork" parent="Turntable" instance=ExtResource("pitchfork")]
+visible = false
+
+[node name="ZombieAxe" parent="Turntable" instance=ExtResource("axe")]
+visible = false
+
+[node name="ZombieMiner" parent="Turntable" instance=ExtResource("miner")]
+visible = false
+
+[node name="ZombieBell" parent="Turntable" instance=ExtResource("bell")]
+visible = false
+
+[node name="ZombieDoor" parent="Turntable" instance=ExtResource("door")]
+visible = false
+
+[node name="RepeatAction" type="Timer" parent="."]
+one_shot = true
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+
+[node name="Interface" type="Control" parent="Overlay"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("theme")
+
+[node name="Title" type="Label" parent="Overlay/Interface"]
+offset_left = 36.0
+offset_top = 28.0
+offset_right = 640.0
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 30
+text = "弓箭僵尸"
+
+[node name="Caption" type="Label" parent="Overlay/Interface"]
+offset_left = 38.0
+offset_top = 80.0
+offset_right = 1050.0
+offset_bottom = 137.0
+theme_override_font_sizes/font_size = 19
+text = "1级 · 生命 80 · 远程攻击 9 · 穿甲 0\n近战护甲 0 · 远程护甲 0 · 攻击间隔 1.8秒 · 移速 2.8"
+
+[node name="Selector" type="OptionButton" parent="Overlay/Interface"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -304.0
+offset_top = 29.0
+offset_right = -36.0
+offset_bottom = 75.0
+grow_horizontal = 0
+custom_minimum_size = Vector2(268, 46)
+tooltip_text = "切换八种独立僵尸模型"
+
+[node name="Controls" type="HBoxContainer" parent="Overlay/Interface"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -66.0
+offset_right = 400.0
+offset_bottom = -20.0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Idle" type="Button" parent="Overlay/Interface/Controls"]
+custom_minimum_size = Vector2(100, 42)
+layout_mode = 2
+text = "1 · 待机"
+
+[node name="Walk" type="Button" parent="Overlay/Interface/Controls"]
+custom_minimum_size = Vector2(100, 42)
+layout_mode = 2
+text = "2 · 行走"
+
+[node name="Strike" type="Button" parent="Overlay/Interface/Controls"]
+custom_minimum_size = Vector2(100, 42)
+layout_mode = 2
+text = "3 · 攻击"
+
+[node name="Team" type="Button" parent="Overlay/Interface/Controls"]
+custom_minimum_size = Vector2(130, 42)
+layout_mode = 2
+text = "4 · 阵营色"
+
+[node name="Rally" type="Button" parent="Overlay/Interface/Controls"]
+custom_minimum_size = Vector2(130, 42)
+layout_mode = 2
+disabled = true
+text = "5 · 摇铃"
+tooltip_text = "摇铃僵尸的鼓舞动作；此处仅预览模型动画"
+
+[node name="Loop" type="CheckButton" parent="Overlay/Interface/Controls"]
+custom_minimum_size = Vector2(94, 42)
+layout_mode = 2
+button_pressed = true
+text = "循环"
+tooltip_text = "按各自攻击间隔或鼓舞间隔重复完整动作"
+
+[node name="Hint" type="Label" parent="Overlay/Interface"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -98.0
+offset_right = 420.0
+offset_bottom = -73.0
+text = "左右拖动旋转 · 滚轮缩放 · 独立模型原型，尚未加入任何玩法"
+horizontal_alignment = 1
+
+[connection signal="timeout" from="RepeatAction" to="." method="_on_repeat_action_timeout"]
+[connection signal="item_selected" from="Overlay/Interface/Selector" to="." method="select_model"]
+[connection signal="pressed" from="Overlay/Interface/Controls/Idle" to="." method="show_idle"]
+[connection signal="pressed" from="Overlay/Interface/Controls/Walk" to="." method="show_walk"]
+[connection signal="pressed" from="Overlay/Interface/Controls/Strike" to="." method="show_strike"]
+[connection signal="pressed" from="Overlay/Interface/Controls/Team" to="." method="cycle_team"]
+[connection signal="pressed" from="Overlay/Interface/Controls/Rally" to="." method="show_rally"]
+[connection signal="toggled" from="Overlay/Interface/Controls/Loop" to="." method="_on_loop_toggled"]
