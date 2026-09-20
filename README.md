@@ -1,4 +1,6 @@
-# 积木争霸
+# Block Conquest · 积木争霸
+
+英文项目名为 **Block Conquest**，源码目录与 GitHub 仓库统一使用 **`Block-Conquest`**。项目地址：[wanheng20031114/Block-Conquest](https://github.com/wanheng20031114/Block-Conquest)。
 
 新增 **林海远征** 单人肉鸽第一层：森林路网、战略与初军选择、批量招募、独立布阵、收藏品、节点存档，以及“前哨站”和强制“围剿”两种作战。围剿胜利后进入层间整备，第二层暂未开放。见 [玩法说明](docs/roguelike-playguide.md) 与 [实施验证记录](docs/roguelike-implementation.md)。
 
@@ -12,6 +14,13 @@ Godot 4.6 原创 3D RTS，采用暖色低多边形模型与 45° 正交视角。
 
 ## 运行
 
+获取源码：
+
+```powershell
+git clone https://github.com/wanheng20031114/Block-Conquest.git
+cd Block-Conquest
+```
+
 用 Godot 4.6.3 导入 `project.godot` 后按 F5，主场景为原生大厅 `scenes/lobby.tscn`。Windows 发布包解压后运行 `windows/积木争霸.exe`，保持 EXE 与 PCK 同目录。使用 Forward+ Vulkan 渲染。
 
 安装同版本导出模板后运行 `powershell -ExecutionPolicy Bypass -File tools/build_windows.ps1`。输出 `builds/积木争霸-Windows-x64.zip`；构建产物不纳入 Git。完整操作见 [玩家说明](docs/windows-readme.txt)，联机部署见 [中继文档](server/README.md)。
@@ -20,7 +29,7 @@ Godot 4.6 原创 3D RTS，采用暖色低多边形模型与 45° 正交视角。
 
 本版以 **500 单位下的可玩性** 为优化范围。已测持续混编交战中，批量模型及静止剪枝组合约 **38.74 FPS / 30 TPS**；这不代表稳定60 FPS，也不是多人联机渲染帧率保证。共享流场和静态扫掠候选仍关闭。实际发布检查、测量范围和已知限制见 [0.12 发布报告](report/release-0.12.md)。
 
-[下载0.12.0 Windows x64完整包](https://github.com/wanheng20031114/jimu-zhengba/releases/download/v0.12.0/jimu-zhengba-0.12.0-Windows-x64.zip)。解压后运行 `积木争霸.exe`，不要只复制EXE。
+[下载0.12.0 Windows x64完整包](https://github.com/wanheng20031114/Block-Conquest/releases/download/v0.12.0/jimu-zhengba-0.12.0-Windows-x64.zip)。解压后运行 `积木争霸.exe`，不要只复制EXE。
 
 数值沿用0.11.0：剑士、投石车、加农炮视野统一为14，弓手7秒训练、骑士8秒训练；炮基础攻击40，仅对建筑增加100伤害。详见 [完整数值审查](report/balance-0.11.0.md)，报告以0.10.0为基线列出单位对位、攻防科技组合及训练与视野变化。电脑难度随席位配置同步，旧协议9中继或客户端不能混用。
 

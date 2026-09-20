@@ -368,9 +368,9 @@
 
 | 位置 | 用途 |
 |---|---|
-| [模型目录](C:/Users/wh/Documents/middle-ages-battle/assets/models/units) | 各单位分件网格、可编辑场景和批量渲染场景 |
-| [建模工具](C:/Users/wh/Documents/middle-ages-battle/tools/build_units.py) | 离线构造与导出低多边形模型 |
-| [兵种数据目录](C:/Users/wh/Documents/middle-ages-battle/data/units) | 价格、生命、护甲、攻击、训练等资源 |
+| [模型目录](../assets/models/units) | 各单位分件网格、可编辑场景和批量渲染场景 |
+| [建模工具](../tools/build_units.py) | 离线构造与导出低多边形模型 |
+| [兵种数据目录](../data/units) | 价格、生命、护甲、攻击、训练等资源 |
 
 新增单位标识固定为：
 

@@ -1,4 +1,8 @@
-# 积木争霸 · 实施约定
+# Block Conquest · 积木争霸 · 实施约定
+
+英文项目名为 **Block Conquest**，仓库与工作目录名为 **`Block-Conquest`**。当前仓库为 `https://github.com/wanheng20031114/Block-Conquest.git`；本机目录为 `C:/Users/wh/Documents/Block-Conquest`。开发工具从项目根目录运行，资源和文档链接优先使用相对路径。
+
+已有克隆可运行 `git remote set-url origin https://github.com/wanheng20031114/Block-Conquest.git` 更新远程地址。中文游戏名与发布程序继续使用“积木争霸”；已发布资产的文件名、历史验证记录及线上中继的服务名与 TLS 身份保持各自原有值。
 
 Godot 4.6.3 原生 3D RTS。暖砂岩、蓝金屋顶与部队服饰，45° 正交战场；当前版本 0.9.0、协议 8。完整规则见 README 与 `report/balance-0.8.2.md`，不要从旧报告或历史生成器恢复过时数值。
 

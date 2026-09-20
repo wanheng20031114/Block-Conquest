@@ -382,7 +382,8 @@
 复算命令（原始JSON输出留在忽略目录，不把上万行输出重新堆入报告目录）：
 
 ```powershell
-& 'C:/Program Files/Godot/Godot_console.exe' --headless --path . --script res://tools/export_advanced_unit_balance.gd -- C:/Users/wh/Documents/middle-ages-battle/.local/advanced-units/integer-balance.json
+$balanceOutput = Join-Path (Get-Location) '.local/advanced-units/integer-balance.json'
+& 'C:/Program Files/Godot/Godot_console.exe' --headless --path . --script res://tools/export_advanced_unit_balance.gd -- $balanceOutput
 python tools/generate_advanced_unit_report.py .local/advanced-units/integer-balance.json
 ```
 

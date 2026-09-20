@@ -55,4 +55,4 @@ B 选择大本营，F2 或 G 选择全部己方战斗单位，句点选择空闲
 遇到问题
 可双击 COLLECT_DIAGNOSTICS.cmd，在“文档/积木争霸-诊断”生成本地 ZIP，便于反馈问题。
 诊断包包含日志、近期相关 Windows 错误、显卡和系统信息及游戏文件校验值，不会自动上传。
-项目及反馈：https://github.com/wanheng20031114/jimu-zhengba
+项目及反馈：https://github.com/wanheng20031114/Block-Conquest
