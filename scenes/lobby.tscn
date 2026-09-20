@@ -1,26 +1,16 @@
-[gd_scene load_steps=25 format=3]
-
-[ext_resource type="Script" path="res://scripts/lobby.gd" id="script"]
-
-[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="menu_theme"]
-
-[ext_resource type="PackedScene" path="res://assets/models/environment/player_barracks.tscn" id="barracks"]
-
-[ext_resource type="PackedScene" path="res://assets/models/environment/factory.tscn" id="factory"]
+[gd_scene format=3 uid="uid://cew3tv6jfbpll"]
 
 [ext_resource type="PackedScene" path="res://assets/models/environment/academy.tscn" id="academy"]
-
-[ext_resource type="PackedScene" path="res://scenes/maps/amber_crossroads_1v1_ground.tscn" id="ground"]
-
-[ext_resource type="PackedScene" path="res://scenes/maps/amber_crossroads_1v1_nature.tscn" id="nature"]
-
+[ext_resource type="PackedScene" path="res://assets/models/environment/player_barracks.tscn" id="barracks"]
 [ext_resource type="PackedScene" path="res://scenes/unit_codex.tscn" id="codex"]
-
-[ext_resource type="PackedScene" path="res://assets/models/units/knight.tscn" id="hero_knight"]
-
-[ext_resource type="PackedScene" path="res://assets/models/units/swordsman.tscn" id="hero_sword"]
-
+[ext_resource type="PackedScene" path="res://assets/models/environment/factory.tscn" id="factory"]
+[ext_resource type="PackedScene" path="res://scenes/maps/amber_crossroads_1v1_ground.tscn" id="ground"]
 [ext_resource type="PackedScene" path="res://assets/models/units/archer.tscn" id="hero_archer"]
+[ext_resource type="PackedScene" path="res://assets/models/units/knight.tscn" id="hero_knight"]
+[ext_resource type="PackedScene" path="res://assets/models/units/swordsman.tscn" id="hero_sword"]
+[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="menu_theme"]
+[ext_resource type="PackedScene" path="res://scenes/maps/amber_crossroads_1v1_nature.tscn" id="nature"]
+[ext_resource type="Script" uid="uid://bln64bm7rb0or" path="res://scripts/lobby.gd" id="script"]
 
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="med_title"]
 
@@ -30,16 +20,11 @@
 
 [ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/pressed.tres" id="med_Pressed"]
 
-[sub_resource type="ButtonGroup" id="OnlineModes"]
-
-[sub_resource type="ButtonGroup" id="Modes"]
-
-
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
-sky_top_color = Color(0.32,0.41,0.48,1)
-sky_horizon_color = Color(0.81,0.73,0.55,1)
-ground_bottom_color = Color(0.29,0.25,0.19,1)
-ground_horizon_color = Color(0.8,0.72,0.53,1)
+sky_top_color = Color(0.32, 0.41, 0.48, 1)
+sky_horizon_color = Color(0.81, 0.73, 0.55, 1)
+ground_bottom_color = Color(0.29, 0.25, 0.19, 1)
+ground_horizon_color = Color(0.8, 0.72, 0.53, 1)
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMaterial")
@@ -48,26 +33,19 @@ sky_material = SubResource("SkyMaterial")
 background_mode = 2
 sky = SubResource("Sky")
 ambient_light_source = 3
-ambient_light_color = Color(0.76,0.81,0.85,1)
+ambient_light_color = Color(0.76, 0.81, 0.85, 1)
 ambient_light_energy = 0.62
 reflected_light_source = 2
 tonemap_mode = 2
 ssao_enabled = true
 ssao_radius = 1.7
 ssao_intensity = 1.8
-ssao_power = 1.5
 ssil_enabled = true
 ssil_radius = 3.0
 ssil_intensity = 0.4
 adjustment_enabled = true
 adjustment_contrast = 1.06
 adjustment_saturation = 0.93
-
-[sub_resource type="Shader" id="Scrim"]
-code = "shader_type canvas_item;\nvoid fragment() {\n float side = smoothstep(0.26,0.81,UV.x);\n float edge = smoothstep(0.45,0.98,abs(UV.y-0.50)*2.0);\n COLOR = vec4(vec3(0.10,0.18,0.17),clamp(mix(0.97,0.05,side)+edge*0.12,0.0,0.98));\n}"
-
-[sub_resource type="ShaderMaterial" id="ScrimMaterial"]
-shader = SubResource("Scrim")
 
 [sub_resource type="Animation" id="Drift"]
 resource_name = "drift"
@@ -80,10 +58,10 @@ tracks/0/path = NodePath("CameraRig:rotation")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0,16,32),
-"transitions": PackedFloat32Array(1,1,1),
+"times": PackedFloat32Array(0, 16, 32),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(0,-0.035,0),Vector3(0,0.035,0),Vector3(0,-0.035,0)]
+"values": [Vector3(0, -0.035, 0), Vector3(0, 0.035, 0), Vector3(0, -0.035, 0)]
 }
 
 [sub_resource type="AnimationLibrary" id="Animations"]
@@ -91,82 +69,84 @@ _data = {
 &"drift": SubResource("Drift")
 }
 
-[node name="Lobby" type="Node3D"]
+[sub_resource type="Shader" id="Scrim"]
+code = "shader_type canvas_item;
+void fragment() {
+ float side = smoothstep(0.26,0.81,UV.x);
+ float edge = smoothstep(0.45,0.98,abs(UV.y-0.50)*2.0);
+ COLOR = vec4(vec3(0.10,0.18,0.17),clamp(mix(0.97,0.05,side)+edge*0.12,0.0,0.98));
+}"
+
+[sub_resource type="ShaderMaterial" id="ScrimMaterial"]
+shader = SubResource("Scrim")
+
+[sub_resource type="ButtonGroup" id="Modes"]
+
+[sub_resource type="ButtonGroup" id="OnlineModes"]
+
+[node name="Lobby" type="Node3D" unique_id=1188566718]
 physics_interpolation_mode = 2
 script = ExtResource("script")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1939480643]
 environment = SubResource("World")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-54,-31,0)
-light_color = Color(1,0.89,0.72,1)
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1685869838]
+transform = Transform3D(0.8571673, 0.41667455, -0.3027318, 0, 0.5877853, 0.809017, 0.5150381, -0.6934629, 0.5038304, 0, 0, 0)
+light_color = Color(1, 0.89, 0.72, 1)
 light_energy = 1.15
-shadow_enabled = true
-directional_shadow_max_distance = 110.0
-shadow_bias = 0.06
-shadow_normal_bias = 2.0
-directional_shadow_mode = 0
 light_angular_distance = 1.6
+shadow_enabled = true
+shadow_bias = 0.06
+directional_shadow_mode = 0
+directional_shadow_max_distance = 110.0
 
-[node name="Town" type="Node3D" parent="."]
+[node name="Town" type="Node3D" parent="." unique_id=1309134367]
 
+[node name="Ground" parent="Town" unique_id=847182156 instance=ExtResource("ground")]
 
-[node name="Ground" parent="Town" instance=ExtResource("ground")]
+[node name="Nature" parent="Town" unique_id=1270619009 instance=ExtResource("nature")]
 
+[node name="Barracks" parent="Town" unique_id=1856972878 instance=ExtResource("barracks")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0, 2.8)
 
-[node name="Nature" parent="Town" instance=ExtResource("nature")]
+[node name="Factory" parent="Town" unique_id=439018010 instance=ExtResource("factory")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 0, -2.2)
 
+[node name="Academy" parent="Town" unique_id=1986441880 instance=ExtResource("academy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4, 0, -5.5)
 
-[node name="Barracks" parent="Town" instance=ExtResource("barracks")]
-position = Vector3(-1.8,0,2.8)
-rotation_degrees = Vector3(0,0,0)
+[node name="Knight" parent="Town" unique_id=1857797011 instance=ExtResource("hero_knight")]
+transform = Transform3D(-0.81915206, 0, 0.57357645, 0, 1, 0, -0.57357645, 0, -0.81915206, 1.5, 0, 8.1)
 
-[node name="Factory" parent="Town" instance=ExtResource("factory")]
-position = Vector3(5.3,0,-2.2)
+[node name="SwordsmanA" parent="Town" unique_id=165993077 instance=ExtResource("hero_sword")]
+transform = Transform3D(-0.90630776, 0, 0.42261833, 0, 1, 0, -0.42261833, 0, -0.90630776, -1.1, 0, 8.5)
 
-[node name="Academy" parent="Town" instance=ExtResource("academy")]
-position = Vector3(-3.4,0,-5.5)
+[node name="SwordsmanB" parent="Town" unique_id=423742816 instance=ExtResource("hero_sword")]
+transform = Transform3D(-0.90630776, 0, 0.42261833, 0, 1, 0, -0.42261833, 0, -0.90630776, -2.4, 0, 9)
 
-[node name="Knight" parent="Town" instance=ExtResource("hero_knight")]
-position = Vector3(1.5,0,8.1)
-rotation_degrees = Vector3(0,145,0)
+[node name="Archer" parent="Town" unique_id=1985828921 instance=ExtResource("hero_archer")]
+transform = Transform3D(-0.76604444, 0, 0.64278764, 0, 1, 0, -0.64278764, 0, -0.76604444, 3.4, 0, 7.4)
 
-[node name="SwordsmanA" parent="Town" instance=ExtResource("hero_sword")]
-position = Vector3(-1.1,0,8.5)
-rotation_degrees = Vector3(0,155,0)
+[node name="CameraRig" type="Node3D" parent="." unique_id=1605602569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 
-[node name="SwordsmanB" parent="Town" instance=ExtResource("hero_sword")]
-position = Vector3(-2.4,0,9.0)
-rotation_degrees = Vector3(0,155,0)
-
-[node name="Archer" parent="Town" instance=ExtResource("hero_archer")]
-position = Vector3(3.4,0,7.4)
-rotation_degrees = Vector3(0,140,0)
-
-[node name="CameraRig" type="Node3D" parent="."]
-position = Vector3(0,0,-1)
-
-[node name="Camera3D" type="Camera3D" parent="CameraRig"]
-position = Vector3(23,32.5,23)
-rotation_degrees = Vector3(-45,45,0)
-projection = 1
-size = 22.0
+[node name="Camera3D" type="Camera3D" parent="CameraRig" unique_id=590935018]
+transform = Transform3D(0.70710677, -0.49999997, 0.49999997, 0, 0.70710677, 0.70710677, -0.70710677, -0.49999997, 0.49999997, 23, 32.5, 23)
 h_offset = -5.8
+projection = 1
+current = true
+size = 22.0
 near = 0.1
 far = 170.0
-current = true
 
-[node name="CameraDrift" type="AnimationPlayer" parent="."]
-autoplay = "drift"
-libraries = {
-&"": SubResource("Animations")
-}
+[node name="CameraDrift" type="AnimationPlayer" parent="." unique_id=2023104915]
+libraries/ = SubResource("Animations")
+autoplay = &"drift"
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1531813820]
 
-
-[node name="UI" type="Control" parent="CanvasLayer"]
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=94992167]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -176,18 +156,19 @@ grow_vertical = 2
 mouse_filter = 2
 theme = ExtResource("menu_theme")
 
-[node name="Scrim" type="ColorRect" parent="CanvasLayer/UI"]
-layout_mode = 3
+[node name="Scrim" type="ColorRect" parent="CanvasLayer/UI" unique_id=2121148237]
+material = SubResource("ScrimMaterial")
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-material = SubResource("ScrimMaterial")
 
-[node name="Brand" type="VBoxContainer" parent="CanvasLayer/UI"]
+[node name="Brand" type="VBoxContainer" parent="CanvasLayer/UI" unique_id=1255295492]
 unique_name_in_owner = true
+layout_mode = 0
 offset_left = 88.0
 offset_top = 126.0
 offset_right = 640.0
@@ -195,52 +176,53 @@ offset_bottom = 270.0
 mouse_filter = 2
 theme_override_constants/separation = 5
 
-[node name="English" type="Label" parent="CanvasLayer/UI/Brand"]
+[node name="English" type="Label" parent="CanvasLayer/UI/Brand" unique_id=1078300261]
 layout_mode = 2
-text = "积木世界 · 即时战略"
-theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
+theme_override_font_sizes/font_size = 15
+text = "积木世界 · 即时战略"
 
-[node name="Title" type="Label" parent="CanvasLayer/UI/Brand"]
+[node name="Title" type="Label" parent="CanvasLayer/UI/Brand" unique_id=67844359]
 layout_mode = 2
-text = "积木争霸"
+theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
 theme_override_fonts/font = ExtResource("med_title")
 theme_override_font_sizes/font_size = 66
-theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
+text = "积木争霸"
 
-[node name="Subtitle" type="Label" parent="CanvasLayer/UI/Brand"]
+[node name="Subtitle" type="Label" parent="CanvasLayer/UI/Brand" unique_id=1133203978]
 layout_mode = 2
-text = "筑起城镇，率领你的军队。"
-theme_override_font_sizes/font_size = 19
 theme_override_colors/font_color = Color(0.94,0.95,0.86,1)
+theme_override_font_sizes/font_size = 19
+text = "筑起城镇，率领你的军队。"
 
-[node name="MainMenu" type="VBoxContainer" parent="CanvasLayer/UI"]
+[node name="MainMenu" type="VBoxContainer" parent="CanvasLayer/UI" unique_id=1120535106]
 unique_name_in_owner = true
+layout_mode = 0
 offset_left = 88.0
 offset_top = 315.0
 offset_right = 480.0
 offset_bottom = 710.0
 theme_override_constants/separation = 10
 
-[node name="SoloMenu" type="Button" parent="CanvasLayer/UI/MainMenu"]
+[node name="SoloMenu" type="Button" parent="CanvasLayer/UI/MainMenu" unique_id=838027088]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 64)
-text = "单人遭遇战"
-alignment = 1
+layout_mode = 2
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = ExtResource("med_Primary")
 theme_override_styles/hover = ExtResource("med_PrimaryHover")
+text = "单人遭遇战"
+alignment = 1
 theme_override_fonts/font = ExtResource("med_title")
 theme_type_variation = &"MedievalPrimary"
 
-[node name="Multiplayer" type="Button" parent="CanvasLayer/UI/MainMenu"]
+[node name="Multiplayer" type="Button" parent="CanvasLayer/UI/MainMenu" unique_id=645477393]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-custom_minimum_size = Vector2(0,64)
+theme_override_font_sizes/font_size = 25
 text = "多人对战"
 alignment = 1
-theme_override_font_sizes/font_size = 25
 theme_override_fonts/font = ExtResource("med_title")
 
 [node name="RogueMode" type="Button" parent="CanvasLayer/UI/MainMenu"]
@@ -261,44 +243,44 @@ theme_override_font_sizes/font_size = 25
 text = "MOBA卡牌模式 test1"
 tooltip_text = "单人测试 · 指挥英雄、打出援军卡牌、突破林地防线"
 
-[node name="Codex" type="Button" parent="CanvasLayer/UI/MainMenu"]
+[node name="Codex" type="Button" parent="CanvasLayer/UI/MainMenu" unique_id=77989822]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
 text = "战争图鉴"
 alignment = 1
-theme_override_font_sizes/font_size = 25
 theme_override_fonts/font = ExtResource("med_title")
 
-[node name="Sandbox" type="Button" parent="CanvasLayer/UI/MainMenu"]
+[node name="Sandbox" type="Button" parent="CanvasLayer/UI/MainMenu" unique_id=2079051040]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
 text = "自由沙盘"
 alignment = 1
-theme_override_font_sizes/font_size = 25
 theme_override_fonts/font = ExtResource("med_title")
 
-[node name="UtilityActions" type="HBoxContainer" parent="CanvasLayer/UI/MainMenu"]
+[node name="UtilityActions" type="HBoxContainer" parent="CanvasLayer/UI/MainMenu" unique_id=215194779]
 layout_mode = 2
 
-[node name="Settings" type="Button" parent="CanvasLayer/UI/MainMenu/UtilityActions"]
+[node name="Settings" type="Button" parent="CanvasLayer/UI/MainMenu/UtilityActions" unique_id=1671249153]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 43)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0,43)
 text = "设置"
 theme_type_variation = &"MedievalCompact"
 
-[node name="QuitGame" type="Button" parent="CanvasLayer/UI/MainMenu/UtilityActions"]
+[node name="QuitGame" type="Button" parent="CanvasLayer/UI/MainMenu/UtilityActions" unique_id=1678654834]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 43)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0,43)
 text = "退出游戏"
 theme_type_variation = &"MedievalCompact"
 
-[node name="SoloPanel" type="PanelContainer" parent="CanvasLayer/UI"]
+[node name="SoloPanel" type="PanelContainer" parent="CanvasLayer/UI" unique_id=1575713786]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
@@ -309,176 +291,176 @@ anchor_bottom = 0.84
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SoloScroll" type="ScrollContainer" parent="CanvasLayer/UI/SoloPanel"]
+[node name="SoloScroll" type="ScrollContainer" parent="CanvasLayer/UI/SoloPanel" unique_id=1971834157]
 layout_mode = 2
-horizontal_scroll_mode = 0
 follow_focus = true
+horizontal_scroll_mode = 0
 
-[node name="Content" type="VBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll"]
+[node name="Content" type="VBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll" unique_id=1254440456]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Heading" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="Heading" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=1435452469]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading"]
+[node name="Title" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading" unique_id=7163013]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "单人遭遇战"
 theme_override_font_sizes/font_size = 30
+text = "单人遭遇战"
 theme_override_fonts/font = ExtResource("med_title")
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="CloseSolo" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading"]
+[node name="CloseSolo" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading" unique_id=1668035347]
 layout_mode = 2
 text = "返回"
 theme_type_variation = &"MedievalCompact"
 
-[node name="ModeLabel" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="ModeLabel" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=677682939]
 layout_mode = 2
-text = "选择对战规模"
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 16
+text = "选择对战规模"
 
-[node name="ModeRow" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="ModeRow" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=2133530951]
 layout_mode = 2
 
-[node name="Mode1v1" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow"]
+[node name="Mode1v1" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow" unique_id=1992844092]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-custom_minimum_size = Vector2(0,44)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+toggle_mode = true
+button_group = SubResource("Modes")
 text = "1v1"
+
+[node name="Mode2v2" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow" unique_id=966355006]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("Modes")
-theme_override_font_sizes/font_size = 18
-
-[node name="Mode2v2" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "2v2"
+
+[node name="Mode3v3" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow" unique_id=143768398]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("Modes")
-theme_override_font_sizes/font_size = 18
-
-[node name="Mode3v3" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "3v3"
+
+[node name="ModeRowMulti" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=1044828452]
+layout_mode = 2
+
+[node name="Mode4v4" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti" unique_id=691012971]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("Modes")
-theme_override_font_sizes/font_size = 18
-
-[node name="ModeRowMulti" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
-layout_mode = 2
-
-[node name="Mode4v4" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "4v4"
+
+[node name="Mode2v2v2" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti" unique_id=2038063190]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("Modes")
-theme_override_font_sizes/font_size = 18
-
-[node name="Mode2v2v2" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "2v2v2"
-toggle_mode = true
-button_group = SubResource("Modes")
-theme_override_font_sizes/font_size = 18
 
-[node name="ModeFFA" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti"]
+[node name="ModeFFA" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti" unique_id=1956662006]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-custom_minimum_size = Vector2(0,44)
 size_flags_horizontal = 3
-text = "八人乱斗"
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("Modes")
-theme_override_font_sizes/font_size = 18
+text = "八人乱斗"
 
-[node name="MapTitle" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="MapTitle" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=2026246945]
 unique_name_in_owner = true
 layout_mode = 2
-text = "琥珀十字路"
 theme_override_font_sizes/font_size = 24
+text = "琥珀十字路"
 theme_override_fonts/font = ExtResource("med_title")
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="MapDetail" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="MapDetail" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=184743507]
 unique_name_in_owner = true
 layout_mode = 2
-text = "96 × 96   ·   六座矿脉"
-theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 15
+text = "96 × 96   ·   六座矿脉"
 
-[node name="DifficultyRow" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="DifficultyRow" type="HBoxContainer" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=238902730]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow"]
+[node name="Label" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow" unique_id=735843820]
 layout_mode = 2
-text = "电脑难度"
 theme_override_font_sizes/font_size = 18
+text = "电脑难度"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="SoloDifficulty" type="OptionButton" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow"]
+[node name="SoloDifficulty" type="OptionButton" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow" unique_id=2082876261]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "适用于全部电脑将领；倍数为农民每次采集的金币收益"
 theme_override_font_sizes/font_size = 18
 
-[node name="DifficultyHint" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="DifficultyHint" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=614247675]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 15
 text = "困难起，电脑农民每次采集获得 2 / 3 / 4 倍金币。"
 autowrap_mode = 2
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Divider" type="HSeparator" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="Divider" type="HSeparator" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=7666401]
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
-custom_minimum_size = Vector2(0,10)
 
-[node name="SoloStart" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="SoloStart" type="Button" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=1124527997]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 67)
 layout_mode = 2
-custom_minimum_size = Vector2(0,67)
-text = "开始单人遭遇战"
+theme_override_fonts/font = ExtResource("med_title")
 theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("med_Primary")
-theme_override_styles/hover = ExtResource("med_PrimaryHover")
 theme_override_styles/pressed = ExtResource("med_Pressed")
-theme_override_fonts/font = ExtResource("med_title")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+text = "开始单人遭遇战"
 
-[node name="SoloDescription" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="SoloDescription" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=555334398]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 16
 text = "与一位电脑对手交锋。"
 autowrap_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="SoloLoadMessage" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content"]
+[node name="SoloLoadMessage" type="Label" parent="CanvasLayer/UI/SoloPanel/SoloScroll/Content" unique_id=835990357]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
 
-[node name="OnlinePanel" type="PanelContainer" parent="CanvasLayer/UI"]
+[node name="OnlinePanel" type="PanelContainer" parent="CanvasLayer/UI" unique_id=563929404]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
@@ -489,273 +471,273 @@ anchor_bottom = 0.955
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelScroll" type="ScrollContainer" parent="CanvasLayer/UI/OnlinePanel"]
+[node name="PanelScroll" type="ScrollContainer" parent="CanvasLayer/UI/OnlinePanel" unique_id=12589824]
 unique_name_in_owner = true
 layout_mode = 2
-horizontal_scroll_mode = 0
 follow_focus = true
+horizontal_scroll_mode = 0
 
-[node name="Content" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll"]
+[node name="Content" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll" unique_id=135417127]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="Heading" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
+[node name="Heading" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content" unique_id=2048826535]
 layout_mode = 2
 
-[node name="OnlineTitle" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading"]
+[node name="OnlineTitle" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading" unique_id=365804842]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "多人房间"
 theme_override_fonts/font = ExtResource("med_title")
 theme_override_font_sizes/font_size = 28
+text = "多人房间"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="CloseOnline" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading"]
+[node name="CloseOnline" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading" unique_id=1141156396]
 unique_name_in_owner = true
 layout_mode = 2
-text = "返回主菜单"
 tooltip_text = "离开当前房间并返回主菜单"
 theme_override_font_sizes/font_size = 15
+text = "返回主菜单"
 theme_type_variation = &"MedievalCompact"
 
-[node name="ConnectionStatus" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
+[node name="ConnectionStatus" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content" unique_id=1838152984]
 unique_name_in_owner = true
 layout_mode = 2
-text = "尚未连接"
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
+text = "尚未连接"
 
-[node name="Setup" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
+[node name="Setup" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content" unique_id=1688217717]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="OnlineModeRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="OnlineModeRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=762254234]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="OnlineMode1v1" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow"]
+[node name="OnlineMode1v1" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow" unique_id=1846824152]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-custom_minimum_size = Vector2(0,44)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+toggle_mode = true
+button_group = SubResource("OnlineModes")
 text = "1v1"
+
+[node name="OnlineMode2v2" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow" unique_id=1223154974]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("OnlineModes")
-theme_override_font_sizes/font_size = 18
-
-[node name="OnlineMode2v2" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "2v2"
+
+[node name="OnlineMode3v3" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow" unique_id=197411019]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("OnlineModes")
-theme_override_font_sizes/font_size = 18
-
-[node name="OnlineMode3v3" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "3v3"
+
+[node name="OnlineModeRowMulti" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=1392384492]
+layout_mode = 2
+
+[node name="OnlineMode4v4" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti" unique_id=1492618204]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("OnlineModes")
-theme_override_font_sizes/font_size = 18
-
-[node name="OnlineModeRowMulti" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
-layout_mode = 2
-
-[node name="OnlineMode4v4" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "4v4"
+
+[node name="OnlineMode2v2v2" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti" unique_id=1679954009]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("OnlineModes")
-theme_override_font_sizes/font_size = 18
-
-[node name="OnlineMode2v2v2" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-size_flags_horizontal = 3
 text = "2v2v2 · 三方混战"
-toggle_mode = true
-button_group = SubResource("OnlineModes")
-theme_override_font_sizes/font_size = 18
 
-[node name="OnlineModeFFA" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti"]
+[node name="OnlineModeFFA" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti" unique_id=665191466]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-custom_minimum_size = Vector2(0,44)
 size_flags_horizontal = 3
-text = "八人乱斗"
+theme_override_font_sizes/font_size = 18
 toggle_mode = true
 button_group = SubResource("OnlineModes")
-theme_override_font_sizes/font_size = 18
+text = "八人乱斗"
 
-[node name="NicknameLabel" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="NicknameLabel" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=402292389]
 layout_mode = 2
+theme_override_font_sizes/font_size = 16
 text = "你的称呼"
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Nickname" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="Nickname" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=2014515873]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-custom_minimum_size = Vector2(0,48)
 text = "指挥官"
-max_length = 16
 placeholder_text = "指挥官"
+max_length = 16
 
-[node name="ServerLabel" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="ServerLabel" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=1589628524]
 layout_mode = 2
-text = "房间服务器"
 theme_override_font_sizes/font_size = 16
+text = "房间服务器"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="ServerAddress" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="ServerAddress" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=55087285]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-custom_minimum_size = Vector2(0,48)
-max_length = 253
 placeholder_text = "输入服务器地址"
+max_length = 253
 clear_button_enabled = true
 
-[node name="CreateRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="CreateRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=483399576]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 55)
 layout_mode = 2
-custom_minimum_size = Vector2(0,55)
-text = "创建 1v1 房间"
-theme_override_styles/normal = ExtResource("med_Primary")
-theme_override_styles/hover = ExtResource("med_PrimaryHover")
-theme_override_styles/pressed = ExtResource("med_Pressed")
 theme_override_fonts/font = ExtResource("med_title")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+text = "创建 1v1 房间"
 
-[node name="Divider" type="HSeparator" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="Divider" type="HSeparator" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=1423573898]
+custom_minimum_size = Vector2(0, 21)
 layout_mode = 2
-custom_minimum_size = Vector2(0,21)
 
-[node name="InviteLabel" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="InviteLabel" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=153821301]
 layout_mode = 2
-text = "加入朋友的房间"
 theme_override_font_sizes/font_size = 18
+text = "加入朋友的房间"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="InviteRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup"]
+[node name="InviteRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup" unique_id=1819504983]
 layout_mode = 2
 
-[node name="InviteInput" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow"]
+[node name="InviteInput" type="LineEdit" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow" unique_id=2031154244]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 51)
 layout_mode = 2
-custom_minimum_size = Vector2(0,51)
 size_flags_horizontal = 3
-max_length = 8
 placeholder_text = "八位邀请码"
+max_length = 8
 
-[node name="JoinRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow"]
+[node name="JoinRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow" unique_id=1427390198]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(126, 51)
 layout_mode = 2
-custom_minimum_size = Vector2(126,51)
 text = "加入房间"
 
-[node name="Room" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
+[node name="Room" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content" unique_id=310497301]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
-[node name="RoomMode" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="RoomMode" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=1418075190]
 unique_name_in_owner = true
 layout_mode = 2
-text = "1v1   /   琥珀十字路"
 theme_override_font_sizes/font_size = 18
+text = "1v1   /   琥珀十字路"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="CodeRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="CodeRow" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=135464050]
 layout_mode = 2
 
-[node name="InviteCode" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow"]
+[node name="InviteCode" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow" unique_id=412018049]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "--------"
-theme_override_font_sizes/font_size = 33
-theme_override_fonts/font = ExtResource("med_title")
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_fonts/font = ExtResource("med_title")
+theme_override_font_sizes/font_size = 33
+text = "--------"
 
-[node name="CopyInvite" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow"]
+[node name="CopyInvite" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow" unique_id=417081030]
 unique_name_in_owner = true
 layout_mode = 2
-text = "复制邀请码"
 theme_override_font_sizes/font_size = 16
+text = "复制邀请码"
 theme_type_variation = &"MedievalCompact"
 
-[node name="Divider" type="HSeparator" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="Divider" type="HSeparator" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=601512618]
 layout_mode = 2
 
-[node name="TeamSummary" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="TeamSummary" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=953263202]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 16
 text = "联盟一：1、2    /    联盟二：3、4"
 autowrap_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="SlotScroll" type="ScrollContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="SlotScroll" type="ScrollContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=1317138096]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 245)
+layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 follow_focus = true
+horizontal_scroll_mode = 0
 
-[node name="Slots" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll"]
+[node name="Slots" type="VBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll" unique_id=1696179037]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="Slot0" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot0" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=2077240269]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0" unique_id=1488214478]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "01"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0" unique_id=553052897]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0" unique_id=61449512]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0" unique_id=405358295]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -763,52 +745,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0" unique_id=255002850]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot0" unique_id=1886534391]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot1" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot1" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=150356339]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1" unique_id=2140242298]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "02"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1" unique_id=2000641182]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1" unique_id=1672948494]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1" unique_id=1245334913]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -816,52 +798,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1" unique_id=1327389141]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot1" unique_id=23974781]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot2" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot2" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=1513298238]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2" unique_id=1129818552]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "03"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2" unique_id=449797350]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2" unique_id=505283631]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2" unique_id=651551036]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -869,52 +851,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2" unique_id=1694706178]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot2" unique_id=1177372512]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot3" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot3" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=577504249]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3" unique_id=204561952]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "04"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3" unique_id=694899141]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3" unique_id=142523754]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3" unique_id=602787683]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -922,52 +904,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3" unique_id=18158473]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot3" unique_id=2090183779]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot4" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot4" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=71685919]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4" unique_id=441671588]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "05"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4" unique_id=100365903]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4" unique_id=1622714708]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4" unique_id=762905744]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -975,52 +957,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4" unique_id=107026879]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot4" unique_id=1731093737]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot5" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot5" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=1475781700]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5" unique_id=1255241643]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "06"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5" unique_id=871211407]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5" unique_id=1346778674]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5" unique_id=726482917]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -1028,52 +1010,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5" unique_id=1187851785]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot5" unique_id=1774927312]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot6" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot6" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=374360140]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6" unique_id=1368380981]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
 text = "07"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6" unique_id=526496630]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6" unique_id=446598817]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6" unique_id=1017906398]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -1081,52 +1063,52 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6" unique_id=1593008932]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot6" unique_id=1316070269]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Slot7" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots"]
+[node name="Slot7" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots" unique_id=268580481]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(0,40)
 theme_override_constants/separation = 8
 
-[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
+[node name="Index" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7" unique_id=664428986]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(25,0)
-text = "08"
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 14
+text = "08"
 
-[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
+[node name="Name" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7" unique_id=352005283]
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(122,0)
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
 text = "等待加入"
 text_overrun_behavior = 3
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
+[node name="Kind" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7" unique_id=1915620540]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
+theme_override_font_sizes/font_size = 15
 text = "添加电脑"
-theme_override_font_sizes/font_size = 15
 
-[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
+[node name="Team" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7" unique_id=1361617214]
+custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(110,40)
 theme_override_font_sizes/font_size = 15
-item_count = 3
 selected = 0
+item_count = 3
 popup/item_0/text = "联盟一"
 popup/item_0/id = 0
 popup/item_1/text = "联盟二"
@@ -1134,95 +1116,95 @@ popup/item_1/id = 1
 popup/item_2/text = "联盟三"
 popup/item_2/id = 2
 
-[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
+[node name="Difficulty" type="OptionButton" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7" unique_id=1518884773]
 visible = false
+custom_minimum_size = Vector2(116, 40)
 layout_mode = 2
-custom_minimum_size = Vector2(116,40)
 theme_override_font_sizes/font_size = 15
 
-[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7"]
+[node name="State" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/SlotScroll/Slots/Slot7" unique_id=261294782]
+custom_minimum_size = Vector2(77, 0)
 layout_mode = 2
-custom_minimum_size = Vector2(77,0)
-text = "等待加入"
 theme_override_font_sizes/font_size = 15
+text = "等待加入"
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="FillBots" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="FillBots" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=79555671]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 43)
-text = "为全部空位添加电脑"
+layout_mode = 2
 tooltip_text = "可选：用电脑补齐空位。保留空位也可以开始对战"
 theme_override_font_sizes/font_size = 16
+text = "为全部空位添加电脑"
 
-[node name="RoomHint" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="RoomHint" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=1218833592]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
-custom_minimum_size = Vector2(0,28)
 size_flags_vertical = 1
-autowrap_mode = 2
-text = "邀请朋友或添加电脑。空位可以保留。"
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_font_sizes/font_size = 16
+text = "邀请朋友或添加电脑。空位可以保留。"
+autowrap_mode = 2
 
-[node name="Actions" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room"]
+[node name="Actions" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room" unique_id=722205537]
 layout_mode = 2
 
-[node name="StartMatch" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions"]
+[node name="StartMatch" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions" unique_id=1512842713]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 57)
 layout_mode = 2
-custom_minimum_size = Vector2(0,57)
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("med_title")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
 text = "开始对战"
-theme_override_styles/normal = ExtResource("med_Primary")
-theme_override_styles/hover = ExtResource("med_PrimaryHover")
-theme_override_styles/pressed = ExtResource("med_Pressed")
-theme_override_fonts/font = ExtResource("med_title")
 
-[node name="Ready" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions"]
+[node name="Ready" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions" unique_id=2099653042]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 57)
 layout_mode = 2
-custom_minimum_size = Vector2(0,57)
 size_flags_horizontal = 3
-text = "准备就绪"
-toggle_mode = true
-theme_override_styles/normal = ExtResource("med_Primary")
-theme_override_styles/hover = ExtResource("med_PrimaryHover")
-theme_override_styles/pressed = ExtResource("med_Pressed")
 theme_override_fonts/font = ExtResource("med_title")
+theme_override_styles/normal = ExtResource("med_Primary")
+theme_override_styles/pressed = ExtResource("med_Pressed")
+theme_override_styles/hover = ExtResource("med_PrimaryHover")
+toggle_mode = true
+text = "准备就绪"
 
-[node name="LeaveRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions"]
+[node name="LeaveRoom" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions" unique_id=242437629]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(133, 57)
 layout_mode = 2
-custom_minimum_size = Vector2(133,57)
-text = "离开房间"
 theme_override_font_sizes/font_size = 17
+text = "离开房间"
 theme_type_variation = &"MedievalCompact"
 
-[node name="RequestActions" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
+[node name="RequestActions" type="HBoxContainer" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content" unique_id=1418224705]
 layout_mode = 2
 
-[node name="CancelRequest" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions"]
+[node name="CancelRequest" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions" unique_id=895618843]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "取消连接"
 
-[node name="RetryRequest" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions"]
+[node name="RetryRequest" type="Button" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions" unique_id=104330819]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "重试"
 
-[node name="Message" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content"]
+[node name="Message" type="Label" parent="CanvasLayer/UI/OnlinePanel/PanelScroll/Content" unique_id=1874293479]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-custom_minimum_size = Vector2(0,44)
-autowrap_mode = 2
 theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 
-[node name="Version" type="Label" parent="CanvasLayer/UI"]
+[node name="Version" type="Label" parent="CanvasLayer/UI" unique_id=445677981]
 unique_name_in_owner = true
 layout_mode = 0
 anchor_left = 1.0
@@ -1233,99 +1215,63 @@ offset_left = -242.0
 offset_top = -51.0
 offset_right = -35.0
 offset_bottom = -25.0
-horizontal_alignment = 2
-text = "即时战略"
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.77,0.84,0.75,1)
+theme_override_font_sizes/font_size = 14
+text = "即时战略"
+horizontal_alignment = 2
 
-[node name="RequestTimeout" type="Timer" parent="."]
-unique_name_in_owner = true
-wait_time = 12.0
-one_shot = true
-
-[node name="UnitCodex" parent="CanvasLayer/UI" instance=ExtResource("codex")]
+[node name="UnitCodex" parent="CanvasLayer/UI" unique_id=1519717390 instance=ExtResource("codex")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
 
-[node name="SlotTimeout" type="Timer" parent="."]
+[node name="RequestTimeout" type="Timer" parent="." unique_id=580800040]
+unique_name_in_owner = true
+wait_time = 12.0
+one_shot = true
+
+[node name="SlotTimeout" type="Timer" parent="." unique_id=335178691]
 unique_name_in_owner = true
 wait_time = 8.0
 one_shot = true
 
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow/Mode1v1" to="." method="_on_mode_selected" binds= ["1v1"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow/Mode2v2" to="." method="_on_mode_selected" binds= ["2v2"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/SoloStart" to="." method="_on_solo_start"]
-
-[connection signal="pressed" from="CanvasLayer/UI/MainMenu/Multiplayer" to="." method="_on_open_multiplayer"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading/CloseOnline" to="." method="_on_close_multiplayer"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/CreateRoom" to="." method="_on_create_room"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow/JoinRoom" to="." method="_on_join_room"]
-
-[connection signal="text_submitted" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow/InviteInput" to="." method="_on_invite_submitted"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow/CopyInvite" to="." method="_on_copy_invite"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions/StartMatch" to="." method="_on_start_match"]
-
-[connection signal="toggled" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions/Ready" to="." method="_on_ready_toggled"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions/LeaveRoom" to="." method="_on_leave_room"]
-
-[connection signal="timeout" from="RequestTimeout" to="." method="_on_request_timeout"]
-
-[connection signal="text_changed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/Nickname" to="." method="_on_setup_edited"]
-
-[connection signal="text_changed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/ServerAddress" to="." method="_on_setup_edited"]
-
-[connection signal="text_changed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow/InviteInput" to="." method="_on_setup_edited"]
-
-[connection signal="pressed" from="CanvasLayer/UI/MainMenu/UtilityActions/Settings" to="." method="_on_settings"]
-
-[connection signal="pressed" from="CanvasLayer/UI/MainMenu/UtilityActions/QuitGame" to="." method="_on_quit_game"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow/OnlineMode1v1" to="." method="_on_mode_selected" binds= ["1v1"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow/OnlineMode2v2" to="." method="_on_mode_selected" binds= ["2v2"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/FillBots" to="." method="_on_fill_bots"]
-[connection signal="item_selected" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow/SoloDifficulty" to="." method="_on_solo_difficulty_selected"]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow/Mode3v3" to="." method="_on_mode_selected" binds= ["3v3"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti/Mode2v2v2" to="." method="_on_mode_selected" binds= ["2v2v2"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti/ModeFFA" to="." method="_on_mode_selected" binds= ["ffa"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow/OnlineMode3v3" to="." method="_on_mode_selected" binds= ["3v3"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti/OnlineMode2v2v2" to="." method="_on_mode_selected" binds= ["2v2v2"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti/OnlineModeFFA" to="." method="_on_mode_selected" binds= ["ffa"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti/Mode4v4" to="." method="_on_mode_selected" binds= ["4v4"]]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti/OnlineMode4v4" to="." method="_on_mode_selected" binds= ["4v4"]]
-
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/SoloMenu" to="." method="_on_open_solo"]
-
+[connection signal="pressed" from="CanvasLayer/UI/MainMenu/Multiplayer" to="." method="_on_open_multiplayer"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/Codex" to="." method="_on_open_codex"]
-
-[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading/CloseSolo" to="." method="_on_close_solo"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions/CancelRequest" to="." method="_on_cancel_request"]
-
-[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions/RetryRequest" to="." method="_on_retry_request"]
-
-[connection signal="closed" from="CanvasLayer/UI/UnitCodex" to="." method="_on_close_codex"]
-
-[connection signal="timeout" from="SlotTimeout" to="." method="_on_slot_timeout"]
-
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/Sandbox" to="." method="_on_open_sandbox"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/RogueMode" to="." method="_on_open_rogue"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/MobaMode" to="." method="_on_open_moba"]
+[connection signal="pressed" from="CanvasLayer/UI/MainMenu/UtilityActions/Settings" to="." method="_on_settings"]
+[connection signal="pressed" from="CanvasLayer/UI/MainMenu/UtilityActions/QuitGame" to="." method="_on_quit_game"]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/Heading/CloseSolo" to="." method="_on_close_solo"]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow/Mode1v1" to="." method="_on_mode_selected" binds= ["1v1"]]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow/Mode2v2" to="." method="_on_mode_selected" binds= ["2v2"]]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRow/Mode3v3" to="." method="_on_mode_selected" binds= ["3v3"]]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti/Mode4v4" to="." method="_on_mode_selected" binds= ["4v4"]]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti/Mode2v2v2" to="." method="_on_mode_selected" binds= ["2v2v2"]]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/ModeRowMulti/ModeFFA" to="." method="_on_mode_selected" binds= ["ffa"]]
+[connection signal="item_selected" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/DifficultyRow/SoloDifficulty" to="." method="_on_solo_difficulty_selected"]
+[connection signal="pressed" from="CanvasLayer/UI/SoloPanel/SoloScroll/Content/SoloStart" to="." method="_on_solo_start"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Heading/CloseOnline" to="." method="_on_close_multiplayer"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow/OnlineMode1v1" to="." method="_on_mode_selected" binds= ["1v1"]]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow/OnlineMode2v2" to="." method="_on_mode_selected" binds= ["2v2"]]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRow/OnlineMode3v3" to="." method="_on_mode_selected" binds= ["3v3"]]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti/OnlineMode4v4" to="." method="_on_mode_selected" binds= ["4v4"]]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti/OnlineMode2v2v2" to="." method="_on_mode_selected" binds= ["2v2v2"]]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/OnlineModeRowMulti/OnlineModeFFA" to="." method="_on_mode_selected" binds= ["ffa"]]
+[connection signal="text_changed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/Nickname" to="." method="_on_setup_edited"]
+[connection signal="text_changed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/ServerAddress" to="." method="_on_setup_edited"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/CreateRoom" to="." method="_on_create_room"]
+[connection signal="text_changed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow/InviteInput" to="." method="_on_setup_edited"]
+[connection signal="text_submitted" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow/InviteInput" to="." method="_on_invite_submitted"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Setup/InviteRow/JoinRoom" to="." method="_on_join_room"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/CodeRow/CopyInvite" to="." method="_on_copy_invite"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/FillBots" to="." method="_on_fill_bots"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions/StartMatch" to="." method="_on_start_match"]
+[connection signal="toggled" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions/Ready" to="." method="_on_ready_toggled"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/Room/Actions/LeaveRoom" to="." method="_on_leave_room"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions/CancelRequest" to="." method="_on_cancel_request"]
+[connection signal="pressed" from="CanvasLayer/UI/OnlinePanel/PanelScroll/Content/RequestActions/RetryRequest" to="." method="_on_retry_request"]
+[connection signal="closed" from="CanvasLayer/UI/UnitCodex" to="." method="_on_close_codex"]
+[connection signal="timeout" from="RequestTimeout" to="." method="_on_request_timeout"]
+[connection signal="timeout" from="SlotTimeout" to="." method="_on_slot_timeout"]

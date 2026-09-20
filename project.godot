@@ -12,8 +12,8 @@ config_version=5
 
 config/name="积木争霸"
 run/main_scene="res://scenes/lobby.tscn"
-run/flush_stdout_on_print=true
 config/features=PackedStringArray("4.6", "Forward Plus")
+run/flush_stdout_on_print=true
 config/icon="res://assets/icon.png"
 
 [autoload]
@@ -27,13 +27,13 @@ window/size/viewport_height=900
 window/size/window_width_override=1600
 window/size/window_height_override=900
 window/stretch/mode="canvas_items"
-window/size/resizable=true
 
 [input]
 
 debug_gold={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":4194343)]
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194343,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
 }
 
 [layer_names]
@@ -49,16 +49,13 @@ debug_gold={
 [physics]
 
 common/physics_ticks_per_second=30
-common/physics_interpolation=true
 3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
 
 [rendering]
 
-limits/global_shader_variables/buffer_size=262144
-rendering_device/driver.windows="vulkan"
-textures/default_filters/use_nearest_mipmap_filter=false
-anti_aliasing/quality/msaa_3d=2
-anti_aliasing/quality/use_taa=true
-lights_and_shadows/directional_shadow/size=4096
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+anti_aliasing/quality/msaa_3d=2
+limits/global_shader_variables/buffer_size=262144
 environment/defaults/default_clear_color=Color(0.21, 0.19, 0.15, 1)
+anti_aliasing/quality/use_taa=true
