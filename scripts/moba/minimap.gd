@@ -41,7 +41,9 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		var world: Vector2 = (event.position / size - Vector2(.5,.5)) * game.map_size
 		var at: Vector3 = game.clamp_to_map(Vector3(world.x,0,world.y))
-		if event.button_index == MOUSE_BUTTON_LEFT and not game.hero_controller.first_person: game.camera_rig.focus_at(at)
+		if event.button_index == MOUSE_BUTTON_LEFT and not game.hero_controller.first_person:
+			game.hero_controller.set_follow(false)
+			game.camera_rig.focus_at(at)
 		elif event.button_index == MOUSE_BUTTON_RIGHT and game.local_hero() != null:
 			game.select_entities([game.local_hero()])
 			game.command_move(at, false, event.shift_pressed)

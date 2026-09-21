@@ -58,6 +58,7 @@ func _ready() -> void:
 	$StaticMotionGrid.configure(map_instance, $Buildings, Rect2(-map_size * .5, map_size))
 	hud.bind_game(self)
 	hero_controller.bind(self)
+	hero_controller.set_follow(true)
 	settings.opened.connect(_settings_opened)
 	settings.closed.connect(_settings_closed)
 	settings.pause_requested.connect(_toggle_view)
@@ -70,7 +71,7 @@ func _ready() -> void:
 	for owner: int in 2: _spawn_hero(owner)
 	game_started = true
 	set_running(true)
-	hud.toast("双击卡牌或拖向战场派兵 · 右键指挥英雄 · E / R 技能", 8)
+	hud.toast("WASD 移动 · 左键瞄准射击 · 右键指挥 · E / R 技能", 8)
 
 func building_definition_for(kind: String, _owner: int) -> BuildingDefinition:
 	return FORTS[kind]
@@ -140,7 +141,6 @@ func spawn_army(kinds: PackedStringArray, owner: int) -> bool:
 	if places.size() != kinds.size(): return false
 	for index: int in kinds.size():
 		var unit: BattleUnit = spawn_unit(kinds[index], owner, places[index])
-		unit.set_meta("moba_lane", (unit.entity_id % 2) * 2 - 1)
 		$Director.enlist(unit)
 	spawn_effect(places[0], "spawn", Color("80d6ba") if owner == 0 else Color("ec968c"))
 	return true
@@ -221,7 +221,7 @@ func set_running(value: bool) -> void:
 	$Audio.set_world_paused(not running)
 	for path: String in ["Units", "Buildings", "ProjectilePool", "EffectPool"]:
 		get_node(path).process_mode = Node.PROCESS_MODE_INHERIT if running else Node.PROCESS_MODE_DISABLED
-	if not running and local_hero() != null: local_hero().trigger_held = false
+	if not running: hero_controller.stop_input()
 	if _match_ready: hud.refresh()
 
 func select_entities(entities: Array, _additive: bool = false, _toggle: bool = false) -> void:
@@ -233,6 +233,7 @@ func submit_local(command: Dictionary) -> Dictionary:
 		return {"ok": false, "error": "只能指挥自己的英雄"}
 	for id: int in command.get("units", []):
 		if id != hero.entity_id: return {"ok": false, "error": "军队由兵线指挥器控制"}
+	hero_controller.prepare_order(command)
 	return super.submit_local(command)
 
 func _toggle_view() -> void:
@@ -256,6 +257,9 @@ func _input(event: InputEvent) -> void:
 			var slot := key - KEY_1
 			play_card(0, slot, hands[0].slots[slot].uid)
 		elif key == KEY_SPACE and not hero_controller.first_person: focus_hero()
+		elif key == KEY_Y and not hero_controller.first_person: hero_controller.set_follow(not hero_controller.follow_hero)
+		elif key == KEY_H and not hero_controller.first_person:
+			if local_hero() != null: submit_local({"kind": "hold", "units": [local_hero().entity_id]})
 		else:
 			if hero_controller.handle_input(event): get_viewport().set_input_as_handled()
 			return
@@ -265,7 +269,10 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not running or settings.is_open() or hero_controller.first_person: return
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_MIDDLE: camera_rig.dragging = event.pressed
+		if event.button_index == MOUSE_BUTTON_MIDDLE:
+			camera_rig.dragging = event.pressed
+			if event.pressed: hero_controller.set_follow(false)
+		elif event.pressed and event.button_index == MOUSE_BUTTON_LEFT: hero_controller.begin_pointer_fire()
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP: camera_rig.zoom_by(-3)
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_DOWN: camera_rig.zoom_by(3)
 		elif event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -285,7 +292,9 @@ func cast_skill(index: int) -> bool:
 	return cast
 
 func focus_hero() -> void:
-	if local_hero() != null: camera_rig.focus_at(local_hero().position)
+	if local_hero() != null:
+		hero_controller.set_follow(true)
+		camera_rig.focus_at(local_hero().position)
 
 func _settings_opened() -> void:
 	_settings_running = running

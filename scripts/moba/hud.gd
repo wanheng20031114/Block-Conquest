@@ -1,4 +1,6 @@
 extends Control
+const PREFERENCES := "user://moba_interface.cfg"
+var panel_scale: float = .85
 var game: Node3D
 var toast_remaining: float = 0
 var drag_pointer := Vector2.ZERO
@@ -16,8 +18,15 @@ var _display_gold: float = 0:
 @onready var weapon_viewport: SubViewport = $WeaponView/WeaponViewport
 
 func _ready() -> void:
+	var preferences := ConfigFile.new()
+	if preferences.load(PREFERENCES) == OK:
+		panel_scale = clampf(float(preferences.get_value("interface", "panel_scale", .85)), .7, 1.0)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+	%HUDScale.set_value_no_signal(panel_scale * 100)
+	%HUDScale.value_changed.connect(func(value: float): set_panel_scale(value / 100.0))
+	%SmallerHUD.pressed.connect(func(): set_panel_scale(panel_scale - .05))
+	%LargerHUD.pressed.connect(func(): set_panel_scale(panel_scale + .05))
 	%FPSHint.hide()
 	%DropZone.interface = self
 	%DropHint.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -28,7 +37,7 @@ func _ready() -> void:
 	%Settings.pressed.connect(func(): game.open_settings())
 	%Recovery.pressed.connect(func(): game.cast_skill(0))
 	%Morale.pressed.connect(func(): game.cast_skill(1))
-	%FocusHero.pressed.connect(func(): game.focus_hero())
+	%FocusHero.pressed.connect(func(): game.hero_controller.set_follow(not game.hero_controller.follow_hero))
 	%ViewMode.pressed.connect(func(): game.hero_controller.toggle_view())
 	%Recovery.tooltip_text = "肉体强化  [E]\n每秒恢复 25 生命，持续 5 秒。\n冷却 20 秒，从释放时开始计算。"
 	%Morale.tooltip_text = "士气昂扬  [R]\n自身与半径 3 内的友军移动速度 +25%，持续 3 秒。\n冷却 25 秒，从释放时开始计算。"
@@ -43,7 +52,24 @@ func _layout() -> void:
 	var factor := minf(viewport_size.x / 1600.0, viewport_size.y / 900.0)
 	$Layout.scale = Vector2.ONE * factor
 	$Layout.size = viewport_size / factor
+	# Keep both side panels at the screen edges; scale only the bottom console.
+	%ConsoleAnchor.scale = Vector2.ONE * panel_scale
+	%ConsoleAnchor.offset_top = -280.0 * panel_scale
+	%ConsoleAnchor.offset_bottom = 280.0 * (1.0 - panel_scale)
+	%ConsoleAnchor.offset_right = $Layout.size.x * (1.0 / panel_scale - 1.0)
+	%DropZone.offset_bottom = -280.0 * panel_scale - 9.0
+	%HUDScaleLabel.text = "底部面板 %d%%" % roundi(panel_scale * 100)
+	%SmallerHUD.disabled = panel_scale <= .7001
+	%LargerHUD.disabled = panel_scale >= .9999
 	weapon_viewport.size = Vector2i(viewport_size * .75)
+
+func set_panel_scale(value: float) -> void:
+	panel_scale = clampf(snappedf(value, .05), .7, 1.0)
+	%HUDScale.set_value_no_signal(panel_scale * 100)
+	_layout()
+	var preferences := ConfigFile.new()
+	preferences.set_value("interface", "panel_scale", panel_scale)
+	preferences.save(PREFERENCES)
 
 func bind_game(value: Node3D) -> void:
 	game = value
@@ -73,7 +99,7 @@ func refresh() -> void:
 	for owner: int in 2:
 		var base: BattleBuilding = game.bases[owner]
 		var hp: float = base.hp if is_instance_valid(base) else 0
-		var hp_max: float = base.max_hp if is_instance_valid(base) else 2200
+		var hp_max: float = base.max_hp if is_instance_valid(base) else game.FORTS.headquarters.hp
 		var label: Label = %OurBase if owner == 0 else %EnemyBase
 		var bar: ProgressBar = %OurHealth if owner == 0 else %EnemyHealth
 		label.text = "%s大本营  %d" % ["我方" if owner == 0 else "敌方", ceili(hp)]

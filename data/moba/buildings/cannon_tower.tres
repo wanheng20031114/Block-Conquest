@@ -6,21 +6,26 @@
 script = ExtResource("definition")
 id = &"cannon_tower"
 name = "炮塔"
-description = "厚石炮台上的回转重炮，自动攻击单个敌人。火力强、装填较慢，需要防备远处的攻城器。"
+description = "厚石炮台上的回转重炮，炮弹溅射周围敌军。高耐久与范围火力镇守前线，需要防备远处的攻城器。"
 combat_class = &"building"
 damage_channel = 1
-hp = 850
+hp = 1800
 cost = 350
 build_seconds = 30.0
 radius = 2.5
 size = Vector3(5, 5.2, 5)
 bar_height = 5.95
-damage = 30
-range = 11
-cooldown = 2.4
+damage = 55
+range = 12
+cooldown = 1.8
 model = "cannon_tower"
 projectile = "cannon"
-melee_armor = 4
-ranged_armor = 4
+melee_armor = 6
+ranged_armor = 6
 
 produces = PackedStringArray()
+
+model_yaw = 0.0
+weapon_rest_yaw = 3.141592653589793
+
+splash_radius = 1.6

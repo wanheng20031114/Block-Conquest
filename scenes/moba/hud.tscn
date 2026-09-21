@@ -154,7 +154,7 @@ offset_left = 267
 offset_top = 9
 offset_right = 597
 offset_bottom = 32
-text = "我方大本营  2200"
+text = "我方大本营  4400"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 17
@@ -203,7 +203,7 @@ offset_left = 886
 offset_top = 9
 offset_right = 1176
 offset_bottom = 32
-text = "敌方大本营  2200"
+text = "敌方大本营  4400"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 17
@@ -335,9 +335,13 @@ mouse_filter = 2
 
 [node name="MapPanel" type="Control" parent="Layout/ConsoleAnchor/Console"]
 unique_name_in_owner = true
-offset_left = 24
+anchor_left = 1
+anchor_right = 1
+anchor_top = 0
+anchor_bottom = 0
+offset_left = -318
 offset_top = 16
-offset_right = 318
+offset_right = -24
 offset_bottom = 265
 mouse_filter = 2
 
@@ -357,7 +361,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 offset_left = 36
 offset_top = 1
-offset_right = 231
+offset_right = 210
 offset_bottom = 33
 text = "林地防线"
 mouse_filter = 2
@@ -365,6 +369,26 @@ vertical_alignment = 1
 theme_override_font_sizes/font_size = 21
 theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
 
+
+[node name="SmallerHUD" type="Button" parent="Layout/ConsoleAnchor/Console/MapPanel"]
+unique_name_in_owner = true
+offset_left = 218
+offset_top = 0
+offset_right = 250
+offset_bottom = 32
+text = "−"
+focus_mode = 0
+tooltip_text = "缩小底部面板（最低 70%）"
+
+[node name="LargerHUD" type="Button" parent="Layout/ConsoleAnchor/Console/MapPanel"]
+unique_name_in_owner = true
+offset_left = 258
+offset_top = 0
+offset_right = 290
+offset_bottom = 32
+text = "+"
+focus_mode = 0
+tooltip_text = "放大底部面板（最高 100%）"
 
 [node name="ArmyCount" type="Label" parent="Layout/ConsoleAnchor/Console/MapPanel"]
 unique_name_in_owner = true
@@ -535,13 +559,9 @@ offset_bottom = 214
 
 [node name="HeroPanel" type="Control" parent="Layout/ConsoleAnchor/Console"]
 unique_name_in_owner = true
-anchor_left = 1
-anchor_right = 1
-anchor_top = 0
-anchor_bottom = 0
-offset_left = -324
+offset_left = 24
 offset_top = 15
-offset_right = -24
+offset_right = 324
 offset_bottom = 265
 mouse_filter = 2
 
@@ -658,8 +678,10 @@ offset_left = 0
 offset_top = 220
 offset_right = 92
 offset_bottom = 249
-text = "定位"
+text = "跟随中"
 focus_mode = 0
+tooltip_text = "Y 切换镜头跟随；空格定位英雄。
+中键拖动或点击小地图可自由观察。"
 icon = ExtResource("focus")
 expand_icon = true
 theme_override_constants/icon_max_width = 15
@@ -783,9 +805,9 @@ anchor_right = 0.5
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = -210
-offset_top = -190
+offset_top = -240
 offset_right = 210
-offset_bottom = 190
+offset_bottom = 240
 theme_type_variation = &"Panel"
 mouse_filter = 2
 
@@ -809,46 +831,71 @@ offset_left = 30
 offset_top = 70
 offset_right = 390
 offset_bottom = 128
-text = "兵线、金币与技能计时已暂停"
+text = "WASD 移动 · 左键射击 · 右键指挥\nE / R 技能 · Y 跟随 · H 原地待命"
 mouse_filter = 2
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.44314, 0.50588, 0.5451, 1)
 
 
+[node name="HUDScaleLabel" type="Label" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 135
+offset_right = 390
+offset_bottom = 161
+text = "底部面板 85%"
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.20392, 0.3098, 0.35294, 1)
+
+
+[node name="HUDScale" type="HSlider" parent="Layout/Modal/Dialog"]
+unique_name_in_owner = true
+offset_left = 30
+offset_top = 172
+offset_right = 390
+offset_bottom = 200
+min_value = 70.0
+max_value = 100.0
+step = 5.0
+value = 85.0
+focus_mode = 0
+
 [node name="Resume" type="Button" parent="Layout/Modal/Dialog"]
 unique_name_in_owner = true
 offset_left = 30
-offset_top = 140
+offset_top = 232
 offset_right = 390
-offset_bottom = 183
+offset_bottom = 275
 text = "继续对局"
 focus_mode = 0
 
 [node name="Restart" type="Button" parent="Layout/Modal/Dialog"]
 unique_name_in_owner = true
 offset_left = 30
-offset_top = 194
+offset_top = 286
 offset_right = 390
-offset_bottom = 237
+offset_bottom = 329
 text = "重新开始"
 focus_mode = 0
 
 [node name="Settings" type="Button" parent="Layout/Modal/Dialog"]
 unique_name_in_owner = true
 offset_left = 30
-offset_top = 248
+offset_top = 340
 offset_right = 390
-offset_bottom = 291
+offset_bottom = 383
 text = "设置"
 focus_mode = 0
 
 [node name="Back" type="Button" parent="Layout/Modal/Dialog"]
 unique_name_in_owner = true
 offset_left = 30
-offset_top = 302
+offset_top = 394
 offset_right = 390
-offset_bottom = 345
+offset_bottom = 437
 text = "返回主菜单"
 focus_mode = 0
 

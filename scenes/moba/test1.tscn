@@ -144,6 +144,7 @@ light_angular_distance = 1.6
 physics_interpolation_mode = 2
 position = Vector3(-16,0,21)
 script = ExtResource("camera")
+keyboard_pan = false
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 position = Vector3(0,46,36)

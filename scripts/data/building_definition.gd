@@ -8,6 +8,8 @@ extends CombatDefinition
 @export var size: Vector3 = Vector3(6, 4, 5)
 @export var bar_height: float = 5.9
 @export var model: String
+@export_range(-180, 180, 1, "radians_as_degrees") var model_yaw: float = 0.0
+@export_range(-180, 180, 1, "radians_as_degrees") var weapon_rest_yaw: float = 0.0
 @export var produces: PackedStringArray = PackedStringArray()
 @export_enum("arrow", "cannon") var projectile: String = "arrow"
 @export_range(1, 4) var weapon_count: int = 1

@@ -42,6 +42,9 @@ func run() -> void:
 	game = current_scene
 	while not game._match_ready: await process_frame
 	game.camera_rig.edge_scroll = false
+	game.hero_controller.set_follow(false)
+	game.camera_rig.edge_scroll = false
+	game.camera_rig.focus_at(Vector3(-62,0,0), true)
 	var card: Control = game.hud.cards[0]
 	var origin: Vector2 = card.get_global_rect().get_center()
 	var destination := Vector2(800,350)
@@ -61,8 +64,11 @@ func run() -> void:
 	check(not root.gui_is_dragging() and not game.hud.get_node("%DropHint").visible,"successful drop releases drag state")
 	button(destination,true,MOUSE_BUTTON_RIGHT)
 	button(destination,false,MOUSE_BUTTON_RIGHT)
-	await frames()
-	check(game.local_hero().order == BattleUnit.Order.MOVE,"world right click passes through idle drop surface")
+	# Commands commit on the physics clock; three render frames can finish
+	# before even one physics tick in a fast headless run.
+	await physics_frame
+	await physics_frame
+	check(game.local_hero().order == BattleUnit.Order.MOVE,"world right click passes through idle drop surface: order=%s" % game.local_hero().order)
 	key(KEY_F5)
 	await frames()
 	check(game.hero_controller.first_person,"actual F5 event enters first person once")

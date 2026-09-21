@@ -25,6 +25,7 @@ func run() -> void:
 	game = current_scene
 	while not game._match_ready: await process_frame
 	game.camera_rig.edge_scroll = false
+	game.hero_controller.set_follow(false)
 	game.camera_rig.set_process(false)
 	game.camera_rig.focus_at(Vector3(-62,0,0), true)
 	game.hud.toast_remaining = .01

@@ -95,9 +95,12 @@ func _ready() -> void:
 		_model = MODELS[_stats.model].instantiate()
 		model_pivot.add_child(_model)
 	artillery = _model as DefensiveTowerVisual
+	model_pivot.rotation.y = _stats.model_yaw
 	assert((_stats.projectile == "cannon") == (artillery != null), "Cannon buildings require an authored artillery model")
 	if artillery != null:
 		assert(artillery.guns.size() == _stats.weapon_count)
+		for gun: DefensiveGunVisual in artillery.guns:
+			gun.turret.rotation.y = _stats.weapon_rest_yaw
 	for index: int in _stats.weapon_count:
 		weapons.append(BuildingWeaponState.new())
 	var relation := FactionPalette.relation(owner_id, alliance_id, _game)

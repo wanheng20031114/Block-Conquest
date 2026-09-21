@@ -81,10 +81,11 @@ func run() -> void:
 	var hud: Control = game.hud
 	var card: Control = hud.cards[0]
 	await pause_for(.6)
+	if card.phase == card.Phase.DEALING: await card.get_node("%Motion").animation_finished
 	var board: Control = hud.get_node("%Console")
 	check(board.is_ancestor_of(hud.get_node("%MapPanel")) and board.is_ancestor_of(hud.get_node("%Hand")) and board.is_ancestor_of(hud.get_node("%HeroPanel")),"all bottom controls share one saved console")
 	check(board.get_global_rect().size.x == root.size.x,"console spans the viewport")
-	check(card.get_node("%Visual").modulate.a == 1 and card.phase == card.Phase.STEADY,"entrance finishes without leaving translucent cards")
+	check(card.get_node("%Visual").modulate.a == 1 and card.phase == card.Phase.STEADY,"entrance finishes without leaving translucent cards: alpha=%s phase=%s animation=%s" % [card.get_node("%Visual").modulate.a, card.phase, card.get_node("%Motion").current_animation])
 	await capture("console")
 	mouse(hud.cards[2].get_global_rect().get_center())
 	await pause_for(.4)

@@ -40,7 +40,7 @@ CARD_DETAILS = {
  'elephant':'派出1头战象。生命充足，但仍受反骑兵附伤克制。',
  'cannon':'派出1门加农炮。远距离攻击防御建筑，畏惧贴身。'
 }
-FORTS = {'headquarters':(2200,6,26,2,10), 'heavy_fortress':(2600,7,42,4.5,13), 'castle':(1800,5,20,3.4,12.5), 'cannon_tower':(850,4,30,2.4,11)}
+FORTS = {'headquarters':(4400,8,55,1.4,12), 'heavy_fortress':(5000,9,85,3.2,14), 'castle':(3400,7,40,2.3,13), 'cannon_tower':(1800,6,55,1.8,12)}
 
 def deck():
     for id,title,unit,count,cost,category,tint in CARDS:
@@ -62,8 +62,12 @@ color = {color(tint)}
     write('data/moba/test1_deck.tres','\n'.join(lines)+'\n')
     for kind,(hp,armor,damage,cooldown,reach) in FORTS.items():
         content=(ROOT/f'data/buildings/{kind}.tres').read_text(encoding='utf-8')
+        if kind == 'cannon_tower':
+            content = re.sub(r'^description = .+$', 'description = "厚石炮台上的回转重炮，炮弹溅射周围敌军。高耐久与范围火力镇守前线，需要防备远处的攻城器。"', content, flags=re.M)
         values={'hp':hp,'melee_armor':armor,'ranged_armor':armor,'damage':damage,'cooldown':cooldown,'range':reach,'produces':'PackedStringArray()'}
-        if kind=='heavy_fortress': values['splash_radius']=1.8
+        values['model_yaw'] = math.pi if kind in ('castle', 'heavy_fortress') else 0.0
+        values['weapon_rest_yaw'] = math.pi if kind == 'cannon_tower' else 0.0
+        if kind != 'headquarters': values['splash_radius'] = {'heavy_fortress':2.8, 'castle':1.4, 'cannon_tower':1.6}[kind]
         for key,value in values.items():
             if re.search(r'^'+key+r' = .+$',content,re.M): content=re.sub(r'^'+key+r' = .+$',key+' = '+str(value),content,flags=re.M)
             else: content+='\n'+key+' = '+str(value)+'\n'
@@ -155,6 +159,7 @@ def battle_scene():
     src=(ROOT/'scenes/main.tscn').read_text(encoding='utf-8')
     src=re.sub(r'\[gd_scene[^\n]+','[gd_scene format=3]',src, count=1)
     src=src.replace('res://scripts/game.gd','res://scripts/moba/match.gd').replace('res://scenes/hud.tscn','res://scenes/moba/hud.tscn')
+    src=src.replace('script = ExtResource("camera")', 'script = ExtResource("camera")\nkeyboard_pan = false')
     new='''[ext_resource type="Script" path="res://scripts/moba/director.gd" id="director"]
 [ext_resource type="Script" path="res://scripts/moba/status_effects.gd" id="statuses"]
 [ext_resource type="Script" path="res://scripts/sandbox_visibility.gd" id="visibility"]

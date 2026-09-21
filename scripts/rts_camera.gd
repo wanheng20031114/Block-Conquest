@@ -3,6 +3,7 @@ extends Node3D
 @export var pan_speed: float = 25.0
 @export var minimum_zoom: float = 16.0
 @export var maximum_zoom: float = 62.0
+@export var keyboard_pan: bool = true
 @onready var camera: Camera3D = $Camera3D
 @onready var settings: GameSettings = get_node("/root/Session/Settings")
 var destination: Vector3
@@ -18,8 +19,9 @@ func _process(delta: float) -> void:
 	if get_tree().paused or settings.is_open() or get_parent()._local_menu or get_parent().hud.help_visible():
 		return
 	var direction := Vector3.ZERO
-	direction.x = Input.get_axis("rts_pan_left", "rts_pan_right")
-	direction.z = Input.get_axis("rts_pan_up", "rts_pan_down")
+	if keyboard_pan:
+		direction.x = Input.get_axis("rts_pan_left", "rts_pan_right")
+		direction.z = Input.get_axis("rts_pan_up", "rts_pan_down")
 	if edge_scroll and settings.edge_scroll_enabled and not dragging and DisplayServer.window_is_focused():
 		# Native window pixels include letterbox margins; viewport coordinates do not.
 		var local_mouse := Vector2(DisplayServer.mouse_get_position() - DisplayServer.window_get_position())

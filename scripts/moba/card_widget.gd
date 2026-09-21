@@ -124,7 +124,7 @@ func _get_drag_data(at: Vector2) -> Variant:
 	set_drag_preview(preview)
 	preview.get_node("Card").present({"uid":card_uid,"card":definition}, %Portrait.texture, true)
 	preview.get_node("Card").get_node("%Key").text = str(slot + 1)
-	preview.scale = interface.get_node("Layout").scale
+	preview.scale = get_global_transform().get_scale()
 	preview.rotation = -.025
 	_dragging = true
 	_reset_lift()

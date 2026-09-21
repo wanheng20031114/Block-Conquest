@@ -19,6 +19,7 @@ func run() -> void:
 	while not game._match_ready: await process_frame
 	game.set_running(false)
 	game.camera_rig.edge_scroll = false
+	game.hero_controller.set_follow(false)
 	game.camera_rig.set_process(false)
 	game.camera_rig.focus_at(Vector3.ZERO,true)
 	var kinds := ["spearman", "swordsman", "archer", "archer", "musketeer", "shield_guard", "light_cavalry", "crossbowman", "knight", "cannon"]
@@ -32,6 +33,7 @@ func run() -> void:
 				if not game.get_node("ConstructionNavigation").contains_walkable_point(at): continue
 				var unit: BattleUnit = game.spawn_unit(kinds[count%kinds.size()],owner,at)
 				unit.set_meta("moba_lane",1 if z>0 else -1)
+				unit.set_meta("moba_file", (count / 2) % 5 - 2)
 				var target: BattleBuilding = game.get_node("Director").objective_for(owner,1 if z>0 else -1)
 				unit.set_meta("moba_objective",target.entity_id)
 				unit.issue_move(target.position,true)

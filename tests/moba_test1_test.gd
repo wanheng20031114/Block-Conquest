@@ -25,7 +25,7 @@ func run() -> void:
 	check(game.map_size == Vector2(200,56), "authored long narrow map")
 	check(game.get_node("Buildings").get_child_count() == 10, "five fixed structures per side")
 	check(game.hands[0].slots.size() == 5 and game.players[0].gold == 240, "five cards and starting gold")
-	check(game.bases[0].max_hp == 2200 and BalanceCatalog.building("headquarters").hp != 2200, "scenario fort stats do not mutate RTS resources")
+	check(game.bases[0].max_hp == 4400 and BalanceCatalog.building("headquarters").hp != 4400, "scenario fort stats do not mutate RTS resources")
 	for owner: int in 2:
 		var sign_x: float = -1 if owner == 0 else 1
 		check(game.bases[owner].position.x == sign_x*87, "mirrored HQ")
