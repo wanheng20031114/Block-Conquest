@@ -189,12 +189,13 @@ def foundation():
 
 def residence():
     m=env.Model()
-    m.box((3.08,.30,2.75),(0,.18,-.08),"mortar",bevel=.12)
+    # Extend only the footing below ground; keep the original top and bevel.
+    m.box((3.08,.43,2.75),(0,.115,-.08),"mortar",bevel=.072)
     m.box((2.98,2.32,2.55),(0,1.40,-.08),"plaster",bevel=.22)
     m.box((3.14,.28,2.73),(0,.41,-.08),"stone",bevel=.10)
     m.box((3.14,.23,2.70),(0,2.49,-.08),"stone_light",bevel=.08)
     for x in (-1.24,1.24):
-        turned(m,[(.20,.52),(.31,.57),(.52,.57),(.64,.46),
+        turned(m,[(-.10,.52),(.01,.57),(.52,.57),(.64,.46),
                   (2.52,.46),(2.61,.55),(2.82,.55),(2.86,.47)],"stone",(x,0,.83),12)
         m.ring(.45,.50,.14,(x,1.08,.83),"stone_light",12)
         turret_cap(m,x,.83,2.84,.64)
