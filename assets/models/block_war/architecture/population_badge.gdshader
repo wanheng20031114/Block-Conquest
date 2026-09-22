@@ -5,11 +5,22 @@ void vertex() {
 	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0] * length(MODEL_MATRIX[0].xyz), INV_VIEW_MATRIX[1] * length(MODEL_MATRIX[1].xyz), INV_VIEW_MATRIX[2] * length(MODEL_MATRIX[2].xyz), MODEL_MATRIX[3]);
 }
 
+// Four equal circular petals and a central disk form one unbroken silhouette.
+// Mirroring both axes deliberately keeps every petal identical.
+float flower_distance(vec2 p) {
+	float petals = length(abs(p) - vec2(0.38)) - 0.46;
+	return min(petals, length(p) - 0.34);
+}
+
 void fragment() {
-	vec2 p = (UV - vec2(0.5)) * vec2(2.0, 1.12);
-	vec2 q = abs(p) - vec2(0.83, 0.39);
-	float distance = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - 0.14;
-	float edge = smoothstep(-0.045, -0.005, distance);
-	ALBEDO = mix(vec3(0.96, 0.925, 0.81), vec3(0.77, 0.735, 0.63), edge * 0.38);
-	ALPHA = (1.0 - smoothstep(-0.012, 0.012, distance)) * 0.96;
+	vec2 p = (UV - vec2(0.5)) * 2.0;
+	float distance = flower_distance(p);
+	float aa = max(fwidth(distance), 0.002);
+	float face = 1.0 - smoothstep(-aa, aa, distance);
+	float shadow = (1.0 - smoothstep(-0.02, 0.08, flower_distance(p - vec2(0.0, 0.055)))) * 0.20;
+	float alpha = face + shadow * (1.0 - face);
+	float rim = smoothstep(-0.06, 0.0, distance);
+	vec3 porcelain = mix(vec3(1.0, 0.995, 0.975), vec3(0.84, 0.86, 0.82), rim * 0.24);
+	ALBEDO = mix(vec3(0.10, 0.15, 0.12), porcelain, face / max(alpha, 0.001));
+	ALPHA = alpha;
 }

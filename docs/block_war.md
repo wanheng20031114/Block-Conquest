@@ -47,6 +47,8 @@
 
 模式沿用项目的 4× MSAA，并临时关闭 TAA，避免人口标牌更新与细长矛运动的历史重影；离开模式时恢复之前的 TAA 设置。
 
+建筑人口底牌由四个对称圆瓣与中央几何填充组成白色四瓣花，带轻微轮廓与阴影。人口、兵力条、派兵档位和冷却统一使用随项目打包的 Inter 600 等宽数字；四位以上人口会等比扩展花形，保留原字号。
+
 原生能力参考：[AStar3D](https://docs.godotengine.org/en/stable/classes/class_astar3d.html)、[MultiMesh](https://docs.godotengine.org/en/stable/classes/class_multimesh.html)、[Tween](https://docs.godotengine.org/en/stable/classes/class_tween.html)、[GPUParticles3D](https://docs.godotengine.org/en/stable/classes/class_gpuparticles3d.html)。
 
 ## 验证

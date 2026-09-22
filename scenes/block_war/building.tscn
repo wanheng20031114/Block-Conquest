@@ -1,6 +1,7 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=55 format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_building.gd" id="script"]
+[ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/surface.gdshader" id="surface_shader"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/flag.gdshader" id="flag_shader"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/embers.gdshader" id="embers_shader"]
@@ -155,7 +156,7 @@ shader = ExtResource("badge_shader")
 render_priority = 3
 
 [sub_resource type="QuadMesh" id="BadgeMesh"]
-size = Vector2(2.0, 1.12)
+size = Vector2(3.35, 3.35)
 
 
 [node name="WarBuilding" type="Node3D"]
@@ -326,7 +327,7 @@ position = Vector3(0, 2.75, 0)
 shape = SubResource("PickShape")
 
 [node name="PopulationBadge" type="MeshInstance3D" parent="."]
-position = Vector3(-2.15, 5.65, 0)
+position = Vector3(-2.15, 6.15, 0)
 mesh = SubResource("BadgeMesh")
 material_override = SubResource("Badge")
 cast_shadow = 0
@@ -335,13 +336,13 @@ cast_shadow = 0
 billboard = 1
 no_depth_test = true
 fixed_size = false
-font = SubResource("FontLegible")
+font = ExtResource("numbers")
 outline_modulate = Color(0.96, 0.925, 0.81, 1)
 outline_size = 0
 shaded = false
 render_priority = 5
 outline_render_priority = 4
-position = Vector3(-2.15, 5.65, 0)
+position = Vector3(-2.15, 6.15, 0)
 text = "20"
 font_size = 48
 pixel_size = 0.020

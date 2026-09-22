@@ -6,7 +6,7 @@
 
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="title"]
 
-[ext_resource type="Font" path="res://assets/ui/hero/font_numbers.tres" id="numbers"]
+[ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/recruit.svg" id="army"]
 
@@ -564,6 +564,7 @@ offset_right = 37.0
 offset_bottom = 36.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 12
+theme_override_fonts/font = ExtResource("numbers")
 theme_override_colors/font_color = Color(0.89,0.88,0.76,1)
 text = "00:00"
 horizontal_alignment = 1

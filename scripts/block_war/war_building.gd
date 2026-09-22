@@ -103,6 +103,9 @@ func refresh_visual() -> void:
 	var displayed_population := maxi(0, int(floor(population)))
 	if displayed_population != _last_population:
 		_population_label.text = str(displayed_population)
+		# Enlarge all four petals together for long totals; preserve readable digits.
+		var text_width := _population_label.font.get_string_size(_population_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 48).x
+		$PopulationBadge.scale = Vector3.ONE * maxf(1.0, text_width * _population_label.pixel_size / 2.0)
 		_last_population = displayed_population
 
 
