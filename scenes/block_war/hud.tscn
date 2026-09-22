@@ -1,0 +1,2281 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_hud.gd" id="script"]
+
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="body"]
+
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="title"]
+
+[ext_resource type="Font" path="res://assets/ui/hero/font_numbers.tres" id="numbers"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/recruit.svg" id="army"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/drum.svg" id="flag"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/bulwark.svg" id="shield"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/impact.svg" id="strike"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_amber.png" id="amber_portrait"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_jade.png" id="jade_portrait"]
+[ext_resource type="Texture2D" path="res://assets/ui/medieval/textures/button.png" id="parchment_texture"]
+
+[sub_resource type="StyleBoxFlat" id="Panel"]
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+bg_color = Color(0.12, 0.105, 0.075, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.49, 0.44, 0.31, 0.85)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="Chip"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.055, 0.13, 0.12, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.30, 0.40, 0.31, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="Button"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.91, 0.91, 0.79, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.70, 0.74, 0.57, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="Hover"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 0.97, 0.83, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.74, 0.36, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="Pressed"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.95, 0.61, 0.24, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.83, 0.50, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="Disabled"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.37, 0.44, 0.37, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.48, 0.53, 0.42, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.79, 0.39, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="Round"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.055, 0.035, 0.15)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.97, 0.88, 0.93)
+corner_radius_top_left = 31
+corner_radius_top_right = 31
+corner_radius_bottom_right = 31
+corner_radius_bottom_left = 31
+
+[sub_resource type="StyleBoxFlat" id="RoundHover"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.055, 0.035, 0.15)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 0.96, 1)
+corner_radius_top_left = 31
+corner_radius_top_right = 31
+corner_radius_bottom_right = 31
+corner_radius_bottom_left = 31
+
+[sub_resource type="StyleBoxFlat" id="RoundPressed"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.055, 0.035, 0.15)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.89, 0.56, 1)
+corner_radius_top_left = 31
+corner_radius_top_right = 31
+corner_radius_bottom_right = 31
+corner_radius_bottom_left = 31
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="BarBack"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.34, 0.85, 0.69, 1)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0.34, 0.85, 0.69, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="BarFill"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 0.65, 0.24, 1)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(1, 0.65, 0.24, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="Cooldown"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.025, 0.08, 0.07, 0.70)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="Empty"]
+
+[sub_resource type="ButtonGroup" id="PercentGroup"]
+
+[sub_resource type="Theme" id="Theme"]
+default_font = ExtResource("body")
+default_font_size = 17
+Label/colors/font_color = Color(0.96, 0.94, 0.84, 1)
+Button/colors/font_color = Color(0.13, 0.23, 0.22, 1)
+Button/colors/font_hover_color = Color(0.13, 0.23, 0.22, 1)
+Button/colors/font_pressed_color = Color(0.13, 0.23, 0.22, 1)
+Button/colors/font_hover_pressed_color = Color(0.13, 0.23, 0.22, 1)
+Button/colors/font_disabled_color = Color(0.68, 0.73, 0.64, 1)
+Button/styles/normal = SubResource("Button")
+Button/styles/hover = SubResource("Hover")
+Button/styles/pressed = SubResource("Pressed")
+Button/styles/hover_pressed = SubResource("Pressed")
+Button/styles/disabled = SubResource("Disabled")
+Button/styles/focus = SubResource("Focus")
+PanelContainer/styles/panel = SubResource("Panel")
+TooltipPanel/styles/panel = SubResource("Panel")
+TooltipLabel/colors/font_color = Color(0.96, 0.94, 0.84, 1)
+TooltipLabel/font_sizes/font_size = 17
+
+[sub_resource type="StyleBoxFlat" id="CompactPanel"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.105, 0.075, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.49, 0.44, 0.31, 0.85)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="CompactButton"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.91, 0.91, 0.79, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.70, 0.74, 0.57, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="CompactHover"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.97, 0.83, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.74, 0.36, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="CompactPressed"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.95, 0.61, 0.24, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.83, 0.50, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="CompactDisabled"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.37, 0.44, 0.37, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.48, 0.53, 0.42, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="Theme" id="BuildingTheme"]
+PanelContainer/styles/panel = SubResource("CompactPanel")
+Button/styles/normal = SubResource("CompactButton")
+Button/styles/hover = SubResource("CompactHover")
+Button/styles/pressed = SubResource("CompactPressed")
+Button/styles/hover_pressed = SubResource("CompactPressed")
+Button/styles/disabled = SubResource("CompactDisabled")
+
+
+[sub_resource type="StyleBoxTexture" id="SkillPlate"]
+texture = ExtResource("parchment_texture")
+texture_margin_left = 17.0
+texture_margin_top = 16.0
+texture_margin_right = 17.0
+texture_margin_bottom = 16.0
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+modulate_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxTexture" id="SkillHover"]
+texture = ExtResource("parchment_texture")
+texture_margin_left = 17.0
+texture_margin_top = 16.0
+texture_margin_right = 17.0
+texture_margin_bottom = 16.0
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+modulate_color = Color(1.12, 1.08, 0.94, 1)
+
+[sub_resource type="StyleBoxTexture" id="SkillPressed"]
+texture = ExtResource("parchment_texture")
+texture_margin_left = 17.0
+texture_margin_top = 16.0
+texture_margin_right = 17.0
+texture_margin_bottom = 16.0
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+modulate_color = Color(0.9, 0.81, 0.61, 1)
+
+[sub_resource type="StyleBoxTexture" id="SkillDisabled"]
+texture = ExtResource("parchment_texture")
+texture_margin_left = 17.0
+texture_margin_top = 16.0
+texture_margin_right = 17.0
+texture_margin_bottom = 16.0
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+modulate_color = Color(0.73, 0.73, 0.65, 1)
+
+[sub_resource type="StyleBoxFlat" id="PortraitRing"]
+bg_color = Color(0.20, 0.18, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.94, 0.90, 0.71, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_left = 40
+corner_radius_bottom_right = 40
+shadow_color = Color(0.015,0.012,0.006,0.45)
+shadow_size = 4
+shadow_offset = Vector2(0,2)
+
+[sub_resource type="StyleBoxFlat" id="SelectionStrip"]
+bg_color = Color(0.10, 0.085, 0.05, 0.62)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.58, 0.51, 0.33, 0.44)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0.015,0.012,0.006,0.45)
+shadow_size = 4
+shadow_offset = Vector2(0,2)
+
+[sub_resource type="StyleBoxFlat" id="ReadyRing"]
+bg_color = Color(0,0,0,0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1,0.91,0.55,1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+shadow_color = Color(0.015,0.012,0.006,0.45)
+shadow_size = 4
+shadow_offset = Vector2(0,2)
+
+[sub_resource type="Shader" id="RoundPortrait"]
+code = "shader_type canvas_item;
+void fragment(){
+vec4 face = texture(TEXTURE,UV);
+face.a *= 1.0-smoothstep(0.47,0.5,length(UV-vec2(0.5)));
+COLOR = face;
+}"
+
+[sub_resource type="ShaderMaterial" id="RoundPortraitMaterial"]
+shader = SubResource("RoundPortrait")
+
+[sub_resource type="StyleBoxFlat" id="SkillShadow"]
+bg_color = Color(0.055,0.041,0.016,0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0.025,0.018,0.007,0.48)
+shadow_size = 5
+shadow_offset = Vector2(0,3)
+
+[node name="WarHUD" type="CanvasLayer"]
+process_mode = 3
+layer = 20
+script = ExtResource("script")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+theme = SubResource("Theme")
+
+[node name="Top" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.22
+anchor_top = 0.0
+anchor_right = 0.78
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 4.0
+offset_right = 0.0
+offset_bottom = 39.0
+mouse_filter = 2
+
+
+[node name="Balance" type="ProgressBar" parent="UI/Top"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("BarBack")
+theme_override_styles/fill = SubResource("BarFill")
+value = 50.0
+show_percentage = false
+
+[node name="PlayerTotal" type="Label" parent="UI/Top"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = -1.0
+offset_right = 90.0
+offset_bottom = 21.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(1,0.97,0.83,1)
+text = "60"
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="EnemyTotal" type="Label" parent="UI/Top"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -90.0
+offset_top = -1.0
+offset_right = -12.0
+offset_bottom = 21.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(1,0.97,0.83,1)
+text = "60"
+horizontal_alignment = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Time" type="Label" parent="UI/Top"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -37.0
+offset_top = 17.0
+offset_right = 37.0
+offset_bottom = 36.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.89,0.88,0.76,1)
+text = "00:00"
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Actions" type="HBoxContainer" parent="UI"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -173.0
+offset_top = 13.0
+offset_right = -13.0
+offset_bottom = 44.0
+mouse_filter = 2
+theme_override_constants/separation = 7
+
+[node name="Help" type="Button" parent="UI/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 28)
+theme_override_font_sizes/font_size = 12
+text = "玩法"
+tooltip_text = "战场手册 · F1"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+
+[node name="Pause" type="Button" parent="UI/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 28)
+theme_override_font_sizes/font_size = 12
+text = "暂停"
+tooltip_text = "暂停或继续 · Esc"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+
+[node name="Exit" type="Button" parent="UI/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 28)
+theme_override_font_sizes/font_size = 12
+text = "返回"
+tooltip_text = "返回大厅"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+
+[node name="Player" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -94.0
+offset_right = 298.0
+offset_bottom = -10.0
+mouse_filter = 2
+
+
+[node name="Badge" type="Panel" parent="UI/Player"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 1.0
+offset_right = 80.0
+offset_bottom = 81.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("PortraitRing")
+
+[node name="Icon" type="TextureRect" parent="UI/Player"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 3.0
+offset_top = 4.0
+offset_right = 77.0
+offset_bottom = 78.0
+mouse_filter = 2
+texture = ExtResource("amber_portrait")
+expand_mode = 1
+stretch_mode = 5
+material = SubResource("RoundPortraitMaterial")
+
+[node name="Name" type="Label" parent="UI/Player"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 94.0
+offset_top = 22.0
+offset_right = 282.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1,0.78,0.37,1)
+text = "琥珀军团"
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="ForgeBonus" type="Label" parent="UI/Player"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 95.0
+offset_top = 52.0
+offset_right = 282.0
+offset_bottom = 76.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.91,0.88,0.74,1)
+text = "锻造加成 +0%"
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Enemy" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -298.0
+offset_top = -94.0
+offset_right = -16.0
+offset_bottom = -10.0
+mouse_filter = 2
+
+
+[node name="Badge" type="Panel" parent="UI/Enemy"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 202.0
+offset_top = 1.0
+offset_right = 282.0
+offset_bottom = 81.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("PortraitRing")
+
+[node name="Icon" type="TextureRect" parent="UI/Enemy"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 205.0
+offset_top = 4.0
+offset_right = 279.0
+offset_bottom = 78.0
+mouse_filter = 2
+texture = ExtResource("jade_portrait")
+expand_mode = 1
+stretch_mode = 5
+material = SubResource("RoundPortraitMaterial")
+
+[node name="Name" type="Label" parent="UI/Enemy"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 22.0
+offset_right = 187.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.52,0.9,0.70,1)
+text = "翡翠军团"
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+horizontal_alignment = 2
+
+
+[node name="Role" type="Label" parent="UI/Enemy"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 52.0
+offset_right = 187.0
+offset_bottom = 76.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.91,0.88,0.74,1)
+text = "翡翠守军"
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+horizontal_alignment = 2
+
+
+[node name="Percentages" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.5
+anchor_right = 0.0
+anchor_bottom = 0.5
+offset_left = 18.0
+offset_top = -143.0
+offset_right = 72.0
+offset_bottom = 143.0
+mouse_filter = 2
+
+
+[node name="Stack" type="VBoxContainer" parent="UI/Percentages"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 54.0
+offset_bottom = 249.0
+mouse_filter = 2
+theme_override_constants/separation = 11
+
+[node name="P100" type="Button" parent="UI/Percentages/Stack"]
+layout_mode = 2
+custom_minimum_size = Vector2(54, 54)
+toggle_mode = true
+button_group = SubResource("PercentGroup")
+button_pressed = false
+text = "100"
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("Round")
+theme_override_styles/hover = SubResource("RoundHover")
+theme_override_styles/pressed = SubResource("RoundPressed")
+theme_override_styles/hover_pressed = SubResource("RoundPressed")
+theme_override_colors/font_color = Color(1,0.98,0.90,1)
+theme_override_colors/font_hover_color = Color(1,1,0.96,1)
+theme_override_colors/font_pressed_color = Color(1,0.91,0.63,1)
+theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.06
+
+[node name="P75" type="Button" parent="UI/Percentages/Stack"]
+layout_mode = 2
+custom_minimum_size = Vector2(54, 54)
+toggle_mode = true
+button_group = SubResource("PercentGroup")
+button_pressed = false
+text = "75"
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("Round")
+theme_override_styles/hover = SubResource("RoundHover")
+theme_override_styles/pressed = SubResource("RoundPressed")
+theme_override_styles/hover_pressed = SubResource("RoundPressed")
+theme_override_colors/font_color = Color(1,0.98,0.90,1)
+theme_override_colors/font_hover_color = Color(1,1,0.96,1)
+theme_override_colors/font_pressed_color = Color(1,0.91,0.63,1)
+theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.06
+
+[node name="P50" type="Button" parent="UI/Percentages/Stack"]
+layout_mode = 2
+custom_minimum_size = Vector2(54, 54)
+toggle_mode = true
+button_group = SubResource("PercentGroup")
+button_pressed = true
+text = "50"
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("Round")
+theme_override_styles/hover = SubResource("RoundHover")
+theme_override_styles/pressed = SubResource("RoundPressed")
+theme_override_styles/hover_pressed = SubResource("RoundPressed")
+theme_override_colors/font_color = Color(1,0.98,0.90,1)
+theme_override_colors/font_hover_color = Color(1,1,0.96,1)
+theme_override_colors/font_pressed_color = Color(1,0.91,0.63,1)
+theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.06
+
+[node name="P25" type="Button" parent="UI/Percentages/Stack"]
+layout_mode = 2
+custom_minimum_size = Vector2(54, 54)
+toggle_mode = true
+button_group = SubResource("PercentGroup")
+button_pressed = false
+text = "25"
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("Round")
+theme_override_styles/hover = SubResource("RoundHover")
+theme_override_styles/pressed = SubResource("RoundPressed")
+theme_override_styles/hover_pressed = SubResource("RoundPressed")
+theme_override_colors/font_color = Color(1,0.98,0.90,1)
+theme_override_colors/font_hover_color = Color(1,1,0.96,1)
+theme_override_colors/font_pressed_color = Color(1,0.91,0.63,1)
+theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.06
+
+[node name="Selection" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -213.0
+offset_top = -149.0
+offset_right = 213.0
+offset_bottom = -117.0
+mouse_filter = 2
+visible = false
+
+[node name="Strip" type="Panel" parent="UI/Selection"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 426.0
+offset_bottom = 32.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SelectionStrip")
+
+[node name="ManagementBackdrop" type="Panel" parent="UI/Selection"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = -153.0
+offset_right = 426.0
+offset_bottom = -6.0
+mouse_filter = 0
+visible = false
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Content" type="Control" parent="UI/Selection"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 0.0
+offset_right = 416.0
+offset_bottom = 32.0
+mouse_filter = 2
+
+
+[node name="Heading" type="HBoxContainer" parent="UI/Selection/Content"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 406.0
+offset_bottom = 32.0
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="SelectedName" type="Label" parent="UI/Selection/Content/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+theme_override_font_sizes/font_size = 15
+text = "住宅 · 1 级"
+
+[node name="SelectedPopulation" type="Label" parent="UI/Selection/Content/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(1,0.81,0.44,1)
+text = "60"
+
+[node name="Manage" type="Button" parent="UI/Selection/Content/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(59,0)
+theme_override_font_sizes/font_size = 13
+text = "管理"
+toggle_mode = true
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+
+[node name="SelectedDetail" type="Label" parent="UI/Selection/Content"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = -143.0
+offset_right = 402.0
+offset_bottom = -91.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.91,0.88,0.77,1)
+text = "每秒 +1 民兵"
+visible = false
+autowrap_mode = 2
+
+[node name="BuildingActions" type="VBoxContainer" parent="UI/Selection/Content"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = -83.0
+offset_right = 402.0
+offset_bottom = -17.0
+mouse_filter = 2
+visible = false
+theme = SubResource("BuildingTheme")
+theme_override_constants/separation = 6
+
+[node name="Upgrade" type="Button" parent="UI/Selection/Content/BuildingActions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0,29)
+theme_override_font_sizes/font_size = 13
+text = "升级 · 30 人口"
+
+[node name="Convert" type="HBoxContainer" parent="UI/Selection/Content/BuildingActions"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="ConvertHouse" type="Button" parent="UI/Selection/Content/BuildingActions/Convert"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0,29)
+theme_override_font_sizes/font_size = 12
+tooltip_text = "消耗 30 人口，改建后重置至 1 级"
+text = "改建住宅"
+
+[node name="ConvertTower" type="Button" parent="UI/Selection/Content/BuildingActions/Convert"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0,29)
+theme_override_font_sizes/font_size = 12
+tooltip_text = "消耗 30 人口，改建后重置至 1 级"
+text = "改建炮塔"
+
+[node name="ConvertForge" type="Button" parent="UI/Selection/Content/BuildingActions/Convert"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0,29)
+theme_override_font_sizes/font_size = 12
+tooltip_text = "消耗 30 人口，改建后重置至 1 级"
+text = "改建铁匠铺"
+
+[node name="Skills" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -169.0
+offset_top = -105.0
+offset_right = 169.0
+offset_bottom = -10.0
+mouse_filter = 2
+
+
+[node name="SendAmount" type="Label" parent="UI/Skills"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = -21.0
+offset_right = 338.0
+offset_bottom = -2.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "派遣 50%"
+visible = false
+
+[node name="Row" type="HBoxContainer" parent="UI/Skills"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 338.0
+offset_bottom = 74.0
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Skill0" type="Button" parent="UI/Skills/Row"]
+layout_mode = 2
+custom_minimum_size = Vector2(74,74)
+toggle_mode = true
+mouse_default_cursor_shape = 2
+tooltip_text = "选择己方住宅：立即征召 30 名民兵。\n独立冷却 35 秒。"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+theme_override_styles/hover_pressed = SubResource("SkillPressed")
+theme_override_styles/disabled = SubResource("SkillDisabled")
+metadata/ui_motion_hover_scale = 1.08
+
+[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill0"]
+show_behind_parent = true
+layout_mode = 0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 72.0
+offset_bottom = 74.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillShadow")
+
+[node name="Key" type="Label" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 22.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+text = "Q"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 15.0
+offset_top = 17.0
+offset_right = 60.0
+offset_bottom = 62.0
+mouse_filter = 2
+texture = ExtResource("army")
+expand_mode = 1
+stretch_mode = 5
+
+
+[node name="Name" type="Label" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -4.0
+offset_top = 77.0
+offset_right = 78.0
+offset_bottom = 94.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "征召军令"
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Status" type="Label" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 93.0
+offset_right = 74.0
+offset_bottom = 109.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 70.0
+offset_bottom = 70.0
+mouse_filter = 2
+visible = false
+show_percentage = false
+fill_mode = 3
+theme_override_styles/background = SubResource("Empty")
+theme_override_styles/fill = SubResource("Cooldown")
+
+[node name="Seconds" type="Label" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 23.0
+offset_right = 66.0
+offset_bottom = 60.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 74.0
+offset_bottom = 74.0
+mouse_filter = 2
+visible = false
+theme_override_styles/panel = SubResource("ReadyRing")
+
+[node name="Skill1" type="Button" parent="UI/Skills/Row"]
+layout_mode = 2
+custom_minimum_size = Vector2(74,74)
+toggle_mode = true
+mouse_default_cursor_shape = 2
+tooltip_text = "全军行进速度提高至 1.7 倍，持续 8 秒。\n独立冷却 28 秒。"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+theme_override_styles/hover_pressed = SubResource("SkillPressed")
+theme_override_styles/disabled = SubResource("SkillDisabled")
+metadata/ui_motion_hover_scale = 1.08
+
+[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill1"]
+show_behind_parent = true
+layout_mode = 0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 72.0
+offset_bottom = 74.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillShadow")
+
+[node name="Key" type="Label" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 22.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+text = "W"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 15.0
+offset_top = 17.0
+offset_right = 60.0
+offset_bottom = 62.0
+mouse_filter = 2
+texture = ExtResource("flag")
+expand_mode = 1
+stretch_mode = 5
+
+
+[node name="Name" type="Label" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -4.0
+offset_top = 77.0
+offset_right = 78.0
+offset_bottom = 94.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "疾行战鼓"
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Status" type="Label" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 93.0
+offset_right = 74.0
+offset_bottom = 109.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 70.0
+offset_bottom = 70.0
+mouse_filter = 2
+visible = false
+show_percentage = false
+fill_mode = 3
+theme_override_styles/background = SubResource("Empty")
+theme_override_styles/fill = SubResource("Cooldown")
+
+[node name="Seconds" type="Label" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 23.0
+offset_right = 66.0
+offset_bottom = 60.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 74.0
+offset_bottom = 74.0
+mouse_filter = 2
+visible = false
+theme_override_styles/panel = SubResource("ReadyRing")
+
+[node name="Skill2" type="Button" parent="UI/Skills/Row"]
+layout_mode = 2
+custom_minimum_size = Vector2(74,74)
+toggle_mode = true
+mouse_default_cursor_shape = 2
+tooltip_text = "选择己方建筑：守备伤害降低 50%，持续 10 秒。\n独立冷却 45 秒。"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+theme_override_styles/hover_pressed = SubResource("SkillPressed")
+theme_override_styles/disabled = SubResource("SkillDisabled")
+metadata/ui_motion_hover_scale = 1.08
+
+[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill2"]
+show_behind_parent = true
+layout_mode = 0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 72.0
+offset_bottom = 74.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillShadow")
+
+[node name="Key" type="Label" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 22.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+text = "E"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 15.0
+offset_top = 17.0
+offset_right = 60.0
+offset_bottom = 62.0
+mouse_filter = 2
+texture = ExtResource("shield")
+expand_mode = 1
+stretch_mode = 5
+
+
+[node name="Name" type="Label" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -4.0
+offset_top = 77.0
+offset_right = 78.0
+offset_bottom = 94.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "磐石壁垒"
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Status" type="Label" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 93.0
+offset_right = 74.0
+offset_bottom = 109.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 70.0
+offset_bottom = 70.0
+mouse_filter = 2
+visible = false
+show_percentage = false
+fill_mode = 3
+theme_override_styles/background = SubResource("Empty")
+theme_override_styles/fill = SubResource("Cooldown")
+
+[node name="Seconds" type="Label" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 23.0
+offset_right = 66.0
+offset_bottom = 60.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 74.0
+offset_bottom = 74.0
+mouse_filter = 2
+visible = false
+theme_override_styles/panel = SubResource("ReadyRing")
+
+[node name="Skill3" type="Button" parent="UI/Skills/Row"]
+layout_mode = 2
+custom_minimum_size = Vector2(74,74)
+toggle_mode = true
+mouse_default_cursor_shape = 2
+tooltip_text = "选择敌方或中立建筑：造成 35 点基础伤害，受守备减免。\n不会直接占领建筑。独立冷却 60 秒。"
+theme_override_styles/normal = SubResource("SkillPlate")
+theme_override_styles/hover = SubResource("SkillHover")
+theme_override_styles/pressed = SubResource("SkillPressed")
+theme_override_styles/hover_pressed = SubResource("SkillPressed")
+theme_override_styles/disabled = SubResource("SkillDisabled")
+metadata/ui_motion_hover_scale = 1.08
+
+[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill3"]
+show_behind_parent = true
+layout_mode = 0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 72.0
+offset_bottom = 74.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillShadow")
+
+[node name="Key" type="Label" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 22.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+text = "R"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 15.0
+offset_top = 17.0
+offset_right = 60.0
+offset_bottom = 62.0
+mouse_filter = 2
+texture = ExtResource("strike")
+expand_mode = 1
+stretch_mode = 5
+
+
+[node name="Name" type="Label" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -4.0
+offset_top = 77.0
+offset_right = 78.0
+offset_bottom = 94.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "天降冲击"
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Status" type="Label" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 93.0
+offset_right = 74.0
+offset_bottom = 109.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 70.0
+offset_bottom = 70.0
+mouse_filter = 2
+visible = false
+show_percentage = false
+fill_mode = 3
+theme_override_styles/background = SubResource("Empty")
+theme_override_styles/fill = SubResource("Cooldown")
+
+[node name="Seconds" type="Label" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 23.0
+offset_right = 66.0
+offset_bottom = 60.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = ""
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 74.0
+offset_bottom = 74.0
+mouse_filter = 2
+visible = false
+theme_override_styles/panel = SubResource("ReadyRing")
+
+[node name="TargetHint" type="Label" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -182.0
+offset_right = 320.0
+offset_bottom = -154.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1,0.87,0.49,1)
+text = "点击目标建筑"
+visible = false
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+
+[node name="QuickHint" type="Control" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -370.0
+offset_top = -125.0
+offset_right = -12.0
+offset_bottom = -99.0
+mouse_filter = 2
+
+
+[node name="Content" type="Label" parent="UI/QuickHint"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 323.0
+offset_bottom = 24.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "拖动据点出兵 · 中键移动 · F1玩法"
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+horizontal_alignment = 2
+
+
+[node name="HintClose" type="Button" parent="UI/QuickHint"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 330.0
+offset_top = 0.0
+offset_right = 352.0
+offset_bottom = 24.0
+mouse_filter = 0
+text = "×"
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("Empty")
+theme_override_styles/hover = SubResource("Empty")
+theme_override_styles/pressed = SubResource("Empty")
+theme_override_colors/font_color = Color(0.96,0.94,0.84,1)
+
+[node name="Toast" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -280.0
+offset_top = 59.0
+offset_right = 280.0
+offset_bottom = 101.0
+mouse_filter = 2
+visible = false
+theme_override_styles/panel = SubResource("SelectionStrip")
+
+[node name="ToastText" type="Label" parent="UI/Toast"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = "军令已下达"
+
+[node name="PauseOverlay" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 0
+visible = false
+color = Color(0.015, 0.045, 0.04, 0.80)
+
+[node name="PauseCard" type="Panel" parent="UI/PauseOverlay"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -240.0
+offset_right = 230.0
+offset_bottom = 240.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Eyebrow" type="Label" parent="UI/PauseOverlay/PauseCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 436.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "积木战争 / 指挥暂歇"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="UI/PauseOverlay/PauseCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 24.0
+offset_top = 65.0
+offset_right = 436.0
+offset_bottom = 116.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 37
+text = "战场已暂停"
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("title")
+
+[node name="Sub" type="Label" parent="UI/PauseOverlay/PauseCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 24.0
+offset_top = 121.0
+offset_right = 436.0
+offset_bottom = 148.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "每一次出兵，都值得谋定后动。"
+horizontal_alignment = 1
+
+[node name="Resume" type="Button" parent="UI/PauseOverlay/PauseCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 44.0
+offset_top = 180.0
+offset_right = 416.0
+offset_bottom = 230.0
+mouse_filter = 0
+text = "继续战斗   Esc"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="PauseHelp" type="Button" parent="UI/PauseOverlay/PauseCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 44.0
+offset_top = 244.0
+offset_right = 416.0
+offset_bottom = 294.0
+mouse_filter = 0
+text = "查看玩法"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="PauseRestart" type="Button" parent="UI/PauseOverlay/PauseCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 44.0
+offset_top = 308.0
+offset_right = 416.0
+offset_bottom = 358.0
+mouse_filter = 0
+text = "重新开战"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="PauseExit" type="Button" parent="UI/PauseOverlay/PauseCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 44.0
+offset_top = 372.0
+offset_right = 416.0
+offset_bottom = 422.0
+mouse_filter = 0
+text = "返回大厅"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="HelpOverlay" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 0
+visible = false
+color = Color(0.015, 0.045, 0.04, 0.80)
+
+[node name="HelpCard" type="Panel" parent="UI/HelpOverlay"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -405.0
+offset_top = -327.0
+offset_right = 405.0
+offset_bottom = 327.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Eyebrow" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 32.0
+offset_top = 22.0
+offset_right = 774.0
+offset_bottom = 49.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "战场手册"
+
+[node name="Title" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 32.0
+offset_top = 57.0
+offset_right = 774.0
+offset_bottom = 105.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 33
+text = "连接据点，让军团汇成洪流"
+theme_override_fonts/font = ExtResource("title")
+
+[node name="Heading0" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 124.0
+offset_right = 776.0
+offset_bottom = 149.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+text = "01  指挥行军"
+
+[node name="Detail0" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 153.0
+offset_right = 776.0
+offset_bottom = 201.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "按住己方建筑，拖向目标后松开。橙色据点获得增援，其他据点被进攻。\n先在左侧选择派遣比例；1 / 2 / 3 / 4 对应 25 / 50 / 75 / 100%。"
+
+[node name="Heading1" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 211.0
+offset_right = 776.0
+offset_bottom = 236.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+text = "02  利用地形"
+
+[node name="Detail1" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 240.0
+offset_right = 776.0
+offset_bottom = 288.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "部队只能通过道路与桥梁越过沟壑，途中遇敌会穿行。\n战斗在建筑内交换伤亡；占领所有敌方据点并消灭援军即可获胜。"
+
+[node name="Heading2" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 298.0
+offset_right = 776.0
+offset_bottom = 323.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+text = "03  三类据点"
+
+[node name="Detail2" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 327.0
+offset_right = 776.0
+offset_bottom = 375.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "住宅：每秒自动产生 1 名民兵。炮塔：自动射击附近敌军。\n铁匠铺：提高全军攻防。选择己方建筑可升级或消耗 30 人口改建。"
+
+[node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 385.0
+offset_right = 776.0
+offset_bottom = 410.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+text = "04  施放军令"
+
+[node name="Detail3" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 414.0
+offset_right = 776.0
+offset_bottom = 462.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "Q 征召 +30 人口 · W 全军疾行 8 秒 · E 据点减伤 10 秒 · R 基础伤害 35\n冲击受守备减免。四技能独立冷却；先选建筑施放，或施放后点击目标。"
+
+[node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 472.0
+offset_right = 776.0
+offset_bottom = 497.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+text = "05  观察全局"
+
+[node name="Detail4" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 34.0
+offset_top = 501.0
+offset_right = 776.0
+offset_bottom = 549.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "鼠标靠近屏幕边缘，或按住中键拖动，即可移动视角。\n滚轮缩放视野；Esc 暂停。右键取消待选目标的技能。"
+
+[node name="HelpClose" type="Button" parent="UI/HelpOverlay/HelpCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 250.0
+offset_top = 587.0
+offset_right = 560.0
+offset_bottom = 634.0
+mouse_filter = 0
+text = "返回战场"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="ResultOverlay" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 0
+visible = false
+color = Color(0.015, 0.045, 0.04, 0.80)
+
+[node name="ResultCard" type="Panel" parent="UI/ResultOverlay"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -225.0
+offset_right = 290.0
+offset_bottom = 225.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="ResultEyebrow" type="Label" parent="UI/ResultOverlay/ResultCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 26.0
+offset_top = 37.0
+offset_right = 554.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
+text = "积木战争 / 军团凯旋"
+horizontal_alignment = 1
+
+[node name="ResultTitle" type="Label" parent="UI/ResultOverlay/ResultCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 26.0
+offset_top = 91.0
+offset_right = 554.0
+offset_bottom = 183.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 72
+theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+text = "胜利"
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("title")
+
+[node name="ResultDetail" type="Label" parent="UI/ResultOverlay/ResultCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 36.0
+offset_top = 207.0
+offset_right = 544.0
+offset_bottom = 274.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+text = "敌方已失去全部据点与援军。山谷由你掌控。"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ResultRestart" type="Button" parent="UI/ResultOverlay/ResultCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 40.0
+offset_top = 321.0
+offset_right = 280.0
+offset_bottom = 376.0
+mouse_filter = 0
+text = "再战一局"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 20
+
+[node name="ResultExit" type="Button" parent="UI/ResultOverlay/ResultCard"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 300.0
+offset_top = 321.0
+offset_right = 540.0
+offset_bottom = 376.0
+mouse_filter = 0
+text = "返回大厅"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 20

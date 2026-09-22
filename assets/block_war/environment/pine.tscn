@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/environment/tree_pine.glb" id="model"]
+[ext_resource type="Material" path="res://assets/block_war/environment/forest_wind.tres" id="wind"]
+
+[node name="Pine" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("model")]
+
+[node name="Foliage" parent="Model" index="1"]
+material_override = ExtResource("wind")
+
+[editable path="Model"]

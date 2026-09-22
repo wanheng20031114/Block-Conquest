@@ -35,6 +35,10 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = true
 	%Version.text = "v%s   /   即时战略" % NetworkProtocol.RELEASE_ID
 	var arguments: PackedStringArray = OS.get_cmdline_user_args()
+	if "--block-war" in arguments and not session.get_meta("block_war_cli_consumed", false):
+		session.set_meta("block_war_cli_consumed", true)
+		call_deferred("_on_open_block_war")
+		return
 	if "--rogue" in arguments:
 		call_deferred("_on_open_rogue")
 		return
@@ -170,6 +174,19 @@ func _on_open_rogue() -> void:
 	if error != OK:
 		_transitioning = false
 		_set_message("无法载入林海远征，请检查游戏文件。", true)
+
+func _on_open_block_war() -> void:
+	if _transitioning:
+		return
+	_transitioning = true
+	relay.leave_room()
+	relay.disconnect_relay()
+	session.online = false
+	session.config.clear()
+	var error: Error = session.change_scene("res://scenes/block_war/block_war.tscn")
+	if error != OK:
+		_transitioning = false
+		_set_message("无法载入积木战争，请检查游戏文件。", true)
 
 func _on_close_codex() -> void:
 	%Codex.grab_focus(true)

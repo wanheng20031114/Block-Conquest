@@ -235,6 +235,16 @@ tooltip_text = "单人肉鸽 · 森林探索、军团编队与前哨站作战"
 alignment = 1
 theme_override_fonts/font = ExtResource("med_title")
 
+[node name="BlockWarMode" type="Button" parent="CanvasLayer/UI/MainMenu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "积木战争"
+tooltip_text = "据点争夺 · 派遣民兵穿越裂谷、攻占建筑、施放四大军令"
+alignment = 1
+theme_override_fonts/font = ExtResource("med_title")
+
 [node name="MobaMode" type="Button" parent="CanvasLayer/UI/MainMenu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
@@ -1240,6 +1250,7 @@ one_shot = true
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/Codex" to="." method="_on_open_codex"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/Sandbox" to="." method="_on_open_sandbox"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/RogueMode" to="." method="_on_open_rogue"]
+[connection signal="pressed" from="CanvasLayer/UI/MainMenu/BlockWarMode" to="." method="_on_open_block_war"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/MobaMode" to="." method="_on_open_moba"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/UtilityActions/Settings" to="." method="_on_settings"]
 [connection signal="pressed" from="CanvasLayer/UI/MainMenu/UtilityActions/QuitGame" to="." method="_on_quit_game"]

@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_effects.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/effect_burst.tscn" id="burst"]
+
+[sub_resource type="Shader" id="shield_shader"]
+code = "shader_type spatial;\nrender_mode blend_mix, depth_draw_opaque, cull_back, unshaded;\nvoid fragment() {\n float rim = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 2.8);\n float bands = pow(0.5 + 0.5 * sin(UV.y * 100.0), 24.0);\n ALBEDO = vec3(0.26, 0.63, 0.76);\n ALPHA = rim * 0.42 + bands * 0.025;\n}"
+
+[sub_resource type="ShaderMaterial" id="shield_material"]
+shader = SubResource("shield_shader")
+
+[sub_resource type="SphereMesh" id="shield_mesh"]
+material = SubResource("shield_material")
+radius = 3.25
+height = 6.5
+radial_segments = 48
+rings = 24
+
+[node name="Effects" type="Node3D"]
+script = ExtResource("script")
+
+[node name="Bursts" type="Node3D" parent="."]
+
+[node name="Burst0" parent="Bursts" instance=ExtResource("burst")]
+
+[node name="Burst1" parent="Bursts" instance=ExtResource("burst")]
+
+[node name="Burst2" parent="Bursts" instance=ExtResource("burst")]
+
+[node name="Burst3" parent="Bursts" instance=ExtResource("burst")]
+
+[node name="ImpactLight" type="OmniLight3D" parent="."]
+light_color = Color(1.0, 0.61, 0.23, 1)
+light_energy = 0.0
+omni_range = 8.0
+
+[node name="Shield" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("shield_mesh")
+cast_shadow = 0

@@ -1,0 +1,104 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/block_war.gd" id="game"]
+[ext_resource type="Script" path="res://scripts/rts_camera.gd" id="camera"]
+[ext_resource type="Script" path="res://scripts/block_war/war_overlay.gd" id="overlay"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/map.tscn" id="map"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/marches.tscn" id="marches"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/hud.tscn" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/audio.tscn" id="audio"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/war_effects.tscn" id="effects"]
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 1
+background_color = Color(0.075, 0.135, 0.145, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.78, 0.86, 0.9, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 2
+ssao_enabled = true
+ssao_radius = 1.4
+ssao_intensity = 1.15
+ssao_power = 1.15
+ssil_enabled = true
+ssil_intensity = 0.35
+glow_enabled = true
+glow_intensity = 0.3
+adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_saturation = 0.98
+
+[sub_resource type="Shader" id="atmosphere_shader"]
+code = "shader_type canvas_item;\nvoid fragment() {\n vec2 d = (UV - vec2(0.5, 0.46)) * vec2(1.08, 1.0);\n float edge = smoothstep(0.3, 0.78, length(d));\n COLOR = vec4(0.015, 0.045, 0.035, edge * 0.28);\n}"
+
+[sub_resource type="ShaderMaterial" id="atmosphere_material"]
+shader = SubResource("atmosphere_shader")
+
+[node name="积木战争" type="Node3D"]
+script = ExtResource("game")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-56, -24, 0)
+light_color = Color(1, 0.93, 0.82, 1)
+light_energy = 1.05
+shadow_enabled = true
+directional_shadow_max_distance = 140.0
+shadow_bias = 0.06
+shadow_normal_bias = 1.0
+directional_shadow_mode = 0
+light_angular_distance = 2.3
+
+[node name="Map" parent="." instance=ExtResource("map")]
+
+[node name="Marches" parent="." instance=ExtResource("marches")]
+
+[node name="Effects" parent="." instance=ExtResource("effects")]
+
+[node name="CameraRig" type="Node3D" parent="."]
+position = Vector3(0, 0, 2)
+script = ExtResource("camera")
+pan_speed = 31.0
+minimum_zoom = 24.0
+maximum_zoom = 95.0
+physics_interpolation_mode = 2
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position = Vector3(0, 60, 46.86)
+rotation_degrees = Vector3(-52, 0, 0)
+projection = 1
+size = 58.0
+near = 0.1
+far = 180.0
+current = true
+
+[node name="AudioListener3D" type="AudioListener3D" parent="CameraRig"]
+position = Vector3(0, 6, 0)
+
+[node name="Audio" parent="." instance=ExtResource("audio")]
+
+[node name="Orders" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="Atmosphere" type="ColorRect" parent="Orders"]
+material = SubResource("atmosphere_material")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Overlay" type="Control" parent="Orders"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("overlay")
+
+[node name="HUD" parent="." instance=ExtResource("hud")]
