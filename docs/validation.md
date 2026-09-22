@@ -103,6 +103,8 @@ python tests/model_rebuild_audit.py
 
 音频采用 38 个固定原生声部、变体轮换、同类限流、战斗总线轻压缩与 Master −1 dB 限峰。监听点设在战场上方 6 m，使用距离衰减；避免高位 RTS 相机令可见近处音效过弱。Dummy 音频驱动下捕获实际 Master 混音，大量并发事件请求的该次峰值为 **−4.24 dBFS**，无削波。这是游戏内部混音测量，没有向系统扬声器播放，也不代表已完成人工试听。
 
+2026-09-22 共享播放器复验：校正原模式测试的生产队列、迷雾与最小射程夹具后，155 项中 153 项通过，剩余两项为原模式既有的招募成功/失败提示音缺失；使用修改前的 AudioDirector 对照得到完全相同结果。未删除失败断言，没有新增播放器回归。暂停边界仍为 10 项通过。测试配置改放系统 TEMP 并在退出时删除，最新混音报告为 TEMP 下的 `block-conquest-audio-runtime.json`；本轮积木战争结果见 [模式说明](block_war.md)。
+
 ```text
 Godot_console.exe --headless --path . --audio-driver Dummy --script res://tests/audio_runtime_test.gd
 Godot_console.exe --headless --path . --audio-driver Dummy --script res://tests/shutdown_lifecycle.gd

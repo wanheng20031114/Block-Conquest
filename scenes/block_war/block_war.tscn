@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/block_war/map.tscn" id="map"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/marches.tscn" id="marches"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/hud.tscn" id="hud"]
-[ext_resource type="PackedScene" path="res://scenes/audio.tscn" id="audio"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/audio.tscn" id="audio"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/war_effects.tscn" id="effects"]
 
 [ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="woodland_daylight"]

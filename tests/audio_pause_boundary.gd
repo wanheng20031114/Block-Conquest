@@ -34,6 +34,9 @@ func _run() -> void:
 	game.tests_running = true
 	game.camera_rig.edge_scroll = false
 	audio = game.get_node("Audio")
+	# Normalize this process's mix without saving or changing the player's preferences.
+	AudioServer.set_bus_volume_db(0, linear_to_db(0.85))
+	AudioServer.set_bus_mute(0, false)
 	for unit: Node in get_nodes_in_group("units"):
 		unit.set_physics_process(false)
 		unit.navigation_agent.avoidance_enabled = false

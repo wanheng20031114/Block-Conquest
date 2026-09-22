@@ -67,7 +67,7 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 		last = point
 	order.length = order.curve.get_baked_length()
 	assert(order.length > 0.01, "Cannot send soldiers along a zero-length route.")
-	# Consecutive orders from the same door join its queue instead of spawning stacks.
+	# All exits of a building share one queue, including orders heading to different sides.
 	var first_distance := 0.0
 	for existing: MarchUnit in _units:
 		if existing.order.source_id == source_id and existing.distance < first_distance:
@@ -85,6 +85,8 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 		unit.position = route[0]
 		# Adjacent ranks share a cadence, with a restrained phase offset per file.
 		unit.gait = float(row % 2) * 0.35 + float(index % columns) * 0.08
+		if unit.distance >= 0.0:
+			_update_pose(unit)
 		_units.append(unit)
 	_ensure_capacity(_units.size())
 	_render()

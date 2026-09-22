@@ -85,7 +85,7 @@ func _player_turn() -> void:
 			var required: float = target.population * game.defense_multiplier(target) / game.attack_multiplier(0) + 5.0
 			if incoming >= required or floorf(source.population * 0.75) + incoming < required:
 				continue
-			var route: PackedVector3Array = game.map.get_route(source.door_position(), target.door_position())
+			var route: PackedVector3Array = game.map.get_building_route(source, target)
 			var distance := _route_length(route)
 			var score: float = (34.0 if target.kind == 0 else 20.0) - distance * 0.6 - required * 0.2
 			if target.faction == 1:
@@ -209,7 +209,7 @@ func _audit_routes() -> void:
 			if source == target:
 				continue
 			route_count += 1
-			var route: PackedVector3Array = game.map.get_route(source.door_position(), target.door_position())
+			var route: PackedVector3Array = game.map.get_building_route(source, target)
 			if route.size() < 2:
 				missing_routes += 1
 				continue

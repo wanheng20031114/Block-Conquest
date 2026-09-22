@@ -8,11 +8,13 @@ const FORMATION_CLEARANCE := 2.1
 const GRID_STEP := 2.0
 const BRIDGE_Z := 14.0
 const BRIDGE_HALF_WIDTH := 3.2
-const BUILDING_CLEARANCE := 3.35
+# Includes the outer file, rotated militia and the widest ground-level walls.
+const BUILDING_CLEARANCE := 4.0
 var _navigation := AStar3D.new()
 var _grid: Dictionary[Vector2i, int] = {}
 var _building_positions := PackedVector3Array()
 var _route_cache: Dictionary[Vector4, PackedVector3Array] = {}
+var _building_links: Dictionary[Vector3, PackedInt64Array] = {}
 var _tree_obstacle_grid: Dictionary[Vector2i, Array] = {}
 var _flow_time := 0.0
 var _visual_paused := false
@@ -76,34 +78,34 @@ func _register_tree_obstacle(obstacle: Vector3) -> void:
 			_tree_obstacle_grid[cell].append(obstacle)
 
 
-func get_route(from: Vector3, to: Vector3) -> PackedVector3Array:
+func get_building_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Array:
+	if source == target:
+		return PackedVector3Array()
+	var from := source.global_position
+	var to := target.global_position
 	var key := Vector4(from.x, from.z, to.x, to.z)
 	if not _route_cache.has(key):
-		_route_cache[key] = _compute_route(from, to)
-	return _route_cache[key]
+		_route_cache[key] = _compute_building_route(source, target)
+	# Drag previews and march callers own their copy; cancelling one must not
+	# empty the shared route used by later orders or AI evaluations.
+	return _route_cache[key].duplicate()
 
 
-func _compute_route(from: Vector3, to: Vector3) -> PackedVector3Array:
-	var doorway_start := Vector3(from.x, 0.0, from.z)
-	var doorway_finish := Vector3(to.x, 0.0, to.z)
-	var start := _door_approach(doorway_start)
-	var finish := _door_approach(doorway_finish)
-	if not is_walkable(start) or not is_walkable(finish):
-		return PackedVector3Array()
-	if _segment_clear(start, finish):
-		return _include_doorways(PackedVector3Array([start, finish]), doorway_start, doorway_finish)
+func _compute_building_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Array:
+	var start := source.global_position
+	var finish := target.global_position
+	if _building_segment_clear(start, finish, source, target):
+		return PackedVector3Array([source.march_perimeter_towards(finish), target.march_perimeter_towards(start)])
+	# Centers only choose which side has the shortest safe route. They are never
+	# rendered or marched through: the final route starts and ends at the perimeter.
 	var start_id := _navigation.get_available_point_id()
 	var finish_id := start_id + 1
 	_navigation.add_point(start_id, start)
 	_navigation.add_point(finish_id, finish)
-	# Connect endpoints to visible bank vertices. A wide radius lets the approach
-	# leave each doorway naturally without snapping to the grid.
-	for point_id: int in _grid.values():
-		var point := _navigation.get_point_position(point_id)
-		if start.distance_squared_to(point) < 180.0 and _segment_clear(start, point):
-			_navigation.connect_points(start_id, point_id)
-		if finish.distance_squared_to(point) < 180.0 and _segment_clear(finish, point):
-			_navigation.connect_points(finish_id, point_id)
+	for point_id: int in _get_building_links(source):
+		_navigation.connect_points(start_id, point_id)
+	for point_id: int in _get_building_links(target):
+		_navigation.connect_points(finish_id, point_id)
 	var raw := _navigation.get_point_path(start_id, finish_id)
 	_navigation.remove_point(start_id)
 	_navigation.remove_point(finish_id)
@@ -113,32 +115,43 @@ func _compute_route(from: Vector3, to: Vector3) -> PackedVector3Array:
 	var anchor := 0
 	while anchor < raw.size() - 1:
 		var next := raw.size() - 1
-		while next > anchor + 1 and not _segment_clear(raw[anchor], raw[next]):
+		while next > anchor + 1 and not _building_segment_clear(raw[anchor], raw[next], source, target):
 			next -= 1
 		result.append(raw[next])
 		anchor = next
-	return _include_doorways(result, doorway_start, doorway_finish)
+	result[0] = source.march_perimeter_towards(result[1])
+	result[-1] = target.march_perimeter_towards(result[-2])
+	return result
 
 
-func _door_approach(point: Vector3) -> Vector3:
-	for building: WarBuilding in $Buildings.get_children():
-		if point.distance_squared_to(building.door_position()) < 0.01:
-			return point + Vector3(0.0, 0.0, 1.8)
-	return point
+func _get_building_links(building: WarBuilding) -> PackedInt64Array:
+	var center := building.global_position
+	if not _building_links.has(center):
+		var links := PackedInt64Array()
+		for point_id: int in _grid.values():
+			var point := _navigation.get_point_position(point_id)
+			if center.distance_squared_to(point) < 180.0:
+				var perimeter := building.march_perimeter_towards(point)
+				if _segment_clear(perimeter, point, center):
+					links.append(point_id)
+		_building_links[center] = links
+	return _building_links[center]
 
 
-func _include_doorways(route: PackedVector3Array, start: Vector3, finish: Vector3) -> PackedVector3Array:
-	if not route[0].is_equal_approx(start):
-		route.insert(0, start)
-	if not route[-1].is_equal_approx(finish):
-		route.append(finish)
-	return route
+func _building_segment_clear(from: Vector3, to: Vector3, source: WarBuilding, target: WarBuilding) -> bool:
+	var leaving := source.global_position if from == source.global_position else Vector3.INF
+	var arriving := target.global_position if to == target.global_position else Vector3.INF
+	var start := source.march_perimeter_towards(to) if leaving != Vector3.INF else from
+	var finish := target.march_perimeter_towards(from) if arriving != Vector3.INF else to
+	return _segment_clear(start, finish, leaving, arriving)
 
 
-func _is_route_point_clear(point: Vector3) -> bool:
+func _is_route_point_clear(point: Vector3, leaving: Vector3 = Vector3.INF, arriving: Vector3 = Vector3.INF) -> bool:
 	if not _has_clearance(point):
 		return false
 	for building_position: Vector3 in _building_positions:
+		if building_position == leaving or building_position == arriving:
+			continue
 		if point.distance_squared_to(building_position) < BUILDING_CLEARANCE * BUILDING_CLEARANCE:
 			return false
 	for obstacle: Vector3 in _tree_obstacle_grid.get(_obstacle_cell(point), []):
@@ -157,10 +170,10 @@ func _has_clearance(point: Vector3) -> bool:
 	return true
 
 
-func _segment_clear(from: Vector3, to: Vector3) -> bool:
+func _segment_clear(from: Vector3, to: Vector3, leaving: Vector3 = Vector3.INF, arriving: Vector3 = Vector3.INF) -> bool:
 	var steps := maxi(1, ceili(from.distance_to(to) / 0.5))
 	for index in range(steps + 1):
-		if not _is_route_point_clear(from.lerp(to, float(index) / float(steps))):
+		if not _is_route_point_clear(from.lerp(to, float(index) / float(steps)), leaving, arriving):
 			return false
 	return true
 
@@ -168,6 +181,8 @@ func _segment_clear(from: Vector3, to: Vector3) -> bool:
 func _build_navigation() -> void:
 	_navigation.clear()
 	_grid.clear()
+	_route_cache.clear()
+	_building_links.clear()
 	for x in range(-19, 20):
 		for z in range(-13, 14):
 			var point := Vector3(x * GRID_STEP, 0, z * GRID_STEP)

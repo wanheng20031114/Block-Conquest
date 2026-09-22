@@ -52,13 +52,19 @@ func set_listener(listener: AudioListener3D) -> void:
 func play_world(kind: StringName, at: Vector3) -> void:
 	_play(kind, at, true)
 
+func _event_info(kind: StringName) -> Dictionary:
+	return BANK.EVENTS[kind]
+
+func _world_range(info: Dictionary) -> float:
+	return 32.0 if info.bus == &"Foley" else 64.0
+
 func _play(kind: StringName, at: Vector3, spatial: bool) -> void:
 	if _stopping or (spatial and _world_paused):
 		return
-	var info: Dictionary = BANK.EVENTS[kind]
+	var info: Dictionary = _event_info(kind)
 	# Cull before rate limiting, so off-screen footsteps cannot silence visible troops.
 	if spatial:
-		var max_range := 32.0 if info.bus == &"Foley" else 64.0
+		var max_range := _world_range(info)
 		if _listener.global_position.distance_squared_to(at) > max_range * max_range:
 			return
 	var now: int = Time.get_ticks_msec()

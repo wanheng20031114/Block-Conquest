@@ -28,6 +28,6 @@
 
 `tests/settings_visual_test.gd` 在 Vulkan 下渲染主菜单、四个设置分类及显示确认弹层；实际窗口从 1600×900 调整至 1280×720，再恢复原尺寸。测试配置路径位于 `.local`，不覆盖玩家偏好。验证进程均退出后单独查询 Godot 进程核实。
 
-界面验证只在测试进程中临时静音，不调用会保存玩家设置的音量接口；`tests/audio_runtime_test.gd` 的音量和静音操作使用 `.local/audio-runtime-test.cfg`，避免影响后续正常启动。
+界面验证只在测试进程中临时静音，不调用会保存玩家设置的音量接口；`tests/audio_runtime_test.gd` 的音量和静音操作使用系统 TEMP 中带进程编号的独立配置，退出时删除，避免影响后续正常启动或留下项目中间文件。
 
 原生能力：[InputMap](https://docs.godotengine.org/en/4.6/classes/class_inputmap.html)、[DisplayServer](https://docs.godotengine.org/en/4.6/classes/class_displayserver.html)、[ConfigFile](https://docs.godotengine.org/en/4.6/classes/class_configfile.html)。

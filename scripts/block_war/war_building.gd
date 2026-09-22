@@ -12,6 +12,9 @@ extends Node3D
 const FACTION_COLORS: Array[Color] = [Color(1.0, 0.65, 0.18), Color(0.2, 0.83, 0.67)]
 const NEUTRAL_COLOR := Color("b5aa87")
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
+# One shared ground perimeter survives building conversions and leaves enough
+# space for a rotated marcher to appear or disappear outside the outer walls.
+const MARCH_PERIMETER_RADIUS := 2.45
 
 @onready var _visual: Node3D = $Visual
 @onready var _team_material: ShaderMaterial = $Visual/Flag.material_override
@@ -107,11 +110,19 @@ func refresh_visual() -> void:
 		# Enlarge all four petals together for long totals; preserve readable digits.
 		var text_width := _population_label.font.get_string_size(_population_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 48).x
 		$PopulationBadge.scale = Vector3.ONE * maxf(1.0, text_width * _population_label.pixel_size / 2.0)
+		$PickArea/BadgeCollisionShape3D.scale = $PopulationBadge.scale
 		_last_population = displayed_population
 
 
 func door_position() -> Vector3:
 	return $Door.global_position
+
+
+func march_perimeter_towards(point: Vector3) -> Vector3:
+	var direction := point - global_position
+	direction.y = 0.0
+	assert(direction.length_squared() > 0.001, "A perimeter needs a direction away from the building center.")
+	return global_position + direction.normalized() * MARCH_PERIMETER_RADIUS
 
 
 func set_selected(selected: bool) -> void:

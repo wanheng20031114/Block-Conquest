@@ -6,9 +6,9 @@
 
 ## 操作
 
-- 从己方建筑按住鼠标左键拖到另一建筑并松开：向己方增援，向中立或敌方进攻。
-- 左侧圆环选择派出 25%、50%、75%、100% 的驻军；数字键 1、2、3、4 分别对应这四档。
-- 鼠标移到屏幕边缘或按住中键拖动来移动视角，滚轮缩放，空格聚焦选中的建筑。
+- 从己方住宅、炮塔或铁匠铺的本体或人口数字牌按住鼠标左键，拖到另一建筑本体或数字牌并松开：向己方增援，向中立或敌方进攻。同一目标可以连续派兵。
+- 左侧圆环选择派出 25%、50%、75%、100% 的驻军；主键盘或小键盘的 1、2、3、4 分别对应这四档。拖动途中也能切换，滚轮每格增减 25%；底部和鼠标旁实时显示派出人数，松手采用最后选择的比例。
+- 鼠标移到屏幕边缘或按住中键拖动来移动视角；未拖兵时滚轮缩放，空格聚焦选中的建筑。
 - Q/W/E/R 施放技能。需要目标的技能在选中合法建筑时直接施放，否则等待点击目标；右键取消瞄准。
 - Esc 暂停/继续；F1 打开/关闭玩法说明。暂停时产兵、行军、技能冷却和持续时间均停止。
 
@@ -22,7 +22,7 @@
 
 升级分别消耗 30、60 名驻军，最高三级；各级额外提供 0%、10%、20% 建筑守备。改建为其他类型消耗 30 名驻军并重置为一级。升级/改建不会破坏已发出的队伍。
 
-民兵保持竖直长矛，逐排从门口出发，展开六列编队，转弯时收窄，到达时收拢入门。地形路径绕开沟壑、树干和建筑主体。不同阵营的部队在路上直接穿透；只有炮塔能够拦截路上的敌军。
+民兵保持竖直长矛，从建筑朝向路径的一侧逐排出发，展开六列编队，转弯时收窄，到达目标周界时收拢结算。住宅、炮塔和铁匠铺均可从任意方向进出，无需绕到正门。地形路径绕开沟壑、树干和沿途建筑主体。不同阵营的部队在路上直接穿透；只有炮塔能够拦截路上的敌军。
 
 进入己方建筑的民兵加入驻军。进入敌方或中立建筑的民兵按攻防倍率消耗守军；没有加成时一人换一人，需有一名幸存者才能占领。占领使建筑降低一级，最低为一级。增援可超过住宅自动产兵上限，超过后仅停止自动增长，不丢弃援军。
 
@@ -59,13 +59,24 @@
 
 原生能力参考：[AStar3D](https://docs.godotengine.org/en/stable/classes/class_astar3d.html)、[MultiMesh](https://docs.godotengine.org/en/stable/classes/class_multimesh.html)、[Tween](https://docs.godotengine.org/en/stable/classes/class_tween.html)、[GPUParticles3D](https://docs.godotengine.org/en/stable/classes/class_gpuparticles3d.html)。
 
+## 音效
+
+模式使用 21 类专用事件、36 个 WAV 变体，涵盖选择、拖选、派兵比例、命令、取消与拒绝、行军脚步、交战、增援、占领与失守、升级改建、四种技能、暂停继续和胜败；炮塔沿用已有炮声。脚步按附近可见队伍抽样，战斗按事件限频，避免数百士兵同时触发声浪。声音使用原生固定声道池与距离衰减，遵守现有总音量、静音和暂停设置。
+
+素材复用项目已有 CC0 录音，由 `tools/build_war_audio.py` 离线剪辑混合；来源和处理见 [音效说明](../assets/audio/CREDITS.md) 与 `assets/audio/block_war/audio_manifest.json`。
+
 ## 验证
+
+2026-09-22：派兵输入专项 171 项、原输入回归 20 项、玩法 39 项、行军 27 项、战局 27 项和音频混音 58 项通过。路线专项 12 项遍历全部 156 对建筑，对六列完整模型进行 494340 次采样，无落河、撞树或穿墙。另使用 Vulkan 原生窗口检查地图、路径和比例提示画面；此轮截图和日志保存在系统 TEMP。
 
 在仓库根目录执行：
 
 ```text
 Godot --headless --path . --script res://tests/block_war_test.gd
 Godot --headless --path . --script res://tests/block_war_input_test.gd
+Godot --headless --path . --script res://tests/block_war_dispatch_input_test.gd
+Godot --headless --path . --script res://tests/block_war_routes_test.gd
+Godot --headless --audio-driver Dummy --path . --script res://tests/block_war_audio_mix_test.gd
 Godot --headless --path . --script res://tests/block_war_marches_test.gd
 Godot --headless --path . --script res://tests/block_war_campaign_test.gd
 Godot --path . --script res://tests/block_war_visual_review.gd --resolution 1600x900 --position 80,70

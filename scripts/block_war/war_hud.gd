@@ -27,6 +27,7 @@ var _skill_buttons: Array[Button] = []
 var _percentage_buttons: Array[Button] = []
 var _managing: bool = false
 var _selected_owned: bool = false
+var _pointer_blockers: Array[Control] = []
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -53,6 +54,10 @@ func _ready() -> void:
 	%ConvertHouse.pressed.connect(func(): convert_requested.emit(0))
 	%ConvertTower.pressed.connect(func(): convert_requested.emit(1))
 	%ConvertForge.pressed.connect(func(): convert_requested.emit(2))
+	for button: BaseButton in $UI.find_children("*", "BaseButton", true, false):
+		_pointer_blockers.append(button)
+	for panel: Control in [%ManagementBackdrop, %PauseOverlay, %HelpOverlay, %ResultOverlay]:
+		_pointer_blockers.append(panel)
 	UIMotion.bind_buttons($UI)
 	var panels: Array[Control] = [%Top, %Player, %Enemy, %Percentages, %Skills]
 	for index: int in panels.size():
@@ -81,7 +86,8 @@ func update_state(state: Dictionary) -> void:
 		_balance_tween.tween_property(%Balance, "value", target, 0.28)
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
-	%SendAmount.text = "派遣 %d%%" % int(state.percentage)
+	%SendAmount.visible = bool(state.selected_owned)
+	%SendAmount.text = "派出 %d 人 · %d%%   [1–4] 切换" % [int(state.send_count), int(state.percentage)]
 	%ForgeBonus.text = "锻造加成  +%d%%" % (int(state.forges) * 10)
 	var selected_name: String = str(state.selected_name)
 	%Selection.visible = not selected_name.is_empty()
@@ -89,7 +95,7 @@ func update_state(state: Dictionary) -> void:
 		%SelectedName.text = "%s · %d 级" % [selected_name, int(state.selected_level)]
 		%SelectedPopulation.text = "%d" % int(state.selected_population)
 		%SelectedDetail.text = str(state.selected_detail)
-		%SelectedName.tooltip_text = str(state.selected_detail)
+		%Manage.tooltip_text = str(state.selected_detail)
 		if selected_name != _last_selected:
 			_managing = false
 			%Manage.set_pressed_no_signal(false)
@@ -195,9 +201,15 @@ func notify(message: String) -> void:
 	_toast_tween.tween_interval(2.8)
 	_toast_tween.tween_callback(func(): UIMotion.dismiss(%Toast, Vector2(0, -6)))
 
-func is_pointer_blocked() -> bool:
-	var hovered: Control = get_viewport().gui_get_hovered_control()
-	return hovered != null and is_ancestor_of(hovered)
+func is_pointer_blocked(screen: Vector2) -> bool:
+	# _input runs before GUI hover updates. Test this event's position, not the
+	# previous hovered control, and ignore transparent layout containers.
+	for control: Control in _pointer_blockers:
+		if control.is_visible_in_tree():
+			var local := control.get_global_transform_with_canvas().affine_inverse() * screen
+			if Rect2(Vector2.ZERO, control.size).has_point(local):
+				return true
+	return false
 
 func help_visible() -> bool:
 	return %HelpOverlay.visible
@@ -233,14 +245,15 @@ func _open_exit() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
-	if event.physical_keycode == KEY_F1 and not _finished:
+	var code: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
+	if code == KEY_F1 and not _finished:
 		if %HelpOverlay.visible:
 			_close_help()
 		else:
 			_open_help()
 		get_viewport().set_input_as_handled()
 		return
-	if event.physical_keycode == KEY_ESCAPE:
+	if code == KEY_ESCAPE:
 		if _finished:
 			return
 		if %HelpOverlay.visible:
@@ -254,12 +267,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if _paused or _finished:
 		return
 	var skill_keys: Array[int] = [KEY_Q, KEY_W, KEY_E, KEY_R]
-	var index: int = skill_keys.find(event.physical_keycode)
+	var index: int = skill_keys.find(code)
 	if index >= 0:
 		_request_skill(index)
 		get_viewport().set_input_as_handled()
-	var percentage_keys: Array[int] = [KEY_1, KEY_2, KEY_3, KEY_4]
-	index = percentage_keys.find(event.physical_keycode)
+	var percentage_keys: Array[int] = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4]
+	index = percentage_keys.find(code)
 	if index >= 0:
-		_select_percentage([25, 50, 75, 100][index])
+		_select_percentage([25, 50, 75, 100][index % 4])
 		get_viewport().set_input_as_handled()

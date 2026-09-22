@@ -124,7 +124,7 @@ func run() -> void:
 	check(game.marches.total_for(1) > 0 and game.by_id[1].population < 20, "AI expands through same dispatch rules")
 	game.ai_enabled = false
 	game.marches.clear()
-	var route: PackedVector3Array = game.map.get_route(game.by_id[0].door_position(), game.by_id[2].door_position())
+	var route: PackedVector3Array = game.map.get_building_route(game.by_id[0], game.by_id[2])
 	game.marches.send(0, 2, 0, 30, route)
 	game.by_id[0].faction = 1
 	game._check_victory()

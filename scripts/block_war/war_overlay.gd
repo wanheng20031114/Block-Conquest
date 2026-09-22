@@ -29,7 +29,7 @@ func _draw() -> void:
 			for point: Vector3 in game.order_route:
 				points.append(camera.unproject_position(point + Vector3(0, 0.4, 0)))
 		else:
-			points.append(camera.unproject_position(game.drag_source.door_position()))
+			points.append(camera.unproject_position(game.drag_source.global_position + Vector3.UP))
 			points.append(get_viewport().get_mouse_position())
 		if points.size() >= 2:
 			var ribbon: Color = color
@@ -50,6 +50,16 @@ func _draw() -> void:
 			var direction: Vector2 = (end - points[-2]).normalized()
 			var side := Vector2(-direction.y, direction.x)
 			draw_colored_polygon(PackedVector2Array([end, end - direction * 30 + side * 15, end - direction * 30 - side * 15]), color)
+		var count := floori(game.drag_source.population * game.percentage / 100.0)
+		var verb := "增援" if game.hovered != null and game.hovered.faction == 0 else "进攻"
+		var label := "%s %d 人 · %d%%" % [verb, count, game.percentage]
+		var font: Font = ThemeDB.fallback_font
+		var text_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17)
+		var at := get_viewport().get_mouse_position() + Vector2(20, -24)
+		at.x = clampf(at.x, 8.0, size.x - text_size.x - 20.0)
+		at.y = clampf(at.y, text_size.y + 8.0, size.y - 8.0)
+		draw_style_box(game.hud.get_node("UI/Selection/Strip").get_theme_stylebox("panel"), Rect2(at - Vector2(9, text_size.y), text_size + Vector2(18, 8)))
+		draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, color)
 	for effect: Dictionary in game.effects:
 		var progress: float = 1.0 - effect.life / effect.duration
 		var color: Color = effect.color

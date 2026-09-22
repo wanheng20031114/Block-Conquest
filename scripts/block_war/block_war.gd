@@ -81,7 +81,8 @@ func _process(delta: float) -> void:
 	if drag_source != null:
 		_update_drag(get_viewport().get_mouse_position())
 	elif armed_skill >= 0:
-		hovered = pick_building(get_viewport().get_mouse_position()) if not hud.is_pointer_blocked() else null
+		var pointer := get_viewport().get_mouse_position()
+		hovered = pick_building(pointer) if not hud.is_pointer_blocked(pointer) else null
 	overlay.queue_redraw()
 
 func simulate(delta: float) -> void:
@@ -105,6 +106,7 @@ func simulate(delta: float) -> void:
 				_fire_tower(building)
 		building.refresh_visual()
 	marches.tick(delta)
+	audio.tick_marches(delta, marches)
 	world_effects.tick(delta, not shields.is_empty())
 	for index: int in range(effects.size() - 1, -1, -1):
 		effects[index].life -= delta
@@ -118,9 +120,11 @@ func simulate(delta: float) -> void:
 	_check_victory()
 
 func set_percentage(value: int) -> void:
-	if value in [25, 50, 75, 100]:
+	if value in [25, 50, 75, 100] and value != percentage and not _local_menu and not finished:
 		percentage = value
+		audio.play_ui(&"war_ratio")
 		update_hud()
+		overlay.queue_redraw()
 
 func select_building(building: Node3D) -> void:
 	if selected != null:
@@ -137,15 +141,21 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		return 0
 	var count := floori(source.population * amount_percent / 100.0)
 	if count < 1:
+		if faction == PLAYER:
+			hud.notify("当前比例不足 1 名民兵 · 按 4 派出全部驻军")
+			audio.play_ui(&"war_denied")
 		return 0
-	var route: PackedVector3Array = map.get_route(source.door_position(), target.door_position())
+	var route: PackedVector3Array = map.get_building_route(source, target)
 	if route.size() < 2:
+		if faction == PLAYER:
+			hud.notify("没有可通行的路线")
+			audio.play_ui(&"war_denied")
 		return 0
 	source.population -= count
 	source.refresh_visual()
 	marches.send(source.building_id, target.building_id, faction, count, route, 1.0)
 	if faction == PLAYER:
-		audio.play_ui(&"order")
+		audio.play_ui(&"war_order")
 		var verb := "增援" if target.faction == PLAYER else "进攻"
 		hud.notify("%d 名民兵出发 · %s%s" % [count, verb, KIND_NAMES[target.kind]])
 		add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
@@ -174,12 +184,14 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 	var target: Node3D = by_id[target_id]
 	if target.faction == faction:
 		target.population += strength
+		audio.play_world(&"war_reinforce", target.global_position)
 	else:
 		var damage: float = strength * attack_multiplier(faction) / defense_multiplier(target)
 		if target.population + 0.00001 >= damage:
 			target.population = maxf(0.0, target.population - damage)
 		else:
 			var survivors: float = strength * (1.0 - target.population / damage)
+			var previous_faction: int = target.faction
 			target.faction = faction
 			target.population = survivors
 			target.level = maxi(1, target.level - 1)
@@ -187,13 +199,16 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 			shields.erase(target_id)
 			target.pulse_capture()
 			add_effect(target.global_position, faction_color(faction), "capture", 1.1)
-			audio.play_ui(&"recruit")
+			if faction == PLAYER:
+				audio.play_ui(&"war_capture")
+			elif previous_faction == PLAYER:
+				audio.play_ui(&"war_lost")
 			if faction == PLAYER:
 				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +1 民兵" if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻防提升")])
 			tower_clocks[target_id] = 0.6
 		if effects.size() < 80:
-			add_effect(target.door_position(), faction_color(faction), "hit", 0.2)
-		audio.play_world(&"wood_hit", target.global_position)
+			add_effect(target.global_position, faction_color(faction), "hit", 0.2)
+		audio.play_world(&"war_melee", target.global_position)
 	target.refresh_visual()
 
 func _fire_tower(building: Node3D) -> void:
@@ -212,6 +227,7 @@ func request_skill(index: int) -> void:
 		return
 	if cooldowns[index] > 0.0:
 		hud.notify("技能冷却中 · 还需 %d 秒" % ceili(cooldowns[index]))
+		audio.play_ui(&"war_denied")
 		return
 	if index == 1 or _valid_skill_target(index, selected):
 		cast_skill(index, selected)
@@ -253,12 +269,12 @@ func cast_skill(index: int, target: Node3D) -> bool:
 			# Siege damage cannot claim a building. An arriving militia must capture it.
 			target.population = maxf(0.0, target.population - 35.0 / defense_multiplier(target))
 			add_effect(target.global_position, Color(1.0, 0.45, 0.16), "impact", 1.0)
-			audio.play_world(&"explosion", target.global_position)
 			hud.notify("天降冲击 · 守军受创，派遣民兵夺取据点")
 	cooldowns[index] = SKILL_COOLDOWNS[index]
 	active_durations[index] = SKILL_DURATIONS[index]
 	armed_skill = -1
-	audio.play_ui(&"recruit")
+	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield", &"war_skill_breach"]
+	audio.play_world(skill_sounds[index], target.global_position if target != null and index != 1 else camera_rig.global_position)
 	if target != null:
 		target.refresh_visual()
 	update_hud()
@@ -270,13 +286,14 @@ func upgrade_selected() -> void:
 	var cost: int = selected.level * 30
 	if selected.population < cost:
 		hud.notify("升级需要 %d 名驻军" % cost)
+		audio.play_ui(&"war_denied")
 		return
 	selected.population -= cost
 	selected.level += 1
 	selected.capacity = 100.0 + selected.level * 100.0
 	selected.refresh_visual()
 	selected.pulse_capture()
-	audio.play_ui(&"recruit")
+	audio.play_world(&"war_upgrade", selected.global_position)
 	hud.notify("%s已升至 %d 级" % [KIND_NAMES[selected.kind], selected.level])
 	update_hud()
 
@@ -285,6 +302,7 @@ func convert_selected(kind: int) -> void:
 		return
 	if selected.population < 30.0:
 		hud.notify("改建需要 30 名驻军")
+		audio.play_ui(&"war_denied")
 		return
 	selected.population -= 30.0
 	selected.kind = kind
@@ -292,7 +310,7 @@ func convert_selected(kind: int) -> void:
 	selected.capacity = 200.0
 	selected.refresh_visual()
 	selected.pulse_capture()
-	audio.play_ui(&"recruit")
+	audio.play_world(&"war_rebuild", selected.global_position)
 	hud.notify("改建完成 · %s" % KIND_NAMES[kind])
 	update_hud()
 
@@ -312,7 +330,7 @@ func _ai_turn() -> void:
 			var required: float = target.population * defense_multiplier(target) / attack_multiplier(ENEMY) + 5.0
 			if incoming >= required or available + incoming < required:
 				continue
-			var route: PackedVector3Array = map.get_route(source.door_position(), target.door_position())
+			var route: PackedVector3Array = map.get_building_route(source, target)
 			if route.size() < 2:
 				continue
 			var distance: float = 0.0
@@ -395,7 +413,7 @@ func _finish_match(winner: int) -> void:
 	for building: Node3D in buildings:
 		building.set_visual_paused(true)
 	if winner >= 0:
-		audio.play_ui(&"victory" if winner == PLAYER else &"defeat")
+		audio.play_ui(&"war_victory" if winner == PLAYER else &"war_defeat")
 
 func update_hud() -> void:
 	if not is_node_ready():
@@ -410,6 +428,7 @@ func update_hud() -> void:
 			detail += " · 壁垒 %ds" % ceili(shields[selected.building_id])
 	hud.update_state({"player_total": total_for(PLAYER), "enemy_total": total_for(ENEMY), "time": elapsed,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
+		"send_count": floori(selected.population * percentage / 100.0) if selected != null else 0,
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"forges": forge_levels(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
@@ -420,6 +439,8 @@ func update_hud() -> void:
 func set_paused(value: bool) -> void:
 	if finished or _closing:
 		return
+	if value != _local_menu:
+		audio.play_ui(&"war_pause" if value else &"war_resume")
 	_local_menu = value
 	_cancel_drag()
 	camera_rig.dragging = false
@@ -474,10 +495,11 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			camera_rig.dragging = false
 		if event.button_index == MOUSE_BUTTON_LEFT and drag_source != null:
-			var target: Node3D = pick_building(event.position) if not hud.is_pointer_blocked() else null
+			var target: Node3D = pick_building(event.position) if not hud.is_pointer_blocked(event.position) else null
 			if target != null and target != drag_source and event.position.distance_to(_drag_start) > 6.0:
 				issue_order(drag_source, target, percentage)
 			_cancel_drag()
+			get_viewport().set_input_as_handled()
 	if event is InputEventMouseMotion and camera_rig.dragging and not _local_menu:
 		camera_rig.drag_by(event.relative)
 		get_viewport().set_input_as_handled()
@@ -495,10 +517,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera_rig.dragging = true
 			_cancel_drag()
 		MOUSE_BUTTON_WHEEL_UP:
-			camera_rig.zoom_by(-3.0)
+			if drag_source != null:
+				set_percentage(mini(100, percentage + 25))
+			else:
+				camera_rig.zoom_by(-3.0)
 		MOUSE_BUTTON_WHEEL_DOWN:
-			camera_rig.zoom_by(3.0)
+			if drag_source != null:
+				set_percentage(maxi(25, percentage - 25))
+			else:
+				camera_rig.zoom_by(3.0)
 		MOUSE_BUTTON_RIGHT:
+			if drag_source != null or armed_skill >= 0:
+				audio.play_ui(&"war_cancel")
 			armed_skill = -1
 			_cancel_drag()
 			update_hud()
@@ -509,10 +539,11 @@ func _unhandled_input(event: InputEvent) -> void:
 					select_building(building)
 				else:
 					hud.notify("请选择技能提示要求的建筑 · 右键取消")
+					audio.play_ui(&"war_denied")
 				return
 			select_building(building)
 			if building != null:
-				audio.play_ui(&"select")
+				audio.play_ui(&"war_select")
 				if building.faction == PLAYER:
 					drag_source = building
 					_drag_start = event.position
@@ -529,17 +560,20 @@ func pick_building(screen: Vector2) -> Node3D:
 	return hit.collider.get_parent()
 
 func _update_drag(screen: Vector2) -> void:
-	var target: Node3D = pick_building(screen) if not hud.is_pointer_blocked() else null
+	var target: Node3D = pick_building(screen) if not hud.is_pointer_blocked(screen) else null
 	if target != hovered:
 		hovered = target
 		order_route = PackedVector3Array()
 		if hovered != null and hovered != drag_source:
-			order_route = map.get_route(drag_source.door_position(), hovered.door_position())
+			order_route = map.get_building_route(drag_source, hovered)
+			audio.play_ui(&"war_drag")
 
 func _cancel_drag() -> void:
 	drag_source = null
 	hovered = null
-	order_route.clear()
+	# Packed arrays are shared with the route cache. Clearing this array would
+	# erase a valid route and silently reject every later order for that pair.
+	order_route = PackedVector3Array()
 
 func faction_color(faction: int) -> Color:
 	return Color(1.0, 0.65, 0.18) if faction == PLAYER else Color(0.2, 0.83, 0.67)

@@ -9,9 +9,14 @@ var failures: Array[String] = []
 var measurements: Array[Dictionary] = []
 var events: Dictionary = {}
 var capture_slot: int
+var settings_file: String
 
 func _initialize() -> void:
 	call_deferred("_run")
+
+func _finalize() -> void:
+	if not settings_file.is_empty() and FileAccess.file_exists(settings_file):
+		DirAccess.remove_absolute(settings_file)
 
 func _check(ok: bool, label: String) -> void:
 	checks += 1
@@ -65,24 +70,26 @@ func _measure(label: String) -> Dictionary:
 
 func _run() -> void:
 	create_timer(140.0).timeout.connect(func(): push_error("AUDIO_RUNTIME watchdog"); quit(3))
-	root.get_node("Session/Settings").settings_path = "res://.local/audio-runtime-test.cfg"
+	settings_file = OS.get_environment("TEMP").path_join("block-conquest-audio-runtime-%d.cfg" % OS.get_process_id())
+	root.get_node("Session/Settings").settings_path = settings_file
 	change_scene_to_file("res://scenes/main.tscn")
 	await scene_changed
 	game = current_scene
 	game.tests_running = true
+	game.bots.clear()
 	game.camera_rig.edge_scroll = false
 	audio = game.get_node("Audio")
 	audio.sound_played.connect(_heard)
 	await create_timer(0.25).timeout
 	for unit: Node in get_nodes_in_group("units"):
 		_freeze(unit)
-		_check(unit.sound_requested.is_connected(audio.play_world), "initial unit audio connected: " + unit.name)
+		_check(unit.sound_requested.is_connected(game.play_world_sound), "initial unit audio connected through visible-world dispatch: " + unit.name)
 	for building: Node in get_nodes_in_group("buildings"):
 		building.set_physics_process(false)
-		_check(building.sound_requested.is_connected(audio.play_world), "building audio connected: " + building.name)
+		_check(building.sound_requested.is_connected(game.play_world_sound), "building audio connected through visible-world dispatch: " + building.name)
 	game.get_node("IncomeTimer").stop()
 	game.get_node("EnemyTimer").stop()
-	game.camera_rig.position = Vector3(-12, 0, 18)
+	game.camera_rig.focus_at(Vector3(-12, 0, 18), true)
 	audio.set_volume_percent(85.0)
 	if audio.muted:
 		audio.toggle_mute()
@@ -133,7 +140,9 @@ func _run() -> void:
 	var battle_mix := _measure("160-unit event flood")
 	_check(battle_mix.active_frames > 1000 and battle_mix.peak_dbfs <= -0.9, "dense combat mix remains audible and never clips")
 	await _silence()
-	game.spawn_effect(Vector3(-12, 0, 18), "muzzle")
+	var visible_effect_at: Vector3 = game.headquarters.global_position + Vector3(4, 0, 4)
+	game.camera_rig.focus_at(visible_effect_at, true)
+	game.spawn_effect(visible_effect_at, "muzzle")
 	var effect: BattleEffect = game.get_node("EffectPool")._active.back()
 	_check(not effect.has_node("Sound"), "particle effects no longer own transient audio players")
 	game.get_node("EffectPool")._release(effect)
@@ -161,7 +170,7 @@ func _run() -> void:
 	await _gameplay_events()
 	await game.prepare_shutdown()
 	AudioServer.remove_bus_effect(0, capture_slot)
-	var file := FileAccess.open("res://artifacts/audio_runtime.json", FileAccess.WRITE)
+	var file := FileAccess.open(OS.get_environment("TEMP").path_join("block-conquest-audio-runtime.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify({"checks": checks, "failures": failures, "measurements": measurements, "audio_driver": AudioServer.get_driver_name()}, "  "))
 	file.close()
 	print("AUDIO_RUNTIME ", checks, " checks; ", failures.size(), " failures")
@@ -171,21 +180,30 @@ func _gameplay_events() -> void:
 	await _silence()
 	game.select_entities([game.headquarters])
 	game.gold = 0
-	game.recruit("swordsman")
+	game.recruit("farmer")
+	game.command_bus.tick()
+	_check(game.headquarters.production.training.is_empty(), "unaffordable recruitment does not queue a unit")
 	_check(events.has(&"denied"), "failed recruitment produces UI denial")
 	game.gold = 1000
-	game.recruit("swordsman")
+	game.recruit("farmer")
+	game.command_bus.tick()
+	_check(game.headquarters.production.training.size() == 1, "legal recruitment enters the production queue")
 	_check(events.has(&"recruit"), "successful recruitment produces UI acknowledgment")
+	var before_recruitment: int = game.unit_container.get_child_count()
+	game.headquarters.production._physics_process(BalanceCatalog.unit("farmer").training_seconds)
+	_check(game.unit_container.get_child_count() == before_recruitment + 1, "completing the queued training creates a new unit")
 	var recruited: Node = game.unit_container.get_child(game.unit_container.get_child_count() - 1)
-	_check(recruited.sound_requested.is_connected(audio.play_world), "dynamically recruited unit joins the shared mixer")
+	_check(recruited.sound_requested.is_connected(game.play_world_sound), "dynamically recruited unit joins visible-world audio dispatch")
 	_freeze(recruited)
 	for kind: String in ["swordsman", "archer", "knight", "catapult", "cannon"]:
 		await _silence()
 		var fighter: Node3D = game.spawn_unit(kind, 0, Vector3(-12, 0, 18))
-		var victim: Node3D = game.spawn_unit("knight", 1, Vector3(-12, 0, 15.9))
+		var target_distance := maxf(2.1, BalanceCatalog.unit(kind).min_range + BalanceCatalog.unit(kind).radius + BalanceCatalog.unit("knight").radius + 0.5)
+		var victim: Node3D = game.spawn_unit("knight", 1, fighter.global_position + Vector3.FORWARD * target_distance)
 		_freeze(victim)
 		victim.hp = 10000.0
 		fighter.navigation_agent.avoidance_enabled = false
+		game.get_node("FogOfWar").tick(FogOfWar.UPDATE_SECONDS)
 		fighter.issue_attack(victim)
 		await create_timer(1.65).timeout
 		var release: StringName = {"swordsman": &"sword_swing", "knight": &"sword_swing", "archer": &"bow_release", "catapult": &"catapult_release", "cannon": &"cannon_shot"}[kind]

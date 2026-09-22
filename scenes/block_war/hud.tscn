@@ -817,6 +817,7 @@ theme_override_constants/separation = 11
 [node name="P100" type="Button" parent="UI/Percentages/Stack"]
 layout_mode = 2
 custom_minimum_size = Vector2(54, 54)
+tooltip_text = "派遣 100% · 数字 4 / 小键盘 4 · 拖动中可切换"
 toggle_mode = true
 button_group = SubResource("PercentGroup")
 button_pressed = false
@@ -834,9 +835,30 @@ theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.06
 
+[node name="Shortcut" type="Label" parent="UI/Percentages/Stack/P100"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 9.0
+offset_top = -10.0
+offset_right = 37.0
+offset_bottom = 10.0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.97, 0.94, 0.79, 1)
+theme_override_colors/font_shadow_color = Color(0.03, 0.06, 0.03, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "[4]"
+vertical_alignment = 1
+
 [node name="P75" type="Button" parent="UI/Percentages/Stack"]
 layout_mode = 2
 custom_minimum_size = Vector2(54, 54)
+tooltip_text = "派遣 75% · 数字 3 / 小键盘 3 · 拖动中可切换"
 toggle_mode = true
 button_group = SubResource("PercentGroup")
 button_pressed = false
@@ -854,9 +876,30 @@ theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.06
 
+[node name="Shortcut" type="Label" parent="UI/Percentages/Stack/P75"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 9.0
+offset_top = -10.0
+offset_right = 37.0
+offset_bottom = 10.0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.97, 0.94, 0.79, 1)
+theme_override_colors/font_shadow_color = Color(0.03, 0.06, 0.03, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "[3]"
+vertical_alignment = 1
+
 [node name="P50" type="Button" parent="UI/Percentages/Stack"]
 layout_mode = 2
 custom_minimum_size = Vector2(54, 54)
+tooltip_text = "派遣 50% · 数字 2 / 小键盘 2 · 拖动中可切换"
 toggle_mode = true
 button_group = SubResource("PercentGroup")
 button_pressed = true
@@ -874,9 +917,30 @@ theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.06
 
+[node name="Shortcut" type="Label" parent="UI/Percentages/Stack/P50"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 9.0
+offset_top = -10.0
+offset_right = 37.0
+offset_bottom = 10.0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.97, 0.94, 0.79, 1)
+theme_override_colors/font_shadow_color = Color(0.03, 0.06, 0.03, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "[2]"
+vertical_alignment = 1
+
 [node name="P25" type="Button" parent="UI/Percentages/Stack"]
 layout_mode = 2
 custom_minimum_size = Vector2(54, 54)
+tooltip_text = "派遣 25% · 数字 1 / 小键盘 1 · 拖动中可切换"
 toggle_mode = true
 button_group = SubResource("PercentGroup")
 button_pressed = false
@@ -894,6 +958,26 @@ theme_override_colors/font_hover_pressed_color = Color(1,0.95,0.72,1)
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.06
 
+[node name="Shortcut" type="Label" parent="UI/Percentages/Stack/P25"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 9.0
+offset_top = -10.0
+offset_right = 37.0
+offset_bottom = 10.0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.97, 0.94, 0.79, 1)
+theme_override_colors/font_shadow_color = Color(0.03, 0.06, 0.03, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "[1]"
+vertical_alignment = 1
+
 [node name="Selection" type="Control" parent="UI"]
 unique_name_in_owner = true
 layout_mode = 0
@@ -902,9 +986,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -213.0
-offset_top = -149.0
+offset_top = -160.0
 offset_right = 213.0
-offset_bottom = -117.0
+offset_bottom = -128.0
 mouse_filter = 2
 visible = false
 
@@ -966,7 +1050,7 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 0
+mouse_filter = 2
 theme_override_font_sizes/font_size = 15
 text = "住宅 · 1 级"
 
@@ -1744,7 +1828,7 @@ offset_bottom = 24.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
-text = "拖动据点出兵 · 中键移动 · F1玩法"
+text = "1–4 比例 · 拖动时滚轮调兵 · F1 玩法"
 theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
@@ -2026,7 +2110,7 @@ offset_bottom = 201.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "按住己方建筑，拖向目标后松开。橙色据点获得增援，其他据点被进攻。\n先在左侧选择派遣比例；1 / 2 / 3 / 4 对应 25 / 50 / 75 / 100%。"
+text = "按住己方建筑或人口牌，拖到敌方/中立据点进攻，拖到己方据点增援。\n1 / 2 / 3 / 4（含小键盘）切换 25 / 50 / 75 / 100%；拖动时也可滚轮调兵。"
 
 [node name="Heading1" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
@@ -2056,7 +2140,7 @@ offset_bottom = 288.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "部队只能通过道路与桥梁越过沟壑，途中遇敌会穿行。\n战斗在建筑内交换伤亡；占领所有敌方据点并消灭援军即可获胜。"
+text = "部队从建筑周围就近出发、抵达，无需绕到正门；越过沟壑仍须走桥。\n途中遇敌会穿行，战斗在据点结算；占领敌方据点并消灭援军即可获胜。"
 
 [node name="Heading2" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
@@ -2086,7 +2170,7 @@ offset_bottom = 375.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "住宅：每秒自动产生 1 名民兵。炮塔：自动射击附近敌军。\n铁匠铺：提高全军攻防。选择己方建筑可升级或消耗 30 人口改建。"
+text = "住宅：每秒自动产生 1 名民兵。炮塔：自动射击附近敌军。\n铁匠铺：提高全军攻防。三类己方建筑均可派兵，也可升级或改建。"
 
 [node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
