@@ -3,7 +3,13 @@ extends Node3D
 
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
 const SKILL_COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
-const SKILL_DURATIONS: Array[float] = [0.0, 8.0, 10.0, 0.0]
+const SKILL_DURATIONS: Array[float] = [6.0, 8.0, 10.0, 0.0]
+const SKILL_ENERGY_COSTS: Array[float] = [30.0, 40.0, 35.0, 60.0]
+const ENERGY_MAX := 100.0
+const ENERGY_REGEN := 2.0
+const RECRUIT_RATE := 5.0
+const IMPACT_RADIUS := 4.5
+const IMPACT_DAMAGE := 35.0
 const PLAYER := 0
 const ENEMY := 1
 
@@ -16,7 +22,10 @@ var percentage: int = 50
 var elapsed: float = 0.0
 var cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var active_durations: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var energy: float = ENERGY_MAX
 var armed_skill: int = -1
+var ground_skill_target := Vector3.INF
+var _recruit_target_id: int = -1
 var finished: bool = false
 var _local_menu: bool = false
 var ai_enabled: bool = true
@@ -82,13 +91,19 @@ func _process(delta: float) -> void:
 		_update_drag(get_viewport().get_mouse_position())
 	elif armed_skill >= 0:
 		var pointer := get_viewport().get_mouse_position()
-		hovered = pick_building(pointer) if not hud.is_pointer_blocked(pointer) else null
+		if armed_skill == 3:
+			ground_skill_target = skill_ground_at(pointer)
+			hovered = null
+		else:
+			hovered = pick_building(pointer) if not hud.is_pointer_blocked(pointer) else null
 	overlay.queue_redraw()
 
 func simulate(delta: float) -> void:
-	if _local_menu or finished:
+	if _local_menu or finished or delta <= 0.0:
 		return
 	elapsed += delta
+	energy = minf(ENERGY_MAX, energy + ENERGY_REGEN * delta)
+	var recruiting_id := _tick_recruitment(delta)
 	for index: int in 4:
 		cooldowns[index] = maxf(0.0, cooldowns[index] - delta)
 		active_durations[index] = maxf(0.0, active_durations[index] - delta)
@@ -98,7 +113,7 @@ func simulate(delta: float) -> void:
 			shields.erase(id)
 	for building: Node3D in buildings:
 		# Reinforcement can exceed the soft cap. Only automatic growth stops there.
-		if building.faction >= 0 and building.kind == 0 and building.population < building.capacity:
+		if building.faction >= 0 and building.kind == 0 and building.population < building.capacity and building.building_id != recruiting_id:
 			building.population = minf(building.capacity, building.population + delta)
 		if building.faction >= 0 and building.kind == 1:
 			tower_clocks[building.building_id] = maxf(0.0, float(tower_clocks[building.building_id]) - delta)
@@ -118,6 +133,29 @@ func simulate(delta: float) -> void:
 			ai_clock = 3.0
 			_ai_turn()
 	_check_victory()
+
+func _tick_recruitment(delta: float) -> int:
+	if _recruit_target_id < 0:
+		return -1
+	var target: Node3D = by_id[_recruit_target_id]
+	if target.faction != PLAYER or target.kind != 0:
+		_cancel_recruitment()
+		return -1
+	# Integrate only the remaining effect time, including a tick that crosses its
+	# end. Ordinary +1/s production stops at the soft cap, even if a long tick's
+	# recruitment crosses that cap; the +5/s bonus itself remains uncapped.
+	var active_time := minf(delta, active_durations[0])
+	var ordinary_time := minf(active_time, maxf(0.0, target.capacity - target.population) / (RECRUIT_RATE + 1.0))
+	target.population += RECRUIT_RATE * active_time + ordinary_time
+	if target.population < target.capacity:
+		target.population = minf(target.capacity, target.population + delta - active_time)
+	if delta >= active_durations[0]:
+		_recruit_target_id = -1
+	return target.building_id
+
+func _cancel_recruitment() -> void:
+	_recruit_target_id = -1
+	active_durations[0] = 0.0
 
 func set_percentage(value: int) -> void:
 	if value in [25, 50, 75, 100] and value != percentage and not _local_menu and not finished:
@@ -193,6 +231,8 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 			var survivors: float = strength * (1.0 - target.population / damage)
 			var previous_faction: int = target.faction
 			target.faction = faction
+			if target_id == _recruit_target_id:
+				_cancel_recruitment()
 			target.population = survivors
 			target.level = maxi(1, target.level - 1)
 			target.capacity = 100.0 + target.level * 100.0
@@ -228,20 +268,33 @@ func tower_interval(building: Node3D) -> float:
 	return maxf(0.55, 1.5 - 0.3 * (building.level - 1))
 
 func request_skill(index: int) -> void:
-	if index < 0 or index >= 4 or _local_menu or finished:
+	if not _skill_available(index):
 		return
-	if cooldowns[index] > 0.0:
-		hud.notify("技能冷却中 · 还需 %d 秒" % ceili(cooldowns[index]))
-		audio.play_ui(&"war_denied")
-		return
-	if index == 1 or _valid_skill_target(index, selected):
+	if index != 3 and (index == 1 or _valid_skill_target(index, selected)):
 		cast_skill(index, selected)
 	else:
 		armed_skill = index
 		_cancel_drag()
-		var target_text := "己方住宅" if index == 0 else ("己方建筑" if index == 2 else "敌方或中立建筑")
+		ground_skill_target = skill_ground_at(get_viewport().get_mouse_position()) if index == 3 else Vector3.INF
+		var target_text := "地面选择冲击区域" if index == 3 else ("己方住宅" if index == 0 else "己方建筑")
 		hud.notify("选择%s施放技能 · 右键取消" % target_text)
 	update_hud()
+
+func can_cast_skill(index: int) -> bool:
+	return index >= 0 and index < 4 and not _local_menu and not finished and cooldowns[index] <= 0.0 and energy >= SKILL_ENERGY_COSTS[index]
+
+func _skill_available(index: int) -> bool:
+	if index < 0 or index >= 4 or _local_menu or finished:
+		return false
+	if cooldowns[index] > 0.0:
+		hud.notify("技能冷却中 · 还需 %d 秒" % ceili(cooldowns[index]))
+		audio.play_ui(&"war_denied")
+		return false
+	if energy < SKILL_ENERGY_COSTS[index]:
+		hud.notify("技力不足 · 需要 %d，还差 %d" % [int(SKILL_ENERGY_COSTS[index]), ceili(SKILL_ENERGY_COSTS[index] - energy)])
+		audio.play_ui(&"war_denied")
+		return false
+	return true
 
 func _valid_skill_target(index: int, target: Node3D) -> bool:
 	if index == 1:
@@ -252,16 +305,20 @@ func _valid_skill_target(index: int, target: Node3D) -> bool:
 		return target.faction == PLAYER and target.kind == 0
 	if index == 2:
 		return target.faction == PLAYER
-	return target.faction != PLAYER
+	return false
 
 func cast_skill(index: int, target: Node3D) -> bool:
-	if index < 0 or index >= 4 or _local_menu or finished or cooldowns[index] > 0.0 or not _valid_skill_target(index, target):
+	if not _skill_available(index):
+		return false
+	if not _valid_skill_target(index, target):
+		hud.notify("请选择己方住宅 · 右键取消" if index == 0 else ("请选择己方建筑 · 右键取消" if index == 2 else "请选择战场地面施放天降冲击"))
+		audio.play_ui(&"war_denied")
 		return false
 	match index:
 		0:
-			target.population += 30.0
+			_recruit_target_id = target.building_id
 			add_effect(target.global_position, Color(1.0, 0.8, 0.25), "skill", 1.1)
-			hud.notify("征召军令 · 30 名民兵已入驻")
+			hud.notify("征召军令 · 持续 6 秒，每秒补充 5 名民兵")
 		1:
 			marches.boost_faction(PLAYER, 8.0, 1.7)
 			hud.notify("疾行战鼓 · 全军行速 +70%，持续 8 秒")
@@ -270,20 +327,57 @@ func cast_skill(index: int, target: Node3D) -> bool:
 			world_effects.shield(target.global_position)
 			add_effect(target.global_position, Color(0.45, 0.8, 1.0), "skill", 1.1)
 			hud.notify("磐石壁垒 · 守备减伤 50%，持续 10 秒")
-		3:
-			# Siege damage cannot claim a building. An arriving militia must capture it.
-			target.population = maxf(0.0, target.population - 35.0 / defense_multiplier(target))
-			add_effect(target.global_position, Color(1.0, 0.45, 0.16), "impact", 1.0)
-			hud.notify("天降冲击 · 守军受创，派遣民兵夺取据点")
-	cooldowns[index] = SKILL_COOLDOWNS[index]
-	active_durations[index] = SKILL_DURATIONS[index]
-	armed_skill = -1
-	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield", &"war_skill_breach"]
+	_commit_skill(index)
+	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield"]
 	audio.play_world(skill_sounds[index], target.global_position if target != null and index != 1 else camera_rig.global_position)
 	if target != null:
 		target.refresh_visual()
 	update_hud()
 	return true
+
+func cast_ground_skill(index: int, at: Vector3) -> bool:
+	if index != 3 or not _skill_available(index):
+		return false
+	if not _valid_ground_skill_target(at):
+		hud.notify("请选择战场内的地面 · 右键取消")
+		audio.play_ui(&"war_denied")
+		return false
+	var center := Vector3(at.x, 0.0, at.z)
+	var buildings_hit := 0
+	for building: Node3D in buildings:
+		if building.faction == PLAYER or Vector2(building.global_position.x - center.x, building.global_position.z - center.z).length_squared() > IMPACT_RADIUS * IMPACT_RADIUS:
+			continue
+		# A blast weakens every hostile or neutral garrison in its circle, but
+		# only an arriving soldier may capture an emptied building.
+		building.population = maxf(0.0, building.population - IMPACT_DAMAGE / defense_multiplier(building))
+		building.refresh_visual()
+		buildings_hit += 1
+	var soldiers_hit: int = marches.damage_in_area(center, PLAYER, IMPACT_RADIUS)
+	add_effect(center, Color(1.0, 0.45, 0.16), "impact", 1.0, IMPACT_RADIUS)
+	_commit_skill(index)
+	audio.play_world(&"war_skill_breach", center)
+	hud.notify("天降冲击 · 命中 %d 座据点、%d 名敌军" % [buildings_hit, soldiers_hit])
+	update_hud()
+	return true
+
+func _commit_skill(index: int) -> void:
+	energy -= SKILL_ENERGY_COSTS[index]
+	cooldowns[index] = SKILL_COOLDOWNS[index]
+	active_durations[index] = SKILL_DURATIONS[index]
+	armed_skill = -1
+	ground_skill_target = Vector3.INF
+	_cancel_drag()
+
+func _valid_ground_skill_target(at: Vector3) -> bool:
+	return at.is_finite() and absf(at.x) <= map.HALF_SIZE.x and absf(at.z) <= map.HALF_SIZE.y
+
+func skill_ground_at(screen: Vector2) -> Vector3:
+	if not get_viewport().get_visible_rect().has_point(screen) or hud.is_pointer_blocked(screen):
+		return Vector3.INF
+	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(screen), camera.project_ray_normal(screen))
+	if hit == null or not _valid_ground_skill_target(hit):
+		return Vector3.INF
+	return hit
 
 func upgrade_selected() -> void:
 	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= 3:
@@ -311,6 +405,8 @@ func convert_selected(kind: int) -> void:
 		return
 	selected.population -= 30.0
 	selected.kind = kind
+	if selected.building_id == _recruit_target_id:
+		_cancel_recruitment()
 	selected.level = 1
 	selected.capacity = 200.0
 	selected.refresh_visual()
@@ -408,6 +504,7 @@ func _finish_match(winner: int) -> void:
 	_cancel_drag()
 	camera_rig.dragging = false
 	armed_skill = -1
+	ground_skill_target = Vector3.INF
 	if winner < 0:
 		hud.show_draw()
 	else:
@@ -436,6 +533,8 @@ func update_hud() -> void:
 		"send_count": floori(selected.population * percentage / 100.0) if selected != null else 0,
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
+		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_ENERGY_COSTS,
+		"skill_target_types": ["building", "self", "building", "ground"], "ground_skill_radius": IMPACT_RADIUS,
 		"forges": forge_levels(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
@@ -451,6 +550,7 @@ func set_paused(value: bool) -> void:
 	_cancel_drag()
 	camera_rig.dragging = false
 	armed_skill = -1
+	ground_skill_target = Vector3.INF
 	audio.set_world_paused(value)
 	world_effects.set_running(not value)
 	map.set_visual_paused(value)
@@ -536,16 +636,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			if drag_source != null or armed_skill >= 0:
 				audio.play_ui(&"war_cancel")
 			armed_skill = -1
+			ground_skill_target = Vector3.INF
 			_cancel_drag()
 			update_hud()
 		MOUSE_BUTTON_LEFT:
+			if armed_skill == 3:
+				cast_ground_skill(3, skill_ground_at(event.position))
+				get_viewport().set_input_as_handled()
+				return
 			var building: Node3D = pick_building(event.position)
 			if armed_skill >= 0:
 				if cast_skill(armed_skill, building):
 					select_building(building)
-				else:
-					hud.notify("请选择技能提示要求的建筑 · 右键取消")
-					audio.play_ui(&"war_denied")
+				get_viewport().set_input_as_handled()
 				return
 			select_building(building)
 			if building != null:
@@ -584,7 +687,7 @@ func _cancel_drag() -> void:
 func faction_color(faction: int) -> Color:
 	return Color(1.0, 0.65, 0.18) if faction == PLAYER else Color(0.2, 0.83, 0.67)
 
-func add_effect(at: Vector3, color: Color, kind: String, duration: float) -> void:
-	effects.append({"at": at, "color": color, "kind": kind, "life": duration, "duration": duration})
+func add_effect(at: Vector3, color: Color, kind: String, duration: float, radius: float = 3.8) -> void:
+	effects.append({"at": at, "color": color, "kind": kind, "life": duration, "duration": duration, "radius": radius})
 	if kind in ["capture", "skill", "impact"]:
 		world_effects.burst(at, color, kind == "impact")

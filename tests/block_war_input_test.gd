@@ -86,12 +86,21 @@ func run() -> void:
 	mouse(percent_screen, MOUSE_BUTTON_LEFT, false)
 	check(game.percentage == 25 and game.marches.incoming_for(target.building_id, 0) == 45, "HUD click changes percent without issuing a map order")
 	key(KEY_R)
-	check(game.armed_skill == 3, "hostile skill waits for a valid target")
-	mouse(target_screen, MOUSE_BUTTON_LEFT, true)
-	mouse(target_screen, MOUSE_BUTTON_LEFT, false)
-	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and target.population == 0.0, "armed skill targets native picked building")
+	check(game.armed_skill == 3, "impact skill waits for a ground position")
+	var impact_screen := Vector2.INF
+	for offset: Vector3 in [Vector3(4, 0, 0), Vector3(-4, 0, 0), Vector3(0, 0, 4), Vector3(0, 0, -4)]:
+		var candidate: Vector2 = game.camera.unproject_position(target.global_position + offset)
+		var ground: Vector3 = game.skill_ground_at(candidate)
+		if game.pick_building(candidate) == null and ground.is_finite() and ground.distance_to(target.global_position) <= game.IMPACT_RADIUS:
+			impact_screen = candidate
+			break
+	check(impact_screen.is_finite(), "impact target is open ground next to the enemy building")
+	if impact_screen.is_finite():
+		mouse(impact_screen, MOUSE_BUTTON_LEFT, true)
+		mouse(impact_screen, MOUSE_BUTTON_LEFT, false)
+	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and target.population == 0.0 and game.energy == 40.0, "armed impact uses the native ground point and spends sixty energy")
 	key(KEY_W)
-	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0, "keyboard haste casts independently")
+	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.energy == 0.0, "keyboard haste consumes the remaining forty energy")
 	var previous: Vector3 = game.camera_rig.destination
 	var ground := Vector2(800, 470)
 	mouse(ground, MOUSE_BUTTON_MIDDLE, true)
@@ -112,7 +121,7 @@ func run() -> void:
 		await process_frame
 	game = current_scene
 	game.ai_enabled = false
-	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0, "restart resets match and cooldown state")
+	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == game.ENERGY_MAX, "restart resets match, cooldowns and energy")
 	game.exit_to_lobby()
 	await scene_changed
 	while root.get_node("Session").transition.busy:

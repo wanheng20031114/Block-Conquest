@@ -71,7 +71,7 @@ func _player_turn() -> void:
 			if bombard == null or building.population > bombard.population:
 				bombard = building
 	if bombard != null and game.cooldowns[3] <= 0.0:
-		game.cast_skill(3, bombard)
+		game.cast_ground_skill(3, bombard.global_position)
 	var best_source: Node3D
 	var best_target: Node3D
 	var best_score := -INF

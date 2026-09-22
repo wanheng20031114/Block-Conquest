@@ -14,6 +14,10 @@ signal convert_requested(kind: int)
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁垒", "天降冲击"]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
+const SKILL_DETAILS: Array[String] = [
+	"选择己方住宅，每秒征召 5 人，持续 6 秒。", "全军行速提升，持续 8 秒。",
+	"选择己方建筑，守备壁垒持续 10 秒。", "点击战场地面，对指定区域发动冲击。",
+]
 
 var _paused: bool = false
 var _finished: bool = false
@@ -22,7 +26,8 @@ var _toast_tween: Tween
 var _balance_tween: Tween
 var _balance_target: float = -1.0
 var _last_selected_id: int = -1
-var _last_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var _last_ready: Array[bool] = [false, false, false, false]
+var _skills_initialized: bool = false
 var _skill_buttons: Array[Button] = []
 var _percentage_buttons: Array[Button] = []
 var _managing: bool = false
@@ -133,25 +138,47 @@ func update_state(state: Dictionary) -> void:
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
-		%TargetHint.text = "%s  ·  点击目标建筑  /  右键取消" % SKILL_NAMES[armed]
+		var target_text := "点击地面选择冲击区域" if armed == 3 else "点击目标建筑"
+		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
+	var energy: float = float(state.energy)
+	%EnergyBar.value = energy
+	%EnergyLabel.text = "技力  %d / 100" % floori(energy)
 	for index: int in 4:
 		var button: Button = _skill_buttons[index]
 		var cooldown: float = float(state.cooldowns[index])
 		var duration: float = float(state.skill_durations[index])
+		var cost: int = int(state.energy_costs[index])
 		var cooling: bool = cooldown > 0.0
-		button.disabled = cooling or _paused or _finished
+		var affordable: bool = energy >= cost
+		var ready: bool = not cooling and affordable and not _paused and not _finished
+		button.disabled = not ready
 		button.set_pressed_no_signal(armed == index)
 		button.get_node("Cooldown").value = cooldown / COOLDOWNS[index] * 100.0
 		button.get_node("Cooldown").visible = cooling
 		button.get_node("Seconds").text = str(ceili(cooldown)) if cooling else ""
-		button.get_node("Name").text = "%s %ds" % [["", "疾行", "壁垒", ""][index], ceili(duration)] if duration > 0.0 else "选择目标" if armed == index else SKILL_NAMES[index]
-		button.get_node("Status").hide()
-		button.get_node("Name").add_theme_color_override("font_color", Color("c2c1ab") if cooling else Color("f4efd8"))
-		button.get_node("Key").add_theme_color_override("font_color", Color("e4e1cb") if cooling else Color("384032"))
-		button.get_node("Icon").modulate.a = 0.42 if cooling else 1.0
-		if _last_cooldowns[index] > 0.0 and not cooling:
+		button.get_node("Name").text = SKILL_NAMES[index]
+		button.get_node("Cost").text = str(cost)
+		var status := ""
+		if duration > 0.0:
+			status = "%s %ds" % [["征召", "疾行", "壁垒", "冲击"][index], ceili(duration)]
+		elif armed == index:
+			status = "选择地面" if index == 3 else "选择目标"
+		elif cooling:
+			status = "冷却 %ds" % ceili(cooldown)
+		elif not affordable:
+			status = "缺技力 %d" % ceili(cost - energy)
+		button.get_node("Status").text = status
+		button.get_node("Icon").visible = not cooling
+		button.get_node("Icon").modulate.a = 1.0 if ready else 0.6
+		button.get_node("ReadyLight").visible = ready
+		button.get_node("ReadyDot").modulate.a = 1.0 if ready else 0.4
+		if not ready:
+			button.get_node("ReadyGlow").hide()
+		button.tooltip_text = "%s  [%s]\n%s\n消耗 %d 技力 · 冷却 %d 秒\n%s" % [SKILL_NAMES[index], ["Q", "W", "E", "R"][index], SKILL_DETAILS[index], cost, COOLDOWNS[index], status if not status.is_empty() else "可以施放"]
+		if ready and not _last_ready[index] and _skills_initialized:
 			_pulse_ready(button)
-		_last_cooldowns[index] = cooldown
+		_last_ready[index] = ready
+	_skills_initialized = true
 
 func show_result(won: bool) -> void:
 	_finished = true
@@ -190,11 +217,11 @@ func _pulse_ready(button: Button) -> void:
 	var glow: Control = button.get_node("ReadyGlow")
 	glow.pivot_offset = glow.size * 0.5
 	glow.scale = Vector2.ONE
-	glow.modulate.a = 1.0
+	glow.modulate.a = 0.45
 	glow.show()
 	var tween: Tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).set_ignore_time_scale(true).set_parallel(true)
-	tween.tween_property(glow, "scale", Vector2(1.32, 1.32), 0.42).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(glow, "modulate:a", 0.0, 0.42)
+	tween.tween_property(glow, "scale", Vector2(1.08, 1.08), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(glow, "modulate:a", 0.0, 0.6)
 	tween.chain().tween_callback(glow.hide)
 
 func set_paused(value: bool) -> void:
@@ -235,7 +262,9 @@ func _select_percentage(value: int) -> void:
 		percentage_changed.emit(value)
 
 func _request_skill(index: int) -> void:
-	if not _paused and not _finished and not _skill_buttons[index].disabled:
+	# Keyboard requests reach the controller even while a card is unavailable,
+	# so its actual cooldown or energy shortfall produces the same clear feedback.
+	if not _paused and not _finished:
 		skill_requested.emit(index)
 
 func _open_help() -> void:

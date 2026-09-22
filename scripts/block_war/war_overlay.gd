@@ -7,7 +7,15 @@ func _draw() -> void:
 	if not game._match_ready:
 		return
 	var camera: Camera3D = game.camera
-	if game.armed_skill >= 0:
+	if game.armed_skill == 3:
+		var center: Vector3 = game.ground_skill_target
+		if center.is_finite():
+			var color := Color(1.0, 0.61, 0.25, 0.9) if game.can_cast_skill(3) else Color(0.9, 0.35, 0.27, 0.65)
+			_ring(center, game.IMPACT_RADIUS, color, 2.5)
+			var screen := camera.unproject_position(center + Vector3(0, 0.15, 0))
+			draw_line(screen - Vector2(7, 0), screen + Vector2(7, 0), color, 1.5, true)
+			draw_line(screen - Vector2(0, 7), screen + Vector2(0, 7), color, 1.5, true)
+	elif game.armed_skill >= 0:
 		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)
 		var mouse := get_viewport().get_mouse_position()
@@ -59,7 +67,7 @@ func _draw() -> void:
 			draw_line(camera.unproject_position(at), camera.unproject_position(at.lerp(start, 0.16)), color, 3.5, true)
 			draw_circle(camera.unproject_position(at), 4.0, color, true, -1, true)
 		else:
-			var radius: float = lerpf(0.5, 3.8 if effect.kind != "hit" else 0.85, progress)
+			var radius: float = lerpf(0.5, effect.radius if effect.kind != "hit" else 0.85, progress)
 			_ring(effect.at, radius, color, 2.5)
 			if effect.kind == "impact":
 				var point: Vector2 = camera.unproject_position(effect.at)

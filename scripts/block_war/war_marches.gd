@@ -174,6 +174,21 @@ func boost_faction(faction: int, duration: float, speed_multiplier: float) -> vo
 	assert(duration > 0.0 and speed_multiplier >= 1.0)
 	_boosts[faction] = Vector2(duration, speed_multiplier)
 
+func damage_in_area(center: Vector3, attacking_faction: int, radius: float) -> int:
+	var casualties := 0
+	var radius_squared := radius * radius
+	for index: int in range(_units.size() - 1, -1, -1):
+		var unit := _units[index]
+		if unit.order.faction == attacking_faction or unit.distance < 0.0:
+			continue
+		var offset := Vector2(unit.position.x - center.x, unit.position.z - center.z)
+		if offset.length_squared() <= radius_squared:
+			_remove_unit(index)
+			casualties += 1
+	if casualties > 0:
+		_render()
+	return casualties
+
 func clear() -> void:
 	_units.clear()
 	_boosts.clear()

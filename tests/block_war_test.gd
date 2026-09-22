@@ -76,18 +76,19 @@ func run() -> void:
 	forge.faction = -1
 	game.cooldowns.fill(0.0)
 	var before: float = home.population
-	check(game.cast_skill(0, home) and home.population == before + 30.0, "recruit adds thirty militia")
+	check(game.cast_skill(0, home) and home.population == before and game.active_durations[0] == 6.0, "recruit starts six seconds of gradual militia growth")
 	check(game.cooldowns[0] == 35.0 and game.cooldowns[1] == 0.0 and game.cooldowns[2] == 0.0 and game.cooldowns[3] == 0.0, "skills have independent cooldowns")
-	check(not game.cast_skill(0, home) and home.population == before + 30.0, "cooldown prevents repeat recruitment")
+	check(not game.cast_skill(0, home) and home.population == before, "cooldown prevents repeat recruitment")
 	check(not game.cast_skill(2, game.by_id[1]) and game.cooldowns[2] == 0.0, "invalid skill target does not spend cooldown")
 	check(game.cast_skill(2, home), "shield targets allied building")
 	home.population = 50.0
 	game._on_unit_arrived(0, 1, 1.0)
 	check(is_equal_approx(home.population, 49.5), "shield halves incoming building damage")
 	game.cooldowns[3] = 0.0
+	game.energy = game.ENERGY_MAX
 	tower.faction = -1
 	tower.population = 10.0
-	check(game.cast_skill(3, tower) and tower.population == 0.0 and tower.faction == -1, "siege skill cannot capture without militia")
+	check(game.cast_ground_skill(3, tower.global_position) and tower.population == 0.0 and tower.faction == -1, "ground impact cannot capture without militia")
 	game.cooldowns[1] = 0.0
 	check(game.cast_skill(1, null) and game.active_durations[1] == 8.0, "haste activates without selected building")
 	var clock: float = game.elapsed

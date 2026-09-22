@@ -8,13 +8,13 @@
 
 [ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/recruit.svg" id="army"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_muster.svg" id="army"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/drum.svg" id="flag"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_haste.svg" id="flag"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/bulwark.svg" id="shield"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_bulwark.svg" id="shield"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/impact.svg" id="strike"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_impact.svg" id="strike"]
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_amber.png" id="amber_portrait"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_jade.png" id="jade_portrait"]
@@ -458,6 +458,133 @@ corner_radius_bottom_right = 8
 shadow_color = Color(0.025,0.018,0.007,0.48)
 shadow_size = 5
 shadow_offset = Vector2(0,3)
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillNormal"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.975, 0.982, 0.974, 1)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0.39, 0.47, 0.43, 0.65)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
+shadow_color = Color(0.0, 0.0, 0.0, 0.12)
+shadow_size = 4
+shadow_offset = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillHover"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 0.995, 1)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0.39, 0.47, 0.43, 0.65)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
+shadow_color = Color(1, 1, 0.95, 0.16)
+shadow_size = 4
+shadow_offset = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillPressed"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.88, 0.93, 0.9, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.39, 0.47, 0.43, 0.65)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
+shadow_color = Color(1, 1, 0.97, 0.12)
+shadow_size = 4
+shadow_offset = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillDisabled"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.68, 0.73, 0.7, 0.68)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0.39, 0.47, 0.43, 0.65)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
+shadow_color = Color(0, 0, 0, 0.04)
+shadow_size = 4
+shadow_offset = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillLight"]
+bg_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0.95, 1, 0.92, 0.17)
+shadow_size = 9
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillPulse"]
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.97, 1, 0.96, 0.75)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(1, 1, 0.95, 0.2)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="SkillReadyDot"]
+bg_color = Color(0.07, 0.09, 0.08, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="SkillEnergyBackground"]
+bg_color = Color(0.05, 0.08, 0.055, 0.66)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="SkillEnergyFill"]
+bg_color = Color(0.98, 1, 0.965, 0.96)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="WhiteSkillCooldown"]
+bg_color = Color(0.23, 0.29, 0.26, 0.40)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_left = 1
+corner_radius_bottom_right = 1
 
 [node name="WarHUD" type="CanvasLayer"]
 process_mode = 3
@@ -1208,604 +1335,543 @@ visible = false
 
 [node name="Row" type="HBoxContainer" parent="UI/Skills"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
+offset_left = 42.0
 offset_top = 0.0
-offset_right = 338.0
-offset_bottom = 74.0
+offset_right = 296.0
+offset_bottom = 50.0
 mouse_filter = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 18
 
 [node name="Skill0" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(74,74)
+custom_minimum_size = Vector2(50, 50)
 toggle_mode = true
 mouse_default_cursor_shape = 2
-tooltip_text = "选择己方住宅：立即征召 30 名民兵。\n独立冷却 35 秒。"
-theme_override_styles/normal = SubResource("SkillPlate")
-theme_override_styles/hover = SubResource("SkillHover")
-theme_override_styles/pressed = SubResource("SkillPressed")
-theme_override_styles/hover_pressed = SubResource("SkillPressed")
-theme_override_styles/disabled = SubResource("SkillDisabled")
-metadata/ui_motion_hover_scale = 1.08
+theme_override_styles/normal = SubResource("WhiteSkillNormal")
+theme_override_styles/hover = SubResource("WhiteSkillHover")
+theme_override_styles/pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/hover_pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/disabled = SubResource("WhiteSkillDisabled")
+metadata/ui_motion_hover_scale = 1.025
 
-[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill0"]
+[node name="ReadyLight" type="Panel" parent="UI/Skills/Row/Skill0"]
 show_behind_parent = true
 layout_mode = 0
-offset_left = 2.0
-offset_top = 3.0
-offset_right = 72.0
-offset_bottom = 74.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SkillShadow")
+theme_override_styles/panel = SubResource("WhiteSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 7.0
-offset_top = 4.0
-offset_right = 22.0
-offset_bottom = 20.0
+offset_left = 5.0
+offset_top = 2.0
+offset_right = 17.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "Q"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Cost" type="Label" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 2.0
+offset_right = 45.0
+offset_bottom = 15.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
+text = "30"
+horizontal_alignment = 2
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 15.0
-offset_top = 17.0
-offset_right = 60.0
-offset_bottom = 62.0
+offset_left = 10.0
+offset_top = 13.0
+offset_right = 40.0
+offset_bottom = 43.0
 mouse_filter = 2
 texture = ExtResource("army")
 expand_mode = 1
 stretch_mode = 5
 
-
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill0"]
+visible = false
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = -4.0
-offset_top = 77.0
-offset_right = 78.0
-offset_bottom = 94.0
+offset_right = 50.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
 text = "征召军令"
-horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
 
+[node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill0"]
+layout_mode = 0
+offset_left = 21.0
+offset_top = 55.0
+offset_right = 29.0
+offset_bottom = 63.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 93.0
-offset_right = 74.0
-offset_bottom = 109.0
+offset_left = -15.0
+offset_top = 65.0
+offset_right = 65.0
+offset_bottom = 80.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
 text = ""
 horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill0"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 70.0
-offset_bottom = 70.0
-mouse_filter = 2
 visible = false
+layout_mode = 0
+offset_left = 7.0
+offset_top = 46.0
+offset_right = 43.0
+offset_bottom = 48.0
+mouse_filter = 2
 show_percentage = false
-fill_mode = 3
 theme_override_styles/background = SubResource("Empty")
-theme_override_styles/fill = SubResource("Cooldown")
+theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 12.0
-offset_top = 23.0
-offset_right = 66.0
-offset_bottom = 60.0
+offset_left = 3.0
+offset_top = 14.0
+offset_right = 47.0
+offset_bottom = 42.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill0"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 74.0
-offset_bottom = 74.0
-mouse_filter = 2
 visible = false
-theme_override_styles/panel = SubResource("ReadyRing")
+layout_mode = 0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("WhiteSkillPulse")
 
 [node name="Skill1" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(74,74)
+custom_minimum_size = Vector2(50, 50)
 toggle_mode = true
 mouse_default_cursor_shape = 2
-tooltip_text = "全军行进速度提高至 1.7 倍，持续 8 秒。\n独立冷却 28 秒。"
-theme_override_styles/normal = SubResource("SkillPlate")
-theme_override_styles/hover = SubResource("SkillHover")
-theme_override_styles/pressed = SubResource("SkillPressed")
-theme_override_styles/hover_pressed = SubResource("SkillPressed")
-theme_override_styles/disabled = SubResource("SkillDisabled")
-metadata/ui_motion_hover_scale = 1.08
+theme_override_styles/normal = SubResource("WhiteSkillNormal")
+theme_override_styles/hover = SubResource("WhiteSkillHover")
+theme_override_styles/pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/hover_pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/disabled = SubResource("WhiteSkillDisabled")
+metadata/ui_motion_hover_scale = 1.025
 
-[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill1"]
+[node name="ReadyLight" type="Panel" parent="UI/Skills/Row/Skill1"]
 show_behind_parent = true
 layout_mode = 0
-offset_left = 2.0
-offset_top = 3.0
-offset_right = 72.0
-offset_bottom = 74.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SkillShadow")
+theme_override_styles/panel = SubResource("WhiteSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 7.0
-offset_top = 4.0
-offset_right = 22.0
-offset_bottom = 20.0
+offset_left = 5.0
+offset_top = 2.0
+offset_right = 17.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "W"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Cost" type="Label" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 2.0
+offset_right = 45.0
+offset_bottom = 15.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
+text = "40"
+horizontal_alignment = 2
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 15.0
-offset_top = 17.0
-offset_right = 60.0
-offset_bottom = 62.0
+offset_left = 10.0
+offset_top = 13.0
+offset_right = 40.0
+offset_bottom = 43.0
 mouse_filter = 2
 texture = ExtResource("flag")
 expand_mode = 1
 stretch_mode = 5
 
-
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill1"]
+visible = false
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = -4.0
-offset_top = 77.0
-offset_right = 78.0
-offset_bottom = 94.0
+offset_right = 50.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
 text = "疾行战鼓"
-horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
 
+[node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill1"]
+layout_mode = 0
+offset_left = 21.0
+offset_top = 55.0
+offset_right = 29.0
+offset_bottom = 63.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 93.0
-offset_right = 74.0
-offset_bottom = 109.0
+offset_left = -15.0
+offset_top = 65.0
+offset_right = 65.0
+offset_bottom = 80.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
 text = ""
 horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill1"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 70.0
-offset_bottom = 70.0
-mouse_filter = 2
 visible = false
+layout_mode = 0
+offset_left = 7.0
+offset_top = 46.0
+offset_right = 43.0
+offset_bottom = 48.0
+mouse_filter = 2
 show_percentage = false
-fill_mode = 3
 theme_override_styles/background = SubResource("Empty")
-theme_override_styles/fill = SubResource("Cooldown")
+theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 12.0
-offset_top = 23.0
-offset_right = 66.0
-offset_bottom = 60.0
+offset_left = 3.0
+offset_top = 14.0
+offset_right = 47.0
+offset_bottom = 42.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill1"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 74.0
-offset_bottom = 74.0
-mouse_filter = 2
 visible = false
-theme_override_styles/panel = SubResource("ReadyRing")
+layout_mode = 0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("WhiteSkillPulse")
 
 [node name="Skill2" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(74,74)
+custom_minimum_size = Vector2(50, 50)
 toggle_mode = true
 mouse_default_cursor_shape = 2
-tooltip_text = "选择己方建筑：守备伤害降低 50%，持续 10 秒。\n独立冷却 45 秒。"
-theme_override_styles/normal = SubResource("SkillPlate")
-theme_override_styles/hover = SubResource("SkillHover")
-theme_override_styles/pressed = SubResource("SkillPressed")
-theme_override_styles/hover_pressed = SubResource("SkillPressed")
-theme_override_styles/disabled = SubResource("SkillDisabled")
-metadata/ui_motion_hover_scale = 1.08
+theme_override_styles/normal = SubResource("WhiteSkillNormal")
+theme_override_styles/hover = SubResource("WhiteSkillHover")
+theme_override_styles/pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/hover_pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/disabled = SubResource("WhiteSkillDisabled")
+metadata/ui_motion_hover_scale = 1.025
 
-[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill2"]
+[node name="ReadyLight" type="Panel" parent="UI/Skills/Row/Skill2"]
 show_behind_parent = true
 layout_mode = 0
-offset_left = 2.0
-offset_top = 3.0
-offset_right = 72.0
-offset_bottom = 74.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SkillShadow")
+theme_override_styles/panel = SubResource("WhiteSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 7.0
-offset_top = 4.0
-offset_right = 22.0
-offset_bottom = 20.0
+offset_left = 5.0
+offset_top = 2.0
+offset_right = 17.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "E"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Cost" type="Label" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 2.0
+offset_right = 45.0
+offset_bottom = 15.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
+text = "35"
+horizontal_alignment = 2
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 15.0
-offset_top = 17.0
-offset_right = 60.0
-offset_bottom = 62.0
+offset_left = 10.0
+offset_top = 13.0
+offset_right = 40.0
+offset_bottom = 43.0
 mouse_filter = 2
 texture = ExtResource("shield")
 expand_mode = 1
 stretch_mode = 5
 
-
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill2"]
+visible = false
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = -4.0
-offset_top = 77.0
-offset_right = 78.0
-offset_bottom = 94.0
+offset_right = 50.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
 text = "磐石壁垒"
-horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
 
+[node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill2"]
+layout_mode = 0
+offset_left = 21.0
+offset_top = 55.0
+offset_right = 29.0
+offset_bottom = 63.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 93.0
-offset_right = 74.0
-offset_bottom = 109.0
+offset_left = -15.0
+offset_top = 65.0
+offset_right = 65.0
+offset_bottom = 80.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
 text = ""
 horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill2"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 70.0
-offset_bottom = 70.0
-mouse_filter = 2
 visible = false
+layout_mode = 0
+offset_left = 7.0
+offset_top = 46.0
+offset_right = 43.0
+offset_bottom = 48.0
+mouse_filter = 2
 show_percentage = false
-fill_mode = 3
 theme_override_styles/background = SubResource("Empty")
-theme_override_styles/fill = SubResource("Cooldown")
+theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 12.0
-offset_top = 23.0
-offset_right = 66.0
-offset_bottom = 60.0
+offset_left = 3.0
+offset_top = 14.0
+offset_right = 47.0
+offset_bottom = 42.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill2"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 74.0
-offset_bottom = 74.0
-mouse_filter = 2
 visible = false
-theme_override_styles/panel = SubResource("ReadyRing")
+layout_mode = 0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("WhiteSkillPulse")
 
 [node name="Skill3" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(74,74)
+custom_minimum_size = Vector2(50, 50)
 toggle_mode = true
 mouse_default_cursor_shape = 2
-tooltip_text = "选择敌方或中立建筑：造成 35 点基础伤害，受守备减免。\n不会直接占领建筑。独立冷却 60 秒。"
-theme_override_styles/normal = SubResource("SkillPlate")
-theme_override_styles/hover = SubResource("SkillHover")
-theme_override_styles/pressed = SubResource("SkillPressed")
-theme_override_styles/hover_pressed = SubResource("SkillPressed")
-theme_override_styles/disabled = SubResource("SkillDisabled")
-metadata/ui_motion_hover_scale = 1.08
+theme_override_styles/normal = SubResource("WhiteSkillNormal")
+theme_override_styles/hover = SubResource("WhiteSkillHover")
+theme_override_styles/pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/hover_pressed = SubResource("WhiteSkillPressed")
+theme_override_styles/disabled = SubResource("WhiteSkillDisabled")
+metadata/ui_motion_hover_scale = 1.025
 
-[node name="Shadow" type="Panel" parent="UI/Skills/Row/Skill3"]
+[node name="ReadyLight" type="Panel" parent="UI/Skills/Row/Skill3"]
 show_behind_parent = true
 layout_mode = 0
-offset_left = 2.0
-offset_top = 3.0
-offset_right = 72.0
-offset_bottom = 74.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SkillShadow")
+theme_override_styles/panel = SubResource("WhiteSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 7.0
-offset_top = 4.0
-offset_right = 22.0
-offset_bottom = 20.0
+offset_left = 5.0
+offset_top = 2.0
+offset_right = 17.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.27,0.28,0.19,1)
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "R"
+theme_override_fonts/font = ExtResource("numbers")
+
+[node name="Cost" type="Label" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 2.0
+offset_right = 45.0
+offset_bottom = 15.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
+text = "60"
+horizontal_alignment = 2
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 15.0
-offset_top = 17.0
-offset_right = 60.0
-offset_bottom = 62.0
+offset_left = 10.0
+offset_top = 13.0
+offset_right = 40.0
+offset_bottom = 43.0
 mouse_filter = 2
 texture = ExtResource("strike")
 expand_mode = 1
 stretch_mode = 5
 
-
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill3"]
+visible = false
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = -4.0
-offset_top = 77.0
-offset_right = 78.0
-offset_bottom = 94.0
+offset_right = 50.0
+offset_bottom = 15.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
 text = "天降冲击"
-horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
 
+[node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill3"]
+layout_mode = 0
+offset_left = 21.0
+offset_top = 55.0
+offset_right = 29.0
+offset_bottom = 63.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 93.0
-offset_right = 74.0
-offset_bottom = 109.0
+offset_left = -15.0
+offset_top = 65.0
+offset_right = 65.0
+offset_bottom = 80.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
 text = ""
 horizontal_alignment = 1
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill3"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 70.0
-offset_bottom = 70.0
-mouse_filter = 2
 visible = false
+layout_mode = 0
+offset_left = 7.0
+offset_top = 46.0
+offset_right = 43.0
+offset_bottom = 48.0
+mouse_filter = 2
 show_percentage = false
-fill_mode = 3
 theme_override_styles/background = SubResource("Empty")
-theme_override_styles/fill = SubResource("Cooldown")
+theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 12.0
-offset_top = 23.0
-offset_right = 66.0
-offset_bottom = 60.0
+offset_left = 3.0
+offset_top = 14.0
+offset_right = 47.0
+offset_bottom = 42.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill3"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 74.0
-offset_bottom = 74.0
-mouse_filter = 2
 visible = false
-theme_override_styles/panel = SubResource("ReadyRing")
+layout_mode = 0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 51.0
+offset_bottom = 51.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("WhiteSkillPulse")
+
+[node name="EnergyBar" type="ProgressBar" parent="UI/Skills"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 4.0
+offset_top = 82.0
+offset_right = 334.0
+offset_bottom = 85.0
+mouse_filter = 2
+max_value = 100.0
+step = 0.01
+value = 100.0
+show_percentage = false
+theme_override_styles/background = SubResource("SkillEnergyBackground")
+theme_override_styles/fill = SubResource("SkillEnergyFill")
+
+[node name="EnergyLabel" type="Label" parent="UI/Skills"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0.0
+offset_top = 88.0
+offset_right = 338.0
+offset_bottom = 103.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "技力  100 / 100"
+horizontal_alignment = 1
 
 [node name="TargetHint" type="Label" parent="UI"]
 unique_name_in_owner = true
@@ -1815,9 +1881,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -320.0
-offset_top = -182.0
+offset_top = -242.0
 offset_right = 320.0
-offset_bottom = -154.0
+offset_bottom = -214.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(1,0.87,0.49,1)
@@ -2228,7 +2294,7 @@ offset_bottom = 462.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "Q 征召 +30 人口 · W 全军疾行 8 秒 · E 据点减伤 10 秒 · R 基础伤害 35\n冲击受守备减免。四技能独立冷却；先选建筑施放，或施放后点击目标。"
+text = "Q 每秒征召 5 人持续 6 秒 · W 疾行 8 秒 · E 壁垒 10 秒 · R 点击地面，范围半径 4.5\n技力上限 100，每秒恢复 2；Q / W / E / R 消耗 30 / 40 / 35 / 60，技能分别冷却。"
 
 [node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
