@@ -2,7 +2,7 @@ extends SceneTree
 ## Offline glTF -> native mesh bake. No runtime architectural node generation.
 
 func _initialize() -> void:
-	for model: String in ["foundation", "house", "tower", "smithy", "bellows"]:
+	for model: String in ["foundation", "house", "tower", "smithy", "bellows", "gun_mount", "gun_barrel"]:
 		var folder := "res://assets/models/block_war/architecture/"
 		var document := GLTFDocument.new()
 		var state := GLTFState.new()

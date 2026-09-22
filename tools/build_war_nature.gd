@@ -1,6 +1,18 @@
 extends SceneTree
 ## Bake offline glTF geometry to native, scene-authored ArrayMesh resources.
 
+func save_native(mesh: ArrayMesh, path: String) -> bool:
+	# Publish complete files atomically while editor previews may hold old meshes.
+	var temporary := path.trim_suffix(".res") + ".building.res"
+	var error := ResourceSaver.save(mesh, temporary, ResourceSaver.FLAG_COMPRESS)
+	if error == OK:
+		error = DirAccess.rename_absolute(temporary, path)
+	if error != OK:
+		push_error("Cannot publish native nature mesh: %s (%s)" % [path, error_string(error)])
+		quit(1)
+		return false
+	return true
+
 func with_native_lods(mesh: ArrayMesh) -> ArrayMesh:
 	var importer := ImporterMesh.new()
 	for surface: int in mesh.get_surface_count():
@@ -14,7 +26,7 @@ func with_native_lods(mesh: ArrayMesh) -> ArrayMesh:
 
 
 func _initialize() -> void:
-	for model: String in ["canopy_oak", "silver_birch", "wind_pine", "hazel_thicket", "moss_boulder", "fern_patch", "meadow_tuft", "reed_cluster", "daisies", "bluebells"]:
+	for model: String in ["canopy_oak", "silver_birch", "wind_pine", "weeping_willow", "hazel_thicket", "moss_boulder", "fern_patch", "meadow_tuft", "reed_cluster", "daisies", "bluebells"]:
 		var folder := "res://assets/models/block_war/nature/"
 		var document := GLTFDocument.new()
 		var state := GLTFState.new()
@@ -26,10 +38,14 @@ func _initialize() -> void:
 			for surface: int in mesh.get_surface_count():
 				mesh.surface_set_material(surface, null)
 				combined.append_from(mesh, surface, Transform3D.IDENTITY)
-			assert(ResourceSaver.save(with_native_lods(mesh), folder + model + "_" + String(part.name).to_lower() + ".res", ResourceSaver.FLAG_COMPRESS) == OK)
+			if not save_native(with_native_lods(mesh), folder + model + "_" + String(part.name).to_lower() + ".res"):
+				imported.free()
+				return
 		if model in ["fern_patch", "meadow_tuft", "daisies", "bluebells"]:
 			var merged := combined.commit()
-			assert(ResourceSaver.save(with_native_lods(merged), folder + model + "_combined.res", ResourceSaver.FLAG_COMPRESS) == OK)
+			if not save_native(with_native_lods(merged), folder + model + "_combined.res"):
+				imported.free()
+				return
 		imported.free()
 		print("WAR_NATURE_BAKED ", model)
 	quit()

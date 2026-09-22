@@ -1,46 +1,56 @@
 extends SceneTree
-## Offline native mesh authoring. Run before tools/dress_war_map.py:
+## Offline authoring only. MeshInstance3D nodes in map.tscn use these saved meshes.
 ## Godot_console --headless --path . --script tools/bake_war_map_details.gd
 
 const OUTPUT := "res://assets/block_war/environment/"
 
 
 func _initialize() -> void:
-	_save_round_box("bridge_plank", Vector3(0.91, 0.32, 6.56), 0.055)
-	_save_round_box("bridge_beam", Vector3(9, 0.62, 0.38), 0.10)
-	_save_round_box("bridge_rail", Vector3(9.03, 0.17, 0.17), 0.045)
-	_save_round_box("bridge_low_rail", Vector3(9.03, 0.13, 0.14), 0.035)
-	_save_round_box("bridge_post", Vector3(0.25, 1.62, 0.25), 0.055)
-	_save_round_box("bridge_brace", Vector3(0.13, 0.13, 1.65), 0.025)
-	_save_bank_lip()
-	_save_bank_blocks()
-	print("Saved eight native rounded bridge and riverbank resources")
+	_save("fieldstone_block", _round_box(Vector3.ONE, 0.12))
+	_save("stone_bridge_deck", _round_box(Vector3(8.8, 0.28, 6.4), 0.09))
+	_save("stone_bridge_coping", _round_box(Vector3(8.8, 0.3, 0.42), 0.1))
+	_save("stone_bridge_pier", _round_box(Vector3(1.1, 2.0, 0.82), 0.14))
+	_save("stone_bridge_arch", _bridge_arch())
+	_save("stone_bridge_paving", _bridge_paving())
+	_save_banks()
+	print("Saved eight sculpted meadow, riverbank and stone bridge meshes")
 	quit()
 
 
-func _triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, outward: Vector3, color: Color = Color.WHITE) -> void:
-	# Godot front faces are clockwise when viewed from outside.
+func _save(asset_name: String, mesh: ArrayMesh) -> void:
+	assert(ResourceSaver.save(mesh, OUTPUT + asset_name + ".res") == OK)
+
+
+func _surface() -> SurfaceTool:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	return surface
+
+
+func _finish(surface: SurfaceTool) -> ArrayMesh:
+	surface.generate_normals()
+	surface.index()
+	return surface.commit()
+
+
+func _triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, outward: Vector3, tint: Color = Color.WHITE) -> void:
 	if (b - a).cross(c - a).dot(outward) > 0:
 		var swap := b
 		b = c
 		c = swap
 	for vertex: Vector3 in [a, b, c]:
-		surface.set_color(color)
+		surface.set_color(tint)
 		surface.add_vertex(vertex)
 
 
-func _quad(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, outward: Vector3, color: Color = Color.WHITE) -> void:
-	_triangle(surface, a, b, c, outward, color)
-	_triangle(surface, a, c, d, outward, color)
-
-
-func _save_round_box(name: String, dimensions: Vector3, bevel: float) -> void:
-	assert(ResourceSaver.save(_round_box(dimensions, bevel), OUTPUT + name + ".res") == OK)
+func _quad(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, outward: Vector3, tint: Color = Color.WHITE) -> void:
+	_triangle(surface, a, b, c, outward, tint)
+	_triangle(surface, a, c, d, outward, tint)
 
 
 func _round_box(dimensions: Vector3, bevel: float) -> ArrayMesh:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var surface := _surface()
+	surface.set_smooth_group(-1)
 	var rings: Array[PackedVector3Array] = []
 	for level in 4:
 		var inset := bevel if level == 0 or level == 3 else 0.0
@@ -65,109 +75,84 @@ func _round_box(dimensions: Vector3, bevel: float) -> ArrayMesh:
 		var normal := Vector3.DOWN if level == 0 else Vector3.UP
 		for point in rings[level].size():
 			_triangle(surface, Vector3(0, rings[level][point].y, 0), rings[level][point], rings[level][(point + 1) % rings[level].size()], normal)
-	surface.generate_normals()
-	surface.index()
-	return surface.commit()
+	return _finish(surface)
 
 
-func _bank_jut(z: float, sign_value: float, river_x: float) -> float:
-	var wave := 1.03 + sign_value * 0.76 * sin(z * 0.17 + river_x * 0.19) + 0.18 * cos(z * 0.49)
-	var bridge := maxf(0.0, 1.0 - absf(absf(z) - 14.0) / 4.6)
-	return wave * (1.0 - bridge * 0.94)
+func _bridge_arch() -> ArrayMesh:
+	var surface := _surface()
+	# Broad native masonry voussoirs form a real open arch, not a solid box.
+	for section in 18:
+		var x0 := -4.4 + float(section) * 8.8 / 18.0
+		var x1 := -4.4 + float(section + 1) * 8.8 / 18.0
+		var bottom0 := -2.05 + 1.50 * pow(maxf(0, 1.0 - pow(x0 / 4.4, 2)), 0.7)
+		var bottom1 := -2.05 + 1.50 * pow(maxf(0, 1.0 - pow(x1 / 4.4, 2)), 0.7)
+		var tint := Color(0.61, 0.58, 0.46).lerp(Color(0.77, 0.74, 0.61), float((section * 7) % 11) / 18.0)
+		for side: float in [-1.0, 1.0]:
+			var z := side * 0.36
+			_quad(surface, Vector3(x0, bottom0, z), Vector3(x1, bottom1, z), Vector3(x1, -0.08, z), Vector3(x0, -0.08, z), Vector3(0, 0, side), tint)
+		_quad(surface, Vector3(x0, bottom0, -0.36), Vector3(x1, bottom1, -0.36), Vector3(x1, bottom1, 0.36), Vector3(x0, bottom0, 0.36), Vector3.DOWN, tint.darkened(0.09))
+		_quad(surface, Vector3(x0, -0.08, -0.36), Vector3(x1, -0.08, -0.36), Vector3(x1, -0.08, 0.36), Vector3(x0, -0.08, 0.36), Vector3.UP, tint)
+	for side: float in [-1.0, 1.0]:
+		_quad(surface, Vector3(side * 4.4, -2.05, -0.36), Vector3(side * 4.4, -2.05, 0.36), Vector3(side * 4.4, -0.08, 0.36), Vector3(side * 4.4, -0.08, -0.36), Vector3(side, 0, 0))
+	return _finish(surface)
 
 
-func _save_bank_lip() -> void:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var palette: Array[Color] = [Color(0.38, 0.51, 0.20), Color(0.49, 0.47, 0.32), Color(0.47, 0.44, 0.36), Color(0.37, 0.38, 0.33)]
-	for river_x: float in [-12.0, 12.0]:
-		for sign_value: float in [-1.0, 1.0]:
-			var edge := river_x - sign_value * 3.0
-			var rows: Array[PackedVector3Array] = []
-			for index in 137:
-				var z := -68.0 + index
-				var jut := _bank_jut(z, sign_value, river_x)
-				var bridge := smoothstep(3.6, 5.5, absf(absf(z) - 14.0))
-				var swell := (0.22 + 0.12 * sin(z * 1.25 + river_x) + 0.07 * cos(z * 2.7)) * bridge
-				rows.append(PackedVector3Array([
-					Vector3(edge + sign_value * maxf(0.015, jut - 0.20), 0.018, z),
-					Vector3(edge + sign_value * (jut + swell * 0.65), -0.045, z),
-					Vector3(edge + sign_value * (jut + swell + 0.08), -0.28, z),
-					Vector3(edge + sign_value * (jut + swell + 0.17), -1.2 - 0.11 * sin(z * 0.8), z),
-					Vector3(edge + sign_value * (jut + swell + 0.37), -2.86, z),
-				]))
-			for index in rows.size() - 1:
-				for band in 4:
-					var variation := 0.96 + 0.04 * sin(index * 1.7 + river_x)
-					var color: Color = palette[band] * Color(variation, variation, variation, 1)
-					_quad(surface, rows[index][band], rows[index + 1][band], rows[index + 1][band + 1], rows[index][band + 1], Vector3(sign_value, 1, 0), color)
-	surface.generate_normals()
-	surface.index()
-	assert(ResourceSaver.save(surface.commit(), OUTPUT + "bank_lip.res") == OK)
+func _append_colored(surface: SurfaceTool, mesh: ArrayMesh, offset: Vector3, tint: Color) -> void:
+	var arrays := mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	for index in indices:
+		surface.set_color(tint)
+		surface.set_normal(normals[index])
+		surface.add_vertex(vertices[index] + offset)
 
 
-func _save_bank_blocks() -> void:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 922068
-	var palette: Array[Color] = [Color(0.54, 0.515, 0.465), Color(0.46, 0.46, 0.43), Color(0.59, 0.555, 0.495)]
-	for river_x: float in [-12.0, 12.0]:
-		for sign_value: float in [-1.0, 1.0]:
-			var edge := river_x - sign_value * 3.0
-			var z := -66.0
-			while z < 66.0:
-				var length := rng.randf_range(2.3, 3.6)
-				z += length * 0.88
-				if absf(absf(z) - 14.0) < 5.2:
-					continue
-				var width := rng.randf_range(1.3, 2.0)
-				var height := rng.randf_range(2.3, 2.85)
-				# Put the broad rock caps entirely within the excluded riverbed.
-				# Their visible shoulders rise through the grass lip, while the
-				# original plateau and all bridge approaches remain untouched.
-				var reach := maxf(_bank_jut(z, sign_value, river_x) - 0.05, width * 0.5 + 0.24)
-				var center := Vector3(edge + sign_value * reach, -height * 0.5 + rng.randf_range(0.08, 0.28), z)
-				var mesh := _rock_column(Vector3(width, height, length), rng)
-				var arrays := mesh.surface_get_arrays(0)
-				var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-				var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-				var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
-				var basis := Basis(Vector3.UP, rng.randf_range(-0.095, 0.095))
-				var tint: Color = palette[rng.randi_range(0, palette.size() - 1)]
-				for point in indices:
-					surface.set_color(tint)
-					surface.set_normal(basis * normals[point])
-					surface.add_vertex(center + basis * vertices[point])
-	surface.index()
-	assert(ResourceSaver.save(surface.commit(), OUTPUT + "bank_blocks.res") == OK)
-
-
-func _rock_column(dimensions: Vector3, rng: RandomNumberGenerator) -> ArrayMesh:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+func _bridge_paving() -> ArrayMesh:
+	var surface := _surface()
 	surface.set_smooth_group(-1)
-	var rings: Array[PackedVector3Array] = []
-	var outline := PackedVector2Array()
-	for point in 8:
-		var angle := float(point) * TAU / 8.0 + 0.12
-		outline.append(Vector2(cos(angle), sin(angle)) * rng.randf_range(0.84, 1.02))
-	for level in 4:
-		var ring := PackedVector3Array()
-		var radius: float = [0.84, 1.0, 0.95, 0.68][level]
-		var elevation: float = [-0.5, -0.28, 0.33, 0.5][level]
-		var skew := Vector2(rng.randf_range(-0.06, 0.06), rng.randf_range(-0.08, 0.08))
-		for point in 8:
-			var vertex := outline[point] * radius + skew
-			ring.append(Vector3(vertex.x * dimensions.x * 0.5, elevation * dimensions.y, vertex.y * dimensions.z * 0.5))
-		rings.append(ring)
-	for level in 3:
-		for point in 8:
-			var next := (point + 1) % 8
-			_quad(surface, rings[level][point], rings[level][next], rings[level + 1][next], rings[level + 1][point], (rings[level][point] + rings[level][next]) * Vector3(1, 0, 1))
-	for level in [0, 3]:
-		for point in 8:
-			_triangle(surface, Vector3(0, rings[level][point].y, 0), rings[level][point], rings[level][(point + 1) % 8], Vector3.DOWN if level == 0 else Vector3.UP)
-	surface.generate_normals()
-	surface.index()
-	return surface.commit()
+	for row in 5:
+		for column in 6:
+			var x0 := maxf(-4.29, -4.29 + column * 1.716 - float(row % 2) * 0.858)
+			var x1 := minf(4.29, -4.29 + (column + 1) * 1.716 - float(row % 2) * 0.858)
+			if x1 - x0 < 0.1:
+				continue
+			var tint := Color(0.73, 0.70, 0.58).lightened(float((row * 3 + column * 7) % 5) * 0.008)
+			_append_colored(surface, _round_box(Vector3(x1 - x0 - 0.036, 0.05, 1.194), 0.012), Vector3((x0 + x1) * 0.5, -0.004, -2.46 + row * 1.23), tint)
+	return _finish(surface)
+
+
+func _bank_reach(z: float, side: float, river_x: float) -> float:
+	var waves := 0.67 + 0.38 * sin(z * 0.25 + river_x * 0.42) + side * 0.26 * cos(z * 0.64)
+	var approach := smoothstep(3.7, 5.4, absf(absf(z) - 14.0))
+	return 0.08 + waves * approach
+
+
+func _save_banks() -> void:
+	var turf := _surface()
+	var stone := _surface()
+	for river_x: float in [-12.0, 12.0]:
+		for side: float in [-1.0, 1.0]:
+			var edge := river_x - side * 3.0
+			var rows: Array[PackedVector3Array] = []
+			for sample in 273:
+				var z := -68.0 + float(sample) * 0.5
+				var reach := _bank_reach(z, side, river_x)
+				var ripple := 0.035 * sin(z * 3.2) + 0.022 * cos(z * 5.4)
+				rows.append(PackedVector3Array([
+					Vector3(edge - side * 0.18, 0.009, z),
+					Vector3(edge + side * reach * 0.45, 0.025 + ripple, z),
+					Vector3(edge + side * reach * 0.75, -0.16 + ripple, z),
+					Vector3(edge + side * (reach + 0.03), -0.49 + ripple, z),
+					Vector3(edge + side * (reach + 0.40), -0.96, z),
+					Vector3(edge + side * (reach + 0.69), -1.65, z),
+				]))
+			for sample in rows.size() - 1:
+				for band in 5:
+					var tint := Color.WHITE
+					if band >= 3:
+						tint = Color(0.49, 0.46, 0.32).lerp(Color(0.34, 0.39, 0.30), float(band - 3) * 0.6)
+						tint = tint.lightened(0.055 * sin(float(sample) * 0.43 + river_x))
+					_quad(turf if band < 3 else stone, rows[sample][band], rows[sample + 1][band], rows[sample + 1][band + 1], rows[sample][band + 1], Vector3(side, 1, 0), tint)
+	_save("meadow_bank_grass", _finish(turf))
+	_save("meadow_bank_stone", _finish(stone))

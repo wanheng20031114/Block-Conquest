@@ -35,12 +35,16 @@ func _run() -> void:
 		building.get_node("PopulationLabel").hide()
 	for name: String in ["House", "Tower", "Smithy"]:
 		var building: Node3D = review.get_node(name)
+		for other_name: String in ["House", "Tower", "Smithy"]:
+			review.get_node(other_name).visible = other_name == name
 		camera.position = building.position + Vector3(7, 13, 11)
 		camera.look_at(building.position + Vector3(0, 2.0, 0))
-		camera.size = 8.4
+		camera.size = 6.5
 		await create_timer(0.12).timeout
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://artifacts/block_war_architecture_" + name.to_lower() + ".png")
+	for name: String in ["House", "Tower", "Smithy"]:
+		review.get_node(name).visible = true
 	var smithy: Node3D = review.get_node("Smithy")
 	smithy.set_visual_paused(true)
 	var time: float = smithy._visual_time

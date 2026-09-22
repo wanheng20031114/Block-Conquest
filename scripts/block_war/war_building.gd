@@ -33,8 +33,8 @@ var _recoil_tween: Tween
 
 func _ready() -> void:
 	_visual_time = float(building_id) * 0.73
-	# Clay varies slightly by location; flags carry faction colors.
-	var roof_palette: Array[Color] = [Color("b36139"), Color("ae5d34"), Color("b9683b")]
+	# Cobalt roofs keep the kingdom cohesive; flags carry faction colors.
+	var roof_palette: Array[Color] = [Color("267acc"), Color("2472c4"), Color("3184d6")]
 	$Visual/House/Roof.set_instance_shader_parameter("team_tint", roof_palette[building_id % roof_palette.size()])
 	refresh_visual()
 	_selection.visible = false

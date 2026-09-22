@@ -1,4 +1,4 @@
-"""Deterministic, chunky sculpted woodland for the war map.
+"""Offline sculpted woodland for the miniature kingdom battlefield.
 
 Run with numpy, trimesh and shapely installed (the environment modeller's deps),
 then run build_war_nature.gd in Godot to bake native ArrayMesh resources.  Shape,
@@ -21,22 +21,25 @@ OUT.mkdir(parents=True, exist_ok=True)
 TAU = math.tau
 
 PALETTE = {
-    "bark": ((117, 70, 34), (179, 115, 55)),
-    "birch": ((174, 176, 143), (237, 229, 188)),
-    "scar": ((76, 80, 57), (118, 115, 80)),
-    "oak": ((44, 103, 46), (111, 160, 58)),
-    "birch_leaf": ((53, 112, 43), (132, 172, 60)),
-    "pine": ((29, 74, 67), (74, 127, 81)),
-    "hazel": ((49, 116, 49), (122, 167, 54)),
-    "fern": ((46, 122, 68), (99, 166, 70)),
-    "grass": ((65, 128, 48), (141, 183, 64)),
-    "reed": ((85, 122, 45), (167, 177, 75)),
-    "seed": ((110, 79, 43), (164, 126, 67)),
-    "stone": ((99, 101, 89), (151, 151, 129)),
-    "moss": ((53, 115, 57), (104, 149, 63)),
-    "white": ((205, 218, 175), (255, 249, 215)),
-    "gold": ((200, 141, 35), (255, 207, 67)),
-    "blue": ((76, 102, 162), (163, 175, 235)),
+    "bark": ((100, 60, 31), (192, 130, 67)),
+    "birch": ((151, 142, 104), (239, 223, 173)),
+    "scar": ((96, 82, 49), (145, 125, 81)),
+    "oak": ((38, 98, 62), (108, 170, 82)),
+    "oak_sun": ((57, 116, 59), (140, 184, 85)),
+    "birch_leaf": ((79, 117, 47), (178, 187, 82)),
+    "willow": ((44, 108, 65), (134, 166, 78)),
+    "pine": ((35, 107, 79), (103, 170, 102)),
+    "hazel": ((46, 118, 59), (145, 183, 64)),
+    "fern": ((51, 123, 71), (137, 185, 90)),
+    "grass": ((70, 135, 57), (174, 203, 91)),
+    "reed": ((78, 127, 57), (163, 187, 82)),
+    "seed": ((110, 68, 35), (185, 126, 64)),
+    "stone": ((106, 121, 116), (170, 180, 164)),
+    "stone_side": ((90, 109, 106), (144, 160, 144)),
+    "moss": ((77, 127, 55), (157, 171, 88)),
+    "white": ((223, 221, 178), (255, 254, 235)),
+    "gold": ((216, 155, 28), (255, 220, 78)),
+    "blue": ((96, 89, 180), (183, 170, 239)),
 }
 
 
@@ -45,13 +48,14 @@ def norm(v):
     return v / max(np.linalg.norm(v), 1e-8)
 
 
-def paint(mesh, palette, shift=0.0):
+def paint(mesh, palette, shift=0.0, color_height=None):
     low, high = (np.asarray(c, dtype=float) for c in PALETTE[palette])
     verts = mesh.vertices
-    y = (verts[:, 1] - verts[:, 1].min()) / max(np.ptp(verts[:, 1]), .01)
+    bottom, top = color_height if color_height is not None else (verts[:, 1].min(), verts[:, 1].max())
+    y = np.clip((verts[:, 1] - bottom) / max(top - bottom, .01), 0, 1)
     # Broad painted light/shadow, never per-triangle random noise.
-    sweep = .48 + .27 * np.sin(verts[:, 0] * 1.37 + verts[:, 2] * .91 + shift)
-    light = np.clip(.19 + y * .68 + sweep * .13, 0, 1)
+    sweep = .5 + .5 * np.sin(verts[:, 0] * .85 + verts[:, 2] * .6 + shift)
+    light = np.clip(.13 + y * .76 + sweep * .11, 0, 1)
     rgb = low[None, :] + (high - low)[None, :] * light[:, None]
     mesh.visual.vertex_colors = np.column_stack((rgb, np.full(len(verts), 255))).astype(np.uint8)
     return mesh
@@ -61,10 +65,10 @@ class Nature:
     def __init__(self):
         self.parts = defaultdict(list)
 
-    def add(self, mesh, palette, group="Foliage", shift=0.0, shade=1.0):
+    def add(self, mesh, palette, group="Foliage", shift=0.0, shade=1.0, color_height=None):
         mesh = mesh.copy()
         mesh.fix_normals(multibody=True)
-        paint(mesh, palette, shift)
+        paint(mesh, palette, shift, color_height)
         if shade != 1.0:
             rgba = mesh.visual.vertex_colors.copy()
             rgba[:, :3] = np.clip(rgba[:, :3].astype(float) * shade, 0, 255).astype(np.uint8)
@@ -91,7 +95,7 @@ class Nature:
             tree["materials"] = []
             for index, mesh in enumerate(tree["meshes"]):
                 tree["materials"].append({"name": mesh["name"], "pbrMetallicRoughness": {
-                    "baseColorFactor": [1, 1, 1, 1], "metallicFactor": 0, "roughnessFactor": .95},
+                    "baseColorFactor": [1, 1, 1, 1], "metallicFactor": 0, "roughnessFactor": .82},
                     "doubleSided": mesh["name"] in ("Foliage", "Petals", "Grass")})
                 for primitive in mesh["primitives"]:
                     primitive["material"] = index
@@ -161,8 +165,8 @@ def crown(center, radii, seed=0, segments=36, rings=18):
         st, ct = math.sin(phi), math.cos(phi)
         for j in range(segments):
             a = j * TAU / segments
-            scallop = 1 + .080 * math.cos(5 * a + seed) * st ** 2 + .038 * math.sin(9 * a - seed * .7) * st
-            shoulder = 1 + .055 * math.sin(phi * 4 + seed)
+            scallop = 1 + .055 * math.cos(5 * a + seed) * st ** 2 + .025 * math.sin(3 * a - seed * .7) * st
+            shoulder = 1 + .035 * math.sin(phi * 3 + seed)
             x = cx + rx * st * math.cos(a) * scallop * shoulder
             z = cz + rz * st * math.sin(a) * scallop * shoulder
             y = cy + ry * ct + .055 * ry * math.sin(a * 4 + seed) * st ** 2
@@ -195,242 +199,371 @@ def leaf(start, end, width, curl=.05, twist=0.0, lobes=0, segments=4):
     return tm.Trimesh(vertices, faces, process=False)
 
 
-def foliage_mass(m, center, radii, seed, palette="oak"):
-    """Rounded, chamfer-like leaf masses: broad forms and clear colour planes."""
-    mesh = crown(center, radii, seed, 24, 12)
-    p = (mesh.vertices - np.asarray(center)) / np.asarray(radii)
-    # Super-elliptic shoulders create broad faces with softly rounded corners.
-    p[:, 0] = np.sign(p[:, 0]) * np.abs(p[:, 0]) ** .88
-    p[:, 1] = np.sign(p[:, 1]) * np.abs(p[:, 1]) ** .74
-    p[:, 2] = np.sign(p[:, 2]) * np.abs(p[:, 2]) ** .88
-    mesh.vertices = p * np.asarray(radii) + np.asarray(center)
-    m.add(mesh, palette, shift=seed, shade=.96 + .035 * math.sin(seed))
+def leaf_pad(center, outward, length, width, depth, heading=0.0):
+    """A closed, ridged leaf sculpt lying along the surface of a crown."""
+    outward = norm(outward)
+    down = norm(np.array([0., -1., 0.]) - outward * np.dot([0., -1., 0.], outward))
+    if np.linalg.norm(down) < .1:
+        down = np.array([1., 0., 0.])
+    side = norm(np.cross(outward, down))
+    along = down * math.cos(heading) + side * math.sin(heading)
+    across = norm(np.cross(outward, along))
+    vertices, faces = [], []
+    rings, sections = 6, 8
+    for i in range(rings + 1):
+        t = (i + .002) / (rings + .004)
+        width_at = math.sin(math.pi * t) ** .85 * width * .5
+        # The tip turns slightly away from the cluster, making a leaf edge.
+        mid = np.asarray(center) + along * (t - .5) * length + outward * (.055 * t * t)
+        for j in range(sections):
+            a = TAU * j / sections
+            vertices.append(mid + across * math.cos(a) * width_at + outward * math.sin(a) * depth * math.sin(math.pi * t))
+    for i in range(rings):
+        for j in range(sections):
+            a, b = i * sections + j, i * sections + (j + 1) % sections
+            faces.extend(((a, b, a + sections), (b, b + sections, a + sections)))
+    return tm.Trimesh(vertices, faces, process=True)
 
 
-def roots(m, radius=.35, count=5):
+def foliage_mass(m, center, radii, seed, palette="oak", shade=1.0, detail=True):
+    """Large crown structure plus overlapping, explicitly sculpted leaf plates.
+
+    Leaf plates follow the surface downhill. Their ridges catch light in close
+    views, and native LODs simplify them at the tactical camera distance.
+    """
+    m.add(crown(center, np.asarray(radii) * (.87 if detail else 1.0), seed, 24, 12), palette, shift=seed, shade=shade * .97)
+    if not detail:
+        return
+    slender = palette == "willow"
+    for row, (phi, count) in enumerate(((.32, 6), (.69, 11), (1.08, 15), (1.49, 15), (1.91, 11))):
+        for j in range(count):
+            a = j * TAU / count + seed * .61 + row * .37
+            phi_at = phi + .045 * math.sin(j * 1.7 + seed)
+            unit = np.array([math.sin(phi_at) * math.cos(a), math.cos(phi_at), math.sin(phi_at) * math.sin(a)])
+            at = np.asarray(center) + np.asarray(radii) * unit * .93
+            normal = norm(unit / np.asarray(radii))
+            scale = min(radii[0], radii[2])
+            pad = leaf_pad(at, normal, scale * (.99 if slender else .85),
+                           scale * (.29 if slender else .47), scale * .06,
+                           .29 * math.sin(a * 3 + seed))
+            m.add(pad, palette, shift=seed + row * .14, shade=shade * (1.025 + .025 * math.sin(j * 2.1)),
+                  color_height=(center[1] - radii[1], center[1] + radii[1]))
+
+
+def roots(m, radius=.43, count=5):
     for i in range(count):
-        a = i * TAU / count + .28
-        m.add(tube([(math.cos(a) * .1, .5, math.sin(a) * .1),
-                    (math.cos(a) * .4, .17, math.sin(a) * .4),
-                    (math.cos(a) * .72, .045, math.sin(a) * .72)],
-                   [radius * .58, radius * .4, .017], 8), "bark", "Wood", a)
+        a = i * TAU / count + .3
+        reach = .71 + .08 * math.sin(i * 2.2)
+        m.add(tube([(math.cos(a) * .13, .67, math.sin(a) * .13),
+                    (math.cos(a + .13) * .32, .27, math.sin(a + .13) * .32),
+                    (math.cos(a + .05) * reach * .7, .10, math.sin(a + .05) * reach * .7),
+                    (math.cos(a - .14) * reach, .028, math.sin(a - .14) * reach)],
+                   [radius * .61, radius * .42, radius * .21, .012], 12, 3), "bark", "Wood", a)
+
+
+def oak_bark(m):
+    # Raised ribbons run with the bend in the trunk, ending before the forks.
+    for i in range(7):
+        a = i * TAU / 7 + .18
+        path = []
+        for y, x, radius in ((.16, .02, .415), (.80, .13, .355), (1.40, .09, .317), (2.08, -.04, .286)):
+            path.append((x + math.cos(a + y * .1) * radius, y, .06 + math.sin(a + y * .1) * radius))
+        m.add(tube(path, [.026, .030, .022, .007], 6, 3), "bark", "Wood", i, .88)
+    knot = tm.creation.torus(major_radius=.10, minor_radius=.026, major_sections=18, minor_sections=7)
+    knot.apply_scale([1., 1.45, .65])
+    knot.apply_translation([.18, 1.19, .368])
+    m.add(knot, "bark", "Wood", 1.7, .84)
 
 
 def canopy_oak():
     m = Nature()
     roots(m)
-    trunk = [(0, 0, 0), (.06, 1.2, .05), (-.08, 2.25, .13), (.14, 3.35, .05), (.38, 4.45, -.02)]
-    m.add(tube(trunk, [.40, .31, .24, .17, .075], 12, 5, .10), "bark", "Wood")
-    # Broad lower scaffold and a separate upper crown form a readable old oak.
-    scaffold = [(-1.45, 3.82, .10, 1.43, .77, 1.22), (1.28, 4.15, -.13, 1.47, .84, 1.23),
-                (-.03, 4.21, 1.02, 1.55, .85, 1.18), (-.19, 5.25, -.35, 1.70, 1.04, 1.48)]
-    for i, (x, y, z, rx, ry, rz) in enumerate(scaffold):
-        branch_start = (.03, 1.65 + i * .29, .05)
-        m.add(tube([branch_start, (x * .38, y - 1.25, z * .35), (x * .78, y - .45, z * .72), (x, y, z)],
-                   [.18 - i * .010, .14 - i * .008, .075, .024], 9), "bark", "Wood", i)
-        foliage_mass(m, (x, y, z), (rx, ry, rz), i * 1.4)
+    m.add(tube([(0, 0, 0), (.16, 1.05, .02), (-.04, 2.08, .12), (.21, 3.15, .04), (.12, 4.75, -.10)],
+               [.43, .34, .29, .18, .07], 14, 5, .055), "bark", "Wood")
+    oak_bark(m)
+    # Open forks show between the lower masses. The upper masses form a
+    # single irregular crown, replacing the old horizontal canopy slabs.
+    branches = [((-1.25, 3.15, .04), (-.71, 2.23, .04)),
+                ((1.12, 3.61, .04), (.65, 2.61, .11)),
+                ((.01, 3.33, 1.13), (.08, 2.42, .57)),
+                ((-.46, 4.03, -.92), (-.11, 2.93, -.38))]
+    for i, (tip, elbow) in enumerate(branches):
+        m.add(tube([(.03, 1.53 + i * .18, .03), elbow, tip], [.23 - i * .025, .16, .055], 11, 4, .045), "bark", "Wood", i)
+    clusters = [(-1.25, 3.29, .13, 1.17, .77, .99),
+                (1.15, 3.66, -.12, 1.17, .83, 1.01),
+                (-.12, 3.36, 1.07, 1.17, .74, .98),
+                (-.54, 3.87, -.96, 1.10, .78, .93),
+                (-1.03, 4.22, -.15, 1.16, .87, 1.04),
+                (.72, 4.34, .73, 1.12, .91, 1.01),
+                (.59, 4.49, -.72, 1.06, .91, .94),
+                (-.07, 4.77, -.01, 1.32, .94, 1.12)]
+    for i, (x, y, z, rx, ry, rz) in enumerate(clusters):
+        foliage_mass(m, (x, y, z), (rx, ry, rz), i * 1.37,
+                     "oak_sun" if i >= 6 else "oak", .96 if i < 3 else 1.0)
     return m
 
 
 def silver_birch():
     m = Nature()
-    for tree, (sx, sz, lean, height) in enumerate([(-.20, -.05, -.45, 6.5), (.25, .09, .49, 5.65)]):
-        points = [(sx, 0, sz), (sx + lean * .18, 1.65, sz + .04),
-                  (sx + lean * .62, 3.45, sz - .12), (sx + lean, height, sz + .09)]
-        m.add(tube(points, [.17, .13, .082, .018], 10, 5, .025), "birch", "Wood")
-        for j in range(11):
-            y = .35 + j * .39
-            x = sx + lean * y / height
-            a = j * 2.41
-            radial = np.array([math.cos(a), 0, math.sin(a)])
-            pos = np.array([x, y, sz]) + radial * (.153 - y * .014)
-            m.add(leaf(pos - np.cross(radial, [0, 1, 0]) * .075, pos + np.cross(radial, [0, 1, 0]) * .10,
-                       .034, .0), "scar", "Wood")
+    for i, (x, z, lean, height) in enumerate([(-.14, -.04, -.30, 5.25), (.21, .08, .44, 4.37)]):
+        m.add(tube([(x, .0, z), (x + lean * .27, 1.65, z),
+                    (x + lean * .75, 3.30, z - .1), (x + lean, height, z)],
+                   [.21, .17, .105, .026], 12, 4, .018), "birch", "Wood")
+        for j in range(6):
+            y = .42 + j * .48
+            scar = crown((x + lean * y / height, y, z + .143 - y * .018), (.10, .027, .025), j, 12, 6)
+            m.add(scar, "scar", "Wood")
         for j in range(3):
-            a = j * 2.24 + tree * 1.7
-            y = 2.75 + j * 1.04
-            reach = 1.10 - j * .12
-            x, z = sx + lean * y / height + math.cos(a) * reach, sz + math.sin(a) * reach
-            m.add(tube([(sx + lean * y / height, y - .65, sz),
-                        (x * .62, y + .18, z * .62), (x, y + .08, z)], [.067, .041, .009], 7), "birch", "Wood")
-            foliage_mass(m, (x, y + .47, z), (1.03 - j * .065, .83, .78), j + tree * 3, "birch_leaf")
-        foliage_mass(m, (sx + lean, height - .25, sz + .05), (.83, .69, .69), tree + 11, "birch_leaf")
+            a = j * 2.35 + i * 1.65
+            y = 2.63 + j * .66 - i * .13
+            cx, cz = x + lean * .7 + math.cos(a) * .70, z + math.sin(a) * .57
+            m.add(tube([(x + lean * .5, y - .85, z), (cx * .72, y - .35, cz * .62), (cx, y + .19, cz)],
+                       [.105, .065, .018], 9, 3), "birch", "Wood")
+            foliage_mass(m, (cx, y + .42, cz), (.82, .73, .76), j + i * 3.1, "birch_leaf")
+        foliage_mass(m, (x + lean, height - .36, z), (.88, .76, .79), i + 7, "birch_leaf")
     return m
 
 
-def pine_bough(center, radius, height, angle, width):
-    """One thick, round-tipped drooping leaf in a pine's layered skirt."""
+def pine_bough(center, radius, height, angle, seed):
+    """A tapered branch with broad, scalloped needle fans, open between boughs."""
     vertices, faces = [], []
-    segments, rings = 12, 9
-    radial = np.array([math.cos(angle), 0, math.sin(angle)])
-    side = np.array([-math.sin(angle), 0, math.cos(angle)])
-    normal = norm([math.cos(angle) * height, radius, math.sin(angle) * height])
+    radial = np.array([math.cos(angle), 0., math.sin(angle)])
+    across = np.array([-math.sin(angle), 0., math.cos(angle)])
+    normal = norm([math.cos(angle) * height * .6, radius, math.sin(angle) * height * .6])
+    sections, rings = 10, 12
     for i in range(rings + 1):
-        t = .5 - .5 * math.cos(math.pi * i / rings)
-        at = np.asarray(center) + radial * (radius * t ** .90)
-        at[1] += height * (1 - t) + .085 * math.sin(math.pi * t)
-        half_width = width * .5 * math.sin(math.pi * t) ** .53
-        depth = .105 * math.sin(math.pi * t) ** .64
-        for j in range(segments):
-            a = j * TAU / segments
-            vertices.append(at + side * math.cos(a) * half_width + normal * math.sin(a) * depth)
+        t = (i + .005) / (rings + .010)
+        mid = np.asarray(center) + radial * radius * t
+        mid[1] += height * (1 - t) ** .91 + .12 * math.sin(math.pi * t)
+        breadth = radius * .48 * math.sin(math.pi * t) ** .60 * (1 + .16 * math.sin(t * math.pi * 5 + seed))
+        thickness = radius * .105 * math.sin(math.pi * t) ** .7
+        for j in range(sections):
+            a = TAU * j / sections
+            vertices.append(mid + across * math.cos(a) * breadth + normal * math.sin(a) * thickness)
     for i in range(rings):
-        for j in range(segments):
-            a, b = i * segments + j, i * segments + (j + 1) % segments
-            faces.extend(((a, a + segments, b), (b, a + segments, b + segments)))
+        for j in range(sections):
+            a, b = i * sections + j, i * sections + (j + 1) % sections
+            faces.extend(((a, b, a + sections), (b, b + sections, a + sections)))
     mesh = tm.Trimesh(vertices, faces, process=True)
-    mesh.update_faces(mesh.nondegenerate_faces())
     mesh.fix_normals()
     return mesh
 
 
 def wind_pine():
     m = Nature()
-    roots(m, .28, 5)
-    m.add(tube([(0, 0, 0), (.10, 1.4, -.07), (.24, 3, -.09), (.12, 4.8, 0), (.35, 6.2, .06)],
-               [.29, .23, .17, .10, .023], 11, 5, .04), "bark", "Wood")
-    for i, (y, r, h) in enumerate([(1.24, 2.08, 2.30), (2.58, 1.75, 2.10), (3.82, 1.30, 1.86), (4.96, .82, 1.82)]):
-        cx = .14 + .17 * math.sin(y * 1.7)
-        for j in range(8):
-            a = j * TAU / 8 + i * .49
-            reach = r * (1 + .045 * math.sin(a * 3 + i))
-            width = r * .59
-            m.add(pine_bough((cx, y, 0), reach, h, a, width), "pine", shift=a, shade=.95 + .05 * math.sin(a))
+    roots(m, .32)
+    m.add(tube([(0, 0, 0), (.08, 1.1, .04), (-.1, 2.7, .08), (.08, 4.2, 0), (.18, 5.6, -.04)],
+               [.33, .25, .18, .105, .035], 12, 4, .03), "bark", "Wood")
+    for i, (cx, y, r, h) in enumerate([(-.10, 1.10, 1.77, 1.78), (.14, 2.28, 1.44, 1.65),
+                                       (-.02, 3.36, 1.09, 1.44), (.16, 4.30, .71, 1.45)]):
+        for j in range(7):
+            a = j * TAU / 7 + i * .47
+            reach = r * (1 + .065 * math.sin(j * 1.83 + i))
+            m.add(pine_bough((cx, y, 0), reach, h, a, i * .5), "pine", shift=i + a,
+                  shade=.96 + i * .025 + .035 * math.sin(a))
+            outer = (cx + math.cos(a) * reach * .91, y + h * .10, math.sin(a) * reach * .91)
+            m.add(tube([(cx, y + h * .57, 0), (outer[0] * .56, y + h * .33, outer[2] * .56), outer],
+                       [.065, .036, .008], 7, 3), "bark", "Wood")
+    foliage_mass(m, (.16, 5.22, 0), (.29, .56, .28), 17, "pine", detail=False)
+    return m
+
+
+def weeping_willow():
+    m = Nature()
+    roots(m, .44, 6)
+    m.add(tube([(0, 0, 0), (-.18, 1.03, .05), (-.32, 2.13, .08), (-.02, 3.40, .11), (.22, 4.43, -.04)],
+               [.44, .35, .29, .20, .045], 14, 5, .065), "bark", "Wood")
+    for i in range(7):
+        a = i * TAU / 7 + .24
+        reach = 1.32 + .17 * math.sin(i * 1.74)
+        cx, cz = math.cos(a) * reach, math.sin(a) * reach
+        y = 3.40 + .36 * math.sin(i * 1.30)
+        m.add(tube([(-.18, 1.70 + i * .10, .05), (cx * .53, y + .17, cz * .53),
+                    (cx, y + .12, cz), (cx * 1.13, y - 1.43, cz * 1.13)],
+                   [.17, .12, .055, .010], 10, 4, .03), "bark", "Wood", i)
+        foliage_mass(m, (cx * .75, y + .26, cz * .75), (.85, .59, .79), i * 1.63, "willow")
+        # Hanging sprays are actual slender twigs with alternating long leaves.
+        # Leaving spaces between sprays makes the arched willow silhouette airy.
+        for spray in range(3):
+            sa = a + (spray - 1) * .22
+            reach_at = reach * (1.0 + spray * .035)
+            top = np.array([math.cos(sa) * reach_at, y + .14 - spray * .10, math.sin(sa) * reach_at])
+            drop = 1.07 + .38 * (.5 + .5 * math.sin(i + spray * 1.8))
+            bottom = top + [math.cos(sa) * .12, -drop, math.sin(sa) * .12]
+            m.add(tube([top, (top + bottom) * .5 + [0, .06, 0], bottom], [.017, .013, .004], 6, 3), "bark", "Wood")
+            for j in range(5):
+                t = .13 + j * .17
+                at = top * (1 - t) + bottom * t
+                normal = [math.cos(sa), .16, math.sin(sa)]
+                pad = leaf_pad(at, normal, .57, .14, .027, (-1 if j % 2 else 1) * .42)
+                m.add(pad, "willow", shift=i * .8 + j * .2, shade=.99 + .035 * math.sin(j))
+    foliage_mass(m, (.02, 4.12, -.05), (1.01, .65, .94), 12, "willow")
     return m
 
 
 def hazel_thicket():
     m = Nature()
-    for i in range(4):
-        a = i * 2.40
-        c = (math.cos(a) * .48, .51 + .16 * (i % 3), math.sin(a) * .40)
-        m.add(tube([(0, 0, 0), (c[0] * .58, .34, c[2] * .6), c], [.035, .024, .008], 7), "bark", "Wood")
-        foliage_mass(m, c, (.60, .41, .53), i * 1.5, "hazel")
+    clusters = [(-.52, .42, .05, .64, .42, .57), (.45, .50, -.12, .67, .48, .61),
+                (.05, .61, .25, .64, .53, .61), (-.18, .61, -.31, .54, .44, .50)]
+    for i, (x, y, z, rx, ry, rz) in enumerate(clusters):
+        m.add(tube([(0, .015, 0), (x * .6, .3, z * .6), (x, y, z)], [.048, .030, .009], 8, 3), "bark", "Wood")
+        foliage_mass(m, (x, y, z), (rx, ry, rz), i * 1.62, "hazel")
     return m
+
+
+def split_stone(mesh, origin, normal, gap=.027):
+    """Cut a convex rock into closed chunks with an actual recessed fracture."""
+    normal = norm(normal)
+    origin = np.asarray(origin)
+    distances = (mesh.vertices - origin) @ normal
+    intersections = []
+    for left, right in mesh.edges_unique:
+        if distances[left] * distances[right] < 0:
+            t = distances[left] / (distances[left] - distances[right])
+            intersections.append(mesh.vertices[left] * (1 - t) + mesh.vertices[right] * t)
+    chunks = []
+    for sign in (-1, 1):
+        points = np.vstack((mesh.vertices[distances * sign >= 0], intersections))
+        chunk = tm.convex.convex_hull(points)
+        chunk.apply_translation(normal * gap * sign)
+        chunks.append(chunk)
+    return chunks
+
+
+def rounded_stone(mesh, radius=.019):
+    # A small geometric bevel preserves broad fracture planes. It is a
+    # Minkowski sum with a coarse sphere, not a smoothed sphere silhouette.
+    center = mesh.vertices.mean(axis=0)
+    core = center + (mesh.vertices - center) * .974
+    bevel = tm.creation.icosphere(subdivisions=1).vertices * radius
+    return tm.convex.convex_hull((core[:, None, :] + bevel[None, :, :]).reshape(-1, 3))
+
+
+def moss_relief(m, chunk, outline, seed):
+    """Project a torn, thin moss sheet onto the rock's actual sloping faces."""
+    from shapely.geometry import MultiPoint
+    footprint = MultiPoint(chunk.vertices[:, [0, 2]]).convex_hull.buffer(-.025)
+    patch = env.Polygon(outline).intersection(footprint)
+    if patch.is_empty:
+        return
+    triangles = env.constrained_delaunay_triangles(patch)
+    vertices, faces = [], []
+    for tri in triangles.geoms:
+        points = list(tri.exterior.coords)[:3]
+        offset = len(vertices)
+        vertices.extend((x, 0., z) for x, z in points)
+        faces.append((offset, offset + 1, offset + 2))
+    sheet = tm.Trimesh(vertices, faces, process=True)
+    sheet = sheet.subdivide_to_size(max_edge=.12, max_iter=5)
+    normals = chunk.face_normals
+    top_faces = normals[:, 1] > .05
+    planes = normals[top_faces]
+    distances = np.einsum('ij,ij->i', planes, chunk.triangles_center[top_faces])
+    v = sheet.vertices.copy()
+    ceiling = (distances[None, :] - v[:, 0, None] * planes[None, :, 0] - v[:, 2, None] * planes[None, :, 2]) / planes[None, :, 1]
+    v[:, 1] = ceiling.min(axis=1) + .014 + .004 * np.sin(v[:, 0] * 14 + v[:, 2] * 12 + seed)
+    sheet.vertices = v
+    m.add(sheet, "moss", "Stone", seed, .82, color_height=(.4, 1.1))
 
 
 def moss_boulder():
     m = Nature()
-    # A small asymmetrical, bevelled rock has broad readable faces instead of
-    # granular fractures.  Its one consolidated mesh is also used on the bank.
-    outline = [(-.85, -.64), (.15, -.82), (.87, -.52), (1.03, .21), (.35, .82), (-.74, .61), (-1.0, -.04)]
+    outline = [(-1.0, -.36), (-.65, -.70), (.25, -.75), (.91, -.23),
+               (.86, .48), (.12, .78), (-.78, .59)]
     vertices = []
-    for y, scale in [(.04, .73), (.23, .96), (.79, 1.0), (1.07, .73)]:
-        vertices.extend((x * scale + y * .15, y + x * .045, z * scale + y * .04) for x, z in outline)
-    rock = tm.convex.convex_hull(np.asarray(vertices))
-    m.add(rock, "stone", "Stone")
-    stone_mesh = m.parts["Stone"][0]
-    rgba = stone_mesh.visual.vertex_colors.copy()
-    moss_rgb = np.array(PALETTE["moss"][1], dtype=float)
-    v = stone_mesh.vertices
-    weight = np.clip((v[:, 1] - .55) / .65, 0, 1) * np.clip((.5 - v[:, 0]) / 1.2, 0, 1) * .58
-    rgba[:, :3] = (rgba[:, :3] * (1 - weight[:, None]) + moss_rgb * weight[:, None]).astype(np.uint8)
-    stone_mesh.visual.vertex_colors = rgba
+    for y, scale, dx in ((.025, .77, -.06), (.39, 1.0, 0.), (.70, .92, .06), (.99, .69, .02)):
+        for j, (x, z) in enumerate(outline):
+            vertices.append((x * scale + dx, y + x * .115 - z * .07 + .037 * math.sin(j * 1.7), z * scale))
+    body = tm.convex.convex_hull(vertices)
+    # Two oblique fractures make three unequal pieces within one natural
+    # boulder. Their narrow gaps expose dark recessed stone, not white seams.
+    left, right = split_stone(body, (-.22, .45, -.03), (.95, .19, .31))
+    front, back = split_stone(right, (.35, .4, .02), (.21, -.28, .95), .019)
+    core = body.copy()
+    core.apply_scale([.91, .87, .91])
+    m.add(core, "stone_side", "Stone", shade=.64)
+    moss_outline = [(-.87, -.37), (-.65, -.50), (-.57, -.44), (-.41, -.55),
+                    (-.31, -.44), (-.13, -.49), (-.09, -.34), (.02, -.30),
+                    (-.08, -.19), (-.01, -.12), (-.20, -.04), (-.13, .07),
+                    (-.29, .17), (-.38, .10), (-.48, .22), (-.55, .13),
+                    (-.69, .16), (-.65, .02), (-.79, -.03), (-.73, -.16),
+                    (-.87, -.23)]
+    for i, chunk in enumerate((left, front, back)):
+        chunk = rounded_stone(chunk)
+        m.add(chunk, "stone" if i != 1 else "stone_side", "Stone", i * 1.8,
+              1.0 if i == 0 else .94, color_height=(-.05, 1.05))
+        moss_relief(m, chunk, moss_outline, i)
+        moss_relief(m, chunk, [(-.25, .29), (-.09, .20), (.01, .24), (-.04, .30),
+                              (.03, .35), (-.03, .40), (-.15, .34), (-.24, .40)], i + 3)
     return m
 
 
 def fern_patch():
     m = Nature()
-    for i in range(5):
-        a = i * 2.40
-        length = .57 + .09 * math.sin(i * 1.7)
-        start = np.array([0, .018, 0])
-        end = np.array([math.cos(a) * length, .12 + .05 * (i % 3), math.sin(a) * length])
-        path = catmull([start, end * np.array([.32, 0, .32]) + [0, .35, 0], end], 8)
-        m.add(tube(path[::4], [.021] * len(path[::4]), 5, 2), "fern", "Grass")
-        for j in (4, 8, 12):
-            t = j / 16
-            at = path[j]
-            size = .22 * math.sin(t * math.pi) ** .8
-            for side in (-1, 1):
-                heading = a + side * 1.03
-                tip = at + np.array([math.cos(heading) * size, -.012, math.sin(heading) * size])
-                m.add(leaf(at, tip, size * .74, .034), "fern", "Grass")
+    for i in range(7):
+        a = i * 2.4
+        length = .46 + .09 * math.sin(i * 1.7)
+        end = (math.cos(a) * length, .16 + .05 * (i % 3), math.sin(a) * length)
+        m.add(leaf((0, .02, 0), end, .25, .17, .1, segments=8), "fern", "Grass", i)
     return m
 
 
 def grass_blade(start, height, angle, width, lean):
     start = np.asarray(start, float)
-    end = start + np.array([math.cos(angle) * lean, height, math.sin(angle) * lean])
-    mesh = leaf(start, end, width, .08, twist=.25)
-    return mesh
+    return leaf(start, start + [math.cos(angle) * lean, height, math.sin(angle) * lean], width, .085, .18, segments=8)
 
 
 def meadow_tuft():
     m = Nature()
-    for i in range(9):
+    for i in range(7):
         a = i * 2.4
-        r = .13 * math.sqrt(i / 9)
-        h = .27 + .24 * (.5 + .5 * math.sin(i * 1.71))
-        m.add(grass_blade((math.cos(a) * r, .01, math.sin(a) * r), h, a, .15, .19 + r), "grass", "Grass")
+        r = .085 * math.sqrt(i / 7)
+        h = .22 + .17 * (.5 + .5 * math.sin(i * 1.71))
+        m.add(grass_blade((math.cos(a) * r, .01, math.sin(a) * r), h, a, .13, .14 + r), "grass", "Grass", i)
     return m
 
 
 def reed_cluster():
     m = Nature()
-    for i in range(5):
+    for i in range(3):
         a = i * 2.4
-        r = .20 * math.sqrt(i / 7)
-        x, z = math.cos(a) * r, math.sin(a) * r
-        h = .65 + .24 * (.5 + .5 * math.cos(i * 1.3))
-        m.add(tube([(x, .01, z), (x + .05, h * .58, z), (x + .10, h, z + .02)], [.018, .011, .006], 5, 3), "reed", "Grass")
+        x, z = math.cos(a) * .15, math.sin(a) * .15
+        h = .58 + .17 * (i / 2)
+        m.add(tube([(x, .01, z), (x + .03, h * .6, z), (x + .06, h, z)], [.021, .014, .008], 7, 3), "reed", "Grass")
+        m.add(crown((x + .055, h - .05, z), (.052, .15, .052), i, 12, 8), "seed", "Grass")
         for side in (-1, 1):
-            m.add(grass_blade((x, .035, z), h * .79, a + side * .6, .075, .28), "reed", "Grass")
-        m.add(crown((x + .094, h * .87, z + .02), (.044, .13, .044), i, 10, 8), "seed", "Grass")
+            m.add(grass_blade((x, .018, z), h * .73, a + side * .7, .12, .25), "reed", "Grass", i)
+    return m
+
+
+def flower_bed(palette):
+    m = Nature()
+    for i in range(3):
+        a = i * 2.4
+        x, z = math.cos(a) * .21, math.sin(a) * .21
+        h = .22 + .08 * (.5 + .5 * math.cos(i * 1.7))
+        m.add(tube([(x, .01, z), (x + .025, h, z)], [.014, .009], 7, 2), "grass", "Grass")
+        for side in (-1, 1):
+            m.add(leaf((x, .04, z), (x + side * .19, .10, z + .075), .115, .055, segments=6), "grass", "Grass")
+        for j in range(5):
+            angle = j * TAU / 5 + i * .42
+            petal = crown((0, 0, 0), (.074, .026, .125), j, 12, 6)
+            petal.apply_transform(tm.transformations.rotation_matrix(angle, [0, 1, 0]))
+            petal.apply_translation([x + .025 + math.sin(angle) * .094, h, z + math.cos(angle) * .094])
+            m.add(petal, palette, "Petals", i)
+        m.add(crown((x + .025, h + .021, z), (.059, .035, .059), i, 12, 6), "gold", "Petals")
     return m
 
 
 def daisies():
-    m = Nature()
-    for i in range(3):
-        a = i * 2.4
-        x, z = math.cos(a) * .20, math.sin(a) * .20
-        h = .25 + .10 * (.5 + .5 * math.cos(i * 1.7))
-        m.add(tube([(x, .01, z), (x + .035, h, z)], [.01, .006], 5, 2), "grass", "Grass")
-        for side in (-1, 1):
-            m.add(leaf((x, .07, z), (x + side * .13, .12, z + .045), .07, .02), "grass", "Grass")
-        for j in range(7):
-            b = j * TAU / 7
-            c = np.array([x + .035, h, z])
-            m.add(leaf(c, c + np.array([math.cos(b) * .145, -.025, math.sin(b) * .145]), .084, .032), "white", "Petals")
-        m.add(crown((x + .035, h + .013, z), (.047, .022, .047), i, 12, 6), "gold", "Petals")
-    return m
-
-
-def bluebell_shape(center, angle):
-    verts, faces = [], []
-    for i in range(6):
-        t = i / 5
-        r = .033 + .038 * t * t
-        for j in range(16):
-            a = j * TAU / 16
-            flare = 1 + .14 * math.cos(a * 5) * t ** 4
-            verts.append((center[0] + math.cos(a) * r * flare + math.cos(angle) * .045 * t,
-                          center[1] - t * .095 + math.cos(a * 5) * .015 * t ** 4,
-                          center[2] + math.sin(a) * r * flare + math.sin(angle) * .045 * t))
-    for i in range(5):
-        for j in range(16):
-            a, b = i * 16 + j, i * 16 + (j + 1) % 16
-            faces.extend(((a, a + 16, b), (b, a + 16, b + 16)))
-    return tm.Trimesh(verts, faces, process=False)
+    return flower_bed("white")
 
 
 def bluebells():
-    m = Nature()
-    for i in range(3):
-        a = i * 2.4
-        x, z = math.cos(a) * .19, math.sin(a) * .19
-        h = .38 + .12 * (i % 2)
-        m.add(tube([(x, 0, z), (x, h * .66, z), (x + .045, h, z + .02)], [.011, .009, .003], 5), "grass", "Grass")
-        for j in range(2):
-            c = (x + math.cos(a) * .025, h - j * .082, z + math.sin(a) * .025)
-            m.add(bluebell_shape(c, a), "blue", "Petals")
-        for j in (-1, 1):
-            m.add(grass_blade((x, .01, z), h * .55, a + j * .5, .072, .15), "grass", "Grass")
-    return m
+    return flower_bed("blue")
 
 
 if __name__ == "__main__":
-    for builder in (canopy_oak, silver_birch, wind_pine, hazel_thicket, moss_boulder,
+    for builder in (canopy_oak, silver_birch, wind_pine, weeping_willow, hazel_thicket, moss_boulder,
                     fern_patch, meadow_tuft, reed_cluster, daisies, bluebells):
         builder().save(builder.__name__)

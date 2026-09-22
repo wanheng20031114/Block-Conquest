@@ -16,6 +16,8 @@ func capture(name: String) -> void:
 
 func run() -> void:
 	create_timer(75.0, true, false, true).timeout.connect(func(): quit(3))
+	# Keep tooltip state independent of the desktop pointer during captures.
+	root.gui_disable_input = true
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
 	await scene_changed
 	game = current_scene
@@ -46,6 +48,10 @@ func run() -> void:
 	game.camera.size = 37.0
 	game.camera_rig.focus_at(Vector3(-12, 0, 14), true)
 	await capture("bridge_detail")
+	game.camera_rig.zoom_target = 28.0
+	game.camera.size = 28.0
+	game.camera_rig.focus_at(Vector3(-29, 0, -16), true)
+	await capture("forest_detail")
 	game.camera_rig.zoom_target = 58.0
 	game.camera.size = 58.0
 	game.camera_rig.focus_at(Vector3(0, 0, 2), true)
