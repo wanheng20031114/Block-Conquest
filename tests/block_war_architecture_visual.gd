@@ -31,7 +31,7 @@ func _run() -> void:
 		label.text = "%s · %d级" % [WarBuilding.KIND_NAMES[building.kind], building.level]
 		label.modulate = Color("f4efd8")
 		label.show()
-	camera.look_at(Vector3(0, 1.2, 8))
+	camera.look_at(Vector3(0, 1.2, 10))
 	await create_timer(0.8).timeout
 	await _capture("levels_all")
 	for kind: int in 3:
@@ -49,14 +49,14 @@ func _run() -> void:
 	for node_name: String in BUILDING_NAMES:
 		var building: WarBuilding = review.get_node(node_name)
 		building.visible = true
-		building.position = Vector3((building.kind - 1) * 7, 0, (building.level - 1) * 8)
+		building.position = Vector3((building.kind - 1) * 7, 0, (building.level - 1) * 10)
 		building.get_node("KindLabel").pixel_size = 0.023
 		building.faction = [-1, 0, 1][building.level - 1]
 		building.refresh_visual()
 		building.get_node("Visual/Smithy/Smoke").restart()
-	camera.position = Vector3(0, 33, 33)
-	camera.look_at(Vector3(0, 1.2, 8))
-	camera.size = 23.0
+	camera.position = Vector3(0, 37, 38)
+	camera.look_at(Vector3(0, 1.2, 10))
+	camera.size = 26.0
 	await _capture("levels_factions")
 	# Each cannon keeps a fixed base and moving muzzle through aim and recoil.
 	for node_name: String in ["Tower", "Tower2", "Tower3"]:

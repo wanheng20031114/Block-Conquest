@@ -209,16 +209,36 @@ def residence(level=1):
         wall_joints(section,1.76,(0,.37,.0),1.99)
         window(section,0,1.55,0,.52,.98)
         m.absorb(section,(side*1.51,0,-.24),side*math.pi/2)
-    sculpted_roof(m,3.38,2.94,2.67,4.08,(0,-.18))
+    # Keep the original low wings and grounded corner bays. A separate, narrow
+    # upper keep rises from the rear half rather than stretching the whole house.
+    sculpted_roof(m,3.38,2.94,2.60,3.47,(0,-.18))
+    m.box((1.96,2.72,2.08),(.12,3.41,-.34),"plaster",bevel=.16)
+    m.box((2.12,.19,2.22),(.12,3.49,-.34),"stone",bevel=.055)
+    m.box((2.12,.20,2.22),(.12,4.71,-.34),"stone_light",bevel=.055)
+    for x in (-.79,1.03):
+        m.box((.16,2.58,.18),(x,3.39,.69),"stone_light",bevel=.045)
+    for x in (-.31,.55):
+        window(m,x,4.08,.715,.36,.97)
+    shield(m,.12,3.53,.80,.33)
+    for side in (-1,1):
+        section=env.Model()
+        wall_joints(section,1.75,(0,2.13,0),2.48)
+        window(section,0,4.05,0,.43,.99)
+        m.absorb(section,(.12+side*.99,0,-.37),side*math.pi/2)
+    back=env.Model()
+    window(back,0,3.02,0,.44,.69)
+    window(back,0,4.06,0,.48,.97)
+    m.absorb(back,(.12,0,-1.385),math.pi)
+    sculpted_roof(m,2.27,2.30,4.86,5.83,(.12,-.34))
     crest=[(-.32,0),(.32,0),(.36,.26),(.12,.13),(0,.37),(-.12,.13),(-.36,.26)]
-    contour(m,[(x,y+4.17) for x,y in crest],.15,-.18,"gold")
+    contour(m,[(x+.12,y+5.91) for x,y in crest],.15,-.34,"gold")
     return m
 
 
 def cottage(level):
-    """A timber cottage becomes a stone lodge before gaining twin corner bays."""
+    """One low timber storey and a visibly separate two-storey masonry lodge."""
     m=env.Model()
-    height=2.05 if level==1 else 2.37
+    height=1.73 if level==1 else 3.25
     m.box((3.04,.43,2.70),(0,.115,-.08),"mortar",bevel=.072)
     m.box((2.84,height,2.40),(0,height/2+.19,-.08),"plaster",bevel=.16)
     m.box((3.00,.30,2.59),(0,.34,-.08),"stone",bevel=.08)
@@ -226,32 +246,39 @@ def cottage(level):
         for x in (-1.30,1.30):
             for z in (-1.18,1.04):
                 m.box((.19,height+.06,.19),(x,height/2+.16,z),"wood",bevel=.035)
-        m.box((2.87,.17,2.44),(0,1.03,-.08),"wood_light",bevel=.04)
-        royal_gate(m,0,.15,1.15,.96,1.54)
+        m.box((2.87,.17,2.44),(0,.94,-.08),"wood_light",bevel=.04)
+        m.box((2.96,.16,2.54),(0,1.93,-.08),"wood_dark",bevel=.04)
+        royal_gate(m,0,.15,1.15,.96,1.42)
     else:
-        m.box((3.06,.20,2.61),(0,2.47,-.08),"stone_light",bevel=.06)
-        turned(m,[(-.10,.46),(.06,.52),(.47,.52),(.61,.42),
-                  (2.28,.42),(2.41,.51),(2.61,.51)],"stone",(-1.16,0,.78),12)
-        turret_cap(m,-1.16,.78,2.61,.56)
-        window(m,-1.16,1.73,1.20,.29,.68)
-        royal_gate(m,.30,.17,1.15,1.03,1.68)
-        shield(m,.30,2.27,1.27,.40)
+        # An overhanging belt-course and paired upper windows show the added
+        # inhabited floor even when the lower door is hidden by troop labels.
+        m.box((3.12,.21,2.66),(0,1.96,-.08),"stone_light",bevel=.06)
+        m.box((3.04,.10,2.57),(0,1.81,-.08),"wood_dark",bevel=.027)
+        m.box((3.06,.20,2.61),(0,3.43,-.08),"stone_light",bevel=.06)
+        royal_gate(m,0,.17,1.15,1.03,1.52)
+        for x in (-.67,.67):
+            window(m,x,2.79,1.15,.49,.88)
+        shield(m,0,3.10,1.24,.28)
+        for x in (-1.29,1.29):
+            for y in (.64,1.20,1.66,2.30,2.85,3.29):
+                m.box((.32,.19,.18),(x,y,1.145),"stone_light",bevel=.035)
     for side in (-1,1):
         panel=env.Model()
         if level==2:
-            wall_joints(panel,1.97,(0,.43,0),1.81)
-        window(panel,0,1.39 if level==1 else 1.62,0,.48,.77 if level==1 else .98)
+            wall_joints(panel,1.97,(0,.43,0),1.24)
+            wall_joints(panel,1.97,(0,2.15,0),1.04)
+            window(panel,0,1.17,0,.48,.70)
+            window(panel,0,2.80,0,.53,.92)
+        else:
+            window(panel,0,1.19,0,.48,.67)
         m.absorb(panel,(side*1.43,0,-.21),side*math.pi/2)
-    eave=2.29 if level==1 else 2.58
-    peak=3.52 if level==1 else 3.87
+    eave=2.04 if level==1 else 3.55
+    peak=2.84 if level==1 else 4.46
     sculpted_roof(m,3.29,2.85,eave,peak,(0,-.13))
-    # A squat chimney and broad timber barge board identify the domestic tier.
-    m.box((.43,.87,.48),(.87,peak-.06,-.68),"stone",bevel=.065)
-    m.box((.54,.16,.57),(.87,peak+.40,-.68),"stone_light",bevel=.04)
-    m.box((.34,.035,.36),(.87,peak+.49,-.68),"dark",bevel=.025)
-    if level==2:
-        for x in (-.52,.10,.72):
-            m.box((.37,.12,.16),(x,2.52,1.21),"wood_dark",bevel=.025)
+    chimney_top=3.25 if level==1 else 4.71
+    m.box((.43,.76,.48),(.87,chimney_top-.40,-.68),"stone",bevel=.065)
+    m.box((.54,.15,.57),(.87,chimney_top-.08,-.68),"stone_light",bevel=.04)
+    m.box((.34,.035,.36),(.87,chimney_top,-.68),"dark",bevel=.025)
     return m
 
 
