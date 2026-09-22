@@ -65,7 +65,7 @@ func _run() -> void:
 	await create_timer(0.40).timeout
 	assert(is_zero_approx(tower.get_node("Visual/Tower/Gun/Barrel").position.z))
 	assert(tower.get_node("Visual/Tower/Stone").global_transform == stationary)
-	print("WAR_ARCHITECTURE_VISUAL captured three buildings, ownership roofs and ivory badges; visual pause, muzzle follow, aim and recoil passed")
+	print("WAR_ARCHITECTURE_VISUAL captured three buildings, faction flags and population badges; visual pause, muzzle follow, aim and recoil passed")
 	review.queue_free()
 	await process_frame
 	quit()

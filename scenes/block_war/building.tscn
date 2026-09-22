@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3]
+[gd_scene load_steps=57 format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_building.gd" id="script"]
 [ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
@@ -11,6 +11,7 @@
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/foundation_metal.res" id="foundation_metal"]
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/foundation_stone.res" id="foundation_stone"]
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/foundation_timber.res" id="foundation_timber"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/foundation_foliage.res" id="foundation_foliage"]
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_metal.res" id="house_metal"]
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_roof.res" id="house_roof"]
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_stone.res" id="house_stone"]
@@ -32,24 +33,24 @@
 
 [sub_resource type="ShaderMaterial" id="Stone"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.90
-shader_parameter/grain_strength = 0.12
+shader_parameter/surface_roughness = 0.80
 
 [sub_resource type="ShaderMaterial" id="Timber"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.84
-shader_parameter/grain_strength = 0.08
+shader_parameter/surface_roughness = 0.74
 
 [sub_resource type="ShaderMaterial" id="Metal"]
 shader = ExtResource("surface_shader")
 shader_parameter/metalness = 0.65
 shader_parameter/surface_roughness = 0.36
-shader_parameter/grain_strength = 0.035
 
 [sub_resource type="ShaderMaterial" id="Roof"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.78
-shader_parameter/grain_strength = 0.08
+shader_parameter/surface_roughness = 0.72
+
+[sub_resource type="ShaderMaterial" id="GroundRoots"]
+shader = ExtResource("surface_shader")
+shader_parameter/surface_roughness = 1.0
 
 [sub_resource type="ShaderMaterial" id="Cloth"]
 resource_local_to_scene = true
@@ -57,18 +58,17 @@ shader = ExtResource("flag_shader")
 
 [sub_resource type="ShaderMaterial" id="HouseRoof"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.79
-shader_parameter/grain_strength = 0.08
-shader_parameter/tint_strength = 0.82
+shader_parameter/surface_roughness = 0.72
+shader_parameter/tint_strength = 0.10
 
 [sub_resource type="ShaderMaterial" id="Band"]
 shader = ExtResource("band_shader")
 shader_parameter/surface_roughness = 0.65
 
 [sub_resource type="PlaneMesh" id="FlagMesh"]
-size = Vector2(1.45, 0.88)
+size = Vector2(1.65, 1.0)
 orientation = 2
-center_offset = Vector3(0.725, 0, 0)
+center_offset = Vector3(0.825, 0, 0)
 subdivide_width = 18
 subdivide_depth = 8
 
@@ -176,6 +176,10 @@ material_override = SubResource("Stone")
 mesh = ExtResource("foundation_timber")
 material_override = SubResource("Timber")
 
+[node name="WallGrass" type="MeshInstance3D" parent="Visual"]
+mesh = ExtResource("foundation_foliage")
+material_override = SubResource("GroundRoots")
+
 [node name="House" type="Node3D" parent="Visual"]
 
 [node name="Metal" type="MeshInstance3D" parent="Visual/House"]
@@ -227,7 +231,7 @@ mesh = ExtResource("smithy_timber")
 material_override = SubResource("Timber")
 
 [node name="Bellows" type="Node3D" parent="Visual/Smithy"]
-position = Vector3(-1.48, 0.72, 0.69)
+position = Vector3(-1.2136, 0.3608, 0.5658)
 
 [node name="Fabric" type="MeshInstance3D" parent="Visual/Smithy/Bellows"]
 mesh = ExtResource("bellows_fabric")
@@ -238,13 +242,13 @@ mesh = ExtResource("bellows_timber")
 material_override = SubResource("Timber")
 
 [node name="Flag" type="MeshInstance3D" parent="Visual"]
-position = Vector3(-2.05, 4.36, 0.35)
+position = Vector3(1.85, 3.74, 0.28)
 mesh = SubResource("FlagMesh")
 material_override = SubResource("Cloth")
 
 [node name="Gun" type="Node3D" parent="Visual/Tower"]
-position = Vector3(0, 3.46, 0)
-scale = Vector3(0.68, 0.68, 0.68)
+position = Vector3(0, 2.6076, 0)
+scale = Vector3(0.5576, 0.5576, 0.5576)
 rotation_degrees = Vector3(0, 155, 0)
 
 [node name="MountTimber" type="MeshInstance3D" parent="Visual/Tower/Gun"]
@@ -277,19 +281,21 @@ update_rotation = false
 update_scale = false
 
 [node name="Embers" type="MeshInstance3D" parent="Visual/Smithy"]
-position = Vector3(-0.845, 1.20, 0.435)
+position = Vector3(-0.6929, 0.7544, 0.3567)
+scale = Vector3(0.82, 0.82, 0.82)
 mesh = SubResource("FireMesh")
 material_override = SubResource("Fire")
 
 [node name="HearthLight" type="OmniLight3D" parent="Visual/Smithy"]
-position = Vector3(-0.845, 1.19, 0.91)
+position = Vector3(-0.6929, 0.7462, 0.7462)
 light_color = Color(1, 0.42, 0.13, 1)
 light_energy = 1.0
-omni_range = 3.0
+omni_range = 2.46
 omni_attenuation = 1.6
 
 [node name="Smoke" type="GPUParticles3D" parent="Visual/Smithy"]
-position = Vector3(-0.845, 4.98, 0)
+position = Vector3(-0.6929, 3.854, 0)
+scale = Vector3(0.82, 0.82, 0.82)
 amount = 14
 lifetime = 3.0
 preprocess = 0.4
@@ -303,6 +309,7 @@ libraries = {&"": SubResource("ForgeLibrary")}
 autoplay = &"forge"
 
 [node name="OwnershipRing" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(0, 0.07, 0)
 mesh = SubResource("OwnershipMesh")
 material_override = SubResource("Ownership")
@@ -313,7 +320,7 @@ mesh = SubResource("SelectionMesh")
 material_override = SubResource("Select")
 
 [node name="Door" type="Marker3D" parent="."]
-position = Vector3(0, 0, 2.65)
+position = Vector3(0, 0, 2.18)
 
 [node name="ProjectileOrigin" type="Marker3D" parent="."]
 position = Vector3(0, 4.7, 1.8)

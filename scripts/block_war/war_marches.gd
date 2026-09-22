@@ -6,10 +6,10 @@ extends Node3D
 signal unit_arrived(target_id: int, faction: int, strength: float)
 
 const COLUMNS := 6
-const COLUMN_SPACING := 0.45
-const ROW_SPACING := 0.72
+const COLUMN_SPACING := 0.56
+const ROW_SPACING := 0.90
 const SPEED := 3.45
-const MODEL_SCALE := 0.44
+const MODEL_SCALE := 0.62
 const GATE_LENGTH := 2.4
 const FACTION_COLORS: Array[Color] = [Color(1.0, 0.65, 0.18), Color(0.2, 0.83, 0.67), Color("94c964"), Color("e9bf5b")]
 

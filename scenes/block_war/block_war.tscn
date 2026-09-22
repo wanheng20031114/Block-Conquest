@@ -11,25 +11,24 @@
 
 [sub_resource type="Environment" id="environment"]
 background_mode = 1
-background_color = Color(0.075, 0.135, 0.145, 1)
+background_color = Color(0.10, 0.15, 0.075, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.78, 0.86, 0.9, 1)
-ambient_light_energy = 0.45
+ambient_light_color = Color(0.74, 0.83, 0.96, 1)
+ambient_light_energy = 0.5
 tonemap_mode = 2
 ssao_enabled = true
-ssao_radius = 1.4
-ssao_intensity = 1.15
-ssao_power = 1.15
-ssil_enabled = true
-ssil_intensity = 0.35
+ssao_radius = 1.05
+ssao_intensity = 1.05
+ssao_power = 1.1
+ssil_enabled = false
 glow_enabled = true
 glow_intensity = 0.3
 adjustment_enabled = true
-adjustment_contrast = 1.08
-adjustment_saturation = 0.98
+adjustment_contrast = 1.03
+adjustment_saturation = 1.0
 
 [sub_resource type="Shader" id="atmosphere_shader"]
-code = "shader_type canvas_item;\nvoid fragment() {\n vec2 d = (UV - vec2(0.5, 0.46)) * vec2(1.08, 1.0);\n float edge = smoothstep(0.3, 0.78, length(d));\n COLOR = vec4(0.015, 0.045, 0.035, edge * 0.28);\n}"
+code = "shader_type canvas_item;\nvoid fragment() {\n vec2 d = (UV - vec2(0.5, 0.46)) * vec2(1.08, 1.0);\n float edge = smoothstep(0.3, 0.78, length(d));\n COLOR = vec4(0.027, 0.037, 0.015, edge * 0.20);\n}"
 
 [sub_resource type="ShaderMaterial" id="atmosphere_material"]
 shader = SubResource("atmosphere_shader")
@@ -42,14 +41,14 @@ environment = SubResource("environment")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-56, -24, 0)
-light_color = Color(1, 0.93, 0.82, 1)
-light_energy = 1.05
+light_color = Color(1, 0.96, 0.86, 1)
+light_energy = 1.1
 shadow_enabled = true
 directional_shadow_max_distance = 140.0
 shadow_bias = 0.06
 shadow_normal_bias = 1.0
 directional_shadow_mode = 0
-light_angular_distance = 2.3
+light_angular_distance = 0.0
 
 [node name="Map" parent="." instance=ExtResource("map")]
 

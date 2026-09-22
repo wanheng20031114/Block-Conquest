@@ -41,7 +41,15 @@
 
 ## 美术与动画
 
-参考用户提供的两张《蘑菇战争 2》截图组织战场 UI：顶部细兵力条、左侧圆形派兵档位、底部四技能、左右阵营头像。头像由模式实际民兵模型原生渲染；建筑、植被、石材和部队复用本项目的木石风格模型并使用本模式专属资源。
+参考用户提供的两张《蘑菇战争 2》截图组织战场 UI：顶部细兵力条、左侧圆形派兵档位、底部四技能、左右阵营头像。头像由模式实际民兵模型原生渲染。人口花牌与 UI 保持独立于环境美术方向。
+
+建筑、地面和景观按用户指定的《皇室战争》方向重做为清晰、厚实的卡通块面：住宅赤陶厚瓦、铁匠蓝灰厚瓦、奶油石墙、胖木梁和宽门框；圆形展示底盘改为贴地基础、少量门前石与草簇。屋顶使用统一建筑色，右侧旗帜标示阵营。美术概念与完整生成记录见 [环境方向](art/block_war_environment_direction.md)，其中概念图不是实机截图。
+
+三种树木、灌木、岩石、蕨、草、芦苇和两种花共十套模型以大体积、少细节保持远景辨识。树冠与草花随统一时钟轻摆，暂停时停止。206 棵树按林群分布，小植物采用分区 MultiMesh；模型离线生成原生 LOD。四座桥改为圆角厚木板，保留至少 6.4 米通行宽度；暖灰岩岸都位于不可行走河床，草唇与草坪相接。
+
+地面使用原生 FastNoiseLite / NoiseTexture2D 提供低频色差，加低对比草坪格与门前磨损过渡，不使用颗粒草地贴图。蓝绿河水配暖日光、冷环境光和清晰的滤波阴影。模式关闭角度软阴影与 SSIL，避免无 TAA 时的颗粒干扰。
+
+建筑本体缩小约 18%，民兵缩放从 0.44 调至 0.62（约 +41%），避免大房屋配小士兵。六列编队的列距/行距为 0.56/0.90 米，导航净空增至 2.1 米，并按缩小建筑后的门位置进行全路线落脚验证。
 
 静态节点在 `.tscn` 中编辑。行军通过原生 MultiMesh 批量渲染，每名民兵独立结算；建筑旗帜、炉火、水流和 UI 的运动使用原生动画、shader 与 Tween。UI 动效参考同级 `GodotGameUI` 项目的渐显、缩放和交错播放方式，并复用本项目 `UIMotion`。
 
@@ -66,4 +74,6 @@ Godot --path . --script res://tests/block_war_motion_review.gd --write-movie art
 
 逻辑验证包含真实拖拽事件、大厅进入/返回、人口守恒、双方穿行、炮塔、技能、暂停、队列抢救、电脑合流和完整战局。路径审查遍历全部 156 条有向建筑路线，检查六列民兵完整旋转模型的落脚范围。视觉复现输出在被 Git 忽略的 `artifacts/block_war_*.png`。
 
-专用模型和头像的构建入口位于 `tools/build_war_architecture.py`、`tools/build_war_architecture.gd`、`tools/build_war_militia.gd` 和 `tools/render_war_portraits.gd`。
+建筑与头像构建入口位于 `tools/build_war_architecture.py`、`tools/build_war_architecture.gd`、`tools/build_war_militia.gd` 和 `tools/render_war_portraits.gd`。
+
+景观可重现构建顺序：使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）与 `tools/bake_war_map_details.gd`（桥岸网格），最后 Python 执行 `tools/dress_war_map.py`（确定性场景布置）。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点；`dress_war_map.py --plan` 可只查看布置数量。

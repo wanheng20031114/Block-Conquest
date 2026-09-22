@@ -1,10 +1,10 @@
 class_name WarMap
 extends Node3D
 ## The riverbed is physically below the plateau. Only the four bridges connect
-## the three banks; graph clearance reserves room for a five-column march.
+## the three banks; graph clearance includes all six files and rotated militia.
 
 const HALF_SIZE := Vector2(40.0, 28.0)
-const FORMATION_CLEARANCE := 1.6
+const FORMATION_CLEARANCE := 2.1
 const GRID_STEP := 2.0
 const BRIDGE_Z := 14.0
 const BRIDGE_HALF_WIDTH := 3.2
@@ -17,7 +17,11 @@ var _tree_obstacle_grid: Dictionary[Vector2i, Array] = {}
 var _flow_time := 0.0
 var _visual_paused := false
 @onready var _river_material: ShaderMaterial = $Terrain/River0.material_override
-@onready var _wind_material: ShaderMaterial = preload("res://assets/block_war/environment/forest_wind.tres")
+const NATURE_MATERIALS: Array[ShaderMaterial] = [
+	preload("res://assets/models/block_war/nature/leaves.tres"),
+	preload("res://assets/models/block_war/nature/grass.tres"),
+	preload("res://assets/models/block_war/nature/bark.tres"),
+]
 
 
 func _ready() -> void:
@@ -34,7 +38,8 @@ func _process(delta: float) -> void:
 		return
 	_flow_time += delta
 	_river_material.set_shader_parameter("flow_time", _flow_time)
-	_wind_material.set_shader_parameter("flow_time", _flow_time)
+	for material: ShaderMaterial in NATURE_MATERIALS:
+		material.set_shader_parameter("flow_time", _flow_time)
 
 
 func set_visual_paused(value: bool) -> void:

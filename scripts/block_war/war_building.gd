@@ -33,6 +33,9 @@ var _recoil_tween: Tween
 
 func _ready() -> void:
 	_visual_time = float(building_id) * 0.73
+	# Clay varies slightly by location; flags carry faction colors.
+	var roof_palette: Array[Color] = [Color("b36139"), Color("ae5d34"), Color("b9683b")]
+	$Visual/House/Roof.set_instance_shader_parameter("team_tint", roof_palette[building_id % roof_palette.size()])
 	refresh_visual()
 	_selection.visible = false
 	_kind_label.visible = false
@@ -82,11 +85,9 @@ func fire_at(target: Vector3) -> void:
 func refresh_visual() -> void:
 	if faction != _last_faction:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
-		var cloth_color := color.lerp(Color("aa946d"), 0.30).darkened(0.10)
+		var cloth_color := color.lerp(Color("c1a674"), 0.12)
 		$Visual/Flag.set_instance_shader_parameter("team_color", cloth_color)
 		$Visual/Tower/Gun/Barrel/BarrelBands.set_instance_shader_parameter("team_color", cloth_color)
-		var roof_color: Color = Color("966c55") if faction < 0 else [Color("a77937"), Color("537f76")][faction]
-		$Visual/House/Roof.set_instance_shader_parameter("team_tint", roof_color)
 		$OwnershipRing.material_override.albedo_color = Color(color, 0.82)
 		_population_label.modulate = Color("34382e")
 		_kind_label.modulate = color.lightened(0.3)
