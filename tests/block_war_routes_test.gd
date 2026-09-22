@@ -21,16 +21,26 @@ func _check(condition: bool, description: String) -> void:
 
 func _wall_outline(building: WarBuilding) -> PackedVector2Array:
 	var points := PackedVector2Array()
-	var model := building.get_node("Visual/" + ["House", "Tower", "Smithy"][building.kind])
-	for part: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
-		for surface: int in part.mesh.get_surface_count():
-			var vertices: PackedVector3Array = part.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
-			for vertex: Vector3 in vertices:
-				var world := part.global_transform * vertex
-				# Walls and ground-level equipment at a soldier's body height;
-				# overhead roofs and walkable foundation steps do not obstruct him.
-				if world.y >= 0.5 and world.y <= 1.6:
-					points.append(Vector2(world.x, world.z))
+	var original_kind := building.kind
+	var original_level := building.level
+	# Cached routes must stay safe after upgrades and conversions at any point.
+	for kind: int in 3:
+		for level: int in range(1, 4):
+			building.kind = kind
+			building.level = level
+			building.refresh_visual()
+			var model := building.get_node("Visual/" + ["House", "Tower", "Smithy"][kind])
+			for part: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+				for surface: int in part.mesh.get_surface_count():
+					var vertices: PackedVector3Array = part.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+					for vertex: Vector3 in vertices:
+						var world := part.global_transform * vertex
+						# Overhead roofs and walkable foundation steps do not obstruct soldiers.
+						if world.y >= 0.5 and world.y <= 1.6:
+							points.append(Vector2(world.x, world.z))
+	building.kind = original_kind
+	building.level = original_level
+	building.refresh_visual()
 	return Geometry2D.convex_hull(points)
 
 
@@ -46,7 +56,7 @@ func _run() -> void:
 	for building: WarBuilding in buildings:
 		building.set_visual_paused(true)
 		outlines.append(_wall_outline(building))
-	_check(outlines.all(func(outline: PackedVector2Array): return outline.size() >= 3), "Wall audit loads the actual solid meshes of all authored building kinds")
+	_check(outlines.all(func(outline: PackedVector2Array): return outline.size() >= 3), "Wall audit loads all three kinds and three levels at every building position")
 	var mesh: Mesh = marches.get_node("Militia").multimesh.mesh
 	var bounds := mesh.get_aabb()
 	var footprint: Array[Vector3] = [Vector3.ZERO]

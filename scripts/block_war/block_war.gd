@@ -101,7 +101,7 @@ func simulate(delta: float) -> void:
 		if building.faction >= 0 and building.kind == 0 and building.population < building.capacity:
 			building.population = minf(building.capacity, building.population + delta)
 		if building.faction >= 0 and building.kind == 1:
-			tower_clocks[building.building_id] = float(tower_clocks[building.building_id]) - delta
+			tower_clocks[building.building_id] = maxf(0.0, float(tower_clocks[building.building_id]) - delta)
 			if tower_clocks[building.building_id] <= 0.0:
 				_fire_tower(building)
 		building.refresh_visual()
@@ -212,15 +212,20 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 	target.refresh_visual()
 
 func _fire_tower(building: Node3D) -> void:
-	tower_clocks[building.building_id] = maxf(0.55, 1.5 - 0.3 * (building.level - 1))
 	var target: Vector3 = marches.damage_near(building.global_position, building.faction, tower_range(building), building.level)
 	if target != Vector3.INF:
+		# An empty scan leaves the gun ready. Otherwise a whole nearby rank can
+		# reach this building while an idle tower reloads a shot it never fired.
+		tower_clocks[building.building_id] = tower_interval(building)
 		building.fire_at(target)
-		effects.append({"kind": "shot", "at": building.get_node("ProjectileOrigin").global_position, "to": target + Vector3(0, 0.5, 0), "color": faction_color(building.faction), "life": 0.32, "duration": 0.32})
+		effects.append({"kind": "shot", "at": building.muzzle_position(), "to": target + Vector3(0, 0.5, 0), "color": faction_color(building.faction), "life": 0.32, "duration": 0.32})
 		audio.play_world(&"cannon_shot", building.global_position)
 
 func tower_range(building: Node3D) -> float:
 	return 10.0 + building.level * 1.0
+
+func tower_interval(building: Node3D) -> float:
+	return maxf(0.55, 1.5 - 0.3 * (building.level - 1))
 
 func request_skill(index: int) -> void:
 	if index < 0 or index >= 4 or _local_menu or finished:
@@ -422,7 +427,7 @@ func update_hud() -> void:
 	if selected != null:
 		match selected.kind:
 			0: detail = "每秒 +1 民兵 · 产兵上限 %d · 守备 +%d%%" % [selected.capacity, (selected.level - 1) * 10]
-			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 不自动产兵" % [tower_range(selected), maxf(0.55, 1.5 - 0.3 * (selected.level - 1)), selected.level]
+			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 不自动产兵" % [tower_range(selected), tower_interval(selected), selected.level]
 			2: detail = "全军攻击与守备 +%d%% · 不自动产兵" % (selected.level * 10)
 		if shields.has(selected.building_id):
 			detail += " · 壁垒 %ds" % ceili(shields[selected.building_id])
@@ -432,6 +437,7 @@ func update_hud() -> void:
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"forges": forge_levels(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
+		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
 		"upgrade_cost": selected.level * 30 if selected != null else 30, "convert_cost": 30,
 		"can_upgrade": selected != null and selected.faction == PLAYER and selected.level < 3 and selected.population >= selected.level * 30})

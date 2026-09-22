@@ -985,10 +985,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -213.0
-offset_top = -160.0
-offset_right = 213.0
-offset_bottom = -128.0
+offset_left = -270.0
+offset_top = -210.0
+offset_right = 270.0
+offset_bottom = -130.0
 mouse_filter = 2
 visible = false
 
@@ -1000,8 +1000,8 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 426.0
-offset_bottom = 32.0
+offset_right = 540.0
+offset_bottom = 80.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SelectionStrip")
 
@@ -1013,8 +1013,8 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 0.0
-offset_top = -153.0
-offset_right = 426.0
+offset_top = -118.0
+offset_right = 540.0
 offset_bottom = -6.0
 mouse_filter = 0
 visible = false
@@ -1028,8 +1028,8 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 10.0
 offset_top = 0.0
-offset_right = 416.0
-offset_bottom = 32.0
+offset_right = 530.0
+offset_bottom = 80.0
 mouse_filter = 2
 
 
@@ -1041,7 +1041,7 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 406.0
+offset_right = 520.0
 offset_bottom = 32.0
 mouse_filter = 2
 theme_override_constants/separation = 12
@@ -1068,7 +1068,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(59,0)
 theme_override_font_sizes/font_size = 13
-text = "管理"
+text = "改建"
 toggle_mode = true
 theme_override_styles/normal = SubResource("SkillPlate")
 theme_override_styles/hover = SubResource("SkillHover")
@@ -1082,9 +1082,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 4.0
-offset_top = -143.0
-offset_right = 402.0
-offset_bottom = -91.0
+offset_top = -109.0
+offset_right = 516.0
+offset_bottom = -59.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.91,0.88,0.77,1)
@@ -1100,20 +1100,13 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 4.0
-offset_top = -83.0
-offset_right = 402.0
+offset_top = -49.0
+offset_right = 516.0
 offset_bottom = -17.0
 mouse_filter = 2
 visible = false
 theme = SubResource("BuildingTheme")
 theme_override_constants/separation = 6
-
-[node name="Upgrade" type="Button" parent="UI/Selection/Content/BuildingActions"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0,29)
-theme_override_font_sizes/font_size = 13
-text = "升级 · 30 人口"
 
 [node name="Convert" type="HBoxContainer" parent="UI/Selection/Content/BuildingActions"]
 layout_mode = 2
@@ -1146,6 +1139,41 @@ custom_minimum_size = Vector2(0,29)
 theme_override_font_sizes/font_size = 12
 tooltip_text = "消耗 30 人口，改建后重置至 1 级"
 text = "改建铁匠铺"
+
+[node name="UpgradeRow" type="Control" parent="UI/Selection/Content"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 38.0
+offset_right = 520.0
+offset_bottom = 72.0
+mouse_filter = 0
+theme = SubResource("BuildingTheme")
+
+[node name="Upgrade" type="Button" parent="UI/Selection/Content/UpgradeRow"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 282.0
+offset_bottom = 34.0
+mouse_filter = 0
+metadata/ui_motion_hover_scale = 1.0
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.14, 0.18, 0.12, 1)
+theme_override_colors/font_hover_color = Color(0.14, 0.18, 0.12, 1)
+theme_override_colors/font_pressed_color = Color(0.14, 0.18, 0.12, 1)
+theme_override_colors/font_disabled_color = Color(0.88, 0.88, 0.77, 1)
+text = "升级至 2 级 · 30 驻军"
+
+[node name="UpgradeHint" type="Label" parent="UI/Selection/Content/UpgradeRow"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 294.0
+offset_right = 520.0
+offset_bottom = 34.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.95, 0.87, 0.63, 1)
+text = "升级后保留 30 名驻军"
+vertical_alignment = 1
 
 [node name="Skills" type="Control" parent="UI"]
 unique_name_in_owner = true

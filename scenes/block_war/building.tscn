@@ -226,7 +226,7 @@ mesh = ExtResource("smithy_timber")
 material_override = SubResource("Timber")
 
 [node name="Bellows" type="Node3D" parent="Visual/Smithy"]
-position = Vector3(-1.20, 0.39, 1.01)
+position = Vector3(-1.20, 0.34, 0.74)
 
 [node name="Fabric" type="MeshInstance3D" parent="Visual/Smithy/Bellows"]
 mesh = ExtResource("bellows_fabric")
@@ -242,7 +242,7 @@ mesh = SubResource("FlagMesh")
 material_override = SubResource("Cloth")
 
 [node name="Gun" type="Node3D" parent="Visual/Tower"]
-position = Vector3(0, 2.05, 0)
+position = Vector3(0, 1.5088, 0)
 scale = Vector3(0.65, 0.65, 0.65)
 rotation_degrees = Vector3(0, 155, 0)
 
@@ -270,26 +270,26 @@ mesh = ExtResource("gun_barrel_fabric")
 material_override = SubResource("Band")
 
 [node name="Muzzle" type="RemoteTransform3D" parent="Visual/Tower/Gun/Barrel"]
-position = Vector3(0, 0, -2.50)
+position = Vector3(0, 0, -1.80)
 remote_path = NodePath("../../../../../ProjectileOrigin")
 update_rotation = false
 update_scale = false
 
 [node name="Embers" type="MeshInstance3D" parent="Visual/Smithy"]
-position = Vector3(-0.4674, 0.71, 1.56)
+position = Vector3(-0.6888, 0.6478, 0.738)
 scale = Vector3(0.82, 0.82, 0.82)
 mesh = SubResource("FireMesh")
 material_override = SubResource("Fire")
 
 [node name="HearthLight" type="OmniLight3D" parent="Visual/Smithy"]
-position = Vector3(-0.4674, 0.75, 1.62)
+position = Vector3(-0.6888, 0.76, 0.82)
 light_color = Color(1, 0.42, 0.13, 1)
 light_energy = 0.65
 omni_range = 2.46
 omni_attenuation = 1.6
 
 [node name="Smoke" type="GPUParticles3D" parent="Visual/Smithy"]
-position = Vector3(-0.7544, 4.0795, -0.3854)
+position = Vector3(-0.6888, 2.8126, -0.2132)
 scale = Vector3(0.82, 0.82, 0.82)
 amount = 14
 lifetime = 3.0

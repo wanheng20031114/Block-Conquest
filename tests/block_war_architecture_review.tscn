@@ -39,15 +39,52 @@ faction = 0
 kind = 0
 
 [node name="Tower" parent="." instance=ExtResource("building")]
-faction = 1
+faction = 0
 kind = 1
 
 [node name="Smithy" parent="." instance=ExtResource("building")]
 position = Vector3(7, 0, 0)
+faction = 0
 kind = 2
 
+[node name="House2" parent="." instance=ExtResource("building")]
+position = Vector3(-7, 0, 8)
+faction = 0
+kind = 0
+level = 2
+
+[node name="Tower2" parent="." instance=ExtResource("building")]
+position = Vector3(0, 0, 8)
+faction = 0
+kind = 1
+level = 2
+
+[node name="Smithy2" parent="." instance=ExtResource("building")]
+position = Vector3(7, 0, 8)
+faction = 0
+kind = 2
+level = 2
+
+[node name="House3" parent="." instance=ExtResource("building")]
+position = Vector3(-7, 0, 16)
+faction = 0
+kind = 0
+level = 3
+
+[node name="Tower3" parent="." instance=ExtResource("building")]
+position = Vector3(0, 0, 16)
+faction = 0
+kind = 1
+level = 3
+
+[node name="Smithy3" parent="." instance=ExtResource("building")]
+position = Vector3(7, 0, 16)
+faction = 0
+kind = 2
+level = 3
+
 [node name="Camera" type="Camera3D" parent="."]
-position = Vector3(6, 18, 23)
+position = Vector3(0, 33, 33)
 projection = 1
-size = 12.2
+size = 23.0
 current = true

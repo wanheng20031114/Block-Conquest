@@ -20,7 +20,9 @@
 | 炮塔 | 自动拦截射程内的敌方行军部队，不产兵 | 一级射程 11、每 1.5 秒消灭 1 人；后续等级提升射程、射速与伤害 |
 | 铁匠铺 | 每级为本方全军提供 +10% 攻击和守备，可叠加 | 最高三级，归属改变时加成立即转移 |
 
-升级分别消耗 30、60 名驻军，最高三级；各级额外提供 0%、10%、20% 建筑守备。改建为其他类型消耗 30 名驻军并重置为一级。升级/改建不会破坏已发出的队伍。
+选中己方建筑后，底部直接显示升级按钮、目标等级和驻军消耗；不足时显示还差多少人，三级显示已满级。升级分别消耗 30、60 名驻军，最高三级；各级额外提供 0%、10%、20% 建筑守备。旁边的「改建」展开类型选择，消耗 30 名驻军并重置为一级。升级/改建不会破坏已发出的队伍。
+
+已占领的炮塔自动拦截射程内敌方行军部队；一级至三级射程分别为 11、12、13 米，开火间隔为 1.5、1.2、0.9 秒，每发分别消灭 1、2、3 人。没有目标时保持待击，实际开火后才装填。中立炮塔不主动开火，炮塔也不会轰击建筑内的驻军。
 
 民兵保持竖直长矛，从建筑朝向路径的一侧逐排出发，展开六列编队，转弯时收窄，到达目标周界时收拢结算。住宅、炮塔和铁匠铺均可从任意方向进出，无需绕到正门。地形路径绕开沟壑、树干和沿途建筑主体。不同阵营的部队在路上直接穿透；只有炮塔能够拦截路上的敌军。
 
@@ -43,7 +45,15 @@
 
 参考用户提供的两张《蘑菇战争 2》截图组织战场 UI：顶部细兵力条、左侧圆形派兵档位、底部四技能、左右阵营头像。头像由模式实际民兵模型原生渲染。人口花牌与 UI 保持独立于环境美术方向。
 
-建筑、地面和景观已完整重建。单位与建筑相对大小继续参考用户提供的《蘑菇战争 2》实机图，《皇室战争》只用于造型、配色与材质参考，不采用夸张比例。住宅和铁匠铺采用阵营色瓦顶（橙金、青绿，中立砂灰），占领后立即换色；墙体、木门与旧铜保持自然材质。炮塔采用低矮石堡与独立炮身，铁匠铺用高烟囱和可见炉膛区分轮廓。详见 [环境方向](art/block_war_environment_direction.md)。
+建筑、地面和景观已完整重建。单位与建筑相对大小继续参考用户提供的《蘑菇战争 2》实机图，《皇室战争》只用于造型、配色与材质参考，不采用夸张比例。住宅和铁匠铺采用阵营色瓦顶（橙金、青绿，中立砂灰），占领后立即换色；墙体、木门与旧铜保持自然材质。三类建筑均具有一至三级的独立网格，升级、占领降级和改建会立即更新外观：
+
+| 类型 | 一级 | 二级 | 三级 |
+| --- | --- | --- | --- |
+| 住宅 | 木框矮屋 | 石砌住宅与单侧圆角翼楼 | 双圆角翼楼小堡 |
+| 炮塔 | 低石台与轻炮 | 环形城垛与中炮 | 扶壁、护甲与重炮 |
+| 铁匠铺 | 低木棚、短烟囱、炉体与铁砧 | 高石烟囱、加固梁架与木吊架 | 宽铁烟罩、双金属烟管与双工位 |
+
+铁匠铺保留开放操作区、粗烟囱和可见工具，从高处也能与封闭住宅区分。详细模型与实机预览见 [环境方向](art/block_war_environment_direction.md)。
 
 橡树、桦树、松树、垂柳四种树木与灌木、岩石、蕨、草、芦苇和两种花共十一套模型重新制作，通过根盘、分枝、树皮起伏、立体叶片和成组花草丰富自然林地。减少拥挤的装饰树林，保留全部 46 个导航树障碍；小植物采用分区 MultiMesh，模型离线生成原生 LOD。四座新石桥保留原有 6.4 米有效通行宽度，石岸限制在不可行走河床内。
 
@@ -69,17 +79,23 @@
 
 2026-09-22：派兵输入专项 171 项、原输入回归 20 项、玩法 39 项、行军 27 项、战局 27 项和音频混音 58 项通过。路线专项 12 项遍历全部 156 对建筑，对六列完整模型进行 494340 次采样，无落河、撞树或穿墙。另使用 Vulkan 原生窗口检查地图、路径和比例提示画面；此轮截图和日志保存在系统 TEMP。
 
+同日三级模型与升级修复：新增等级模型专项 522 项、炮塔专项 126 项、真实升级输入 50 项全部通过，并复核派兵输入 171 项、玩法 39 项、行军 27 项与战局 27 项。路线专项将九套模型的墙体合并检查，156 条路线、494340 次完整编队采样仍无落河或穿墙。Vulkan 实机确认九套模型、直接升级按钮、驻军不足提示及炮塔实际开火；70 个 GLB/RES 文件重建哈希一致。临时截图、日志在系统 TEMP，最终模型总览保存在 `docs/art/block_war_building_levels.png`。
+
 在仓库根目录执行：
 
 ```text
 Godot --headless --path . --script res://tests/block_war_test.gd
 Godot --headless --path . --script res://tests/block_war_input_test.gd
 Godot --headless --path . --script res://tests/block_war_dispatch_input_test.gd
+Godot --headless --path . --script res://tests/block_war_upgrade_input_test.gd
+Godot --headless --path . --script res://tests/block_war_tower_test.gd
+Godot --headless --path . --script res://tests/block_war_building_levels_test.gd
 Godot --headless --path . --script res://tests/block_war_routes_test.gd
 Godot --headless --audio-driver Dummy --path . --script res://tests/block_war_audio_mix_test.gd
 Godot --headless --path . --script res://tests/block_war_marches_test.gd
 Godot --headless --path . --script res://tests/block_war_campaign_test.gd
 Godot --path . --script res://tests/block_war_visual_review.gd --resolution 1600x900 --position 80,70
+Godot --path . --script res://tests/block_war_architecture_visual.gd --resolution 1600x900 --position 80,70
 Godot --path . --script res://tests/block_war_motion_review.gd --write-movie artifacts/block_war_motion.avi --fixed-fps 30
 ```
 

@@ -15,6 +15,29 @@ const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
 # One shared ground perimeter survives building conversions and leaves enough
 # space for a rotated marcher to appear or disappear outside the outer walls.
 const MARCH_PERIMETER_RADIUS := 2.45
+# Mesh resources are baked offline; upgrades reuse the same authored scene nodes.
+const LEVEL_MESHES := {
+	"House/Metal": [preload("res://assets/models/block_war/architecture/house_metal.res"), preload("res://assets/models/block_war/architecture/house_2_metal.res"), preload("res://assets/models/block_war/architecture/house_3_metal.res")],
+	"House/Roof": [preload("res://assets/models/block_war/architecture/house_roof.res"), preload("res://assets/models/block_war/architecture/house_2_roof.res"), preload("res://assets/models/block_war/architecture/house_3_roof.res")],
+	"House/Stone": [preload("res://assets/models/block_war/architecture/house_stone.res"), preload("res://assets/models/block_war/architecture/house_2_stone.res"), preload("res://assets/models/block_war/architecture/house_3_stone.res")],
+	"House/Timber": [preload("res://assets/models/block_war/architecture/house_timber.res"), preload("res://assets/models/block_war/architecture/house_2_timber.res"), preload("res://assets/models/block_war/architecture/house_3_timber.res")],
+	"Tower/Metal": [preload("res://assets/models/block_war/architecture/tower_metal.res"), preload("res://assets/models/block_war/architecture/tower_2_metal.res"), preload("res://assets/models/block_war/architecture/tower_3_metal.res")],
+	"Tower/Stone": [preload("res://assets/models/block_war/architecture/tower_stone.res"), preload("res://assets/models/block_war/architecture/tower_2_stone.res"), preload("res://assets/models/block_war/architecture/tower_3_stone.res")],
+	"Tower/Timber": [preload("res://assets/models/block_war/architecture/tower_timber.res"), preload("res://assets/models/block_war/architecture/tower_2_timber.res"), preload("res://assets/models/block_war/architecture/tower_3_timber.res")],
+	"Smithy/Metal": [preload("res://assets/models/block_war/architecture/smithy_metal.res"), preload("res://assets/models/block_war/architecture/smithy_2_metal.res"), preload("res://assets/models/block_war/architecture/smithy_3_metal.res")],
+	"Smithy/Roof": [preload("res://assets/models/block_war/architecture/smithy_roof.res"), preload("res://assets/models/block_war/architecture/smithy_2_roof.res"), preload("res://assets/models/block_war/architecture/smithy_3_roof.res")],
+	"Smithy/Stone": [preload("res://assets/models/block_war/architecture/smithy_stone.res"), preload("res://assets/models/block_war/architecture/smithy_2_stone.res"), preload("res://assets/models/block_war/architecture/smithy_3_stone.res")],
+	"Smithy/Timber": [preload("res://assets/models/block_war/architecture/smithy_timber.res"), preload("res://assets/models/block_war/architecture/smithy_2_timber.res"), preload("res://assets/models/block_war/architecture/smithy_3_timber.res")],
+	"Tower/Gun/MountTimber": [preload("res://assets/models/block_war/architecture/gun_mount_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_2_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_3_timber.res")],
+	"Tower/Gun/MountMetal": [preload("res://assets/models/block_war/architecture/gun_mount_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_2_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_3_metal.res")],
+	"Tower/Gun/Barrel/BarrelMetal": [preload("res://assets/models/block_war/architecture/gun_barrel_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_metal.res")],
+	"Tower/Gun/Barrel/BarrelStone": [preload("res://assets/models/block_war/architecture/gun_barrel_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_stone.res")],
+	"Tower/Gun/Barrel/BarrelBands": [preload("res://assets/models/block_war/architecture/gun_barrel_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_fabric.res")],
+}
+const TOWER_DECK_HEIGHTS := [1.5088, 2.05, 2.2714]
+const MUZZLE_LENGTHS := [-1.80, -2.50, -2.80]
+const SMITHY_SMOKE_HEIGHTS := [2.8126, 3.649, 3.8909]
+const SMITHY_SMOKE_X := [-0.6888, -0.6888, -0.9594]
 
 @onready var _visual: Node3D = $Visual
 @onready var _team_material: ShaderMaterial = $Visual/Flag.material_override
@@ -82,7 +105,17 @@ func fire_at(target: Vector3) -> void:
 	$Visual/Tower/Gun/Barrel/Muzzle.force_update_transform()
 
 
+func muzzle_position() -> Vector3:
+	# Flush the authored transform chain before a same-frame projectile request.
+	$Visual/Tower/Gun.force_update_transform()
+	$Visual/Tower/Gun/Barrel.force_update_transform()
+	$Visual/Tower/Gun/Barrel/Muzzle.force_update_transform()
+	return $Visual/Tower/Gun/Barrel/Muzzle.global_position
+
+
 func refresh_visual() -> void:
+	if level != _last_level:
+		_apply_level_visuals()
 	if faction != _last_faction:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
 		var cloth_color := color.lerp(Color("c1a674"), 0.12)
@@ -112,6 +145,23 @@ func refresh_visual() -> void:
 		$PopulationBadge.scale = Vector3.ONE * maxf(1.0, text_width * _population_label.pixel_size / 2.0)
 		$PickArea/BadgeCollisionShape3D.scale = $PopulationBadge.scale
 		_last_population = displayed_population
+
+
+func _apply_level_visuals() -> void:
+	assert(level >= 1 and level <= 3, "War buildings have three authored upgrade tiers.")
+	var tier := level - 1
+	for path: String in LEVEL_MESHES:
+		var part: MeshInstance3D = _visual.get_node(path)
+		part.mesh = LEVEL_MESHES[path][tier]
+	# One aiming/recoil hierarchy serves every cannon, including a capture downgrade.
+	if _recoil_tween:
+		_recoil_tween.kill()
+	$Visual/Tower/Gun.position.y = TOWER_DECK_HEIGHTS[tier]
+	$Visual/Tower/Gun/Barrel.position = Vector3(0, 1.18, 0)
+	$Visual/Tower/Gun/Barrel/Muzzle.position.z = MUZZLE_LENGTHS[tier]
+	$Visual/Smithy/Smoke.position.y = SMITHY_SMOKE_HEIGHTS[tier]
+	$Visual/Smithy/Smoke.position.x = SMITHY_SMOKE_X[tier]
+	muzzle_position()
 
 
 func door_position() -> Vector3:

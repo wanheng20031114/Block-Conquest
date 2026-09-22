@@ -21,7 +21,7 @@ var _help_from_pause: bool = false
 var _toast_tween: Tween
 var _balance_tween: Tween
 var _balance_target: float = -1.0
-var _last_selected: String = ""
+var _last_selected_id: int = -1
 var _last_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _skill_buttons: Array[Button] = []
 var _percentage_buttons: Array[Button] = []
@@ -56,7 +56,7 @@ func _ready() -> void:
 	%ConvertForge.pressed.connect(func(): convert_requested.emit(2))
 	for button: BaseButton in $UI.find_children("*", "BaseButton", true, false):
 		_pointer_blockers.append(button)
-	for panel: Control in [%ManagementBackdrop, %PauseOverlay, %HelpOverlay, %ResultOverlay]:
+	for panel: Control in [%UpgradeRow, %ManagementBackdrop, %PauseOverlay, %HelpOverlay, %ResultOverlay]:
 		_pointer_blockers.append(panel)
 	UIMotion.bind_buttons($UI)
 	var panels: Array[Control] = [%Top, %Player, %Enemy, %Percentages, %Skills]
@@ -92,28 +92,44 @@ func update_state(state: Dictionary) -> void:
 	var selected_name: String = str(state.selected_name)
 	%Selection.visible = not selected_name.is_empty()
 	if not selected_name.is_empty():
-		%SelectedName.text = "%s · %d 级" % [selected_name, int(state.selected_level)]
+		var faction: int = int(state.selected_faction)
+		var affiliation := "己方" if faction == 0 else ("敌方" if faction == 1 else "中立")
+		var level: int = int(state.selected_level)
+		%SelectedName.text = "%s · %s · %d / 3 级" % [affiliation, selected_name, level]
 		%SelectedPopulation.text = "%d" % int(state.selected_population)
 		%SelectedDetail.text = str(state.selected_detail)
 		%Manage.tooltip_text = str(state.selected_detail)
-		if selected_name != _last_selected:
+		if int(state.selected_id) != _last_selected_id:
 			_managing = false
 			%Manage.set_pressed_no_signal(false)
 			UIMotion.reveal(%Selection, Vector2(0, 5))
-		var owned: bool = bool(state.get("selected_owned", false))
+		var owned: bool = bool(state.selected_owned)
 		_selected_owned = owned
 		%Manage.visible = owned
 		_refresh_management()
+		var cost: int = int(state.upgrade_cost)
+		var population: int = int(state.selected_population)
+		%Upgrade.disabled = not bool(state.can_upgrade) or _paused or _finished
+		%Upgrade.text = "升级至 %d 级 · %d 驻军" % [level + 1, cost]
+		if not owned:
+			%Upgrade.text = "%s建筑 · 不可升级" % affiliation
+			%UpgradeHint.text = "占领后可升级"
+		elif level >= 3:
+			%Upgrade.text = "3 级 · 已达满级"
+			%UpgradeHint.text = "建筑已升至最高等级"
+		elif _paused or _finished:
+			%UpgradeHint.text = "暂停中" if _paused else "战斗已结束"
+		elif population < cost:
+			%UpgradeHint.text = "还差 %d 名驻军" % (cost - population)
+		else:
+			%UpgradeHint.text = "升级后保留 %d 名驻军" % (population - cost)
+		%Upgrade.tooltip_text = "%s\n%s" % [%Upgrade.text, %UpgradeHint.text]
 		if owned:
 			var kind: int = int(state.selected_kind)
-			%Upgrade.text = "升级 · %d 人口" % int(state.upgrade_cost)
-			%Upgrade.disabled = not bool(state.can_upgrade)
-			if int(state.selected_level) >= 3:
-				%Upgrade.text = "已达最高等级"
 			%ConvertHouse.disabled = kind == 0 or int(state.selected_population) < int(state.convert_cost)
 			%ConvertTower.disabled = kind == 1 or int(state.selected_population) < int(state.convert_cost)
 			%ConvertForge.disabled = kind == 2 or int(state.selected_population) < int(state.convert_cost)
-	_last_selected = selected_name
+	_last_selected_id = int(state.selected_id)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
