@@ -62,9 +62,9 @@ shader = ExtResource("band_shader")
 shader_parameter/surface_roughness = 0.78
 
 [sub_resource type="PlaneMesh" id="FlagMesh"]
-size = Vector2(1.65, 1.0)
+size = Vector2(2.25, 1.35)
 orientation = 2
-center_offset = Vector3(0.825, 0, 0)
+center_offset = Vector3(1.125, 0, 0)
 subdivide_width = 18
 subdivide_depth = 8
 
@@ -237,7 +237,7 @@ mesh = ExtResource("bellows_timber")
 material_override = SubResource("Timber")
 
 [node name="Flag" type="MeshInstance3D" parent="Visual"]
-position = Vector3(1.85, 3.74, 0.28)
+position = Vector3(1.85, 3.565, 0.28)
 mesh = SubResource("FlagMesh")
 material_override = SubResource("Cloth")
 

@@ -150,6 +150,7 @@ func refresh_visual() -> void:
 func _apply_level_visuals() -> void:
 	assert(level >= 1 and level <= 3, "War buildings have three authored upgrade tiers.")
 	var tier := level - 1
+	$Visual/Flag.set_instance_shader_parameter("building_level", level)
 	for path: String in LEVEL_MESHES:
 		var part: MeshInstance3D = _visual.get_node(path)
 		part.mesh = LEVEL_MESHES[path][tier]
