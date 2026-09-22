@@ -54,10 +54,10 @@ def author(source: str) -> tuple[str, dict[str, int]]:
     externals.append(f'[ext_resource type="Material" path="{NATURE}grass.tres" id="plant_material"]')
     externals += [f'[ext_resource type="ArrayMesh" path="{ENVIRONMENT}{name}.res" id="detail_{name}"]' for name in DETAILS]
     resources = ['[sub_resource type="ShaderMaterial" id="River"]\nshader = ExtResource("water_shader")']
-    palettes = {"Limestone": (0.64, 0.62, 0.51), "LightStone": (0.71, 0.68, 0.56), "MossStone": (0.43, 0.48, 0.31), "Recess": (0.44, 0.44, 0.35)}
+    palettes = {"Limestone": (0.59, 0.585, 0.535), "LightStone": (0.67, 0.65, 0.595), "MossStone": (0.41, 0.44, 0.36), "Recess": (0.38, 0.395, 0.35)}
     for name, rgb in palettes.items():
         resources.append(f'[sub_resource type="StandardMaterial3D" id="{name}"]\nalbedo_color = Color({", ".join(map(str, rgb))}, 1)\nroughness = 0.89')
-    resources.append('[sub_resource type="StandardMaterial3D" id="PaintedStone"]\nvertex_color_use_as_albedo = true\nvertex_color_is_srgb = true\nroughness = 0.86')
+    resources.append('[sub_resource type="StandardMaterial3D" id="PaintedStone"]\nalbedo_color = Color(0.84, 0.86, 0.94, 1)\nvertex_color_use_as_albedo = true\nvertex_color_is_srgb = true\nroughness = 0.90')
     for name, size in (("OuterLand", (85, 3.2, 136)), ("CentralLand", (18, 3.2, 136)), ("Water", (6.06, 0.045, 136))):
         resources.append(f'[sub_resource type="BoxMesh" id="{name}"]\nsize = {vector(size)}')
     nodes = ['[node name="WarMap" type="Node3D"]\nscript = ExtResource("script")']

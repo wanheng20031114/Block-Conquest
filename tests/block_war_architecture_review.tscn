@@ -1,17 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]
 
-[sub_resource type="Environment" id="Environment"]
-background_mode = 1
-background_color = Color(0.12, 0.22, 0.29, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.77, 0.85, 0.92, 1)
-ambient_light_energy = 0.55
-tonemap_mode = 2
-ssao_enabled = true
-ssao_radius = 0.7
-ssao_intensity = 1.6
+[ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="woodland_daylight"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMaterial"]
 albedo_color = Color(0.18, 0.32, 0.28, 1)
@@ -24,14 +15,20 @@ size = Vector2(80, 60)
 [node name="ArchitectureReview" type="Node3D"]
 
 [node name="Environment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment")
+environment = ExtResource("woodland_daylight")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-48, -35, 0)
-light_color = Color(1.0, 0.93, 0.81, 1)
-light_energy = 1.35
+rotation_degrees = Vector3(-49, -38, 0)
+light_color = Color(1, 0.965, 0.88, 1)
+light_energy = 0.92
+light_specular = 0.6
 shadow_enabled = true
-directional_shadow_max_distance = 70.0
+directional_shadow_max_distance = 140.0
+shadow_bias = 0.035
+shadow_normal_bias = 0.65
+shadow_blur = 1.3
+directional_shadow_mode = 0
+light_angular_distance = 0.0
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("GroundMesh")

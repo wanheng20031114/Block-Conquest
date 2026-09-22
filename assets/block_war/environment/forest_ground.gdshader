@@ -2,10 +2,11 @@ shader_type spatial;
 render_mode specular_disabled;
 
 uniform sampler2D meadow_noise : filter_linear_mipmap, repeat_enable;
-uniform vec4 grass_shadow : source_color = vec4(0.15, 0.28, 0.17, 1.0);
-uniform vec4 grass_meadow : source_color = vec4(0.28, 0.43, 0.20, 1.0);
-uniform vec4 grass_sunlit : source_color = vec4(0.40, 0.52, 0.25, 1.0);
-uniform vec4 soil_color : source_color = vec4(0.55, 0.46, 0.33, 1.0);
+uniform vec4 grass_shadow : source_color = vec4(0.16, 0.265, 0.205, 1.0);
+uniform vec4 grass_meadow : source_color = vec4(0.29, 0.405, 0.235, 1.0);
+uniform vec4 grass_sunlit : source_color = vec4(0.395, 0.485, 0.295, 1.0);
+uniform vec4 soil_color : source_color = vec4(0.49, 0.445, 0.355, 1.0);
+uniform vec4 bank_soil_color : source_color = vec4(0.36, 0.37, 0.29, 1.0);
 varying vec3 world_position;
 
 const vec2 SITES[13] = vec2[13](
@@ -64,7 +65,8 @@ void fragment() {
 	float bank = (1.0 - smoothstep(0.25, 1.35, bank_distance)) * (1.0 - worn);
 	color = mix(color, grass_shadow.rgb, bank * 0.16);
 	color *= 0.96 + detail * 0.08;
-	color = mix(color, vec3(0.40, 0.43, 0.30), smoothstep(0.28, 1.2, -world_position.y));
+	// All authored colours use the same sRGB-to-linear uniform conversion.
+	color = mix(color, bank_soil_color.rgb, smoothstep(0.28, 1.2, -world_position.y));
 	ALBEDO = color;
 	ROUGHNESS = 0.95;
 }

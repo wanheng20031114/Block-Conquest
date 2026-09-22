@@ -32,20 +32,21 @@
 
 [sub_resource type="ShaderMaterial" id="Stone"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.80
+shader_parameter/surface_roughness = 0.92
 
 [sub_resource type="ShaderMaterial" id="Timber"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.74
+shader_parameter/surface_roughness = 0.90
 
 [sub_resource type="ShaderMaterial" id="Metal"]
 shader = ExtResource("surface_shader")
-shader_parameter/metalness = 0.65
-shader_parameter/surface_roughness = 0.36
+shader_parameter/metalness = 0.28
+shader_parameter/surface_roughness = 0.60
 
 [sub_resource type="ShaderMaterial" id="Roof"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.72
+shader_parameter/surface_roughness = 0.88
+shader_parameter/tint_strength = 1.0
 
 [sub_resource type="ShaderMaterial" id="Cloth"]
 resource_local_to_scene = true
@@ -53,12 +54,12 @@ shader = ExtResource("flag_shader")
 
 [sub_resource type="ShaderMaterial" id="HouseRoof"]
 shader = ExtResource("surface_shader")
-shader_parameter/surface_roughness = 0.72
-shader_parameter/tint_strength = 0.10
+shader_parameter/surface_roughness = 0.88
+shader_parameter/tint_strength = 1.0
 
 [sub_resource type="ShaderMaterial" id="Band"]
 shader = ExtResource("band_shader")
-shader_parameter/surface_roughness = 0.65
+shader_parameter/surface_roughness = 0.78
 
 [sub_resource type="PlaneMesh" id="FlagMesh"]
 size = Vector2(1.65, 1.0)
@@ -104,7 +105,7 @@ length = 2.4
 loop_mode = 1
 tracks/0/type = "value"
 tracks/0/path = NodePath("HearthLight:light_energy")
-tracks/0/keys = {"times": PackedFloat32Array(0, 0.6, 1.1, 1.7, 2.4), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [1.0, 1.25, 0.90, 1.13, 1.0]}
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.6, 1.1, 1.7, 2.4), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [0.65, 0.8125, 0.585, 0.7345, 0.65]}
 tracks/1/type = "scale_3d"
 tracks/1/path = NodePath("Bellows")
 tracks/1/keys = PackedFloat32Array(0, 1, 1, 1, 1, 1.2, 1, 1, 0.70, 1, 2.4, 1, 1, 1, 1)
@@ -280,7 +281,7 @@ material_override = SubResource("Fire")
 [node name="HearthLight" type="OmniLight3D" parent="Visual/Smithy"]
 position = Vector3(-0.4674, 0.75, 1.62)
 light_color = Color(1, 0.42, 0.13, 1)
-light_energy = 1.0
+light_energy = 0.65
 omni_range = 2.46
 omni_attenuation = 1.6
 

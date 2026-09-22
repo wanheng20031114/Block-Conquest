@@ -52,25 +52,26 @@
 shader = ExtResource("water_shader")
 
 [sub_resource type="StandardMaterial3D" id="Limestone"]
-albedo_color = Color(0.64, 0.62, 0.51, 1)
+albedo_color = Color(0.59, 0.585, 0.535, 1)
 roughness = 0.89
 
 [sub_resource type="StandardMaterial3D" id="LightStone"]
-albedo_color = Color(0.71, 0.68, 0.56, 1)
+albedo_color = Color(0.67, 0.65, 0.595, 1)
 roughness = 0.89
 
 [sub_resource type="StandardMaterial3D" id="MossStone"]
-albedo_color = Color(0.43, 0.48, 0.31, 1)
+albedo_color = Color(0.41, 0.44, 0.36, 1)
 roughness = 0.89
 
 [sub_resource type="StandardMaterial3D" id="Recess"]
-albedo_color = Color(0.44, 0.44, 0.35, 1)
+albedo_color = Color(0.38, 0.395, 0.35, 1)
 roughness = 0.89
 
 [sub_resource type="StandardMaterial3D" id="PaintedStone"]
+albedo_color = Color(0.84, 0.86, 0.94, 1)
 vertex_color_use_as_albedo = true
 vertex_color_is_srgb = true
-roughness = 0.86
+roughness = 0.90
 
 [sub_resource type="BoxMesh" id="OuterLand"]
 size = Vector3(85, 3.2, 136)

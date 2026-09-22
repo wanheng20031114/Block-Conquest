@@ -15,17 +15,17 @@ env.OUT.mkdir(parents=True, exist_ok=True)
 env.RNG = np.random.default_rng(47321)
 BODY_SCALE = .82
 env.C.update({
-    "stone": (218, 226, 224), "stone_light": (248, 244, 217),
-    "plaster": (239, 236, 212), "mortar": (108, 142, 163),
-    "wood": (78, 109, 147), "wood_light": (103, 135, 166),
-    "wood_dark": (34, 57, 82), "iron": (47, 74, 100),
-    "iron_light": (117, 153, 181), "gold": (248, 190, 60),
-    "gold_light": (255, 219, 111), "gold_dark": (199, 127, 37),
-    "slate": (34, 111, 210), "slate_light": (47, 136, 225),
-    "terracotta": (30, 97, 126), "terracotta_light": (36, 125, 147),
-    "dark": (17, 38, 56), "canvas": (77, 125, 151),
-    "blue": (56, 115, 186), "ember": (248,106,28), "ember_light": (255,188,54),
-    "stone_joint": (177, 193, 193),
+    "stone": (185, 186, 167), "stone_light": (216, 211, 183),
+    "plaster": (203, 200, 173), "mortar": (133, 141, 130),
+    "wood": (118, 90, 63), "wood_light": (151, 120, 82),
+    "wood_dark": (73, 60, 47), "iron": (75, 91, 89),
+    "iron_light": (138, 152, 144), "gold": (176, 139, 80),
+    "gold_light": (197, 166, 103), "gold_dark": (134, 101, 65),
+    "slate": (72, 107, 115), "slate_light": (101, 132, 138),
+    "terracotta": (70, 103, 101), "terracotta_light": (97, 128, 121),
+    "dark": (37, 52, 47), "canvas": (130, 120, 95),
+    "blue": (92, 115, 105), "ember": (229, 115, 45), "ember_light": (244, 182, 83),
+    "stone_joint": (148, 153, 133),
 })
 
 

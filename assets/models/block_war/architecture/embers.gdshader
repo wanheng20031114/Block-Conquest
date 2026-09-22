@@ -10,6 +10,6 @@ void fragment() {
 	float flame = 1.0 - smoothstep(width * 0.45, width, abs(UV.x - 0.5 + sway));
 	flame *= smoothstep(0.0, 0.24, UV.y) * (1.0 - smoothstep(0.85, 1.0, UV.y));
 	ALBEDO = mix(vec3(0.55, 0.09, 0.01), vec3(1.0, 0.48, 0.08), center);
-	EMISSION = ALBEDO * glow * 2.6;
+	EMISSION = ALBEDO * glow * 1.6;
 	ALPHA = flame * 0.82;
 }

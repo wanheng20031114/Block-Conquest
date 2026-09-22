@@ -2,9 +2,9 @@ shader_type spatial;
 render_mode cull_disabled;
 
 uniform float flow_time = 0.0;
-uniform vec4 shallow_color : source_color = vec4(0.20, 0.56, 0.54, 1.0);
-uniform vec4 deep_color : source_color = vec4(0.10, 0.35, 0.41, 1.0);
-uniform vec4 foam_color : source_color = vec4(0.74, 0.90, 0.80, 1.0);
+uniform vec4 shallow_color : source_color = vec4(0.265, 0.45, 0.435, 1.0);
+uniform vec4 deep_color : source_color = vec4(0.16, 0.315, 0.345, 1.0);
+uniform vec4 foam_color : source_color = vec4(0.61, 0.715, 0.655, 1.0);
 varying vec3 world_position;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -33,9 +33,9 @@ void fragment() {
 	float ripples = smoothstep(0.84, 0.97, noise(vec2(p.x * 3.0, p.y * 1.5 - flow_time * 0.48)));
 	float foam = (1.0 - smoothstep(0.01, 0.16, abs(shore_distance - 0.08))) * (0.53 + 0.47 * current);
 	ALBEDO = mix(deep_color.rgb, shallow_color.rgb, shore * 0.64 + current * 0.25);
-	ALBEDO = mix(ALBEDO, foam_color.rgb, foam * 0.28 + streaks * current * 0.012 + ripples * 0.065);
-	ROUGHNESS = 0.46;
-	SPECULAR = 0.31;
+	ALBEDO = mix(ALBEDO, foam_color.rgb, foam * 0.18 + streaks * current * 0.007 + ripples * 0.035);
+	ROUGHNESS = 0.62;
+	SPECULAR = 0.18;
 	NORMAL_MAP = vec3(0.5 + sin(p.y * 1.6 - flow_time) * 0.045, 0.5 + sin(p.x * 2.0 + flow_time * 0.5) * 0.055, 1.0);
 	NORMAL_MAP_DEPTH = 0.26;
 }

@@ -33,9 +33,6 @@ var _recoil_tween: Tween
 
 func _ready() -> void:
 	_visual_time = float(building_id) * 0.73
-	# Cobalt roofs keep the kingdom cohesive; flags carry faction colors.
-	var roof_palette: Array[Color] = [Color("267acc"), Color("2472c4"), Color("3184d6")]
-	$Visual/House/Roof.set_instance_shader_parameter("team_tint", roof_palette[building_id % roof_palette.size()])
 	refresh_visual()
 	_selection.visible = false
 	_kind_label.visible = false
@@ -87,6 +84,9 @@ func refresh_visual() -> void:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
 		var cloth_color := color.lerp(Color("c1a674"), 0.12)
 		$Visual/Flag.set_instance_shader_parameter("team_color", cloth_color)
+		# Only roof tiles carry ownership; both kinds update immediately on capture.
+		$Visual/House/Roof.set_instance_shader_parameter("team_tint", color)
+		$Visual/Smithy/Roof.set_instance_shader_parameter("team_tint", color)
 		$Visual/Tower/Gun/Barrel/BarrelBands.set_instance_shader_parameter("team_color", cloth_color)
 		$OwnershipRing.material_override.albedo_color = Color(color, 0.82)
 		_population_label.modulate = Color("34382e")
