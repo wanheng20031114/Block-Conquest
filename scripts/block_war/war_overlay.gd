@@ -32,24 +32,12 @@ func _draw() -> void:
 			points.append(camera.unproject_position(game.drag_source.global_position + Vector3.UP))
 			points.append(get_viewport().get_mouse_position())
 		if points.size() >= 2:
-			var ribbon: Color = color
-			ribbon.a = 0.32
-			draw_polyline(points, ribbon, 18.0, true)
 			color.a = 0.75
-			draw_polyline(points, color, 2.0, true)
-			for index: int in range(1, points.size()):
-				var length: float = points[index - 1].distance_to(points[index])
-				var along: Vector2 = (points[index] - points[index - 1]).normalized()
-				var across := Vector2(-along.y, along.x)
-				var distance: float = fmod(game.elapsed * 36.0, 40.0)
-				while distance < length - 16.0:
-					var center: Vector2 = points[index - 1] + along * distance
-					draw_polyline(PackedVector2Array([center - along * 5 + across * 5, center, center - along * 5 - across * 5]), color, 2.0, true)
-					distance += 40.0
+			draw_polyline(points, color, 3.5, true)
 			var end: Vector2 = points[-1]
 			var direction: Vector2 = (end - points[-2]).normalized()
 			var side := Vector2(-direction.y, direction.x)
-			draw_colored_polygon(PackedVector2Array([end, end - direction * 30 + side * 15, end - direction * 30 - side * 15]), color)
+			draw_polyline(PackedVector2Array([end - direction * 16 + side * 8, end, end - direction * 16 - side * 8]), color, 3.5, true)
 		var count := floori(game.drag_source.population * game.percentage / 100.0)
 		var verb := "增援" if game.hovered != null and game.hovered.faction == 0 else "进攻"
 		var label := "%s %d 人 · %d%%" % [verb, count, game.percentage]
