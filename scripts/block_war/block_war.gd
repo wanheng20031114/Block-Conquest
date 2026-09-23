@@ -101,6 +101,19 @@ func _process(delta: float) -> void:
 func simulate(delta: float) -> void:
 	if _local_menu or finished or delta <= 0.0:
 		return
+	# Integrate up to each completion before applying the next level's rules.
+	# Long frames and multiple simultaneous builds keep the same production as
+	# small steps, including a recruitment skill crossing the completion time.
+	var remaining := delta
+	while remaining > 0.0 and not finished:
+		var step := remaining
+		for building: WarBuilding in buildings:
+			if building.is_upgrading:
+				step = minf(step, building.upgrade_remaining)
+		_simulate_step(step)
+		remaining = maxf(0.0, remaining - step)
+
+func _simulate_step(delta: float) -> void:
 	elapsed += delta
 	energy = minf(ENERGY_MAX, energy + ENERGY_REGEN * delta)
 	var recruiting_id := _tick_recruitment(delta)
@@ -132,6 +145,12 @@ func simulate(delta: float) -> void:
 		if ai_clock <= 0.0:
 			ai_clock = 3.0
 			_ai_turn()
+	for building: WarBuilding in buildings:
+		if building.advance_upgrade(delta):
+			audio.play_world(&"war_upgrade", building.global_position)
+			if building.faction == PLAYER:
+				hud.notify("%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
+			update_hud()
 	_check_victory()
 
 func _tick_recruitment(delta: float) -> int:
@@ -232,6 +251,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 		else:
 			var survivors: float = strength * (1.0 - target.population / damage)
 			var previous_faction: int = target.faction
+			target.cancel_upgrade()
 			target.faction = faction
 			if target_id == _recruit_target_id:
 				_cancel_recruitment()
@@ -381,7 +401,7 @@ func skill_ground_at(screen: Vector2) -> Vector3:
 	return hit
 
 func upgrade_selected() -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level:
+	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level or selected.is_upgrading:
 		return
 	var cost: int = selected.upgrade_cost
 	if selected.population < cost:
@@ -389,21 +409,21 @@ func upgrade_selected() -> void:
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= cost
-	selected.level += 1
+	selected.begin_upgrade()
 	selected.refresh_visual()
-	selected.pulse_capture()
-	audio.play_world(&"war_upgrade", selected.global_position)
-	hud.notify("%s已升至 %d 级" % [KIND_NAMES[selected.kind], selected.level])
+	audio.play_world(&"war_rebuild", selected.global_position)
+	hud.notify("%s开始升级 · 10 秒后完成" % KIND_NAMES[selected.kind])
 	update_hud()
 
 func convert_selected(kind: int) -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or kind not in [0, 1, 2] or selected.kind == kind:
+	if _local_menu or finished or selected == null or selected.faction != PLAYER or kind not in [0, 1, 2] or selected.kind == kind or selected.is_upgrading:
 		return
 	if selected.population < 30.0:
 		hud.notify("改建需要 30 名驻军")
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= 30.0
+	selected.cancel_upgrade()
 	selected.kind = kind
 	if selected.building_id == _recruit_target_id:
 		_cancel_recruitment()
@@ -540,8 +560,9 @@ func update_hud() -> void:
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
 		"selected_max_level": selected.max_level if selected != null else 4,
+		"upgrade_remaining": selected.upgrade_remaining if selected != null else 0.0,
 		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": 30,
-		"can_upgrade": selected != null and selected.faction == PLAYER and selected.level < selected.max_level and selected.population >= selected.upgrade_cost})
+		"can_upgrade": selected != null and selected.faction == PLAYER and not selected.is_upgrading and selected.level < selected.max_level and selected.population >= selected.upgrade_cost})
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:

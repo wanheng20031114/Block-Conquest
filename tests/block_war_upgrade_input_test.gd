@@ -83,7 +83,13 @@ func _run() -> void:
 			check(next_level.text == str(tier + 2) and cost.text == str(expected_costs[tier]) and upgrade.text.is_empty(), "kind %d tier %d shows the actual next level and cost" % [kind, tier + 1])
 			await click(center(upgrade))
 			remaining -= expected_costs[tier]
-			check(building.level == tier + 2 and building.population == remaining, "kind %d click pays exactly %d and upgrades once" % [kind, expected_costs[tier]])
+			check(building.level == tier + 1 and building.is_upgrading and building.population == remaining, "kind %d click pays exactly %d and starts construction" % [kind, expected_costs[tier]])
+			check(upgrade.disabled and cost.text == "10s" and not upgrade.get_node("Cost/Population").visible, "construction replaces cost with a disabled ten-second countdown")
+			await click(center(upgrade))
+			check(building.population == remaining and building.upgrade_remaining == 10.0, "repeated construction click neither pays again nor restarts the timer")
+			game.simulate(10.0)
+			game.update_hud()
+			check(building.level == tier + 2 and not building.is_upgrading, "kind %d completes its paid level after ten seconds" % kind)
 		check(upgrade.disabled and next_level.text == str(expected_max) and cost.text == "—", "kind %d visibly reaches its correct maximum level" % kind)
 		check(upgrade.tooltip_text.contains("已达 %d 级" % expected_max), "max-level tooltip matches the building kind")
 		await click(center(upgrade))
@@ -123,7 +129,9 @@ func _run() -> void:
 		await click(center(conversions[kind]))
 		check(home.kind == kind and home.level == 1 and home.population == 90.0 and not conversions[kind].visible, "conversion icon %d changes kind, charges once and then leaves the alternatives" % kind)
 	await click(center(upgrade))
-	check(home.level == 2 and home.population == 60.0, "converted building can immediately upgrade through the same direct button")
+	check(home.level == 1 and home.is_upgrading and home.population == 60.0, "converted building starts construction through the same direct button")
+	game.simulate(10.0)
+	game.update_hud()
 	game.set_paused(true)
 	game.update_hud()
 	await frames()
@@ -173,7 +181,9 @@ func _run() -> void:
 	check(point(covered).distance_to(at) < 1.0 and game.pick_building(at) == covered, "upgrade overlap fixture contains a real building underneath")
 	check(game.hud.is_pointer_blocked(at), "upgrade coordinates are explicitly blocked from world dispatch")
 	await click(at)
-	check(home.level == 3 and home.population == 0.0 and game.selected == home and game.marches.total_for(0) == 0, "upgrade over another building neither selects it nor sends troops")
+	check(home.level == 2 and home.is_upgrading and home.population == 0.0 and game.selected == home and game.marches.total_for(0) == 0, "upgrade over another building neither selects it nor sends troops")
+	game.simulate(10.0)
+	check(home.level == 3, "overlapping upgrade still completes its ten-second construction")
 	# A map drag ending on this action cannot upgrade or dispatch to its backdrop.
 	home.level = 1
 	home.population = 120.0

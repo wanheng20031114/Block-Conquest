@@ -169,15 +169,24 @@ func _update_building_actions(state: Dictionary) -> void:
 	var cost := int(state.upgrade_cost)
 	var max_level := int(state.selected_max_level)
 	var capped := level >= max_level
+	var remaining := ceili(float(state.upgrade_remaining))
+	var upgrading := remaining > 0
 	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, max_level))
-	%Upgrade.get_node("Cost/Population").visible = not capped
-	var detail := "升级后保留 %d 名驻军" % (population - cost)
+	%Upgrade.get_node("Cost/Population").visible = not capped and not upgrading
+	var detail := "开工后剩余 %d 名驻军" % (population - cost)
 	if population < cost:
 		detail = "还差 %d 名驻军" % (cost - population)
-	var upgrade_hint := "升级至 %d 级 · 消耗 %d 名驻军\n%s\n%s" % [level + 1, cost, detail, state.selected_detail]
+	var upgrade_hint := "升级至 %d 级 · 耗时 10 秒\n消耗 %d 名驻军 · %s\n%s" % [level + 1, cost, detail, state.selected_detail]
+	var amount := str(cost)
 	if capped:
 		upgrade_hint = "已达 %d 级\n%s" % [max_level, state.selected_detail]
-	_update_action(%Upgrade, bool(state.can_upgrade), "—" if capped else str(cost), upgrade_hint, not capped and population < cost)
+		amount = "—"
+	elif upgrading:
+		upgrade_hint = "正在升至 %d 级 · 还需 %d 秒\n施工期间维持当前等级，失守会中断\n%s" % [level + 1, remaining, state.selected_detail]
+		amount = "%ds" % remaining
+	_update_action(%Upgrade, bool(state.can_upgrade), amount, upgrade_hint, not capped and not upgrading and population < cost)
+	if upgrading:
+		%Upgrade.get_node("Icon").modulate.a = 0.8
 	var conversions: Array[Button] = [%ConvertHouse, %ConvertTower, %ConvertForge]
 	for kind: int in conversions.size():
 		var button := conversions[kind]
@@ -186,7 +195,9 @@ func _update_building_actions(state: Dictionary) -> void:
 		var hint := "改建%s · 消耗 %d 名驻军\n重置至 1 级" % [["住宅", "炮塔", "铁匠铺"][kind], convert_cost]
 		if population < convert_cost:
 			hint += "\n还差 %d 名驻军" % (convert_cost - population)
-		_update_action(button, bool(state.selected_owned) and population >= convert_cost, str(convert_cost), hint, population < convert_cost)
+		if upgrading:
+			hint = "施工中 · 还需 %d 秒\n升级完成后可改建" % remaining
+		_update_action(button, bool(state.selected_owned) and not upgrading and population >= convert_cost, str(convert_cost), hint, not upgrading and population < convert_cost)
 	_position_selection()
 
 func _update_action(button: Button, available: bool, cost: String, hint: String, shortfall: bool) -> void:

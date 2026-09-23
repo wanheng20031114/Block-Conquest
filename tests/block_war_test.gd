@@ -107,6 +107,8 @@ func run() -> void:
 	game.select_building(home)
 	home.population = 100.0
 	game.upgrade_selected()
+	check(home.level == 1 and home.is_upgrading and home.population == 90.0, "house upgrade pays once and starts ten seconds of construction")
+	game.simulate(10.0)
 	check(home.level == 2 and home.capacity == 50.0 and home.population == 90.0, "house upgrade spends ten and raises the production limit")
 	game.convert_selected(2)
 	check(home.kind == 2 and home.level == 1 and home.population == 60.0, "convert costs thirty and resets building level")

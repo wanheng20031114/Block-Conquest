@@ -94,7 +94,7 @@ func _run() -> void:
 		game.simulate(7.0)
 		near(home.population, limit + 50.0, "Q adds thirty above the cap and then stops")
 	# Each purchase accepts the exact cost, rejects fractional shortfalls, and
-	# immediately changes the model, natural rate, limit and next purchase price.
+	# changes the model, natural rate and limit only after ten seconds of work.
 	game.select_building(home)
 	for tier: int in [1, 2, 3]:
 		home.level = tier
@@ -104,18 +104,22 @@ func _run() -> void:
 		near(home.population, tier * 10.0 - 0.01, "rejected upgrade spends nothing")
 		home.population = tier * 10.0
 		game.upgrade_selected()
-		check(home.level == tier + 1, "exact cost buys the next level")
+		check(home.level == tier and home.is_upgrading, "exact cost starts construction at the current level")
 		near(home.population, 0.0, "upgrade deducts exactly ten/twenty/thirty")
-		near(home.capacity, limits[tier], "upgrade immediately switches production limit")
+		near(home.capacity, limits[tier - 1], "construction retains the current production limit")
+		game.simulate(10.0)
+		check(home.level == tier + 1 and not home.is_upgrading, "ten seconds completes the next residence level")
+		near(home.population, rates[tier - 1] * 10.0, "construction retains ordinary production at the old rate")
+		near(home.capacity, limits[tier], "completed upgrade switches production limit")
 		game.simulate(1.0)
-		near(home.population, rates[tier], "upgrade immediately switches production rate")
+		near(home.population, rates[tier - 1] * 10.0 + rates[tier], "completed upgrade switches production rate")
 		home.population = limits[tier]
 		game.simulate(1.0)
 		near(home.population, limits[tier], "upgraded residence stops at its new limit")
 	home.population = 300.0
 	game.upgrade_selected()
 	check(home.level == 4 and home.population == 300.0, "maximum level cannot spend population")
-	# An upgrade during recruitment changes only its ordinary production part.
+	# Recruitment during construction still uses the old natural production rate.
 	home.level = 1
 	home.population = 10.0
 	game.energy = 100.0
@@ -124,8 +128,10 @@ func _run() -> void:
 	game.simulate(1.0)
 	game.upgrade_selected()
 	game.simulate(1.0)
-	near(home.population, 12.25, "active Q uses the upgraded 1.25/s natural rate")
+	near(home.population, 12.0, "active Q retains the 1/s natural rate during construction")
 	game._cancel_recruitment()
+	game.simulate(9.0)
+	check(home.level == 2 and not home.is_upgrading, "construction completes after Q is cancelled")
 	# Losing a level-four home restores the existing level-three silhouette and
 	# derives its lower production limit without destroying over-cap survivors.
 	home.level = 4

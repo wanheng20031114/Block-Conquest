@@ -10,6 +10,13 @@ extends Node3D
 
 const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
+const UPGRADE_DURATION := 10.0
+
+# The match advances this clock, so pause and game-over freeze construction too.
+var upgrade_remaining := 0.0
+var is_upgrading: bool:
+	get:
+		return upgrade_remaining > 0.0
 # Derived from the current kind and level, including capture and conversion.
 # This limits natural production only; the garrison itself is uncapped.
 var capacity: float:
@@ -61,6 +68,7 @@ const SMITHY_SMOKE_X := [-0.6888, -0.6888, -0.9594]
 @onready var _population_label: Label3D = $PopulationLabel
 @onready var _kind_label: Label3D = $KindLabel
 @onready var _selection: MeshInstance3D = $SelectionRing
+@onready var _construction_particles: Array[GPUParticles3D] = [$Construction/Dust, $Construction/Chips, $Construction/Complete]
 var _selection_tween: Tween
 var _capture_tween: Tween
 var _is_selected := false
@@ -93,6 +101,8 @@ func set_visual_paused(value: bool) -> void:
 	_visual_paused = value
 	$Visual/Smithy/Smoke.speed_scale = 0.0 if value else 1.0
 	$Visual/Smithy/ForgeAnimation.speed_scale = 0.0 if value else 1.0
+	for particles: GPUParticles3D in _construction_particles:
+		particles.speed_scale = 0.0 if value else 1.0
 	if _recoil_tween and _recoil_tween.is_valid():
 		if value:
 			_recoil_tween.pause()
@@ -103,6 +113,40 @@ func set_visual_paused(value: bool) -> void:
 			_capture_tween.pause()
 		else:
 			_capture_tween.play()
+
+
+func begin_upgrade() -> void:
+	assert(not is_upgrading and level < max_level)
+	upgrade_remaining = UPGRADE_DURATION
+	$Construction.show()
+	$Construction/Complete.hide()
+	$Construction/Complete.emitting = false
+	$Construction/Dust.restart()
+	$Construction/Chips.restart()
+
+
+func advance_upgrade(delta: float) -> bool:
+	if not is_upgrading:
+		return false
+	upgrade_remaining = maxf(0.0, upgrade_remaining - delta)
+	if upgrade_remaining > 0.000001:
+		return false
+	upgrade_remaining = 0.0
+	level += 1
+	$Construction/Dust.emitting = false
+	$Construction/Chips.emitting = false
+	$Construction/Complete.show()
+	$Construction/Complete.restart()
+	pulse_capture()
+	return true
+
+
+func cancel_upgrade() -> void:
+	upgrade_remaining = 0.0
+	# Hide immediately on capture, including any dust from a recent completion.
+	$Construction.hide()
+	for particles: GPUParticles3D in _construction_particles:
+		particles.emitting = false
 
 
 func fire_at(target: Vector3) -> void:
