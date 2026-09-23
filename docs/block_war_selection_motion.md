@@ -1,6 +1,6 @@
 # 建筑点击动画：采用 01「重心回弹」
 
-2026-09-23。用户选择 01「重心回弹」，已接入住宅、炮塔和铁匠铺的全部等级。正常速度实机录制如下；另外可查看[炮塔](art/selection_motion/live_01_tower.gif)和[铁匠铺](art/selection_motion/live_01_forge.gif)。
+2026-09-23。用户选择 01「重心回弹」，已接入住宅、炮塔和铁匠铺的全部等级。根据后续反馈，当前时长由 0.54 秒缩短至 **0.38 秒**，约缩短 30%，曲线与变形幅度保持原样。下方住宅及[炮塔](art/selection_motion/live_01_tower.gif)、[铁匠铺](art/selection_motion/live_01_forge.gif)的 GIF 保留初版 0.54 秒录制，用于记录造型和动作设计。
 
 ![01 正式住宅点击动效](art/selection_motion/live_01_house.gif)
 
@@ -23,7 +23,7 @@
 
 `tests/block_war_selection/review.tscn` 预先摆放六座建筑，曲线保存在 `presets/01.tres` 至 `06.tres`。预览只改变 `Building/Visual` 和 05 的屋顶局部位置，人口牌、点击碰撞区域和建筑世界位置保持固定。侧倾与前倾按接地边缘补偿高度，回弹保持近似体积，结束后回到作者原始变换。旗帜等环境待机动画在此预览中暂停，便于比较点击本身。
 
-比较场景通过 `Tween.tween_method()` 采样，用 `Tween.custom_step()` 固定步进，六版同步且可重现。01 的曲线提取为正式资源 `assets/block_war/selection_rebound.tres`，游戏和比较预览共用同一条曲线；正式 `WarBuilding.set_selected()` 使用原生 Tween 播放 0.54 秒动作。
+比较场景通过 `Tween.tween_method()` 采样，用 `Tween.custom_step()` 固定步进，六版同步且可重现。01 的曲线提取为正式资源 `assets/block_war/selection_rebound.tres`，游戏和比较预览共用同一条曲线；正式 `WarBuilding.set_selected()` 使用原生 Tween 播放 0.38 秒动作，比较场景的 01 也同步为当前速度。
 
 本体纵向先压缩至约 90%，上弹至约 107%，随后两次减幅收稳；横向随高度补偿，保持近似体积。快速点选会终止前一次 Tween，从当前高度平滑汇入首次压实，不回跳原位、不累积变形。取消选择立即隐藏选中圈，本体继续自然收稳。
 
@@ -52,3 +52,5 @@ Godot --headless --path . --script res://tests/block_war_selection_motion_test.g
 本轮 36 项检查通过，覆盖六版动作幅度、完成时限、建筑及上层原位恢复、人口牌和点击区域稳定。人工检查动作关键帧与导出后的 GIF 画面，文字与模型不重叠。FFprobe 确认七个 GIF 都是 90 帧、3 秒；总览 1200×1000，单版 480×500。
 
 正式接入后新增专项 74 项通过，覆盖全部十套等级模型的实际运动、固定锚点、体积、连点连续性、取消选择、原生暂停恢复、升级/改建/占领打断、炮管独立后坐及退出释放。施工 254 项、炮塔 127 项、原生输入 23 项与候选预览 36 项也通过，共 514 项。Vulkan 实机通过真实鼠标点击录制三类建筑各 90 帧，未调用预览动作控制器；对应 GIF 均为 600×440、正常速度、3 秒循环。
+
+后续将 01 加快至 0.38 秒，仅调整播放时长并同步比较资源；重新执行动作衔接专项，74 项全部通过。

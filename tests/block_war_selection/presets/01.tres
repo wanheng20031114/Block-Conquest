@@ -8,5 +8,5 @@ script = ExtResource("script")
 number = 1
 title = "重心回弹"
 description = "脚底压实 → 向上回弹 → 稳稳收住"
-duration = 0.54
+duration = 0.38
 stretch = ExtResource("stretch")

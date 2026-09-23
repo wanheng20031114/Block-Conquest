@@ -12,7 +12,7 @@ const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
 const CONSTRUCTION_DURATION := 10.0
 const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
-const SELECTION_REBOUND_DURATION := 0.54
+const SELECTION_REBOUND_DURATION := 0.38
 
 # The match advances this clock, so pause and game-over freeze construction too.
 var construction_remaining := 0.0
