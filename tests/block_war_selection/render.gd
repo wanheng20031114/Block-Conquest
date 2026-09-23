@@ -1,5 +1,5 @@
 extends SceneTree
-## Render the six authored candidates together. Gameplay code is left untouched.
+## Render the six authored candidates together; 01 shares its live gameplay curve.
 ## Godot --path . --script res://tests/block_war_selection/render.gd --fixed-fps 30
 
 const FPS := 30

@@ -1,6 +1,6 @@
 class_name WarSelectionMotionPreset
 extends Resource
-## Preview-only motion data. No candidate is wired into gameplay yet.
+## Comparison data; candidate 01 shares its curve with the live building motion.
 
 const FLAT: Curve = preload("res://tests/block_war_selection/presets/flat.tres")
 @export var number := 1

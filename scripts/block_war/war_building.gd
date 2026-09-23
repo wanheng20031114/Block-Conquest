@@ -11,6 +11,8 @@ extends Node3D
 const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
 const CONSTRUCTION_DURATION := 10.0
+const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
+const SELECTION_REBOUND_DURATION := 0.54
 
 # The match advances this clock, so pause and game-over freeze construction too.
 var construction_remaining := 0.0
@@ -64,6 +66,7 @@ const SMITHY_SMOKE_HEIGHTS := [2.8126, 3.649, 3.8909]
 const SMITHY_SMOKE_X := [-0.6888, -0.6888, -0.9594]
 
 @onready var _visual: Node3D = $Visual
+@onready var _visual_rest_scale: Vector3 = _visual.scale
 @onready var _team_material: ShaderMaterial = $Visual/Flag.material_override
 @onready var _fire_material: ShaderMaterial = $Visual/Smithy/Embers.material_override
 @onready var _population_label: Label3D = $PopulationLabel
@@ -71,6 +74,7 @@ const SMITHY_SMOKE_X := [-0.6888, -0.6888, -0.9594]
 @onready var _selection: MeshInstance3D = $SelectionRing
 @onready var _construction_particles: Array[GPUParticles3D] = [$Construction/Dust, $Construction/Chips, $Construction/Complete]
 var _selection_tween: Tween
+var _selection_body_tween: Tween
 var _capture_tween: Tween
 var _is_selected := false
 var _last_faction := -999
@@ -104,16 +108,12 @@ func set_visual_paused(value: bool) -> void:
 	$Visual/Smithy/ForgeAnimation.speed_scale = 0.0 if value else 1.0
 	for particles: GPUParticles3D in _construction_particles:
 		particles.speed_scale = 0.0 if value else 1.0
-	if _recoil_tween and _recoil_tween.is_valid():
-		if value:
-			_recoil_tween.pause()
-		else:
-			_recoil_tween.play()
-	if _capture_tween and _capture_tween.is_valid():
-		if value:
-			_capture_tween.pause()
-		else:
-			_capture_tween.play()
+	for tween: Tween in [_selection_tween, _selection_body_tween, _capture_tween, _recoil_tween]:
+		if tween and tween.is_valid():
+			if value:
+				tween.pause()
+			else:
+				tween.play()
 
 
 func begin_construction(target_kind: int = -1) -> void:
@@ -263,13 +263,41 @@ func set_selected(selected: bool) -> void:
 		_selection.scale = Vector3.ONE * 0.78
 		_selection_tween = create_tween()
 		_selection_tween.tween_property(_selection, "scale", Vector3.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		if _visual_paused:
+			_selection_tween.pause()
+		_play_selection_rebound()
+
+
+func _play_selection_rebound() -> void:
+	# Capture and construction completion own the body until their pulse settles.
+	if _capture_tween and _capture_tween.is_valid():
+		return
+	if _selection_body_tween:
+		_selection_body_tween.kill()
+	var initial_height := _visual.scale.y / _visual_rest_scale.y
+	_selection_body_tween = create_tween()
+	_selection_body_tween.tween_method(_sample_selection_rebound.bind(initial_height), 0.0, 1.0, SELECTION_REBOUND_DURATION).set_trans(Tween.TRANS_LINEAR)
+	if _visual_paused:
+		_selection_body_tween.pause()
+
+
+func _sample_selection_rebound(progress: float, initial_height: float) -> void:
+	var height := 1.0 + SELECTION_REBOUND.sample_baked(progress)
+	# Blend a rapid re-click from its current pose into the first compression,
+	# without snapping to rest or accumulating additional stretch on every click.
+	height += (initial_height - 1.0) * (1.0 - smoothstep(0.0, 0.13, progress))
+	var width := 1.0 / sqrt(height)
+	_visual.scale = _visual_rest_scale * Vector3(width, height, width)
 
 
 func pulse_capture() -> void:
 	refresh_visual()
+	if _selection_body_tween:
+		_selection_body_tween.kill()
 	if _capture_tween:
 		_capture_tween.kill()
-	_visual.scale = Vector3.ONE
 	_capture_tween = create_tween()
-	_capture_tween.tween_property(_visual, "scale", Vector3(1.12, 0.86, 1.12), 0.1).set_trans(Tween.TRANS_QUAD)
-	_capture_tween.tween_property(_visual, "scale", Vector3.ONE, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_capture_tween.tween_property(_visual, "scale", _visual_rest_scale * Vector3(1.12, 0.86, 1.12), 0.1).set_trans(Tween.TRANS_QUAD)
+	_capture_tween.tween_property(_visual, "scale", _visual_rest_scale, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if _visual_paused:
+		_capture_tween.pause()

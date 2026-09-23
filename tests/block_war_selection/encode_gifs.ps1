@@ -1,4 +1,4 @@
-param([string]$Ffmpeg = 'ffmpeg')
+param([string]$Ffmpeg = 'ffmpeg', [switch]$Live)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -14,6 +14,16 @@ function Export-PreviewGif([string]$filter, [string]$filename) {
     if ($LASTEXITCODE -ne 0) {
         throw "GIF export failed: $filename"
     }
+}
+
+if ($Live) {
+    $buildingKinds = @('house', 'tower', 'forge')
+    for ($kind = 0; $kind -lt 3; $kind++) {
+        $framePattern = Join-Path $projectRoot ('artifacts/block_war_selection_live/kind_{0}_%03d.png' -f $kind)
+        Export-PreviewGif 'crop=600:440:400:260' ('live_01_{0}.gif' -f $buildingKinds[$kind])
+    }
+    Get-ChildItem -LiteralPath $outputDirectory -Filter 'live_01_*.gif' | Select-Object Name,Length
+    return
 }
 
 Export-PreviewGif 'scale=1200:1000:flags=lanczos' 'overview.gif'

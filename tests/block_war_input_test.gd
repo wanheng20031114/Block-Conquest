@@ -76,6 +76,7 @@ func run() -> void:
 	check(game.percentage == 75, "percentage shortcut routes through HUD")
 	mouse(source_screen, MOUSE_BUTTON_LEFT, true)
 	check(game.drag_source == home, "mouse press selects allied drag source")
+	check(home._selection_body_tween != null and home._selection_body_tween.is_running(), "native building press starts the selected rebound animation")
 	move_mouse(target_screen, target_screen - source_screen, MOUSE_BUTTON_MASK_LEFT)
 	mouse(target_screen, MOUSE_BUTTON_LEFT, false)
 	check(game.marches.incoming_for(target.building_id, 0) == 45 and home.population == 15.0, "dragging from building to building dispatches selected percentage")

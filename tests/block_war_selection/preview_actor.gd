@@ -25,6 +25,8 @@ func play_motion() -> void:
 	_upper.transform = _upper_rest
 	building.set_selected(false)
 	building.set_selected(true)
+	# The comparison controls all six bodies itself; 01 shares the live curve.
+	building._selection_body_tween.kill()
 	building.get_node("KindLabel").hide()
 	building._selection_tween.pause()
 	motion = create_tween()

@@ -63,7 +63,7 @@
 
 参考用户提供的《蘑菇战争 2》截图组织战场 UI：顶部细兵力条、左侧圆形派兵档位、左右阵营头像。底部技能栏采用白色方卡与居中深色图标、加厚的技力条和嫩绿色可用光芒，说明在悬停时显示。头像由模式实际民兵模型原生渲染。人口花牌与 UI 保持独立于环境美术方向。新版实机见[紧凑建筑操作](art/block_war_compact_actions.png)和[扩散火焰](art/block_war_fire_wave.png)。
 
-建筑点击弹性动画已制作[六版原生 GIF 候选](block_war_selection_motion.md)，等待用户选定；候选保存在独立预览场景，尚未接入正式选择逻辑。
+建筑点击弹性动画已采用用户选定的 **01「重心回弹」**，住宅、炮塔和铁匠铺全部等级共用 0.54 秒的压实、上弹和减幅收稳节奏。只改变建筑本体，脚底位置、人口牌和点击范围保持稳定；连续点击从当前姿态衔接，取消选择后自然收稳。占领与施工完成接管本体动效，炮塔瞄准和后坐独立运行；暂停或战局结束冻结动作。[设计对比与实机 GIF](block_war_selection_motion.md)。
 
 建筑、地面和景观已完整重建。单位与建筑相对大小继续参考用户提供的《蘑菇战争 2》实机图，《皇室战争》只用于造型、配色与材质参考，不采用夸张比例。住宅和铁匠铺采用阵营色瓦顶（橙金、青绿，中立砂灰），占领后立即换色；墙体、木门与旧铜保持自然材质。住宅具有一至四级独立网格，炮塔和铁匠铺为一至三级；升级完工、占领降级和改建时同步更新外观：
 
@@ -121,6 +121,8 @@
 
 2026-09-23 淡白遮罩与点击动效候选：`tests/block_war_combat_visual.gd -- --actions-only` 以原生 Vulkan 画面复核 14% 白色遮罩，并更新建筑操作截图。六版候选以 30 FPS 输出 90 帧，36 项动作与回位检查通过；总览与六个单独 GIF 均为正常速度、3 秒循环。此阶段只调整正式 UI 遮罩，动画等待选型。
 
+同日用户选择 01 后完成接入：选中动作专项 74 项、施工 254 项、炮塔 127 项、原生输入 23 项、六版预览 36 项全部通过，共 514 项。覆盖十套等级模型、连续点选、暂停恢复、取消选择、升级/改建完工、占领降级、炮口与后坐、退出清理。`tests/block_war_selection/live_render.gd` 通过真实鼠标事件录制三类建筑的正式 Tween，各 90 帧；正常速度实机 GIF 见动效设计页。
+
 在仓库根目录执行：
 
 ```text
@@ -138,6 +140,7 @@ Godot --headless --path . --script res://tests/block_war_routes_test.gd
 Godot --headless --audio-driver Dummy --path . --script res://tests/block_war_audio_mix_test.gd
 Godot --headless --path . --script res://tests/block_war_marches_test.gd
 Godot --headless --path . --script res://tests/block_war_campaign_test.gd
+Godot --headless --path . --script res://tests/block_war_selection_motion_test.gd --fixed-fps 60
 Godot --path . --script res://tests/block_war_visual_review.gd --resolution 1600x900 --position 80,70
 Godot --path . --script res://tests/block_war_architecture_visual.gd --resolution 1600x900 --position 80,70
 Godot --path . --script res://tests/block_war_motion_review.gd --write-movie artifacts/block_war_motion.avi --fixed-fps 30
