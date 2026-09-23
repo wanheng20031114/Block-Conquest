@@ -2,6 +2,42 @@
 
 [ext_resource type="Script" path="res://scripts/block_war/war_effects.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/effect_burst.tscn" id="burst"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/soldier_hit.tscn" id="hit"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/fire_wave.tscn" id="fire"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/militia.res" id="militia"]
+[ext_resource type="Shader" path="res://assets/models/block_war/casualty.gdshader" id="casualty"]
+
+[sub_resource type="ShaderMaterial" id="CasualtyMaterial"]
+shader = ExtResource("casualty")
+
+[sub_resource type="MultiMesh" id="Casualties"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-60, -3, -45, 120, 12, 90)
+mesh = ExtResource("militia")
+
+[sub_resource type="StandardMaterial3D" id="BallMaterial"]
+albedo_color = Color(0.17, 0.14, 0.11, 1)
+metallic = 0.6
+roughness = 0.45
+emission_enabled = true
+emission = Color(0.30, 0.11, 0.025, 1)
+
+[sub_resource type="SphereMesh" id="BallMesh"]
+material = SubResource("BallMaterial")
+radius = 0.16
+height = 0.32
+radial_segments = 12
+rings = 6
+
+[sub_resource type="MultiMesh" id="Balls"]
+resource_local_to_scene = true
+transform_format = 1
+visible_instance_count = 0
+custom_aabb = AABB(-60, -3, -45, 120, 12, 90)
+mesh = SubResource("BallMesh")
 
 [sub_resource type="Shader" id="shield_shader"]
 code = "shader_type spatial;\nrender_mode blend_mix, depth_draw_opaque, cull_back, unshaded;\nvoid fragment() {\n float rim = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 2.8);\n float bands = pow(0.5 + 0.5 * sin(UV.y * 100.0), 24.0);\n ALBEDO = vec3(0.26, 0.63, 0.76);\n ALPHA = rim * 0.42 + bands * 0.025;\n}"
@@ -17,7 +53,42 @@ radial_segments = 48
 rings = 24
 
 [node name="Effects" type="Node3D"]
+physics_interpolation_mode = 2
 script = ExtResource("script")
+
+[node name="Cannonballs" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Balls")
+
+[node name="Casualties" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Casualties")
+material_override = SubResource("CasualtyMaterial")
+cast_shadow = 0
+
+[node name="FireWaves" type="Node3D" parent="."]
+
+[node name="Fire0" parent="FireWaves" instance=ExtResource("fire")]
+[node name="Fire1" parent="FireWaves" instance=ExtResource("fire")]
+[node name="Fire2" parent="FireWaves" instance=ExtResource("fire")]
+[node name="Fire3" parent="FireWaves" instance=ExtResource("fire")]
+
+[node name="Hits" type="Node3D" parent="."]
+
+[node name="Hit0" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit1" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit2" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit3" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit4" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit5" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit6" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit7" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit8" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit9" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit10" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit11" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit12" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit13" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit14" parent="Hits" instance=ExtResource("hit")]
+[node name="Hit15" parent="Hits" instance=ExtResource("hit")]
 
 [node name="Bursts" type="Node3D" parent="."]
 

@@ -10,13 +10,14 @@ extends Node3D
 
 const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
-const UPGRADE_DURATION := 10.0
+const CONSTRUCTION_DURATION := 10.0
 
 # The match advances this clock, so pause and game-over freeze construction too.
-var upgrade_remaining := 0.0
-var is_upgrading: bool:
+var construction_remaining := 0.0
+var conversion_target := -1
+var is_constructing: bool:
 	get:
-		return upgrade_remaining > 0.0
+		return construction_remaining > 0.0
 # Derived from the current kind and level, including capture and conversion.
 # This limits natural production only; the garrison itself is uncapped.
 var capacity: float:
@@ -115,9 +116,11 @@ func set_visual_paused(value: bool) -> void:
 			_capture_tween.play()
 
 
-func begin_upgrade() -> void:
-	assert(not is_upgrading and level < max_level)
-	upgrade_remaining = UPGRADE_DURATION
+func begin_construction(target_kind: int = -1) -> void:
+	assert(not is_constructing)
+	assert((target_kind == -1 and level < max_level) or (target_kind in [0, 1, 2] and target_kind != kind))
+	conversion_target = target_kind
+	construction_remaining = CONSTRUCTION_DURATION
 	$Construction.show()
 	$Construction/Complete.hide()
 	$Construction/Complete.emitting = false
@@ -125,14 +128,19 @@ func begin_upgrade() -> void:
 	$Construction/Chips.restart()
 
 
-func advance_upgrade(delta: float) -> bool:
-	if not is_upgrading:
+func advance_construction(delta: float) -> bool:
+	if not is_constructing:
 		return false
-	upgrade_remaining = maxf(0.0, upgrade_remaining - delta)
-	if upgrade_remaining > 0.000001:
+	construction_remaining = maxf(0.0, construction_remaining - delta)
+	if construction_remaining > 0.000001:
 		return false
-	upgrade_remaining = 0.0
-	level += 1
+	construction_remaining = 0.0
+	if conversion_target >= 0:
+		kind = conversion_target
+		level = 1
+	else:
+		level += 1
+	conversion_target = -1
 	$Construction/Dust.emitting = false
 	$Construction/Chips.emitting = false
 	$Construction/Complete.show()
@@ -141,8 +149,9 @@ func advance_upgrade(delta: float) -> bool:
 	return true
 
 
-func cancel_upgrade() -> void:
-	upgrade_remaining = 0.0
+func cancel_construction() -> void:
+	construction_remaining = 0.0
+	conversion_target = -1
 	# Hide immediately on capture, including any dust from a recent completion.
 	$Construction.hide()
 	for particles: GPUParticles3D in _construction_particles:

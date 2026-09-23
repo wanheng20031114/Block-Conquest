@@ -10,6 +10,7 @@ const ENERGY_REGEN := 2.0
 const RECRUIT_RATE := 5.0
 const IMPACT_RADIUS := 4.5
 const IMPACT_DAMAGE := 35.0
+const CONVERSION_COST := 20
 const PLAYER := 0
 const ENEMY := 1
 
@@ -24,6 +25,7 @@ var cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var active_durations: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var energy: float = ENERGY_MAX
 var armed_skill: int = -1
+var _skill_keycode := 0
 var ground_skill_target := Vector3.INF
 var _recruit_target_id: int = -1
 var finished: bool = false
@@ -33,6 +35,7 @@ var ai_clock: float = 6.0
 var shields: Dictionary = {}
 var tower_clocks: Dictionary = {}
 var effects: Array[Dictionary] = []
+var projectiles: Array[Dictionary] = []
 var order_route := PackedVector3Array()
 var _hud_clock: float = 0.0
 var _drag_start := Vector2.ZERO
@@ -62,6 +65,7 @@ func _ready() -> void:
 		by_id[building.building_id] = building
 		tower_clocks[building.building_id] = 0.0
 	marches.unit_arrived.connect(_on_unit_arrived)
+	marches.unit_defeated.connect(world_effects.casualty)
 	hud.percentage_changed.connect(set_percentage)
 	hud.skill_requested.connect(request_skill)
 	hud.pause_requested.connect(set_paused.bind(true))
@@ -90,12 +94,7 @@ func _process(delta: float) -> void:
 	if drag_source != null:
 		_update_drag(get_viewport().get_mouse_position())
 	elif armed_skill >= 0:
-		var pointer := get_viewport().get_mouse_position()
-		if armed_skill == 3:
-			ground_skill_target = skill_ground_at(pointer)
-			hovered = null
-		else:
-			hovered = pick_building(pointer) if not hud.is_pointer_blocked(pointer) else null
+		_update_skill_drag(get_viewport().get_mouse_position())
 	overlay.queue_redraw()
 
 func simulate(delta: float) -> void:
@@ -107,9 +106,12 @@ func simulate(delta: float) -> void:
 	var remaining := delta
 	while remaining > 0.0 and not finished:
 		var step := remaining
+		if marches.has_marchers() or not projectiles.is_empty() or world_effects.has_fire():
+			step = minf(step, 0.05)
+		step = minf(step, world_effects.fire_step_limit())
 		for building: WarBuilding in buildings:
-			if building.is_upgrading:
-				step = minf(step, building.upgrade_remaining)
+			if building.is_constructing:
+				step = minf(step, building.construction_remaining)
 		_simulate_step(step)
 		remaining = maxf(0.0, remaining - step)
 
@@ -133,9 +135,11 @@ func _simulate_step(delta: float) -> void:
 			if tower_clocks[building.building_id] <= 0.0:
 				_fire_tower(building)
 		building.refresh_visual()
-	marches.tick(delta)
+	marches.tick(delta, world_effects.fire_segments(delta))
+	_tick_projectiles(delta)
 	audio.tick_marches(delta, marches)
 	world_effects.tick(delta, not shields.is_empty())
+	_tick_fire_buildings()
 	for index: int in range(effects.size() - 1, -1, -1):
 		effects[index].life -= delta
 		if effects[index].life <= 0.0:
@@ -146,10 +150,13 @@ func _simulate_step(delta: float) -> void:
 			ai_clock = 3.0
 			_ai_turn()
 	for building: WarBuilding in buildings:
-		if building.advance_upgrade(delta):
+		var converting := building.conversion_target >= 0
+		if building.advance_construction(delta):
+			if converting and building.building_id == _recruit_target_id and building.kind != 0:
+				_cancel_recruitment()
 			audio.play_world(&"war_upgrade", building.global_position)
 			if building.faction == PLAYER:
-				hud.notify("%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
+				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
 	_check_victory()
 
@@ -251,7 +258,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 		else:
 			var survivors: float = strength * (1.0 - target.population / damage)
 			var previous_faction: int = target.faction
-			target.cancel_upgrade()
+			target.cancel_construction()
 			target.faction = faction
 			if target_id == _recruit_target_id:
 				_cancel_recruitment()
@@ -273,33 +280,96 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 	target.refresh_visual()
 
 func _fire_tower(building: Node3D) -> void:
-	var target: Vector3 = marches.damage_near(building.global_position, building.faction, tower_range(building), building.level)
-	if target != Vector3.INF:
-		# An empty scan leaves the gun ready. Otherwise a whole nearby rank can
-		# reach this building while an idle tower reloads a shot it never fired.
-		tower_clocks[building.building_id] = tower_interval(building)
-		building.fire_at(target)
-		effects.append({"kind": "shot", "at": building.muzzle_position(), "to": target + Vector3(0, 0.5, 0), "color": faction_color(building.faction), "life": 0.32, "duration": 0.32})
-		audio.play_world(&"cannon_shot", building.global_position)
+	var targets: Array[WarMarches.MarchUnit] = marches.acquire_targets(building.global_position, building.faction, tower_range(building), building.level)
+	if targets.is_empty():
+		return
+	tower_clocks[building.building_id] = tower_interval(building)
+	building.fire_at(targets[0].position)
+	var muzzle: Vector3 = building.muzzle_position()
+	world_effects.hit(muzzle, (targets[0].position - muzzle).normalized(), true)
+	for target: WarMarches.MarchUnit in targets:
+		var destination := target.position + Vector3(0, 0.65, 0)
+		projectiles.append({"target": target, "at": muzzle, "position": muzzle, "previous": muzzle,
+			"to": destination, "age": 0.0, "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
+	world_effects.render_projectiles(projectiles)
+	audio.play_world(&"cannon_shot", building.global_position)
+
+func _tick_projectiles(delta: float) -> void:
+	for index: int in range(projectiles.size() - 1, -1, -1):
+		var shot: Dictionary = projectiles[index]
+		var target: WarMarches.MarchUnit = shot.target
+		shot.age += delta
+		shot.previous = shot.position
+		if target.alive:
+			shot.to = target.position + Vector3(0, 0.65, 0)
+		var progress := minf(1.0, shot.age / shot.duration)
+		shot.position = shot.at.lerp(shot.to, progress) + Vector3(0, sin(progress * PI) * 0.65, 0)
+		if progress >= 1.0:
+			var direction: Vector3 = (shot.to - shot.at).normalized()
+			if not marches.hit_target(target, direction):
+				world_effects.hit(shot.to, direction)
+			projectiles.remove_at(index)
+	world_effects.render_projectiles(projectiles)
+
+func _tick_fire_buildings() -> void:
+	for fire: WarFireWave in world_effects.get_node("FireWaves").get_children():
+		if fire.age > WarFireWave.BURN_TIME:
+			continue
+		for building: WarBuilding in buildings:
+			if building.faction == PLAYER or fire.hit_buildings.has(building.building_id):
+				continue
+			var offset := Vector2(building.global_position.x - fire.global_position.x, building.global_position.z - fire.global_position.z)
+			if offset.length() <= fire.front(fire.age):
+				fire.hit_buildings[building.building_id] = true
+				building.population = maxf(0.0, building.population - IMPACT_DAMAGE / defense_multiplier(building))
+				building.refresh_visual()
 
 func tower_range(building: Node3D) -> float:
-	return 10.0 + building.level * 1.0
+	return 9.0 + building.level * 2.0
 
 func tower_interval(building: Node3D) -> float:
 	return maxf(0.55, 1.5 - 0.3 * (building.level - 1))
 
-func request_skill(index: int) -> void:
+func request_skill(index: int, from_keyboard: bool = false) -> void:
 	if not _skill_available(index):
 		return
-	if index != 3 and (index == 1 or _valid_skill_target(index, selected)):
-		cast_skill(index, selected)
-	else:
-		armed_skill = index
-		_cancel_drag()
-		ground_skill_target = skill_ground_at(get_viewport().get_mouse_position()) if index == 3 else Vector3.INF
-		var target_text := "地面选择冲击区域" if index == 3 else ("己方住宅" if index == 0 else "己方建筑")
-		hud.notify("选择%s施放技能 · 右键取消" % target_text)
+	_cancel_drag()
+	armed_skill = index
+	_skill_keycode = [KEY_Q, KEY_W, KEY_E, KEY_R][index] if from_keyboard else 0
+	_update_skill_drag(get_viewport().get_mouse_position())
 	update_hud()
+	overlay.queue_redraw()
+
+func _update_skill_drag(screen: Vector2) -> void:
+	ground_skill_target = skill_ground_at(screen)
+	var over_battlefield: bool = get_viewport().get_visible_rect().has_point(screen) and not hud.is_pointer_blocked(screen)
+	hovered = pick_building(screen) if over_battlefield and armed_skill in [0, 2] else null
+	var valid := ground_skill_target.is_finite() if armed_skill in [1, 3] else _valid_skill_target(armed_skill, hovered)
+	hud.set_skill_drag_target(valid, screen)
+	overlay.queue_redraw()
+
+func release_skill_drag(screen: Vector2) -> void:
+	var index := armed_skill
+	_update_skill_drag(screen)
+	var target := hovered
+	var success := false
+	if index == 3 and ground_skill_target.is_finite():
+		success = cast_ground_skill(index, ground_skill_target)
+	elif index == 1 and ground_skill_target.is_finite():
+		success = cast_skill(index, null)
+	elif index in [0, 2] and _valid_skill_target(index, target):
+		success = cast_skill(index, target)
+	_cancel_skill_drag()
+	if success and target != null:
+		select_building(target)
+	update_hud()
+	overlay.queue_redraw()
+
+func _cancel_skill_drag() -> void:
+	armed_skill = -1
+	_skill_keycode = 0
+	ground_skill_target = Vector3.INF
+	hovered = null
 
 func can_cast_skill(index: int) -> bool:
 	return index >= 0 and index < 4 and not _local_menu and not finished and cooldowns[index] <= 0.0 and energy >= SKILL_ENERGY_COSTS[index]
@@ -332,7 +402,7 @@ func cast_skill(index: int, target: Node3D) -> bool:
 	if not _skill_available(index):
 		return false
 	if not _valid_skill_target(index, target):
-		hud.notify("请选择己方住宅 · 右键取消" if index == 0 else ("请选择己方建筑 · 右键取消" if index == 2 else "请选择战场地面施放天降冲击"))
+		hud.notify("拖至己方住宅后松手" if index == 0 else ("拖至己方建筑后松手" if index == 2 else "拖至战场地面后松手"))
 		audio.play_ui(&"war_denied")
 		return false
 	match index:
@@ -364,20 +434,10 @@ func cast_ground_skill(index: int, at: Vector3) -> bool:
 		audio.play_ui(&"war_denied")
 		return false
 	var center := Vector3(at.x, 0.0, at.z)
-	var buildings_hit := 0
-	for building: Node3D in buildings:
-		if building.faction == PLAYER or Vector2(building.global_position.x - center.x, building.global_position.z - center.z).length_squared() > IMPACT_RADIUS * IMPACT_RADIUS:
-			continue
-		# A blast weakens every hostile or neutral garrison in its circle, but
-		# only an arriving soldier may capture an emptied building.
-		building.population = maxf(0.0, building.population - IMPACT_DAMAGE / defense_multiplier(building))
-		building.refresh_visual()
-		buildings_hit += 1
-	var soldiers_hit: int = marches.damage_in_area(center, PLAYER, IMPACT_RADIUS)
-	add_effect(center, Color(1.0, 0.45, 0.16), "impact", 1.0, IMPACT_RADIUS)
+	world_effects.start_fire(center, IMPACT_RADIUS)
 	_commit_skill(index)
 	audio.play_world(&"war_skill_breach", center)
-	hud.notify("天降冲击 · 命中 %d 座据点、%d 名敌军" % [buildings_hit, soldiers_hit])
+	hud.notify("烈焰扩散 · 接触火焰的双方士兵都会死亡")
 	update_hud()
 	return true
 
@@ -385,8 +445,7 @@ func _commit_skill(index: int) -> void:
 	energy -= SKILL_ENERGY_COSTS[index]
 	cooldowns[index] = SKILL_COOLDOWNS[index]
 	active_durations[index] = SKILL_DURATIONS[index]
-	armed_skill = -1
-	ground_skill_target = Vector3.INF
+	_cancel_skill_drag()
 	_cancel_drag()
 
 func _valid_ground_skill_target(at: Vector3) -> bool:
@@ -401,7 +460,7 @@ func skill_ground_at(screen: Vector2) -> Vector3:
 	return hit
 
 func upgrade_selected() -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level or selected.is_upgrading:
+	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level or selected.is_constructing:
 		return
 	var cost: int = selected.upgrade_cost
 	if selected.population < cost:
@@ -409,29 +468,24 @@ func upgrade_selected() -> void:
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= cost
-	selected.begin_upgrade()
+	selected.begin_construction()
 	selected.refresh_visual()
 	audio.play_world(&"war_rebuild", selected.global_position)
 	hud.notify("%s开始升级 · 10 秒后完成" % KIND_NAMES[selected.kind])
 	update_hud()
 
 func convert_selected(kind: int) -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or kind not in [0, 1, 2] or selected.kind == kind or selected.is_upgrading:
+	if _local_menu or finished or selected == null or selected.faction != PLAYER or kind not in [0, 1, 2] or selected.kind == kind or selected.is_constructing:
 		return
-	if selected.population < 30.0:
-		hud.notify("改建需要 30 名驻军")
+	if selected.population < CONVERSION_COST:
+		hud.notify("改建需要 %d 名驻军" % CONVERSION_COST)
 		audio.play_ui(&"war_denied")
 		return
-	selected.population -= 30.0
-	selected.cancel_upgrade()
-	selected.kind = kind
-	if selected.building_id == _recruit_target_id:
-		_cancel_recruitment()
-	selected.level = 1
+	selected.population -= CONVERSION_COST
+	selected.begin_construction(kind)
 	selected.refresh_visual()
-	selected.pulse_capture()
 	audio.play_world(&"war_rebuild", selected.global_position)
-	hud.notify("改建完成 · %s" % KIND_NAMES[kind])
+	hud.notify("开始改建%s · 10 秒后完成" % KIND_NAMES[kind])
 	update_hud()
 
 func _ai_turn() -> void:
@@ -506,8 +560,8 @@ func _check_victory() -> void:
 			continue
 		remaining[building.faction] = true
 		# Fractions in separate garrisons cannot be combined without a full soldier
-		# leaving one doorway. An owned residence can still grow that soldier.
-		if building.kind == 0 or floori(building.population) >= 1:
+		# leaving one doorway. An existing or unfinished residence can still grow it.
+		if building.kind == 0 or building.conversion_target == 0 or floori(building.population) >= 1:
 			can_make_progress = true
 	# Resolve elimination before asking whether the remaining armies are stuck.
 	if not remaining[PLAYER] and not remaining[ENEMY]:
@@ -524,8 +578,7 @@ func _finish_match(winner: int) -> void:
 	_local_menu = true
 	_cancel_drag()
 	camera_rig.dragging = false
-	armed_skill = -1
-	ground_skill_target = Vector3.INF
+	_cancel_skill_drag()
 	if winner < 0:
 		hud.show_draw()
 	else:
@@ -537,6 +590,7 @@ func _finish_match(winner: int) -> void:
 		building.set_visual_paused(true)
 	if winner >= 0:
 		audio.play_ui(&"war_victory" if winner == PLAYER else &"war_defeat")
+	update_hud()
 
 func update_hud() -> void:
 	if not is_node_ready():
@@ -560,9 +614,10 @@ func update_hud() -> void:
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
 		"selected_max_level": selected.max_level if selected != null else 4,
-		"upgrade_remaining": selected.upgrade_remaining if selected != null else 0.0,
-		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": 30,
-		"can_upgrade": selected != null and selected.faction == PLAYER and not selected.is_upgrading and selected.level < selected.max_level and selected.population >= selected.upgrade_cost})
+		"construction_remaining": selected.construction_remaining if selected != null else 0.0,
+		"conversion_target": selected.conversion_target if selected != null else -1,
+		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": CONVERSION_COST,
+		"can_upgrade": selected != null and selected.faction == PLAYER and not selected.is_constructing and selected.level < selected.max_level and selected.population >= selected.upgrade_cost})
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:
@@ -572,14 +627,14 @@ func set_paused(value: bool) -> void:
 	_local_menu = value
 	_cancel_drag()
 	camera_rig.dragging = false
-	armed_skill = -1
-	ground_skill_target = Vector3.INF
+	_cancel_skill_drag()
 	audio.set_world_paused(value)
 	world_effects.set_running(not value)
 	map.set_visual_paused(value)
 	for building: Node3D in buildings:
 		building.set_visual_paused(value)
 	hud.set_paused(value)
+	update_hud()
 
 func restart() -> void:
 	if _closing:
@@ -614,12 +669,33 @@ func _notification(what: int) -> void:
 
 func _on_focus_exited() -> void:
 	_cancel_drag()
+	_cancel_skill_drag()
+	update_hud()
 	camera_rig.dragging = false
 
 func clamp_to_map(point: Vector3) -> Vector3:
 	return Vector3(clampf(point.x, -34.0, 34.0), 0.0, clampf(point.z, -23.0, 23.0))
 
 func _input(event: InputEvent) -> void:
+	if armed_skill >= 0:
+		if event is InputEventMouseMotion:
+			_update_skill_drag(event.position)
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventKey and not event.pressed and (event.physical_keycode if event.physical_keycode != 0 else event.keycode) == _skill_keycode:
+			release_skill_drag(get_viewport().get_mouse_position())
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventMouseButton:
+			if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+				_cancel_skill_drag()
+				update_hud()
+				get_viewport().set_input_as_handled()
+				return
+			if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed and _skill_keycode == 0:
+				release_skill_drag(event.position)
+				get_viewport().set_input_as_handled()
+				return
 	if event is InputEventMouseButton and not event.pressed:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			camera_rig.dragging = false
@@ -663,16 +739,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_cancel_drag()
 			update_hud()
 		MOUSE_BUTTON_LEFT:
-			if armed_skill == 3:
-				cast_ground_skill(3, skill_ground_at(event.position))
+			if armed_skill >= 0:
 				get_viewport().set_input_as_handled()
 				return
 			var building: Node3D = pick_building(event.position)
-			if armed_skill >= 0:
-				if cast_skill(armed_skill, building):
-					select_building(building)
-				get_viewport().set_input_as_handled()
-				return
 			select_building(building)
 			if building != null:
 				audio.play_ui(&"war_select")

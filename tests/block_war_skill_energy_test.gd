@@ -23,6 +23,8 @@ func near(actual: float, expected: float, label: String) -> void:
 
 
 func reset_match() -> void:
+	if game != null:
+		await game.prepare_shutdown()
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
 	await scene_changed
 	game = current_scene
@@ -42,33 +44,42 @@ func motion(at: Vector2) -> void:
 	event.position = at
 	event.global_position = at
 	event.relative = at - root.get_mouse_position()
+	event.button_mask = Input.get_mouse_button_mask()
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+func mouse(at: Vector2, down: bool, which: int = MOUSE_BUTTON_LEFT) -> void:
+	motion(at)
+	var event := InputEventMouseButton.new()
+	event.window_id = root.get_window_id()
+	event.position = at
+	event.global_position = at
+	event.button_index = which
+	event.pressed = down
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if down and which == MOUSE_BUTTON_LEFT else 0
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
 
 
 func click(at: Vector2, which: int = MOUSE_BUTTON_LEFT) -> void:
-	motion(at)
-	for down: bool in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.window_id = root.get_window_id()
-		event.position = at
-		event.global_position = at
-		event.button_index = which
-		event.pressed = down
-		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down and which == MOUSE_BUTTON_LEFT else 0
-		Input.parse_input_event(event)
-		Input.flush_buffered_events()
+	mouse(at, true, which)
+	mouse(at, false, which)
+
+
+func key_event(code: int, down: bool) -> void:
+	var event := InputEventKey.new()
+	event.window_id = root.get_window_id()
+	event.keycode = code
+	event.physical_keycode = code
+	event.pressed = down
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 
 
 func key(code: int) -> void:
 	for down: bool in [true, false]:
-		var event := InputEventKey.new()
-		event.window_id = root.get_window_id()
-		event.keycode = code
-		event.physical_keycode = code
-		event.pressed = down
-		Input.parse_input_event(event)
-		Input.flush_buffered_events()
+		key_event(code, down)
 
 
 func screen(at: Vector3) -> Vector2:
@@ -253,14 +264,23 @@ func _recruitment_interruption() -> void:
 	near(home.population, home.capacity, "Recapturing the residence cannot revive its cancelled recruitment")
 	game.cooldowns[0] = 0.0
 	game.energy = 100.0
+	home.population = 200.0
 	check(game.cast_skill(0, home), "A new Q can start after recapture")
 	game.select_building(home)
 	game.convert_selected(2)
-	check(home.kind == 2 and game.active_durations[0] == 0.0, "Legal conversion into a forge immediately cancels recruitment")
-	var after_conversion: float = home.population
+	check(home.kind == 0 and home.is_constructing and game.active_durations[0] == 6.0, "Conversion keeps the residence and its recruitment during construction")
 	game.simulate(2.0)
-	near(home.population, after_conversion, "Converted building cannot receive the remainder of Q")
+	near(home.population, 190.0, "Conversion costs twenty and the original Q continues recruiting")
 	near(game.energy, 74.0, "Conversion preserves the original Q payment and normal regeneration")
+	game.simulate(6.0)
+	game.cooldowns[0] = 0.0
+	game.energy = 100.0
+	check(game.cast_skill(0, home), "Residence can begin recruitment late in its conversion")
+	game.simulate(2.0)
+	check(home.kind == 2 and not home.is_constructing and game.active_durations[0] == 0.0, "Completing conversion into a forge cancels remaining recruitment")
+	near(home.population, 220.0, "Recruitment contributes only its two seconds before conversion completes")
+	game.simulate(2.0)
+	near(home.population, 220.0, "Converted forge cannot receive the remaining four seconds of Q")
 
 
 func _ground_impact() -> void:
@@ -284,54 +304,28 @@ func _ground_impact() -> void:
 	outside.faction = 1
 	edge.position = center + Vector3(-4.5, 0, 0)
 	edge.faction = 1
-	var start := center + Vector3(0, 0, 2)
-	var route := PackedVector3Array([start, start + Vector3(0, 0, -100)])
-	game.marches.send(enemy.building_id, 6, 1, 96, route)
-	game.marches.send(ally.building_id, 6, 0, 12, route)
-	var far_start := center + Vector3(6, 0, 2)
-	game.marches.send(outside.building_id, 6, 1, 1, PackedVector3Array([far_start, far_start + Vector3(0, 0, -100)]))
-	game.marches.tick(1.6)
-	var edge_start := center + Vector3(4.5, 0, 0)
-	game.marches.send(edge.building_id, 6, 1, 1, PackedVector3Array([edge_start, edge_start + Vector3(0, 0, -100)]))
-	var in_range := 0
-	var visible_enemy := 0
-	for unit: Dictionary in game.marches.get_units():
-		if unit.faction == 1:
-			visible_enemy += 1
-			if unit.position.distance_to(center) <= 4.5:
-				in_range += 1
-	var before_enemy: int = game.marches.total_for(1)
-	var before_allied: int = game.marches.total_for(0)
-	var queued: int = before_enemy - visible_enemy
-	check(in_range > 35 and queued > 0 and visible_enemy > in_range, "Impact fixture includes over thirty-five visible hostiles, distant hostiles and a hidden queue")
 	check(game.cast_ground_skill(3, center), "R accepts a chosen ground point without requiring a building there")
 	near(game.energy, 40.0, "Ground impact spends sixty shared energy")
 	check(game.cooldowns == [0.0, 0.0, 0.0, 60.0], "R starts only its sixty-second cooldown")
+	near(enemy.population, 100.0, "Ignition does not damage distant buildings before the flame arrives")
+	var wave: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
+	check(wave.visible and wave.global_position.is_equal_approx(center), "Native fire effect starts at the requested ground location")
+	game.simulate(WarFireWave.EXPANSION_TIME)
 	near(ally.population, 100.0, "Ground impact leaves friendly buildings unharmed")
 	near(enemy.population, 100.0 - 35.0 / 1.2, "Ground impact respects a level-three enemy's defense")
 	check(neutral.population == 0.0 and neutral.faction == -1, "Ground impact damages neutral garrison but never captures it")
 	near(edge.population, 65.0, "A hostile building exactly on the radius is hit")
 	near(outside.population, 100.0, "A hostile building just outside the radius is untouched")
-	check(game.marches.total_for(1) == before_enemy - in_range, "All visible hostile soldiers in the radius die without a thirty-five-unit cap")
-	check(game.marches.total_for(0) == before_allied, "All friendly marching and queued soldiers survive")
-	var after_queued := 0
-	var remaining_near := 0
-	for unit in game.marches._units:
-		if unit.order.faction == 1:
-			if unit.distance < 0.0:
-				after_queued += 1
-			elif unit.position.distance_to(center) <= 4.5:
-				remaining_near += 1
-	check(after_queued == queued and remaining_near == 0, "Hidden hostile queue survives and no visible in-range enemy survives")
-	check(not game.effects.is_empty() and game.effects[-1].at.is_equal_approx(center), "Impact feedback is centered on the ground location")
+	game.simulate(0.5)
+	near(enemy.population, 100.0 - 35.0 / 1.2, "The lingering fire does not repeatedly damage the same garrison")
 	game.energy = 60.0
 	game.cooldowns[3] = 0.0
 	var empty := Vector3(0, 0, 26)
-	var remaining_enemies: int = game.marches.total_for(1)
 	check(game.cast_ground_skill(3, empty), "A valid empty ground location is still a deliberate cast")
 	near(game.energy, 0.0, "Casting on empty ground still pays the full cost")
 	near(game.cooldowns[3], 60.0, "Casting on empty ground still starts cooldown")
-	check(game.marches.total_for(1) == remaining_enemies, "An empty impact does not damage distant armies")
+	game.simulate(WarFireWave.EXPANSION_TIME)
+	near(enemy.population, 100.0 - 35.0 / 1.2, "Empty-ground fire does not damage distant buildings")
 
 
 func _native_skill_hint(button: Button) -> void:
@@ -368,29 +362,43 @@ func _native_selection_and_hud() -> void:
 	var hint: Label = game.hud.get_node("%TargetHint")
 	var q: Button = game.hud.get_node("UI/Skills/Row/Skill0")
 	var w: Button = game.hud.get_node("UI/Skills/Row/Skill1")
+	var e: Button = game.hud.get_node("UI/Skills/Row/Skill2")
 	var r: Button = game.hud.get_node("UI/Skills/Row/Skill3")
+	var ghost: Control = game.hud.get_node("%SkillDrag")
 	var energy_bar: ProgressBar = game.hud.get_node("%EnergyBar")
 	near(energy_bar.value, 100.0, "HUD initially exposes the full shared energy bar")
 	check(q.hint.energy.contains("100 / 100"), "hover hints retain exact energy without a permanent caption")
 	await _native_skill_hint(q)
 	click(enemy_at)
 	check(game.selected == enemy and game.drag_source == null, "Enemy selection is legal but cannot begin player dispatch")
-	key(KEY_Q)
-	check(game.armed_skill == 0 and hint.visible and q.button_pressed, "Q shortcut visibly arms target selection for an invalid current selection")
-	near(game.energy, 100.0, "Arming Q does not charge energy")
-	click(enemy_at)
-	click(empty_at)
-	check(game.armed_skill == 0 and game.cooldowns[0] == 0.0, "Enemy and empty-ground clicks cannot accidentally confirm Q")
-	near(game.energy, 100.0, "Invalid screen targets spend no energy")
-	click(empty_at, MOUSE_BUTTON_RIGHT)
-	check(game.armed_skill == -1 and not hint.visible, "Right-click cancels visible target selection")
-	key(KEY_Q)
-	var before_population: float = home.population
+	var q_at := q.get_global_rect().get_center()
+	for invalid_at: Vector2 in [enemy_at, empty_at, q_at, Vector2(-10, -10)]:
+		mouse(q_at, true)
+		check(game.armed_skill == 0 and hint.visible and ghost.visible and q.button_pressed, "Pressing Q begins a visible drag immediately")
+		near(game.energy, 100.0, "Picking up Q does not charge energy")
+		mouse(invalid_at, false)
+		check(game.armed_skill == -1 and not ghost.visible and not hint.visible and not q.button_pressed, "Invalid Q drop cancels and clears all drag visuals")
+		check(game.energy == 100.0 and game.cooldowns[0] == 0.0, "Enemy, ground, icon and offscreen drops consume nothing")
 	click(home_at)
-	check(game.armed_skill == -1 and game.cooldowns[0] == 35.0 and game.drag_source == null, "Population-badge click confirms Q without starting a dispatch")
-	near(game.energy, 70.0, "Confirmed Q screen selection pays exactly once")
-	near(home.population, before_population, "Confirmed Q screen selection also recruits gradually")
+	mouse(q_at, true)
+	check(game.selected == home and game.cooldowns[0] == 0.0, "An already selected residence never causes an immediate Q cast")
+	motion(home_at)
+	await process_frame
+	check(game.hovered == home and ghost.position.is_equal_approx(home_at + Vector2(24, -48)), "Skill ghost and building target follow the same native mouse position")
+	var before_population: float = home.population
+	var before_marches: int = game.marches.total_for(0)
+	mouse(home_at, false)
+	check(game.armed_skill == -1 and game.cooldowns[0] == 35.0 and game.drag_source == null, "Dropping Q on the population badge casts without starting a dispatch")
+	check(game.marches.total_for(0) == before_marches and not ghost.visible and not q.button_pressed, "Skill release never dispatches troops or leaves a pressed card")
+	near(game.energy, 70.0, "Q drop pays exactly once")
+	near(home.population, before_population, "Q drop recruits gradually")
 	check(q.disabled and q.get_node("Cooldown").visible and q.hint.status.contains("6"), "Q keeps its cooldown on the button and active duration in its hover hint")
+	click(q_at)
+	check(game.armed_skill == -1 and game.energy == 70.0, "A cooling card cannot begin a drag or spend twice")
+	mouse(e.get_global_rect().get_center(), true)
+	check(game.armed_skill == 2 and not game.shields.has(home.building_id), "E also waits for release even with its target selected")
+	mouse(home_at, false)
+	check(game.shields.has(home.building_id) and game.cooldowns[2] == 45.0 and game.energy == 35.0, "E drop applies its shield and pays once")
 	game.energy = 59.0
 	game.update_hud()
 	check(r.disabled, "HUD disables R when common energy is below sixty")
@@ -400,13 +408,16 @@ func _native_selection_and_hud() -> void:
 	game.select_building(enemy)
 	var r_at := r.get_global_rect().get_center()
 	click(r_at)
-	check(game.armed_skill == 3 and game.cooldowns[3] == 0.0, "Native R button always opens ground selection, even with an enemy selected")
-	near(game.energy, 100.0, "Opening ground selection is free")
+	check(game.armed_skill == -1 and game.energy == 100.0, "A simple R click cancels on its own icon instead of waiting for a second click")
+	mouse(r_at, true)
+	check(game.armed_skill == 3 and game.cooldowns[3] == 0.0, "Holding the native R card begins ground targeting")
+	near(game.energy, 100.0, "Beginning a ground drag is free")
 	check(hint.visible and hint.text.contains("地面"), "R target hint explicitly asks for a ground location")
 	motion(r_at)
 	game._process(0.0)
 	check(game.skill_ground_at(r_at) == Vector3.INF and game.ground_skill_target == Vector3.INF, "Hovering a HUD button suppresses the ground preview")
 	var impact_at: Vector3 = enemy.global_position + Vector3(-3.5, 0, 0)
+	enemy.population = 100.0
 	var impact_screen := screen(impact_at)
 	check(game.pick_building(impact_screen) == null and not game.hud.is_pointer_blocked(impact_screen), "R input fixture targets unblocked terrain beside an enemy")
 	motion(impact_screen)
@@ -414,32 +425,58 @@ func _native_selection_and_hud() -> void:
 	check(game.ground_skill_target.distance_to(impact_at) < 0.01, "Real mouse motion places the preview on the projected ground plane")
 	check(game.overlay.is_visible_in_tree() and game.overlay.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Native aiming overlay remains visible without intercepting clicks")
 	var before_enemy: float = enemy.population
-	click(impact_screen)
-	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and not hint.visible, "Terrain click confirms R and closes its selection hint")
-	near(game.energy, 40.0, "Terrain click charges R exactly once")
-	near(enemy.population, before_enemy - 35.0, "Off-building terrain cast hits the enemy inside its radius")
-	check(game.effects[-1].at.distance_to(impact_at) < 0.01, "Screen-cast impact remains centered on the clicked terrain")
+	check(game.cooldowns[3] == 0.0, "Moving the held R card never casts early")
+	mouse(impact_screen, false)
+	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and not hint.visible and not ghost.visible, "Terrain release casts R and closes the drag visuals")
+	near(game.energy, 40.0, "Terrain release charges R exactly once")
+	near(enemy.population, before_enemy, "Distant enemy is not damaged before the flame reaches it")
+	var fire: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
+	check(fire.global_position.distance_to(impact_at) < 0.01, "Native fire starts at the exact release point")
+	game.simulate(WarFireWave.EXPANSION_TIME)
+	near(enemy.population, before_enemy - 35.0, "Screen-cast fire reaches the enemy inside its radius")
 	game.cooldowns[3] = 0.0
 	game.energy = 100.0
 	game.update_hud()
-	key(KEY_R)
+	mouse(r_at, true)
 	click(empty_at, MOUSE_BUTTON_RIGHT)
+	mouse(empty_at, false)
 	check(game.armed_skill == -1 and game.ground_skill_target == Vector3.INF, "Cancelling R clears both armed state and ground marker")
 	near(game.energy, 100.0, "Cancelling R refunds no phantom charge")
-	key(KEY_R)
+	mouse(r_at, true)
+	game._on_focus_exited()
+	mouse(impact_screen, false)
+	check(game.armed_skill == -1 and not ghost.visible and game.energy == 100.0, "Focus loss cancels a held skill before any later release")
+	mouse(r_at, true)
 	key(KEY_ESCAPE)
-	check(game._local_menu and game.armed_skill == -1, "Opening pause cancels a pending ground selection")
+	mouse(impact_screen, false)
+	check(game._local_menu and game.armed_skill == -1 and not ghost.visible, "Pause cancels a held skill and suppresses its later release")
 	key(KEY_R)
 	check(game.armed_skill == -1, "Skill shortcuts cannot arm while paused")
 	key(KEY_ESCAPE)
+	# Shortcuts use the same hold / aim / release gesture as the cards.
+	game.cooldowns[0] = 0.0
+	game.update_hud()
+	motion(empty_at)
+	key_event(KEY_Q, true)
+	check(game.armed_skill == 0 and game.energy == 100.0, "Holding Q starts aiming without automatic use of the selected building")
+	motion(home_at)
+	key_event(KEY_E, false)
+	check(game.armed_skill == 0, "Releasing an unrelated key cannot trigger the held skill")
+	key_event(KEY_Q, false)
+	check(game.armed_skill == -1 and game.energy == 70.0 and game.cooldowns[0] == 35.0, "Releasing Q over an allied residence casts through the native input pipeline")
 	game.energy = 39.5
 	game.update_hud()
 	check(w.disabled, "W remains visibly unavailable below forty energy")
 	game.simulate(0.25)
 	game.update_hud()
 	check(not w.disabled, "Regeneration makes W available at its exact cost")
-	click(w.get_global_rect().get_center())
-	near(game.energy, 0.0, "Native W button spends the regenerated common energy")
-	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.cooldowns[2] == 0.0, "Native W cast keeps its cooldown independent from unused E")
+	var w_at := w.get_global_rect().get_center()
+	click(w_at)
+	check(is_equal_approx(game.energy, 40.0) and game.cooldowns[1] == 0.0, "W also requires a battlefield drop instead of a click")
+	mouse(w_at, true)
+	check(is_equal_approx(game.energy, 40.0) and game.armed_skill == 1, "Holding W waits for release")
+	mouse(empty_at, false)
+	near(game.energy, 0.0, "Native W drop spends the regenerated common energy")
+	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.cooldowns[2] > 0.0, "W drop preserves its independent cooldown and active duration")
 	for index: int in 4:
 		check(game.hud.get_node("UI/Skills/Row/Skill%d" % index).disabled, "Zero shared energy disables skill button %d" % index)

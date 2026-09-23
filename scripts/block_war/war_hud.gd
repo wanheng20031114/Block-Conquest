@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Motion reference: GodotGameUI TweenManager's staggered fade and scale.
 
 signal percentage_changed(value: int)
-signal skill_requested(index: int)
+signal skill_requested(index: int, from_keyboard: bool)
 signal pause_requested()
 signal resume_requested()
 signal restart_requested()
@@ -15,8 +15,8 @@ const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁垒", "天降冲击"]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
 const SKILL_DETAILS: Array[String] = [
-	"选择己方住宅。\n每秒征召 5 人，持续 6 秒。", "全军行军速度提升，持续 8 秒。",
-	"选择己方建筑。\n守备壁垒持续 10 秒。", "选择战场地面的一片区域。\n对区域内敌军发动冲击。",
+	"拖至己方住宅，松手施放。\n每秒征召 5 人，持续 6 秒。", "拖至战场，松手施放。\n全军行军速度提升，持续 8 秒。",
+	"拖至己方建筑，松手施放。\n守备壁垒持续 10 秒。", "拖至地面，松手点燃。\n火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
 ]
 
 var _paused: bool = false
@@ -40,7 +40,7 @@ func _ready() -> void:
 	for index: int in 4:
 		var skill: Button = get_node("UI/Skills/Row/Skill%d" % index)
 		_skill_buttons.append(skill)
-		skill.pressed.connect(_request_skill.bind(index))
+		skill.gui_input.connect(_skill_gui_input.bind(index))
 		var percent: Button = get_node("UI/Percentages/Stack/P%d" % PERCENTAGES[index])
 		_percentage_buttons.append(percent)
 		percent.pressed.connect(_select_percentage.bind(PERCENTAGES[index]))
@@ -63,6 +63,7 @@ func _ready() -> void:
 		_pointer_blockers.append(button)
 	for panel: Control in [%PauseOverlay, %HelpOverlay, %ResultOverlay]:
 		_pointer_blockers.append(panel)
+	_pointer_blockers.append(%Selection)
 	UIMotion.bind_buttons($UI)
 	var panels: Array[Control] = [%Top, %Player, %Enemy, %Percentages, %Skills]
 	for index: int in panels.size():
@@ -96,8 +97,11 @@ func update_state(state: Dictionary) -> void:
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
-		var target_text := "点击地面选择冲击区域" if armed == 3 else "点击目标建筑"
+		var target_text := "拖至地面 · 松手点燃 · 敌我均伤" if armed == 3 else ("拖至战场 · 松手施放" if armed == 1 else "拖至己方建筑 · 松手施放")
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
+	%SkillDrag.visible = armed >= 0
+	if armed >= 0:
+		%SkillDrag.get_node("Icon").texture = _skill_buttons[armed].get_node("Icon").texture
 	var energy: float = float(state.energy)
 	%EnergyBar.value = energy
 	for index: int in 4:
@@ -162,6 +166,10 @@ func track_building(building: Node3D, camera: Camera3D, buildings: Array[Node3D]
 func _process(_delta: float) -> void:
 	_position_selection()
 
+func set_skill_drag_target(valid: bool, screen: Vector2) -> void:
+	%SkillDrag.position = $UI.get_global_transform_with_canvas().affine_inverse() * screen + Vector2(24, -48)
+	%SkillDrag.get_node("Icon").modulate = Color("536541") if valid else Color("965342")
+
 func _update_building_actions(state: Dictionary) -> void:
 	_actions_visible = bool(state.selected_owned) and int(state.armed_skill) < 0
 	var level := int(state.selected_level)
@@ -169,14 +177,18 @@ func _update_building_actions(state: Dictionary) -> void:
 	var cost := int(state.upgrade_cost)
 	var max_level := int(state.selected_max_level)
 	var capped := level >= max_level
-	var remaining := ceili(float(state.upgrade_remaining))
-	var upgrading := remaining > 0
+	var remaining := ceili(float(state.construction_remaining))
+	var busy := remaining > 0
+	var converting := int(state.conversion_target)
+	var upgrading := busy and converting < 0
 	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, max_level))
 	%Upgrade.get_node("Cost/Population").visible = not capped and not upgrading
 	var detail := "开工后剩余 %d 名驻军" % (population - cost)
 	if population < cost:
 		detail = "还差 %d 名驻军" % (cost - population)
 	var upgrade_hint := "升级至 %d 级 · 耗时 10 秒\n消耗 %d 名驻军 · %s\n%s" % [level + 1, cost, detail, state.selected_detail]
+	if int(state.selected_kind) == 1 and not capped:
+		upgrade_hint += "\n完工后射程增加 2 米"
 	var amount := str(cost)
 	if capped:
 		upgrade_hint = "已达 %d 级\n%s" % [max_level, state.selected_detail]
@@ -184,7 +196,9 @@ func _update_building_actions(state: Dictionary) -> void:
 	elif upgrading:
 		upgrade_hint = "正在升至 %d 级 · 还需 %d 秒\n施工期间维持当前等级，失守会中断\n%s" % [level + 1, remaining, state.selected_detail]
 		amount = "%ds" % remaining
-	_update_action(%Upgrade, bool(state.can_upgrade), amount, upgrade_hint, not capped and not upgrading and population < cost)
+	elif busy:
+		upgrade_hint = "正在改建%s · 还需 %d 秒\n完工前保留原建筑的功能和形态" % [["住宅", "炮塔", "铁匠铺"][converting], remaining]
+	_update_action(%Upgrade, bool(state.can_upgrade), amount, upgrade_hint, not capped and not busy and population < cost)
 	if upgrading:
 		%Upgrade.get_node("Icon").modulate.a = 0.8
 	var conversions: Array[Button] = [%ConvertHouse, %ConvertTower, %ConvertForge]
@@ -192,12 +206,16 @@ func _update_building_actions(state: Dictionary) -> void:
 		var button := conversions[kind]
 		button.visible = kind != int(state.selected_kind)
 		var convert_cost := int(state.convert_cost)
-		var hint := "改建%s · 消耗 %d 名驻军\n重置至 1 级" % [["住宅", "炮塔", "铁匠铺"][kind], convert_cost]
+		var hint := "改建%s · 消耗 %d 名驻军\n施工 10 秒，完工后重置至 1 级\n施工期间保留当前功能和形态" % [["住宅", "炮塔", "铁匠铺"][kind], convert_cost]
 		if population < convert_cost:
 			hint += "\n还差 %d 名驻军" % (convert_cost - population)
-		if upgrading:
-			hint = "施工中 · 还需 %d 秒\n升级完成后可改建" % remaining
-		_update_action(button, bool(state.selected_owned) and not upgrading and population >= convert_cost, str(convert_cost), hint, not upgrading and population < convert_cost)
+		var active_conversion := busy and kind == converting
+		if busy:
+			hint = "施工中 · 还需 %d 秒\n完工前保留当前功能和形态" % remaining
+		button.get_node("Cost/Population").visible = not active_conversion
+		_update_action(button, bool(state.selected_owned) and not busy and population >= convert_cost, "%ds" % remaining if active_conversion else str(convert_cost), hint, not busy and population < convert_cost)
+		if active_conversion:
+			button.get_node("Icon").modulate.a = 0.8
 	_position_selection()
 
 func _update_action(button: Button, available: bool, cost: String, hint: String, shortfall: bool) -> void:
@@ -222,8 +240,8 @@ func _position_selection() -> void:
 	if not Rect2(Vector2.ZERO, $UI.size).has_point(anchor):
 		%Selection.hide()
 		return
-	var extent: Vector2 = to_ui * _selection_camera.unproject_position(world + _selection_camera.global_basis.x * 3.8)
-	var gap: float = absf(extent.x - anchor.x) + 8.0
+	var extent: Vector2 = to_ui * _selection_camera.unproject_position(world + _selection_camera.global_basis.x * 3.0)
+	var gap: float = absf(extent.x - anchor.x) + 3.0
 	var menu_size: Vector2 = %Selection.size
 	var bounds := Rect2(Vector2(16, 64), Vector2($UI.size.x - 32.0, %Skills.position.y - 88.0))
 	var percentage_rect: Rect2 = %Percentages.get_global_rect().grow_side(SIDE_RIGHT, 40.0)
@@ -251,9 +269,9 @@ func _position_selection() -> void:
 	%Selection.position = best.round()
 	# A fine leader keeps an offset menu visibly attached to its own building.
 	var on_right: bool = %Selection.position.x > anchor.x
-	%BuildingActions.position.x = 12.0 if on_right else 0.0
-	var start: Vector2 = anchor - %Selection.position + Vector2(gap - 8.0 if on_right else 8.0 - gap, 0)
-	var end := Vector2(10.0 if on_right else 222.0, 33.0)
+	%BuildingActions.position.x = 6.0 if on_right else 0.0
+	var start: Vector2 = anchor - %Selection.position + Vector2(gap - 3.0 if on_right else 3.0 - gap, 0)
+	var end := Vector2(4.0 if on_right else menu_size.x - 4.0, 33.0)
 	$UI/Selection/Connector.points = PackedVector2Array([start, Vector2(end.x, start.y), end])
 
 func _pulse_ready(button: Button) -> void:
@@ -304,11 +322,16 @@ func _select_percentage(value: int) -> void:
 	if not _paused and not _finished:
 		percentage_changed.emit(value)
 
-func _request_skill(index: int) -> void:
+func _skill_gui_input(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not _skill_buttons[index].disabled:
+		_request_skill(index, false)
+		_skill_buttons[index].accept_event()
+
+func _request_skill(index: int, from_keyboard: bool) -> void:
 	# Keyboard requests reach the controller even while a card is unavailable,
 	# so its actual cooldown or energy shortfall produces the same clear feedback.
 	if not _paused and not _finished:
-		skill_requested.emit(index)
+		skill_requested.emit(index, from_keyboard)
 
 func _open_help() -> void:
 	_help_from_pause = _paused
@@ -357,7 +380,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	var skill_keys: Array[int] = [KEY_Q, KEY_W, KEY_E, KEY_R]
 	var index: int = skill_keys.find(code)
 	if index >= 0:
-		_request_skill(index)
+		_request_skill(index, true)
 		get_viewport().set_input_as_handled()
 	var percentage_keys: Array[int] = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4]
 	index = percentage_keys.find(code)

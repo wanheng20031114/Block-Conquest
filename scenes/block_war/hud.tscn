@@ -29,6 +29,10 @@
 
 [ext_resource type="Script" path="res://scripts/block_war/war_skill_button.gd" id="skill_button"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/skill_tooltip_theme.tres" id="skill_hints"]
+[ext_resource type="Shader" path="res://assets/ui/block_war/action_wash.gdshader" id="action_wash"]
+
+[sub_resource type="ShaderMaterial" id="ActionWash"]
+shader = ExtResource("action_wash")
 
 [sub_resource type="StyleBoxFlat" id="Panel"]
 content_margin_left = 18.0
@@ -1107,8 +1111,17 @@ vertical_alignment = 1
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_right = 232.0
+offset_right = 200.0
 offset_bottom = 76.0
+mouse_filter = 0
+
+[node name="Wash" type="ColorRect" parent="UI/Selection"]
+material = SubResource("ActionWash")
+layout_mode = 0
+offset_left = -14.0
+offset_top = -8.0
+offset_right = 214.0
+offset_bottom = 84.0
 mouse_filter = 2
 
 [node name="Connector" type="Line2D" parent="UI/Selection"]
@@ -1120,16 +1133,16 @@ antialiased = true
 [node name="BuildingActions" type="HBoxContainer" parent="UI/Selection"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 12.0
-offset_right = 232.0
+offset_left = 6.0
+offset_right = 200.0
 offset_bottom = 76.0
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="Upgrade" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(68, 76)
+custom_minimum_size = Vector2(62, 76)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1151,9 +1164,9 @@ stretch_mode = 5
 
 [node name="NextLevel" type="Label" parent="UI/Selection/BuildingActions/Upgrade"]
 layout_mode = 0
-offset_left = 45.0
+offset_left = 41.0
 offset_top = 7.0
-offset_right = 65.0
+offset_right = 61.0
 offset_bottom = 39.0
 mouse_filter = 2
 theme_override_fonts/font = ExtResource("numbers")
@@ -1169,7 +1182,7 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = 6.0
 offset_top = 45.0
-offset_right = 62.0
+offset_right = 56.0
 offset_bottom = 72.0
 mouse_filter = 2
 alignment = 1
@@ -1192,13 +1205,13 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
 theme_override_constants/outline_size = 5
-text = "30"
+text = "10"
 vertical_alignment = 1
 
 [node name="ConvertHouse" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(68, 76)
+custom_minimum_size = Vector2(62, 76)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1209,9 +1222,9 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertHouse"]
 layout_mode = 0
-offset_left = 13.0
+offset_left = 10.0
 offset_top = 3.0
-offset_right = 55.0
+offset_right = 52.0
 offset_bottom = 45.0
 mouse_filter = 2
 texture = ExtResource("action_house")
@@ -1222,7 +1235,7 @@ stretch_mode = 5
 layout_mode = 0
 offset_left = 6.0
 offset_top = 45.0
-offset_right = 62.0
+offset_right = 56.0
 offset_bottom = 72.0
 mouse_filter = 2
 alignment = 1
@@ -1245,13 +1258,13 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
 theme_override_constants/outline_size = 5
-text = "30"
+text = "20"
 vertical_alignment = 1
 
 [node name="ConvertTower" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(68, 76)
+custom_minimum_size = Vector2(62, 76)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1262,9 +1275,9 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertTower"]
 layout_mode = 0
-offset_left = 13.0
+offset_left = 10.0
 offset_top = 3.0
-offset_right = 55.0
+offset_right = 52.0
 offset_bottom = 45.0
 mouse_filter = 2
 texture = ExtResource("action_tower")
@@ -1275,7 +1288,7 @@ stretch_mode = 5
 layout_mode = 0
 offset_left = 6.0
 offset_top = 45.0
-offset_right = 62.0
+offset_right = 56.0
 offset_bottom = 72.0
 mouse_filter = 2
 alignment = 1
@@ -1298,13 +1311,13 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
 theme_override_constants/outline_size = 5
-text = "30"
+text = "20"
 vertical_alignment = 1
 
 [node name="ConvertForge" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(68, 76)
+custom_minimum_size = Vector2(62, 76)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1315,9 +1328,9 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertForge"]
 layout_mode = 0
-offset_left = 13.0
+offset_left = 10.0
 offset_top = 3.0
-offset_right = 55.0
+offset_right = 52.0
 offset_bottom = 45.0
 mouse_filter = 2
 texture = ExtResource("action_forge")
@@ -1328,7 +1341,7 @@ stretch_mode = 5
 layout_mode = 0
 offset_left = 6.0
 offset_top = 45.0
-offset_right = 62.0
+offset_right = 56.0
 offset_bottom = 72.0
 mouse_filter = 2
 alignment = 1
@@ -1351,7 +1364,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
 theme_override_constants/outline_size = 5
-text = "30"
+text = "20"
 vertical_alignment = 1
 
 [node name="Skills" type="Control" parent="UI"]
@@ -2133,7 +2146,7 @@ offset_bottom = 288.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "部队从建筑周围就近出发、抵达，无需绕到正门；越过沟壑仍须走桥。\n途中遇敌会穿行，战斗在据点结算；占领敌方据点并消灭援军即可获胜。"
+text = "部队从建筑周围就近出发、抵达，无需绕到正门；越过沟壑仍须走桥。\n双方部队互相穿行，留意炮塔与火焰。占领敌方全部据点并消灭援军即可获胜。"
 
 [node name="Heading2" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
@@ -2163,7 +2176,7 @@ offset_bottom = 375.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "住宅 1—4 级：每秒产兵 1 / 1.25 / 1.4 / 1.5 人，达到 30 / 50 / 60 / 80 人停产；援军不限。\n炮塔拦截敌军，铁匠铺增强全军。升级需 10 秒；失守降 1 级（最低 1 级），并中断施工。"
+text = "住宅 1—4 级：产速 1 / 1.25 / 1.4 / 1.5，停产人口 30 / 50 / 60 / 80；援军不限。\n改建 20 人；升级/改建 10 秒，期间保留原功能；炮塔升级增射程；失守降级并中断施工。"
 
 [node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
@@ -2193,7 +2206,7 @@ offset_bottom = 462.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "Q 每秒征召 5 人持续 6 秒 · W 疾行 8 秒 · E 壁垒 10 秒 · R 点击地面，范围半径 4.5\n技力上限 100，每秒恢复 2；Q / W / E / R 消耗 30 / 40 / 35 / 60，技能分别冷却。"
+text = "拖动技能图标至目标，松手施放；也可按住 Q / W / E / R 瞄准，松键施放。\nQ 征召 · W 疾行 · E 壁垒 · R 向外点燃半径 4.5 米，接触的双方士兵均死亡。"
 
 [node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
@@ -2223,7 +2236,7 @@ offset_bottom = 549.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "鼠标靠近屏幕边缘，或按住中键拖动，即可移动视角。\n滚轮缩放视野；Esc 暂停。右键取消待选目标的技能。"
+text = "鼠标靠近屏幕边缘，或按住中键拖动，即可移动视角。\n滚轮缩放视野；Esc 暂停。右键取消技能拖拽，落在无效位置也会取消，不扣技力。"
 
 [node name="HelpClose" type="Button" parent="UI/HelpOverlay/HelpCard"]
 unique_name_in_owner = true
@@ -2357,3 +2370,28 @@ text = "返回大厅"
 focus_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 20
+
+[node name="SkillDrag" type="Control" parent="UI"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 44.0
+offset_bottom = 44.0
+mouse_filter = 2
+
+[node name="Wash" type="ColorRect" parent="UI/SkillDrag"]
+material = SubResource("ActionWash")
+layout_mode = 0
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 54.0
+offset_bottom = 54.0
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="UI/SkillDrag"]
+layout_mode = 0
+offset_right = 44.0
+offset_bottom = 44.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

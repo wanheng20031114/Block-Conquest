@@ -104,11 +104,11 @@ func _run() -> void:
 		near(home.population, tier * 10.0 - 0.01, "rejected upgrade spends nothing")
 		home.population = tier * 10.0
 		game.upgrade_selected()
-		check(home.level == tier and home.is_upgrading, "exact cost starts construction at the current level")
+		check(home.level == tier and home.is_constructing, "exact cost starts construction at the current level")
 		near(home.population, 0.0, "upgrade deducts exactly ten/twenty/thirty")
 		near(home.capacity, limits[tier - 1], "construction retains the current production limit")
 		game.simulate(10.0)
-		check(home.level == tier + 1 and not home.is_upgrading, "ten seconds completes the next residence level")
+		check(home.level == tier + 1 and not home.is_constructing, "ten seconds completes the next residence level")
 		near(home.population, rates[tier - 1] * 10.0, "construction retains ordinary production at the old rate")
 		near(home.capacity, limits[tier], "completed upgrade switches production limit")
 		game.simulate(1.0)
@@ -131,7 +131,7 @@ func _run() -> void:
 	near(home.population, 12.0, "active Q retains the 1/s natural rate during construction")
 	game._cancel_recruitment()
 	game.simulate(9.0)
-	check(home.level == 2 and not home.is_upgrading, "construction completes after Q is cancelled")
+	check(home.level == 2 and not home.is_constructing, "construction completes after Q is cancelled")
 	# Losing a level-four home restores the existing level-three silhouette and
 	# derives its lower production limit without destroying over-cap survivors.
 	home.level = 4
@@ -148,13 +148,16 @@ func _run() -> void:
 	home.level = 4
 	home.population = 130.0
 	game.convert_selected(2)
+	check(home.kind == 0 and home.level == 4 and home.population == 110.0 and home.is_constructing, "conversion pays twenty and retains level-four housing until completion")
+	game.simulate(10.0)
 	check(home.kind == 2 and home.level == 1 and home.max_level == 3, "level-four residence converts to a level-one forge")
 	game.simulate(2.0)
-	near(home.population, 100.0, "forge conversion pays thirty and does not produce")
+	near(home.population, 110.0, "forge conversion pays twenty and does not produce")
 	game.convert_selected(0)
+	game.simulate(10.0)
 	check(home.kind == 0 and home.level == 1 and home.capacity == 30.0, "conversion back derives level-one house rules")
 	game.simulate(2.0)
-	near(home.population, 70.0, "over-cap garrison survives conversion back")
+	near(home.population, 90.0, "over-cap garrison survives conversion back")
 	# At the new level-one cap the AI must still be able to gather an army;
 	# waiting for the old forty-person threshold would permanently idle its homes.
 	game.marches.clear()

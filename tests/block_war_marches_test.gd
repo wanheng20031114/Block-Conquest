@@ -89,8 +89,11 @@ func _run() -> void:
 		marches.tick(0.05)
 	_check(marches.total_for(0) == 60 and marches.total_for(1) == 60, "Opposing columns cross without roadside combat")
 	var untouched: int = marches.total_for(0)
-	var hit: Vector3 = marches.damage_near(Vector3(0, 0, -15), 0, 7.0, 3)
-	_check(hit != Vector3.INF and marches.total_for(1) == 57, "Tower fire removes the requested hostile soldiers")
+	var targets: Array[WarMarches.MarchUnit] = marches.acquire_targets(Vector3(0, 0, -15), 0, 7.0, 3)
+	_check(targets.size() == 3 and marches.total_for(1) == 60, "Tower acquisition reserves real targets without killing them before impact")
+	for target: WarMarches.MarchUnit in targets:
+		marches.hit_target(target, Vector3.RIGHT)
+	_check(marches.total_for(1) == 57, "Actual projectile hits remove the requested hostile soldiers")
 	_check(marches.total_for(0) == untouched, "Tower fire leaves friendly soldiers intact")
 	marches.tick(30.0)
 	_check(_arrived.size() == 117, "Tower casualties never also arrive at a building")

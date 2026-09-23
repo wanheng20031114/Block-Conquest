@@ -4,6 +4,7 @@ extends Node3D
 ## The controller calls tick from _process; stopping tick also stops the GPU gait.
 
 signal unit_arrived(target_id: int, faction: int, strength: float)
+signal unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool)
 
 const COLUMNS := 6
 const COLUMN_SPACING := 0.56
@@ -22,6 +23,8 @@ class MarchOrder extends RefCounted:
 	var length: float
 
 class MarchUnit extends RefCounted:
+	var alive := true
+	var reserved := false
 	var order: MarchOrder
 	var distance: float
 	var lane: float
@@ -86,7 +89,7 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 	_ensure_capacity(_units.size())
 	_render()
 
-func tick(delta: float) -> void:
+func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	if delta <= 0.0:
 		return
 	var step_boosts: Dictionary = {}
@@ -104,15 +107,31 @@ func tick(delta: float) -> void:
 	var index := 0
 	while index < _units.size():
 		var unit := _units[index]
+		var before := unit.position
+		var previous_distance := unit.distance
 		var step := SPEED * delta * float(step_boosts.get(unit.order.faction, 1.0))
 		unit.distance += step
 		unit.gait += step * 7.0
+		if unit.distance >= 0.0:
+			_update_pose(unit)
+			# Check the visible part of the movement before arrival is settled.
+			# Queued soldiers are protected until they actually emerge from a doorway.
+			var emerged := clampf(-previous_distance / step, 0.0, 1.0)
+			var arrived := clampf((unit.order.length - previous_distance) / step, 0.0, 1.0)
+			var burned := false
+			for fire: Dictionary in fire_segments:
+				var contact := fire_contact(before, unit.position, fire, emerged, arrived)
+				if contact >= 0.0:
+					unit.position = before.lerp(unit.position, inverse_lerp(emerged, arrived, contact))
+					_defeat(index, (unit.position - fire.center).normalized(), true)
+					burned = true
+					break
+			if burned:
+				continue
 		if unit.distance >= unit.order.length:
 			arrivals.append(unit.order)
 			_remove_unit(index)
 			continue
-		if unit.distance >= 0.0:
-			_update_pose(unit)
 		index += 1
 	_render()
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
@@ -142,15 +161,15 @@ func get_units() -> Array[Dictionary]:
 				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane})
 	return result
 
-func damage_near(center: Vector3, attacking_faction: int, radius: float, damage: int) -> Vector3:
-	var hit := Vector3.INF
+func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int) -> Array[MarchUnit]:
+	var targets: Array[MarchUnit] = []
 	var radius_squared := radius * radius
-	for casualty: int in maxi(damage, 0):
+	for target_index: int in count:
 		var nearest := -1
 		var nearest_distance := radius_squared
 		for index: int in _units.size():
 			var unit := _units[index]
-			if unit.order.faction == attacking_faction or unit.distance < 0.0:
+			if unit.order.faction == attacking_faction or unit.distance < 0.0 or unit.reserved:
 				continue
 			var distance_squared := unit.position.distance_squared_to(center)
 			if distance_squared <= nearest_distance:
@@ -158,38 +177,68 @@ func damage_near(center: Vector3, attacking_faction: int, radius: float, damage:
 				nearest = index
 		if nearest < 0:
 			break
-		if hit == Vector3.INF:
-			hit = _units[nearest].position
-		_remove_unit(nearest)
-	if hit != Vector3.INF:
-		_render()
-	return hit
+		_units[nearest].reserved = true
+		targets.append(_units[nearest])
+	return targets
+
+func has_marchers() -> bool:
+	return not _units.is_empty()
+
+func hit_target(unit: MarchUnit, impulse: Vector3) -> bool:
+	if not unit.alive:
+		return false
+	_defeat(_units.find(unit), impulse, false)
+	_render()
+	return true
+
+func _defeat(index: int, impulse: Vector3, burning: bool) -> void:
+	var unit := _units[index]
+	unit_defeated.emit(unit.position, unit.heading, unit.order.faction, impulse, burning)
+	_remove_unit(index)
+
+static func fire_contact(from: Vector3, to: Vector3, fire: Dictionary, emerged: float = 0.0, arrived: float = 1.0) -> float:
+	# Solve moving point versus expanding circle continuously within this step.
+	# This catches fast crossings and never burns a unit that outruns the front.
+	var end_time := minf(fire.active_fraction, arrived)
+	if emerged >= end_time:
+		return -1.0
+	var v := Vector2(to.x - from.x, to.z - from.z) / (arrived - emerged)
+	var p := Vector2(from.x - fire.center.x, from.z - fire.center.z) - v * emerged
+	var radius: float = fire.from_radius + 0.18
+	var growth: float = fire.to_radius - fire.from_radius
+	var a := v.dot(v) - growth * growth
+	var b := 2.0 * (p.dot(v) - radius * growth)
+	var c := p.dot(p) - radius * radius
+	if (a * emerged + b) * emerged + c <= 0.0:
+		return emerged
+	if absf(a) < 0.000001:
+		if b >= 0.0:
+			return -1.0
+		var crossing := -c / b
+		return crossing if crossing >= emerged and crossing <= end_time else -1.0
+	var discriminant := b * b - 4.0 * a * c
+	if discriminant < 0.0:
+		return -1.0
+	var first := (-b - sqrt(discriminant)) / (2.0 * a)
+	var second := (-b + sqrt(discriminant)) / (2.0 * a)
+	var contact := minf(first, second)
+	if contact < emerged:
+		contact = maxf(first, second)
+	return contact if contact >= emerged and contact <= end_time else -1.0
 
 func boost_faction(faction: int, duration: float, speed_multiplier: float) -> void:
 	assert(duration > 0.0 and speed_multiplier >= 1.0)
 	_boosts[faction] = Vector2(duration, speed_multiplier)
 
-func damage_in_area(center: Vector3, attacking_faction: int, radius: float) -> int:
-	var casualties := 0
-	var radius_squared := radius * radius
-	for index: int in range(_units.size() - 1, -1, -1):
-		var unit := _units[index]
-		if unit.order.faction == attacking_faction or unit.distance < 0.0:
-			continue
-		var offset := Vector2(unit.position.x - center.x, unit.position.z - center.z)
-		if offset.length_squared() <= radius_squared:
-			_remove_unit(index)
-			casualties += 1
-	if casualties > 0:
-		_render()
-	return casualties
-
 func clear() -> void:
+	for unit: MarchUnit in _units:
+		unit.alive = false
 	_units.clear()
 	_boosts.clear()
 	_multimesh.visible_instance_count = 0
 
 func _remove_unit(index: int) -> void:
+	_units[index].alive = false
 	var last := _units.size() - 1
 	if index != last:
 		_units[index] = _units[last]

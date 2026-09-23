@@ -85,8 +85,9 @@ func run() -> void:
 	mouse(percent_screen, MOUSE_BUTTON_LEFT, true)
 	mouse(percent_screen, MOUSE_BUTTON_LEFT, false)
 	check(game.percentage == 25 and game.marches.incoming_for(target.building_id, 0) == 45, "HUD click changes percent without issuing a map order")
-	key(KEY_R)
-	check(game.armed_skill == 3, "impact skill waits for a ground position")
+	var r_at: Vector2 = game.hud.get_node("UI/Skills/Row/Skill3").get_global_rect().get_center()
+	mouse(r_at, MOUSE_BUTTON_LEFT, true)
+	check(game.armed_skill == 3, "holding the impact card waits for a ground release")
 	var impact_screen := Vector2.INF
 	for offset: Vector3 in [Vector3(4, 0, 0), Vector3(-4, 0, 0), Vector3(0, 0, 4), Vector3(0, 0, -4)]:
 		var candidate: Vector2 = game.camera.unproject_position(target.global_position + offset)
@@ -96,11 +97,15 @@ func run() -> void:
 			break
 	check(impact_screen.is_finite(), "impact target is open ground next to the enemy building")
 	if impact_screen.is_finite():
-		mouse(impact_screen, MOUSE_BUTTON_LEFT, true)
+		move_mouse(impact_screen, impact_screen - r_at, MOUSE_BUTTON_MASK_LEFT)
 		mouse(impact_screen, MOUSE_BUTTON_LEFT, false)
-	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and target.population == 0.0 and game.energy == 40.0, "armed impact uses the native ground point and spends sixty energy")
-	key(KEY_W)
-	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.energy == 0.0, "keyboard haste consumes the remaining forty energy")
+	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and target.population > 0.0 and game.energy == 40.0, "impact drop ignites the native ground point and spends sixty energy before distant damage")
+	var w_at: Vector2 = game.hud.get_node("UI/Skills/Row/Skill1").get_global_rect().get_center()
+	mouse(w_at, MOUSE_BUTTON_LEFT, true)
+	mouse(impact_screen, MOUSE_BUTTON_LEFT, false)
+	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.energy == 0.0, "haste drop consumes the remaining forty energy")
+	game.simulate(WarFireWave.EXPANSION_TIME)
+	check(target.population == 0.0, "fire damages the garrison only after expanding to the building")
 	var previous: Vector3 = game.camera_rig.destination
 	var ground := Vector2(800, 470)
 	mouse(ground, MOUSE_BUTTON_MIDDLE, true)

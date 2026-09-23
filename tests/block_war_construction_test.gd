@@ -25,7 +25,7 @@ func fixture(kind: int = 0, tier: int = 1, population: float = 200.0) -> void:
 	game.energy = 100.0
 	game.cooldowns.fill(0.0)
 	for building: WarBuilding in game.buildings:
-		building.cancel_upgrade()
+		building.cancel_construction()
 		building.kind = 0
 		building.level = 1
 		building.faction = -1
@@ -65,7 +65,7 @@ func _run() -> void:
 			var defense: float = game.defense_multiplier(home)
 			var attack: float = game.attack_multiplier(0)
 			game.upgrade_selected()
-			check(home.is_upgrading and home.level == tier and home.upgrade_remaining == 10.0, "each paid tier starts ten seconds without an immediate level")
+			check(home.is_constructing and home.level == tier and home.construction_remaining == 10.0, "each paid tier starts ten seconds without an immediate level")
 			near(home.population, 200.0 - cost, "construction deducts the exact cost once")
 			check(home.get_node(path).mesh == old_mesh, "unfinished construction retains its current model")
 			near(game.defense_multiplier(home), defense, "unfinished construction retains current defense")
@@ -75,15 +75,15 @@ func _run() -> void:
 			for repeat: int in 3:
 				game.upgrade_selected()
 			game.convert_selected((kind + 1) % 3)
-			check(home.kind == kind and home.population == 200.0 - cost and home.upgrade_remaining == 10.0, "duplicate upgrade and conflicting conversion cannot spend or reset work")
+			check(home.kind == kind and home.population == 200.0 - cost and home.construction_remaining == 10.0, "duplicate upgrade and conflicting conversion cannot spend or reset work")
 			for button: String in ["%ConvertHouse", "%ConvertTower", "%ConvertForge"]:
 				check(game.hud.get_node(button).disabled, "conversion actions are disabled during construction")
 			game.simulate(9.999)
 			game.update_hud()
-			check(home.level == tier and home.is_upgrading and home.get_node(path).mesh == old_mesh, "9.999 seconds never changes the level or model")
+			check(home.level == tier and home.is_constructing and home.get_node(path).mesh == old_mesh, "9.999 seconds never changes the level or model")
 			check(upgrade.get_node("Cost/Amount").text == "1s", "last fraction of a second remains visible as one second")
 			game.simulate(0.001)
-			check(home.level == tier + 1 and not home.is_upgrading, "level changes exactly at ten seconds")
+			check(home.level == tier + 1 and not home.is_constructing, "level changes exactly at ten seconds")
 			check(home.get_node(path).mesh != old_mesh and home.get_node("Visual/Flag").get_instance_shader_parameter("building_level") == tier + 1, "completion changes geometry and flag together")
 			check(not dust.emitting and not chips.emitting and completion.emitting, "completion stops the work emitters and releases one final puff")
 			check(home.find_children("*", "", true, false).size() == original_nodes, "construction reuses authored scene nodes")
@@ -129,6 +129,18 @@ func _run() -> void:
 	game.simulate(5.0)
 	near(home.population, 106.25, "friendly reinforcements remain uncapped throughout construction")
 	check(home.level == 3, "reinforcement does not interrupt work")
+	for old_kind: int in [1, 2]:
+		fixture(old_kind, 1, 20.0)
+		for building: WarBuilding in game.buildings:
+			if building != home:
+				building.kind = 2
+				building.population = 0.0
+		game.convert_selected(0)
+		game.simulate(9.9)
+		check(not game.finished and home.kind == old_kind and home.population == 0.0, "a pending residence prevents premature draw when both sides exhaust their garrisons")
+		game.simulate(0.2)
+		check(not game.finished and home.kind == 0, "last viable residence can complete its conversion")
+		near(home.population, 0.1, "the completed residence restarts natural growth after the ten-second boundary")
 	# A lost construction never finishes for a new owner, including a level-one floor.
 	for kind: int in [0, 1, 2]:
 		for tier: int in range(1, (4 if kind == 0 else 3) + 1):
@@ -139,31 +151,67 @@ func _run() -> void:
 			home.population = 0.0
 			game._on_unit_arrived(home.building_id, 1, 100.0)
 			var captured_level := maxi(1, tier - 1)
-			check(home.faction == 1 and home.level == captured_level and not home.is_upgrading, "capture immediately changes owner, loses one existing level and cancels construction")
+			check(home.faction == 1 and home.level == captured_level and not home.is_constructing, "capture immediately changes owner, loses one existing level and cancels construction")
 			check(home.get_node("Visual/Flag").get_instance_shader_parameter("building_level") == captured_level, "capture updates the downgraded flag in the same frame")
 			check(not dust.is_visible_in_tree() and not dust.emitting and not chips.emitting and not completion.emitting, "capture immediately clears every construction emitter")
 			game.simulate(12.0)
 			check(home.level == captured_level, "captured building never receives an abandoned upgrade")
 			near(home.population, 100.0, "capture and abandoned work do not refund cost or discard surviving attackers")
+	for old_kind: int in [0, 1, 2]:
+		for new_kind: int in [0, 1, 2]:
+			if old_kind == new_kind:
+				continue
+			fixture(old_kind, 2, 19.99)
+			game.convert_selected(new_kind)
+			check(not home.is_constructing and home.population == 19.99, "conversion rejects a fractional twenty-person shortfall")
+			home.population = 20.0
+			var path: String = "Visual/%s/Stone" % ["House", "Tower", "Smithy"][old_kind]
+			var previous_mesh: Mesh = home.get_node(path).mesh
+			var old_rate := home.production_rate
+			game.convert_selected(new_kind)
+			check(home.kind == old_kind and home.level == 2 and home.population == 0.0 and home.conversion_target == new_kind, "each conversion pays twenty once and retains its original kind and level")
+			check(home.get_node(path).mesh == previous_mesh and home.get_node("Construction/Dust").emitting, "conversion keeps the original model and begins construction smoke")
+			var conversion: Button = game.hud.get_node(["%ConvertHouse", "%ConvertTower", "%ConvertForge"][new_kind])
+			check(conversion.disabled and conversion.get_node("Cost/Amount").text == "10s", "conversion countdown belongs to the chosen destination icon")
+			game.upgrade_selected()
+			game.convert_selected(new_kind)
+			check(home.construction_remaining == 10.0 and home.population == 0.0, "repeated conversion or upgrade cannot restart or double-charge work")
+			game.simulate(9.9)
+			check(home.kind == old_kind and home.level == 2, "conversion keeps all original functions before ten seconds")
+			near(home.population, old_rate * 9.9, "old house production continues during conversion")
+			game.simulate(0.1)
+			check(home.kind == new_kind and home.level == 1 and not home.is_constructing, "conversion changes kind and resets level exactly at ten seconds")
+			near(home.population, old_rate * 10.0, "conversion completion never charges a second time")
+		fixture(old_kind, 2, 100.0)
+		game.convert_selected((old_kind + 1) % 3)
+		game.simulate(3.0)
+		game.set_paused(true)
+		game.simulate(20.0)
+		check(home.kind == old_kind and home.construction_remaining == 7.0, "pause freezes conversion without changing function")
+		game.set_paused(false)
+		home.population = 0.0
+		game._on_unit_arrived(home.building_id, 1, 100.0)
+		game.simulate(12.0)
+		check(home.kind == old_kind and home.level == 1 and home.conversion_target == -1, "capture interrupts conversion and downgrades the original building")
 	# A former enemy can be recaptured and start an entirely fresh construction.
 	home.population = 0.0
 	game._on_unit_arrived(home.building_id, 0, 200.0)
 	game.select_building(home)
 	game.upgrade_selected()
-	check(home.level == 1 and home.upgrade_remaining == 10.0 and dust.is_visible_in_tree(), "recapture starts a fresh full timer and restores dust")
+	check(home.level == 1 and home.construction_remaining == 10.0 and dust.is_visible_in_tree(), "recapture starts a fresh full timer and restores dust")
 	game.simulate(3.0)
 	game.set_paused(true)
 	game.simulate(100.0)
-	near(home.upgrade_remaining, 7.0, "pause cannot consume construction time")
+	near(home.construction_remaining, 7.0, "pause cannot consume construction time")
 	check(dust.speed_scale == 0.0 and chips.speed_scale == 0.0 and completion.speed_scale == 0.0, "pause freezes all native construction particles")
 	game.set_paused(false)
 	check(dust.speed_scale == 1.0 and chips.speed_scale == 1.0, "resume restores particle speed")
 	game.simulate(7.0)
-	check(home.level == 2 and not home.is_upgrading, "resume completes only the remaining work")
+	check(home.level == 2 and not home.is_constructing, "resume completes only the remaining work")
 	game.upgrade_selected()
 	game._finish_match(0)
 	game.simulate(20.0)
-	check(home.level == 2 and home.upgrade_remaining == 10.0 and dust.speed_scale == 0.0, "match result freezes active construction and effects")
+	check(home.level == 2 and home.construction_remaining == 10.0 and dust.speed_scale == 0.0, "match result freezes active construction and effects")
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_CONSTRUCTION checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)

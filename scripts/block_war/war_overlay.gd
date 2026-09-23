@@ -18,7 +18,7 @@ func _draw() -> void:
 			draw_line(screen - Vector2(7, 0), screen + Vector2(7, 0), color, 1.5, true)
 			draw_line(screen - Vector2(0, 7), screen + Vector2(0, 7), color, 1.5, true)
 	elif game.armed_skill >= 0:
-		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
+		var valid: bool = game.ground_skill_target.is_finite() if game.armed_skill == 1 else game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)
 		var mouse := get_viewport().get_mouse_position()
 		draw_arc(mouse, 13.0, 0, TAU, 32, reticle_color, 1.5, true)
@@ -58,22 +58,17 @@ func _draw() -> void:
 		at.y = clampf(at.y, text_size.y + 8.0, size.y - 8.0)
 		draw_style_box(DISPATCH_HINT, Rect2(at - Vector2(9, text_size.y), text_size + Vector2(18, 8)))
 		draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, color)
+	for shot: Dictionary in game.projectiles:
+		# The trail belongs to the actual 3D ball and its current live target.
+		var at: Vector2 = camera.unproject_position(shot.position)
+		var before: Vector2 = camera.unproject_position(shot.previous)
+		draw_line(before, at, Color(1.0, 0.73, 0.32, 0.82), 2.8, true)
 	for effect: Dictionary in game.effects:
 		var progress: float = 1.0 - effect.life / effect.duration
 		var color: Color = effect.color
 		color.a = 1.0 - progress
-		if effect.kind == "shot":
-			var start: Vector3 = effect.at
-			var end: Vector3 = effect.to
-			var at: Vector3 = start.lerp(end, progress) + Vector3(0, sin(progress * PI) * 2.0, 0)
-			draw_line(camera.unproject_position(at), camera.unproject_position(at.lerp(start, 0.16)), color, 3.5, true)
-			draw_circle(camera.unproject_position(at), 4.0, color, true, -1, true)
-		else:
-			var radius: float = lerpf(0.5, effect.radius if effect.kind != "hit" else 0.85, progress)
-			_ring(effect.at, radius, color, 2.5)
-			if effect.kind == "impact":
-				var point: Vector2 = camera.unproject_position(effect.at)
-				draw_line(point - Vector2(0, 130 * (1.0 - progress)), point, color, 9 * (1.0 - progress) + 1, true)
+		var radius: float = lerpf(0.5, effect.radius if effect.kind != "hit" else 0.85, progress)
+		_ring(effect.at, radius, color, 2.5)
 
 func _ring(center: Vector3, radius: float, color: Color, width: float) -> void:
 	var points := PackedVector2Array()

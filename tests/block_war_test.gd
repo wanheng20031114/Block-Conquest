@@ -90,7 +90,9 @@ func run() -> void:
 	game.energy = game.ENERGY_MAX
 	tower.faction = -1
 	tower.population = 10.0
-	check(game.cast_ground_skill(3, tower.global_position) and tower.population == 0.0 and tower.faction == -1, "ground impact cannot capture without militia")
+	check(game.cast_ground_skill(3, tower.global_position), "ground fire starts without capturing")
+	game.simulate(0.05)
+	check(tower.population == 0.0 and tower.faction == -1, "expanding fire cannot capture without militia")
 	game.cooldowns[1] = 0.0
 	check(game.cast_skill(1, null) and game.active_durations[1] == 8.0, "haste activates without selected building")
 	var clock: float = game.elapsed
@@ -101,21 +103,23 @@ func run() -> void:
 	check(game.issue_order(home, neutral, 50) == 0 and not game.cast_skill(0, home), "pause blocks orders and skills")
 	game.set_paused(false)
 	game.simulate(1.0)
-	check(is_equal_approx(game.cooldowns[0], cd - 1.0) and game.active_durations[1] == 7.0, "resume advances independent clocks")
+	check(is_equal_approx(game.cooldowns[0], cd - 1.0) and is_equal_approx(game.active_durations[1], 7.0), "resume advances independent clocks")
 	game.simulate(10.0)
 	check(game.shields.is_empty() and game.active_durations[1] == 0.0, "temporary effects expire")
 	game.select_building(home)
 	home.population = 100.0
 	game.upgrade_selected()
-	check(home.level == 1 and home.is_upgrading and home.population == 90.0, "house upgrade pays once and starts ten seconds of construction")
+	check(home.level == 1 and home.is_constructing and home.population == 90.0, "house upgrade pays once and starts ten seconds of construction")
 	game.simulate(10.0)
 	check(home.level == 2 and home.capacity == 50.0 and home.population == 90.0, "house upgrade spends ten and raises the production limit")
 	game.convert_selected(2)
-	check(home.kind == 2 and home.level == 1 and home.population == 60.0, "convert costs thirty and resets building level")
+	game.simulate(10.0)
+	check(home.kind == 2 and home.level == 1 and home.population == 70.0, "convert costs twenty and resets building level after ten seconds")
 	game.simulate(1.0)
-	check(home.population == 60.0, "forge does not automatically produce troops")
+	check(home.population == 70.0, "forge does not automatically produce troops")
 	game.convert_selected(0)
-	check(home.kind == 0 and home.population == 30.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
+	game.simulate(10.0)
+	check(home.kind == 0 and home.population == 50.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
 	game.camera_rig.focus_at(Vector3(999, 0, -999), true)
 	check(game.camera_rig.position == Vector3(34, 0, -23), "camera panning stays inside battlefield bounds")
 	game.camera_rig.zoom_by(999)
