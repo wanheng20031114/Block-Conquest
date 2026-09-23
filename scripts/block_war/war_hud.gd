@@ -25,13 +25,14 @@ var _help_from_pause: bool = false
 var _toast_tween: Tween
 var _balance_tween: Tween
 var _balance_target: float = -1.0
-var _last_selected_id: int = -1
 var _last_ready: Array[bool] = [false, false, false, false]
 var _skills_initialized: bool = false
 var _skill_buttons: Array[Button] = []
 var _percentage_buttons: Array[Button] = []
-var _managing: bool = false
-var _selected_owned: bool = false
+var _selection_target: Node3D
+var _selection_camera: Camera3D
+var _selection_buildings: Array[Node3D] = []
+var _actions_visible: bool = false
 var _pointer_blockers: Array[Control] = []
 
 func _ready() -> void:
@@ -54,14 +55,13 @@ func _ready() -> void:
 	%ResultRestart.pressed.connect(func(): restart_requested.emit())
 	%ResultExit.pressed.connect(func(): exit_requested.emit())
 	%HintClose.pressed.connect(func(): UIMotion.dismiss(%QuickHint))
-	%Manage.pressed.connect(_toggle_management)
 	%Upgrade.pressed.connect(func(): upgrade_requested.emit())
 	%ConvertHouse.pressed.connect(func(): convert_requested.emit(0))
 	%ConvertTower.pressed.connect(func(): convert_requested.emit(1))
 	%ConvertForge.pressed.connect(func(): convert_requested.emit(2))
 	for button: BaseButton in $UI.find_children("*", "BaseButton", true, false):
 		_pointer_blockers.append(button)
-	for panel: Control in [%UpgradeRow, %ManagementBackdrop, %PauseOverlay, %HelpOverlay, %ResultOverlay]:
+	for panel: Control in [%PauseOverlay, %HelpOverlay, %ResultOverlay]:
 		_pointer_blockers.append(panel)
 	UIMotion.bind_buttons($UI)
 	var panels: Array[Control] = [%Top, %Player, %Enemy, %Percentages, %Skills]
@@ -94,47 +94,7 @@ func update_state(state: Dictionary) -> void:
 	%SendAmount.visible = bool(state.selected_owned)
 	%SendAmount.text = "派出 %d 人 · %d%%   [1–4] 切换" % [int(state.send_count), int(state.percentage)]
 	%ForgeBonus.text = "锻造加成  +%d%%" % (int(state.forges) * 10)
-	var selected_name: String = str(state.selected_name)
-	%Selection.visible = not selected_name.is_empty()
-	if not selected_name.is_empty():
-		var faction: int = int(state.selected_faction)
-		var affiliation := "己方" if faction == 0 else ("敌方" if faction == 1 else "中立")
-		var level: int = int(state.selected_level)
-		%SelectedName.text = "%s · %s · %d / 3 级" % [affiliation, selected_name, level]
-		%SelectedPopulation.text = "%d" % int(state.selected_population)
-		%SelectedDetail.text = str(state.selected_detail)
-		%Manage.tooltip_text = str(state.selected_detail)
-		if int(state.selected_id) != _last_selected_id:
-			_managing = false
-			%Manage.set_pressed_no_signal(false)
-			UIMotion.reveal(%Selection, Vector2(0, 5))
-		var owned: bool = bool(state.selected_owned)
-		_selected_owned = owned
-		%Manage.visible = owned
-		_refresh_management()
-		var cost: int = int(state.upgrade_cost)
-		var population: int = int(state.selected_population)
-		%Upgrade.disabled = not bool(state.can_upgrade) or _paused or _finished
-		%Upgrade.text = "升级至 %d 级 · %d 驻军" % [level + 1, cost]
-		if not owned:
-			%Upgrade.text = "%s建筑 · 不可升级" % affiliation
-			%UpgradeHint.text = "占领后可升级"
-		elif level >= 3:
-			%Upgrade.text = "3 级 · 已达满级"
-			%UpgradeHint.text = "建筑已升至最高等级"
-		elif _paused or _finished:
-			%UpgradeHint.text = "暂停中" if _paused else "战斗已结束"
-		elif population < cost:
-			%UpgradeHint.text = "还差 %d 名驻军" % (cost - population)
-		else:
-			%UpgradeHint.text = "升级后保留 %d 名驻军" % (population - cost)
-		%Upgrade.tooltip_text = "%s\n%s" % [%Upgrade.text, %UpgradeHint.text]
-		if owned:
-			var kind: int = int(state.selected_kind)
-			%ConvertHouse.disabled = kind == 0 or int(state.selected_population) < int(state.convert_cost)
-			%ConvertTower.disabled = kind == 1 or int(state.selected_population) < int(state.convert_cost)
-			%ConvertForge.disabled = kind == 2 or int(state.selected_population) < int(state.convert_cost)
-	_last_selected_id = int(state.selected_id)
+	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
@@ -200,18 +160,95 @@ func show_draw() -> void:
 	%ResultOverlay.show()
 	UIMotion.reveal(%ResultCard, Vector2(0, 28))
 
-func _toggle_management() -> void:
-	_managing = %Manage.button_pressed
-	_refresh_management()
-	if _managing:
-		UIMotion.reveal(%ManagementBackdrop, Vector2(0, 6))
-		UIMotion.reveal(%BuildingActions)
+func track_building(building: Node3D, camera: Camera3D, buildings: Array[Node3D]) -> void:
+	_selection_target = building
+	_selection_camera = camera
+	_selection_buildings = buildings
 
-func _refresh_management() -> void:
-	var opened: bool = _managing and _selected_owned
-	%BuildingActions.visible = opened
-	%ManagementBackdrop.visible = opened
-	%SelectedDetail.visible = opened
+func _process(_delta: float) -> void:
+	_position_selection()
+
+func _update_building_actions(state: Dictionary) -> void:
+	_actions_visible = bool(state.selected_owned) and int(state.armed_skill) < 0
+	var level := int(state.selected_level)
+	var population := int(state.selected_population)
+	var cost := int(state.upgrade_cost)
+	var capped := level >= 3
+	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, 3))
+	%Upgrade.get_node("Cost/Population").visible = not capped
+	var detail := "升级后保留 %d 名驻军" % (population - cost)
+	if population < cost:
+		detail = "还差 %d 名驻军" % (cost - population)
+	var upgrade_hint := "升级至 %d 级 · 消耗 %d 名驻军\n%s\n%s" % [level + 1, cost, detail, state.selected_detail]
+	if capped:
+		upgrade_hint = "已达 3 级\n%s" % state.selected_detail
+	_update_action(%Upgrade, bool(state.can_upgrade), "—" if capped else str(cost), upgrade_hint, not capped and population < cost)
+	var conversions: Array[Button] = [%ConvertHouse, %ConvertTower, %ConvertForge]
+	for kind: int in conversions.size():
+		var button := conversions[kind]
+		button.visible = kind != int(state.selected_kind)
+		var convert_cost := int(state.convert_cost)
+		var hint := "改建%s · 消耗 %d 名驻军\n重置至 1 级" % [["住宅", "炮塔", "铁匠铺"][kind], convert_cost]
+		if population < convert_cost:
+			hint += "\n还差 %d 名驻军" % (convert_cost - population)
+		_update_action(button, bool(state.selected_owned) and population >= convert_cost, str(convert_cost), hint, population < convert_cost)
+	_position_selection()
+
+func _update_action(button: Button, available: bool, cost: String, hint: String, shortfall: bool) -> void:
+	button.disabled = not available or _paused or _finished
+	button.tooltip_text = hint
+	button.get_node("Icon").modulate.a = 0.45 if button.disabled else 1.0
+	var amount: Label = button.get_node("Cost/Amount")
+	amount.text = cost
+	amount.add_theme_color_override("font_color", Color("ffb19a") if shortfall else Color("fff7cf"))
+
+func _position_selection() -> void:
+	%Selection.visible = _selection_target != null and _actions_visible and not _paused and not _finished
+	if not %Selection.visible:
+		return
+	var world := _selection_target.global_position + Vector3(0, 2.5, 0)
+	if _selection_camera.is_position_behind(world):
+		%Selection.hide()
+		return
+	# Native camera projection returns viewport coordinates; the HUD may be scaled.
+	var to_ui: Transform2D = $UI.get_global_transform_with_canvas().affine_inverse()
+	var anchor: Vector2 = to_ui * _selection_camera.unproject_position(world)
+	if not Rect2(Vector2.ZERO, $UI.size).has_point(anchor):
+		%Selection.hide()
+		return
+	var extent: Vector2 = to_ui * _selection_camera.unproject_position(world + _selection_camera.global_basis.x * 3.8)
+	var gap: float = absf(extent.x - anchor.x) + 8.0
+	var menu_size: Vector2 = %Selection.size
+	var bounds := Rect2(Vector2(16, 64), Vector2($UI.size.x - 32.0, %Skills.position.y - 88.0))
+	var percentage_rect: Rect2 = %Percentages.get_global_rect().grow_side(SIDE_RIGHT, 40.0)
+	var obstacles: Array[Rect2] = []
+	# A compact side menu must not cover a neighboring building or its population.
+	for building: Node3D in _selection_buildings:
+		var center: Vector2 = to_ui * _selection_camera.unproject_position(building.global_position + Vector3(0, 3.5, 0))
+		obstacles.append(Rect2(center - Vector2(gap, gap * 0.85), Vector2(gap * 2.0, gap * 1.7)))
+	var best := Vector2.ZERO
+	var best_score := INF
+	for side: float in [1.0, -1.0]:
+		for rise: float in [0.0, -1.0, 1.0]:
+			var candidate := anchor + Vector2(gap if side > 0.0 else -gap - menu_size.x, -menu_size.y * 0.5 + rise * (menu_size.y + 18.0))
+			candidate = candidate.clamp(bounds.position, bounds.end - menu_size)
+			var rect := Rect2(candidate, menu_size)
+			var score := rect.get_center().distance_squared_to(anchor)
+			# Prefer the right on near ties, avoiding side flicker during camera easing.
+			score += 1000.0 if side < 0.0 else 0.0
+			score += rect.intersection(percentage_rect).get_area() * 10000.0
+			for obstacle: Rect2 in obstacles:
+				score += rect.intersection(obstacle).get_area() * 100.0
+			if score < best_score:
+				best_score = score
+				best = candidate
+	%Selection.position = best.round()
+	# A fine leader keeps an offset menu visibly attached to its own building.
+	var on_right: bool = %Selection.position.x > anchor.x
+	%BuildingActions.position.x = 12.0 if on_right else 0.0
+	var start: Vector2 = anchor - %Selection.position + Vector2(gap - 8.0 if on_right else 8.0 - gap, 0)
+	var end := Vector2(10.0 if on_right else 222.0, 33.0)
+	$UI/Selection/Connector.points = PackedVector2Array([start, Vector2(end.x, start.y), end])
 
 func _pulse_ready(button: Button) -> void:
 	var glow: Control = button.get_node("ReadyGlow")

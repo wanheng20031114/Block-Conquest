@@ -350,7 +350,7 @@ render_priority = 5
 outline_render_priority = 4
 position = Vector3(-2.15, 6.15, 0)
 text = "20"
-font_size = 48
+font_size = 64
 pixel_size = 0.020
 modulate = Color(0.20, 0.22, 0.18, 1)
 

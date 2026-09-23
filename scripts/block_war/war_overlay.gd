@@ -1,6 +1,8 @@
 extends Control
 ## Native canvas feedback projected from the 3D map; never intercepts input.
 
+const DISPATCH_HINT: StyleBox = preload("res://assets/ui/block_war/dispatch_hint.tres")
+
 @onready var game: Node3D = get_parent().get_parent()
 
 func _draw() -> void:
@@ -54,7 +56,7 @@ func _draw() -> void:
 		var at := get_viewport().get_mouse_position() + Vector2(20, -24)
 		at.x = clampf(at.x, 8.0, size.x - text_size.x - 20.0)
 		at.y = clampf(at.y, text_size.y + 8.0, size.y - 8.0)
-		draw_style_box(game.hud.get_node("UI/Selection/Strip").get_theme_stylebox("panel"), Rect2(at - Vector2(9, text_size.y), text_size + Vector2(18, 8)))
+		draw_style_box(DISPATCH_HINT, Rect2(at - Vector2(9, text_size.y), text_size + Vector2(18, 8)))
 		draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, color)
 	for effect: Dictionary in game.effects:
 		var progress: float = 1.0 - effect.life / effect.duration

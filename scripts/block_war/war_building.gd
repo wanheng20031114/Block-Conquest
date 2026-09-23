@@ -140,9 +140,11 @@ func refresh_visual() -> void:
 	var displayed_population := maxi(0, int(floor(population)))
 	if displayed_population != _last_population:
 		_population_label.text = str(displayed_population)
-		# Enlarge all four petals together for long totals; preserve readable digits.
-		var text_width := _population_label.font.get_string_size(_population_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 48).x
-		$PopulationBadge.scale = Vector3.ONE * maxf(1.0, text_width * _population_label.pixel_size / 2.0)
+		# Keep ordinary totals prominent; three digits share the same white badge.
+		_population_label.font_size = 54 if displayed_population >= 100 else 64
+		var text_width := _population_label.font.get_string_size(_population_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, _population_label.font_size).x
+		# Reinforcements can exceed three digits; keep those exceptional totals inside.
+		$PopulationBadge.scale = Vector3.ONE * maxf(1.0, text_width * _population_label.pixel_size / 2.2)
 		$PickArea/BadgeCollisionShape3D.scale = $PopulationBadge.scale
 		_last_population = displayed_population
 

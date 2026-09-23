@@ -27,6 +27,19 @@ func _run() -> void:
 	await process_frame
 	building.set_process(false)
 	neighbor.set_process(false)
+	var label: Label3D = building.get_node("PopulationLabel")
+	var badge: MeshInstance3D = building.get_node("PopulationBadge")
+	building.population = 99
+	building.refresh_visual()
+	var two_digit_size := label.font_size
+	for population: int in [100, 128, 999, 1000, 99]:
+		building.population = population
+		building.refresh_visual()
+		var text_width := label.font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size).x * label.pixel_size
+		check(text_width <= 2.2 * badge.scale.x + 0.001, "population %d fits within the badge's clear center" % population)
+		if population >= 100 and population <= 999:
+			check(label.font_size < two_digit_size and badge.scale.is_equal_approx(Vector3.ONE), "three digits use smaller type in the unchanged white badge")
+	check(label.font_size == two_digit_size, "population returning below 100 restores the larger digits")
 	var authored_count := building.find_children("*", "", true, false).size()
 	var original_pick: Shape3D = building.get_node("PickArea/CollisionShape3D").shape
 	var original_badge_pick: Shape3D = building.get_node("PickArea/BadgeCollisionShape3D").shape

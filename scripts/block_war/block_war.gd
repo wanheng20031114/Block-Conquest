@@ -170,6 +170,7 @@ func select_building(building: Node3D) -> void:
 	selected = building
 	if selected != null:
 		selected.set_selected(true)
+	hud.track_building(selected, camera, buildings)
 	update_hud()
 
 func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = PLAYER) -> int:

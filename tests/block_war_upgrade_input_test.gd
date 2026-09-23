@@ -62,9 +62,9 @@ func _run() -> void:
 	await physics_frame
 	await create_timer(0.8).timeout
 	var upgrade: Button = game.hud.get_node("%Upgrade")
-	var hint: Label = game.hud.get_node("%UpgradeHint")
-	var title: Label = game.hud.get_node("%SelectedName")
-	var manage: Button = game.hud.get_node("%Manage")
+	var menu: Control = game.hud.get_node("%Selection")
+	var cost: Label = upgrade.get_node("Cost/Amount")
+	var next_level: Label = upgrade.get_node("NextLevel")
 	var home: Node3D = game.by_id[0]
 	var sources: Array[Node3D] = [home, game.by_id[6], game.by_id[8]]
 	for kind: int in sources.size():
@@ -76,14 +76,14 @@ func _run() -> void:
 		building.capacity = 200.0
 		building.refresh_visual()
 		await select_on_map(building)
-		check(upgrade.is_visible_in_tree() and not upgrade.disabled and not manage.button_pressed, "kind %d exposes upgrade without opening management" % kind)
-		check(upgrade.text.contains("2 级") and upgrade.text.contains("30 驻军"), "kind %d presents next level and 30-garrison cost" % kind)
+		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
+		check(next_level.text == "2" and cost.text == "30" and upgrade.text.is_empty(), "kind %d presents next level and cost using icons and numbers" % kind)
 		await click(center(upgrade))
 		check(building.level == 2 and building.population == 90.0 and building.capacity == 300.0, "kind %d actual click upgrades 1 to 2 for exactly 30" % kind)
-		check(title.text.contains("己方") and title.text.contains("2 / 3") and upgrade.text.contains("60 驻军"), "kind %d updates ownership, level and next cost" % kind)
+		check(next_level.text == "3" and cost.text == "60", "kind %d updates next level and cost" % kind)
 		await click(center(upgrade))
 		check(building.level == 3 and building.population == 30.0 and building.capacity == 400.0, "kind %d actual click upgrades 2 to 3 for exactly 60" % kind)
-		check(upgrade.disabled and upgrade.text.contains("满级") and title.text.contains("3 / 3"), "kind %d visibly reaches its level cap" % kind)
+		check(upgrade.disabled and next_level.text == "3" and cost.text == "—", "kind %d visibly reaches its level cap without a fictitious fourth level" % kind)
 		await click(center(upgrade))
 		check(building.level == 3 and building.population == 30.0, "kind %d capped button cannot spend another garrison" % kind)
 		check(game.marches.total_for(0) == 0 and game.selected == building, "kind %d upgrade buttons never dispatch or select the map behind them" % kind)
@@ -92,14 +92,14 @@ func _run() -> void:
 	home.population = 29.0
 	home.refresh_visual()
 	await select_on_map(home)
-	check(upgrade.disabled and hint.text.contains("还差 1"), "level 1 shortfall is visible without hovering")
+	check(upgrade.disabled and cost.text == "30" and upgrade.tooltip_text.contains("还差 1"), "level 1 shortfall keeps the actual cost and explains the missing garrison")
 	await click(center(upgrade))
 	check(home.level == 1 and home.population == 29.0, "insufficient level 1 click changes nothing")
 	home.level = 2
 	home.population = 59.0
 	home.refresh_visual()
 	game.update_hud()
-	check(upgrade.disabled and upgrade.text.contains("60 驻军") and hint.text.contains("还差 1"), "level 2 shortfall uses the unchanged 60 cost")
+	check(upgrade.disabled and cost.text == "60" and upgrade.tooltip_text.contains("还差 1"), "level 2 shortfall uses the unchanged 60 cost")
 	await click(center(upgrade))
 	check(home.level == 2 and home.population == 59.0, "insufficient level 2 click changes nothing")
 	# Ownership is communicated, and neither hostile nor neutral buildings upgrade.
@@ -109,38 +109,70 @@ func _run() -> void:
 		hostile.refresh_visual()
 		await select_on_map(hostile)
 		var affiliation := "敌方" if hostile.faction == 1 else "中立"
-		check(upgrade.disabled and title.text.contains(affiliation) and not manage.visible, affiliation + " has no enabled building actions")
-		await click(center(upgrade))
-		check(hostile.level == 1 and hostile.population == 120.0, affiliation + " click cannot spend its garrison")
-	# Conversion remains a separate available action; opening it never hides upgrade.
+		check(not menu.is_visible_in_tree(), affiliation + " has no building action menu")
+		check(hostile.level == 1 and hostile.population == 120.0, affiliation + " selection cannot spend its garrison")
+	# Only the two different building kinds appear alongside the direct upgrade.
 	home.level = 1
 	home.population = 120.0
 	home.refresh_visual()
 	await select_on_map(home)
-	await click(center(manage))
-	await create_timer(0.22).timeout
-	check(game.hud.get_node("%BuildingActions").is_visible_in_tree() and upgrade.is_visible_in_tree(), "conversion menu keeps the direct upgrade accessible")
+	check(not game.hud.get_node("%ConvertHouse").is_visible_in_tree() and game.hud.get_node("%ConvertTower").is_visible_in_tree() and game.hud.get_node("%ConvertForge").is_visible_in_tree(), "house exposes exactly its two alternative conversions")
 	await click(center(game.hud.get_node("%ConvertTower")))
 	check(home.kind == 1 and home.level == 1 and home.population == 90.0, "retained conversion button spends its unchanged 30-garrison cost")
+	var conversions: Array[Button] = [game.hud.get_node("%ConvertHouse"), game.hud.get_node("%ConvertTower"), game.hud.get_node("%ConvertForge")]
+	for kind: int in [2, 0, 1]:
+		home.population = 120.0
+		game.update_hud()
+		await frames()
+		await click(center(conversions[kind]))
+		check(home.kind == kind and home.level == 1 and home.population == 90.0 and not conversions[kind].visible, "conversion icon %d changes kind, charges once and then leaves the alternatives" % kind)
 	await click(center(upgrade))
 	check(home.level == 2 and home.population == 60.0, "converted building can immediately upgrade through the same direct button")
-	await click(center(manage))
 	game.set_paused(true)
 	game.update_hud()
 	await frames()
-	check(upgrade.disabled and hint.text == "暂停中", "pause disables and explains the upgrade action")
+	check(upgrade.disabled and not menu.visible, "pause hides and disables the contextual actions")
 	await click(center(upgrade))
 	check(home.level == 2 and home.population == 60.0 and game._local_menu, "pause overlay rejects an actual upgrade click")
 	game.set_paused(false)
 	game.update_hud()
 	check(not upgrade.disabled, "resume restores an affordable upgrade")
+	# The panel follows camera motion every frame, independently of the 10 Hz HUD refresh.
+	game.camera_rig.focus_at(home.global_position, true)
+	await frames()
+	var before := menu.position
+	game.camera_rig.position.x += 2.0
+	await frames()
+	check(menu.visible and menu.position.distance_to(before) > 10.0, "camera pan moves the menu with its building without a state refresh")
+	game.camera.size = 37.0
+	await frames()
+	check(menu.visible and not menu.get_global_rect().has_point(point(home)), "zoom keeps the action strip beside the building without covering it")
+	# Both screen edges and a smaller window retain the entire menu.
+	for direction: float in [-1.0, 1.0]:
+		game.camera_rig.focus_at(home.global_position + Vector3(direction * 22.0, 0, 0), true)
+		await frames()
+		check(menu.visible and Rect2(Vector2.ZERO, game.hud.get_node("UI").size).encloses(menu.get_rect()), "screen edge %s keeps all actions reachable" % direction)
+	game.camera_rig.focus_at(home.global_position, true)
+	root.size = Vector2i(1280, 720)
+	await frames(4)
+	check(menu.visible and Rect2(Vector2.ZERO, game.hud.get_node("UI").size).encloses(menu.get_rect()), "resizing retains the complete contextual menu")
+	game.camera_rig.position.x += 150.0
+	await frames()
+	check(not menu.visible, "an offscreen building cannot leave detached clickable actions")
+	game.camera_rig.focus_at(home.global_position, true)
+	game.armed_skill = 0
+	game.update_hud()
+	check(not menu.visible, "targeting a skill hides building actions so they cannot block targets")
+	game.armed_skill = -1
+	game.update_hud()
+	root.size = Vector2i(1600, 900)
+	await frames(4)
 	# Put a real map building under the action's exact screen coordinates.
 	var covered: Node3D = game.by_id[12]
+	game.hud.set_process(false)
 	var at := center(upgrade)
-	var delta := point(covered) - at
-	var units_per_pixel: float = game.camera.size / root.get_visible_rect().size.y
-	game.camera_rig.position += Vector3(delta.x * units_per_pixel, 0, delta.y * units_per_pixel / absf(sin(game.camera.rotation.x)))
-	game.camera_rig.destination = game.camera_rig.position
+	covered.global_position = Plane(Vector3.UP, 1.5).intersects_ray(game.camera.project_ray_origin(at), game.camera.project_ray_normal(at)) - Vector3(0, 1.5, 0)
+	await physics_frame
 	await frames()
 	check(point(covered).distance_to(at) < 1.0 and game.pick_building(at) == covered, "upgrade overlap fixture contains a real building underneath")
 	check(game.hud.is_pointer_blocked(at), "upgrade coordinates are explicitly blocked from world dispatch")
@@ -151,6 +183,8 @@ func _run() -> void:
 	home.population = 120.0
 	home.refresh_visual()
 	game.update_hud()
+	await frames()
+	at = center(upgrade)
 	var start := point(home)
 	var press := InputEventMouseButton.new()
 	press.window_id = root.get_window_id()

@@ -20,6 +20,13 @@
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_jade.png" id="jade_portrait"]
 [ext_resource type="Texture2D" path="res://assets/ui/medieval/textures/button.png" id="parchment_texture"]
 
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_upgrade.svg" id="action_upgrade"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_house.svg" id="action_house"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_tower.svg" id="action_tower"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_forge.svg" id="action_forge"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_population.svg" id="action_population"]
+[ext_resource type="StyleBox" path="res://assets/ui/block_war/dispatch_hint.tres" id="dispatch_hint"]
+
 [sub_resource type="StyleBoxFlat" id="Panel"]
 content_margin_left = 18.0
 content_margin_top = 18.0
@@ -408,21 +415,6 @@ shadow_color = Color(0.015,0.012,0.006,0.45)
 shadow_size = 4
 shadow_offset = Vector2(0,2)
 
-[sub_resource type="StyleBoxFlat" id="SelectionStrip"]
-bg_color = Color(0.10, 0.085, 0.05, 0.62)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.58, 0.51, 0.33, 0.44)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_left = 14
-corner_radius_bottom_right = 14
-shadow_color = Color(0.015,0.012,0.006,0.45)
-shadow_size = 4
-shadow_offset = Vector2(0,2)
-
 [sub_resource type="StyleBoxFlat" id="ReadyRing"]
 bg_color = Color(0,0,0,0)
 border_width_left = 2
@@ -493,7 +485,7 @@ corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_left = 7
 corner_radius_bottom_right = 7
-shadow_color = Color(1, 1, 0.95, 0.16)
+shadow_color = Color(0.57, 1, 0.35, 0.24)
 shadow_size = 4
 shadow_offset = Vector2(0, 1)
 
@@ -512,7 +504,7 @@ corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_left = 7
 corner_radius_bottom_right = 7
-shadow_color = Color(1, 1, 0.97, 0.12)
+shadow_color = Color(0.57, 1, 0.35, 0.24)
 shadow_size = 4
 shadow_offset = Vector2(0, 1)
 
@@ -535,31 +527,31 @@ shadow_color = Color(0, 0, 0, 0.04)
 shadow_size = 4
 shadow_offset = Vector2(0, 1)
 
-[sub_resource type="StyleBoxFlat" id="WhiteSkillLight"]
+[sub_resource type="StyleBoxFlat" id="GreenSkillLight"]
 bg_color = Color(1, 1, 1, 0)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_left = 8
 corner_radius_bottom_right = 8
-shadow_color = Color(0.95, 1, 0.92, 0.17)
-shadow_size = 9
+shadow_color = Color(0.57, 1, 0.35, 0.32)
+shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="WhiteSkillPulse"]
+[sub_resource type="StyleBoxFlat" id="GreenSkillPulse"]
 bg_color = Color(1, 1, 1, 0)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.97, 1, 0.96, 0.75)
+border_color = Color(0.68, 1, 0.46, 0.9)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_left = 8
 corner_radius_bottom_right = 8
-shadow_color = Color(1, 1, 0.95, 0.2)
-shadow_size = 5
+shadow_color = Color(0.57, 1, 0.35, 0.36)
+shadow_size = 9
 
 [sub_resource type="StyleBoxFlat" id="SkillReadyDot"]
-bg_color = Color(0.07, 0.09, 0.08, 0.95)
+bg_color = Color(0.67, 1, 0.46, 0.95)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_left = 4
@@ -585,6 +577,16 @@ corner_radius_top_left = 1
 corner_radius_top_right = 1
 corner_radius_bottom_left = 1
 corner_radius_bottom_right = 1
+
+[sub_resource type="StyleBoxFlat" id="ActionHover"]
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 2
+border_color = Color(1, 0.83, 0.43, 1)
+
+[sub_resource type="StyleBoxFlat" id="ActionPressed"]
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 3
+border_color = Color(1, 0.96, 0.75, 1)
 
 [node name="WarHUD" type="CanvasLayer"]
 process_mode = 3
@@ -1107,199 +1109,253 @@ vertical_alignment = 1
 
 [node name="Selection" type="Control" parent="UI"]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -270.0
-offset_top = -210.0
-offset_right = 270.0
-offset_bottom = -130.0
-mouse_filter = 2
 visible = false
-
-[node name="Strip" type="Panel" parent="UI/Selection"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 540.0
-offset_bottom = 80.0
+offset_right = 232.0
+offset_bottom = 76.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SelectionStrip")
 
-[node name="ManagementBackdrop" type="Panel" parent="UI/Selection"]
+[node name="Connector" type="Line2D" parent="UI/Selection"]
+points = PackedVector2Array(0, 33, 10, 33)
+width = 1.5
+default_color = Color(1, 0.83, 0.43, 0.75)
+antialiased = true
+
+[node name="BuildingActions" type="HBoxContainer" parent="UI/Selection"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = -118.0
-offset_right = 540.0
-offset_bottom = -6.0
-mouse_filter = 0
-visible = false
-theme_override_styles/panel = SubResource("Panel")
-
-[node name="Content" type="Control" parent="UI/Selection"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 10.0
-offset_top = 0.0
-offset_right = 530.0
-offset_bottom = 80.0
+offset_left = 12.0
+offset_right = 232.0
+offset_bottom = 76.0
 mouse_filter = 2
+theme_override_constants/separation = 8
 
-
-[node name="Heading" type="HBoxContainer" parent="UI/Selection/Content"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 520.0
-offset_bottom = 32.0
-mouse_filter = 2
-theme_override_constants/separation = 12
-
-[node name="SelectedName" type="Label" parent="UI/Selection/Content/Heading"]
+[node name="Upgrade" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-theme_override_font_sizes/font_size = 15
-text = "住宅 · 1 级"
+custom_minimum_size = Vector2(68, 76)
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("Empty")
+theme_override_styles/hover = SubResource("ActionHover")
+theme_override_styles/pressed = SubResource("ActionPressed")
+theme_override_styles/disabled = SubResource("Empty")
+theme_override_styles/focus = SubResource("ActionHover")
+metadata/ui_motion_hover_scale = 1.0
 
-[node name="SelectedPopulation" type="Label" parent="UI/Selection/Content/Heading"]
-unique_name_in_owner = true
+[node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/Upgrade"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 3.0
+offset_right = 44.0
+offset_bottom = 45.0
+mouse_filter = 2
+texture = ExtResource("action_upgrade")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NextLevel" type="Label" parent="UI/Selection/BuildingActions/Upgrade"]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 7.0
+offset_right = 65.0
+offset_bottom = 39.0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.84, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
+theme_override_constants/outline_size = 5
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/Upgrade"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 45.0
+offset_right = 62.0
+offset_bottom = 72.0
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 3
+
+[node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/Upgrade/Cost"]
+layout_mode = 2
+custom_minimum_size = Vector2(17, 21)
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("action_population")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Amount" type="Label" parent="UI/Selection/BuildingActions/Upgrade/Cost"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_font_sizes/font_size = 19
-theme_override_colors/font_color = Color(1,0.81,0.44,1)
-text = "60"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
+theme_override_constants/outline_size = 5
+text = "30"
+vertical_alignment = 1
 
-[node name="Manage" type="Button" parent="UI/Selection/Content/Heading"]
+[node name="ConvertHouse" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(59,0)
-theme_override_font_sizes/font_size = 13
-text = "改建"
-toggle_mode = true
-theme_override_styles/normal = SubResource("SkillPlate")
-theme_override_styles/hover = SubResource("SkillHover")
-theme_override_styles/pressed = SubResource("SkillPressed")
-
-[node name="SelectedDetail" type="Label" parent="UI/Selection/Content"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 4.0
-offset_top = -109.0
-offset_right = 516.0
-offset_bottom = -59.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.91,0.88,0.77,1)
-text = "每秒 +1 民兵"
-visible = false
-autowrap_mode = 2
-
-[node name="BuildingActions" type="VBoxContainer" parent="UI/Selection/Content"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 4.0
-offset_top = -49.0
-offset_right = 516.0
-offset_bottom = -17.0
-mouse_filter = 2
-visible = false
-theme = SubResource("BuildingTheme")
-theme_override_constants/separation = 6
-
-[node name="Convert" type="HBoxContainer" parent="UI/Selection/Content/BuildingActions"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 5
-
-[node name="ConvertHouse" type="Button" parent="UI/Selection/Content/BuildingActions/Convert"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0,29)
-theme_override_font_sizes/font_size = 12
-tooltip_text = "消耗 30 人口，改建后重置至 1 级"
-text = "改建住宅"
-
-[node name="ConvertTower" type="Button" parent="UI/Selection/Content/BuildingActions/Convert"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0,29)
-theme_override_font_sizes/font_size = 12
-tooltip_text = "消耗 30 人口，改建后重置至 1 级"
-text = "改建炮塔"
-
-[node name="ConvertForge" type="Button" parent="UI/Selection/Content/BuildingActions/Convert"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0,29)
-theme_override_font_sizes/font_size = 12
-tooltip_text = "消耗 30 人口，改建后重置至 1 级"
-text = "改建铁匠铺"
-
-[node name="UpgradeRow" type="Control" parent="UI/Selection/Content"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_top = 38.0
-offset_right = 520.0
-offset_bottom = 72.0
-mouse_filter = 0
-theme = SubResource("BuildingTheme")
-
-[node name="Upgrade" type="Button" parent="UI/Selection/Content/UpgradeRow"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_right = 282.0
-offset_bottom = 34.0
-mouse_filter = 0
+custom_minimum_size = Vector2(68, 76)
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("Empty")
+theme_override_styles/hover = SubResource("ActionHover")
+theme_override_styles/pressed = SubResource("ActionPressed")
+theme_override_styles/disabled = SubResource("Empty")
+theme_override_styles/focus = SubResource("ActionHover")
 metadata/ui_motion_hover_scale = 1.0
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.14, 0.18, 0.12, 1)
-theme_override_colors/font_hover_color = Color(0.14, 0.18, 0.12, 1)
-theme_override_colors/font_pressed_color = Color(0.14, 0.18, 0.12, 1)
-theme_override_colors/font_disabled_color = Color(0.88, 0.88, 0.77, 1)
-text = "升级至 2 级 · 30 驻军"
 
-[node name="UpgradeHint" type="Label" parent="UI/Selection/Content/UpgradeRow"]
-unique_name_in_owner = true
+[node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertHouse"]
 layout_mode = 0
-offset_left = 294.0
-offset_right = 520.0
-offset_bottom = 34.0
+offset_left = 13.0
+offset_top = 3.0
+offset_right = 55.0
+offset_bottom = 45.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.95, 0.87, 0.63, 1)
-text = "升级后保留 30 名驻军"
+texture = ExtResource("action_house")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertHouse"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 45.0
+offset_right = 62.0
+offset_bottom = 72.0
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 3
+
+[node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertHouse/Cost"]
+layout_mode = 2
+custom_minimum_size = Vector2(17, 21)
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("action_population")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Amount" type="Label" parent="UI/Selection/BuildingActions/ConvertHouse/Cost"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
+theme_override_constants/outline_size = 5
+text = "30"
+vertical_alignment = 1
+
+[node name="ConvertTower" type="Button" parent="UI/Selection/BuildingActions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(68, 76)
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("Empty")
+theme_override_styles/hover = SubResource("ActionHover")
+theme_override_styles/pressed = SubResource("ActionPressed")
+theme_override_styles/disabled = SubResource("Empty")
+theme_override_styles/focus = SubResource("ActionHover")
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertTower"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 3.0
+offset_right = 55.0
+offset_bottom = 45.0
+mouse_filter = 2
+texture = ExtResource("action_tower")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertTower"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 45.0
+offset_right = 62.0
+offset_bottom = 72.0
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 3
+
+[node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertTower/Cost"]
+layout_mode = 2
+custom_minimum_size = Vector2(17, 21)
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("action_population")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Amount" type="Label" parent="UI/Selection/BuildingActions/ConvertTower/Cost"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
+theme_override_constants/outline_size = 5
+text = "30"
+vertical_alignment = 1
+
+[node name="ConvertForge" type="Button" parent="UI/Selection/BuildingActions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(68, 76)
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("Empty")
+theme_override_styles/hover = SubResource("ActionHover")
+theme_override_styles/pressed = SubResource("ActionPressed")
+theme_override_styles/disabled = SubResource("Empty")
+theme_override_styles/focus = SubResource("ActionHover")
+metadata/ui_motion_hover_scale = 1.0
+
+[node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertForge"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 3.0
+offset_right = 55.0
+offset_bottom = 45.0
+mouse_filter = 2
+texture = ExtResource("action_forge")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertForge"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 45.0
+offset_right = 62.0
+offset_bottom = 72.0
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 3
+
+[node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertForge/Cost"]
+layout_mode = 2
+custom_minimum_size = Vector2(17, 21)
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("action_population")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Amount" type="Label" parent="UI/Selection/BuildingActions/ConvertForge/Cost"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
+theme_override_constants/outline_size = 5
+text = "30"
 vertical_alignment = 1
 
 [node name="Skills" type="Control" parent="UI"]
@@ -1309,10 +1365,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -169.0
-offset_top = -105.0
-offset_right = 169.0
-offset_bottom = -10.0
+offset_left = -244.0
+offset_top = -172.0
+offset_right = 244.0
+offset_bottom = -8.0
 mouse_filter = 2
 
 
@@ -1324,27 +1380,28 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 0.0
-offset_top = -21.0
-offset_right = 338.0
+offset_top = -24.0
+offset_right = 488.0
 offset_bottom = -2.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
 text = "派遣 50%"
 visible = false
+horizontal_alignment = 1
 
 [node name="Row" type="HBoxContainer" parent="UI/Skills"]
 layout_mode = 0
-offset_left = 42.0
+offset_left = 0.0
 offset_top = 0.0
-offset_right = 296.0
-offset_bottom = 50.0
+offset_right = 488.0
+offset_bottom = 104.0
 mouse_filter = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 24
 
 [node name="Skill0" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(104, 104)
 toggle_mode = true
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("WhiteSkillNormal")
@@ -1359,31 +1416,31 @@ show_behind_parent = true
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillLight")
+theme_override_styles/panel = SubResource("GreenSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 2.0
-offset_right = 17.0
-offset_bottom = 15.0
+offset_left = 9.0
+offset_top = 5.0
+offset_right = 30.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "Q"
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Cost" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 2.0
-offset_right = 45.0
-offset_bottom = 15.0
+offset_left = 60.0
+offset_top = 5.0
+offset_right = 95.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
 text = "30"
 horizontal_alignment = 2
@@ -1391,10 +1448,10 @@ theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 13.0
-offset_right = 40.0
-offset_bottom = 43.0
+offset_left = 18.0
+offset_top = 29.0
+offset_right = 86.0
+offset_bottom = 97.0
 mouse_filter = 2
 texture = ExtResource("army")
 expand_mode = 1
@@ -1403,28 +1460,28 @@ stretch_mode = 5
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill0"]
 visible = false
 layout_mode = 0
-offset_right = 50.0
+offset_right = 104.0
 offset_bottom = 15.0
 mouse_filter = 2
 text = "征召军令"
 
 [node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-offset_left = 21.0
-offset_top = 55.0
-offset_right = 29.0
-offset_bottom = 63.0
+offset_left = 48.0
+offset_top = 111.0
+offset_right = 56.0
+offset_bottom = 119.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-offset_left = -15.0
-offset_top = 65.0
-offset_right = 65.0
-offset_bottom = 80.0
+offset_left = -6.0
+offset_top = 123.0
+offset_right = 110.0
+offset_bottom = 139.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
 theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
 theme_override_constants/shadow_offset_x = 1
@@ -1435,10 +1492,10 @@ horizontal_alignment = 1
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill0"]
 visible = false
 layout_mode = 0
-offset_left = 7.0
-offset_top = 46.0
-offset_right = 43.0
-offset_bottom = 48.0
+offset_left = 10.0
+offset_top = 96.0
+offset_right = 94.0
+offset_bottom = 100.0
 mouse_filter = 2
 show_percentage = false
 theme_override_styles/background = SubResource("Empty")
@@ -1446,30 +1503,31 @@ theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill0"]
 layout_mode = 0
-offset_left = 3.0
-offset_top = 14.0
-offset_right = 47.0
-offset_bottom = 42.0
+offset_left = 6.0
+offset_top = 32.0
+offset_right = 98.0
+offset_bottom = 92.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 40
 theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
+vertical_alignment = 1
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill0"]
 visible = false
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillPulse")
+theme_override_styles/panel = SubResource("GreenSkillPulse")
 
 [node name="Skill1" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(104, 104)
 toggle_mode = true
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("WhiteSkillNormal")
@@ -1484,31 +1542,31 @@ show_behind_parent = true
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillLight")
+theme_override_styles/panel = SubResource("GreenSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 2.0
-offset_right = 17.0
-offset_bottom = 15.0
+offset_left = 9.0
+offset_top = 5.0
+offset_right = 30.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "W"
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Cost" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 2.0
-offset_right = 45.0
-offset_bottom = 15.0
+offset_left = 60.0
+offset_top = 5.0
+offset_right = 95.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
 text = "40"
 horizontal_alignment = 2
@@ -1516,10 +1574,10 @@ theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 13.0
-offset_right = 40.0
-offset_bottom = 43.0
+offset_left = 18.0
+offset_top = 29.0
+offset_right = 86.0
+offset_bottom = 97.0
 mouse_filter = 2
 texture = ExtResource("flag")
 expand_mode = 1
@@ -1528,28 +1586,28 @@ stretch_mode = 5
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill1"]
 visible = false
 layout_mode = 0
-offset_right = 50.0
+offset_right = 104.0
 offset_bottom = 15.0
 mouse_filter = 2
 text = "疾行战鼓"
 
 [node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-offset_left = 21.0
-offset_top = 55.0
-offset_right = 29.0
-offset_bottom = 63.0
+offset_left = 48.0
+offset_top = 111.0
+offset_right = 56.0
+offset_bottom = 119.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-offset_left = -15.0
-offset_top = 65.0
-offset_right = 65.0
-offset_bottom = 80.0
+offset_left = -6.0
+offset_top = 123.0
+offset_right = 110.0
+offset_bottom = 139.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
 theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
 theme_override_constants/shadow_offset_x = 1
@@ -1560,10 +1618,10 @@ horizontal_alignment = 1
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill1"]
 visible = false
 layout_mode = 0
-offset_left = 7.0
-offset_top = 46.0
-offset_right = 43.0
-offset_bottom = 48.0
+offset_left = 10.0
+offset_top = 96.0
+offset_right = 94.0
+offset_bottom = 100.0
 mouse_filter = 2
 show_percentage = false
 theme_override_styles/background = SubResource("Empty")
@@ -1571,30 +1629,31 @@ theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill1"]
 layout_mode = 0
-offset_left = 3.0
-offset_top = 14.0
-offset_right = 47.0
-offset_bottom = 42.0
+offset_left = 6.0
+offset_top = 32.0
+offset_right = 98.0
+offset_bottom = 92.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 40
 theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
+vertical_alignment = 1
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill1"]
 visible = false
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillPulse")
+theme_override_styles/panel = SubResource("GreenSkillPulse")
 
 [node name="Skill2" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(104, 104)
 toggle_mode = true
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("WhiteSkillNormal")
@@ -1609,31 +1668,31 @@ show_behind_parent = true
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillLight")
+theme_override_styles/panel = SubResource("GreenSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 2.0
-offset_right = 17.0
-offset_bottom = 15.0
+offset_left = 9.0
+offset_top = 5.0
+offset_right = 30.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "E"
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Cost" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 2.0
-offset_right = 45.0
-offset_bottom = 15.0
+offset_left = 60.0
+offset_top = 5.0
+offset_right = 95.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
 text = "35"
 horizontal_alignment = 2
@@ -1641,10 +1700,10 @@ theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 13.0
-offset_right = 40.0
-offset_bottom = 43.0
+offset_left = 18.0
+offset_top = 29.0
+offset_right = 86.0
+offset_bottom = 97.0
 mouse_filter = 2
 texture = ExtResource("shield")
 expand_mode = 1
@@ -1653,28 +1712,28 @@ stretch_mode = 5
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill2"]
 visible = false
 layout_mode = 0
-offset_right = 50.0
+offset_right = 104.0
 offset_bottom = 15.0
 mouse_filter = 2
 text = "磐石壁垒"
 
 [node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-offset_left = 21.0
-offset_top = 55.0
-offset_right = 29.0
-offset_bottom = 63.0
+offset_left = 48.0
+offset_top = 111.0
+offset_right = 56.0
+offset_bottom = 119.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-offset_left = -15.0
-offset_top = 65.0
-offset_right = 65.0
-offset_bottom = 80.0
+offset_left = -6.0
+offset_top = 123.0
+offset_right = 110.0
+offset_bottom = 139.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
 theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
 theme_override_constants/shadow_offset_x = 1
@@ -1685,10 +1744,10 @@ horizontal_alignment = 1
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill2"]
 visible = false
 layout_mode = 0
-offset_left = 7.0
-offset_top = 46.0
-offset_right = 43.0
-offset_bottom = 48.0
+offset_left = 10.0
+offset_top = 96.0
+offset_right = 94.0
+offset_bottom = 100.0
 mouse_filter = 2
 show_percentage = false
 theme_override_styles/background = SubResource("Empty")
@@ -1696,30 +1755,31 @@ theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill2"]
 layout_mode = 0
-offset_left = 3.0
-offset_top = 14.0
-offset_right = 47.0
-offset_bottom = 42.0
+offset_left = 6.0
+offset_top = 32.0
+offset_right = 98.0
+offset_bottom = 92.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 40
 theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
+vertical_alignment = 1
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill2"]
 visible = false
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillPulse")
+theme_override_styles/panel = SubResource("GreenSkillPulse")
 
 [node name="Skill3" type="Button" parent="UI/Skills/Row"]
 layout_mode = 2
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(104, 104)
 toggle_mode = true
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("WhiteSkillNormal")
@@ -1734,31 +1794,31 @@ show_behind_parent = true
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillLight")
+theme_override_styles/panel = SubResource("GreenSkillLight")
 
 [node name="Key" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 2.0
-offset_right = 17.0
-offset_bottom = 15.0
+offset_left = 9.0
+offset_top = 5.0
+offset_right = 30.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.28, 0.32, 0.30, 0.95)
 text = "R"
 theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Cost" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 2.0
-offset_right = 45.0
-offset_bottom = 15.0
+offset_left = 60.0
+offset_top = 5.0
+offset_right = 95.0
+offset_bottom = 27.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.34, 0.38, 0.36, 0.95)
 text = "60"
 horizontal_alignment = 2
@@ -1766,10 +1826,10 @@ theme_override_fonts/font = ExtResource("numbers")
 
 [node name="Icon" type="TextureRect" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 13.0
-offset_right = 40.0
-offset_bottom = 43.0
+offset_left = 18.0
+offset_top = 29.0
+offset_right = 86.0
+offset_bottom = 97.0
 mouse_filter = 2
 texture = ExtResource("strike")
 expand_mode = 1
@@ -1778,28 +1838,28 @@ stretch_mode = 5
 [node name="Name" type="Label" parent="UI/Skills/Row/Skill3"]
 visible = false
 layout_mode = 0
-offset_right = 50.0
+offset_right = 104.0
 offset_bottom = 15.0
 mouse_filter = 2
 text = "天降冲击"
 
 [node name="ReadyDot" type="Panel" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-offset_left = 21.0
-offset_top = 55.0
-offset_right = 29.0
-offset_bottom = 63.0
+offset_left = 48.0
+offset_top = 111.0
+offset_right = 56.0
+offset_bottom = 119.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SkillReadyDot")
 
 [node name="Status" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-offset_left = -15.0
-offset_top = 65.0
-offset_right = 65.0
-offset_bottom = 80.0
+offset_left = -6.0
+offset_top = 123.0
+offset_right = 110.0
+offset_bottom = 139.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
 theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
 theme_override_constants/shadow_offset_x = 1
@@ -1810,10 +1870,10 @@ horizontal_alignment = 1
 [node name="Cooldown" type="ProgressBar" parent="UI/Skills/Row/Skill3"]
 visible = false
 layout_mode = 0
-offset_left = 7.0
-offset_top = 46.0
-offset_right = 43.0
-offset_bottom = 48.0
+offset_left = 10.0
+offset_top = 96.0
+offset_right = 94.0
+offset_bottom = 100.0
 mouse_filter = 2
 show_percentage = false
 theme_override_styles/background = SubResource("Empty")
@@ -1821,34 +1881,35 @@ theme_override_styles/fill = SubResource("WhiteSkillCooldown")
 
 [node name="Seconds" type="Label" parent="UI/Skills/Row/Skill3"]
 layout_mode = 0
-offset_left = 3.0
-offset_top = 14.0
-offset_right = 47.0
-offset_bottom = 42.0
+offset_left = 6.0
+offset_top = 32.0
+offset_right = 98.0
+offset_bottom = 92.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 40
 theme_override_colors/font_color = Color(0.20, 0.25, 0.22, 1)
 text = ""
 horizontal_alignment = 1
 theme_override_fonts/font = ExtResource("numbers")
+vertical_alignment = 1
 
 [node name="ReadyGlow" type="Panel" parent="UI/Skills/Row/Skill3"]
 visible = false
 layout_mode = 0
 offset_left = -1.0
 offset_top = -1.0
-offset_right = 51.0
-offset_bottom = 51.0
+offset_right = 105.0
+offset_bottom = 105.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("WhiteSkillPulse")
+theme_override_styles/panel = SubResource("GreenSkillPulse")
 
 [node name="EnergyBar" type="ProgressBar" parent="UI/Skills"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 4.0
-offset_top = 82.0
-offset_right = 334.0
-offset_bottom = 85.0
+offset_left = 0.0
+offset_top = 143.0
+offset_right = 488.0
+offset_bottom = 147.0
 mouse_filter = 2
 max_value = 100.0
 step = 0.01
@@ -1861,11 +1922,11 @@ theme_override_styles/fill = SubResource("SkillEnergyFill")
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 0.0
-offset_top = 88.0
-offset_right = 338.0
-offset_bottom = 103.0
+offset_top = 150.0
+offset_right = 488.0
+offset_bottom = 164.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.96, 0.98, 0.94, 1)
 theme_override_colors/font_shadow_color = Color(0.02, 0.05, 0.035, 0.8)
 theme_override_constants/shadow_offset_x = 1
@@ -1962,7 +2023,7 @@ offset_right = 280.0
 offset_bottom = 101.0
 mouse_filter = 2
 visible = false
-theme_override_styles/panel = SubResource("SelectionStrip")
+theme_override_styles/panel = ExtResource("dispatch_hint")
 
 [node name="ToastText" type="Label" parent="UI/Toast"]
 unique_name_in_owner = true
