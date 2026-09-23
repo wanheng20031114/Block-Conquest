@@ -24,6 +24,10 @@ func _run() -> void:
 	root.add_child(marches)
 	marches.unit_arrived.connect(_on_arrived)
 	var straight := PackedVector3Array([Vector3(0, 0, 0), Vector3(0, 0, -30)])
+	marches.send(0, 1, 0, 1, straight)
+	marches.tick(1.0)
+	_check(marches.get_units()[0].position.is_equal_approx(Vector3(0, 0, -3.1)), "Default marching covers 3.1 metres in one second")
+	marches.clear()
 	marches.send(0, 1, 0, 42, straight, 1.25)
 	_check(marches.total_for(0) == 42, "Queued and visible population are both conserved")
 	_check(marches.incoming_for(1, 0) == 42, "Incoming intelligence includes the door queue")
@@ -100,7 +104,8 @@ func _run() -> void:
 	marches.clear()
 	marches.send(0, 1, 0, 4200, straight)
 	_check(marches.total_for(0) == 4200 and marches.get_node("Militia").multimesh.instance_count >= 4200, "Renderer expands above its initial capacity without dropping population")
-	marches.tick(200.0)
+	var drain_time: float = (ceilf(4200.0 / marches.COLUMNS) * marches.ROW_SPACING + 30.0) / marches.SPEED + 1.0
+	marches.tick(drain_time)
 	_check(_arrived.size() == 4200 and marches.total_for(0) == 0, "Expanded capacity preserves all 4200 independent arrivals")
 	marches.clear()
 	_arrived.clear()
@@ -186,8 +191,7 @@ func _run() -> void:
 	marches.clear()
 	var long_route := PackedVector3Array([Vector3.ZERO, Vector3(0, 0, -200)])
 	marches.send(0, 1, 0, 700, long_route)
-	# The new 0.90m rank interval needs about 31.2s to release and fully spread
-	# all 117 ranks; 30s still leaves the last ranks queued at the source.
+	# Include the complete source queue and the exit funnel at the current speed.
 	marches.tick((ceilf(700.0 / marches.COLUMNS) * marches.ROW_SPACING + marches.GATE_LENGTH) / marches.SPEED)
 	_check(marches.get_node("Militia").multimesh.visible_instance_count == 700, "700 simultaneously marching soldiers remain individually visible")
 	var started := Time.get_ticks_usec()

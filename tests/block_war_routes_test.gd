@@ -19,6 +19,13 @@ func _check(condition: bool, description: String) -> void:
 		printerr("FAIL ", description)
 
 
+func _route_length(route: PackedVector3Array) -> float:
+	var length := 0.0
+	for index: int in range(1, route.size()):
+		length += route[index - 1].distance_to(route[index])
+	return length
+
+
 func _wall_outline(building: WarBuilding) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	var original_kind := building.kind
@@ -71,6 +78,10 @@ func _run() -> void:
 	var wall_collisions := 0
 	var samples := 0
 	var first_failure := ""
+	var largest_turn := 0.0
+	var longest_detour := 1.0
+	var symmetric := true
+	var valid_points := true
 	for source: WarBuilding in buildings:
 		for target: WarBuilding in buildings:
 			if source == target:
@@ -80,6 +91,17 @@ func _run() -> void:
 			if route.size() < 2:
 				missing += 1
 				continue
+			var reverse := map.get_building_route(target, source)
+			reverse.reverse()
+			symmetric = symmetric and route == reverse
+			for index: int in range(1, route.size()):
+				var incoming := route[index] - route[index - 1]
+				valid_points = valid_points and route[index].is_finite() and incoming.length() > 0.001
+				if index < route.size() - 1:
+					largest_turn = maxf(largest_turn, incoming.angle_to(route[index + 1] - route[index]))
+			if source.building_id < target.building_id:
+				var corridor := map._compute_building_route(source, target)
+				longest_detour = maxf(longest_detour, _route_length(route) / _route_length(corridor))
 			if not is_equal_approx(route[0].distance_to(source.global_position), source.MARCH_PERIMETER_RADIUS) or not is_equal_approx(route[-1].distance_to(target.global_position), target.MARCH_PERIMETER_RADIUS):
 				invalid_endpoints += 1
 			marches.clear()
@@ -107,11 +129,20 @@ func _run() -> void:
 	_check(invalid_endpoints == 0, "Every route starts and stops at the building's outer perimeter")
 	_check(off_ground == 0, "All six files and full soldier footprints avoid rivers and tree trunks")
 	_check(wall_collisions == 0, "No soldier enters source, destination or intermediate building walls")
+	_check(valid_points and rad_to_deg(largest_turn) < 10.0, "All guides have finite, distinct samples and no abrupt angular corners")
+	_check(longest_detour < 1.03, "Gentle arcs never add more than three percent to a safe corridor")
+	_check(symmetric and map._route_cache.size() == 78, "Opposite directions share one stable path for every building pair")
 	_check(map._navigation.get_point_count() == graph_points, "Temporary endpoint vertices never remain in the shared navigation graph")
 	var east := map.get_building_route(buildings[0], buildings[6])
 	var north := map.get_building_route(buildings[0], buildings[2])
 	var south := map.get_building_route(buildings[0], buildings[3])
 	var west := map.get_building_route(buildings[1], buildings[7])
+	var direct := north[-1] - north[0]
+	var bow := 0.0
+	for point: Vector3 in north:
+		bow = maxf(bow, (point - north[0]).cross(direct).length() / direct.length())
+	_check(bow > 0.4 and bow < 1.5, "Open ground uses a visible but restrained arc instead of a ruler-straight line")
+	_check(east.size() == 2, "The short neighboring-building link stays direct where there is no room for an arc")
 	_check(east[0].x > -30.0 and north[0].z < 0.0 and south[0].z > 0.0 and west[0].x < 30.0, "Buildings can dispatch from east, north, south and west sides")
 	var cached := east.duplicate()
 	east.clear()
@@ -133,7 +164,7 @@ func _run() -> void:
 	_check(second_head <= first_tail - marches.ROW_SPACING, "Opposite exits of one source preserve its shared dispatch queue")
 	marches.tick(40.0)
 	_check(_arrivals.count(6) == 42 and _arrivals.count(2) == 24 and marches.total_for(0) == 0, "Every queued soldier arrives exactly once at its own destination")
-	print("BLOCK_WAR_ROUTES checks=", _checks, " failures=", _failures.size(), " routes=", routes, " samples=", samples, " off_ground=", off_ground, " wall_collisions=", wall_collisions, " first=", first_failure)
+	print("BLOCK_WAR_ROUTES checks=", _checks, " failures=", _failures.size(), " routes=", routes, " samples=", samples, " off_ground=", off_ground, " wall_collisions=", wall_collisions, " max_turn_degrees=", rad_to_deg(largest_turn), " detour_ratio=", longest_detour, " first=", first_failure)
 	marches.free()
 	map.free()
 	quit(0 if _failures.is_empty() else 1)

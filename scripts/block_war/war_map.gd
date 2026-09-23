@@ -10,6 +10,10 @@ const BRIDGE_Z := 14.0
 const BRIDGE_HALF_WIDTH := 3.2
 # Includes the outer file, rotated militia and the widest ground-level walls.
 const BUILDING_CLEARANCE := 4.0
+const ROUTE_SAMPLE_STEP := 0.25
+const TURN_TRIM := 3.8
+const ENDPOINT_RUN := 2.6
+const MAX_ARC_OFFSET := 1.5
 var _navigation := AStar3D.new()
 var _grid: Dictionary[Vector2i, int] = {}
 var _building_positions := PackedVector3Array()
@@ -81,14 +85,102 @@ func _register_tree_obstacle(obstacle: Vector3) -> void:
 func get_building_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Array:
 	if source == target:
 		return PackedVector3Array()
-	var from := source.global_position
-	var to := target.global_position
+	# Both directions share the same guide, regardless of which side orders first.
+	var reverse := source.building_id > target.building_id
+	var first := target if reverse else source
+	var last := source if reverse else target
+	var from := first.global_position
+	var to := last.global_position
 	var key := Vector4(from.x, from.z, to.x, to.z)
 	if not _route_cache.has(key):
-		_route_cache[key] = _compute_building_route(source, target)
+		var corridor := _compute_building_route(first, last)
+		_route_cache[key] = _shape_route(corridor) if corridor.size() >= 2 else corridor
 	# Drag previews and march callers own their copy; cancelling one must not
 	# empty the shared route used by later orders or AI evaluations.
-	return _route_cache[key].duplicate()
+	var route := _route_cache[key].duplicate()
+	if reverse:
+		route.reverse()
+	return route
+
+
+func _shape_route(corridor: PackedVector3Array) -> PackedVector3Array:
+	var result := PackedVector3Array([corridor[0]])
+	for index: int in range(1, corridor.size() - 1):
+		var corner := corridor[index]
+		var incoming := corner - corridor[index - 1]
+		var outgoing := corridor[index + 1] - corner
+		var trim := minf(TURN_TRIM, minf(incoming.length(), outgoing.length()) * 0.4)
+		# Keep a radial entrance/exit while the six files fan out or fold together.
+		if index == 1:
+			trim = minf(trim, maxf(0.0, incoming.length() - ENDPOINT_RUN))
+		if index == corridor.size() - 2:
+			trim = minf(trim, maxf(0.0, outgoing.length() - ENDPOINT_RUN))
+		var arc := PackedVector3Array([corner])
+		# A bounded clearance search chooses the widest safe turn. A tight corner
+		# keeps its corridor vertex if no rounded span fits the complete formation.
+		for attempt: int in 6:
+			if trim < 0.08:
+				break
+			var entry := corner - incoming.normalized() * trim
+			var exit := corner + outgoing.normalized() * trim
+			var curve := Curve3D.new()
+			curve.add_point(entry, Vector3.ZERO, (corner - entry) * (2.0 / 3.0))
+			curve.add_point(exit, (corner - exit) * (2.0 / 3.0))
+			var points := curve.tessellate_even_length(8, ROUTE_SAMPLE_STEP)
+			if _curve_clear(points):
+				arc = points
+				break
+			trim *= 0.5
+		_append_flow_span(result, arc[0], index == 1, false)
+		for point: int in range(1, arc.size()):
+			result.append(arc[point])
+	_append_flow_span(result, corridor[-1], corridor.size() == 2, true)
+	return result
+
+
+func _append_flow_span(route: PackedVector3Array, end: Vector3, leaving: bool, arriving: bool) -> void:
+	var start := route[-1]
+	var direction := (end - start).normalized()
+	var arc_start := start + direction * ENDPOINT_RUN if leaving else start
+	var arc_end := end - direction * ENDPOINT_RUN if arriving else end
+	var length := (arc_end - arc_start).dot(direction)
+	# Short connectors and narrow passages need no decorative detour.
+	if length >= 8.0:
+		var middle := (arc_start + arc_end) * 0.5
+		var side := Vector3(-direction.z, 0, direction.x)
+		# Prefer the open interior of the map; check both sides against real terrain.
+		if side.dot(-middle) < 0.0:
+			side = -side
+		var offset := minf(MAX_ARC_OFFSET, length * 0.07)
+		for attempt: int in 4:
+			for sign_value: float in [1.0, -1.0]:
+				var curve := Curve3D.new()
+				var handle := direction * length / 6.0
+				curve.add_point(arc_start, Vector3.ZERO, handle)
+				curve.add_point(middle + side * offset * sign_value, -handle, handle)
+				curve.add_point(arc_end, -handle)
+				var points := curve.tessellate_even_length(8, ROUTE_SAMPLE_STEP)
+				if _curve_clear(points):
+					if leaving:
+						route.append(arc_start)
+					for point: int in range(1, points.size()):
+						route.append(points[point])
+					if arriving:
+						route.append(end)
+					return
+			offset *= 0.5
+	route.append(end)
+
+
+func _curve_clear(points: PackedVector3Array) -> bool:
+	# Validate the sampled polyline used by BOTH the preview and the march. No
+	# unchecked interpolation is allowed to cut across a bank, trunk or wall.
+	for index: int in points.size():
+		if not _is_route_point_clear(points[index]):
+			return false
+		if index > 0 and not _is_route_point_clear((points[index - 1] + points[index]) * 0.5):
+			return false
+	return true
 
 
 func _compute_building_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Array:

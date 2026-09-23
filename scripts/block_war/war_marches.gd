@@ -8,7 +8,7 @@ signal unit_arrived(target_id: int, faction: int, strength: float)
 const COLUMNS := 6
 const COLUMN_SPACING := 0.56
 const ROW_SPACING := 0.90
-const SPEED := 3.45
+const SPEED := 3.1
 const MODEL_SCALE := 0.62
 const GATE_LENGTH := 2.4
 const FACTION_COLORS: Array[Color] = [Color(1.0, 0.65, 0.18), Color(0.2, 0.83, 0.67), Color("94c964"), Color("e9bf5b")]
@@ -20,7 +20,6 @@ class MarchOrder extends RefCounted:
 	var strength: float
 	var curve: Curve3D
 	var length: float
-	var corners: PackedFloat32Array
 
 class MarchUnit extends RefCounted:
 	var order: MarchOrder
@@ -50,20 +49,16 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 	order.strength = strength
 	order.curve = Curve3D.new()
 	order.curve.bake_interval = 0.12
-	# Keep the route's clearance guarantee: no Bezier handles cutting ravine corners.
-	# Only headings and formation width are smoothed around the original waypoints.
+	# The map has already shaped and clearance-checked this guide. Resample only
+	# along its segments, keeping the preview and every soldier on the same path.
 	var last := route[0]
-	var running_length := 0.0
 	order.curve.add_point(last)
 	for index: int in range(1, route.size()):
 		var point := route[index]
 		var segment_length := point.distance_to(last)
 		if segment_length < 0.001:
 			continue
-		running_length += segment_length
 		order.curve.add_point(point)
-		if index < route.size() - 1:
-			order.corners.append(running_length)
 		last = point
 	order.length = order.curve.get_baked_length()
 	assert(order.length > 0.01, "Cannot send soldiers along a zero-length route.")
@@ -221,9 +216,12 @@ func _update_pose(unit: MarchUnit) -> void:
 	unit.heading = heading.normalized()
 	var sideways := Vector3(-unit.heading.z, 0.0, unit.heading.x)
 	var gate_width := smoothstep(0.0, GATE_LENGTH, minf(distance, order.length - distance))
-	var corner_width := 1.0
-	for corner: float in order.corners:
-		corner_width = minf(corner_width, lerpf(0.63, 1.0, smoothstep(0.0, 1.2, absf(distance - corner))))
+	# Measure the upcoming bend over a fixed distance, independent of the number
+	# of sampled guide points. Broad curves stay wide; tight turns gather the files.
+	var approach := center - order.curve.sample_baked(maxf(0.0, distance - 1.2))
+	var departure := order.curve.sample_baked(minf(order.length, distance + 1.2)) - center
+	var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
+	var corner_width := lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
 	unit.position = center + sideways * unit.lane * gate_width * corner_width
 
 func _render() -> void:

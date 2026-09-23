@@ -33,4 +33,5 @@ func run() -> void:
 		total += sample
 	samples.sort()
 	print("BLOCK_WAR_RENDER_PERFORMANCE ", JSON.stringify({"frames": samples.size(), "mean_ms": total / samples.size(), "p95_ms": samples[floori(samples.size() * 0.95)], "peak_visible_militia": peak_visible, "resolution": root.size, "gpu": RenderingServer.get_video_adapter_name()}))
+	await game.prepare_shutdown()
 	quit()
