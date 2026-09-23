@@ -158,8 +158,8 @@ func _run() -> void:
 	check(home.kind == 0 and home.level == 1 and home.capacity == 30.0, "conversion back derives level-one house rules")
 	game.simulate(2.0)
 	near(home.population, 90.0, "over-cap garrison survives conversion back")
-	# At the new level-one cap the AI must still be able to gather an army;
-	# waiting for the old forty-person threshold would permanently idle its homes.
+	# At the level-one cap the AI invests to reopen growth rather than waiting
+	# for an unreachable forty-person dispatch threshold.
 	game.marches.clear()
 	for building: WarBuilding in game.buildings:
 		building.kind = 0
@@ -173,7 +173,7 @@ func _run() -> void:
 	front.faction = 1
 	front.population = 200.0
 	game._ai_turn()
-	check(game.marches.total_for(1) == 22 and reserve.population == 8.0, "AI can reinforce from a full level-one residence")
+	check(reserve.is_constructing and reserve.population == 20.0, "AI invests ten soldiers from a full level-one residence")
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_RESIDENCE checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)

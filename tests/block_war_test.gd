@@ -130,7 +130,9 @@ func run() -> void:
 	game.ai_enabled = true
 	game.ai_clock = 0.0
 	game.simulate(0.05)
-	check(game.marches.total_for(1) > 0 and game.by_id[1].population < 20, "AI expands through same dispatch rules")
+	check(game.by_id[1].is_constructing and game.by_id[1].population == 50.0, "AI opens with a paid residence upgrade")
+	game.simulate(3.0)
+	check(game.marches.total_for(1) > 0 and game.by_id[1].population >= 20, "AI expands through normal dispatch while retaining a garrison")
 	game.ai_enabled = false
 	game.marches.clear()
 	var route: PackedVector3Array = game.map.get_building_route(game.by_id[0], game.by_id[2])

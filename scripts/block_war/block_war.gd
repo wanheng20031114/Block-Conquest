@@ -13,6 +13,7 @@ const IMPACT_DAMAGE := 35.0
 const CONVERSION_COST := 20
 const PLAYER := 0
 const ENEMY := 1
+const AI_STRATEGY := preload("res://scripts/block_war/war_ai.gd")
 
 var buildings: Array[Node3D] = []
 var by_id: Dictionary = {}
@@ -32,6 +33,7 @@ var finished: bool = false
 var _local_menu: bool = false
 var ai_enabled: bool = true
 var ai_clock: float = 6.0
+var _ai_strategy := AI_STRATEGY.new()
 var shields: Dictionary = {}
 var tower_clocks: Dictionary = {}
 var effects: Array[Dictionary] = []
@@ -106,6 +108,8 @@ func simulate(delta: float) -> void:
 	var remaining := delta
 	while remaining > 0.0 and not finished:
 		var step := remaining
+		if ai_enabled:
+			step = minf(step, maxf(ai_clock, 0.000001))
 		if marches.has_marchers() or not projectiles.is_empty() or world_effects.has_fire():
 			step = minf(step, 0.05)
 		step = minf(step, world_effects.fire_step_limit())
@@ -144,11 +148,6 @@ func _simulate_step(delta: float) -> void:
 		effects[index].life -= delta
 		if effects[index].life <= 0.0:
 			effects.remove_at(index)
-	if ai_enabled:
-		ai_clock -= delta
-		if ai_clock <= 0.0:
-			ai_clock = 3.0
-			_ai_turn()
 	for building: WarBuilding in buildings:
 		var converting := building.conversion_target >= 0
 		if building.advance_construction(delta):
@@ -159,6 +158,13 @@ func _simulate_step(delta: float) -> void:
 				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
 	_check_victory()
+	# Orders are decisions at the end of this step. New construction must not
+	# receive the production time that passed before the AI paid for it.
+	if ai_enabled and not finished:
+		ai_clock -= delta
+		if ai_clock <= 0.000001:
+			ai_clock = AI_STRATEGY.TURN_INTERVAL
+			_ai_turn()
 
 func _tick_recruitment(delta: float) -> int:
 	if _recruit_target_id < 0:
@@ -489,59 +495,7 @@ func convert_selected(kind: int) -> void:
 	update_hud()
 
 func _ai_turn() -> void:
-	# Same population, paths and dispatch rules as the player; no extra spawns.
-	var best_source: Node3D
-	var best_target: Node3D
-	var best_score: float = -INF
-	for source: Node3D in buildings:
-		if source.faction != ENEMY or source.population < 15.0:
-			continue
-		var available: float = floorf(source.population * 0.75)
-		for target: Node3D in buildings:
-			if target.faction == ENEMY:
-				continue
-			var incoming: int = marches.incoming_for(target.building_id, ENEMY)
-			var required: float = target.population * defense_multiplier(target) / attack_multiplier(ENEMY) + 5.0
-			if incoming >= required or available + incoming < required:
-				continue
-			var route: PackedVector3Array = map.get_building_route(source, target)
-			if route.size() < 2:
-				continue
-			var distance: float = 0.0
-			for point: int in range(1, route.size()):
-				distance += route[point - 1].distance_to(route[point])
-			var score: float = (34.0 if target.kind == 0 else 20.0) - distance * 0.6 - required * 0.2
-			if target.faction == PLAYER:
-				score += 10.0
-			if score > best_score:
-				best_source = source
-				best_target = target
-				best_score = score
-	if best_source != null:
-		issue_order(best_source, best_target, 75, ENEMY)
-		return
-	# Consolidate into one stable front even when friendly buildings share an X
-	# coordinate. Population breaks ties so reinforcements do not bounce back.
-	var front: Node3D
-	var front_score: float = -INF
-	for candidate: Node3D in buildings:
-		if candidate.faction != ENEMY:
-			continue
-		var enemy_distance: float = INF
-		for opponent: Node3D in buildings:
-			if opponent.faction != ENEMY:
-				enemy_distance = minf(enemy_distance, candidate.position.distance_to(opponent.position))
-		var score: float = -enemy_distance + (candidate.population + marches.incoming_for(candidate.building_id, ENEMY)) * 0.12 - candidate.building_id * 0.001
-		if score > front_score:
-			front = candidate
-			front_score = score
-	if front != null and marches.incoming_for(front.building_id, ENEMY) < 160:
-		for source: Node3D in buildings:
-			# Low-level residences stop below forty; full reserves can still gather.
-			var threshold: float = minf(40.0, source.capacity) if source.kind == 0 else 40.0
-			if source.faction == ENEMY and source != front and source.population >= threshold:
-				issue_order(source, front, 75, ENEMY)
-				return
+	_ai_strategy.take_turn(self)
 
 func total_for(faction: int) -> int:
 	var count: float = marches.total_for(faction)

@@ -28,7 +28,9 @@ func _reset() -> void:
 func _run() -> void:
 	await _reset()
 	game.ai_enabled = true
-	for step: int in 6000:
+	# Development and defensive relief can keep the last army alive longer than
+	# the former all-out attacker, including its already committed rescue march.
+	for step: int in 8400:
 		if step % 40 == 0:
 			_player_turn()
 		game.simulate(0.05)
@@ -37,7 +39,7 @@ func _run() -> void:
 		if game.finished:
 			break
 	print("CAMPAIGN_RESULT time=", game.elapsed, " finished=", game.finished, " player=", game.total_for(0), " enemy=", game.total_for(1), " ownership=", _ownership())
-	_check(game.finished, "A player using legal expansion, reinforcement and skills finishes within 300 simulated seconds")
+	_check(game.finished, "A player using legal expansion, reinforcement and skills finishes within 420 simulated seconds")
 	for building: Node3D in game.buildings:
 		_check(building.population >= 0.0 and is_finite(building.population), "Campaign keeps valid population at building %d" % building.building_id)
 	await _reset()

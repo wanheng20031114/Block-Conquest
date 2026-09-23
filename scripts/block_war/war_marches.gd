@@ -152,6 +152,18 @@ func incoming_for(target_id: int, faction: int) -> int:
 			total += 1
 	return total
 
+func estimate_arrival_time(source_id: int, route_length: float, count: int) -> float:
+	# AI marches use ordinary speed. Include the shared doorway queue and last rank,
+	# so an apparently weak residence has time to recruit before the whole wave lands.
+	var first_distance := 0.0
+	for unit: MarchUnit in _units:
+		if unit.order.source_id == source_id:
+			first_distance = minf(first_distance, unit.distance)
+	if first_distance < 0.0:
+		first_distance -= ROW_SPACING
+	var last_rank := floorf(float(count - 1) / COLUMNS) * ROW_SPACING
+	return (route_length - first_distance + last_rank + COLUMN_SPACING * (COLUMNS - 1) * 0.5 * 0.11) / SPEED
+
 func get_units() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for unit: MarchUnit in _units:
