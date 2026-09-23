@@ -33,6 +33,10 @@
 
 [sub_resource type="ShaderMaterial" id="ActionWash"]
 shader = ExtResource("action_wash")
+shader_parameter/veil_opacity = 0.14
+
+[sub_resource type="ShaderMaterial" id="DragWash"]
+shader = ExtResource("action_wash")
 
 [sub_resource type="StyleBoxFlat" id="Panel"]
 content_margin_left = 18.0
@@ -2380,7 +2384,7 @@ offset_bottom = 44.0
 mouse_filter = 2
 
 [node name="Wash" type="ColorRect" parent="UI/SkillDrag"]
-material = SubResource("ActionWash")
+material = SubResource("DragWash")
 layout_mode = 0
 offset_left = -10.0
 offset_top = -10.0

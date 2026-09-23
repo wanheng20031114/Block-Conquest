@@ -74,6 +74,11 @@ func _run() -> void:
 	game.camera.size = 30.0
 	await advance(0.6)
 	await capture("menu")
+	if "--actions-only" in OS.get_cmdline_user_args():
+		await game.prepare_shutdown()
+		print("BLOCK_WAR_ACTIONS_VISUAL captured")
+		quit()
+		return
 	if video:
 		await advance(0.8)
 	game.convert_selected(2)
