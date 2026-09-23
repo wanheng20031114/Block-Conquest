@@ -154,10 +154,10 @@ func _run() -> void:
 				var p := pose * point
 				if p.x > -15.0 and p.x < -9.0:
 					bridges_seen[0] = true
-					left_road = left_road or absf(p.z - 14.0) > MAP_RULES.BRIDGE_HALF_WIDTH
+					left_road = left_road or not preload("res://data/block_war/maps/rift.tres").is_walkable(Vector2(p.x, p.z))
 				if p.x > 9.0 and p.x < 15.0:
 					bridges_seen[1] = true
-					left_road = left_road or absf(p.z + 14.0) > MAP_RULES.BRIDGE_HALF_WIDTH
+					left_road = left_road or not preload("res://data/block_war/maps/rift.tres").is_walkable(Vector2(p.x, p.z))
 	_check(not left_road, "Entire outer files stay on the bridges instead of cutting ravine corners")
 	_check(not bad_width, "Formation never exceeds the map's clearance budget")
 	_check(bridges_seen[0] and bridges_seen[1] and _arrived.size() == 84, "All 84 soldiers traverse both bridges and are independently absorbed")

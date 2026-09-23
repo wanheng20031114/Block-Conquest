@@ -33,7 +33,7 @@ func _draw() -> void:
 	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:
 		var points := PackedVector2Array()
 		var color := Color(1.0, 0.81, 0.32, 0.9)
-		if game.hovered != null and game.hovered.faction == 0:
+		if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, 0):
 			color = Color(0.55, 0.93, 0.7, 0.9)
 		if game.order_route.size() >= 2:
 			for point: Vector3 in game.order_route:
@@ -49,8 +49,10 @@ func _draw() -> void:
 			var side := Vector2(-direction.y, direction.x)
 			draw_polyline(PackedVector2Array([end - direction * 16 + side * 8, end, end - direction * 16 - side * 8]), color, 3.5, true)
 		var count := floori(game.drag_source.population * game.percentage / 100.0)
-		var verb := "增援" if game.hovered != null and game.hovered.faction == 0 else "进攻"
+		var verb := "增援" if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, 0) else "进攻"
 		var label := "%s %d 人 · %d%%" % [verb, count, game.percentage]
+		if game.hovered != null and game.hovered.faction != 0 and game.FACTIONS.allied(game.hovered.faction, 0):
+			label += " · 抵达后归队友"
 		var font: Font = ThemeDB.fallback_font
 		var text_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17)
 		var at := get_viewport().get_mouse_position() + Vector2(20, -24)

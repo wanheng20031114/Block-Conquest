@@ -1,13 +1,11 @@
 class_name WarMap
 extends Node3D
-## The riverbed is physically below the plateau. Only the four bridges connect
-## the three banks; graph clearance includes all six files and rotated militia.
+## Authored terrain and bridge regions; clearance includes the full formation.
 
-const HALF_SIZE := Vector2(40.0, 28.0)
+@export var definition: Resource = preload("res://data/block_war/maps/rift.tres")
+@export var water_paths: Array[NodePath] = [NodePath("Terrain/River0"), NodePath("Terrain/River1")]
 const FORMATION_CLEARANCE := 2.1
 const GRID_STEP := 2.0
-const BRIDGE_Z := 14.0
-const BRIDGE_HALF_WIDTH := 3.2
 # Includes the outer file, rotated militia and the widest ground-level walls.
 const BUILDING_CLEARANCE := 4.0
 const ROUTE_SAMPLE_STEP := 0.25
@@ -18,11 +16,14 @@ var _navigation := AStar3D.new()
 var _grid: Dictionary[Vector2i, int] = {}
 var _building_positions := PackedVector3Array()
 var _route_cache: Dictionary[Vector4, PackedVector3Array] = {}
+var _route_distances: Dictionary[Vector4, float] = {}
+# Explicit offline authoring mode. Matches read the saved, validated guides.
+var bake_routes := false
 var _building_links: Dictionary[Vector3, PackedInt64Array] = {}
 var _tree_obstacle_grid: Dictionary[Vector2i, Array] = {}
 var _flow_time := 0.0
 var _visual_paused := false
-@onready var _river_material: ShaderMaterial = $Terrain/River0.material_override
+var _water_materials: Array[ShaderMaterial] = []
 const NATURE_MATERIALS: Array[ShaderMaterial] = [
 	preload("res://assets/models/block_war/nature/leaves.tres"),
 	preload("res://assets/models/block_war/nature/grass.tres"),
@@ -31,19 +32,29 @@ const NATURE_MATERIALS: Array[ShaderMaterial] = [
 
 
 func _ready() -> void:
+	for path: NodePath in water_paths:
+		var material: ShaderMaterial = get_node(path).material_override
+		if material not in _water_materials:
+			_water_materials.append(material)
 	for building: Node3D in $Buildings.get_children():
 		_building_positions.append(building.global_position)
 	for decoration: Node3D in $Nature.get_children():
 		if decoration.has_meta("route_radius"):
 			_register_tree_obstacle(Vector3(decoration.position.x, decoration.position.z, float(decoration.get_meta("route_radius")) * decoration.scale.x))
-	_build_navigation()
+	if bake_routes:
+		_build_navigation()
+	else:
+		var saved: Resource = load(definition.routes_path)
+		_route_cache = saved.routes.duplicate()
+		_route_distances = saved.distances.duplicate()
 
 
 func _process(delta: float) -> void:
 	if _visual_paused:
 		return
 	_flow_time += delta
-	_river_material.set_shader_parameter("flow_time", _flow_time)
+	for material: ShaderMaterial in _water_materials:
+		material.set_shader_parameter("flow_time", _flow_time)
 	for material: ShaderMaterial in NATURE_MATERIALS:
 		material.set_shader_parameter("flow_time", _flow_time)
 
@@ -62,10 +73,7 @@ func is_walkable(point: Vector3) -> bool:
 
 
 func _is_terrain_walkable(point: Vector3) -> bool:
-	if absf(point.x) > HALF_SIZE.x or absf(point.z) > HALF_SIZE.y:
-		return false
-	var river := (point.x > -15.0 and point.x < -9.0) or (point.x > 9.0 and point.x < 15.0)
-	return not river or absf(absf(point.z) - BRIDGE_Z) <= BRIDGE_HALF_WIDTH
+	return definition.is_walkable(Vector2(point.x, point.z))
 
 
 func _obstacle_cell(point: Vector3) -> Vector2i:
@@ -89,18 +97,30 @@ func get_building_route(source: WarBuilding, target: WarBuilding) -> PackedVecto
 	var reverse := source.building_id > target.building_id
 	var first := target if reverse else source
 	var last := source if reverse else target
-	var from := first.global_position
-	var to := last.global_position
-	var key := Vector4(from.x, from.z, to.x, to.z)
-	if not _route_cache.has(key):
+	var key := _route_key(first, last)
+	if bake_routes and not _route_cache.has(key):
 		var corridor := _compute_building_route(first, last)
 		_route_cache[key] = _shape_route(corridor) if corridor.size() >= 2 else corridor
+		var length := 0.0
+		for index: int in range(1, _route_cache[key].size()):
+			length += _route_cache[key][index - 1].distance_to(_route_cache[key][index])
+		_route_distances[key] = length if corridor.size() >= 2 else INF
 	# Drag previews and march callers own their copy; cancelling one must not
 	# empty the shared route used by later orders or AI evaluations.
 	var route := _route_cache[key].duplicate()
 	if reverse:
 		route.reverse()
 	return route
+
+
+func get_building_distance(source: WarBuilding, target: WarBuilding) -> float:
+	return 0.0 if source == target else _route_distances[_route_key(source, target)]
+
+
+func _route_key(source: WarBuilding, target: WarBuilding) -> Vector4:
+	var from := source.global_position if source.building_id < target.building_id else target.global_position
+	var to := target.global_position if source.building_id < target.building_id else source.global_position
+	return Vector4(from.x, from.z, to.x, to.z)
 
 
 func _shape_route(corridor: PackedVector3Array) -> PackedVector3Array:
@@ -274,9 +294,10 @@ func _build_navigation() -> void:
 	_navigation.clear()
 	_grid.clear()
 	_route_cache.clear()
+	_route_distances.clear()
 	_building_links.clear()
-	for x in range(-19, 20):
-		for z in range(-13, 14):
+	for x in range(-ceili(definition.half_size.x / GRID_STEP) + 1, ceili(definition.half_size.x / GRID_STEP)):
+		for z in range(-ceili(definition.half_size.y / GRID_STEP) + 1, ceili(definition.half_size.y / GRID_STEP)):
 			var point := Vector3(x * GRID_STEP, 0, z * GRID_STEP)
 			if not _is_route_point_clear(point):
 				continue

@@ -12,7 +12,8 @@ const ROW_SPACING := 0.90
 const SPEED := 3.1
 const MODEL_SCALE := 0.62
 const GATE_LENGTH := 2.4
-const FACTION_COLORS: Array[Color] = [Color(1.0, 0.65, 0.18), Color(0.2, 0.83, 0.67), Color("94c964"), Color("e9bf5b")]
+const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+const FACTION_COLORS: Array[Color] = FACTIONS.COLORS
 
 class MarchOrder extends RefCounted:
 	var source_id: int
@@ -152,6 +153,27 @@ func incoming_for(target_id: int, faction: int) -> int:
 			total += 1
 	return total
 
+func team_total_for(faction: int) -> int:
+	var total := 0
+	for unit: MarchUnit in _units:
+		if FACTIONS.allied(unit.order.faction, faction):
+			total += 1
+	return total
+
+func team_incoming_for(target_id: int, faction: int) -> int:
+	var total := 0
+	for unit: MarchUnit in _units:
+		if unit.order.target_id == target_id and FACTIONS.allied(unit.order.faction, faction):
+			total += 1
+	return total
+
+func hostile_incoming_for(target_id: int, faction: int) -> int:
+	var total := 0
+	for unit: MarchUnit in _units:
+		if unit.order.target_id == target_id and FACTIONS.hostile(unit.order.faction, faction):
+			total += 1
+	return total
+
 func estimate_arrival_time(source_id: int, route_length: float, count: int) -> float:
 	# AI marches use ordinary speed. Include the shared doorway queue and last rank,
 	# so an apparently weak residence has time to recruit before the whole wave lands.
@@ -181,7 +203,7 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 		var nearest_distance := radius_squared
 		for index: int in _units.size():
 			var unit := _units[index]
-			if unit.order.faction == attacking_faction or unit.distance < 0.0 or unit.reserved:
+			if FACTIONS.allied(unit.order.faction, attacking_faction) or unit.distance < 0.0 or unit.reserved:
 				continue
 			var distance_squared := unit.position.distance_squared_to(center)
 			if distance_squared <= nearest_distance:
@@ -248,6 +270,13 @@ func clear() -> void:
 	_units.clear()
 	_boosts.clear()
 	_multimesh.visible_instance_count = 0
+
+func snapshot_incoming() -> Dictionary[Vector2i, int]:
+	var incoming: Dictionary[Vector2i, int] = {}
+	for unit: MarchUnit in _units:
+		var key := Vector2i(unit.order.target_id, unit.order.faction)
+		incoming[key] = incoming.get(key, 0) + 1
+	return incoming
 
 func _remove_unit(index: int) -> void:
 	_units[index].alive = false

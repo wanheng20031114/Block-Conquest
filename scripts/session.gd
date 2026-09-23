@@ -3,6 +3,7 @@ extends Node
 signal load_failed(message: String)
 var config: Dictionary = {}
 var online: bool = false
+var block_war_map_id := "rift"
 @onready var relay: RelayClient = $RelayClient
 @onready var settings: GameSettings = $Settings
 @onready var rogue: RogueSession = $Rogue

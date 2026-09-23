@@ -53,6 +53,8 @@ func _wall_outline(building: WarBuilding) -> PackedVector2Array:
 
 func _run() -> void:
 	var map: WarMap = MAP.instantiate()
+	# This audit also compares the curves to freshly computed AStar corridors.
+	map.bake_routes = true
 	root.add_child(map)
 	map.set_visual_paused(true)
 	var marches: WarMarches = MARCHES.instantiate()

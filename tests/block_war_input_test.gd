@@ -56,8 +56,15 @@ func run() -> void:
 	mouse(at, MOUSE_BUTTON_LEFT, true)
 	mouse(at, MOUSE_BUTTON_LEFT, false)
 	await scene_changed
+	check(current_scene.scene_file_path == "res://scenes/block_war/map_select.tscn", "native lobby click opens the battlefield picker")
+	while root.get_node("Session").transition.busy:
+		await process_frame
+	at = current_scene.get_node("%Start").get_global_rect().get_center()
+	mouse(at, MOUSE_BUTTON_LEFT, true)
+	mouse(at, MOUSE_BUTTON_LEFT, false)
+	await scene_changed
 	game = current_scene
-	check(game.scene_file_path == "res://scenes/block_war/block_war.tscn", "native lobby click enters war mode")
+	check(game.scene_file_path == "res://scenes/block_war/block_war.tscn", "native start click enters the selected battlefield")
 	check(not root.use_taa, "war mode avoids temporal ghosting on population badges")
 	while root.get_node("Session").transition.busy:
 		await process_frame

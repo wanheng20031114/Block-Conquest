@@ -35,7 +35,7 @@ var upgrade_cost: int:
 	get:
 		return level * (10 if kind == 0 else 30) if level < max_level else 0
 
-const FACTION_COLORS: Array[Color] = [Color(1.0, 0.65, 0.18), Color(0.2, 0.83, 0.67)]
+const FACTION_COLORS: Array[Color] = preload("res://scripts/block_war/war_factions.gd").COLORS
 const NEUTRAL_COLOR := Color("b5aa87")
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
 # One shared ground perimeter survives building conversions and leaves enough

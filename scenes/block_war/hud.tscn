@@ -706,6 +706,23 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
 
 
+[node name="MapTitle" type="Label" parent="UI/Top"]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 38.0
+offset_right = 250.0
+offset_bottom = 61.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.94, 0.92, 0.80, 1)
+theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
+theme_override_constants/shadow_offset_y = 2
+text = "裂谷交汇 · 1v1"
+horizontal_alignment = 1
+
 [node name="Actions" type="HBoxContainer" parent="UI"]
 layout_mode = 0
 anchor_left = 1.0
@@ -2120,7 +2137,7 @@ offset_bottom = 201.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "按住己方建筑或人口牌，拖到敌方/中立据点进攻，拖到己方据点增援。\n1 / 2 / 3 / 4（含小键盘）切换 25 / 50 / 75 / 100%；拖动时也可滚轮调兵。"
+text = "只能调遣自己的建筑。拖向敌方/中立据点进攻；向盟友增援，抵达后归队友指挥。\n1 / 2 / 3 / 4（含小键盘）切换 25 / 50 / 75 / 100%；拖动时也可滚轮调兵。"
 
 [node name="Heading1" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0

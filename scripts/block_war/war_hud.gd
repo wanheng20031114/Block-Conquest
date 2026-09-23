@@ -15,8 +15,8 @@ const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁垒", "天降冲击"]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
 const SKILL_DETAILS: Array[String] = [
-	"拖至己方住宅，松手施放。\n每秒征召 5 人，持续 6 秒。", "拖至战场，松手施放。\n全军行军速度提升，持续 8 秒。",
-	"拖至己方建筑，松手施放。\n守备壁垒持续 10 秒。", "拖至地面，松手点燃。\n火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
+	"拖至自己或盟友住宅，松手施放。\n每秒征召 5 人，持续 6 秒。", "拖至战场，松手施放。\n自己的行军部队加速，持续 8 秒。",
+	"拖至自己或盟友建筑，松手施放。\n守备壁垒持续 10 秒。", "拖至地面，松手点燃。\n火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
 ]
 
 var _paused: bool = false
@@ -81,6 +81,10 @@ func update_state(state: Dictionary) -> void:
 	var enemy_total: int = int(state.enemy_total)
 	%PlayerTotal.text = str(player_total)
 	%EnemyTotal.text = str(enemy_total)
+	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
+	$UI/Player/Name.text = "我方联盟" if state.team_size > 1 else "琥珀军团"
+	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else "翡翠军团"
+	$UI/Enemy/Role.text = "%d 名电脑对手" % state.team_size
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
 	var target: float = float(player_total) / maxf(float(player_total + enemy_total), 1.0) * 100.0
@@ -92,12 +96,12 @@ func update_state(state: Dictionary) -> void:
 		_balance_tween.tween_property(%Balance, "value", target, 0.28)
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
-	%ForgeBonus.text = "锻造加成  +%d%%" % (int(state.forges) * 10)
+	%ForgeBonus.text = ("你的锻造  +%d%%" if state.team_size > 1 else "锻造加成  +%d%%") % (int(state.forges) * 10)
 	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
-		var target_text := "拖至地面 · 松手点燃 · 敌我均伤" if armed == 3 else ("拖至战场 · 松手施放" if armed == 1 else "拖至己方建筑 · 松手施放")
+		var target_text := "拖至地面 · 松手点燃 · 敌我均伤" if armed == 3 else ("拖至战场 · 松手施放" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
 	%SkillDrag.visible = armed >= 0
 	if armed >= 0:

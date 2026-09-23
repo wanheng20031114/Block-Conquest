@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WarMapDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="script"]
+
+[resource]
+script = ExtResource("script")
+map_id = "lake"
+title = "林湖回廊"
+size_class = 0
+team_size = 1
+scene_path = "res://scenes/block_war/maps/lake.tscn"
+routes_path = "res://data/block_war/routes/lake.res"
+description = "湖泊隔开两军，南北两条林间回廊连接战场。绕行扩张与侧翼增援同样重要。"
+half_size = Vector2(40, 30)
+ground_color = Color(0.29, 0.405, 0.235, 1)
+water_regions = Array[Rect2]([Rect2(-9, -12, 18, 24)])
+mountain_regions = Array[Rect2]([])
+bridges = Array[Rect2]([])
+building_positions = PackedVector3Array(-30, 0, 0, 30, 0, 0, -30, 0, -20, 30, 0, -20, -30, 0, 20, 30, 0, 20, -18, 0, 0, 18, 0, 0, 0, 0, -22, 0, 0, 22, -14, 0, -22, 14, 0, -22, -14, 0, 22, 14, 0, 22)
+building_kinds = PackedInt32Array(0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 1, 1, 1)
+building_factions = PackedInt32Array(0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)

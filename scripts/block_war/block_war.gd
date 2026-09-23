@@ -14,6 +14,8 @@ const CONVERSION_COST := 20
 const PLAYER := 0
 const ENEMY := 1
 const AI_STRATEGY := preload("res://scripts/block_war/war_ai.gd")
+const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+const MAP_CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 
 var buildings: Array[Node3D] = []
 var by_id: Dictionary = {}
@@ -34,6 +36,8 @@ var _local_menu: bool = false
 var ai_enabled: bool = true
 var ai_clock: float = 6.0
 var _ai_strategy := AI_STRATEGY.new()
+var _other_ai: Array[RefCounted] = []
+var faction_count := 2
 var shields: Dictionary = {}
 var tower_clocks: Dictionary = {}
 var effects: Array[Dictionary] = []
@@ -54,6 +58,22 @@ var _closing: bool = false
 @onready var audio: Node = $Audio
 @onready var overlay: Control = $Orders/Overlay
 @onready var world_effects: Node3D = $Effects
+
+func _enter_tree() -> void:
+	var definition: Resource = MAP_CATALOG.find_map(get_node("/root/Session").block_war_map_id)
+	assert(definition != null, "The selected battlefield must exist in the catalog.")
+	if definition.map_id != "rift":
+		# Replace one complete authored scene, before any map child becomes ready.
+		var original := get_node("Map")
+		remove_child(original)
+		original.free()
+		var replacement: Node3D = load(definition.scene_path).instantiate()
+		replacement.name = "Map"
+		add_child(replacement)
+		move_child(replacement, 0)
+	faction_count = definition.team_size * 2
+	for faction: int in range(2, faction_count):
+		_other_ai.append(AI_STRATEGY.new(faction))
 
 func _ready() -> void:
 	# MSAA keeps the small world-space badges and moving spear rows crisp.
@@ -77,6 +97,10 @@ func _ready() -> void:
 	hud.upgrade_requested.connect(upgrade_selected)
 	hud.convert_requested.connect(convert_selected)
 	get_window().focus_exited.connect(_on_focus_exited)
+	camera_rig.maximum_zoom = maxf(95.0, map.definition.half_size.y * 2.1)
+	if map.definition.size_class > 0:
+		camera_rig.focus_at(buildings[0].global_position, true)
+		camera.far = 320.0
 	select_building(buildings[0])
 	_match_ready = true
 	update_hud()
@@ -170,7 +194,7 @@ func _tick_recruitment(delta: float) -> int:
 	if _recruit_target_id < 0:
 		return -1
 	var target: Node3D = by_id[_recruit_target_id]
-	if target.faction != PLAYER or target.kind != 0:
+	if not FACTIONS.allied(target.faction, PLAYER) or target.kind != 0:
 		_cancel_recruitment()
 		return -1
 	# Integrate only the remaining effect time, including a tick that crosses its
@@ -228,8 +252,9 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 	marches.send(source.building_id, target.building_id, faction, count, route, 1.0)
 	if faction == PLAYER:
 		audio.play_ui(&"war_order")
-		var verb := "增援" if target.faction == PLAYER else "进攻"
-		hud.notify("%d 名民兵出发 · %s%s" % [count, verb, KIND_NAMES[target.kind]])
+		var verb := "增援" if FACTIONS.allied(target.faction, PLAYER) else "进攻"
+		var transfer := " · 抵达后归队友指挥" if target.faction != PLAYER and FACTIONS.allied(target.faction, PLAYER) else ""
+		hud.notify("%d 名民兵出发 · %s%s%s" % [count, verb, KIND_NAMES[target.kind], transfer])
 		add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
 	update_hud()
 	return count
@@ -254,7 +279,9 @@ func defense_multiplier(building: Node3D) -> float:
 
 func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 	var target: Node3D = by_id[target_id]
-	if target.faction == faction:
+	if FACTIONS.allied(target.faction, faction):
+		# Entering a teammate's building transfers command with the garrison.
+		# Ownership stays with the recipient; later orders use that building's faction.
 		target.population += strength
 		audio.play_world(&"war_reinforce", target.global_position)
 	else:
@@ -322,7 +349,7 @@ func _tick_fire_buildings() -> void:
 		if fire.age > WarFireWave.BURN_TIME:
 			continue
 		for building: WarBuilding in buildings:
-			if building.faction == PLAYER or fire.hit_buildings.has(building.building_id):
+			if FACTIONS.allied(building.faction, PLAYER) or fire.hit_buildings.has(building.building_id):
 				continue
 			var offset := Vector2(building.global_position.x - fire.global_position.x, building.global_position.z - fire.global_position.z)
 			if offset.length() <= fire.front(fire.age):
@@ -399,16 +426,16 @@ func _valid_skill_target(index: int, target: Node3D) -> bool:
 	if target == null:
 		return false
 	if index == 0:
-		return target.faction == PLAYER and target.kind == 0
+		return FACTIONS.allied(target.faction, PLAYER) and target.kind == 0
 	if index == 2:
-		return target.faction == PLAYER
+		return FACTIONS.allied(target.faction, PLAYER)
 	return false
 
 func cast_skill(index: int, target: Node3D) -> bool:
 	if not _skill_available(index):
 		return false
 	if not _valid_skill_target(index, target):
-		hud.notify("拖至己方住宅后松手" if index == 0 else ("拖至己方建筑后松手" if index == 2 else "拖至战场地面后松手"))
+		hud.notify("拖至自己或盟友住宅后松手" if index == 0 else ("拖至自己或盟友建筑后松手" if index == 2 else "拖至战场地面后松手"))
 		audio.play_ui(&"war_denied")
 		return false
 	match index:
@@ -418,7 +445,7 @@ func cast_skill(index: int, target: Node3D) -> bool:
 			hud.notify("征召军令 · 持续 6 秒，每秒补充 5 名民兵")
 		1:
 			marches.boost_faction(PLAYER, 8.0, 1.7)
-			hud.notify("疾行战鼓 · 全军行速 +70%，持续 8 秒")
+			hud.notify("疾行战鼓 · 自己的行军部队提速 70%，持续 8 秒")
 		2:
 			shields[target.building_id] = 10.0
 			world_effects.shield(target.global_position)
@@ -455,7 +482,7 @@ func _commit_skill(index: int) -> void:
 	_cancel_drag()
 
 func _valid_ground_skill_target(at: Vector3) -> bool:
-	return at.is_finite() and absf(at.x) <= map.HALF_SIZE.x and absf(at.z) <= map.HALF_SIZE.y
+	return at.is_finite() and absf(at.x) <= map.definition.half_size.x and absf(at.z) <= map.definition.half_size.y
 
 func skill_ground_at(screen: Vector2) -> Vector3:
 	if not get_viewport().get_visible_rect().has_point(screen) or hud.is_pointer_blocked(screen):
@@ -496,6 +523,22 @@ func convert_selected(kind: int) -> void:
 
 func _ai_turn() -> void:
 	_ai_strategy.take_turn(self)
+	for strategy: RefCounted in _other_ai:
+		strategy.take_turn(self)
+
+func team_total_for(faction: int) -> int:
+	var count: float = marches.team_total_for(faction)
+	for building: WarBuilding in buildings:
+		if FACTIONS.allied(building.faction, faction):
+			count += building.population
+	return floori(count)
+
+func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, int]) -> float:
+	var damage := 0.0
+	for faction: int in faction_count:
+		if FACTIONS.hostile(building.faction, faction):
+			damage += incoming.get(Vector2i(building.building_id, faction), 0) * attack_multiplier(faction) / defense_multiplier(building)
+	return damage
 
 func total_for(faction: int) -> int:
 	var count: float = marches.total_for(faction)
@@ -507,12 +550,12 @@ func total_for(faction: int) -> int:
 func _check_victory() -> void:
 	if finished:
 		return
-	var remaining: Array[bool] = [marches.total_for(PLAYER) > 0, marches.total_for(ENEMY) > 0]
+	var remaining: Array[bool] = [marches.team_total_for(PLAYER) > 0, marches.team_total_for(ENEMY) > 0]
 	var can_make_progress: bool = remaining[PLAYER] or remaining[ENEMY]
 	for building: Node3D in buildings:
 		if building.faction < 0:
 			continue
-		remaining[building.faction] = true
+		remaining[building.faction % 2] = true
 		# Fractions in separate garrisons cannot be combined without a full soldier
 		# leaving one doorway. An existing or unfinished residence can still grow it.
 		if building.kind == 0 or building.conversion_target == 0 or floori(building.population) >= 1:
@@ -549,15 +592,20 @@ func _finish_match(winner: int) -> void:
 func update_hud() -> void:
 	if not is_node_ready():
 		return
-	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升全军攻防"
+	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升所属军团攻防"
 	if selected != null:
 		match selected.kind:
 			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限 · 守备 +%d%%" % [selected.production_rate, selected.capacity, (selected.level - 1) * 10]
 			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 不自动产兵" % [tower_range(selected), tower_interval(selected), selected.level]
-			2: detail = "全军攻击与守备 +%d%% · 不自动产兵" % (selected.level * 10)
+			2: detail = "所属军团攻击与守备 +%d%% · 不自动产兵" % (selected.level * 10)
 		if shields.has(selected.building_id):
 			detail += " · 壁垒 %ds" % ceili(shields[selected.building_id])
-	hud.update_state({"player_total": total_for(PLAYER), "enemy_total": total_for(ENEMY), "time": elapsed,
+		if selected.faction >= 0 and faction_count > 2:
+			detail = "%s · %s" % [FACTIONS.NAMES[selected.faction], detail]
+			if FACTIONS.allied(selected.faction, PLAYER) and selected.faction != PLAYER:
+				detail += " · 增援抵达后归队友指挥"
+	hud.update_state({"player_total": team_total_for(PLAYER), "enemy_total": team_total_for(ENEMY), "time": elapsed,
+		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
 		"send_count": floori(selected.population * percentage / 100.0) if selected != null else 0,
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
@@ -628,7 +676,8 @@ func _on_focus_exited() -> void:
 	camera_rig.dragging = false
 
 func clamp_to_map(point: Vector3) -> Vector3:
-	return Vector3(clampf(point.x, -34.0, 34.0), 0.0, clampf(point.z, -23.0, 23.0))
+	var limits: Vector2 = map.definition.half_size - Vector2(6, 5)
+	return Vector3(clampf(point.x, -limits.x, limits.x), 0.0, clampf(point.z, -limits.y, limits.y))
 
 func _input(event: InputEvent) -> void:
 	if armed_skill >= 0:
@@ -732,7 +781,7 @@ func _cancel_drag() -> void:
 	order_route = PackedVector3Array()
 
 func faction_color(faction: int) -> Color:
-	return Color(1.0, 0.65, 0.18) if faction == PLAYER else Color(0.2, 0.83, 0.67)
+	return FACTIONS.COLORS[faction]
 
 func add_effect(at: Vector3, color: Color, kind: String, duration: float, radius: float = 3.8) -> void:
 	effects.append({"at": at, "color": color, "kind": kind, "life": duration, "duration": duration, "radius": radius})

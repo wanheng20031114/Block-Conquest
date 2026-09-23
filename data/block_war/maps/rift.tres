@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WarMapDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="script"]
+
+[resource]
+script = ExtResource("script")
+map_id = "rift"
+title = "裂谷交汇"
+size_class = 0
+team_size = 1
+scene_path = "res://scenes/block_war/map.tscn"
+routes_path = "res://data/block_war/routes/rift.res"
+description = "两道溪谷、四座石桥。保留原有的小型战场，争夺中央住宅与桥头炮塔。"
+half_size = Vector2(40, 28)
+ground_color = Color(0.29, 0.405, 0.235, 1)
+water_regions = Array[Rect2]([Rect2(-15, -68, 6, 136), Rect2(9, -68, 6, 136)])
+mountain_regions = Array[Rect2]([])
+bridges = Array[Rect2]([Rect2(-15, -17.2, 6, 6.4), Rect2(-15, 10.8, 6, 6.4), Rect2(9, -17.2, 6, 6.4), Rect2(9, 10.8, 6, 6.4)])
+building_positions = PackedVector3Array(-30.0, 0, 0.0, 30.0, 0, 0.0, -29.0, 0, -19.0, -29.0, 0, 19.0, 29.0, 0, -19.0, 29.0, 0, 19.0, -21.0, 0, 0.0, 21.0, 0, 0.0, -23.0, 0, -13.0, 23.0, 0, 13.0, 0.0, 0, -19.0, 0.0, 0, 19.0, 0.0, 0, 0.0)
+building_kinds = PackedInt32Array(0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1)
+building_factions = PackedInt32Array(0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)

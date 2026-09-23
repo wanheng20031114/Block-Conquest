@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WarMapDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="script"]
+
+[resource]
+script = ExtResource("script")
+map_id = "highland"
+title = "环湖高原"
+size_class = 2
+team_size = 3
+scene_path = "res://scenes/block_war/maps/highland.tscn"
+routes_path = "res://data/block_war/routes/highland.res"
+description = "宽阔湖面围绕中央石台，南北高原与中央长桥形成三条不同长度的通道。控制中央也要兼顾两翼。"
+half_size = Vector2(84, 64)
+ground_color = Color(0.34, 0.395, 0.255, 1)
+water_regions = Array[Rect2]([Rect2(-20, -30, 40, 60)])
+mountain_regions = Array[Rect2]([])
+bridges = Array[Rect2]([Rect2(-22, -4.5, 44, 9), Rect2(-8, -8, 16, 16)])
+building_positions = PackedVector3Array(-68, 0, -44, 68, 0, -44, -68, 0, 0, 68, 0, 0, -68, 0, 44, 68, 0, 44, -46, 0, -44, 46, 0, -44, -46, 0, 0, 46, 0, 0, -46, 0, 44, 46, 0, 44, -68, 0, -22, 68, 0, -22, -44, 0, -22, 44, 0, -22, -68, 0, 22, 68, 0, 22, -44, 0, 22, 44, 0, 22, -30, 0, -44, 30, 0, -44, -30, 0, 0, 30, 0, 0, -30, 0, 44, 30, 0, 44, -58, 0, -50, 58, 0, -50, -58, 0, -12, 58, 0, -12, -58, 0, 12, 58, 0, 12, -58, 0, 50, 58, 0, 50, 0, 0, -46, 0, 0, 0, 0, 0, 46)
+building_kinds = PackedInt32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 0)
+building_factions = PackedInt32Array(0, 1, 2, 3, 4, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
