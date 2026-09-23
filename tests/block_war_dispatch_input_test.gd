@@ -144,8 +144,6 @@ func _run() -> void:
 		var ratio := (index % 4 + 1) * 25
 		var amount := ratio * 80 / 100
 		check(game.percentage == ratio, "shortcut %s selects %d percent" % [OS.get_keycode_string(codes[index]), ratio])
-		var send_label: String = game.hud.get_node("%SendAmount").text
-		check(send_label.contains(str(ratio)) and send_label.contains(str(amount)), "drag HUD exposes both %d percent and %d troops" % [ratio, amount])
 		var ratio_button: Button = game.hud.get_node("UI/Percentages/Stack/P%d" % ratio)
 		check(ratio_button.button_pressed, "selected percentage button matches keyboard shortcut")
 		motion(point(neutral), true)

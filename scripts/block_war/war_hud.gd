@@ -15,8 +15,8 @@ const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁垒", "天降冲击"]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
 const SKILL_DETAILS: Array[String] = [
-	"选择己方住宅，每秒征召 5 人，持续 6 秒。", "全军行速提升，持续 8 秒。",
-	"选择己方建筑，守备壁垒持续 10 秒。", "点击战场地面，对指定区域发动冲击。",
+	"选择己方住宅。\n每秒征召 5 人，持续 6 秒。", "全军行军速度提升，持续 8 秒。",
+	"选择己方建筑。\n守备壁垒持续 10 秒。", "选择战场地面的一片区域。\n对区域内敌军发动冲击。",
 ]
 
 var _paused: bool = false
@@ -91,8 +91,6 @@ func update_state(state: Dictionary) -> void:
 		_balance_tween.tween_property(%Balance, "value", target, 0.28)
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
-	%SendAmount.visible = bool(state.selected_owned)
-	%SendAmount.text = "派出 %d 人 · %d%%   [1–4] 切换" % [int(state.send_count), int(state.percentage)]
 	%ForgeBonus.text = "锻造加成  +%d%%" % (int(state.forges) * 10)
 	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
@@ -102,7 +100,6 @@ func update_state(state: Dictionary) -> void:
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
 	var energy: float = float(state.energy)
 	%EnergyBar.value = energy
-	%EnergyLabel.text = "技力  %d / 100" % floori(energy)
 	for index: int in 4:
 		var button: Button = _skill_buttons[index]
 		var cooldown: float = float(state.cooldowns[index])
@@ -116,7 +113,6 @@ func update_state(state: Dictionary) -> void:
 		button.get_node("Cooldown").value = cooldown / COOLDOWNS[index] * 100.0
 		button.get_node("Cooldown").visible = cooling
 		button.get_node("Seconds").text = str(ceili(cooldown)) if cooling else ""
-		button.get_node("Name").text = SKILL_NAMES[index]
 		button.get_node("Cost").text = str(cost)
 		var status := ""
 		if duration > 0.0:
@@ -127,14 +123,12 @@ func update_state(state: Dictionary) -> void:
 			status = "冷却 %ds" % ceili(cooldown)
 		elif not affordable:
 			status = "缺技力 %d" % ceili(cost - energy)
-		button.get_node("Status").text = status
 		button.get_node("Icon").visible = not cooling
 		button.get_node("Icon").modulate.a = 1.0 if ready else 0.6
 		button.get_node("ReadyLight").visible = ready
-		button.get_node("ReadyDot").modulate.a = 1.0 if ready else 0.4
 		if not ready:
 			button.get_node("ReadyGlow").hide()
-		button.tooltip_text = "%s  [%s]\n%s\n消耗 %d 技力 · 冷却 %d 秒\n%s" % [SKILL_NAMES[index], ["Q", "W", "E", "R"][index], SKILL_DETAILS[index], cost, COOLDOWNS[index], status if not status.is_empty() else "可以施放"]
+		button.set_hint(SKILL_NAMES[index], SKILL_DETAILS[index], cost, COOLDOWNS[index], energy, status)
 		if ready and not _last_ready[index] and _skills_initialized:
 			_pulse_ready(button)
 		_last_ready[index] = ready

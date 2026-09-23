@@ -334,6 +334,29 @@ func _ground_impact() -> void:
 	check(game.marches.total_for(1) == remaining_enemies, "An empty impact does not damage distant armies")
 
 
+func _native_skill_hint(button: Button) -> void:
+	motion(button.get_global_rect().get_center())
+	await create_timer(0.8).timeout
+	var cards := root.find_children("SkillTooltip", "VBoxContainer", true, false)
+	check(cards.size() == 1, "native skill hover opens one scene-authored tooltip")
+	if cards.size() == 1:
+		var card: Control = cards[0]
+		check(card.get_parent().size.y < 240, "native tooltip fits its text without a tall empty backplate")
+		check(card.get_node("%Title").text == "征召军令" and card.get_node("%Shortcut").text == "[Q]", "hover card separates the skill title and shortcut")
+		check(card.get_node("%Description").text.contains("每秒征召 5 人") and card.get_node("%Stats").text.contains("35 秒"), "hover card exposes effect, energy cost and cooldown")
+		var identity := card.get_instance_id()
+		game.energy = 25.0
+		game.update_hud()
+		await process_frame
+		check(is_instance_valid(card) and card.get_instance_id() == identity, "live energy changes do not restart the tooltip hover delay")
+		check(card.get_node("%Energy").text.contains("25 / 100") and card.get_node("%State").text == "缺技力 5", "open tooltip updates its energy and shortfall immediately")
+	game.energy = 100.0
+	game.update_hud()
+	motion(Vector2(800, 100))
+	await process_frame
+	await process_frame
+	check(root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "leaving the skill releases its native tooltip and signal binding")
+
 func _native_selection_and_hud() -> void:
 	# Complete the authored HUD reveal without advancing the manually stepped match.
 	await create_timer(0.8).timeout
@@ -347,9 +370,9 @@ func _native_selection_and_hud() -> void:
 	var w: Button = game.hud.get_node("UI/Skills/Row/Skill1")
 	var r: Button = game.hud.get_node("UI/Skills/Row/Skill3")
 	var energy_bar: ProgressBar = game.hud.get_node("%EnergyBar")
-	var energy_label: Label = game.hud.get_node("%EnergyLabel")
 	near(energy_bar.value, 100.0, "HUD initially exposes the full shared energy bar")
-	check(energy_label.is_visible_in_tree() and energy_label.text.contains("100"), "HUD exposes a visible numeric energy value")
+	check(q.hint.energy.contains("100 / 100"), "hover hints retain exact energy without a permanent caption")
+	await _native_skill_hint(q)
 	click(enemy_at)
 	check(game.selected == enemy and game.drag_source == null, "Enemy selection is legal but cannot begin player dispatch")
 	key(KEY_Q)
@@ -367,12 +390,12 @@ func _native_selection_and_hud() -> void:
 	check(game.armed_skill == -1 and game.cooldowns[0] == 35.0 and game.drag_source == null, "Population-badge click confirms Q without starting a dispatch")
 	near(game.energy, 70.0, "Confirmed Q screen selection pays exactly once")
 	near(home.population, before_population, "Confirmed Q screen selection also recruits gradually")
-	check(q.disabled and q.get_node("Cooldown").visible and q.get_node("Status").text.contains("6"), "Q button visibly shows its active duration and separate cooldown")
+	check(q.disabled and q.get_node("Cooldown").visible and q.hint.status.contains("6"), "Q keeps its cooldown on the button and active duration in its hover hint")
 	game.energy = 59.0
 	game.update_hud()
 	check(r.disabled, "HUD disables R when common energy is below sixty")
 	near(energy_bar.value, 59.0, "HUD bar reflects the common pool after spending")
-	check(energy_label.text.contains("59"), "HUD numeric energy matches its bar")
+	check(r.hint.energy.contains("59 / 100"), "hover hint energy matches its bar")
 	game.energy = 100.0
 	game.select_building(enemy)
 	var r_at := r.get_global_rect().get_center()
