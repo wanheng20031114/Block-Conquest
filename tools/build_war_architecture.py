@@ -4,6 +4,7 @@ All silhouettes are authored offline and baked into native ArrayMesh resources.
 The world-space scale and scene interaction nodes remain the original size.
 """
 from pathlib import Path
+import argparse
 import math
 import numpy as np
 import trimesh as tm
@@ -190,6 +191,8 @@ def foundation():
 def residence(level=1):
     if level < 3:
         return cottage(level)
+    if level == 4:
+        return grand_residence()
     m=env.Model()
     # Extend only the footing below ground; keep the original top and bevel.
     m.box((3.08,.43,2.75),(0,.115,-.08),"mortar",bevel=.072)
@@ -232,6 +235,77 @@ def residence(level=1):
     sculpted_roof(m,2.27,2.30,4.86,5.83,(.12,-.34))
     crest=[(-.32,0),(.32,0),(.36,.26),(.12,.13),(0,.37),(-.12,.13),(-.36,.26)]
     contour(m,[(x+.12,y+5.91) for x,y in crest],.15,-.34,"gold")
+    return m
+
+
+def grand_residence():
+    """A four-tier manor: inhabited corner towers, balcony and roof lantern.
+
+    The entrance and ground envelope match the smaller homes; the extra rooms
+    rise over the side wings instead of widening into troop approach routes.
+    """
+    m=env.Model()
+    m.box((3.20,.43,2.82),(0,.115,-.08),"mortar",bevel=.072)
+    m.box((3.03,3.40,2.58),(0,1.91,-.08),"plaster",bevel=.20)
+    for y,height in [(.41,.28),(2.03,.21),(3.56,.24)]:
+        m.box((3.22,height,2.77),(0,y,-.08),"stone_light",bevel=.07)
+    royal_gate(m,0,.18,1.29,1.06,1.69)
+    # Upper paired windows sit behind a shallow stone balcony over the door.
+    for x in (-.40,.40):
+        window(m,x,2.82,1.235,.33,.90)
+    m.box((1.47,.16,.58),(0,2.15,1.39),"stone",bevel=.045)
+    m.box((1.51,.11,.13),(0,2.62,1.63),"stone_light",bevel=.03)
+    for x in (-.66,-.33,0,.33,.66):
+        m.box((.10,.38,.10),(x,2.38,1.63),"stone_light",bevel=.025)
+    shield(m,0,3.42,1.30,.34)
+    for x in (-1.27,1.27):
+        # Two complete floors and a waist moulding distinguish these towers
+        # from level three's low round entry bays.
+        turned(m,[(-.10,.54),(.02,.59),(.48,.59),(.63,.49),
+                  (1.95,.49),(2.05,.57),(2.20,.57),(2.28,.49),
+                  (3.67,.49),(3.76,.58),(3.97,.58),(4.01,.50)],
+               "stone",(x,0,.79),12)
+        for y in (1.32,2.94):
+            window(m,x,y,1.275,.31,.77)
+        turret_cap(m,x,.79,4.02,.68)
+        outer=env.Model()
+        for y in (1.32,2.94):
+            window(outer,0,y,0,.29,.73)
+        m.absorb(outer,(x+math.copysign(.485,x),0,.79),math.copysign(math.pi/2,x))
+    for side in (-1,1):
+        wing=env.Model()
+        for y in (1.23,2.82):
+            window(wing,0,y,0,.46,.84)
+        wall_joints(wing,1.50,(0,.49,0),1.30)
+        wall_joints(wing,1.50,(0,2.19,0),1.23)
+        m.absorb(wing,(side*1.535,0,-.52),side*math.pi/2)
+    sculpted_roof(m,3.40,2.90,3.70,4.63,(0,-.18))
+    # Broad rear hall with a separate occupied attic and a small roof lantern.
+    m.box((2.13,1.75,1.88),(0,4.48,-.37),"plaster",bevel=.15)
+    for y in (4.06,5.31):
+        m.box((2.29,.19,2.03),(0,y,-.37),"stone_light",bevel=.055)
+    for x in (-.88,.88):
+        m.box((.15,1.42,.16),(x,4.60,.55),"stone_light",bevel=.035)
+    for x in (-.43,.43):
+        window(m,x,4.76,.59,.38,.88)
+    for side in (-1,1):
+        attic=env.Model()
+        window(attic,0,4.72,0,.48,.91)
+        m.absorb(attic,(side*1.075,0,-.41),side*math.pi/2)
+    rear=env.Model()
+    for y in (1.24,2.85,4.74):
+        for x in (-.53,.53):
+            window(rear,x,y,0,.39,.80)
+    m.absorb(rear,(0,0,-1.405),math.pi)
+    sculpted_roof(m,2.44,2.19,5.46,6.31,(0,-.37))
+    m.box((.67,.51,.64),(0,6.40,-.37),"stone_light",bevel=.06)
+    for angle in (0,math.pi/2,math.pi,3*math.pi/2):
+        lantern=env.Model()
+        arch_panel(lantern,.23,.34,6.23,.335,"dark",depth=.035)
+        m.absorb(lantern,(0,0,-.37),angle)
+    sculpted_roof(m,.93,.86,6.69,7.05,(0,-.37))
+    crown=[(-.28,0),(.28,0),(.31,.24),(.11,.12),(0,.34),(-.11,.12),(-.31,.24)]
+    contour(m,[(x,y+7.14) for x,y in crown],.13,-.37,"gold")
     return m
 
 
@@ -512,15 +586,25 @@ def gun_barrel(level=1):
 
 
 if __name__ == "__main__":
-    builds=[("foundation",foundation()),("bellows",bellows())]
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model", help="Build only the named model, e.g. house_4")
+    args=parser.parse_args()
+    builders={"foundation":foundation,"bellows":bellows}
     for level in range(1,4):
         suffix="" if level==1 else f"_{level}"
         for name,build in [("house",residence),("tower",tower),("smithy",smithy),
                            ("gun_mount",gun_mount),("gun_barrel",gun_barrel)]:
-            # Each tier is deterministic even when rebuilt independently.
-            env.RNG=np.random.default_rng(47321+level*101)
-            builds.append((name+suffix,build(level)))
-    for name,model in builds:
+            builders[name+suffix]=lambda build=build,level=level: build(level)
+    builders["house_4"]=lambda: residence(4)
+    if args.model and args.model not in builders:
+        parser.error(f"Unknown model: {args.model}")
+    for name,build in builders.items():
+        if args.model and name!=args.model:
+            continue
+        # Each tier is deterministic even when rebuilt independently.
+        level=int(name[-1]) if name[-1].isdigit() else 1
+        env.RNG=np.random.default_rng(47321+level*101)
+        model=build()
         if name.startswith(("house","tower","smithy","bellows")):
             for pieces in model.parts.values():
                 for piece in pieces:

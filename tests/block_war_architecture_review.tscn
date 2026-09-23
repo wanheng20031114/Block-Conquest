@@ -88,3 +88,9 @@ position = Vector3(0, 37, 38)
 projection = 1
 size = 26.0
 current = true
+
+[node name="House4" parent="." instance=ExtResource("building")]
+position = Vector3(-7, 0, 30)
+faction = 0
+kind = 0
+level = 4

@@ -114,7 +114,7 @@ func simulate(delta: float) -> void:
 	for building: Node3D in buildings:
 		# Reinforcement can exceed the soft cap. Only automatic growth stops there.
 		if building.faction >= 0 and building.kind == 0 and building.population < building.capacity and building.building_id != recruiting_id:
-			building.population = minf(building.capacity, building.population + delta)
+			building.population = minf(building.capacity, building.population + building.production_rate * delta)
 		if building.faction >= 0 and building.kind == 1:
 			tower_clocks[building.building_id] = maxf(0.0, float(tower_clocks[building.building_id]) - delta)
 			if tower_clocks[building.building_id] <= 0.0:
@@ -142,13 +142,14 @@ func _tick_recruitment(delta: float) -> int:
 		_cancel_recruitment()
 		return -1
 	# Integrate only the remaining effect time, including a tick that crosses its
-	# end. Ordinary +1/s production stops at the soft cap, even if a long tick's
+	# end. Level-dependent production stops at the soft cap, even if a long tick's
 	# recruitment crosses that cap; the +5/s bonus itself remains uncapped.
 	var active_time := minf(delta, active_durations[0])
-	var ordinary_time := minf(active_time, maxf(0.0, target.capacity - target.population) / (RECRUIT_RATE + 1.0))
-	target.population += RECRUIT_RATE * active_time + ordinary_time
+	var rate: float = target.production_rate
+	var ordinary_time := minf(active_time, maxf(0.0, target.capacity - target.population) / (RECRUIT_RATE + rate))
+	target.population += RECRUIT_RATE * active_time + rate * ordinary_time
 	if target.population < target.capacity:
-		target.population = minf(target.capacity, target.population + delta - active_time)
+		target.population = minf(target.capacity, target.population + rate * (delta - active_time))
 	if delta >= active_durations[0]:
 		_recruit_target_id = -1
 	return target.building_id
@@ -236,7 +237,6 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 				_cancel_recruitment()
 			target.population = survivors
 			target.level = maxi(1, target.level - 1)
-			target.capacity = 100.0 + target.level * 100.0
 			shields.erase(target_id)
 			target.pulse_capture()
 			add_effect(target.global_position, faction_color(faction), "capture", 1.1)
@@ -245,7 +245,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 			elif previous_faction == PLAYER:
 				audio.play_ui(&"war_lost")
 			if faction == PLAYER:
-				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +1 民兵" if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻防提升")])
+				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +%s 民兵" % target.production_rate if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻防提升")])
 			tower_clocks[target_id] = 0.6
 		if effects.size() < 80:
 			add_effect(target.global_position, faction_color(faction), "hit", 0.2)
@@ -381,16 +381,15 @@ func skill_ground_at(screen: Vector2) -> Vector3:
 	return hit
 
 func upgrade_selected() -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= 3:
+	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level:
 		return
-	var cost: int = selected.level * 30
+	var cost: int = selected.upgrade_cost
 	if selected.population < cost:
 		hud.notify("升级需要 %d 名驻军" % cost)
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= cost
 	selected.level += 1
-	selected.capacity = 100.0 + selected.level * 100.0
 	selected.refresh_visual()
 	selected.pulse_capture()
 	audio.play_world(&"war_upgrade", selected.global_position)
@@ -409,7 +408,6 @@ func convert_selected(kind: int) -> void:
 	if selected.building_id == _recruit_target_id:
 		_cancel_recruitment()
 	selected.level = 1
-	selected.capacity = 200.0
 	selected.refresh_visual()
 	selected.pulse_capture()
 	audio.play_world(&"war_rebuild", selected.global_position)
@@ -465,7 +463,9 @@ func _ai_turn() -> void:
 			front_score = score
 	if front != null and marches.incoming_for(front.building_id, ENEMY) < 160:
 		for source: Node3D in buildings:
-			if source.faction == ENEMY and source != front and source.population >= 40.0:
+			# Low-level residences stop below forty; full reserves can still gather.
+			var threshold: float = minf(40.0, source.capacity) if source.kind == 0 else 40.0
+			if source.faction == ENEMY and source != front and source.population >= threshold:
 				issue_order(source, front, 75, ENEMY)
 				return
 
@@ -524,7 +524,7 @@ func update_hud() -> void:
 	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升全军攻防"
 	if selected != null:
 		match selected.kind:
-			0: detail = "每秒 +1 民兵 · 产兵上限 %d · 守备 +%d%%" % [selected.capacity, (selected.level - 1) * 10]
+			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限 · 守备 +%d%%" % [selected.production_rate, selected.capacity, (selected.level - 1) * 10]
 			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 不自动产兵" % [tower_range(selected), tower_interval(selected), selected.level]
 			2: detail = "全军攻击与守备 +%d%% · 不自动产兵" % (selected.level * 10)
 		if shields.has(selected.building_id):
@@ -539,8 +539,9 @@ func update_hud() -> void:
 		"forges": forge_levels(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
-		"upgrade_cost": selected.level * 30 if selected != null else 30, "convert_cost": 30,
-		"can_upgrade": selected != null and selected.faction == PLAYER and selected.level < 3 and selected.population >= selected.level * 30})
+		"selected_max_level": selected.max_level if selected != null else 4,
+		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": 30,
+		"can_upgrade": selected != null and selected.faction == PLAYER and selected.level < selected.max_level and selected.population >= selected.upgrade_cost})
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:

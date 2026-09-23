@@ -10,7 +10,7 @@
 
 ![住宅、炮塔和铁匠铺的三级模型](block_war_building_levels.png)
 
-![住宅的单层木屋、双层石屋和高主堡](block_war_house_levels.png)
+![住宅一至四级：木屋、石屋、主堡与带露台的双层角楼](block_war_house_levels.png)
 
 ![新版四树种与林下景观](block_war_rebuilt_nature.png)
 
@@ -18,7 +18,7 @@
 
 ## 新的视觉语言
 
-- 住宅：单层木框矮屋、双层石屋、高中央主堡三个等级。一级压低屋脊，二级通过上下两排窗与层间石檐表现新增楼层，三级采用独立高主堡、低侧翼与双角塔。暖灰石、棕木、旧铜与阵营色瓦顶保持紧凑据点轮廓；增加高度时维持原有地面占地。橙金和青绿屋顶直接标示归属，中立为砂灰；占领后同步更新。
+- 住宅：单层木框矮屋、双层石屋、高中央主堡、双层角楼大宅四个等级。一级压低屋脊，二级通过上下两排窗与层间石檐表现新增楼层，三级采用独立高主堡、低侧翼与双角塔，四级加入双层角楼、门上露台与冠顶小楼。暖灰石、棕木、旧铜与阵营色瓦顶保持紧凑据点轮廓；新增房间向上发展，地面占地仍留在原有行军周界内。橙金和青绿屋顶直接标示归属，中立为砂灰；占领后同步更新。
 - 炮塔：低石台轻炮、环形城垛中炮、扶壁护甲重炮三个等级，具有各自的建筑和炮身网格；炮管转向、后坐与炮口跟随共用稳定接口。
 - 铁匠铺：彻底改为开放锻造工坊，一级采用低木棚与短烟囱，保留裸露炉体和前置铁砧；二级升高带石箍的烟囱，增加加固梁架与木吊架；三级改为宽铁烟罩、双金属烟管和双工位。烟囱、开敞空间和工具形成明显不同于住宅的轮廓；棚顶仍使用阵营色，炉火保持局部暖光。
 - 桥岸：重建石桥、自然起伏草唇与分层石岸；桥头局部砌石，河道仍保留原来的通行约束。
@@ -28,7 +28,7 @@
 
 阵营主要由橙金/青绿屋顶、旗帜、军服与已有 UI 识别。染色只作用于屋顶，墙体、木门与铜件保持自身材质。人口花牌、派兵比例、技能按钮和操作方式保留。
 
-住宅三级主体总高（含烟囱与冠饰，不含独立旗杆）分别为 2.68、3.90、5.15 米。各级采用独立楼层和屋顶结构，保留门窗比例。地脚均为 -0.082 米，原点击盒覆盖至 5.5 米；实机检查通过 354 个屋顶投影点击及人口牌点击，路线验证仍为 156 条、494340 次完整编队采样零穿墙。
+住宅四级主体总高（含烟囱与冠饰，不含独立旗杆）分别为 2.68、3.90、5.15、6.13 米。各级采用独立楼层和屋顶结构，保留门窗比例。地脚均为 -0.082 米。原点击盒覆盖至 5.5 米，四级屋顶和冠饰包围盒的 16 个角点在游戏摄像机下仍能投影选中本建筑，因此无需改变点击盒。包含四级墙体的路线验证为 156 条、494340 次完整编队采样，零穿墙。
 
 旗帜的等级标记固定为一、二、三个等大的菱形，分别表示一至三级。旗面为 2.25 × 1.35 米，上缘仍固定在原旗杆高度；浅色菱形配深色描边与抗锯齿，三枚之间保留独立间距。已用正常 58 米与最远 95 米正交镜头检查，等级标记随升级、占领降级及改建更新。
 
@@ -42,17 +42,17 @@
 
 运行时直接使用 `.tscn` 中的 MeshInstance3D、MultiMeshInstance3D、材质与动画节点。Python 工具只在离线构建时制作 glTF；Godot 烘焙工具将其转换为原生 ArrayMesh。自然网格保留原生 LOD，小植物按区域使用 MultiMesh，风动继续由模式时钟驱动并支持暂停。
 
-建筑：`tools/build_war_architecture.py` → `tools/build_war_architecture.gd`。
+建筑：`tools/build_war_architecture.py` → `tools/build_war_architecture.gd`。只重建四级住宅时，Python 使用 `--model house_4`，Godot 烘焙脚本后传入 `-- house_4`；运行时切换现有 MeshInstance3D 的原生网格，不新增节点。
 
 自然模型：`tools/build_war_nature.py` → `tools/build_war_nature.gd`。
 
 地图：`tools/bake_war_map_details.gd` → `tools/dress_war_map.py`。布景器保存固定种子的场景结果，运行时不生成景观节点。
 
-Python 依赖为 numpy、trimesh、shapely，安装在项目外的独立环境中。正式运行游戏不需要 Python。
+Python 依赖为 numpy、trimesh、shapely，仅供离线建模工具使用。正式运行游戏不需要 Python。
 
 ## 验证与实机预览
 
-使用 `tests/block_war_visual_review.gd` 查看默认全景、实际行军、桥头近景与林缘；使用 `tests/block_war_architecture_visual.gd` 查看九套模型总览、同类三级细节、阵营标记，以及每级暂停和炮口跟随；架构预览输出到系统 TEMP。使用 `tests/block_war_environment_visual.gd` 查看四树种、树干与冠叶、岩石与林下植被的独立近景。玩法回归执行 `block_war_test.gd`、`block_war_input_test.gd`、`block_war_marches_test.gd`、`block_war_campaign_test.gd`；`block_war_routes_test.gd` 对所有类型与等级的墙体包围遍历全部 156 条有向路线。
+使用 `tests/block_war_visual_review.gd` 查看默认全景、实际行军、桥头近景与林缘；使用 `tests/block_war_architecture_visual.gd` 查看十套模型总览、住宅四级与炮塔/铁匠铺三级细节、阵营标记，以及每级暂停和炮口跟随；架构预览输出到系统 TEMP。使用 `tests/block_war_environment_visual.gd` 查看四树种、树干与冠叶、岩石与林下植被的独立近景。`block_war_residence_test.gd` 检查产兵边界、征召叠加、升级扣费、占领降级、改建和低级住宅集结；`block_war_routes_test.gd` 对所有类型与等级的墙体包围遍历全部 156 条有向路线。
 
 真实截图输出到被 Git 忽略的 `artifacts/block_war_*.png`。初次重建结果见 `report/block-war-rebuild-2026-09-22.md`；阵营屋顶、材质统一和光照复核见 `report/block-war-style-lighting-2026-09-22.md`。
 

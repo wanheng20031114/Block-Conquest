@@ -36,17 +36,19 @@ func run() -> void:
 	check(own == 1 and enemy == 1 and game.by_id[0].kind == 0, "exactly one starting residence per side")
 	var home: Node3D = game.by_id[0]
 	var neutral: Node3D = game.by_id[2]
+	check(home.population == 60.0 and home.capacity == 30.0, "authored starting army remains above the new production limit")
+	home.population = 20.0
 	var initial: float = home.population
 	var neutral_initial: float = neutral.population
 	game.simulate(1.0)
 	check(is_equal_approx(home.population, initial + 1.0), "residence produces exactly one population each second")
 	check(neutral.population == neutral_initial, "neutral residence does not grow")
-	home.population = 200.0
+	home.population = 30.0
 	game.simulate(2.0)
-	check(home.population == 200.0, "automatic growth stops at soft cap")
+	check(home.population == 30.0, "automatic growth stops at soft cap")
 	game._on_unit_arrived(0, 0, 1.0)
 	game.simulate(1.0)
-	check(home.population == 201.0, "reinforcement above cap is preserved")
+	check(home.population == 31.0, "reinforcement above cap is preserved")
 	home.population = 60.0
 	check(game.issue_order(home, neutral, 25) == 15 and home.population == 45.0, "25 percent dispatch deducts exact integer count")
 	check(game.marches.total_for(0) == 15 and game.marches.incoming_for(2, 0) == 15, "queued ranks remain in population total")
@@ -105,13 +107,13 @@ func run() -> void:
 	game.select_building(home)
 	home.population = 100.0
 	game.upgrade_selected()
-	check(home.level == 2 and home.capacity == 300.0 and home.population == 70.0, "upgrade spends garrison and increases capacity")
+	check(home.level == 2 and home.capacity == 50.0 and home.population == 90.0, "house upgrade spends ten and raises the production limit")
 	game.convert_selected(2)
-	check(home.kind == 2 and home.level == 1 and home.population == 40.0, "convert costs thirty and resets building level")
+	check(home.kind == 2 and home.level == 1 and home.population == 60.0, "convert costs thirty and resets building level")
 	game.simulate(1.0)
-	check(home.population == 40.0, "forge does not automatically produce troops")
+	check(home.population == 60.0, "forge does not automatically produce troops")
 	game.convert_selected(0)
-	check(home.kind == 0 and home.population == 10.0, "forge can convert back to residence")
+	check(home.kind == 0 and home.population == 30.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
 	game.camera_rig.focus_at(Vector3(999, 0, -999), true)
 	check(game.camera_rig.position == Vector3(34, 0, -23), "camera panning stays inside battlefield bounds")
 	game.camera_rig.zoom_by(999)

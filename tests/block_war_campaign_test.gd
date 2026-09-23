@@ -187,7 +187,6 @@ func _audit_same_column_ai() -> void:
 		building.faction = 1 if building.building_id in [4, 5] else 0
 		building.population = 200.0
 		building.level = 1
-		building.capacity = 200.0
 	game.ai_enabled = true
 	for step: int in 600:
 		game.simulate(0.5)

@@ -1,7 +1,7 @@
 extends SceneTree
-## Native nine-model review; screenshots stay in the system temporary directory.
+## Native ten-model review; screenshots stay in the system temporary directory.
 
-const BUILDING_NAMES: Array[String] = ["House", "Tower", "Smithy", "House2", "Tower2", "Smithy2", "House3", "Tower3", "Smithy3"]
+const BUILDING_NAMES: Array[String] = ["House", "Tower", "Smithy", "House2", "Tower2", "Smithy2", "House3", "Tower3", "Smithy3", "House4"]
 var review: Node3D
 var camera: Camera3D
 
@@ -31,7 +31,9 @@ func _run() -> void:
 		label.text = "%s · %d级" % [WarBuilding.KIND_NAMES[building.kind], building.level]
 		label.modulate = Color("f4efd8")
 		label.show()
-	camera.look_at(Vector3(0, 1.2, 10))
+	camera.position = Vector3(0, 43, 49)
+	camera.look_at(Vector3(0, 1.8, 15))
+	camera.size = 34.0
 	await create_timer(0.8).timeout
 	await _capture("levels_all")
 	for kind: int in 3:
@@ -39,24 +41,24 @@ func _run() -> void:
 			var building: WarBuilding = review.get_node(node_name)
 			building.visible = building.kind == kind
 			if building.visible:
-				building.position = Vector3((building.level - 2) * 6.4, 0, 0)
+				building.position = Vector3((building.level - (2.5 if kind == 0 else 2.0)) * 6.4, 0, 0)
 				building.get_node("KindLabel").pixel_size = 0.010
 				building.get_node("Visual/Smithy/Smoke").restart()
-		camera.position = Vector3(0, 14, 20)
-		camera.look_at(Vector3(0, 1.6, 0))
-		camera.size = 12.2
+		camera.position = Vector3(1, 16, 24)
+		camera.look_at(Vector3(1, 2.0, 0))
+		camera.size = 15.6 if kind == 0 else 12.2
 		await _capture(["house_levels", "tower_levels", "smithy_levels"][kind])
 	for node_name: String in BUILDING_NAMES:
 		var building: WarBuilding = review.get_node(node_name)
 		building.visible = true
 		building.position = Vector3((building.kind - 1) * 7, 0, (building.level - 1) * 10)
 		building.get_node("KindLabel").pixel_size = 0.023
-		building.faction = [-1, 0, 1][building.level - 1]
+		building.faction = [-1, 0, 1][(building.level - 1) % 3]
 		building.refresh_visual()
 		building.get_node("Visual/Smithy/Smoke").restart()
-	camera.position = Vector3(0, 37, 38)
-	camera.look_at(Vector3(0, 1.2, 10))
-	camera.size = 26.0
+	camera.position = Vector3(0, 43, 49)
+	camera.look_at(Vector3(0, 1.8, 15))
+	camera.size = 34.0
 	await _capture("levels_factions")
 	# Each cannon keeps a fixed base and moving muzzle through aim and recoil.
 	for node_name: String in ["Tower", "Tower2", "Tower3"]:
@@ -86,7 +88,7 @@ func _run() -> void:
 		assert(smithy._visual_time == visual_time)
 		assert(smithy.get_node("Visual/Smithy/Smoke").speed_scale == 0.0)
 		assert(smithy.get_node("Visual/Smithy/ForgeAnimation").speed_scale == 0.0)
-	print("WAR_ARCHITECTURE_VISUAL nine models captured; every cannon aim/recoil/pause and forge visual pause passed")
+	print("WAR_ARCHITECTURE_VISUAL ten models captured; every cannon aim/recoil/pause and forge visual pause passed")
 	review.queue_free()
 	await process_frame
 	quit()

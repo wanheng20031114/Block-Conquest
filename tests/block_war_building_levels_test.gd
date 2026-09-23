@@ -45,7 +45,6 @@ func _run() -> void:
 	var original_badge_pick: Shape3D = building.get_node("PickArea/BadgeCollisionShape3D").shape
 	var original_door := building.door_position()
 	var original_population := building.population
-	var original_capacity := building.capacity
 	var neighbor_meshes: Dictionary = {}
 	for path: String in WarBuilding.LEVEL_MESHES:
 		neighbor_meshes[path] = neighbor.get_node("Visual/" + path).mesh
@@ -53,8 +52,10 @@ func _run() -> void:
 	for kind: int in 3:
 		building.kind = kind
 		var signatures: Array[String] = []
-		for tier: int in [1, 2, 3, 2, 1]:
+		var tiers := [1, 2, 3, 4, 3, 2, 1] if kind == 0 else [1, 2, 3, 2, 1]
+		for tier: int in tiers:
 			building.level = tier
+			var original_capacity := building.capacity
 			building.refresh_visual()
 			var body: Node3D = building.get_node("Visual/" + kind_paths[kind])
 			check(body.visible, "%s level %d activates its authored kind" % [body.name, tier])
@@ -63,7 +64,7 @@ func _run() -> void:
 			check(stone.mesh is ArrayMesh and bounds.position.y <= -0.075 and bounds.position.y > -0.10,
 				"%s level %d has a baked grounded footing" % [body.name, tier])
 			var identity := stone.mesh.resource_path
-			if signatures.size() < 3:
+			if signatures.size() < building.max_level:
 				check(identity not in signatures, "%s tiers have distinct saved geometry" % body.name)
 				signatures.append(identity)
 			check(building.find_children("*", "", true, false).size() == authored_count,
@@ -99,7 +100,20 @@ func _run() -> void:
 				var chimney_top := maxf(bounds.end.y, body.get_node("Metal").mesh.get_aabb().end.y)
 				check(smoke.emitting and smoke.position.y > chimney_top and smoke.position.y - chimney_top < 0.04,
 					"tier %d smoke begins at its chimney opening" % tier)
+	# A conversion at the same level still refreshes the newly active kind.
+	building.kind = 0
+	building.level = 4
+	building.refresh_visual()
+	check(building.get_node("Visual/House/Stone").mesh.resource_path.ends_with("house_4_stone.res"), "fourth house uses its own baked model")
+	check(building.get_node("Visual/Flag").get_instance_shader_parameter("building_level") == 4, "fourth house shows four rank marks")
+	building.level = 1
+	building.kind = 1
+	building.refresh_visual()
+	building.kind = 0
+	building.refresh_visual()
+	check(building.get_node("Visual/House/Stone").mesh.resource_path.ends_with("house_stone.res"), "same-level conversion restores the correct house model")
 	# A capture downgrade updates both mesh resources and team tint immediately.
+	building.kind = 2
 	building.level = 3
 	building.faction = 0
 	building.refresh_visual()

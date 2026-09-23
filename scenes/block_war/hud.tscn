@@ -2163,7 +2163,7 @@ offset_bottom = 375.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "住宅：每秒自动产生 1 名民兵。炮塔：自动射击附近敌军。\n铁匠铺：提高全军攻防。三类己方建筑均可派兵，也可升级或改建。"
+text = "住宅 1—4 级：每秒产兵 1 / 1.25 / 1.4 / 1.5 人，达到 30 / 50 / 60 / 80 人停产；援军不限。\n炮塔自动射击附近敌军，铁匠铺提高全军攻防。己方建筑均可派兵、升级或改建。"
 
 [node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0

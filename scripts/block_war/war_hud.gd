@@ -167,15 +167,16 @@ func _update_building_actions(state: Dictionary) -> void:
 	var level := int(state.selected_level)
 	var population := int(state.selected_population)
 	var cost := int(state.upgrade_cost)
-	var capped := level >= 3
-	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, 3))
+	var max_level := int(state.selected_max_level)
+	var capped := level >= max_level
+	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, max_level))
 	%Upgrade.get_node("Cost/Population").visible = not capped
 	var detail := "升级后保留 %d 名驻军" % (population - cost)
 	if population < cost:
 		detail = "还差 %d 名驻军" % (cost - population)
 	var upgrade_hint := "升级至 %d 级 · 消耗 %d 名驻军\n%s\n%s" % [level + 1, cost, detail, state.selected_detail]
 	if capped:
-		upgrade_hint = "已达 3 级\n%s" % state.selected_detail
+		upgrade_hint = "已达 %d 级\n%s" % [max_level, state.selected_detail]
 	_update_action(%Upgrade, bool(state.can_upgrade), "—" if capped else str(cost), upgrade_hint, not capped and population < cost)
 	var conversions: Array[Button] = [%ConvertHouse, %ConvertTower, %ConvertForge]
 	for kind: int in conversions.size():

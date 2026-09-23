@@ -73,35 +73,31 @@ func _run() -> void:
 		building.faction = 0
 		building.level = 1
 		building.population = 120.0
-		building.capacity = 200.0
 		building.refresh_visual()
 		await select_on_map(building)
 		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
-		check(next_level.text == "2" and cost.text == "30" and upgrade.text.is_empty(), "kind %d presents next level and cost using icons and numbers" % kind)
+		var expected_costs := [10, 20, 30] if kind == 0 else [30, 60]
+		var expected_max := 4 if kind == 0 else 3
+		var remaining := 120.0
+		for tier: int in expected_costs.size():
+			check(next_level.text == str(tier + 2) and cost.text == str(expected_costs[tier]) and upgrade.text.is_empty(), "kind %d tier %d shows the actual next level and cost" % [kind, tier + 1])
+			await click(center(upgrade))
+			remaining -= expected_costs[tier]
+			check(building.level == tier + 2 and building.population == remaining, "kind %d click pays exactly %d and upgrades once" % [kind, expected_costs[tier]])
+		check(upgrade.disabled and next_level.text == str(expected_max) and cost.text == "—", "kind %d visibly reaches its correct maximum level" % kind)
+		check(upgrade.tooltip_text.contains("已达 %d 级" % expected_max), "max-level tooltip matches the building kind")
 		await click(center(upgrade))
-		check(building.level == 2 and building.population == 90.0 and building.capacity == 300.0, "kind %d actual click upgrades 1 to 2 for exactly 30" % kind)
-		check(next_level.text == "3" and cost.text == "60", "kind %d updates next level and cost" % kind)
-		await click(center(upgrade))
-		check(building.level == 3 and building.population == 30.0 and building.capacity == 400.0, "kind %d actual click upgrades 2 to 3 for exactly 60" % kind)
-		check(upgrade.disabled and next_level.text == "3" and cost.text == "—", "kind %d visibly reaches its level cap without a fictitious fourth level" % kind)
-		await click(center(upgrade))
-		check(building.level == 3 and building.population == 30.0, "kind %d capped button cannot spend another garrison" % kind)
+		check(building.level == expected_max and building.population == remaining, "kind %d capped button cannot spend another garrison" % kind)
 		check(game.marches.total_for(0) == 0 and game.selected == building, "kind %d upgrade buttons never dispatch or select the map behind them" % kind)
-	# Disabled affordability feedback is explicit at both upgrade thresholds.
-	home.level = 1
-	home.population = 29.0
-	home.refresh_visual()
-	await select_on_map(home)
-	check(upgrade.disabled and cost.text == "30" and upgrade.tooltip_text.contains("还差 1"), "level 1 shortfall keeps the actual cost and explains the missing garrison")
-	await click(center(upgrade))
-	check(home.level == 1 and home.population == 29.0, "insufficient level 1 click changes nothing")
-	home.level = 2
-	home.population = 59.0
-	home.refresh_visual()
-	game.update_hud()
-	check(upgrade.disabled and cost.text == "60" and upgrade.tooltip_text.contains("还差 1"), "level 2 shortfall uses the unchanged 60 cost")
-	await click(center(upgrade))
-	check(home.level == 2 and home.population == 59.0, "insufficient level 2 click changes nothing")
+	# Every residential upgrade rejects even a one-person shortfall.
+	for tier: int in [1, 2, 3]:
+		home.level = tier
+		home.population = tier * 10 - 1
+		home.refresh_visual()
+		await select_on_map(home)
+		check(upgrade.disabled and cost.text == str(tier * 10) and upgrade.tooltip_text.contains("还差 1"), "house level %d explains its actual shortfall" % tier)
+		await click(center(upgrade))
+		check(home.level == tier and home.population == tier * 10 - 1, "insufficient house level %d click changes nothing" % tier)
 	# Ownership is communicated, and neither hostile nor neutral buildings upgrade.
 	for hostile: Node3D in [game.by_id[1], game.by_id[2]]:
 		hostile.level = 1
@@ -112,13 +108,13 @@ func _run() -> void:
 		check(not menu.is_visible_in_tree(), affiliation + " has no building action menu")
 		check(hostile.level == 1 and hostile.population == 120.0, affiliation + " selection cannot spend its garrison")
 	# Only the two different building kinds appear alongside the direct upgrade.
-	home.level = 1
+	home.level = 4
 	home.population = 120.0
 	home.refresh_visual()
 	await select_on_map(home)
 	check(not game.hud.get_node("%ConvertHouse").is_visible_in_tree() and game.hud.get_node("%ConvertTower").is_visible_in_tree() and game.hud.get_node("%ConvertForge").is_visible_in_tree(), "house exposes exactly its two alternative conversions")
 	await click(center(game.hud.get_node("%ConvertTower")))
-	check(home.kind == 1 and home.level == 1 and home.population == 90.0, "retained conversion button spends its unchanged 30-garrison cost")
+	check(home.kind == 1 and home.level == 1 and home.population == 90.0, "level-four house converts for thirty and resets to a level-one tower")
 	var conversions: Array[Button] = [game.hud.get_node("%ConvertHouse"), game.hud.get_node("%ConvertTower"), game.hud.get_node("%ConvertForge")]
 	for kind: int in [2, 0, 1]:
 		home.population = 120.0

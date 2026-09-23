@@ -6,8 +6,24 @@ extends Node3D
 @export var faction: int = -1
 @export_enum("住宅", "炮塔", "铁匠铺") var kind: int = 0
 @export var population: float = 20.0
-@export var capacity: float = 200.0
 @export var level: int = 1
+
+const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
+const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
+# Derived from the current kind and level, including capture and conversion.
+# This limits natural production only; the garrison itself is uncapped.
+var capacity: float:
+	get:
+		return HOUSE_PRODUCTION_LIMITS[level - 1] if kind == 0 else 0.0
+var production_rate: float:
+	get:
+		return HOUSE_PRODUCTION_RATES[level - 1] if kind == 0 else 0.0
+var max_level: int:
+	get:
+		return 4 if kind == 0 else 3
+var upgrade_cost: int:
+	get:
+		return level * (10 if kind == 0 else 30) if level < max_level else 0
 
 const FACTION_COLORS: Array[Color] = [Color(1.0, 0.65, 0.18), Color(0.2, 0.83, 0.67)]
 const NEUTRAL_COLOR := Color("b5aa87")
@@ -17,10 +33,10 @@ const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
 const MARCH_PERIMETER_RADIUS := 2.45
 # Mesh resources are baked offline; upgrades reuse the same authored scene nodes.
 const LEVEL_MESHES := {
-	"House/Metal": [preload("res://assets/models/block_war/architecture/house_metal.res"), preload("res://assets/models/block_war/architecture/house_2_metal.res"), preload("res://assets/models/block_war/architecture/house_3_metal.res")],
-	"House/Roof": [preload("res://assets/models/block_war/architecture/house_roof.res"), preload("res://assets/models/block_war/architecture/house_2_roof.res"), preload("res://assets/models/block_war/architecture/house_3_roof.res")],
-	"House/Stone": [preload("res://assets/models/block_war/architecture/house_stone.res"), preload("res://assets/models/block_war/architecture/house_2_stone.res"), preload("res://assets/models/block_war/architecture/house_3_stone.res")],
-	"House/Timber": [preload("res://assets/models/block_war/architecture/house_timber.res"), preload("res://assets/models/block_war/architecture/house_2_timber.res"), preload("res://assets/models/block_war/architecture/house_3_timber.res")],
+	"House/Metal": [preload("res://assets/models/block_war/architecture/house_metal.res"), preload("res://assets/models/block_war/architecture/house_2_metal.res"), preload("res://assets/models/block_war/architecture/house_3_metal.res"), preload("res://assets/models/block_war/architecture/house_4_metal.res")],
+	"House/Roof": [preload("res://assets/models/block_war/architecture/house_roof.res"), preload("res://assets/models/block_war/architecture/house_2_roof.res"), preload("res://assets/models/block_war/architecture/house_3_roof.res"), preload("res://assets/models/block_war/architecture/house_4_roof.res")],
+	"House/Stone": [preload("res://assets/models/block_war/architecture/house_stone.res"), preload("res://assets/models/block_war/architecture/house_2_stone.res"), preload("res://assets/models/block_war/architecture/house_3_stone.res"), preload("res://assets/models/block_war/architecture/house_4_stone.res")],
+	"House/Timber": [preload("res://assets/models/block_war/architecture/house_timber.res"), preload("res://assets/models/block_war/architecture/house_2_timber.res"), preload("res://assets/models/block_war/architecture/house_3_timber.res"), preload("res://assets/models/block_war/architecture/house_4_timber.res")],
 	"Tower/Metal": [preload("res://assets/models/block_war/architecture/tower_metal.res"), preload("res://assets/models/block_war/architecture/tower_2_metal.res"), preload("res://assets/models/block_war/architecture/tower_3_metal.res")],
 	"Tower/Stone": [preload("res://assets/models/block_war/architecture/tower_stone.res"), preload("res://assets/models/block_war/architecture/tower_2_stone.res"), preload("res://assets/models/block_war/architecture/tower_3_stone.res")],
 	"Tower/Timber": [preload("res://assets/models/block_war/architecture/tower_timber.res"), preload("res://assets/models/block_war/architecture/tower_2_timber.res"), preload("res://assets/models/block_war/architecture/tower_3_timber.res")],
@@ -114,7 +130,7 @@ func muzzle_position() -> Vector3:
 
 
 func refresh_visual() -> void:
-	if level != _last_level:
+	if level != _last_level or kind != _last_kind:
 		_apply_level_visuals()
 	if faction != _last_faction:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
@@ -150,21 +166,25 @@ func refresh_visual() -> void:
 
 
 func _apply_level_visuals() -> void:
-	assert(level >= 1 and level <= 3, "War buildings have three authored upgrade tiers.")
+	assert(level >= 1 and level <= max_level, "Building level must have an authored model.")
 	var tier := level - 1
+	var kind_path: String = ["House/", "Tower/", "Smithy/"][kind]
 	$Visual/Flag.set_instance_shader_parameter("building_level", level)
 	for path: String in LEVEL_MESHES:
-		var part: MeshInstance3D = _visual.get_node(path)
-		part.mesh = LEVEL_MESHES[path][tier]
+		if path.begins_with(kind_path):
+			var part: MeshInstance3D = _visual.get_node(path)
+			part.mesh = LEVEL_MESHES[path][tier]
 	# One aiming/recoil hierarchy serves every cannon, including a capture downgrade.
 	if _recoil_tween:
 		_recoil_tween.kill()
-	$Visual/Tower/Gun.position.y = TOWER_DECK_HEIGHTS[tier]
-	$Visual/Tower/Gun/Barrel.position = Vector3(0, 1.18, 0)
-	$Visual/Tower/Gun/Barrel/Muzzle.position.z = MUZZLE_LENGTHS[tier]
-	$Visual/Smithy/Smoke.position.y = SMITHY_SMOKE_HEIGHTS[tier]
-	$Visual/Smithy/Smoke.position.x = SMITHY_SMOKE_X[tier]
-	muzzle_position()
+	if kind == 1:
+		$Visual/Tower/Gun.position.y = TOWER_DECK_HEIGHTS[tier]
+		$Visual/Tower/Gun/Barrel.position = Vector3(0, 1.18, 0)
+		$Visual/Tower/Gun/Barrel/Muzzle.position.z = MUZZLE_LENGTHS[tier]
+		muzzle_position()
+	elif kind == 2:
+		$Visual/Smithy/Smoke.position.y = SMITHY_SMOKE_HEIGHTS[tier]
+		$Visual/Smithy/Smoke.position.x = SMITHY_SMOKE_X[tier]
 
 
 func door_position() -> Vector3:

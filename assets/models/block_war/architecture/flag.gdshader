@@ -2,7 +2,7 @@ shader_type spatial;
 render_mode cull_disabled;
 
 instance uniform vec4 team_color : source_color = vec4(0.75, 0.51, 0.22, 1.0);
-instance uniform int building_level : hint_range(1, 3) = 1;
+instance uniform int building_level : hint_range(1, 4) = 1;
 uniform float visual_time = 0.0;
 
 void vertex() {
@@ -16,10 +16,12 @@ void fragment() {
 	border = max(border, 1.0 - step(0.035, 1.0 - UV.x));
 	// Equally sized, separated rank diamonds remain readable from the game camera.
 	float crest_distance = 10.0;
-	for (int i = 0; i < 3; i++) {
+	float crest_spacing = building_level == 4 ? 0.225 : 0.285;
+	float crest_width = building_level == 4 ? 0.088 : 0.112;
+	for (int i = 0; i < 4; i++) {
 		if (i < building_level) {
-			float center_x = 0.5 + (float(i) - float(building_level - 1) * 0.5) * 0.285;
-			vec2 crest_uv = abs((UV - vec2(center_x, 0.5)) / vec2(0.112, 0.37));
+			float center_x = 0.5 + (float(i) - float(building_level - 1) * 0.5) * crest_spacing;
+			vec2 crest_uv = abs((UV - vec2(center_x, 0.5)) / vec2(crest_width, 0.37));
 			crest_distance = min(crest_distance, crest_uv.x + crest_uv.y);
 		}
 	}

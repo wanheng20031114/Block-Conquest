@@ -25,8 +25,8 @@ func _wall_outline(building: WarBuilding) -> PackedVector2Array:
 	var original_level := building.level
 	# Cached routes must stay safe after upgrades and conversions at any point.
 	for kind: int in 3:
-		for level: int in range(1, 4):
-			building.kind = kind
+		building.kind = kind
+		for level: int in range(1, building.max_level + 1):
 			building.level = level
 			building.refresh_visual()
 			var model := building.get_node("Visual/" + ["House", "Tower", "Smithy"][kind])
@@ -56,7 +56,7 @@ func _run() -> void:
 	for building: WarBuilding in buildings:
 		building.set_visual_paused(true)
 		outlines.append(_wall_outline(building))
-	_check(outlines.all(func(outline: PackedVector2Array): return outline.size() >= 3), "Wall audit loads all three kinds and three levels at every building position")
+	_check(outlines.all(func(outline: PackedVector2Array): return outline.size() >= 3), "Wall audit loads all kinds and levels, including the fourth house, at every building position")
 	var mesh: Mesh = marches.get_node("Militia").multimesh.mesh
 	var bounds := mesh.get_aabb()
 	var footprint: Array[Vector3] = [Vector3.ZERO]
