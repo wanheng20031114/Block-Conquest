@@ -91,5 +91,7 @@
     }
   ],
   "generation_status": "completed",
-  "listening_review": "pending"
+  "listening_review": "user_feedback_received",
+  "user_feedback": "认可《夺桥疾行》A 版的节奏引入，但整轮过吵、节奏过快，能量起伏与旋律需要继续改善。",
+  "selected_reference_for_v3": "https://suno.com/song/6e2f5724-2dd4-4804-93c9-2a05ec7109ce"
 }
