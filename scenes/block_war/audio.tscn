@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/audio.tscn" id="base"]
 [ext_resource type="Script" path="res://scripts/block_war/war_audio.gd" id="script"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/music/battle_bgm_01.mp3" id="bgm"]
 
 [node name="Audio" instance=ExtResource("base")]
 script = ExtResource("script")
@@ -101,3 +102,9 @@ max_distance = 72.0
 
 [node name="Voice07" parent="Foley" index="7"]
 max_distance = 72.0
+
+[node name="Music" type="AudioStreamPlayer" parent="." index="3"]
+stream = ExtResource("bgm")
+volume_db = -4.0
+autoplay = true
+bus = &"BGM"

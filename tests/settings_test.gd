@@ -23,6 +23,8 @@ func run() -> void:
 	var settings: GameSettings = root.get_node("Session/Settings")
 	settings.settings_path = "res://.local/settings-test.cfg"
 	settings._apply_values(settings.defaults(), false)
+	var bgm_bus := AudioServer.get_bus_index(&"BGM")
+	check(settings.music_enabled and settings.music_volume_percent == 50.0 and not AudioServer.is_bus_mute(bgm_bus), "music defaults to enabled at 50 percent on its native bus")
 	for action: String in GameSettings.ACTIONS:
 		check(InputMap.has_action(action), action + " is a native action")
 		for key: int in GameSettings.ACTIONS[action][2]:
@@ -58,6 +60,9 @@ func run() -> void:
 	check(settings.menu.draft.bindings.rts_select_army == [KEY_J], "native key capture edits the pending binding")
 	check(settings.resolve_key(key_event(KEY_F2)) == KEY_F2, "draft bindings do not alter live controls before Apply")
 	settings.menu.draft.volume_percent = 43.0
+	settings.menu.get_node("%MusicVolume").value = 31.0
+	settings.menu.get_node("%MusicEnabled").button_pressed = false
+	check(settings.music_enabled and settings.music_volume_percent == 50.0, "music controls edit only the draft before Apply")
 	settings.menu.draft.muted = true
 	settings.menu.draft.camera_speed = 1.65
 	settings.menu.draft.zoom_speed = 0.75
@@ -69,6 +74,8 @@ func run() -> void:
 	check(settings.resolve_key(key_event(KEY_J)) == KEY_F2 and settings.resolve_key(key_event(KEY_F2)) == KEY_NONE, "applied remapping replaces old aliases")
 	check(Engine.max_fps == 90, "FPS preference is applied to the native engine")
 	check(AudioServer.is_bus_mute(0) and absf(db_to_linear(AudioServer.get_bus_volume_db(0)) - 0.43) < 0.0001, "sound settings reach the real mixer")
+	check(not settings.music_enabled and AudioServer.is_bus_mute(bgm_bus) and absf(db_to_linear(AudioServer.get_bus_volume_db(bgm_bus)) - 0.31) < 0.0001, "music Apply controls the independent native bus")
+	check(AudioServer.get_bus_volume_db(AudioServer.get_bus_index(&"Combat")) == 0.0, "music preferences preserve combat gain")
 	check(not settings.edge_scroll_enabled and is_equal_approx(settings.camera_speed, 1.65), "camera properties expose applied preferences")
 	var saved := ConfigFile.new()
 	check(saved.load(settings.settings_path) == OK and saved.get_value("settings", "fps_limit") == 90, "native preferences persist")
@@ -79,6 +86,7 @@ func run() -> void:
 	root.add_child(restored)
 	check(restored.bindings.rts_select_army == [KEY_J] and restored.muted and restored.fps_limit == 90, "a fresh native settings scene loads the saved configuration")
 	check(is_equal_approx(restored.fp_sensitivity, 1.37), "CS2 sensitivity survives saving and reloading unchanged")
+	check(not restored.music_enabled and restored.music_volume_percent == 31.0, "music toggle and volume persist across settings instances")
 	restored.queue_free()
 	await process_frame
 	# Simulate the previous complete preferences file: keep custom controls and
@@ -87,12 +95,15 @@ func run() -> void:
 	saved.erase_section_key("hotkeys", "rts_cancel")
 	saved.erase_section_key("meta", "fp_sensitivity_scale")
 	saved.set_value("settings", "fp_sensitivity", 0.35)
+	saved.erase_section_key("settings", "music_enabled")
+	saved.erase_section_key("settings", "music_volume_percent")
 	check(saved.save(settings.settings_path) == OK, "legacy preference fixture saved in the isolated test path")
 	var migrated: GameSettings = load("res://scenes/settings_menu.tscn").instantiate()
 	migrated.settings_path = settings.settings_path
 	root.add_child(migrated)
 	check(migrated.bindings.rts_pause == [KEY_F5] and migrated.bindings.rts_cancel == [KEY_ESCAPE], "old F5/P default migrates while adding Esc cancellation")
 	check(migrated.bindings.rts_select_army == [KEY_J] and migrated.muted and migrated.fps_limit == 90, "migration preserves unrelated player preferences and custom hotkeys")
+	check(migrated.music_enabled and migrated.music_volume_percent == 50.0, "old preferences gain music defaults without resetting Master mute")
 	check(is_equal_approx(migrated.fp_sensitivity * GameSettings.FP_MOUSE_RADIANS_PER_COUNT, 0.0007), "legacy 0.35 retains its turn distance on the CS2 scale")
 	var migrated_sensitivity := migrated.fp_sensitivity
 	check(migrated._save() == OK, "converted sensitivity can be saved")
@@ -108,6 +119,8 @@ func run() -> void:
 	var candidate := before.duplicate(true)
 	candidate.resolution = Vector2i(1280, 720)
 	candidate.volume_percent = 10.0
+	candidate.music_enabled = true
+	candidate.music_volume_percent = 75.0
 	settings.apply_preferences(candidate)
 	check(not settings.display_timer.is_stopped() and settings.display_timer.wait_time == 15, "display changes start a bounded 15-second revert")
 	check(settings.menu.get_node("DisplayConfirm").visible, "display confirmation blocks normal settings controls")
@@ -115,18 +128,23 @@ func run() -> void:
 	settings.display_timer.start(0.05)
 	await create_timer(0.12, true, false, true).timeout
 	check(settings.resolution == before.resolution and settings.volume_percent == before.volume_percent, "timeout atomically restores previous display and other preferences")
+	check(settings.music_enabled == before.music_enabled and settings.music_volume_percent == before.music_volume_percent and AudioServer.is_bus_mute(bgm_bus), "display rollback also restores music preferences and mixer")
 	check(paused, "display rollback does not unpause the battle")
 	paused = false
 	settings.apply_preferences(candidate)
 	settings.confirm_display()
 	check(settings.resolution == Vector2i(1280,720) and settings.display_timer.is_stopped(), "explicit confirmation keeps new display settings")
 	settings.menu.draft.camera_speed = 2.8
+	settings.menu.get_node("%MusicEnabled").button_pressed = false
+	settings.menu.get_node("%MusicVolume").value = 5.0
 	settings.close_menu()
 	check(not settings.is_open() and settings.camera_speed == before.camera_speed, "Cancel discards unapplied draft changes")
+	check(settings.music_enabled and settings.music_volume_percent == 75.0, "Cancel discards unapplied music edits")
 	settings.open_menu()
 	settings.menu._restore_defaults()
 	check(settings.menu.draft.bindings.rts_select_army == [KEY_F2, KEY_G] and settings.menu.draft.fps_limit == 120, "Restore Defaults restores all controls and aliases in the draft")
 	check(settings.menu.draft.fp_sensitivity == 1.0 and sensitivity.value == 1.0 and sensitivity_slider.value == 1.0, "Restore Defaults restores sensitivity in CS2 units across both controls")
+	check(settings.menu.draft.music_enabled and settings.menu.draft.music_volume_percent == 50.0, "Restore Defaults restores music in the draft")
 	settings.close_menu()
 	var malformed := settings.defaults()
 	malformed.camera_speed = NAN
@@ -135,5 +153,10 @@ func run() -> void:
 	check(sanitized.camera_speed == 1.0 and sanitized.bindings.rts_stop == [KEY_S], "invalid config values cannot corrupt native input or camera speed")
 	check(settings._sanitize({"fp_sensitivity":0.35}).fp_sensitivity == 0.35, "a low CS2 value is not treated as a legacy multiplier")
 	check(settings._sanitize({"fp_sensitivity":999}).fp_sensitivity == 20.0 and settings._sanitize({"fp_sensitivity":NAN}).fp_sensitivity == 1.0, "CS2 range validation handles out-of-range and non-finite preferences")
+	check(settings._sanitize({"music_volume_percent":999}).music_volume_percent == 100.0 and settings._sanitize({"music_volume_percent":NAN}).music_volume_percent == 50.0, "music volume rejects non-finite values and clamps its range")
+	var silent := settings.snapshot()
+	silent.music_volume_percent = 0.0
+	settings.apply_preferences(silent)
+	check(settings.music_enabled and AudioServer.is_bus_mute(bgm_bus), "zero music volume is fully silent without clearing the enabled preference")
 	print("SETTINGS_RESULT ", checks, " checks / ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)

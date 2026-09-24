@@ -21,8 +21,10 @@ func _ready() -> void:
 	%FrameLimit.item_selected.connect(_fps_changed)
 	%Vsync.toggled.connect(_toggle_changed.bind("vsync"))
 	%Mute.toggled.connect(_toggle_changed.bind("muted"))
+	%MusicEnabled.toggled.connect(_toggle_changed.bind("music_enabled"))
 	%EdgeScroll.toggled.connect(_toggle_changed.bind("edge_scroll_enabled"))
 	%Volume.value_changed.connect(_slider_changed.bind("volume_percent"))
+	%MusicVolume.value_changed.connect(_slider_changed.bind("music_volume_percent"))
 	%CameraSpeed.value_changed.connect(_slider_changed.bind("camera_speed"))
 	%ZoomSpeed.value_changed.connect(_slider_changed.bind("zoom_speed"))
 	%FPFov.value_changed.connect(_slider_changed.bind("fp_fov"))
@@ -57,8 +59,10 @@ func refresh(values: Dictionary) -> void:
 	%FrameLimit.select(GameSettings.FPS_OPTIONS.find(int(draft.fps_limit)))
 	%Vsync.set_pressed_no_signal(draft.vsync)
 	%Mute.set_pressed_no_signal(draft.muted)
+	%MusicEnabled.set_pressed_no_signal(draft.music_enabled)
 	%EdgeScroll.set_pressed_no_signal(draft.edge_scroll_enabled)
 	%Volume.set_value_no_signal(draft.volume_percent)
+	%MusicVolume.set_value_no_signal(draft.music_volume_percent)
 	%CameraSpeed.set_value_no_signal(draft.camera_speed)
 	%ZoomSpeed.set_value_no_signal(draft.zoom_speed)
 	%FPFov.set_value_no_signal(draft.fp_fov)
@@ -73,8 +77,10 @@ func refresh(values: Dictionary) -> void:
 func _update_labels() -> void:
 	%Vsync.text = "开启" if draft.vsync else "关闭"
 	%Mute.text = "静音" if draft.muted else "声音开启"
+	%MusicEnabled.text = "开启" if draft.music_enabled else "关闭"
 	%EdgeScroll.text = "开启" if draft.edge_scroll_enabled else "关闭"
 	%VolumeValue.text = "%d%%" % int(draft.volume_percent)
+	%MusicVolumeValue.text = "%d%%" % int(draft.music_volume_percent)
 	%CameraValue.text = "%.2f ×" % float(draft.camera_speed)
 	%ZoomValue.text = "%.2f ×" % float(draft.zoom_speed)
 	%FPFovLabel.text = "水平视野角   %d°" % int(draft.fp_fov)
@@ -104,7 +110,7 @@ func show_page(page: String) -> void:
 	for category: Button in %Categories.get_children(): category.set_pressed_no_signal(String(category.name) == page)
 	UIMotion.reveal(pages.get_node(page), Vector2(0, 8))
 	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头与操作", "Hotkeys":"热键", "FirstPerson":"第一人称"}[page]
-	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"调节战场音效；当前版本不播放背景音乐。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。", "FirstPerson":"沙盒英雄的视野角、鼠标与舒适性。"}[page]
+	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"总音量控制所有声音；背景音乐可独立调节。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。", "FirstPerson":"沙盒英雄的视野角、鼠标与舒适性。"}[page]
 	if not draft.is_empty(): _update_hotkeys()
 
 func begin_rebind(action: String) -> void:

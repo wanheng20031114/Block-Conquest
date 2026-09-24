@@ -45,6 +45,10 @@ func _run() -> void:
 	create_timer(60.0).timeout.connect(func(): push_error("BLOCK_WAR_AUDIO_MIX deadline"); quit(3))
 	temporary_settings = OS.get_environment("TEMP").path_join("block-war-audio-mix-%d.cfg" % OS.get_process_id())
 	root.get_node("Session/Settings").settings_path = temporary_settings
+	# This suite measures isolated effects; music has its own native mixer test.
+	var preferences: Dictionary = root.get_node("Session/Settings").snapshot()
+	preferences.music_enabled = false
+	root.get_node("Session/Settings").apply_preferences(preferences)
 	change_scene_to_file("res://tests/block_war_audio_mix_test.tscn")
 	await scene_changed
 	audio = current_scene.get_node("Audio")
@@ -55,6 +59,9 @@ func _run() -> void:
 	capture.buffer_length = 4.0
 	capture_slot = AudioServer.get_bus_effect_count(0)
 	AudioServer.add_bus_effect(0, capture)
+	# Wait for the native mixer to initialize capture before timing short samples.
+	while capture.get_frames_available() == 0:
+		await process_frame
 	_check(audio.get_node("UI").get_child_count() == 6 and audio.get_node("Combat").get_child_count() == 24 and audio.get_node("Foley").get_child_count() == 8, "campaign reuses 38 native pooled voices")
 	_check(audio.get_node("Combat/Voice00").max_distance == 96.0 and audio.get_node("Foley/Voice00").max_distance == 72.0, "campaign spatial attenuation matches its battlefield scale")
 	var sample_count := 0
@@ -101,6 +108,8 @@ func _run() -> void:
 	await _clear()
 	var camera: Camera3D = current_scene.get_node("CameraRig/Camera3D")
 	camera.position.x = 200.0
+	camera.reset_physics_interpolation()
+	await physics_frame
 	await process_frame
 	audio.tick_marches(0.34, marches)
 	_check(heard.is_empty(), "formations outside the camera frustum stay silent")

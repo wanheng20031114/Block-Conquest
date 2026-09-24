@@ -35,6 +35,9 @@
           "duration_display": "3:00",
           "status": "completed",
           "url": "https://suno.com/song/45487986-8611-439b-b0e0-f1e5f8eef7f6",
+          "approved_on": "2026-09-25",
+          "usage": "正式战斗 BGM1，积木战争默认循环播放",
+          "asset_path": "assets/audio/block_war/music/battle_bgm_01.mp3",
           "variant": "A",
           "duration_seconds": 180
         },
@@ -99,5 +102,5 @@
     }
   ],
   "generation_status": "completed",
-  "listening_review": "pending"
+  "listening_review": "用户于 2026-09-25 确认 V3-01 A 符合要求并导入正式资产；V3-03 A 前奏优秀，但中后段能量过剩，作为 V4 延展来源。"
 }

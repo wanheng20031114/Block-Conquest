@@ -337,7 +337,7 @@ layout_mode = 2
 [node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/VolumeRow/Heading"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "音效音量"
+text = "总音量"
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 theme_override_constants/shadow_offset_y = 0
@@ -376,6 +376,64 @@ layout_mode = 2
 custom_minimum_size = Vector2(270,40)
 toggle_mode = true
 text = "声音开启"
+
+[node name="MusicEnabledRow" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,46)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicEnabledRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "背景音乐"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_constants/shadow_offset_y = 0
+
+[node name="MusicEnabled" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicEnabledRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(270,40)
+toggle_mode = true
+button_pressed = true
+text = "开启"
+
+[node name="MusicVolumeRow" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="Heading" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicVolumeRow"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicVolumeRow/Heading"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "音乐音量"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_constants/shadow_offset_y = 0
+
+[node name="MusicVolumeValue" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicVolumeRow/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "50%"
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_constants/shadow_offset_y = 0
+
+[node name="MusicVolume" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicVolumeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0,28)
+min_value = 0
+max_value = 100
+step = 1
+value = 50
+
+[node name="MusicTip" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
+layout_mode = 2
+text = "积木战争中自动循环播放，暂停时继续播放。"
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_override_constants/shadow_offset_y = 0
 
 [node name="CameraSpeedRow" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls"]
 layout_mode = 2

@@ -6,6 +6,18 @@ var _march_elapsed := 0.0
 var _march_cursor := 0
 @onready var _camera: Camera3D = get_parent().get_node("CameraRig/Camera3D")
 
+func _ready() -> void:
+	super._ready()
+	# Native autoplay starts before this parent's ready callback. Track the music
+	# playback alongside effects so scene changes await the mixer releasing it.
+	_playbacks.append(weakref($Music.get_stream_playback()))
+
+func stop_all() -> Array[WeakRef]:
+	if not _stopping:
+		$Music.stop()
+		$Music.queue_free()
+	return super.stop_all()
+
 func _event_info(kind: StringName) -> Dictionary:
 	if WAR_BANK.EVENTS.has(kind):
 		return WAR_BANK.EVENTS[kind]

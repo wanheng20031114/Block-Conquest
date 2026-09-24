@@ -8,6 +8,7 @@ signal pause_requested
 
 const FPS_OPTIONS: Array[int] = [30, 60, 90, 120, 144, 165, 240, 0]
 const DEFAULT_VOLUME_PERCENT := 50.0
+const DEFAULT_MUSIC_VOLUME_PERCENT := 50.0
 # CS2's default m_yaw / m_pitch: degrees per raw mouse count at sensitivity 1.
 const FP_MOUSE_RADIANS_PER_COUNT := deg_to_rad(0.022)
 const FP_SENSITIVITY_MIN := 0.05
@@ -40,6 +41,8 @@ var camera_speed := 1.0
 var zoom_speed := 1.0
 var volume_percent := DEFAULT_VOLUME_PERCENT
 var muted := false
+var music_enabled := true
+var music_volume_percent := DEFAULT_MUSIC_VOLUME_PERCENT
 var window_mode := 0
 var resolution := Vector2i(1600, 900)
 var vsync := true
@@ -96,23 +99,29 @@ func defaults() -> Dictionary:
 	for action: String in ACTIONS: keys[action] = ACTIONS[action][2].duplicate()
 	return {"edge_scroll_enabled": true, "camera_speed": 1.0, "zoom_speed": 1.0,
 		"volume_percent": DEFAULT_VOLUME_PERCENT, "muted": false, "window_mode": 0,
+		"music_enabled": true, "music_volume_percent": DEFAULT_MUSIC_VOLUME_PERCENT,
 		"resolution": Vector2i(1600, 900), "vsync": true, "fps_limit": 120, "bindings": keys,
 		"fp_fov":90.0,"fp_sensitivity":1.0,"fp_invert_y":false,"fp_head_bob":false}
 
 func snapshot() -> Dictionary:
 	return {"edge_scroll_enabled": edge_scroll_enabled, "camera_speed": camera_speed, "zoom_speed": zoom_speed,
 		"volume_percent": volume_percent, "muted": muted, "window_mode": window_mode,
+		"music_enabled": music_enabled, "music_volume_percent": music_volume_percent,
 		"resolution": resolution, "vsync": vsync, "fps_limit": fps_limit, "bindings": bindings.duplicate(true),
 		"fp_fov":fp_fov,"fp_sensitivity":fp_sensitivity,"fp_invert_y":fp_invert_y,"fp_head_bob":fp_head_bob}
 
 func _sanitize(values: Dictionary) -> Dictionary:
 	var result := defaults()
-	for key: String in ["edge_scroll_enabled", "muted", "vsync", "fp_invert_y", "fp_head_bob"]:
+	for key: String in ["edge_scroll_enabled", "muted", "music_enabled", "vsync", "fp_invert_y", "fp_head_bob"]:
 		if values.get(key) is bool: result[key] = values[key]
-	for key: String in ["camera_speed", "zoom_speed", "volume_percent"]:
+	for key: String in ["camera_speed", "zoom_speed"]:
 		var value: Variant = values.get(key)
 		if (value is float or value is int) and is_finite(float(value)):
-			result[key] = clampf(float(value), 0.25 if key != "volume_percent" else 0.0, 3.0 if key != "volume_percent" else 100.0)
+			result[key] = clampf(float(value), 0.25, 3.0)
+	for key: String in ["volume_percent", "music_volume_percent"]:
+		var value: Variant = values.get(key)
+		if (value is float or value is int) and is_finite(float(value)):
+			result[key] = clampf(float(value), 0.0, 100.0)
 	for key: String in ["fp_fov","fp_sensitivity"]:
 		var value: Variant = values.get(key)
 		if (value is float or value is int) and is_finite(float(value)):
@@ -152,6 +161,9 @@ func _apply_values(values: Dictionary, display: bool) -> void:
 	Engine.max_fps = fps_limit
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(volume_percent / 100.0, 0.0001)))
 	AudioServer.set_bus_mute(0, muted)
+	var music_bus := AudioServer.get_bus_index(&"BGM")
+	AudioServer.set_bus_volume_db(music_bus, linear_to_db(maxf(music_volume_percent / 100.0, 0.0001)))
+	AudioServer.set_bus_mute(music_bus, not music_enabled or music_volume_percent <= 0.0)
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 		if display: _apply_display()
