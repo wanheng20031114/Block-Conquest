@@ -1,6 +1,8 @@
 {
   "date": "2026-09-24",
   "project": "积木战争",
+  "selection_status": "superseded_by_v2",
+  "feedback": "用户反馈首版缺乏作战感；改为快节奏、抓耳且以主旋律驱动作战感。首版保留记录，不接入战斗 BGM。",
   "workspace": "积木战争 · 原创配乐候选",
   "model": "v6",
   "duration_seconds": 180,
@@ -127,6 +129,7 @@
     },
     {
       "id": "06",
+      "generation_status": "not_generated_superseded_by_v2",
       "title": "积木战争 06｜三旗并进",
       "direction": "轻英雄式协同作战",
       "use": "环湖高原、3v3 联盟推进、后期会合",
