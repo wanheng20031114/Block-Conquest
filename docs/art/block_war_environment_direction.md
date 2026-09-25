@@ -56,6 +56,23 @@ Python 依赖为 numpy、trimesh、shapely，仅供离线建模工具使用。�
 
 真实截图输出到被 Git 忽略的 `artifacts/block_war_*.png`。初次重建结果见 `report/block-war-rebuild-2026-09-22.md`；阵营屋顶、材质统一和光照复核见 `report/block-war-style-lighting-2026-09-22.md`。
 
+## 多尺寸地图的环境制作规范（2026-09-25）
+
+五张新增地图沿用「裂谷交汇」的石桥、草地、树木和灯光。林湖回廊采用绕湖林道和湖岸树团；双河平原保留三条战线与六座完整石桥；断脊山道采用高低错落的岩脊与松林；群岛长滩以桦林、橡林、松林区分三片中央岛屿；环湖高原采用中央石台和南北绕湖道路。地图尺寸、建筑布点、人口与队伍配置保持原设计。
+
+- 桥的轴向由穿越的水道决定，不能由桥面矩形长宽判断。桥面板顶面为 −0.02 米，铺石顶面约 +0.03 米，避开 y=0 的陆地。高原中央桥拆成西桥臂、中央平台和东桥臂，各表面只覆盖一次；护栏位于通行宽度之外。
+- 岸线根据水域并集的外轮廓烘焙，群岛交汇处不生成内部岸墙。草唇、岩坡向不可通行水域内延伸，导航地面始终有可见陆地承接。水面网格不重复，顶点颜色存储实际岸线的浅水权重。
+- 土路先设计主路，再连接建筑前庭。逐段检查水域、山脊与桥梁，避免最邻近建筑直连造成跨水土路。五张地图分别使用 16、38、46、52、46 段道路，均在现有 64 段着色器容量内。
+- 树木以成年树、幼树和林下植被组成疏密有别的树团，桥头和建筑周边留出空地。可走区域的树石带有实际导航障碍半径；低地被按 32 米区域使用原生 MultiMesh，复用已有网格 LOD。
+
+离线重建顺序：
+
+1. `python tools/build_block_war_maps.py` 保存可编辑 `.tscn` 和地图定义，桥梁、道路、自然布景分别由三个 `block_war_*_authoring.py` helper 负责。
+2. Godot 无头运行 `res://tools/bake_block_war_shores.gd`，保存四张有水地图的草岸、石岸和水面 `.res`；断脊山道无需水面资源。
+3. Godot 无头运行 `res://tools/bake_block_war_routes.gd -- lake rivers ridges islands highland`，重新保存包含景观障碍的行军路线。修改景观障碍后必须重烘焙，原图可跳过。
+
+`tests/block_war_map_authoring_test.py` 检查真实网格包围盒和层级变换，覆盖桥梁朝向、与地面的高度关系、平台表面无重叠、栏杆净空及土路连通。`tests/block_war_maps_test.gd` 在实际对局场景遍历全部建筑对，并检查六列士兵的完整脚印。`tests/block_war_maps_visual.gd` 保存全景、正常缩放近景、桥面静止间隔帧及小幅移动镜头截图，支持 `-- rivers highland` 等地图筛选。截图输出至 `artifacts/block_war_maps/`。
+
 ## 官方能力参考
 
 - [Supercell《皇室战争》官方介绍与视觉参考](https://supercell.com/en/games/clashroyale/)

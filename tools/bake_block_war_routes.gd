@@ -11,6 +11,9 @@ func _initialize() -> void:
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute("res://data/block_war/routes")
 	for definition: Resource in CATALOG.MAPS:
+		var arguments := OS.get_cmdline_user_args()
+		if not arguments.is_empty() and definition.map_id not in arguments:
+			continue
 		var started := Time.get_ticks_msec()
 		var map: WarMap = load(definition.scene_path).instantiate()
 		map.bake_routes = true

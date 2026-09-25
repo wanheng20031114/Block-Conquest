@@ -5,14 +5,15 @@ The original rift scene is retained; no runtime node or image generation is used
 """
 from __future__ import annotations
 
-import math
 from pathlib import Path
-import random
 import re
+
+from block_war_bridge_authoring import author_bridges
+from block_war_nature_authoring import author_nature
+from block_war_path_authoring import author_paths
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV = "res://assets/block_war/environment/"
-NATURE = "res://assets/models/block_war/nature/"
 
 
 def vec(values, kind="Vector3"):
@@ -120,37 +121,16 @@ building_factions = PackedInt32Array({', '.join(str(b[3]) for b in items)})
     target.write_text(text, encoding="utf-8")
 
 
-def distance_to_segment(x, z, a, b):
-    dx, dz = b[0] - a[0], b[1] - a[1]
-    t = max(0, min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz)))
-    return math.hypot(x - a[0] - t * dx, z - a[1] - t * dz)
-
-
 def author(layout):
     items, (hx, hz) = layout["buildings"], layout["half"]
-    rng = random.Random(923001 + sum(map(ord, layout["id"])))
+    paths = author_paths(layout)
     externals = [
         '[ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]',
         f'[ext_resource type="Resource" path="res://data/block_war/maps/{layout["id"]}.tres" id="definition"]',
         '[ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]',
         f'[ext_resource type="Shader" path="{ENV}map_ground.gdshader" id="ground_shader"]',
-        f'[ext_resource type="Shader" path="{ENV}map_water.gdshader" id="water_shader"]',
         f'[ext_resource type="Texture2D" path="{ENV}meadow_noise.tres" id="noise"]',
     ]
-    for species in ("canopy_oak", "wind_pine", "silver_birch", "moss_boulder", "reed_cluster", "hazel_thicket"):
-        externals.append(f'[ext_resource type="PackedScene" path="{NATURE}{species}.tscn" id="{species}"]')
-    for detail in ("stone_bridge_deck", "stone_bridge_arch", "stone_bridge_paving"):
-        externals.append(f'[ext_resource type="ArrayMesh" path="{ENV}{detail}.res" id="{detail}"]')
-    for species in ("meadow_tuft", "fern_patch", "daisies"):
-        externals.append(f'[ext_resource type="ArrayMesh" path="{NATURE}{species}_combined.res" id="{species}_mesh"]')
-    externals.append(f'[ext_resource type="Material" path="{NATURE}grass.tres" id="grass"]')
-    paths = set()
-    for i, site in enumerate(items):
-        nearest = sorted((j for j in range(len(items)) if j != i), key=lambda j: math.dist(site[:2], items[j][:2]))[:2]
-        for j in nearest:
-            if math.dist(site[:2], items[j][:2]) <= 35:
-                paths.add(tuple(sorted((i, j))))
-    paths = sorted(paths)[:64]
     resources = [f'''[sub_resource type="ShaderMaterial" id="Ground"]
 shader = ExtResource("ground_shader")
 shader_parameter/meadow_noise = ExtResource("noise")
@@ -159,103 +139,41 @@ shader_parameter/meadow = {vec((*layout['color'], 1), 'Color')}
 shader_parameter/site_count = {len(items)}
 shader_parameter/sites = PackedVector2Array({', '.join(str(v) for b in [b[:2] for b in items] + [(0, 0)] * (64 - len(items)) for v in b)})
 shader_parameter/path_count = {len(paths)}
-shader_parameter/paths = PackedVector4Array({', '.join(str(v) for path in [(*items[i][:2], *items[j][:2]) for i, j in paths] + [(0, 0, 0, 0)] * (64 - len(paths)) for v in path)})''',
-        '[sub_resource type="BoxMesh" id="Cube"]\nsize = Vector3(1, 1, 1)',
-        '[sub_resource type="StandardMaterial3D" id="Stone"]\nalbedo_color = Color(0.59, 0.585, 0.535, 1)\nroughness = 0.9',
-        '[sub_resource type="StandardMaterial3D" id="Paving"]\nalbedo_color = Color(0.84, 0.86, 0.94, 1)\nvertex_color_use_as_albedo = true\nvertex_color_is_srgb = true\nroughness = 0.9']
-    water_paths = ", ".join(f'NodePath("Terrain/River{i}")' for i in range(len(layout["water"])))
+shader_parameter/paths = PackedVector4Array({', '.join(str(v) for path in paths + [(0, 0, 0, 0)] * (64 - len(paths)) for v in path)})''',
+        '[sub_resource type="BoxMesh" id="Cube"]\nsize = Vector3(1, 1, 1)']
+    water_paths = 'NodePath("Terrain/Water")' if layout["water"] else ''
     nodes = [f'[node name="WarMap" type="Node3D"]\nscript = ExtResource("script")\ndefinition = ExtResource("definition")\nwater_paths = Array[NodePath]([{water_paths}])']
     nodes += [f'[node name="{name}" type="Node3D" parent="."]' for name in ("Terrain", "Bridges", "Nature", "Buildings")]
 
-    def mesh(name, parent, asset, position, scale=(1, 1, 1), material="Stone", rotation=0):
-        ref = f'SubResource("{asset}")' if asset == "Cube" else f'ExtResource("{asset}")'
-        nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="{parent}"]\nposition = {vec(position)}\nscale = {vec(scale)}\nrotation = Vector3(0, {rotation}, 0)\nmesh = {ref}\nmaterial_override = SubResource("{material}")')
-
-    # Tile land only outside water; shore walls and the water surface share the
-    # exact navigation boundaries. There is no invisible floor across a lake.
+    # Land ends at the conservative navigation boundary. Authored grass lips
+    # extend into forbidden water, never exposing water beneath a valid route.
     xs = sorted({-hx - 24, hx + 24} | {r[0] + d for r in layout["water"] for d in (0, r[2])})
     zs = sorted({-hz - 24, hz + 24} | {r[1] + d for r in layout["water"] for d in (0, r[3])})
     for ix, (left, right) in enumerate(zip(xs, xs[1:])):
         for iz, (top, bottom) in enumerate(zip(zs, zs[1:])):
             x, z = (left + right) / 2, (top + bottom) / 2
             if not any(inside(r, x, z) for r in layout["water"]):
-                mesh(f"Land{ix}_{iz}", "Terrain", "Cube", (x, -1.6, z), (right - left, 3.2, bottom - top), "Ground")
-    for i, (x, z, w, h) in enumerate(layout["water"]):
-        resources.append(f'[sub_resource type="ShaderMaterial" id="Water{i}"]\nshader = ExtResource("water_shader")\nshader_parameter/region = {vec((x, z, w, h), "Vector4")}')
-        mesh(f"River{i}", "Terrain", "Cube", (x + w / 2, -1.2, z + h / 2), (w, 0.04, h), f"Water{i}")
-    for i, (x, z, w, h) in enumerate(layout["bridges"]):
-        parent = f"Bridges/Bridge{i}"
-        nodes.append(f'[node name="Bridge{i}" type="Node3D" parent="Bridges"]\nposition = {vec((x + w / 2, 0, z + h / 2))}')
-        mesh("Deck", parent, "stone_bridge_deck", (0, -0.14, 0), (w / 8.8 + 0.06, 1, h / 6.4 + 0.03))
-        # Reuse the original stone paving at a consistent scale on wide bridges.
-        columns, rows = math.ceil(w / 8.8), math.ceil(h / 6.4)
-        overlaps = any(x < ox + ow and x + w > ox and z < oz + oh and z + h > oz
-                       for ox, oz, ow, oh in layout["bridges"][:i])
-        for column in range(columns):
-            for row in range(rows):
-                pos = ((column + 0.5) * w / columns - w / 2, 0.04 if overlaps else -0.012,
-                       (row + 0.5) * h / rows - h / 2)
-                mesh(f"Paving{column}_{row}", parent, "stone_bridge_paving", pos,
-                     (w / columns / 8.8, 1, h / rows / 6.4), "Paving")
-        # Repeated arches keep long causeways at the same architectural scale.
-        horizontal = w >= h
-        length, width = (w, h) if horizontal else (h, w)
-        bays = max(1, math.ceil(length / 8.8))
-        for bay in range(bays):
-            along = (bay + 0.5) * length / bays - length / 2
-            for side in (-1, 1):
-                pos = (along, 0, side * (width / 2 + 0.4)) if horizontal else (side * (width / 2 + 0.4), 0, along)
-                mesh(f"Arch{bay}_{side}", parent, "stone_bridge_arch", pos, (length / bays / 8.8, 1, 1), "Paving", 0 if horizontal else math.pi / 2)
+                nodes.append(f'[node name="Land{ix}_{iz}" type="MeshInstance3D" parent="Terrain"]\nposition = {vec((x, -1.6, z))}\nscale = {vec((right - left, 3.2, bottom - top))}\nmesh = SubResource("Cube")\nmaterial_override = SubResource("Ground")')
+    if layout["water"]:
+        externals.append(f'[ext_resource type="Shader" path="{ENV}map_water.gdshader" id="water_shader"]')
+        resources.append('[sub_resource type="ShaderMaterial" id="Water"]\nshader = ExtResource("water_shader")\nshader_parameter/surface_noise = ExtResource("noise")')
+        resources.append('[sub_resource type="StandardMaterial3D" id="BankStone"]\nalbedo_color = Color(1, 1, 1, 1)\nvertex_color_use_as_albedo = true\nvertex_color_is_srgb = true\nroughness = 0.93')
+        for layer, name in (("bank_grass", "ShoreGrass"), ("bank_stone", "ShoreRock"), ("water", "Water")):
+            externals.append(f'[ext_resource type="ArrayMesh" path="{ENV}maps/{layout["id"]}_{layer}.res" id="shore_{layer}"]')
+            material = {"water": "Water", "bank_grass": "Ground", "bank_stone": "BankStone"}[layer]
+            override = f'\nmaterial_override = SubResource("{material}")'
+            nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="Terrain"]\nmesh = ExtResource("shore_{layer}"){override}')
+    ext, sub, children = author_bridges(layout)
+    externals.extend(ext)
+    resources.extend(sub)
+    nodes.extend(children)
+    ext, sub, children = author_nature(layout, paths)
+    externals.extend(ext)
+    resources.extend(sub)
+    nodes.extend(children)
     for i, (x, z, kind, faction, population) in enumerate(items):
         nodes.append(f'[node name="Building{i}" parent="Buildings" instance=ExtResource("building")]\nposition = {vec((x, 0, z))}\nbuilding_id = {i}\nfaction = {faction}\nkind = {kind}\npopulation = {float(population)}')
-    for i, (x, z, w, h) in enumerate(layout["mountains"]):
-        for j in range(12):
-            px = x + w * (0.3 if j % 2 == 0 else 0.7)
-            pz = z + 2.5 + (h - 5) * (j // 2) / 5
-            scale = (2.7, rng.uniform(3.8, 5.4), 3.2)
-            nodes.append(f'[node name="Ridge{i}_{j}" parent="Nature" instance=ExtResource("moss_boulder")]\nposition = {vec((px, -0.1, pz))}\nscale = {vec(scale)}\nrotation = Vector3(0, {rng.uniform(0, math.tau)}, 0)')
-    tree_positions = []
-    for _ in range(int(hx * hz / 5)):
-        x, z = rng.uniform(6, hx - 3), rng.uniform(-hz + 3, hz - 3)
-        if not all(walkable(layout, x + dx, z + dz) for dx, dz in ((0, 0), (3, 0), (-3, 0), (0, 3), (0, -3))):
-            continue
-        if any(math.hypot(x - b[0], z - b[1]) < 9 for b in items):
-            continue
-        if any(distance_to_segment(x, z, items[i], items[j]) < 5 for i, j in paths):
-            continue
-        if any(math.hypot(x - px, z - pz) < 7 for px, pz in tree_positions):
-            continue
-        tree_positions.extend(((x, z), (-x, z)))
-        if len(tree_positions) >= hx * hz / 90:
-            break
-    # A forest rim beyond the playable bounds frames each map without blocking routes.
-    for x in range(-int(hx) - 10, int(hx) + 11, 7):
-        tree_positions.extend(((x, -hz - rng.uniform(5, 13)), (x, hz + rng.uniform(5, 13))))
-    for z in range(-int(hz), int(hz) + 1, 7):
-        tree_positions.extend(((-hx - rng.uniform(5, 13), z), (hx + rng.uniform(5, 13), z)))
-    for i, (x, z) in enumerate(tree_positions):
-        if any(inside(r, x, z, 1.5) for r in layout["water"]):
-            continue
-        size = rng.uniform(0.7, 1.05)
-        species = ("wind_pine", "canopy_oak", "silver_birch")[i % 3] if layout["mountains"] else ("canopy_oak", "silver_birch", "canopy_oak", "wind_pine")[i % 4]
-        blocker = '\nmetadata/route_radius = 0.9' if abs(x) < hx and abs(z) < hz else ''
-        nodes.append(f'[node name="Tree{i}" parent="Nature" instance=ExtResource("{species}")]\nposition = {vec((x, 0, z))}\nscale = {vec((size, size, size))}\nrotation = Vector3(0, {rng.uniform(0, math.tau)}, 0){blocker}')
-    batches = {species: [] for species in ("meadow_tuft", "fern_patch", "daisies")}
-    for x, z, *_ in items:
-        for j in range(10):
-            angle = rng.uniform(0, math.tau)
-            radius = rng.uniform(4.5, 7)
-            px, pz = x + math.cos(angle) * radius, z + math.sin(angle) * radius
-            if walkable(layout, px, pz):
-                batches[("meadow_tuft", "meadow_tuft", "fern_patch", "daisies")[j % 4]].append((px, pz, rng.uniform(0.5, 0.85), angle))
-    for species, transforms in batches.items():
-        buffer = []
-        for x, z, scale, yaw in transforms:
-            c, s = math.cos(yaw) * scale, math.sin(yaw) * scale
-            buffer.extend((c, 0, s, x, 0, scale, 0, -0.01, -s, 0, c, z))
-        resources.append(f'[sub_resource type="MultiMesh" id="{species}"]\ntransform_format = 1\ninstance_count = {len(transforms)}\nmesh = ExtResource("{species}_mesh")\nbuffer = PackedFloat32Array({", ".join(f"{v:.5f}" for v in buffer)})')
-        nodes.append(f'[node name="{species}" type="MultiMeshInstance3D" parent="Nature"]\nmultimesh = SubResource("{species}")\nmaterial_override = ExtResource("grass")\ncast_shadow = 0')
-    return "\n\n".join(["[gd_scene format=3]"] + externals + resources + nodes) + "\n"
+    return "\n\n".join([f"[gd_scene load_steps={len(externals) + len(resources) + 1} format=3]"] + externals + resources + nodes) + "\n"
 
 
 def main():
