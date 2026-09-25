@@ -32,6 +32,7 @@ var _percentage_buttons: Array[Button] = []
 var _selection_target: Node3D
 var _selection_camera: Camera3D
 var _selection_buildings: Array[Node3D] = []
+var _selection_slot := -1
 var _actions_visible: bool = false
 var _pointer_blockers: Array[Control] = []
 
@@ -163,6 +164,8 @@ func show_draw() -> void:
 	UIMotion.reveal(%ResultCard, Vector2(0, 28))
 
 func track_building(building: Node3D, camera: Camera3D, buildings: Array[Node3D]) -> void:
+	if building != _selection_target:
+		_selection_slot = -1
 	_selection_target = building
 	_selection_camera = camera
 	_selection_buildings = buildings
@@ -254,7 +257,8 @@ func _position_selection() -> void:
 	for building: Node3D in _selection_buildings:
 		var center: Vector2 = to_ui * _selection_camera.unproject_position(building.global_position + Vector3(0, 3.5, 0))
 		obstacles.append(Rect2(center - Vector2(gap, gap * 0.85), Vector2(gap * 2.0, gap * 1.7)))
-	var best := Vector2.ZERO
+	var placements: Array[Vector2] = []
+	var best_slot := 0
 	var best_score := INF
 	for side: float in [1.0, -1.0]:
 		for rise: float in [0.0, -1.0, 1.0]:
@@ -262,15 +266,24 @@ func _position_selection() -> void:
 			candidate = candidate.clamp(bounds.position, bounds.end - menu_size)
 			var rect := Rect2(candidate, menu_size)
 			var score := rect.get_center().distance_squared_to(anchor)
-			# Prefer the right on near ties, avoiding side flicker during camera easing.
+			# Keep the current slot through small camera/layout changes. Its 8 px
+			# inset is a spatial dead band, not a delay that can expire mid-click.
+			if placements.size() == _selection_slot:
+				rect = rect.grow(-8.0)
+				score -= 6000.0
 			score += 1000.0 if side < 0.0 else 0.0
 			score += rect.intersection(percentage_rect).get_area() * 10000.0
 			for obstacle: Rect2 in obstacles:
 				score += rect.intersection(obstacle).get_area() * 100.0
 			if score < best_score:
 				best_score = score
-				best = candidate
-	%Selection.position = best.round()
+				best_slot = placements.size()
+			placements.append(candidate)
+	# Do not move the actions to a different slot while the player aims at them.
+	var pointer: Vector2 = to_ui * get_viewport().get_mouse_position()
+	if _selection_slot < 0 or not %Selection.get_rect().grow(4.0).has_point(pointer):
+		_selection_slot = best_slot
+	%Selection.position = placements[_selection_slot].round()
 	# A fine leader keeps an offset menu visibly attached to its own building.
 	var on_right: bool = %Selection.position.x > anchor.x
 	%BuildingActions.position.x = 6.0 if on_right else 0.0
@@ -295,6 +308,7 @@ func set_paused(value: bool) -> void:
 		return
 	if value:
 		%PauseOverlay.show()
+		%Resume.grab_focus(true)
 		UIMotion.reveal(%PauseCard, Vector2(0, 18))
 	else:
 		%PauseOverlay.hide()
@@ -343,12 +357,14 @@ func _open_help() -> void:
 		pause_requested.emit()
 	%PauseOverlay.hide()
 	%HelpOverlay.show()
+	%HelpClose.grab_focus(true)
 	UIMotion.reveal(%HelpCard, Vector2(0, 20))
 
 func _close_help() -> void:
 	%HelpOverlay.hide()
 	if _help_from_pause:
 		%PauseOverlay.show()
+		%PauseHelp.grab_focus(true)
 		UIMotion.reveal(%PauseCard)
 	else:
 		resume_requested.emit()

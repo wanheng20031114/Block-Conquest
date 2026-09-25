@@ -1,17 +1,21 @@
 extends Control
 ## Native canvas feedback projected from the 3D map; never intercepts input.
 
-const DISPATCH_FONT: Font = preload("res://assets/ui/medieval/fonts/title.tres")
-const DISPATCH_FONT_SIZE := 18
 const CLOUD_FILL := Color("fff7e3")
-const CLOUD_INK := Color("514e40")
 
 var _hint_time := 0.0
+var _hint_rect := Rect2()
 
 @onready var game: Node3D = get_parent().get_parent()
+@onready var hint_label: Label = $DispatchText
 
 func _process(delta: float) -> void:
-	_hint_time = _hint_time + delta if game.drag_source != null else 0.0
+	hint_label.visible = game._match_ready and game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0
+	if hint_label.visible:
+		_hint_time += delta
+		_update_dispatch_hint()
+	else:
+		_hint_time = 0.0
 
 func _draw() -> void:
 	if not game._match_ready:
@@ -56,12 +60,8 @@ func _draw() -> void:
 			var direction: Vector2 = (end - points[-2]).normalized()
 			var side := Vector2(-direction.y, direction.x)
 			draw_polyline(PackedVector2Array([end - direction * 16 + side * 8, end, end - direction * 16 - side * 8]), color, 3.5, true)
-		var count := floori(game.drag_source.population * game.percentage / 100.0)
-		var verb := "增援" if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, 0) else "进攻"
-		var label := "%s %d 人 · %d%%" % [verb, count, game.percentage]
-		if game.hovered != null and game.hovered.faction != 0 and game.FACTIONS.allied(game.hovered.faction, 0):
-			label += " · 抵达后归队友"
-		_draw_dispatch_hint(label)
+		if hint_label.visible:
+			_draw_dispatch_hint()
 	for shot: Dictionary in game.projectiles:
 		# The trail belongs to the actual 3D ball and its current live target.
 		var at: Vector2 = camera.unproject_position(shot.position)
@@ -74,14 +74,27 @@ func _draw() -> void:
 		var radius: float = lerpf(0.5, effect.radius if effect.kind != "hit" else 0.85, progress)
 		_ring(effect.at, radius, color, 2.5)
 
-func _draw_dispatch_hint(label: String) -> void:
-	var text_size := DISPATCH_FONT.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, DISPATCH_FONT_SIZE)
+func _update_dispatch_hint() -> void:
+	var count := floori(game.drag_source.population * game.percentage / 100.0)
+	var verb := "增援" if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, 0) else "进攻"
+	var label := "%s %d 人 · %d%%" % [verb, count, game.percentage]
+	if game.hovered != null and game.hovered.faction != 0 and game.FACTIONS.allied(game.hovered.faction, 0):
+		label += " · 抵达后归队友"
+	hint_label.text = label
+	var font := hint_label.get_theme_font("font")
+	var font_size := hint_label.get_theme_font_size("font_size")
+	var text_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var extent := Vector2(ceilf(text_size.x) + 40.0, maxf(40.0, ceilf(text_size.y) + 18.0))
 	var at := get_viewport().get_mouse_position() + Vector2(20.0, -extent.y - 12.0)
 	at.x = clampf(at.x, 8.0, size.x - extent.x - 8.0)
 	at.y = clampf(at.y, 8.0, size.y - extent.y - 10.0)
-	at = at.round()
-	var outline := _cloud_outline(Rect2(at, extent))
+	_hint_rect = Rect2(at.round(), extent)
+	# Native Label caches its glyphs independently of the animated background.
+	hint_label.position = _hint_rect.position + Vector2(20.0, 0.0)
+	hint_label.size = extent - Vector2(40.0, 0.0)
+
+func _draw_dispatch_hint() -> void:
+	var outline := _cloud_outline(_hint_rect)
 	var shadow := PackedVector2Array()
 	for point: Vector2 in outline:
 		shadow.append(point + Vector2(0.0, 2.0))
@@ -89,32 +102,24 @@ func _draw_dispatch_hint(label: String) -> void:
 	draw_colored_polygon(outline, CLOUD_FILL)
 	outline.append(outline[0])
 	draw_polyline(outline, CLOUD_FILL, 1.0, true)
-	# Only the perimeter moves; keep the text baseline and inner padding steady.
-	var baseline := (extent.y - DISPATCH_FONT.get_height(DISPATCH_FONT_SIZE)) * 0.5 + DISPATCH_FONT.get_ascent(DISPATCH_FONT_SIZE)
-	draw_string(DISPATCH_FONT, at + Vector2(20.0, baseline), label, HORIZONTAL_ALIGNMENT_LEFT, -1, DISPATCH_FONT_SIZE, CLOUD_INK)
 
 func _cloud_outline(rect: Rect2) -> PackedVector2Array:
+	# Four continuous, broad Bezier arcs. The control points drift over ten
+	# seconds; text placement and the outer layout box never use this phase.
+	var phase := _hint_time * TAU / 10.0
+	var width := rect.size.x
+	var height := rect.size.y
+	var top := rect.position + Vector2(width * (0.47 + 0.02 * sin(phase)), 2.0 + sin(phase) * 0.9)
+	var bottom := rect.position + Vector2(width * (0.54 + 0.02 * cos(phase)), height - 2.0 + cos(phase) * 0.9)
+	var left := Vector2(rect.position.x + 1.0, rect.get_center().y + sin(phase + 0.8) * 0.6)
+	var right := Vector2(rect.end.x - 1.0, rect.get_center().y + cos(phase + 0.8) * 0.6)
+	var anchors := PackedVector2Array([left, top, right, bottom])
+	var tangents := PackedVector2Array([Vector2(0, -height * 0.42), Vector2(width * 0.32, 0), Vector2(0, height * 0.42), Vector2(-width * 0.32, 0)])
 	var points := PackedVector2Array()
-	var radius := rect.size.y * 0.32
-	var center := rect.get_center()
-	var left := rect.position.x + radius
-	var right := rect.end.x - radius
-	var lobes := clampf(rect.size.x / 66.0, 2.0, 5.0)
-	# Broad, unequal scallops blend into round ends with a zero-slope envelope.
-	# The 1 px breathing wave deforms the silhouette without shifting the label.
-	for edge: int in 2:
-		var sign_y := -1.0 if edge == 0 else 1.0
-		var phase := 0.0 if edge == 0 else 1.7
-		for index: int in 33:
-			var u := index / 32.0 if edge == 0 else 1.0 - index / 32.0
-			var envelope := smoothstep(0.0, 0.2, u) * smoothstep(0.0, 0.2, 1.0 - u)
-			var wave := 3.3 + 2.7 * cos(TAU * lobes * u + phase + 0.18 * sin(_hint_time * 1.4))
-			wave += 0.9 * sin(_hint_time * 1.8 + u * TAU + phase)
-			points.append(Vector2(lerpf(left, right, u), center.y + sign_y * (radius + envelope * wave)))
-		var cap_x := right if edge == 0 else left
-		for index: int in range(1, 16):
-			var angle := -PI * 0.5 + PI * index / 16.0 + PI * edge
-			points.append(Vector2(cap_x, center.y) + Vector2(cos(angle), sin(angle)) * radius)
+	for arc: int in 4:
+		var next := (arc + 1) % 4
+		for step: int in 24:
+			points.append(anchors[arc].bezier_interpolate(anchors[arc] + tangents[arc], anchors[next] - tangents[next], anchors[next], step / 24.0))
 	return points
 
 func _ring(center: Vector3, radius: float, color: Color, width: float) -> void:

@@ -210,6 +210,13 @@ func _run() -> void:
 	Input.parse_input_event(press)
 	Input.flush_buffered_events()
 	check(game.drag_source == home, "overlap fixture begins an actual allied map drag")
+	# Pressing the source refreshes its actions and may reflow around the moved
+	# obstacle. Drop on the current action, with the real pick area beneath it.
+	at = center(upgrade)
+	covered.global_position = Plane(Vector3.UP, 1.5).intersects_ray(game.camera.project_ray_origin(at), game.camera.project_ray_normal(at)) - Vector3(0, 1.5, 0)
+	await physics_frame
+	await frames()
+	check(game.pick_building(at) == covered and game.hud.is_pointer_blocked(at), "dispatch-drop fixture overlaps the current action rather than its previous position")
 	var release := InputEventMouseButton.new()
 	release.window_id = root.get_window_id()
 	release.position = at

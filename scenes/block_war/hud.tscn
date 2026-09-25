@@ -259,6 +259,7 @@ default_font = ExtResource("body")
 default_font_size = 17
 Label/colors/font_color = Color(0.96, 0.94, 0.84, 1)
 Button/colors/font_color = Color(0.13, 0.23, 0.22, 1)
+Button/colors/font_focus_color = Color(0.13, 0.23, 0.22, 1)
 Button/colors/font_hover_color = Color(0.13, 0.23, 0.22, 1)
 Button/colors/font_pressed_color = Color(0.13, 0.23, 0.22, 1)
 Button/colors/font_hover_pressed_color = Color(0.13, 0.23, 0.22, 1)
