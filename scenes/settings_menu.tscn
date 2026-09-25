@@ -430,7 +430,7 @@ value = 50
 
 [node name="MusicTip" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
 layout_mode = 2
-text = "积木战争中自动循环播放，暂停时继续播放。"
+text = "积木战争每局随机选曲并循环，暂停时继续播放。"
 theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
 theme_override_constants/shadow_offset_y = 0

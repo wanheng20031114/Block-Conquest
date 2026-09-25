@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/audio.tscn" id="base"]
 [ext_resource type="Script" path="res://scripts/block_war/war_audio.gd" id="script"]
-[ext_resource type="AudioStream" path="res://assets/audio/block_war/music/battle_bgm_01.mp3" id="bgm"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/music/battle_music_pool.tres" id="bgm"]
 
 [node name="Audio" instance=ExtResource("base")]
 script = ExtResource("script")

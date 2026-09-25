@@ -27,6 +27,27 @@ func _sample() -> float:
 	await create_timer(0.25).timeout
 	return _rms()
 
+func _check_library(pool: AudioStreamRandomizer) -> void:
+	_check(pool.streams_count == 2 and pool.playback_mode == AudioStreamRandomizer.PLAYBACK_RANDOM, "native music library chooses randomly from two approved tracks")
+	_check(pool.random_pitch == 1.0 and pool.random_volume_offset_db == 0.0, "music randomization preserves each song's pitch and volume")
+	for index in pool.streams_count:
+		var track: AudioStreamMP3 = pool.get_stream(index)
+		_check(track.resource_path == "res://assets/audio/block_war/music/battle_bgm_%02d.mp3" % (index + 1) and pool.get_stream_probability_weight(index) == 1.0, "BGM%d is in the library with equal selection weight" % (index + 1))
+		_check(track.loop and track.loop_offset == 0.0 and track.get_length() > 170.0, "BGM%d retains its complete native looping MP3" % (index + 1))
+		# Decode each imported asset through its actual native playback, including
+		# the end boundary, even when autoplay randomly selects the other track.
+		var playback: AudioStreamPlayback = track.instantiate_playback()
+		playback.start(12.0)
+		var samples := playback.mix_audio(1.0, 4096)
+		var energy := 0.0
+		for frame: Vector2 in samples:
+			energy += frame.length_squared()
+		_check(energy > 0.001, "BGM%d decodes into audible native PCM" % (index + 1))
+		playback.seek(track.get_length() - 0.08)
+		playback.mix_audio(1.0, int(AudioServer.get_mix_rate() * 0.3))
+		_check(playback.get_loop_count() == 1 and playback.get_playback_position() < 1.0, "BGM%d loops its own song across the end boundary" % (index + 1))
+		playback.stop()
+
 func _run() -> void:
 	create_timer(30.0).timeout.connect(func(): push_error("BLOCK_WAR_MUSIC deadline"); quit(3))
 	var settings: GameSettings = root.get_node("Session/Settings")
@@ -43,22 +64,20 @@ func _run() -> void:
 	var music: AudioStreamPlayer = audio.get_node("Music")
 	var bgm_bus := AudioServer.get_bus_index(&"BGM")
 	_check(music.autoplay and music.playing, "battle scene starts its authored native music player")
-	_check(music.stream.resource_path == "res://assets/audio/block_war/music/battle_bgm_01.mp3", "battle uses the approved official BGM1 asset")
-	_check(music.stream is AudioStreamMP3 and music.stream.loop and music.stream.loop_offset == 0.0, "looping belongs to the imported MP3 resource")
+	_check_library(music.stream)
 	_check(music.bus == &"BGM" and AudioServer.get_bus_send(bgm_bus) == &"Master", "music has its own bus directly into Master")
 	_check(AudioServer.get_bus_effect_count(bgm_bus) == 0, "music does not inherit combat compression")
-	print("BGM1_DURATION_SECONDS ", music.stream.get_length())
 	capture.buffer_length = 2.0
 	var capture_slot := AudioServer.get_bus_effect_count(0)
 	AudioServer.add_bus_effect(0, capture)
-	music.seek(12.0)
-	_check(await _sample() > 0.001, "approved music produces real PCM in the native Master mix")
-	music.seek(music.stream.get_length() - 0.15)
-	# AudioStreamPlayer.seek starts a new native playback instance.
 	var playback: AudioStreamPlayback = music.get_stream_playback()
+	playback.seek(12.0)
+	_check(await _sample() > 0.001, "approved music produces real PCM in the native Master mix")
+	# Seek the current playback directly; player.play/seek would roll a new song.
+	playback.seek(music.stream.get_length() - 0.15)
 	var previous_loops := playback.get_loop_count()
 	await create_timer(0.6).timeout
-	_check(music.playing and playback.get_loop_count() > previous_loops and music.get_playback_position() < 2.0, "native playback crosses the end and loops without script replay")
+	_check(music.playing and playback.get_loop_count() > previous_loops and music.get_playback_position() < 2.0 and playback == music.get_stream_playback(), "the chosen song loops without rolling a new native playback")
 	game.set_paused(true)
 	paused = true
 	var before_pause := music.get_playback_position()

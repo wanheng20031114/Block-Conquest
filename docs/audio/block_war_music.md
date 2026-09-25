@@ -1,12 +1,15 @@
 # 积木战争配乐与正式资产
 
-## 正式资产：战斗 BGM1
+## 正式资产：战斗 BGM1 / BGM2
 
 用户于 2026-09-25 确认 **V3「夺桥·稳步推进」A** 符合要求，作为战斗 BGM1 导入积木战争。
 
+随后确认 **V4「轻装·轻律回环」A** 可行，作为战斗 BGM2 加入库。每次开局从两首中等概率随机选择一首，整局循环该曲；重开时重新选择，允许选中同一首。
+
 - 原曲：[夺桥·稳步推进 A](https://suno.com/song/45487986-8611-439b-b0e0-f1e5f8eef7f6)，提示目标 126 BPM，MP3 实际时长 179.6 秒。
 - 正式文件：`assets/audio/block_war/music/battle_bgm_01.mp3`；来源、SHA-256、格式和使用权记录见 [音乐资产说明](../../assets/audio/block_war/music/CREDITS.md)。
-- 原生 `AudioStreamPlayer.autoplay` + `AudioStreamMP3.loop`，由 `scenes/block_war/audio.tscn` 持有。路由 `BGM → Master`；音乐开关与音量独立保存，默认开启、50%。
+- BGM2 原曲：[轻装·轻律回环 A](https://suno.com/song/8436ce13-1d31-477d-91a8-c55840718ea8)，提示目标 128 BPM，实际时长 180 秒；文件 `assets/audio/block_war/music/battle_bgm_02.mp3`。
+- 原生 `AudioStreamPlayer.autoplay` + `AudioStreamRandomizer` 等权重选曲 + `AudioStreamMP3.loop`，由 `scenes/block_war/audio.tscn` 持有；音乐库资源是 `assets/audio/block_war/music/battle_music_pool.tres`。路由 `BGM → Master`；音乐开关与音量独立保存，默认开启、50%。
 - 暂停中继续播放，关闭音乐仅静音 BGM，退出及重新开局释放旧播放实例。保留原曲完整前奏和尾声；原生回环已验证，未制作无缝剪辑。
 
 ## V4 当前候选：延展「轻装争夺 A」的前奏
@@ -22,7 +25,7 @@
 | 轻装·前奏延展 | 132 BPM；最贴近前奏的拨弦律动 | [A](https://suno.com/song/b9fbbdce-bdb5-4f5a-bdc6-354bd11e2001) · 3:00 | [B](https://suno.com/song/8dbf7ad3-eb03-4671-afb0-d5bc3ce65199) · 3:00 |
 | 轻装·轻律回环 | 128 BPM；木笛和提琴轮流接主题 | [A](https://suno.com/song/8436ce13-1d31-477d-91a8-c55840718ea8) · 3:00 | [B](https://suno.com/song/34fa9481-f7f6-4a59-8ca9-535b9b4f8e69) · 3:00 |
 
-四首均已生成，保存在 Suno「积木战争 · 原创配乐候选」工作区，尚未加入正式游戏播放。时长来自页面，BPM 是生成目标；仍待用户试听判断前奏的感觉是否真正贯穿整曲。完整提示词及结果见 [V4 JSON](block_war_battle_music_v4.json)：v6 Cover，3 分钟，Weirdness 20%、Style Influence 90%、Audio Influence 30%、Variety Normal，歌词留空。
+四首均已生成；「轻律回环」A 经用户确认，已作为战斗 BGM2 导入游戏，其余三首保留为 Suno 工作区候选。表中时长来自页面，BPM 是生成目标。完整提示词及结果见 [V4 JSON](block_war_battle_music_v4.json)：v6 Cover，3 分钟，Weirdness 20%、Style Influence 90%、Audio Influence 30%、Variety Normal，歌词留空。
 
 ## V3 记录：以《夺桥疾行》A 版为来源的节奏与能量调整
 
