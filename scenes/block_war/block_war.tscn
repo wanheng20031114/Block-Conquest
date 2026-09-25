@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/block_war/block_war.gd" id="game"]
 [ext_resource type="Script" path="res://scripts/rts_camera.gd" id="camera"]
 [ext_resource type="Script" path="res://scripts/block_war/war_overlay.gd" id="overlay"]
-[ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="dispatch_font"]
+[ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="dispatch_font"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/map.tscn" id="map"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/marches.tscn" id="marches"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/hud.tscn" id="hud"]
@@ -92,8 +92,9 @@ visible = false
 layout_mode = 0
 mouse_filter = 2
 theme_override_fonts/font = ExtResource("dispatch_font")
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.318, 0.306, 0.251, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.227, 0.247, 0.200, 1)
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HUD" parent="." instance=ExtResource("hud")]

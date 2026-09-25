@@ -134,18 +134,24 @@ func _run() -> void:
 	game.overlay._process(0.0)
 	var label: Label = game.overlay.get_node("DispatchText")
 	var original_rect := label.get_rect()
+	var original_background_width: float = game.overlay._hint_rect.size.x
 	var stable := true
-	var convex := true
+	var valid_outline := true
 	for sample: int in 200:
 		game.overlay._process(0.05)
-		stable = stable and label.get_rect() == original_rect and label.text == "进攻 48 人 · 75%"
+		stable = stable and label.get_rect() == original_rect and label.text == "48"
 		var outline: PackedVector2Array = game.overlay._cloud_outline(game.overlay._hint_rect)
-		for vertex: int in outline.size():
-			var first := outline[(vertex + 1) % outline.size()] - outline[vertex]
-			var second := outline[(vertex + 2) % outline.size()] - outline[(vertex + 1) % outline.size()]
-			convex = convex and first.cross(second) >= -0.001
-	check(stable, "a complete background cycle leaves every label coordinate and glyph unchanged")
-	check(convex, "the moving silhouette stays broadly convex without scalloped dents")
+		valid_outline = valid_outline and Geometry2D.triangulate_polygon(outline).size() == (outline.size() - 2) * 3
+		for point: Vector2 in outline:
+			valid_outline = valid_outline and game.overlay._hint_rect.has_point(point)
+	check(stable, "ten seconds of edge flow leave every label coordinate and glyph unchanged")
+	check(valid_outline, "the moving cloud stays well formed and within its reserved screen bounds")
+	check(label.get_theme_font("font") == home.get_node("PopulationLabel").font, "dispatch count uses the same numeric font as building population")
+	game.hovered = home
+	home.population = 1234.0
+	game.percentage = 50
+	game.overlay._process(0.0)
+	check(label.text == "617" and game.overlay._hint_rect.size.x > original_background_width, "reinforcement shows only the dispatched count and expands for extra digits")
 	game._cancel_drag()
 	game.overlay._process(0.0)
 	check(not label.visible, "cancelling dispatch hides the separately drawn text too")
