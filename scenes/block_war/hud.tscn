@@ -31,6 +31,8 @@
 [ext_resource type="Theme" path="res://assets/ui/block_war/skill_tooltip_theme.tres" id="skill_hints"]
 [ext_resource type="Shader" path="res://assets/ui/block_war/action_wash.gdshader" id="action_wash"]
 
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="campaign_theme"]
+
 [sub_resource type="ShaderMaterial" id="ActionWash"]
 shader = ExtResource("action_wash")
 shader_parameter/veil_opacity = 0.14
@@ -1684,503 +1686,462 @@ text = "军令已下达"
 
 [node name="PauseOverlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
-mouse_filter = 0
 visible = false
-color = Color(0.015, 0.045, 0.04, 0.80)
+color = Color(0.79,0.86,0.79,0.94)
+theme = ExtResource("campaign_theme")
 
 [node name="PauseCard" type="Panel" parent="UI/PauseOverlay"]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -230.0
-offset_top = -240.0
-offset_right = 230.0
-offset_bottom = 240.0
-mouse_filter = 0
-theme_override_styles/panel = SubResource("Panel")
+offset_left = -530.0
+offset_top = -315.0
+offset_right = 530.0
+offset_bottom = 315.0
 
 [node name="Eyebrow" type="Label" parent="UI/PauseOverlay/PauseCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 436.0
-offset_bottom = 52.0
+offset_left = 46.0
+offset_top = 32.0
+offset_right = 646.0
+offset_bottom = 64.0
+text = "积木战争  /  小憩片刻"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "积木战争 / 指挥暂歇"
-horizontal_alignment = 1
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
 
 [node name="Title" type="Label" parent="UI/PauseOverlay/PauseCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 24.0
-offset_top = 65.0
-offset_right = 436.0
-offset_bottom = 116.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 37
+offset_left = 568.0
+offset_top = 86.0
+offset_right = 1008.0
+offset_bottom = 148.0
 text = "战场已暂停"
-horizontal_alignment = 1
-theme_override_fonts/font = ExtResource("title")
+mouse_filter = 2
+theme_type_variation = &"MenuTitle"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 42
 
 [node name="Sub" type="Label" parent="UI/PauseOverlay/PauseCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 24.0
-offset_top = 121.0
-offset_right = 436.0
-offset_bottom = 148.0
+offset_left = 568.0
+offset_top = 150.0
+offset_right = 1003.0
+offset_bottom = 180.0
+text = "准备好了，就继续出发。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "每一次出兵，都值得谋定后动。"
-horizontal_alignment = 1
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+
+[node name="PausePortrait" type="TextureRect" parent="UI/PauseOverlay/PauseCard"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 28.0
+offset_top = 75.0
+offset_right = 514.0
+offset_bottom = 533.0
+texture = ExtResource("squirrel_portrait")
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="CompanionNote" type="Label" parent="UI/PauseOverlay/PauseCard"]
+layout_mode = 0
+offset_left = 78.0
+offset_top = 527.0
+offset_right = 462.0
+offset_bottom = 565.0
+text = "伙伴正在等你。"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 25
+
+[node name="Divider194" type="HSeparator" parent="UI/PauseOverlay/PauseCard"]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 194.0
+offset_right = 1000.0
+offset_bottom = 202.0
+mouse_filter = 2
 
 [node name="Resume" type="Button" parent="UI/PauseOverlay/PauseCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 44.0
-offset_top = 180.0
-offset_right = 416.0
-offset_bottom = 230.0
-mouse_filter = 0
+offset_left = 568.0
+offset_top = 221.0
+offset_right = 1000.0
+offset_bottom = 277.0
 text = "继续战斗   Esc"
-focus_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 18
+metadata/ui_motion_hover_scale = 1.01
+theme_type_variation = &"MenuPrimary"
 
 [node name="PauseHelp" type="Button" parent="UI/PauseOverlay/PauseCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 44.0
-offset_top = 244.0
-offset_right = 416.0
-offset_bottom = 294.0
-mouse_filter = 0
+offset_left = 568.0
+offset_top = 291.0
+offset_right = 1000.0
+offset_bottom = 347.0
 text = "查看玩法"
-focus_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 18
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="PauseSettings" type="Button" parent="UI/PauseOverlay/PauseCard"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 568.0
+offset_top = 361.0
+offset_right = 1000.0
+offset_bottom = 417.0
+text = "设置"
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.01
 
 [node name="PauseRestart" type="Button" parent="UI/PauseOverlay/PauseCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 44.0
-offset_top = 308.0
-offset_right = 416.0
-offset_bottom = 358.0
-mouse_filter = 0
+offset_left = 568.0
+offset_top = 431.0
+offset_right = 1000.0
+offset_bottom = 487.0
 text = "重新开战"
-focus_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 18
+metadata/ui_motion_hover_scale = 1.01
 
 [node name="PauseExit" type="Button" parent="UI/PauseOverlay/PauseCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 44.0
-offset_top = 372.0
-offset_right = 416.0
-offset_bottom = 422.0
-mouse_filter = 0
+offset_left = 568.0
+offset_top = 501.0
+offset_right = 1000.0
+offset_bottom = 557.0
 text = "返回大厅"
-focus_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 18
+metadata/ui_motion_hover_scale = 1.01
 
 [node name="HelpOverlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
-mouse_filter = 0
 visible = false
-color = Color(0.015, 0.045, 0.04, 0.80)
+color = Color(0.79,0.86,0.79,0.94)
+theme = ExtResource("campaign_theme")
 
 [node name="HelpCard" type="Panel" parent="UI/HelpOverlay"]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -405.0
-offset_top = -327.0
-offset_right = 405.0
-offset_bottom = 327.0
-mouse_filter = 0
-theme_override_styles/panel = SubResource("Panel")
+offset_left = -620.0
+offset_top = -377.0
+offset_right = 620.0
+offset_bottom = 377.0
 
 [node name="Eyebrow" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 32.0
-offset_top = 22.0
-offset_right = 774.0
-offset_bottom = 49.0
+offset_left = 44.0
+offset_top = 26.0
+offset_right = 1044.0
+offset_bottom = 56.0
+text = "积木战争  /  战场手册"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "战场手册"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
 
 [node name="Title" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 32.0
-offset_top = 57.0
-offset_right = 774.0
-offset_bottom = 105.0
+offset_left = 44.0
+offset_top = 68.0
+offset_right = 1164.0
+offset_bottom = 130.0
+text = "小小伙伴，也能指挥大军。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 33
-text = "连接据点，让军团汇成洪流"
-theme_override_fonts/font = ExtResource("title")
+theme_type_variation = &"MenuTitle"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 40
+
+[node name="Divider144" type="HSeparator" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 144.0
+offset_right = 1196.0
+offset_bottom = 152.0
+mouse_filter = 2
 
 [node name="Heading0" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 124.0
-offset_right = 776.0
-offset_bottom = 149.0
+offset_left = 44.0
+offset_top = 179.0
+offset_right = 594.0
+offset_bottom = 217.0
+text = "01  拖一条线，出发"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
-text = "01  指挥行军"
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 
 [node name="Detail0" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 153.0
-offset_right = 776.0
-offset_bottom = 201.0
+offset_left = 44.0
+offset_top = 226.0
+offset_right = 584.0
+offset_bottom = 329.0
+text = "从自己的建筑拖向目标，松手派兵。\n进攻敌方与中立据点，增援盟友。\n1 / 2 / 3 / 4 切换比例；拖动时滚轮也能调兵。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "只能调遣自己的建筑。拖向敌方/中立据点进攻；向盟友增援，抵达后归队友指挥。\n1 / 2 / 3 / 4（含小键盘）切换 25 / 50 / 75 / 100%；拖动时也可滚轮调兵。"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="Heading1" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 211.0
-offset_right = 776.0
-offset_bottom = 236.0
+offset_left = 658.0
+offset_top = 179.0
+offset_right = 1208.0
+offset_bottom = 217.0
+text = "02  看准地形"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
-text = "02  利用地形"
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 
 [node name="Detail1" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 240.0
-offset_right = 776.0
-offset_bottom = 288.0
+offset_left = 658.0
+offset_top = 226.0
+offset_right = 1198.0
+offset_bottom = 329.0
+text = "部队会沿地形行军，跨越沟壑需要走桥。\n提防炮塔和火焰，双方行军部队可以互相穿行。\n占领敌方全部据点并消灭援军，就能获胜。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "部队从建筑周围就近出发、抵达，无需绕到正门；越过沟壑仍须走桥。\n双方部队互相穿行，留意炮塔与火焰。占领敌方全部据点并消灭援军即可获胜。"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="Heading2" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 298.0
-offset_right = 776.0
-offset_bottom = 323.0
+offset_left = 44.0
+offset_top = 354.0
+offset_right = 594.0
+offset_bottom = 392.0
+text = "03  经营据点"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
-text = "03  三类据点"
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 
 [node name="Detail2" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 327.0
-offset_right = 776.0
-offset_bottom = 395.0
+offset_left = 44.0
+offset_top = 401.0
+offset_right = 584.0
+offset_bottom = 504.0
+text = "住宅自动产兵；升级提高产速与停产人口。\n改建花费 20 人，升级与改建都需 10 秒。\n施工期间保留原功能；失守会降级并中断施工。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "住宅 1—4 级：产速 1 / 1.25 / 1.4 / 1.5，停产人口 30 / 50 / 60 / 80；援军不限。\n改建 20 人；升级/改建 10 秒，期间保留原功能；炮塔升级增射程；失守降级并中断施工。\n炮塔守备 5% / 10% / 15%；铁匠铺每座攻击 +10%，不可升级；攻防先加减，再乘兵力。"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 405.0
-offset_right = 776.0
-offset_bottom = 430.0
+offset_left = 658.0
+offset_top = 354.0
+offset_right = 1208.0
+offset_bottom = 392.0
+text = "04  用好四个技能"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
-text = "04  施放军令"
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 
 [node name="Detail3" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 434.0
-offset_right = 776.0
-offset_bottom = 482.0
+offset_left = 658.0
+offset_top = 401.0
+offset_right = 1198.0
+offset_bottom = 504.0
+text = "拖动图标，或按住 Q / W / E / R 瞄准，松手施放。\n电脑同样受到技力与冷却限制。\n右键或无效落点取消，不扣技力；火攻不分敌我。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "拖动图标或按住 Q / W / E / R 瞄准，松手立即施放；电脑使用相同技力与冷却。\n松鼠的征召与防护罩不叠加；W 在落点建立疾行区域，仅圈内自己的部队提速。\n松鼠 R 立即点燃并快速扩散，接触的双方士兵均死亡；兔子 R 松手即出兵。"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 492.0
-offset_right = 776.0
-offset_bottom = 517.0
+offset_left = 44.0
+offset_top = 530.0
+offset_right = 1196.0
+offset_bottom = 568.0
+text = "05  攻防与视野"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
-text = "05  观察全局"
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 
 [node name="Detail4" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 34.0
-offset_top = 521.0
-offset_right = 776.0
-offset_bottom = 569.0
+offset_left = 44.0
+offset_top = 577.0
+offset_right = 1164.0
+offset_bottom = 680.0
+text = "铁匠铺每座攻击 +10%；炮塔守备 5% / 10% / 15%，先加减再乘兵力。\n屏幕边缘或中键拖动来移动镜头；滚轮缩放；Esc 暂停。"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "鼠标靠近屏幕边缘，或按住中键拖动，即可移动视角。\n滚轮缩放视野；Esc 暂停。右键取消技能拖拽，落在无效位置也会取消，不扣技力。"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="HelpClose" type="Button" parent="UI/HelpOverlay/HelpCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 250.0
-offset_top = 587.0
-offset_right = 560.0
-offset_bottom = 634.0
-mouse_filter = 0
-text = "返回战场"
-focus_mode = 2
+offset_left = 946.0
+offset_top = 655.0
+offset_right = 1190.0
+offset_bottom = 711.0
+text = "返回   Esc"
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 18
+metadata/ui_motion_hover_scale = 1.01
+theme_type_variation = &"MenuPrimary"
 
 [node name="AudioCredits" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0
-offset_left = 34.0
-offset_top = 638.0
-offset_right = 776.0
-offset_bottom = 652.0
-mouse_filter = 1
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.72, 0.77, 0.67, 1)
+offset_left = 44.0
+offset_top = 716.0
+offset_right = 1196.0
+offset_bottom = 740.0
 text = "音效：David McKee / ViRiX、dklon · CC BY 3.0 · soundcloud.com/virix · creativecommons.org/licenses/by/3.0"
-tooltip_text = "素材经过裁切、剪辑与音量调整。完整来源、许可和变更记录随游戏提供于 assets/audio/CREDITS.md。"
-horizontal_alignment = 1
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+tooltip_text = "素材经裁切、剪辑与音量调整。完整来源与许可见 assets/audio/CREDITS.md。"
 
 [node name="ResultOverlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
-mouse_filter = 0
 visible = false
-color = Color(0.015, 0.045, 0.04, 0.80)
+color = Color(0.79,0.86,0.79,0.94)
+theme = ExtResource("campaign_theme")
 
 [node name="ResultCard" type="Panel" parent="UI/ResultOverlay"]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -290.0
-offset_top = -225.0
-offset_right = 290.0
-offset_bottom = 225.0
-mouse_filter = 0
-theme_override_styles/panel = SubResource("Panel")
+offset_left = -530.0
+offset_top = -302.0
+offset_right = 530.0
+offset_bottom = 302.0
+
+[node name="ResultPortrait" type="TextureRect" parent="UI/ResultOverlay/ResultCard"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 18.0
+offset_top = 60.0
+offset_right = 508.0
+offset_bottom = 530.0
+texture = ExtResource("squirrel_portrait")
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
 
 [node name="ResultEyebrow" type="Label" parent="UI/ResultOverlay/ResultCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 26.0
-offset_top = 37.0
-offset_right = 554.0
-offset_bottom = 70.0
+offset_left = 540.0
+offset_top = 74.0
+offset_right = 1005.0
+offset_bottom = 108.0
+text = "积木战争  /  军团凯旋"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "积木战争 / 军团凯旋"
-horizontal_alignment = 1
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
 
 [node name="ResultTitle" type="Label" parent="UI/ResultOverlay/ResultCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 26.0
-offset_top = 91.0
-offset_right = 554.0
-offset_bottom = 183.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 72
-theme_override_colors/font_color = Color(1, 0.65, 0.24, 1)
+offset_left = 535.0
+offset_top = 139.0
+offset_right = 1015.0
+offset_bottom = 243.0
 text = "胜利"
-horizontal_alignment = 1
-theme_override_fonts/font = ExtResource("title")
+mouse_filter = 2
+theme_type_variation = &"MenuTitle"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 76
+
+[node name="Divider268" type="HSeparator" parent="UI/ResultOverlay/ResultCard"]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 268.0
+offset_right = 1004.0
+offset_bottom = 276.0
+mouse_filter = 2
 
 [node name="ResultDetail" type="Label" parent="UI/ResultOverlay/ResultCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 36.0
-offset_top = 207.0
-offset_right = 544.0
-offset_bottom = 274.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
+offset_left = 540.0
+offset_top = 300.0
+offset_right = 995.0
+offset_bottom = 404.0
 text = "敌方已失去全部据点与援军。山谷由你掌控。"
-horizontal_alignment = 1
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
 autowrap_mode = 2
+theme_override_font_sizes/font_size = 22
 
 [node name="ResultRestart" type="Button" parent="UI/ResultOverlay/ResultCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 40.0
-offset_top = 321.0
-offset_right = 280.0
-offset_bottom = 376.0
-mouse_filter = 0
+offset_left = 540.0
+offset_top = 433.0
+offset_right = 1004.0
+offset_bottom = 493.0
 text = "再战一局"
-focus_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 20
+metadata/ui_motion_hover_scale = 1.01
+theme_type_variation = &"MenuPrimary"
 
 [node name="ResultExit" type="Button" parent="UI/ResultOverlay/ResultCard"]
 unique_name_in_owner = true
 layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 300.0
-offset_top = 321.0
-offset_right = 540.0
-offset_bottom = 376.0
-mouse_filter = 0
+offset_left = 540.0
+offset_top = 505.0
+offset_right = 1004.0
+offset_bottom = 557.0
 text = "返回大厅"
-focus_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 20
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="Note" type="Label" parent="UI/ResultOverlay/ResultCard"]
+layout_mode = 0
+offset_left = 69.0
+offset_top = 526.0
+offset_right = 495.0
+offset_bottom = 568.0
+text = "每次出发，都是新的冒险。"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
 
 [node name="SkillDrag" type="Control" parent="UI"]
 unique_name_in_owner = true

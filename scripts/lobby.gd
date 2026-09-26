@@ -184,7 +184,7 @@ func _on_open_block_war(direct_launch: bool = false) -> void:
 	relay.disconnect_relay()
 	session.online = false
 	session.config.clear()
-	var error: Error = session.change_scene("res://scenes/block_war/block_war.tscn" if direct_launch else "res://scenes/block_war/map_select.tscn")
+	var error: Error = session.change_scene("res://scenes/block_war/block_war.tscn" if direct_launch else "res://scenes/block_war/commander_select.tscn")
 	if error != OK:
 		_transitioning = false
 		_set_message("无法载入积木战争，请检查游戏文件。", true)

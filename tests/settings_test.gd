@@ -158,5 +158,8 @@ func run() -> void:
 	silent.music_volume_percent = 0.0
 	settings.apply_preferences(silent)
 	check(settings.music_enabled and AudioServer.is_bus_mute(bgm_bus), "zero music volume is fully silent without clearing the enabled preference")
+	root.get_node("Session/UIFeedback").stop_all()
+	# Let the audio mixer retire the stopped slider cue before destroying its streams.
+	await create_timer(0.12, true, false, true).timeout
 	print("SETTINGS_RESULT ", checks, " checks / ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)

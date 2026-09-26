@@ -2,7 +2,7 @@ extends RefCounted
 ## Commander skill profiles shared by simulation, AI and feedback.
 
 const COMMANDER_ID := &"squirrel"
-const COMMANDER_NAME := "榛果"
+const COMMANDER_NAME := "松鼠"
 const NAMES: Array[String] = ["征召军令", "疾行战鼓", "防护罩", "天降冲击"]
 const COSTS: Array[float] = [30.0, 30.0, 35.0, 70.0]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 70.0]
@@ -51,7 +51,7 @@ static func is_ground(index: int, commander: StringName) -> bool:
 	return index in [0, 2] if commander == RABBIT else index in [1, 3]
 
 static func name_for(commander: StringName) -> String:
-	return "跳豆 · 兔子" if commander == RABBIT else "榛果 · 松鼠"
+	return "兔子" if commander == RABBIT else "松鼠"
 
 static func icons_for(commander: StringName) -> Array[Texture2D]:
 	return RABBIT_ICONS if commander == RABBIT else SQUIRREL_ICONS

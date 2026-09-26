@@ -27,6 +27,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/thumb.svg" id="thumb"]
 [ext_resource type="Texture2D" path="res://assets/ui/medieval/icons/cross.svg" id="cross"]
 
+[sub_resource type="StyleBoxEmpty" id="SettingsSidebar"]
+
 [resource]
 default_font = ExtResource("body")
 default_font_size = 18
@@ -245,3 +247,12 @@ LinkButton/colors/font_focus_color = Color(0.13,0.20,0.17,1)
 LinkButton/colors/font_pressed_color = Color(0.13,0.20,0.17,1)
 VBoxContainer/constants/separation = 10
 HBoxContainer/constants/separation = 12
+
+SettingsText/base_type = &"Label"
+SettingsText/colors/font_color = Color(0.23,0.30,0.28,1)
+SettingsPanel/base_type = &"PanelContainer"
+SettingsPanel/styles/panel = ExtResource("parchment")
+SettingsDialog/base_type = &"PanelContainer"
+SettingsDialog/styles/panel = ExtResource("parchment")
+SettingsSidebar/base_type = &"PanelContainer"
+SettingsSidebar/styles/panel = SubResource("SettingsSidebar")

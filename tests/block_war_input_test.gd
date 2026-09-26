@@ -56,7 +56,14 @@ func run() -> void:
 	mouse(at, MOUSE_BUTTON_LEFT, true)
 	mouse(at, MOUSE_BUTTON_LEFT, false)
 	await scene_changed
-	check(current_scene.scene_file_path == "res://scenes/block_war/map_select.tscn", "native lobby click opens the battlefield picker")
+	check(current_scene.scene_file_path == "res://scenes/block_war/commander_select.tscn", "native lobby click opens the animal picker")
+	while root.get_node("Session").transition.busy:
+		await process_frame
+	at = current_scene.get_node("%Next").get_global_rect().get_center()
+	mouse(at, MOUSE_BUTTON_LEFT, true)
+	mouse(at, MOUSE_BUTTON_LEFT, false)
+	await scene_changed
+	check(current_scene.scene_file_path == "res://scenes/block_war/map_select.tscn", "animal confirmation opens the battlefield picker")
 	while root.get_node("Session").transition.busy:
 		await process_frame
 	at = current_scene.get_node("%Start").get_global_rect().get_center()

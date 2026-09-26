@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/game_settings.gd" id="1_settings"]
 
@@ -6,7 +6,6 @@
 
 [ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="3_theme"]
 
-[ext_resource type="StyleBox" path="res://assets/ui/medieval/styles/parchment.tres" id="med_paper"]
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="med_title"]
 
 [node name="Settings" type="CanvasLayer"]
@@ -57,7 +56,7 @@ mouse_filter = 2
 [node name="Panel" type="PanelContainer" parent="Menu/Center"]
 layout_mode = 2
 custom_minimum_size = Vector2(980,650)
-theme_override_styles/panel = ExtResource("med_paper")
+theme_type_variation = &"SettingsPanel"
 
 [node name="Layout" type="VBoxContainer" parent="Menu/Center/Panel"]
 layout_mode = 2
@@ -71,7 +70,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "积木争霸  /  设置"
 theme_override_font_sizes/font_size = 29
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 theme_override_fonts/font = ExtResource("med_title")
 
@@ -91,13 +90,17 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 30
 
-[node name="Categories" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body"]
+[node name="Sidebar" type="PanelContainer" parent="Menu/Center/Panel/Layout/Body"]
+layout_mode = 2
+theme_type_variation = &"SettingsSidebar"
+
+[node name="Categories" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Sidebar"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(175,0)
 theme_override_constants/separation = 7
 
-[node name="Graphics" type="Button" parent="Menu/Center/Panel/Layout/Body/Categories"]
+[node name="Graphics" type="Button" parent="Menu/Center/Panel/Layout/Body/Sidebar/Categories"]
 layout_mode = 2
 custom_minimum_size = Vector2(0,48)
 toggle_mode = true
@@ -105,7 +108,7 @@ text = "显示"
 alignment = 1
 theme_type_variation = &"MedievalTab"
 
-[node name="Audio" type="Button" parent="Menu/Center/Panel/Layout/Body/Categories"]
+[node name="Audio" type="Button" parent="Menu/Center/Panel/Layout/Body/Sidebar/Categories"]
 layout_mode = 2
 custom_minimum_size = Vector2(0,48)
 toggle_mode = true
@@ -113,7 +116,7 @@ text = "声音"
 alignment = 1
 theme_type_variation = &"MedievalTab"
 
-[node name="Controls" type="Button" parent="Menu/Center/Panel/Layout/Body/Categories"]
+[node name="Controls" type="Button" parent="Menu/Center/Panel/Layout/Body/Sidebar/Categories"]
 layout_mode = 2
 custom_minimum_size = Vector2(0,48)
 toggle_mode = true
@@ -121,7 +124,7 @@ text = "镜头与操作"
 alignment = 1
 theme_type_variation = &"MedievalTab"
 
-[node name="Hotkeys" type="Button" parent="Menu/Center/Panel/Layout/Body/Categories"]
+[node name="Hotkeys" type="Button" parent="Menu/Center/Panel/Layout/Body/Sidebar/Categories"]
 layout_mode = 2
 custom_minimum_size = Vector2(0,48)
 toggle_mode = true
@@ -139,7 +142,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "显示"
 theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 theme_override_fonts/font = ExtResource("med_title")
 
@@ -148,7 +151,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "显示与帧数"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Pages" type="MarginContainer" parent="Menu/Center/Panel/Layout/Body/Content"]
@@ -169,7 +172,7 @@ theme_override_constants/separation = 15
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="FirstPerson" type="Button" parent="Menu/Center/Panel/Layout/Body/Categories"]
+[node name="FirstPerson" type="Button" parent="Menu/Center/Panel/Layout/Body/Sidebar/Categories"]
 layout_mode = 2
 custom_minimum_size = Vector2(155,48)
 text = "第一人称"
@@ -256,7 +259,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "显示模式"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="WindowMode" type="OptionButton" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Graphics/WindowModeRow"]
@@ -274,7 +277,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "分辨率"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Resolution" type="OptionButton" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Graphics/ResolutionRow"]
@@ -292,7 +295,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "垂直同步"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Vsync" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Graphics/VsyncRow"]
@@ -311,7 +314,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "帧数上限"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="FrameLimit" type="OptionButton" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Graphics/FrameLimitRow"]
@@ -325,7 +328,7 @@ layout_mode = 2
 text = "开启垂直同步时，帧率同时受显示器刷新率限制。
 显示模式与分辨率变更会提供 15 秒确认时间。"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="VolumeRow" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
@@ -340,14 +343,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "总音量"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="VolumeValue" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/VolumeRow/Heading"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "50%"
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Volume" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/VolumeRow"]
@@ -368,7 +371,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "声音"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Mute" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MuteRow"]
@@ -387,7 +390,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "背景音乐"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="MusicEnabled" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicEnabledRow"]
@@ -410,14 +413,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "音乐音量"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="MusicVolumeValue" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicVolumeRow/Heading"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "50%"
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="MusicVolume" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio/MusicVolumeRow"]
@@ -433,7 +436,7 @@ value = 50
 layout_mode = 2
 text = "积木战争每局随机选曲并循环，暂停时继续播放。"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="CameraSpeedRow" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls"]
@@ -448,14 +451,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "镜头移动速度"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="CameraValue" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls/CameraSpeedRow/Heading"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "100%"
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="CameraSpeed" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls/CameraSpeedRow"]
@@ -479,14 +482,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "滚轮缩放速度"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="ZoomValue" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls/ZoomSpeedRow/Heading"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "100%"
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="ZoomSpeed" type="HSlider" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls/ZoomSpeedRow"]
@@ -507,7 +510,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "鼠标边缘移动"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="EdgeScroll" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls/EdgeScrollRow"]
@@ -522,7 +525,7 @@ layout_mode = 2
 text = "窗口模式下，鼠标越过窗口边界仍会移动镜头。
 按住鼠标中键也可拖动视角。"
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Hotkeys" type="ScrollContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages"]
@@ -546,7 +549,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "攻击前进"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_attack_move"]
@@ -565,7 +568,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "停止"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_stop"]
@@ -584,7 +587,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "坚守"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_hold"]
@@ -603,7 +606,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "选择大本营"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_select_base"]
@@ -622,7 +625,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "选择全部战斗单位"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_select_army"]
@@ -641,7 +644,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "聚焦所选对象"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_focus"]
@@ -660,7 +663,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "第一项生产 / 建造 / 研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_slot_1"]
@@ -679,7 +682,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "第二项生产 / 建造 / 研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_slot_2"]
@@ -698,7 +701,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "第三项生产 / 建造 / 研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_slot_3"]
@@ -717,7 +720,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "第四项生产 / 建造 / 研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_slot_4"]
@@ -736,7 +739,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "第五项生产 / 建造 / 研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_slot_5"]
@@ -755,7 +758,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "第六项生产 / 建造 / 研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_slot_6"]
@@ -774,7 +777,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "放置箭塔"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_build_tower"]
@@ -793,7 +796,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "删除所选己方资产"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_destroy"]
@@ -812,7 +815,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "取消指派 / 队尾生产或研究"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_cancel"]
@@ -831,7 +834,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "暂停 / 战场菜单 / 继续"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_pause"]
@@ -850,7 +853,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "操作帮助"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_help"]
@@ -869,7 +872,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "隐藏 / 显示界面"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_photo"]
@@ -888,7 +891,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "切换全屏"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_fullscreen"]
@@ -907,7 +910,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "静音"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_mute"]
@@ -926,7 +929,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "选择空闲农民"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_idle_worker"]
@@ -945,7 +948,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "切换编队中的建筑"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_cycle_buildings"]
@@ -964,7 +967,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 1"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group1"]
@@ -983,7 +986,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 2"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group2"]
@@ -1002,7 +1005,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 3"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group3"]
@@ -1021,7 +1024,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 4"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group4"]
@@ -1040,7 +1043,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 5"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group5"]
@@ -1059,7 +1062,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 6"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group6"]
@@ -1078,7 +1081,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 7"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group7"]
@@ -1097,7 +1100,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 8"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group8"]
@@ -1116,7 +1119,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "编队 9"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_group9"]
@@ -1135,7 +1138,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "镜头向左"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_pan_left"]
@@ -1154,7 +1157,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "镜头向右"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_pan_right"]
@@ -1173,7 +1176,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "镜头向前"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_pan_up"]
@@ -1192,7 +1195,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "镜头向后"
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Bind" type="Button" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/HotkeyRows/rts_pan_down"]
@@ -1208,7 +1211,7 @@ custom_minimum_size = Vector2(0,40)
 text = ""
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 
 [node name="Divider2" type="HSeparator" parent="Menu/Center/Panel/Layout"]
@@ -1284,7 +1287,7 @@ grow_vertical = 2
 [node name="Panel" type="PanelContainer" parent="Menu/DisplayConfirm/Center"]
 layout_mode = 2
 custom_minimum_size = Vector2(520,220)
-theme_override_styles/panel = ExtResource("med_paper")
+theme_type_variation = &"SettingsDialog"
 
 [node name="Content" type="VBoxContainer" parent="Menu/DisplayConfirm/Center/Panel"]
 layout_mode = 2
@@ -1296,7 +1299,7 @@ layout_mode = 2
 text = "是否保留当前显示设置？"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 23
-theme_override_colors/font_color = Color(0.23,0.30,0.28,1)
+theme_type_variation = &"SettingsText"
 theme_override_constants/shadow_offset_y = 0
 theme_override_fonts/font = ExtResource("med_title")
 
@@ -1314,3 +1317,99 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "保留设置"
+
+[node name="WarHotkeys" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Row0" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row0"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "派兵比例"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row0"]
+layout_mode = 2
+text = "1 / 2 / 3 / 4"
+
+[node name="Row1" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row1"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "施放技能"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row1"]
+layout_mode = 2
+text = "按住 Q / W / E / R，松手施放"
+
+[node name="Row2" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "取消技能"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row2"]
+layout_mode = 2
+text = "鼠标右键"
+
+[node name="Row3" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row3"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "移动镜头"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row3"]
+layout_mode = 2
+text = "屏幕边缘 / 中键拖动"
+
+[node name="Row4" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row4"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "缩放视野"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row4"]
+layout_mode = 2
+text = "鼠标滚轮"
+
+[node name="Row5" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row5"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "暂停 / 返回"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row5"]
+layout_mode = 2
+text = "Esc"
+
+[node name="Row6" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,35)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row6"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "查看玩法"
+
+[node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/WarHotkeys/Row6"]
+layout_mode = 2
+text = "F1"

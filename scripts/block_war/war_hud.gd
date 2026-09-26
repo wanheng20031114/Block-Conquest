@@ -48,6 +48,8 @@ func _ready() -> void:
 	%Exit.pressed.connect(_open_exit)
 	%Resume.pressed.connect(func(): resume_requested.emit())
 	%PauseHelp.pressed.connect(_open_help)
+	%PauseSettings.pressed.connect(_open_settings)
+	get_node("/root/Session/Settings").closed.connect(_settings_closed)
 	%PauseRestart.pressed.connect(func(): restart_requested.emit())
 	%PauseExit.pressed.connect(func(): exit_requested.emit())
 	%HelpClose.pressed.connect(_close_help)
@@ -83,6 +85,8 @@ func update_state(state: Dictionary) -> void:
 	if _commander != commander:
 		_commander = commander
 		$UI/Player/Icon.texture = SKILL_RULES.PORTRAITS[commander]
+		%PausePortrait.texture = SKILL_RULES.PORTRAITS[commander]
+		%ResultPortrait.texture = SKILL_RULES.PORTRAITS[commander]
 		for index: int in 4:
 			_skill_buttons[index].get_node("Icon").texture = SKILL_RULES.icons_for(commander)[index]
 	if _enemy_commander != state.enemy_commander:
@@ -391,7 +395,17 @@ func _open_exit() -> void:
 	pause_requested.emit()
 	%PauseExit.grab_focus()
 
+func _open_settings() -> void:
+	ui_sound_requested.emit(&"war_select")
+	get_node("/root/Session/Settings").open_menu()
+
+func _settings_closed() -> void:
+	if %PauseOverlay.visible:
+		%PauseSettings.grab_focus(true)
+
 func _unhandled_key_input(event: InputEvent) -> void:
+	if get_node("/root/Session/Settings").is_open():
+		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 	var code: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode

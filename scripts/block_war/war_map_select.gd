@@ -15,26 +15,23 @@ func _ready() -> void:
 	for index: int in 2:
 		get_node("%%Map%d" % index).pressed.connect(_select_map.bind(index))
 	%Start.pressed.connect(_start)
-	%Back.pressed.connect(func(): session.back_to_lobby())
+	%Back.pressed.connect(_back)
+	%Settings.pressed.connect(session.settings.open_menu)
 	for index: int in 2:
-		get_node("%%PlayerCommander%d" % index).pressed.connect(_select_commander.bind(index, false))
-		get_node("%%OpponentCommander%d" % index).pressed.connect(_select_commander.bind(index, true))
-		for side: String in ["Player", "Opponent"]:
-			get_node("%%%sCommander%d" % [side, index]).tooltip_text = " · ".join(RULES.names_for(COMMANDERS[index]))
-	_select_commander(COMMANDERS.find(session.block_war_commander), false)
-	_select_commander(COMMANDERS.find(session.block_war_opponent_commander), true)
+		get_node("%%OpponentCommander%d" % index).pressed.connect(_select_commander.bind(index))
+		get_node("%%OpponentCommander%d" % index).tooltip_text = " · ".join(RULES.names_for(COMMANDERS[index]))
+	_select_commander(COMMANDERS.find(session.block_war_opponent_commander))
+	%PlayerPortrait.texture = RULES.PORTRAITS[session.block_war_commander]
+	%PlayerName.text = "%s已准备好" % RULES.name_for(session.block_war_commander)
 	selected = CATALOG.find_map(session.block_war_map_id)
 	_select_size(selected.size_class)
 	UIMotion.bind_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 
-func _select_commander(index: int, opponent: bool) -> void:
-	if opponent:
-		session.block_war_opponent_commander = COMMANDERS[index]
-	else:
-		session.block_war_commander = COMMANDERS[index]
+func _select_commander(index: int) -> void:
+	session.block_war_opponent_commander = COMMANDERS[index]
 	for i: int in 2:
-		get_node("%%%sCommander%d" % ["Opponent" if opponent else "Player", i]).set_pressed_no_signal(i == index)
+		get_node("%%OpponentCommander%d" % i).set_pressed_no_signal(i == index)
 
 func _select_size(size_class: int) -> void:
 	_maps.clear()
@@ -51,17 +48,18 @@ func _select_size(size_class: int) -> void:
 
 func _select_map(index: int) -> void:
 	selected = _maps[index]
+	session.block_war_map_id = selected.map_id
 	for i: int in 2:
 		get_node("%%Map%d" % i).set_pressed_no_signal(i == index)
 	%MapName.text = selected.title
 	%MapInfo.text = "%s型战场   ·   %s   ·   %d × %d 米   ·   %d 座据点" % [["小", "中", "大"][selected.size_class], selected.mode_label(), selected.half_size.x * 2, selected.half_size.y * 2, selected.building_positions.size()]
 	%Description.text = selected.description
 	%Teams.text = "你对战 1 名电脑" if selected.team_size == 1 else "你 + %d 名电脑盟友，对战 %d 名电脑\n增援抵达队友建筑后，交由队友指挥。" % [selected.team_size - 1, selected.team_size]
-	%Start.text = "开始 %s 对局" % selected.mode_label()
+	%Start.text = "开始 %s 对局   →" % selected.mode_label()
 	%Preview.show_map(selected)
 
 func _start() -> void:
-	if _launching or session.transition.busy:
+	if _launching or session.transition.busy or session.settings.is_open():
 		return
 	_launching = true
 	%Start.disabled = true
@@ -71,7 +69,13 @@ func _start() -> void:
 		%Start.disabled = false
 		%Teams.text = "地图载入失败，请检查游戏文件后重试。"
 
+func _back() -> void:
+	if not _launching and not session.transition.busy:
+		session.change_scene("res://scenes/block_war/commander_select.tscn")
+
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and not _launching:
-		session.back_to_lobby()
+	if session.settings.is_open():
+		return
+	if event.is_action_pressed("ui_cancel"):
+		_back()
 		get_viewport().set_input_as_handled()

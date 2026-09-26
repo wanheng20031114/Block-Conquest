@@ -1,57 +1,37 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_map_select.gd" id="script"]
+
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
+
+[ext_resource type="Shader" path="res://assets/ui/block_war/menu_backdrop.gdshader" id="backdrop"]
+
 [ext_resource type="Script" path="res://scripts/block_war/war_map_preview.gd" id="preview"]
-[ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
+
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/squirrel.png" id="squirrel"]
+
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/rabbit.png" id="rabbit"]
 
-[sub_resource type="StyleBoxFlat" id="Panel"]
-bg_color = Color(0.11, 0.17, 0.145, 0.98)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.42, 0.46, 0.35, 0.65)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_left = 16
-corner_radius_bottom_right = 16
-content_margin_left = 28.0
-content_margin_top = 24.0
-content_margin_right = 28.0
-content_margin_bottom = 24.0
+[sub_resource type="ShaderMaterial" id="Background"]
+shader = ExtResource("backdrop")
 
-[sub_resource type="StyleBoxFlat" id="Button"]
-bg_color = Color(0.20, 0.26, 0.205, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_left = 8
-corner_radius_bottom_right = 8
-content_margin_left = 20.0
-content_margin_right = 20.0
+[sub_resource type="StyleBoxFlat" id="Rail"]
+bg_color = Color(0.30,0.285,0.238,1)
+corner_radius_bottom_right = 48
 
-[sub_resource type="StyleBoxFlat" id="Selected"]
-bg_color = Color(0.40, 0.30, 0.14, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.93, 0.78, 0.43, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_left = 8
-corner_radius_bottom_right = 8
-content_margin_left = 20.0
-content_margin_right = 20.0
+[sub_resource type="StyleBoxFlat" id="Stage"]
+bg_color = Color(0.98,0.97,0.86,0.48)
+corner_radius_top_left = 190
+corner_radius_top_right = 220
+corner_radius_bottom_left = 225
+corner_radius_bottom_right = 175
+corner_detail = 32
 
 [node name="MapSelect" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 theme = ExtResource("theme")
 script = ExtResource("script")
 
@@ -60,7 +40,42 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.055, 0.10, 0.085, 1)
+grow_horizontal = 2
+grow_vertical = 2
+material = SubResource("Background")
+mouse_filter = 2
+
+[node name="Rail" type="Panel" parent="."]
+layout_mode = 1
+anchor_bottom = 1.0
+offset_right = 92.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Rail")
+
+[node name="Brand" type="Label" parent="Rail"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 46.0
+offset_right = 70.0
+offset_bottom = 260.0
+text = "积\n木\n战\n争"
+theme_type_variation = &"MenuHeading"
+theme_override_colors/font_color = Color(0.98,0.95,0.82,1)
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Step" type="Label" parent="Rail"]
+layout_mode = 1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_right = 74.0
+offset_top = -102.0
+offset_bottom = -48.0
+text = "02"
+theme_type_variation = &"MenuHeading"
+theme_override_colors/font_color = Color(0.96,0.79,0.36,1)
+horizontal_alignment = 1
 mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="."]
@@ -68,328 +83,278 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 72
-theme_override_constants/margin_top = 42
-theme_override_constants/margin_right = 72
-theme_override_constants/margin_bottom = 42
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 140
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_bottom = 32
 
 [node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 18
 
 [node name="Header" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
+custom_minimum_size = Vector2(0,90)
+theme_override_constants/separation = 16
 
 [node name="Heading" type="VBoxContainer" parent="Margin/Column/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Eyebrow" type="Label" parent="Margin/Column/Header/Heading"]
+layout_mode = 2
+mouse_filter = 2
+text = "01  选择动物     /     02  选择战场"
+theme_type_variation = &"MenuMuted"
+
 
 [node name="Title" type="Label" parent="Margin/Column/Header/Heading"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 38
-theme_override_colors/font_color = Color(0.96, 0.91, 0.74, 1)
-text = "积木战争 · 选择战场"
+mouse_filter = 2
+text = "下一站，去哪里？"
+theme_type_variation = &"MenuTitle"
 
-[node name="Subtitle" type="Label" parent="Margin/Column/Header/Heading"]
+
+[node name="Settings" type="Button" parent="Margin/Column/Header"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.7, 0.76, 0.64, 1)
-text = "经营据点，协同进军。在不同地形中找到你的战术。"
+mouse_default_cursor_shape = 2
+text = "设置"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(108,48)
+size_flags_vertical = 4
 
 [node name="Back" type="Button" parent="Margin/Column/Header"]
-metadata/ui_sound = &"cancel"
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(144, 48)
+mouse_default_cursor_shape = 2
+text = "返回"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(108,48)
 size_flags_vertical = 4
-text = "返回大厅"
-
-[node name="Sizes" type="HBoxContainer" parent="Margin/Column"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Size0" type="Button" parent="Margin/Column/Sizes"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 58)
-size_flags_horizontal = 3
-toggle_mode = true
-text = "小型  ·  1v1"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_focus_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
-
-[node name="Size1" type="Button" parent="Margin/Column/Sizes"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 58)
-size_flags_horizontal = 3
-toggle_mode = true
-text = "中型  ·  2v2"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_focus_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
-
-[node name="Size2" type="Button" parent="Margin/Column/Sizes"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 58)
-size_flags_horizontal = 3
-toggle_mode = true
-text = "大型  ·  3v3"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_focus_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
+theme_type_variation = &"MenuBack"
+metadata/ui_sound = &"cancel"
 
 [node name="Content" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 24
+theme_override_constants/separation = 48
 
-[node name="Details" type="PanelContainer" parent="Margin/Column/Content"]
+[node name="Overview" type="VBoxContainer" parent="Margin/Column/Content"]
 layout_mode = 2
-custom_minimum_size = Vector2(400, 0)
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.7
-theme_override_styles/panel = SubResource("Panel")
+size_flags_stretch_ratio = 1.3
+theme_override_constants/separation = 8
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/Content/Details"]
+[node name="MapName" type="Label" parent="Margin/Column/Content/Overview"]
+unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
+text = "裂谷交汇"
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 36
+
+[node name="MapInfo" type="Label" parent="Margin/Column/Content/Overview"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "小型战场 · 1v1"
+theme_type_variation = &"MenuMuted"
+
+
+[node name="Preview" type="Control" parent="Margin/Column/Content/Overview"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(580,380)
+size_flags_vertical = 3
+script = ExtResource("preview")
+mouse_filter = 2
+
+[node name="Legend" type="Label" parent="Margin/Column/Content/Overview"]
+layout_mode = 2
+mouse_filter = 2
+text = "暖色  我方     冷色  敌方     灰白  中立\n● 住宅     ■ 炮塔     ◆ 铁匠铺"
+theme_type_variation = &"MenuMuted"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="Details" type="VBoxContainer" parent="Margin/Column/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(540,0)
+size_flags_horizontal = 3
+size_flags_vertical = 4
 theme_override_constants/separation = 18
 
-[node name="Map0" type="Button" parent="Margin/Column/Content/Details/Column"]
-unique_name_in_owner = true
+[node name="SizeHeading" type="Label" parent="Margin/Column/Content/Details"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 58)
-toggle_mode = true
-text = "裂谷交汇"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_focus_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
-
-[node name="Map1" type="Button" parent="Margin/Column/Content/Details/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 58)
-toggle_mode = true
-text = "林湖回廊"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_focus_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
-
-[node name="Description" type="Label" parent="Margin/Column/Content/Details/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(0.93, 0.9, 0.77, 1)
-text = "地形说明"
-autowrap_mode = 2
-vertical_alignment = 1
-
-[node name="Teams" type="Label" parent="Margin/Column/Content/Details/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 72)
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.75, 0.82, 0.69, 1)
-text = "你对战 1 名电脑"
-autowrap_mode = 2
-
-[node name="Start" type="Button" parent="Margin/Column/Content/Details/Column"]
-metadata/ui_sound = &"order"
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 64)
-theme_override_font_sizes/font_size = 25
-text = "开始 1v1 对局"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_focus_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Selected")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-
-[node name="Overview" type="PanelContainer" parent="Margin/Column/Content"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("Panel")
-
-[node name="Column" type="VBoxContainer" parent="Margin/Column/Content/Overview"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="MapName" type="Label" parent="Margin/Column/Content/Overview/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-theme_override_colors/font_color = Color(0.98, 0.91, 0.70, 1)
-text = "裂谷交汇"
-
-[node name="MapInfo" type="Label" parent="Margin/Column/Content/Overview/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.72, 0.77, 0.65, 1)
-text = "小型战场 · 1v1 · 80 × 56 米 · 13 座据点"
-
-[node name="Preview" type="Control" parent="Margin/Column/Content/Overview/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 190)
-size_flags_vertical = 3
 mouse_filter = 2
-script = ExtResource("preview")
+text = "战场规模"
+theme_type_variation = &"MenuHeading"
 
-[node name="Legend" type="Label" parent="Margin/Column/Content/Overview/Column"]
+
+[node name="Sizes" type="HBoxContainer" parent="Margin/Column/Content/Details"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.72, 0.77, 0.65, 1)
-text = "暖色：我方  ·  冷色：敌方  ·  灰白：中立\n圆点：住宅  ·  方块：炮塔  ·  菱形：铁匠铺"
-horizontal_alignment = 1
+theme_override_constants/separation = 10
 
-[node name="Commanders" type="VBoxContainer" parent="Margin/Column/Content/Overview/Column"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="PlayerRow" type="HBoxContainer" parent="Margin/Column/Content/Overview/Column/Commanders"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Label" type="Label" parent="Margin/Column/Content/Overview/Column/Commanders/PlayerRow"]
-layout_mode = 2
-custom_minimum_size = Vector2(64, 0)
-text = "我方"
-theme_override_colors/font_color = Color(0.93, 0.90, 0.77, 1)
-theme_override_font_sizes/font_size = 17
-
-[node name="PlayerCommander0" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/PlayerRow"]
+[node name="Size0" type="Button" parent="Margin/Column/Content/Details/Sizes"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 44)
+mouse_default_cursor_shape = 2
+text = "小型 · 1v1"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,52)
 size_flags_horizontal = 3
 toggle_mode = true
-focus_mode = 0
+theme_override_font_sizes/font_size = 19
+
+[node name="Size1" type="Button" parent="Margin/Column/Content/Details/Sizes"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "中型 · 2v2"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,52)
+size_flags_horizontal = 3
+toggle_mode = true
+theme_override_font_sizes/font_size = 19
+
+[node name="Size2" type="Button" parent="Margin/Column/Content/Details/Sizes"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "大型 · 3v3"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,52)
+size_flags_horizontal = 3
+toggle_mode = true
+theme_override_font_sizes/font_size = 19
+
+[node name="Maps" type="VBoxContainer" parent="Margin/Column/Content/Details"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Map0" type="Button" parent="Margin/Column/Content/Details/Maps"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "战场"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,60)
+toggle_mode = true
+alignment = 0
+theme_override_font_sizes/font_size = 24
+
+[node name="Map1" type="Button" parent="Margin/Column/Content/Details/Maps"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "战场"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,60)
+toggle_mode = true
+alignment = 0
+theme_override_font_sizes/font_size = 24
+
+[node name="Description" type="Label" parent="Margin/Column/Content/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "地形说明"
+custom_minimum_size = Vector2(0,84)
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 19
+
+[node name="Divider" type="HSeparator" parent="Margin/Column/Content/Details"]
+layout_mode = 2
+
+
+[node name="OpponentHeading" type="Label" parent="Margin/Column/Content/Details"]
+layout_mode = 2
+mouse_filter = 2
+text = "对手的伙伴"
+theme_type_variation = &"MenuHeading"
+
+
+[node name="Opponents" type="HBoxContainer" parent="Margin/Column/Content/Details"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="OpponentCommander0" type="Button" parent="Margin/Column/Content/Details/Opponents"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "松鼠"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,64)
+size_flags_horizontal = 3
+toggle_mode = true
 icon = ExtResource("squirrel")
 expand_icon = true
 texture_filter = 1
-theme_override_constants/icon_max_width = 36
-theme_override_font_sizes/font_size = 17
-text = "榛果 · 松鼠"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
+theme_override_constants/icon_max_width = 48
 
-[node name="PlayerCommander1" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/PlayerRow"]
+[node name="OpponentCommander1" type="Button" parent="Margin/Column/Content/Details/Opponents"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 44)
+mouse_default_cursor_shape = 2
+text = "兔子"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,64)
 size_flags_horizontal = 3
 toggle_mode = true
-focus_mode = 0
 icon = ExtResource("rabbit")
 expand_icon = true
 texture_filter = 1
-theme_override_constants/icon_max_width = 36
-theme_override_font_sizes/font_size = 17
-text = "跳豆 · 兔子"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
+theme_override_constants/icon_max_width = 48
 
-[node name="OpponentRow" type="HBoxContainer" parent="Margin/Column/Content/Overview/Column/Commanders"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Label" type="Label" parent="Margin/Column/Content/Overview/Column/Commanders/OpponentRow"]
-layout_mode = 2
-custom_minimum_size = Vector2(64, 0)
-text = "敌方"
-theme_override_colors/font_color = Color(0.93, 0.90, 0.77, 1)
-theme_override_font_sizes/font_size = 17
-
-[node name="OpponentCommander0" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/OpponentRow"]
+[node name="Teams" type="Label" parent="Margin/Column/Content/Details"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 44)
-size_flags_horizontal = 3
-toggle_mode = true
-focus_mode = 0
-icon = ExtResource("squirrel")
-expand_icon = true
-texture_filter = 1
-theme_override_constants/icon_max_width = 36
-theme_override_font_sizes/font_size = 17
-text = "榛果 · 松鼠"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
+mouse_filter = 2
+text = "你对战 1 名电脑"
+theme_type_variation = &"MenuMuted"
+custom_minimum_size = Vector2(0,55)
+autowrap_mode = 2
 
-[node name="OpponentCommander1" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/OpponentRow"]
+[node name="Divider" type="HSeparator" parent="Margin/Column"]
+layout_mode = 2
+
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,72)
+theme_override_constants/separation = 16
+
+[node name="PlayerPortrait" type="TextureRect" parent="Margin/Column/Footer"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 44)
-size_flags_horizontal = 3
-toggle_mode = true
-focus_mode = 0
-icon = ExtResource("rabbit")
-expand_icon = true
+mouse_filter = 2
+texture = ExtResource("squirrel")
+expand_mode = 1
+stretch_mode = 5
+custom_minimum_size = Vector2(64,64)
 texture_filter = 1
-theme_override_constants/icon_max_width = 36
-theme_override_font_sizes/font_size = 17
-text = "跳豆 · 兔子"
-theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
-theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
-theme_override_styles/normal = SubResource("Button")
-theme_override_styles/hover = SubResource("Selected")
-theme_override_styles/pressed = SubResource("Selected")
-theme_override_styles/hover_pressed = SubResource("Selected")
+
+[node name="PlayerName" type="Label" parent="Margin/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "松鼠已准备好"
+theme_type_variation = &"MenuHeading"
+size_flags_horizontal = 3
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="Start" type="Button" parent="Margin/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "开始 1v1 对局   →"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(300,60)
+size_flags_vertical = 4
+theme_type_variation = &"MenuPrimary"
+metadata/ui_sound = &"order"

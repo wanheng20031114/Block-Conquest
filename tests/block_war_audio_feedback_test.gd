@@ -139,11 +139,11 @@ func _run() -> void:
 	var feedback: Node = root.get_node("Session/UIFeedback")
 	feedback.stop_all()
 	feedback.sound_played.connect(func(kind: StringName): menu_sounds.append(kind))
-	change_scene_to_file("res://scenes/block_war/map_select.tscn")
+	change_scene_to_file("res://scenes/block_war/commander_select.tscn")
 	await scene_changed
 	await create_timer(.25).timeout
 	check(menu_sounds.is_empty(), "restoring selected map and commander does not make fake click sounds")
-	var pick: Button = current_scene.get_node("%PlayerCommander1")
+	var pick: Button = current_scene.get_node("%Animal1")
 	mouse(pick.get_global_rect().get_center(), true)
 	mouse(pick.get_global_rect().get_center(), false)
 	check(menu_sounds == [&"select"], "native commander click is audible exactly once")
@@ -159,6 +159,15 @@ func _run() -> void:
 	settings.menu.get_node("%Volume").value_changed.emit(46.0)
 	check(menu_sounds == [&"ratio"], "settings slider provides one rate-limited tactile cue")
 	settings.close_menu()
+	feedback.stop_all()
+	menu_sounds.clear()
+	var next: Button = current_scene.get_node("%Next")
+	mouse(next.get_global_rect().get_center(), true)
+	mouse(next.get_global_rect().get_center(), false)
+	check(menu_sounds == [&"order"], "animal confirmation emits one confirmation cue")
+	await scene_changed
+	while root.get_node("Session").transition.busy:
+		await process_frame
 	feedback.stop_all()
 	menu_sounds.clear()
 	var start: Button = current_scene.get_node("%Start")

@@ -327,11 +327,17 @@ func _ai_decisions() -> void:
 
 func _selector() -> void:
 	await game.prepare_shutdown()
+	change_scene_to_file("res://scenes/block_war/commander_select.tscn")
+	await scene_changed
+	await process_frame
+	var animal: Button = current_scene.get_node("%Animal0")
+	mouse(animal.get_global_rect().get_center(), true)
+	mouse(animal.get_global_rect().get_center(), false)
 	change_scene_to_file("res://scenes/block_war/map_select.tscn")
 	await scene_changed
 	await process_frame
 	var picker := current_scene
-	for path: String in ["%PlayerCommander0", "%OpponentCommander1"]:
+	for path: String in ["%OpponentCommander1"]:
 		var at: Vector2 = picker.get_node(path).get_global_rect().get_center()
 		mouse(at, true)
 		mouse(at, false)

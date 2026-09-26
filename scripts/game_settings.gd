@@ -213,6 +213,8 @@ func binding_error(action: String, key: Key, keys: Dictionary) -> String:
 
 func open_menu() -> void:
 	if is_open(): return
+	var scene := get_tree().current_scene
+	menu.set_campaign_style(scene != null and scene.scene_file_path.begins_with("res://scenes/block_war/"))
 	menu.refresh(snapshot())
 	menu.show()
 	UIMotion.reveal(menu.get_node("Center/Panel"))
