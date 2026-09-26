@@ -44,7 +44,7 @@ def layouts():
         def number(key):
             return float(re.search(rf"^{key} = ([^\n]+)", record, re.M)[1])
         homes.append((x, z, int(number("kind")), int(number("faction")), number("population")))
-    common = dict(size=0, half=(40, 28), team=1, water=[], mountains=[], bridges=[], color=(0.29, 0.405, 0.235))
+    common = dict(size=0, half=(40, 28), team=1, water=[], mountains=[], bridges=[], color=(0.34, 0.49, 0.255))
     maps = [dict(common, id="rift", title="裂谷交汇", description="两道溪谷、四座石桥。保留原有的小型战场，争夺中央住宅与桥头炮塔。", buildings=homes,
                  water=[(-15, -68, 6, 136), (9, -68, 6, 136)], bridges=[(x, z - 3.2, 6, 6.4) for x in (-15, 9) for z in (-14, 14)])]
     maps.append(dict(common, id="lake", title="林湖回廊", half=(40, 30), description="湖泊隔开两军，南北两条林间回廊连接战场。绕行扩张与侧翼增援同样重要。",
@@ -56,7 +56,7 @@ def layouts():
                      buildings=starts(48, [-26, 26]) + mirrored([48], [-6, 6]) + mirrored([28], [-30, 30])
                      + mirrored([28], [-7, 7], 1, 22) + mirrored([38], [-17, 17], 2, 18)
                      + [building(0, z, 1 if z == 0 else 0, population=30 if z == 0 else 20) for z in (-32, -16, 0, 16, 32)]))
-    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.355, 0.405, 0.285), description="两段岩脊将战场分成中央谷口和两端山道。队友可以守住谷口，也可沿外围迂回。",
+    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.39, 0.47, 0.28), description="两段岩脊将战场分成中央谷口和两端山道。队友可以守住谷口，也可沿外围迂回。",
                      mountains=[(-6, -34, 12, 20), (-6, 14, 12, 20)],
                      buildings=starts(48, [-26, 26]) + mirrored([48], [-6, 6]) + mirrored([30], [-30, 30])
                      + mirrored([30], [-10, 10], 2, 18) + mirrored([16], [-22, 22], 1, 24)
@@ -68,7 +68,7 @@ def layouts():
                      buildings=starts(68, [-42, 0, 42]) + mirrored([46], [-42, 0, 42]) + mirrored([68, 46], [-21, 21])
                      + [building(x, z, 2 if x == 0 else 0, population=22) for z in (-42, 0, 42) for x in (-10, 0, 10)]
                      + mirrored([78], [-35, 10, 35], 2, 18) + mirrored([34], [-42, 0, 42], 1, 25)))
-    maps.append(dict(large, id="highland", title="环湖高原", half=(84, 64), color=(0.34, 0.395, 0.255), description="宽阔湖面围绕中央石台，南北高原与中央长桥形成三条不同长度的通道。控制中央也要兼顾两翼。",
+    maps.append(dict(large, id="highland", title="环湖高原", half=(84, 64), color=(0.365, 0.465, 0.26), description="宽阔湖面围绕中央石台，南北高原与中央长桥形成三条不同长度的通道。控制中央也要兼顾两翼。",
                      water=[(-20, -30, 40, 60)], bridges=[(-22, -4.5, 44, 9), (-8, -8, 16, 16)],
                      buildings=starts(68, [-44, 0, 44]) + mirrored([46], [-44, 0, 44]) + mirrored([68, 44], [-22, 22])
                      + mirrored([30], [-44, 0, 44], 1, 25) + mirrored([58], [-50, -12, 12, 50], 2, 18)
@@ -156,12 +156,16 @@ shader_parameter/paths = PackedVector4Array({', '.join(str(v) for path in paths 
                 nodes.append(f'[node name="Land{ix}_{iz}" type="MeshInstance3D" parent="Terrain"]\nposition = {vec((x, -1.6, z))}\nscale = {vec((right - left, 3.2, bottom - top))}\nmesh = SubResource("Cube")\nmaterial_override = SubResource("Ground")')
     if layout["water"]:
         externals.append(f'[ext_resource type="Shader" path="{ENV}map_water.gdshader" id="water_shader"]')
-        resources.append('[sub_resource type="ShaderMaterial" id="Water"]\nshader = ExtResource("water_shader")\nshader_parameter/surface_noise = ExtResource("noise")')
-        resources.append('[sub_resource type="StandardMaterial3D" id="BankStone"]\nalbedo_color = Color(1, 1, 1, 1)\nvertex_color_use_as_albedo = true\nvertex_color_is_srgb = true\nroughness = 0.93')
+        externals.extend([
+            f'[ext_resource type="Texture2D" path="{ENV}water_noise.tres" id="water_noise"]',
+            f'[ext_resource type="Texture2D" path="{ENV}water_normals.tres" id="water_normals"]',
+            f'[ext_resource type="Material" path="{ENV}shore_rock.tres" id="shore_rock_material"]',
+        ])
+        resources.append('[sub_resource type="ShaderMaterial" id="Water"]\nshader = ExtResource("water_shader")\nshader_parameter/surface_noise = ExtResource("water_noise")\nshader_parameter/wave_normals = ExtResource("water_normals")')
         for layer, name in (("bank_grass", "ShoreGrass"), ("bank_stone", "ShoreRock"), ("water", "Water")):
             externals.append(f'[ext_resource type="ArrayMesh" path="{ENV}maps/{layout["id"]}_{layer}.res" id="shore_{layer}"]')
-            material = {"water": "Water", "bank_grass": "Ground", "bank_stone": "BankStone"}[layer]
-            override = f'\nmaterial_override = SubResource("{material}")'
+            material = {"water": 'SubResource("Water")', "bank_grass": 'SubResource("Ground")', "bank_stone": 'ExtResource("shore_rock_material")'}[layer]
+            override = f'\nmaterial_override = {material}'
             nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="Terrain"]\nmesh = ExtResource("shore_{layer}"){override}')
     ext, sub, children = author_bridges(layout)
     externals.extend(ext)

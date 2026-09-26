@@ -38,7 +38,7 @@
 shader = ExtResource("ground_shader")
 shader_parameter/meadow_noise = ExtResource("noise")
 shader_parameter/half_size = Vector2(60, 44)
-shader_parameter/meadow = Color(0.355, 0.405, 0.285, 1)
+shader_parameter/meadow = Color(0.39, 0.47, 0.28, 1)
 shader_parameter/site_count = 27
 shader_parameter/sites = PackedVector2Array(-48, -26, 48, -26, -48, 26, 48, 26, -48, -6, 48, -6, -48, 6, 48, 6, -30, -30, 30, -30, -30, 30, 30, 30, -30, -10, 30, -10, -30, 10, 30, 10, -16, -22, 16, -22, -16, 22, 16, 22, -14, -39, 14, -39, -14, 39, 14, 39, 0, 0, -14, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/path_count = 46

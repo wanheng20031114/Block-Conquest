@@ -3,6 +3,8 @@
 [ext_resource type="ArrayMesh" path="res://scenes/maps/twin_valleys_2v2_ground_stone.res" id="1_5774b"]
 [ext_resource type="ArrayMesh" path="res://scenes/maps/twin_valleys_2v2_ground_earth.res" id="2_q2p5h"]
 
+[ext_resource type="Material" path="res://assets/models/environment/skirmish_meadow.tres" id="meadow_material"]
+
 [node name="TwinValleys2v2Ground" type="Node3D" unique_id=484706437]
 
 [node name="Stone" type="MeshInstance3D" parent="." unique_id=1859364964]
@@ -10,5 +12,6 @@ cast_shadow = 0
 mesh = ExtResource("1_5774b")
 
 [node name="Earth" type="MeshInstance3D" parent="." unique_id=1152099500]
+material_override = ExtResource("meadow_material")
 cast_shadow = 0
 mesh = ExtResource("2_q2p5h")

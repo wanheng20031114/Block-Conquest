@@ -3,6 +3,8 @@
 [ext_resource type="ArrayMesh" path="res://scenes/maps/triad_basin_2v2v2_ground_stone.res" id="1_gdpfn"]
 [ext_resource type="ArrayMesh" path="res://scenes/maps/triad_basin_2v2v2_ground_earth.res" id="2_mwdtq"]
 
+[ext_resource type="Material" path="res://assets/models/environment/skirmish_meadow.tres" id="meadow_material"]
+
 [node name="TriadBasin2v2v2Ground" type="Node3D" unique_id=1469401077]
 
 [node name="Stone" type="MeshInstance3D" parent="." unique_id=1180302261]
@@ -10,5 +12,6 @@ cast_shadow = 0
 mesh = ExtResource("1_gdpfn")
 
 [node name="Earth" type="MeshInstance3D" parent="." unique_id=958869690]
+material_override = ExtResource("meadow_material")
 cast_shadow = 0
 mesh = ExtResource("2_mwdtq")

@@ -1,12 +1,11 @@
-[gd_resource type="Environment" load_steps=3 format=3]
+[gd_resource type="Environment" load_steps=5 format=3]
 
-[sub_resource type="ProceduralSkyMaterial" id="daylight"]
-sky_top_color = Color(0.46, 0.61, 0.70, 1)
-sky_horizon_color = Color(0.74, 0.79, 0.77, 1)
-ground_bottom_color = Color(0.25, 0.28, 0.21, 1)
-ground_horizon_color = Color(0.52, 0.56, 0.44, 1)
-sky_energy_multiplier = 0.8
-ground_energy_multiplier = 0.5
+[ext_resource type="Shader" path="res://assets/block_war/environment/daylight_sky.gdshader" id="sky_shader"]
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/meadow_noise.tres" id="clouds"]
+
+[sub_resource type="ShaderMaterial" id="daylight"]
+shader = ExtResource("sky_shader")
+shader_parameter/cloud_noise = ExtResource("clouds")
 
 [sub_resource type="Sky" id="daylight_sky"]
 sky_material = SubResource("daylight")
@@ -16,16 +15,21 @@ background_mode = 1
 background_color = Color(0.14, 0.23, 0.20, 1)
 sky = SubResource("daylight_sky")
 ambient_light_source = 3
-ambient_light_color = Color(0.78, 0.84, 0.86, 1)
+ambient_light_color = Color(0.70, 0.82, 0.88, 1)
 ambient_light_sky_contribution = 0.7
-ambient_light_energy = 0.58
+ambient_light_energy = 0.67
 reflected_light_source = 2
 tonemap_mode = 2
 tonemap_white = 1.6
 ssao_enabled = true
-ssao_radius = 0.85
-ssao_intensity = 1.4
-ssao_power = 1.2
+ssao_radius = 0.7
+ssao_intensity = 1.05
+ssao_power = 1.15
+ssr_enabled = true
+ssr_max_steps = 96
+ssr_fade_in = 0.15
+ssr_fade_out = 2.0
+ssr_depth_tolerance = 0.6
 ssil_enabled = false
 glow_enabled = true
-glow_intensity = 0.13
+glow_intensity = 0.16

@@ -59,6 +59,10 @@ func _initialize() -> void:
 			var instance := MeshInstance3D.new()
 			instance.name = part.name
 			instance.mesh = load(resource_path)
+			# The unpaved field has its own saved material. Roads/paving remain
+			# in the Stone surface and keep their authored navigation silhouette.
+			if String(payload.destination).ends_with("_ground.tscn") and part.name == "Earth":
+				instance.material_override = load("res://assets/models/environment/skirmish_meadow.tres")
 			if not payload.shadow:
 				instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			scene.add_child(instance)

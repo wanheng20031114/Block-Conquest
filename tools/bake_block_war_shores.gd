@@ -5,7 +5,8 @@ extends SceneTree
 ## Outputs, for each map with water:
 ## assets/block_war/environment/maps/<id>_{bank_grass,bank_stone,water}.res
 ## Grass uses the map's ground shader; stone uses its original vertex colors.
-## Water is one non-overlapping ArrayMesh; COLOR.r is the shallow-shore weight.
+## Water is one non-overlapping ArrayMesh. COLOR.r is the shallow-shore weight;
+## COLOR.g is the distance to the true waterline in metres, divided by 8.
 ## Native APIs: SurfaceTool generates normals/indexed meshes and ResourceSaver
 ## saves them. Geometry2D.get_closest_point_to_segment measures the actual shore.
 ## https://docs.godotengine.org/en/stable/classes/class_surfacetool.html
@@ -14,7 +15,7 @@ extends SceneTree
 const OUTPUT := "res://assets/block_war/environment/maps/"
 const MAP_IDS := ["lake", "rivers", "ridges", "islands", "highland"]
 const SHORE_STEP := 0.5
-const WATER_STEP := 1.5
+const WATER_STEP := 0.75
 const WATER_HEIGHT := -1.18
 const CORNER_RADIUS := 3.2
 
@@ -279,18 +280,19 @@ func _water_mesh(axes: Array[PackedFloat32Array], regions: Array[Rect2], shore: 
 			for corner_index in [0, 1, 2, 0, 2, 3]:
 				var point := corners[corner_index]
 				if not color_cache.has(point):
-					color_cache[point] = Color(_shallow_weight(point, shore), 0.0, 0.0, 1.0)
+					color_cache[point] = _shore_color(point, shore)
 				surface.set_color(color_cache[point])
 				surface.add_vertex(Vector3(point.x, WATER_HEIGHT, point.y))
 	return _finish(surface)
 
 
-func _shallow_weight(point: Vector2, shore: Array[PackedVector2Array]) -> float:
+func _shore_color(point: Vector2, shore: Array[PackedVector2Array]) -> Color:
 	var distance_squared := INF
 	for segment in shore:
 		var closest := Geometry2D.get_closest_point_to_segment(point, segment[0], segment[1])
 		distance_squared = minf(distance_squared, point.distance_squared_to(closest))
-	return 1.0 - smoothstep(0.15, 2.7, sqrt(distance_squared))
+	var distance := sqrt(distance_squared)
+	return Color(1.0 - smoothstep(0.15, 2.7, distance), minf(distance / 8.0, 1.0), 0.0, 1.0)
 
 
 func _surface() -> SurfaceTool:

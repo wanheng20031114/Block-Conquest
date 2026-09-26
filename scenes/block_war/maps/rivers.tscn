@@ -1,4 +1,4 @@
-[gd_scene load_steps=117 format=3]
+[gd_scene load_steps=119 format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]
 
@@ -11,6 +11,12 @@
 [ext_resource type="Texture2D" path="res://assets/block_war/environment/meadow_noise.tres" id="noise"]
 
 [ext_resource type="Shader" path="res://assets/block_war/environment/map_water.gdshader" id="water_shader"]
+
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/water_noise.tres" id="water_noise"]
+
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/water_normals.tres" id="water_normals"]
+
+[ext_resource type="Material" path="res://assets/block_war/environment/shore_rock.tres" id="shore_rock_material"]
 
 [ext_resource type="ArrayMesh" path="res://assets/block_war/environment/maps/rivers_bank_grass.res" id="shore_bank_grass"]
 
@@ -58,7 +64,7 @@
 shader = ExtResource("ground_shader")
 shader_parameter/meadow_noise = ExtResource("noise")
 shader_parameter/half_size = Vector2(60, 44)
-shader_parameter/meadow = Color(0.29, 0.405, 0.235, 1)
+shader_parameter/meadow = Color(0.34, 0.49, 0.255, 1)
 shader_parameter/site_count = 25
 shader_parameter/sites = PackedVector2Array(-48, -26, 48, -26, -48, 26, 48, 26, -48, -6, 48, -6, -48, 6, 48, 6, -28, -30, 28, -30, -28, 30, 28, 30, -28, -7, 28, -7, -28, 7, 28, 7, -38, -17, 38, -17, -38, 17, 38, 17, 0, -32, 0, -16, 0, 0, 0, 16, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/path_count = 38
@@ -69,13 +75,8 @@ size = Vector3(1, 1, 1)
 
 [sub_resource type="ShaderMaterial" id="Water"]
 shader = ExtResource("water_shader")
-shader_parameter/surface_noise = ExtResource("noise")
-
-[sub_resource type="StandardMaterial3D" id="BankStone"]
-albedo_color = Color(1, 1, 1, 1)
-vertex_color_use_as_albedo = true
-vertex_color_is_srgb = true
-roughness = 0.93
+shader_parameter/surface_noise = ExtResource("water_noise")
+shader_parameter/wave_normals = ExtResource("water_normals")
 
 [sub_resource type="StandardMaterial3D" id="bridge_Limestone"]
 albedo_color = Color(0.59, 0.585, 0.535, 1)
@@ -696,7 +697,7 @@ material_override = SubResource("Ground")
 
 [node name="ShoreRock" type="MeshInstance3D" parent="Terrain"]
 mesh = ExtResource("shore_bank_stone")
-material_override = SubResource("BankStone")
+material_override = ExtResource("shore_rock_material")
 
 [node name="Water" type="MeshInstance3D" parent="Terrain"]
 mesh = ExtResource("shore_water")

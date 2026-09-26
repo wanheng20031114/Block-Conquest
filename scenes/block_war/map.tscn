@@ -1,4 +1,4 @@
-[gd_scene load_steps=72 format=3]
+[gd_scene load_steps=75 format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]
 
@@ -48,8 +48,15 @@
 
 [ext_resource type="ArrayMesh" path="res://assets/block_war/environment/meadow_bank_stone.res" id="detail_meadow_bank_stone"]
 
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/water_noise.tres" id="water_noise"]
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/water_normals.tres" id="water_normals"]
+
+[ext_resource type="Material" path="res://assets/block_war/environment/shore_rock.tres" id="shore_rock_material"]
+
 [sub_resource type="ShaderMaterial" id="River"]
 shader = ExtResource("water_shader")
+shader_parameter/surface_noise = ExtResource("water_noise")
+shader_parameter/wave_normals = ExtResource("water_normals")
 
 [sub_resource type="StandardMaterial3D" id="Limestone"]
 albedo_color = Color(0.59, 0.585, 0.535, 1)
@@ -410,7 +417,7 @@ position = Vector3(0, 0, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1)
 mesh = ExtResource("detail_meadow_bank_stone")
-material_override = SubResource("PaintedStone")
+material_override = ExtResource("shore_rock_material")
 
 [node name="Building0" parent="Buildings" instance=ExtResource("building")]
 position = Vector3(-30, 0, 0)
