@@ -10,6 +10,12 @@ func configure(button: Button) -> void:
 
 func _refresh() -> void:
 	var hint: Dictionary = skill_button.hint
+	if not hint.preview_enabled:
+		# Only existing cards receive this change; Godot owns their PopupPanel parent.
+		var popup: PopupPanel = get_parent()
+		popup.hide()
+		popup.queue_free()
+		return
 	%Title.text = hint.title
 	%Shortcut.text = hint.shortcut
 	%Description.text = hint.description

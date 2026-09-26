@@ -22,7 +22,7 @@ func near(actual: float, expected: float, label: String) -> void:
 	check(absf(actual - expected) < 0.001, "%s (actual=%s expected=%s)" % [label, actual, expected])
 
 
-func reset_match() -> void:
+func reset_match(full_energy: bool = true) -> void:
 	if game != null:
 		await game.prepare_shutdown()
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
@@ -34,6 +34,11 @@ func reset_match() -> void:
 	game.camera_rig.edge_scroll = false
 	game.camera_rig.keyboard_pan = false
 	game.camera_rig.set_process(false)
+	for state in game.faction_skills:
+		near(state.energy, 30.0, "Every new commander starts with thirty energy")
+	if full_energy:
+		game.energy = 100.0
+		game.update_hud()
 	await physics_frame
 	await process_frame
 
@@ -87,12 +92,12 @@ func screen(at: Vector3) -> Vector2:
 
 
 func _run() -> void:
-	create_timer(80.0, true, false, true).timeout.connect(func() -> void:
+	create_timer(120.0, true, false, true).timeout.connect(func() -> void:
 		printerr("BLOCK_WAR_SKILL_ENERGY timeout")
 		quit(3)
 	)
 	root.size = Vector2i(1600, 900)
-	await reset_match()
+	await reset_match(false)
 	_energy_and_cooldowns()
 	await reset_match()
 	_invalid_casts()
@@ -102,7 +107,7 @@ func _run() -> void:
 	_recruitment_interruption()
 	await reset_match()
 	_ground_impact()
-	await reset_match()
+	await reset_match(false)
 	await _native_selection_and_hud()
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_SKILL_ENERGY ", checks, " checks; ", failures.size(), " failures")
@@ -110,8 +115,11 @@ func _run() -> void:
 
 
 func _energy_and_cooldowns() -> void:
-	near(game.energy, 100.0, "New match starts with full shared energy")
+	near(game.energy, 30.0, "New match starts with thirty shared energy")
 	check(game.SKILL_ENERGY_COSTS == [30.0, 30.0, 35.0, 70.0], "Squirrel Q/W/E/R expose their balanced energy costs")
+	game.simulate(0.25)
+	near(game.energy, 30.5, "Opening energy regenerates from thirty")
+	game.energy = 100.0
 	game.simulate(0.25)
 	near(game.energy, 100.0, "Regeneration cannot exceed the energy cap")
 	game.energy = 20.0
@@ -353,6 +361,58 @@ func _native_skill_hint(button: Button) -> void:
 	await process_frame
 	check(root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "leaving the skill releases its native tooltip and signal binding")
 
+func _native_drag_hints() -> void:
+	var battlefield := screen(Vector3(-4, 0, 6))
+	var keys := [KEY_Q, KEY_W, KEY_E, KEY_R]
+	for from_keyboard: bool in [false, true]:
+		for index: int in 4:
+			var button: Button = game.hud.get_node("UI/Skills/Row/Skill%d" % index)
+			var at := button.get_global_rect().get_center()
+			motion(battlefield)
+			motion(at)
+			await create_timer(0.8).timeout
+			check(root.find_children("SkillTooltip", "VBoxContainer", true, false).size() == 1, "Skill %d preview opens before aiming (keyboard=%s)" % [index, from_keyboard])
+			if from_keyboard:
+				key_event(keys[index], true)
+			else:
+				mouse(at, true)
+			await process_frame
+			await process_frame
+			check(game.armed_skill == index and root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "Arming skill %d dismisses its existing preview (keyboard=%s)" % [index, from_keyboard])
+			for other: int in 4:
+				check(game.hud.get_node("UI/Skills/Row/Skill%d" % other).tooltip_text.is_empty(), "Aiming disables preview for skill %d" % other)
+			motion(game.hud.get_node("UI/Skills/Row/Skill%d" % ((index + 1) % 4)).get_global_rect().get_center())
+			await create_timer(0.8).timeout
+			check(root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "Crossing another skill while aiming cannot reopen a preview")
+			motion(battlefield)
+			await create_timer(0.8).timeout
+			check(root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "Battlefield aiming never carries a preview card")
+			if from_keyboard or index % 2 == 0:
+				click(battlefield, MOUSE_BUTTON_RIGHT)
+				check(game.armed_skill == -1 and not game.hud.get_node("%SkillDrag").visible and not button.button_pressed, "Right click immediately resets the held skill")
+				if from_keyboard:
+					key_event(keys[index], false)
+				else:
+					mouse(battlefield, false)
+			else:
+				mouse(Vector2(-10, -10), false)
+			check(game.armed_skill == -1 and game.energy == 100.0 and game.cooldowns[index] == 0.0, "Cancel or invalid release spends nothing and the later release stays inert")
+			await create_timer(0.8).timeout
+			check(root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "Release away from the buttons cannot resurrect a stale preview")
+			motion(at)
+			await create_timer(0.8).timeout
+			check(root.find_children("SkillTooltip", "VBoxContainer", true, false).size() == 1, "Returning to the button restores its preview")
+	# Also cover arming while the native hover timer is still pending.
+	motion(battlefield)
+	motion(game.hud.get_node("UI/Skills/Row/Skill0").get_global_rect().get_center())
+	key_event(KEY_Q, true)
+	await create_timer(0.8).timeout
+	check(root.find_children("SkillTooltip", "VBoxContainer", true, false).is_empty(), "A pending hover timer cannot open a card after aiming starts")
+	click(battlefield, MOUSE_BUTTON_RIGHT)
+	key_event(KEY_Q, false)
+	motion(battlefield)
+
+
 func _native_selection_and_hud() -> void:
 	# Complete the authored HUD reveal without advancing the manually stepped match.
 	await create_timer(0.8).timeout
@@ -368,9 +428,13 @@ func _native_selection_and_hud() -> void:
 	var r: Button = game.hud.get_node("UI/Skills/Row/Skill3")
 	var ghost: Control = game.hud.get_node("%SkillDrag")
 	var energy_bar: ProgressBar = game.hud.get_node("%EnergyBar")
-	near(energy_bar.value, 100.0, "HUD initially exposes the full shared energy bar")
-	check(q.hint.energy.contains("100 / 100"), "hover hints retain exact energy without a permanent caption")
+	near(energy_bar.value, 30.0, "HUD initially exposes thirty shared energy")
+	check(q.hint.energy.contains("30 / 100"), "hover hints show the real initial energy")
+	check(not q.disabled and not w.disabled and e.disabled and r.disabled, "Opening energy enables only affordable skills")
+	game.energy = 100.0
+	game.update_hud()
 	await _native_skill_hint(q)
+	await _native_drag_hints()
 	click(enemy_at)
 	check(game.selected == enemy and game.drag_source == null, "Enemy selection is legal but cannot begin player dispatch")
 	var q_at := q.get_global_rect().get_center()

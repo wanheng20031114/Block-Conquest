@@ -66,11 +66,14 @@ func run() -> void:
 	game = current_scene
 	check(game.scene_file_path == "res://scenes/block_war/block_war.tscn", "native start click enters the selected battlefield")
 	check(not root.use_taa, "war mode avoids temporal ghosting on population badges")
+	check(game.energy == 30.0, "native start opens with thirty energy")
 	while root.get_node("Session").transition.busy:
 		await process_frame
 	game.ai_enabled = false
 	game.camera_rig.edge_scroll = false
 	game.set_process(false)
+	game.energy = 100.0 # Fund the R/W input fixture after verifying the actual opening.
+	game.update_hud()
 	await physics_frame
 	await frames()
 	var home: Node3D = game.by_id[0]
@@ -111,7 +114,7 @@ func run() -> void:
 	var w_at: Vector2 = game.hud.get_node("UI/Skills/Row/Skill1").get_global_rect().get_center()
 	mouse(w_at, MOUSE_BUTTON_LEFT, true)
 	mouse(impact_screen, MOUSE_BUTTON_LEFT, false)
-	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.energy == 0.0, "haste drop consumes the remaining forty energy")
+	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.energy == 0.0, "haste drop consumes the remaining thirty energy")
 	game.simulate(WarFireWave.EXPANSION_TIME)
 	check(target.population == 0.0, "fire damages the garrison only after expanding to the building")
 	var previous: Vector3 = game.camera_rig.destination
@@ -130,11 +133,12 @@ func run() -> void:
 	check(not game._local_menu and not game.hud.help_visible(), "closing help restores running state")
 	game.restart()
 	await scene_changed
+	game = current_scene
+	game.set_process(false)
+	game.ai_enabled = false
 	while root.get_node("Session").transition.busy:
 		await process_frame
-	game = current_scene
-	game.ai_enabled = false
-	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == game.ENERGY_MAX, "restart resets match, cooldowns and energy")
+	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == 30.0, "restart resets match, cooldowns and energy to thirty")
 	game.exit_to_lobby()
 	await scene_changed
 	while root.get_node("Session").transition.busy:

@@ -147,7 +147,7 @@ func update_state(state: Dictionary) -> void:
 		button.get_node("ReadyLight").visible = ready
 		if not ready:
 			button.get_node("ReadyGlow").hide()
-		button.set_hint(skill_names[index], SKILL_RULES.description(index, commander), cost, skill_cooldowns[index], energy, status)
+		button.set_hint(skill_names[index], SKILL_RULES.description(index, commander), cost, skill_cooldowns[index], energy, status, armed < 0)
 		if ready and not _last_ready[index] and _skills_initialized:
 			_pulse_ready(button)
 		_last_ready[index] = ready

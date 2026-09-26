@@ -20,7 +20,7 @@ func check(condition: bool, message: String) -> void:
 func near(actual: float, expected: float, message: String) -> void:
 	check(absf(actual - expected) < 0.001, "%s: %s = %s" % [message, actual, expected])
 
-func reset_match() -> void:
+func reset_match(starting_energy: float = 100.0) -> void:
 	if game != null:
 		await game.prepare_shutdown()
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
@@ -30,6 +30,10 @@ func reset_match() -> void:
 	game.camera_rig.set_process(false)
 	game.ai_enabled = false
 	game.audio.muted = true
+	for faction: int in game.faction_skills.size():
+		near(game.faction_skills[faction].energy, 30.0, "fresh or restarted commander %d starts with thirty energy" % faction)
+		if starting_energy != 30.0:
+			game.faction_skills[faction].energy = starting_energy
 	deaths.clear()
 	game.marches.unit_defeated.connect(func(at: Vector3, _heading: Vector3, faction: int, _impulse: Vector3, burning: bool):
 		deaths.append({"at": at, "faction": faction, "burning": burning})

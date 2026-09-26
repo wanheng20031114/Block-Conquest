@@ -19,7 +19,7 @@ func check(value: bool, label: String) -> void:
 func near(actual: float, expected: float, label: String) -> void:
 	check(absf(actual - expected) < 0.001, "%s: %s = %s" % [label, actual, expected])
 
-func reset_match() -> void:
+func reset_match(starting_energy: float = 100.0) -> void:
 	if game != null:
 		await game.prepare_shutdown()
 	root.get_node("Session").block_war_map_id = "islands"
@@ -30,6 +30,10 @@ func reset_match() -> void:
 	game.camera_rig.set_process(false)
 	game.ai_enabled = false
 	game.audio.muted = true
+	for faction: int in game.faction_skills.size():
+		near(game.faction_skills[faction].energy, 30.0, "fresh or restarted commander %d starts with thirty energy" % faction)
+		if starting_energy != 30.0:
+			game.faction_skills[faction].energy = starting_energy
 	for building: WarBuilding in game.buildings:
 		building.kind = 2
 		building.population = 100.0
@@ -114,7 +118,6 @@ func _run() -> void:
 	game._finish_match(0)
 	check(not game.cast_skill(2, game.by_id[1], 1), "finished match rejects AI casts")
 	await reset_match()
-	near(game.faction_skills[1].energy, 100.0, "restart resets all independent accounts")
 	for faction: int in 6:
 		check(game.cast_ground_skill(3, Vector3(-35 + faction * 12, 0, 0), faction), "six simultaneous fires use independent pool entries")
 	for faction: int in 6:
@@ -133,13 +136,18 @@ func _run() -> void:
 	for faction: int in 6:
 		near(game.by_id[faction].population, 60.0 if faction % 2 == 1 else 35.0, "enemy fire protects its own alliance and damages opponents")
 	check(game.marches._units.is_empty(), "AI fire burns both exposed factions")
-	await reset_match()
+	await reset_match(30.0)
 	var ai := TACTICS.new(1)
 	ai.take_turn(game)
-	near(game.faction_skills[1].energy, 100.0, "computer cannot open with an immediate frame-zero cast")
-	game.elapsed = 6.0
+	near(game.faction_skills[1].energy, 30.0, "computer cannot open with an immediate frame-zero cast")
+	game.simulate(6.0)
+	ai.take_turn(game)
+	near(game.faction_skills[1].energy, 42.0, "computer preserves its naturally regenerated opening reserve")
+	check(game.faction_skills[1].recruit_target_id == -1, "computer waits until it can afford recruitment and a shield reserve")
+	game.simulate(12.0)
 	ai.take_turn(game)
 	check(game.faction_skills[1].recruit_target_id == 1, "idle computer invests recruitment in its residence")
+	near(game.faction_skills[1].energy, 36.0, "opening recruitment pays from naturally regenerated energy")
 	var spent: float = game.faction_skills[1].energy
 	ai.take_turn(game)
 	near(game.faction_skills[1].energy, spent, "multiple calls at the same time cannot chain skills")

@@ -21,7 +21,7 @@ const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 
 class SkillState extends RefCounted:
 	var commander: StringName = &"squirrel"
-	var energy := 100.0
+	var energy := 30.0
 	var cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var durations: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var recruit_target_id := -1
@@ -810,7 +810,7 @@ func _input(event: InputEvent) -> void:
 	if armed_skill >= 0:
 		if event is InputEventMouseMotion:
 			_update_skill_drag(event.position)
-			get_viewport().set_input_as_handled()
+			# Let native controls update hover ownership while the aim follows the pointer.
 			return
 		if event is InputEventKey and not event.pressed and (event.physical_keycode if event.physical_keycode != 0 else event.keycode) == _skill_keycode:
 			release_skill_drag(get_viewport().get_mouse_position())
@@ -824,7 +824,7 @@ func _input(event: InputEvent) -> void:
 				return
 			if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed and _skill_keycode == 0:
 				release_skill_drag(event.position)
-				get_viewport().set_input_as_handled()
+				# Native buttons also need the release to clear their mouse capture.
 				return
 	if event is InputEventMouseButton and not event.pressed:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
