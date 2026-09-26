@@ -57,8 +57,9 @@ void fragment() {
 		vec2 q = (p - SITES[i]) / vec2(2.65, 2.38);
 		float footprint = length(q);
 		float settlement = 1.0 - smoothstep(0.78, 1.21, footprint + fringe * 0.08);
-		float doorway = 1.0 - smoothstep(0.48, 1.35, segment_distance(p, SITES[i] + vec2(0.0, 0.8), SITES[i] + vec2(0.0, 3.2)) + fringe * 0.24);
-		yard = max(yard, max(settlement, doorway));
+		// Keep the compact courtyard; the road itself supplies the approach.
+		// A second fixed-length doorstep stroke would overshoot that road.
+		yard = max(yard, settlement);
 	}
 	float bridge_distance = min(
 		min(woodland_bridge_distance(p, vec4(-15.0, -17.2, 6.0, 6.4)),

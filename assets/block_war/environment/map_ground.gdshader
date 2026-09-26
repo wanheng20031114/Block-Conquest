@@ -38,8 +38,9 @@ void fragment() {
 		door_distance = min(door_distance, length(p - sites[i]));
 		float footprint = length((p - sites[i]) / vec2(2.65, 2.38));
 		float settlement = 1.0 - smoothstep(0.78, 1.21, footprint + fringe * 0.08);
-		float doorway = 1.0 - smoothstep(0.48, 1.35, segment_distance(p, sites[i] + vec2(0.0, 0.8), sites[i] + vec2(0.0, 3.2)) + fringe * 0.24);
-		yard = max(yard, max(settlement, doorway));
+		// The authored road already reaches the front steps. An extra forward
+		// capsule here protrudes through its far shoulder as a blind spur.
+		yard = max(yard, settlement);
 	}
 	float bridge_distance = 1000.0;
 	for (int i = 0; i < bridge_count; i++) {
