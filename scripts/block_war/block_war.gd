@@ -120,6 +120,7 @@ func _ready() -> void:
 	hud.exit_requested.connect(exit_to_lobby)
 	hud.upgrade_requested.connect(upgrade_selected)
 	hud.convert_requested.connect(convert_selected)
+	hud.ui_sound_requested.connect(audio.play_ui)
 	get_window().focus_exited.connect(_on_focus_exited)
 	camera_rig.maximum_zoom = maxf(95.0, map.definition.half_size.y * 2.1)
 	if map.definition.size_class > 0:
@@ -393,6 +394,7 @@ func _tick_projectiles(delta: float) -> void:
 			var direction: Vector3 = (shot.to - shot.at).normalized()
 			if not marches.hit_target(target, direction):
 				world_effects.hit(shot.to, direction)
+			audio.play_world(&"war_projectile_hit", shot.to)
 			projectiles.remove_at(index)
 	world_effects.render_projectiles(projectiles)
 
@@ -418,6 +420,7 @@ func tower_interval(building: Node3D) -> float:
 func request_skill(index: int, from_keyboard: bool = false) -> void:
 	if not _skill_available(index):
 		return
+	audio.play_ui(&"war_drag")
 	_cancel_skill_drag()
 	_cancel_drag()
 	armed_skill = index
@@ -452,6 +455,8 @@ func release_skill_drag(screen: Vector2) -> void:
 	_cancel_skill_drag()
 	if success and target != null:
 		select_building(target)
+	elif not success:
+		audio.play_ui(&"war_cancel")
 	update_hud()
 	overlay.queue_redraw()
 
@@ -544,7 +549,8 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER, locked_source
 		if not RABBIT_SKILLS.cast(self, index, target, faction, locked_source):
 			return false
 		_commit_skill(index, faction)
-		audio.play_world([&"war_skill_drum", &"war_rebuild", &"war_skill_command", &"war_march"][index], target.global_position)
+		if index != 3:
+			audio.play_world(&"war_rabbit_seal" if index == 1 else &"war_rabbit_recall", target.global_position)
 		target.refresh_visual()
 		update_hud()
 		return true
@@ -578,7 +584,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		marches.create_haste_zone(faction, center, SKILL_RULES.RABBIT_HASTE_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0], SKILL_RULES.RABBIT_HASTE_MULTIPLIER, SKILL_RULES.RABBIT)
 		_commit_skill(index, faction)
-		audio.play_world(&"war_skill_drum", center)
+		audio.play_world(&"war_rabbit_dash", center)
 		world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 		update_hud()
 		return true
@@ -768,12 +774,14 @@ func set_paused(value: bool) -> void:
 func restart() -> void:
 	if _closing:
 		return
+	get_node("/root/Session/UIFeedback").play(&"order")
 	await prepare_shutdown()
 	get_node("/root/Session").change_scene("res://scenes/block_war/block_war.tscn")
 
 func exit_to_lobby() -> void:
 	if _closing:
 		return
+	get_node("/root/Session/UIFeedback").play(&"cancel")
 	await prepare_shutdown()
 	get_node("/root/Session").back_to_lobby()
 
@@ -818,6 +826,7 @@ func _input(event: InputEvent) -> void:
 			return
 		if event is InputEventMouseButton:
 			if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+				audio.play_ui(&"war_cancel")
 				_cancel_skill_drag()
 				update_hud()
 				get_viewport().set_input_as_handled()

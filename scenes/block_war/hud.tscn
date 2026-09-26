@@ -2229,6 +2229,19 @@ focus_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 18
 
+[node name="AudioCredits" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 638.0
+offset_right = 776.0
+offset_bottom = 652.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.72, 0.77, 0.67, 1)
+text = "音效：David McKee / ViRiX、dklon · CC BY 3.0 · soundcloud.com/virix · creativecommons.org/licenses/by/3.0"
+tooltip_text = "素材经过裁切、剪辑与音量调整。完整来源、许可和变更记录随游戏提供于 assets/audio/CREDITS.md。"
+horizontal_alignment = 1
+
 [node name="ResultOverlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true
 layout_mode = 0

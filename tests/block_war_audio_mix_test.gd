@@ -82,7 +82,7 @@ func _run() -> void:
 		await create_timer(duration / 0.97 + 0.09).timeout
 		var level := _measure()
 		_check(level.y > 0.005 and level.x <= db_to_linear(-0.9), "%s reaches the real Master mix (RMS %.1f dBFS, peak %.1f dBFS)" % [kind, linear_to_db(level.y), linear_to_db(level.x)])
-	_check(sample_count == 36, "all 36 campaign variants loaded")
+	_check(sample_count == 44, "all 44 campaign variants loaded")
 	await _clear()
 	for request in range(500):
 		audio.play_world(&"war_melee", Vector3.ZERO)

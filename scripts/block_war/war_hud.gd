@@ -10,6 +10,7 @@ signal restart_requested()
 signal exit_requested()
 signal upgrade_requested()
 signal convert_requested(kind: int)
+signal ui_sound_requested(kind: StringName)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
@@ -53,6 +54,7 @@ func _ready() -> void:
 	%ResultRestart.pressed.connect(func(): restart_requested.emit())
 	%ResultExit.pressed.connect(func(): exit_requested.emit())
 	%HintClose.pressed.connect(func(): UIMotion.dismiss(%QuickHint))
+	%HintClose.pressed.connect(func(): ui_sound_requested.emit(&"war_cancel"))
 	%Upgrade.pressed.connect(func(): upgrade_requested.emit())
 	%ConvertHouse.pressed.connect(func(): convert_requested.emit(0))
 	%ConvertTower.pressed.connect(func(): convert_requested.emit(1))
@@ -368,6 +370,8 @@ func _open_help() -> void:
 	_help_from_pause = _paused
 	if not _paused:
 		pause_requested.emit()
+	else:
+		ui_sound_requested.emit(&"war_select")
 	%PauseOverlay.hide()
 	%HelpOverlay.show()
 	%HelpClose.grab_focus(true)
@@ -376,6 +380,7 @@ func _open_help() -> void:
 func _close_help() -> void:
 	%HelpOverlay.hide()
 	if _help_from_pause:
+		ui_sound_requested.emit(&"war_cancel")
 		%PauseOverlay.show()
 		%PauseHelp.grab_focus(true)
 		UIMotion.reveal(%PauseCard)

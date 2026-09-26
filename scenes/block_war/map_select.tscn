@@ -97,6 +97,7 @@ theme_override_colors/font_color = Color(0.7, 0.76, 0.64, 1)
 text = "经营据点，协同进军。在不同地形中找到你的战术。"
 
 [node name="Back" type="Button" parent="Margin/Column/Header"]
+metadata/ui_sound = &"cancel"
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(144, 48)
@@ -226,6 +227,7 @@ text = "你对战 1 名电脑"
 autowrap_mode = 2
 
 [node name="Start" type="Button" parent="Margin/Column/Content/Details/Column"]
+metadata/ui_sound = &"order"
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 64)

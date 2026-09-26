@@ -32,6 +32,94 @@
       "license": "CC0-1.0",
       "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
       "retrieved": "2026-09-08"
+    },
+    "kenney_rpg": {
+      "author": "Kenney",
+      "title": "RPG Audio 1.0",
+      "page": "https://kenney.nl/assets/rpg-audio",
+      "archive_url": "https://kenney.nl/media/pages/assets/rpg-audio/8e99002d76-1677590336/kenney_rpg-audio.zip",
+      "archive_sha256": "6dbeaf8544da958d8f2adcb4a4a4b76c1ade34a05f8ab9edccd327da7375f38b",
+      "archive_bytes": 964837,
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-09-26"
+    },
+    "rubberduck_rpg": {
+      "author": "rubberduck",
+      "title": "80 CC0 RPG SFX",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "archive_url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "archive_sha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "archive_bytes": 1845114,
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-09-26"
+    },
+    "virix_ui1": {
+      "author": "David McKee (ViRiX Dreamcore)",
+      "title": "UI and Item sounds Sample 1",
+      "page": "https://opengameart.org/content/ui-and-item-sounds-sample-1",
+      "archive_url": "https://opengameart.org/sites/default/files/Menu%20FX%20example.zip",
+      "archive_sha256": "952cc407885b5291bffe0b59ce482bf1e463000ba244ff943f8f0ce4629df3e3",
+      "archive_bytes": 499136,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-09-26"
+    },
+    "virix_ui2": {
+      "author": "David McKee (ViRiX Dreamcore)",
+      "title": "UI and Item sound effect Jingles Sample 2",
+      "page": "https://opengameart.org/content/ui-and-item-sound-effect-jingles-sample-2",
+      "archive_url": "https://opengameart.org/sites/default/files/Menu%20and%20Item%20Jingles%20Sampe%202_0.zip",
+      "archive_sha256": "a488d2a4f82312dc7c3001e016b9749a2a799e603672b0d4a5d175caa0eb869f",
+      "archive_bytes": 630488,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-09-26"
+    },
+    "virix_ui": {
+      "author": "David McKee (ViRiX)",
+      "title": "UI Sound effects pack",
+      "page": "https://opengameart.org/content/ui-sound-effects-pack",
+      "archive_url": "https://opengameart.org/sites/default/files/UI%20pack%201.zip",
+      "archive_sha256": "7a3524922389679484e71712c26cb2efc96eeccdf42c178c23a21ef825a7eecb",
+      "archive_bytes": 3347906,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-09-26"
+    },
+    "virix_magic": {
+      "author": "David McKee (ViRiX Dreamcore)",
+      "title": "Magic SFX Sample",
+      "page": "https://opengameart.org/content/magic-sfx-sample",
+      "archive_url": "https://opengameart.org/sites/default/files/Magic%20SFX%20Preview%20Pack.zip",
+      "archive_sha256": "77f964847ade8e84728a64cfc901d1d18b51459963c68e9f48bd19b0d0d8aa4e",
+      "archive_bytes": 1619610,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-09-26"
+    },
+    "dklon_whistles": {
+      "author": "dklon",
+      "title": "Whistles",
+      "page": "https://opengameart.org/content/whistles",
+      "archive_url": "https://opengameart.org/sites/default/files/whistles.zip",
+      "archive_sha256": "2225868fbd834006ced3aab3ec7e1e7873a7d4bd180c9c1faa7d98f2acda2183",
+      "archive_bytes": 73979,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-09-26"
+    },
+    "hector_drums": {
+      "author": "William Hector",
+      "title": "Horde War Drums loop",
+      "page": "https://opengameart.org/content/horde-war-drums-loop",
+      "archive_url": "https://opengameart.org/sites/default/files/horde_war_drums_by_william_hector.wav",
+      "archive_sha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "archive_bytes": 3908120,
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-09-26"
     }
   },
   "retained_originals": [
@@ -600,6 +688,174 @@
       "sha256": "abb6e76ddedb441644c626af2e36dabfd4cbfd8ed051bf3ccd804e56e2d21de4",
       "license": "CC0-1.0",
       "source_pack": "weapons_apparel",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/bookFlip1.ogg",
+      "sha256": "fa81ac2fedc8c641661b87e349630a36c9800e795e0c800e029214efdbe26a7d",
+      "bytes": 18248,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/bookFlip2.ogg",
+      "sha256": "3409042acbfaebc24c1a6327dc073e36f9250841712e96c5040da566a97df73c",
+      "bytes": 12393,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/bookOpen.ogg",
+      "sha256": "953390534377222bee89ac8cd9e60a58fdc037c71a4d7c18c43cd647c7f34ba8",
+      "bytes": 8273,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/bookClose.ogg",
+      "sha256": "81e976532565f4372abd14e83d2684195fa548d0a28d345de221e56052454f32",
+      "bytes": 9292,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/bookPlace1.ogg",
+      "sha256": "26f3ce60fbde85b678b0ad7f6624d80535fe540d88232ad1e38e47a96662d977",
+      "bytes": 9901,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/dropLeather.ogg",
+      "sha256": "097e1d3b74949b0145fda0519d40b7e0773ab82ec4858727f95be830927e1a45",
+      "bytes": 11695,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/License.txt",
+      "sha256": "5735dfd72cb64cbbceda4ebc00c380c41ca680edb82ff153aa7c9ab97614c539",
+      "bytes": 478,
+      "source_pack": "kenney_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "rubberduck_rpg/stones_01.ogg",
+      "sha256": "d11ce95031c2c36ae2a00979620fa95a7a3f5c6d6f2ac86962ed292aa556be8d",
+      "bytes": 27110,
+      "source_pack": "rubberduck_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "rubberduck_rpg/stones_02.ogg",
+      "sha256": "57dc6b85ee986e68ddc4b7fb2b41cc1c885151677d32439fdb299492a3103a65",
+      "bytes": 35982,
+      "source_pack": "rubberduck_rpg",
+      "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui1/Menu1A.wav",
+      "sha256": "dc469b8dfde31fb56f933bed6b19ea510cbc57b3cb40759fb35f8a9af2345f4e",
+      "bytes": 156226,
+      "source_pack": "virix_ui1",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui1/Menu1B.wav",
+      "sha256": "a047554eedb0e2ef310283854d1e0e82f6c2ff72a710d5e0ccbcbad62fdf53e1",
+      "bytes": 143502,
+      "source_pack": "virix_ui1",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui1/Item1A.wav",
+      "sha256": "7c2821b031cb90fb7976d92139c9a8facee515ec4e2145e2da046f7818692f4d",
+      "bytes": 322446,
+      "source_pack": "virix_ui1",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui2/Item2A.wav",
+      "sha256": "ba66008b3cf08b5b30a0d33ed865d29fb5a6889b2afb6224636bdced6123a414",
+      "bytes": 420826,
+      "source_pack": "virix_ui2",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui/MENU_Pick.wav",
+      "sha256": "85c82dedf352df4874ddb585f7e6e70c36790dd24f2bd2fc4a71f73275925bc1",
+      "bytes": 211196,
+      "source_pack": "virix_ui",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui/MENU B_Back.wav",
+      "sha256": "84f3a38d6557b5219dd8a69673b201242da49aeb2c0e95ec948562591d0230c9",
+      "bytes": 318766,
+      "source_pack": "virix_ui",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_ui/Notes.txt",
+      "sha256": "a4f3e67b4f68bf7313e14d24b7d613cdf6cfe169e135eb4b28767c5e8bede92f",
+      "bytes": 680,
+      "source_pack": "virix_ui",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_magic/Healing Full.wav",
+      "sha256": "ad60bc48be1ac7451771505c0e169590af18241d38ff79b93aa6e5f186b1e54b",
+      "bytes": 693058,
+      "source_pack": "virix_magic",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_magic/Wind effects 5.wav",
+      "sha256": "37424e27cceca69c0bf48a40465a8d7db2889816c67073378668af3317bb974a",
+      "bytes": 306334,
+      "source_pack": "virix_magic",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "virix_magic/Fire impact 1.wav",
+      "sha256": "0fa4afbf37b12dc6c54f33cdded356b5f344a0156b84af94b70d843886c1efad",
+      "bytes": 1127274,
+      "source_pack": "virix_magic",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "dklon_whistles/whistle_1.wav",
+      "sha256": "14955deb50b849525ab0a17ceae1d2f341adc515374a34f619c6e49bd5d3a033",
+      "bytes": 18888,
+      "source_pack": "dklon_whistles",
+      "license": "CC-BY-3.0",
+      "modified": false
+    },
+    {
+      "path": "hector_drums/horde_war_drums_by_william_hector.wav",
+      "sha256": "a4d95514029dd928e5637c3b9edd659b8eaf14fa78d8afb2ab7ec4da064e4417",
+      "bytes": 3908120,
+      "source_pack": "hector_drums",
+      "license": "CC0-1.0",
       "modified": false
     }
   ],

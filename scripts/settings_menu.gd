@@ -9,6 +9,7 @@ var _resolutions: Array[Vector2i] = []
 
 func _ready() -> void:
 	UIMotion.bind_buttons(self)
+	get_node("/root/Session/UIFeedback").bind_buttons(self)
 	%WindowMode.add_item("窗口", 0)
 	%WindowMode.add_item("无边框全屏", 1)
 	%WindowMode.add_item("独占全屏", 2)
@@ -102,6 +103,7 @@ func _toggle_changed(value: bool, key: String) -> void:
 func _slider_changed(value: float, key: String) -> void:
 	if _refreshing: return
 	draft[key] = value
+	get_node("/root/Session/UIFeedback").play(&"ratio")
 	_update_labels()
 
 func show_page(page: String) -> void:

@@ -32,6 +32,9 @@ func reset() -> void:
 	game.camera_rig.set_process(false)
 	game.camera_rig.edge_scroll = false
 	game.camera_rig.keyboard_pan = false
+	# Skill scenarios begin funded, independently of the match's opening energy.
+	for faction: int in game.faction_skills.size():
+		refill(faction)
 	await physics_frame
 	await process_frame
 

@@ -1,6 +1,6 @@
 # 中世纪音效来源与修改说明
 
-原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争另有下文说明的 21 类、36 个专用 WAV。上述音效的第三方素材均来自下列作者发布页面，下载日期为 2026-09-08；没有使用 Sonniss、付费素材或要求单独授权的录音。
+原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 26 类、44 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；2026-09-26 的新增来源和署名见本文末节。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
 
 积木战争的 Suno 背景音乐独立记录在 [block_war/music/CREDITS.md](block_war/music/CREDITS.md)，不属于此处的 CC0 音效库。
 
@@ -25,3 +25,26 @@
 2026-09-22 新增积木战争专用拟音库，位于 `block_war/`：21 类事件、36 个 48 kHz 单声道 PCM16 WAV，共约 2.04 MiB。仅复用上述已保留的 CC0 音源，没有新增下载或合成振荡器/噪声层。包含木质选择、皮革拖选、派兵比例、命令确认、拒绝、取消、暂停/继续、草地皮靴行军、刀剑木盾交战、占领/失守、增援、升级、改建、四种技能以及胜败。
 
 `tools/build_war_audio.py` 使用 FFmpeg 解码，NumPy/SciPy 完成确定性的去直流、裁切、变速移调、均衡、时序分层、柔和瞬态控制和首尾淡化；真峰值上限为 -3 dBFS。战鼓由低音木材与软物接触录音拟音，护盾使用锁扣/金属/石块组合，冲击技能使用刮擦和层叠碎石，胜败使用升降移调的实录铃声与装备动静。`block_war/audio_manifest.json` 逐个列出原始录音、处理描述、音量测量和 SHA-256。成品不循环，播放继续经过项目原生 Master 限幅器、Combat 压缩器和现有音量/静音设置。
+
+## 2026-09-26：UI 与技能音效更新
+
+上节记录的是此前版本。此次替换 8 类 UI、松鼠 4 技能，新增兔子 4 个独立技能事件及炮弹命中事件，共变更 17 类、25 个成品 WAV。其余 19 个积木战争 WAV（含行军、交战、增援、施工、占领、胜负）保持原文件哈希。
+
+| 原始发布标题 | 作者 | 许可 | 发布页 |
+| --- | --- | --- | --- |
+| RPG Audio 1.0 | Kenney | CC0 1.0 | <https://kenney.nl/assets/rpg-audio> |
+| 80 CC0 RPG SFX | rubberduck | CC0 1.0 | <https://opengameart.org/content/80-cc0-rpg-sfx> |
+| UI Sound effects pack | David McKee (ViRiX) | CC BY 3.0 | <https://opengameart.org/content/ui-sound-effects-pack> |
+| UI and Item sounds Sample 1 | David McKee (ViRiX Dreamcore) | CC BY 3.0 | <https://opengameart.org/content/ui-and-item-sounds-sample-1> |
+| UI and Item sound effect Jingles Sample 2 | David McKee (ViRiX Dreamcore) | CC BY 3.0 | <https://opengameart.org/content/ui-and-item-sound-effect-jingles-sample-2> |
+| Magic SFX Sample | David McKee (ViRiX Dreamcore) | CC BY 3.0 | <https://opengameart.org/content/magic-sfx-sample> |
+| Whistles | dklon | CC BY 3.0 | <https://opengameart.org/content/whistles> |
+| Horde War Drums loop | William Hector | CC0 1.0 | <https://opengameart.org/content/horde-war-drums-loop> |
+
+Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dreamcore), <https://soundcloud.com/virix>. Whistle sound by **dklon**. These works are used under [Creative Commons Attribution 3.0 Unported](https://creativecommons.org/licenses/by/3.0/); the full legal text is included in [licenses/CC-BY-3.0.txt](licenses/CC-BY-3.0.txt). CC0 sources use [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
+
+**修改说明：**原始下载文件原样保留在 `sources/`，仅选择实际使用的文件，不保留整包无关素材。运行音频转换为 48 kHz 单声道 PCM16；裁去弱起音和过长静音，裁切时长并淡出，部分变体只改变 2.5% 播放速率。UI 直接采用原素材的音色；防护罩、风场、封条、兔洞和命中采用至多两个素材层。新版本只以线性增益控制活动区音量与真峰值，不对这些新音效使用旧版 tanh 饱和或大幅变调。短 UI 真峰值不高于 -7 dBFS，技能不高于 -3 dBFS。素材包并非全部宣称为实地录音，魔法、界面提示和鼓段包括作者设计的成品音效或音乐片段。
+
+`sources.json` 记录下载地址、日期、压缩包 SHA-256、原文件 SHA-256 和许可；`block_war/audio_manifest.json` 将每个成品对应到实际使用的源文件和发布页。具体剪辑由 `tools/build_war_audio.py` 复现。上述署名不表示作者为本游戏背书。
+
+运行时 F1 帮助页保留 ViRiX 与 dklon 署名及许可链接文字。Windows 导出明确包含本文件、许可全文和来源清单；只用于离线制作的原始音源不重复导入游戏包。

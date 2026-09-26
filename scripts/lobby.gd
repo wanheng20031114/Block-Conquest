@@ -70,6 +70,7 @@ func _ready() -> void:
 		_on_room_changed(relay.room)
 	_on_connection_state_changed(relay.connection_state)
 	UIMotion.bind_buttons($CanvasLayer/UI)
+	session.get_node("UIFeedback").bind_buttons($CanvasLayer/UI)
 	UIMotion.reveal(%Brand, Vector2(0, -10))
 	UIMotion.reveal(%MainMenu, Vector2(0, 18))
 	%SoloMenu.grab_focus(true)

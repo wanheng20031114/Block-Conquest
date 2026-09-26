@@ -1,4 +1,4 @@
-"""Build the Block War foley bank from retained CC0 recordings, without oscillators.
+"""Build Block War audio from retained, commercially reusable source assets.
 
 Run: python tools/build_war_audio.py
 Requires numpy, scipy and ffmpeg on PATH. Does not modify the original-mode bank.
@@ -21,6 +21,7 @@ SOURCES = ROOT / "assets/audio/sources"
 OUT = ROOT / "assets/audio/block_war"
 SR = 48000
 USED = set()
+SOURCE_PACKS = json.loads((ROOT / "assets/audio/sources.json").read_text(encoding="utf-8"))["packs"]
 
 # name, variants, bus, gain dB, priority, minimum gap ms, simultaneous limit
 EVENTS = [
@@ -43,19 +44,24 @@ EVENTS = [
     ("skill_drum", 1, "Combat", 2, 5, 650, 1),
     ("skill_shield", 1, "Combat", 1, 5, 650, 1),
     ("skill_breach", 2, "Combat", 1, 6, 500, 2),
+    ("rabbit_dash", 1, "Combat", 1, 5, 120, 2),
+    ("rabbit_seal", 2, "Combat", 1, 5, 120, 2),
+    ("rabbit_recall", 1, "Combat", -1, 5, 120, 2),
+    ("rabbit_burrow", 2, "Combat", 1, 5, 120, 2),
+    ("projectile_hit", 2, "Combat", -3, 3, 120, 3),
     ("victory", 1, "UI", 0, 7, 1200, 1),
     ("defeat", 1, "UI", 0, 7, 1200, 1),
 ]
 
 DESCRIPTIONS = {
-    "select": "Dry carved-wood contact and a small leather buckle",
-    "drag": "Short leather and arrow-feather brush while extending a selection",
-    "ratio": "Light wooden notch as the dispatch fraction changes",
-    "order": "Wooden command stamp followed by an equipment buckle",
-    "denied": "Two descending damped wooden knocks",
-    "cancel": "Closing leather strap and a low wooden latch",
-    "pause": "Descending pair of restrained wooden contacts",
-    "resume": "Ascending pair of restrained wooden contacts",
+    "select": "Short existing UI pick cue; dry attack and a light tonal tail",
+    "drag": "A brief recorded paper turn for picking up or extending a drag",
+    "ratio": "Light menu note, shortened for repeated dispatch-ratio changes",
+    "order": "Bright existing menu confirmation with its natural short decay",
+    "denied": "Existing downward back cue with a clear, restrained rejection tail",
+    "cancel": "Quieter, shorter version of the back cue for cancellation",
+    "pause": "Recorded book opening; a soft paper-led menu opening gesture",
+    "resume": "Recorded book closing; a short, firm menu closing gesture",
     "march": "A small group of grass and leather footfalls with equipment movement",
     "melee": "Sword contact against wood and armour, with restrained metallic brightness",
     "capture": "Rising struck-bell contacts over a flag-like feather and leather rustle",
@@ -63,13 +69,22 @@ DESCRIPTIONS = {
     "reinforce": "Boot arrival, leather movement and equipment settling",
     "upgrade": "Three rising construction hammer contacts, then a short bright bell",
     "rebuild": "Timber release followed by stone placement and a wooden latch",
-    "skill_command": "Command stamp followed by a short mustering boot sequence",
-    "skill_drum": "Low wooden and soft-contact layers edited into a quickening drum roll",
-    "skill_shield": "Armour locking, layered heavy metal resonance and stone contact",
-    "skill_breach": "Falling stone scrape, deep impact, and staggered masonry fragments",
+    "skill_command": "Existing bright item jingle for a warm mustering command",
+    "skill_drum": "Short excerpt of an existing war-drum composition; no wood-impact imitation",
+    "skill_shield": "Clear chime on release followed by an existing warm magical shimmer",
+    "skill_breach": "Existing fire impact with immediate ignition, outward rush and burning tail",
+    "rabbit_dash": "Existing wind spell and a light paper flutter, beginning on release",
+    "rabbit_seal": "Recorded paper placement and brief page movement for the seal",
+    "rabbit_recall": "Existing whistle cue for recalling troops",
+    "rabbit_burrow": "Existing stone movement and a soft leather drop for opening earth",
+    "projectile_hit": "Soft impact and a restrained equipment contact at the projectile collision",
     "victory": "Four rising recorded bell strikes with flag and equipment rustle",
     "defeat": "Falling armour and two low fading bell strikes",
 }
+
+# Retain the approved combat/footstep/result assets byte-for-byte. Only these
+# cues take the transparent editing path; no saturation or heavy pitch warping.
+REFINED = set("select drag ratio order denied cancel pause resume skill_command skill_drum skill_shield skill_breach rabbit_dash rabbit_seal rabbit_recall rabbit_burrow projectile_hit".split())
 
 
 def rms_active(samples):
@@ -132,29 +147,71 @@ def mix(seconds, layers):
     return output
 
 
+def recorded(relative, seconds, rate=1.0):
+    USED.add(relative)
+    samples = decode(relative).copy()
+    onset = np.flatnonzero(np.abs(samples) >= np.max(np.abs(samples)) * .025)[0]
+    samples = samples[max(0, onset - 48):]
+    if rate != 1.0:
+        samples = signal.resample_poly(samples, 1000, round(rate * 1000))
+    samples = samples[:round(seconds * SR)]
+    samples /= max(float(np.max(np.abs(samples))), 1e-10)
+    # Source transients remain intact; only the edit boundaries receive fades.
+    samples[:48] *= np.linspace(0, 1, min(len(samples), 48))
+    fade = min(round(.04 * SR), len(samples) // 4)
+    samples[-fade:] *= np.linspace(1, 0, fade)
+    return samples
+
+
+def refined(name, n):
+    clip = recorded
+    if name == "select":
+        return clip("virix_ui/MENU_Pick.wav", .22, 1.0 + n * .025)
+    if name == "drag":
+        return clip(f"kenney_rpg/bookFlip{n + 1}.ogg", .24)
+    if name == "ratio":
+        return clip("virix_ui1/Menu1B.wav", .14, 1.0 + n * .025)
+    if name == "order":
+        return clip(f"virix_ui1/Menu1{'A' if n == 0 else 'B'}.wav", .55)
+    if name in ("denied", "cancel"):
+        return clip("virix_ui/MENU B_Back.wav", .56 if name == "denied" else .25)
+    if name in ("pause", "resume"):
+        return clip(f"kenney_rpg/book{'Open' if name == 'pause' else 'Close'}.ogg", .45 if name == "pause" else .32)
+    if name == "skill_command":
+        return clip("virix_ui2/Item2A.wav", 1.1)
+    if name == "skill_drum":
+        return clip("hector_drums/horde_war_drums_by_william_hector.wav", .94)
+    if name == "skill_shield":
+        return mix(1.65, [(clip("virix_ui1/Item1A.wav", .65), 0, .28),
+                          (clip("virix_magic/Healing Full.wav", 1.65), 0, .65)])
+    if name == "skill_breach":
+        return clip("virix_magic/Fire impact 1.wav", 2.6, 1.0 + n * .025)
+    if name == "rabbit_dash":
+        return mix(1.05, [(clip("virix_magic/Wind effects 5.wav", 1.05), 0, .8),
+                          (clip("kenney_rpg/bookFlip1.ogg", .18), 0, .16)])
+    if name == "rabbit_seal":
+        return mix(.34, [(clip("kenney_rpg/bookPlace1.ogg", .28, 1.0 + n * .025), 0, .7),
+                         (clip(f"kenney_rpg/bookFlip{n + 1}.ogg", .27), .018, .25)])
+    if name == "rabbit_recall":
+        return clip("dklon_whistles/whistle_1.wav", .85)
+    if name == "rabbit_burrow":
+        return mix(.78, [(clip(f"rubberduck_rpg/stones_0{n + 1}.ogg", .72), 0, .75),
+                         (clip("kenney_rpg/dropLeather.ogg", .3), 0, .25)])
+    if name == "projectile_hit":
+        return mix(.26, [(clip(f"kenney_impact/impactSoft_heavy_00{n + 1}.ogg", .25), 0, .8),
+                         (clip(f"weapons_apparel/belt-buckle-0{n + 1}.wav", .15), .01, .15)])
+    raise ValueError(name)
+
+
 def make(name, variant):
+    if name in REFINED:
+        return refined(name, variant)
     n = variant
-    wood = lambda rate=1., seconds=.18: impact("impactWood_light", n % 5, rate=rate, seconds=seconds)
     leather = lambda seconds=.3: apparel("quiver-leather-squeeze", [2, 3, 4, 5][n % 4], seconds=seconds)
     buckle = lambda rate=1.: apparel("belt-buckle", n % 3 + 1, rate=rate, seconds=.25)
     foot = lambda i, rate=1.: impact("footstep_grass", i % 4, rate=rate, seconds=.22)
     heavy = lambda rate=.8: impact("impactWood_heavy", n % 5, rate=rate, seconds=.34, cutoff=3700)
     stone = lambda i=0, rate=1.: impact("impactMining", (n+i) % 5, rate=rate, seconds=.34, cutoff=5400)
-    if name == "select":
-        return mix(.17, [(wood(1.2), 0, .8), (buckle(1.2), .015, .13)])
-    if name == "drag":
-        return mix(.24, [(leather(.2), 0, .6), (apparel("arrow-feathers", n % 3 + 1, seconds=.2), .018, .4)])
-    if name == "ratio":
-        return mix(.10, [(wood(1.65, .1), 0, .9)])
-    if name == "order":
-        return mix(.32, [(heavy(1.18), 0, .65), (buckle(1.2), .08, .32), (foot(n, 1.15), .11, .2)])
-    if name == "denied":
-        return mix(.34, [(wood(.8), 0, .7), (wood(.62), .14, .85)])
-    if name == "cancel":
-        return mix(.23, [(leather(.16), 0, .5), (wood(.8), .06, .5)])
-    if name in ("pause", "resume"):
-        rates = (.95, .70) if name == "pause" else (.80, 1.3)
-        return mix(.26, [(wood(rates[0]), 0, .6), (wood(rates[1]), .115, .7)])
     if name == "march":
         return mix(.56, [
             (foot(n, .92 + n * .025), 0, .7),
@@ -180,20 +237,6 @@ def make(name, variant):
         return mix(.96, [(impact("impactPlank_medium", n+1, rate=.82, seconds=.33), 0, .55),
                          (leather(.35), .03, .18), (stone(2, .84), .24, .55),
                          (heavy(1.12), .52, .50), (buckle(1.35), .57, .15)])
-    if name == "skill_command":
-        return mix(.80, [(heavy(.75), 0, .8), (buckle(.78), .07, .35),
-                         (foot(0), .20, .6), (foot(1), .35, .65), (foot(2), .50, .7)])
-    if name == "skill_drum":
-        drum = mix(.26, [(impact("impactSoft_heavy", 2, rate=.64, seconds=.26, cutoff=1300), 0, .65),
-                          (impact("impactWood_heavy", 2, rate=.64, seconds=.23, cutoff=1700), .008, .35)])
-        return mix(.99, [(drum, t, gain) for t, gain in [(0, .8), (.24, .7), (.45, .8), (.62, .7), (.76, 1.)]])
-    if name == "skill_shield":
-        return mix(.95, [(impact("impactMetal_heavy", 3, rate=.72, seconds=.62, cutoff=4700), .03, .5),
-                         (buckle(.72), 0, .4), (bell(.75, .67), .16, .25), (stone(3, .72), .05, .35)])
-    if name == "skill_breach":
-        fall = apparel("sword-table-leg-scrape", n+1, rate=.64, seconds=.23, cutoff=2800)
-        return mix(1.0, [(fall, 0, .16), (stone(0, .64), .16, .8), (heavy(.55), .17, .60),
-                         (stone(1, 1.04), .28, .30), (stone(3, 1.28), .39, .18), (stone(4, .9), .54, .11)])
     if name == "victory":
         return mix(1.68, [(bell(rate, .65), at, gain) for rate, at, gain in
                          [(1., 0, .55), (1.26, .24, .62), (1.50, .48, .65), (2.0, .86, .75)]] +
@@ -206,12 +249,17 @@ def make(name, variant):
 
 
 def export(name, samples, description):
-    samples = filt(samples, 60, "highpass")
-    # Softly shape exceptional transients, then normalize the audible portion.
-    samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
-    samples *= 10 ** (-17.5 / 20) / max(rms_active(samples), 1e-10)
+    event = name[4:-3]
+    transparent = event in REFINED
+    target_db = -22.0 if event in {"select", "drag", "ratio", "cancel", "pause", "resume"} else -19.5
+    if not transparent:
+        samples = filt(samples, 60, "highpass")
+        samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
+        target_db = -17.5
+    samples *= 10 ** (target_db / 20) / max(rms_active(samples), 1e-10)
     true_peak = float(np.max(np.abs(signal.resample_poly(samples, 4, 1))))
-    samples *= min(1., 10 ** (-3.0 / 20) / max(true_peak, 1e-10))
+    ceiling_db = -7.0 if transparent and event in {"select", "drag", "ratio", "order", "denied", "cancel", "pause", "resume"} else -3.0
+    samples *= min(1., 10 ** (ceiling_db / 20) / max(true_peak, 1e-10))
     samples[:96] *= np.linspace(0, 1, 96)
     samples[-960:] *= np.linspace(1, 0, 960)
     samples[0] = samples[-1] = 0
@@ -226,14 +274,17 @@ def export(name, samples, description):
             "active_rms_db": round(20*math.log10(rms_active(samples)), 2),
             "true_peak_db": round(20*math.log10(float(np.max(np.abs(signal.resample_poly(samples, 4, 1))))), 2),
             "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "sources": [{"path": source, "sha256": hashlib.sha256((SOURCES/source).read_bytes()).hexdigest()}
+            "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation" if transparent else "Original retained foley recipe",
+            "sources": [{"path": source, "sha256": hashlib.sha256((SOURCES/source).read_bytes()).hexdigest(),
+                         "license": SOURCE_PACKS[source.split('/')[0]]["license"],
+                         "page": SOURCE_PACKS[source.split('/')[0]]["page"]}
                         for source in sorted(USED)]}
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     files = []
-    bank = ['extends RefCounted', '## Offline CC0 foley; each event uses the shared bounded native voice pool.',
+    bank = ['extends RefCounted', '## Licensed source edits; attribution is retained in assets/audio/CREDITS.md.',
             '## Generated by tools/build_war_audio.py. UI/world call sites must match the bus.', '', 'const EVENTS: Dictionary = {']
     for name, count, bus, gain, priority, gap, limit in EVENTS:
         streams = []
@@ -248,8 +299,8 @@ def main():
     bank += ['}', '']
     (ROOT / "scripts/block_war/war_sound_bank.gd").write_text("\n".join(bank), encoding="utf-8")
     manifest = {"format": "48 kHz mono PCM16 WAV", "generator": "tools/build_war_audio.py",
-                "processing": "Recorded layers, trim, filtering, resampling/pitch, timed edits, gentle transient shaping, active RMS normalization, fades. No generated tone or noise layers.",
-                "license": "CC0; original sources and licensing retained in ../sources and ../CREDITS.md",
+                "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
+                "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
                 "events": len(EVENTS), "files": files}
     (OUT / "audio_manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
     print(f"Built {len(EVENTS)} events / {len(files)} WAV files / {sum(f['bytes'] for f in files):,} bytes")

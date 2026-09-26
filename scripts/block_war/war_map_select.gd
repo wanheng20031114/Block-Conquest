@@ -26,6 +26,7 @@ func _ready() -> void:
 	selected = CATALOG.find_map(session.block_war_map_id)
 	_select_size(selected.size_class)
 	UIMotion.bind_buttons(self)
+	session.get_node("UIFeedback").bind_buttons(self)
 
 func _select_commander(index: int, opponent: bool) -> void:
 	if opponent:

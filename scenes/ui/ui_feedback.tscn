@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ui_feedback.gd" id="script"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_select_01.wav" id="select1"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_select_02.wav" id="select2"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_order_01.wav" id="order1"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_order_02.wav" id="order2"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_cancel_01.wav" id="cancel"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_ratio_01.wav" id="ratio1"]
+[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_ratio_02.wav" id="ratio2"]
+
+[sub_resource type="AudioStreamRandomizer" id="select"]
+resource_local_to_scene = true
+streams_count = 2
+stream_0/stream = ExtResource("select1")
+stream_1/stream = ExtResource("select2")
+
+[sub_resource type="AudioStreamRandomizer" id="order"]
+resource_local_to_scene = true
+streams_count = 2
+stream_0/stream = ExtResource("order1")
+stream_1/stream = ExtResource("order2")
+
+[sub_resource type="AudioStreamRandomizer" id="ratio"]
+resource_local_to_scene = true
+streams_count = 2
+stream_0/stream = ExtResource("ratio1")
+stream_1/stream = ExtResource("ratio2")
+
+[node name="UIFeedback" type="Node"]
+process_mode = 3
+script = ExtResource("script")
+
+[node name="select" type="AudioStreamPlayer" parent="."]
+stream = SubResource("select")
+bus = &"UI"
+volume_db = -1.0
+max_polyphony = 2
+
+[node name="order" type="AudioStreamPlayer" parent="."]
+stream = SubResource("order")
+bus = &"UI"
+max_polyphony = 2
+
+[node name="cancel" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("cancel")
+bus = &"UI"
+volume_db = -2.0
+max_polyphony = 2
+
+[node name="ratio" type="AudioStreamPlayer" parent="."]
+stream = SubResource("ratio")
+bus = &"UI"
+volume_db = -3.0
+max_polyphony = 2
