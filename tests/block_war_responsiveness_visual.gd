@@ -29,7 +29,7 @@ func _run() -> void:
 	var home: WarBuilding = game.buildings[0]
 	game.camera_rig.focus_at(home.global_position + Vector3.UP, true)
 	game.camera.size = 15.0
-	assert(game.cast_skill(2, home))
+	assert(game.cast_ground_skill(2, home.global_position))
 	await release_clip("shield", 72)
 	home.level = 4
 	home.refresh_visual()
@@ -51,13 +51,14 @@ func _run() -> void:
 	home.population = 60.0
 	var plan := {}
 	for building: WarBuilding in game.buildings:
-		plan = game.RABBIT_SKILLS.burrow_plan(game, building, 0)
+		plan = game.RABBIT_SKILLS.burrow_plan(game, home, building)
 		if not plan.is_empty():
 			break
 	assert(not plan.is_empty())
 	game.camera_rig.focus_at((plan.entrance + plan.exit) * 0.5, true)
 	game.camera.size = 23.0
-	assert(game.cast_skill(3, plan.target))
+	assert(game.cast_skill(3, home))
+	assert(game.issue_order(home, plan.target, 100) == 50)
 	await release_clip("burrow", 48)
 	await reset_game()
 	game.hud.hide()
@@ -74,7 +75,7 @@ func _run() -> void:
 	game.camera.size = 14.0
 	game.marches.send(0, game.buildings[2].building_id, 0, 24, route)
 	game.marches.tick(0.3)
-	assert(game.cast_skill(2, home))
+	assert(game.cast_ground_skill(2, home.global_position))
 	await release_clip("recall", 6)
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_RESPONSIVENESS_VISUAL completed output=", output)

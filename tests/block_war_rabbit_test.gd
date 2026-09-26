@@ -53,11 +53,12 @@ func refill(faction: int = 0) -> void:
 
 func tunnel_plan() -> Dictionary:
 	home().population = 60.0
-	for building: WarBuilding in game.buildings:
-		var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, building, 0)
-		if not plan.is_empty():
-			return plan
-	return {}
+	home().kind = 2 # Isolate staged transport from natural production.
+	var target: WarBuilding = game.buildings[2]
+	var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, home(), target, 100)
+	plan.source = home()
+	plan.target = target
+	return plan
 
 func _run() -> void:
 	create_timer(100.0, true, false, true).timeout.connect(func(): quit(3))
@@ -69,7 +70,7 @@ func _run() -> void:
 		check(button.get_node("Icon").texture == RULES.RABBIT_ICONS[index], "rabbit bottom icon %d" % index)
 		near(button.custom_minimum_size.x, 84.0, "existing button footprint")
 		check(button.hint.title == RULES.RABBIT_NAMES[index], "rabbit tooltip %d" % index)
-	check(game.skill_is_ground(0) and not game.skill_is_ground(1) and not game.skill_is_ground(2) and not game.skill_is_ground(3), "rabbit targeting differs from squirrel")
+	check(game.skill_is_ground(0) and not game.skill_is_ground(1) and game.skill_is_ground(2) and not game.skill_is_ground(3), "rabbit Q and E target ground while W and R target buildings")
 	var center := Vector3(-22, 0, 10)
 	check(game.cast_ground_skill(0, center), "rabbit dash casts")
 	near(game.energy, 75.0, "dash paid once")
@@ -173,57 +174,115 @@ func _run() -> void:
 	check(not game.cast_skill(1, target), "cannot refresh seal")
 	near(game.energy, 100.0, "duplicate seal does not charge")
 	await reset()
-	var route: PackedVector3Array = game.map.get_building_route(home(), game.buildings[2])
-	game.marches.send(home().building_id, game.buildings[2].building_id, 0, 40, route)
+	var route: PackedVector3Array = game.map.get_building_route(home(), enemy())
+	game.marches.send(home().building_id, enemy().building_id, 0, 40, route)
+	var reverse := route.duplicate()
+	reverse.reverse()
+	game.marches.send(enemy().building_id, home().building_id, 1, 40, reverse)
 	for unit: WarMarches.MarchUnit in game.marches._units:
-		unit.distance = 0.3
+		unit.distance = unit.order.length * 0.5
 		game.marches._update_pose(unit)
-	var plans: Array[Dictionary] = game.RABBIT_SKILLS.recall_plan(game, home(), 0)
-	check(plans.size() == 24, "recall capped at 24 nearby exposed soldiers")
+	var recall_center: Vector3 = game.marches._units[0].order.curve.sample_baked(game.marches._units[0].distance)
+	game.issue_order(home(), game.buildings[2], 25)
+	var plans: Array[Dictionary] = game.RABBIT_SKILLS.recall_plan(game, recall_center)
+	check(plans.size() == 80, "ground recall includes both factions without a twenty-four-person cap and excludes pending departures")
 	var recalled: WarMarches.MarchUnit = plans[0].unit
 	var previous_position := recalled.position
 	recalled.reserved = true
 	var total: int = game.marches.total_for(0)
-	check(game.cast_skill(2, home()), "recall casts")
+	check(game.cast_ground_skill(2, recall_center), "ground recall casts across the battlefield")
 	check(recalled.position.is_equal_approx(previous_position), "no teleport during recall")
 	check(recalled.reserved, "in-flight projectile reservation retained")
 	check(game.marches.total_for(0) == total, "recall preserves troop count")
-	check(game.marches.incoming_for(home().building_id, 0) == 24, "only selected soldiers retarget")
+	check(game.marches.incoming_for(home().building_id, 0) == 40 and game.marches.incoming_for(enemy().building_id, 1) == 40, "each faction returns to its own original source")
+	game.marches.tick(0.1)
+	refill()
+	game.cast_ground_skill(2, recall_center)
+	for plan: Dictionary in plans:
+		check(plan.unit.order.target_id == plan.unit.order.source_id, "repeated recall retains the original source rather than the last destination")
+	await reset()
+	route = game.map.get_building_route(home(), game.buildings[2])
+	game.marches.send(home().building_id, game.buildings[2].building_id, 0, 1, route)
+	game.marches.tick(0.01)
+	var nearby: WarMarches.MarchUnit = game.marches._units[0]
+	check(game.cast_ground_skill(2, nearby.position), "a soldier just outside its own doorway can return")
+	game.marches.tick(1.0)
+	check(game.marches.total_for(0) == 0 and home().population == 61.0, "a short return enters its source exactly once")
+	await reset()
+	route = game.map.get_building_route(home(), game.buildings[2])
+	game.marches.send(home().building_id, game.buildings[2].building_id, 0, 4, route)
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		unit.distance = 0.5
+		game.marches._update_pose(unit)
+	var returning_at: Vector3 = game.marches._units[0].position
+	home().population = 0.0
+	game._on_unit_arrived(home().building_id, 1, 3.0)
+	check(home().faction == 1 and home().population == 3.0, "recall source was captured by three hostile survivors")
+	check(game.cast_ground_skill(2, returning_at), "soldiers still recall toward their captured original source")
+	game.marches.tick(2.0)
+	check(home().faction == 0 and game.marches.total_for(0) == 0, "returning soldiers fight the captured source and can recapture it")
+	near(home().population, 1.0, "three returners trade with the hostile garrison and only one survivor enters")
 	await reset()
 	var plan := tunnel_plan()
-	check(not plan.is_empty(), "existing map has eligible local tunnel")
-	if not plan.is_empty():
-		var before: int = game.total_for(0)
-		check(game.cast_skill(3, plan.target), "tunnel casts")
-		near(plan.source.population, 30.0, "real garrison pays 30")
-		check(game.total_for(0) == before, "hidden passengers remain in faction total")
-		near(game.energy, 35.0, "tunnel cost")
-		check(game.marches.get_units().size() == 6, "first six passengers appear immediately on release")
-		game.simulate(0.15)
-		check(game.marches.get_units().size() == 6, "subsequent ranks retain a readable spacing")
-		game.simulate(0.02)
-		check(game.marches.get_units().size() == 12, "next six arrive after 0.16 seconds")
-		game.set_paused(true)
-		var delay: float = game.marches._units[-1].spawn_delay
-		game.simulate(10.0)
-		near(game.marches._units[-1].spawn_delay, delay, "pause freezes tunnel emergence")
-		game.set_paused(false)
-		game.simulate(0.48)
-		check(game.marches.get_units().size() == 30, "all thirty passengers emerge within 0.65 seconds")
+	plan.source.population = 70.0
+	check(not game.cast_skill(3, enemy()) and not game.cast_skill(3, plan.target), "R rejects hostile and neutral source buildings")
+	var before: int = game.total_for(0)
+	check(game.cast_skill(3, plan.source), "R enchants the chosen own source")
+	near(plan.source.burrow_remaining, 15.0, "source waits fifteen seconds for a command")
+	near(game.energy, 35.0, "source enchantment pays R once")
+	check(game.marches.total_for(0) == 0 and plan.source.population == 70.0, "enchanting alone neither dispatches nor spends troops")
+	check(game.issue_order(plan.source, plan.source, 100) == 0 and plan.source.burrow_remaining == 15.0, "an invalid self order preserves the enchantment")
+	check(game.issue_order(plan.source, plan.target, 100) == 50, "next legal order caps the tunnel at fifty")
+	check(plan.source.burrow_remaining == 0.0 and plan.source.population == 70.0 and plan.source.queued_population == 50 and plan.source.available_population == 20.0, "a seventy-person garrison reserves fifty and keeps twenty at home")
+	check(game.total_for(0) == before and game.marches.get_units().is_empty(), "digging conserves the army without exposing passengers early")
+	check(game.RABBIT_SKILLS.recall_plan(game, plan.entrance).is_empty() and game.RABBIT_SKILLS.recall_plan(game, plan.exit).is_empty(), "area recall excludes hidden tunnel reservations at either end")
+	check(not game.cast_ground_skill(2, plan.exit) and game.energy == 35.0 and plan.source.queued_population == 50, "an empty exit recall cannot spend energy or redirect waiting tunnel troops")
+	game.simulate(plan.dig_duration - 0.01)
+	check(plan.source.population == 70.0 and game.marches.get_units().is_empty(), "no soldier leaves before digging completes")
+	game.simulate(0.011)
+	check(game.marches.get_units().size() == 6 and plan.source.population == 64.0, "digging completion releases and pays the first six")
+	game.simulate(0.15)
+	check(game.marches.get_units().size() == 6, "subsequent ranks retain a readable spacing")
+	game.simulate(0.011)
+	check(game.marches.get_units().size() == 12 and plan.source.population == 58.0, "the next six depart after 0.16 seconds")
+	game.set_paused(true)
+	var delay: float = game.marches._units[-1].spawn_delay
+	game.simulate(10.0)
+	near(game.marches._units[-1].spawn_delay, delay, "pause freezes tunnel emergence")
+	game.set_paused(false)
+	game.simulate(1.2)
+	check(plan.source.queued_population == 0 and plan.source.population == 20.0, "all fifty leave in staged groups while twenty excess soldiers stay")
+	game.simulate(1.0)
+	check(plan.source.queued_population == 0 and plan.source.population == 20.0, "completion never dispatches the remaining twenty as an overflow march")
 	await reset()
 	plan = tunnel_plan()
-	if not plan.is_empty():
-		check(game.cast_skill(3, plan.target), "tunnel into known burning exit setup")
-		game.world_effects.start_fire(plan.exit, 4.5, 1)
-		game.simulate(3.0)
-		check(game.marches.total_for(0) == 0, "exit fire kills all emerging passengers")
+	check(game.cast_skill(3, plan.source) and game.issue_order(plan.source, plan.target, 100) == 50, "burning-exit tunnel setup")
+	game.simulate(plan.dig_duration - 0.01)
+	game.world_effects.start_fire(plan.exit, 4.5, 1)
+	game.simulate(3.0)
+	check(game.marches.total_for(0) == 0 and plan.source.population == 10.0, "exit fire kills emerging passengers after their real departure")
 	await reset()
 	plan = tunnel_plan()
-	if not plan.is_empty():
-		plan.source.population = 22.0
-		check(game.cast_skill(3, plan.target), "minimum tunnel sends twelve")
-		near(plan.source.population, 10.0, "source reserve respected")
-		check(game.marches.total_for(0) == 12, "minimum batch contains real twelve")
+	plan.source.population = 101.0
+	check(game.cast_skill(3, plan.source) and game.issue_order(plan.source, enemy(), 25) == 25, "a distant tunnel uses the ordinary percentage and floors fractional soldiers")
+	check(plan.source.available_population == 76.0, "unselected soldiers remain available at the source")
+	await reset()
+	plan = tunnel_plan()
+	plan.source.population = 1.0
+	check(game.cast_skill(3, plan.source), "one soldier is enough to prepare a tunnel")
+	check(game.issue_order(plan.source, plan.target, 25) == 0 and plan.source.burrow_remaining == 15.0, "a rounded-zero order does not consume the prepared tunnel")
+	check(game.issue_order(plan.source, plan.target, 100) == 1, "tunnels no longer require twelve troops or ten left behind")
+	await reset()
+	plan = tunnel_plan()
+	check(game.cast_skill(3, plan.source), "expiry setup")
+	game.simulate(14.99)
+	check(plan.source.burrow_remaining > 0.0, "enchantment remains just before fifteen seconds")
+	game.set_paused(true)
+	game.simulate(10.0)
+	near(plan.source.burrow_remaining, 0.01, "pause freezes the pending enchantment")
+	game.set_paused(false)
+	game.simulate(0.02)
+	check(plan.source.burrow_remaining == 0.0 and game.issue_order(plan.source, plan.target, 100) == 60, "expired enchantment leaves the next order as a full ordinary march")
 	for detail: String in failures:
 		printerr(detail)
 	await game.prepare_shutdown()

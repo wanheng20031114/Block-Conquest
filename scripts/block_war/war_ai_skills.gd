@@ -198,47 +198,78 @@ func _rabbit_turn(game: Node3D) -> void:
 			if score > best.score:
 				best = {"index": 1, "score": score, "target": building, "at": Vector3.ZERO}
 	if game.can_cast_skill(2, faction):
-		for id: int in threats:
-			var building: WarBuilding = game.by_id[id]
-			if building.faction != faction or threats[id] < building.population * 0.65:
+		# A whistle affects both teams. Score the whole local group so saving a
+		# building does not accidentally pull back a larger winning allied attack.
+		var cells: Dictionary[Vector2i, Dictionary] = {}
+		for unit: WarMarches.MarchUnit in visible:
+			if unit.order.target_id == unit.order.source_id:
 				continue
-			var plans: Array[Dictionary] = game.RABBIT_SKILLS.recall_plan(game, building, faction)
-			var timely := 0
-			for plan: Dictionary in plans:
-				if plan.length / WarMarches.SPEED < 3.0:
-					timely += 1
-			var score := minf(timely, threats[id]) * 1.6 + (18.0 if threats[id] >= building.population and timely > 0 else 0.0)
-			if score > best.score:
-				best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
-	if game.can_cast_skill(3, faction):
-		for building: WarBuilding in game.buildings:
-			var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, building, faction)
-			if plan.is_empty() or threats.get(plan.source.building_id, 0.0) >= plan.source.available_population - plan.count:
-				continue
-			var burning := false
-			for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():
-				if fire.age < WarFireWave.BURN_TIME and fire.global_position.distance_to(plan.exit) <= game.IMPACT_RADIUS + 0.7:
-					burning = true
-			if burning:
+			var cell := Vector2i(floori(unit.position.x / FIRE_CELL), floori(unit.position.z / FIRE_CELL))
+			if not cells.has(cell):
+				cells[cell] = {"at": unit.position, "count": 0}
+			cells[cell].count += 1
+		var candidates := cells.values()
+		candidates.sort_custom(func(a: Dictionary, b: Dictionary): return a.count > b.count)
+		for candidate: Dictionary in candidates.slice(0, 24):
+			var at: Vector3 = candidate.at
+			if not game._valid_ground_skill_target(at):
 				continue
 			var score := 0.0
-			if game.FACTIONS.allied(building.faction, faction):
-				var danger: float = threats.get(building.building_id, 0.0)
-				if danger >= building.population * 0.75 and danger > 8.0:
-					score = 25.0 + minf(plan.count, danger) * 1.5
-			else:
-				var arrival := SKILL_RULES.BURROW_EXIT_DISTANCE / WarMarches.SPEED + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
-				var growth := minf(maxf(0.0, building.capacity - building.population), building.production_rate * maxf(0.0, arrival - building.disruption_remaining))
-				var damage: float = plan.count * game.combat_multiplier(faction, building)
-				var committed: int = game.marches.team_incoming_for(building.building_id, faction)
-				if committed == 0 and damage > building.population + growth + 2.0 and plan.length >= 9.0:
-					score = 28.0 + minf(18.0, damage - building.population - growth)
+			for unit: WarMarches.MarchUnit in visible:
+				if unit.order.target_id == unit.order.source_id or unit.position.distance_squared_to(at) > SKILL_RULES.RECALL_RADIUS * SKILL_RULES.RECALL_RADIUS:
+					continue
+				var destination: WarBuilding = game.by_id[unit.order.target_id]
+				if game.FACTIONS.hostile(unit.order.faction, faction):
+					score += 2.0 if game.FACTIONS.allied(destination.faction, faction) else 0.25
+				else:
+					var home: WarBuilding = game.by_id[unit.order.source_id]
+					var danger: float = threats.get(home.building_id, 0.0)
+					var defending: bool = danger >= home.population * 0.65 and danger > 0.0 and unit.position.distance_to(home.global_position) < WarMarches.SPEED * 4.0
+					score += 2.0 if defending else -2.5
 			if score > best.score:
-				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
-	if best.index == 0:
-		game.cast_ground_skill(0, best.at, faction)
-	elif best.index > 0:
-		game.cast_skill(best.index, best.target, faction)
+				best = {"index": 2, "score": score, "target": null, "at": at}
+	if game.can_cast_skill(3, faction):
+		for source: WarBuilding in game.buildings:
+			if not game._valid_skill_target(3, source, faction):
+				continue
+			var percent := 0
+			for option: int in [25, 50, 75, 100]:
+				var count := mini(SKILL_RULES.BURROW_LIMIT, floori(source.available_population * option / 100.0))
+				if count >= 12 and source.available_population - count >= threats.get(source.building_id, 0.0) + 6.0:
+					percent = option
+			if percent == 0:
+				continue
+			for building: WarBuilding in game.buildings:
+				var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, source, building, percent)
+				if plan.is_empty():
+					continue
+				var burning := false
+				for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():
+					if fire.age < WarFireWave.BURN_TIME and fire.global_position.distance_to(plan.exit) <= game.IMPACT_RADIUS + 0.7:
+						burning = true
+				if burning:
+					continue
+				var score := 0.0
+				if game.FACTIONS.allied(building.faction, faction):
+					var danger: float = threats.get(building.building_id, 0.0)
+					if danger >= building.population * 0.75 and danger > 8.0:
+						score = 25.0 + minf(plan.count, danger) * 1.5
+				else:
+					var arrival: float = plan.dig_duration + SKILL_RULES.BURROW_EXIT_DISTANCE / WarMarches.SPEED + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
+					var growth := minf(maxf(0.0, building.capacity - building.population), building.production_rate * maxf(0.0, arrival - building.disruption_remaining))
+					var damage: float = plan.count * game.combat_multiplier(faction, building)
+					var committed: int = game.marches.team_incoming_for(building.building_id, faction)
+					if committed == 0 and damage > building.population + growth + 2.0 and plan.length >= 9.0:
+						score = 28.0 + minf(18.0, damage - building.population - growth)
+				if score > best.score:
+					best = {"index": 3, "score": score, "target": source, "destination": building, "percent": percent}
+	if best.index in [0, 2]:
+		game.cast_ground_skill(best.index, best.at, faction)
+	elif best.index == 3:
+		if game.cast_skill(3, best.target, faction):
+			game.issue_order(best.target, best.destination, best.percent, faction)
+	elif best.index == 1:
+		game.cast_skill(1, best.target, faction)
 
 func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarches.MarchUnit]) -> float:
 	if building.kind == 0:

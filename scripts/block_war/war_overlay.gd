@@ -28,7 +28,8 @@ func _draw() -> void:
 	if game.skill_is_ground(game.armed_skill):
 		var center: Vector3 = game.ground_skill_target
 		if center.is_finite():
-			var haste: bool = game.faction_skills[0].commander == game.SKILL_RULES.RABBIT or game.armed_skill == 1
+			var rabbit: bool = game.faction_skills[0].commander == game.SKILL_RULES.RABBIT
+			var haste: bool = (rabbit and game.armed_skill == 0) or (not rabbit and game.armed_skill == 1)
 			var color := Color(0.65, 0.94, 0.8, 0.9) if haste else Color(1.0, 0.61, 0.25, 0.9)
 			if not game.can_cast_skill(game.armed_skill):
 				color = Color(0.9, 0.35, 0.27, 0.65)
@@ -36,19 +37,15 @@ func _draw() -> void:
 			var screen := camera.unproject_position(center + Vector3(0, 0.15, 0))
 			draw_line(screen - Vector2(7, 0), screen + Vector2(7, 0), color, 1.5, true)
 			draw_line(screen - Vector2(0, 7), screen + Vector2(0, 7), color, 1.5, true)
+			if rabbit and game.armed_skill == 2:
+				_draw_rabbit_preview(camera)
 	elif game.armed_skill >= 0:
-		var valid: bool
-		if game.faction_skills[0].commander == game.SKILL_RULES.RABBIT and game.armed_skill in [2, 3]:
-			valid = not game.recall_preview.is_empty() if game.armed_skill == 2 else not game.rabbit_preview.is_empty()
-		else:
-			valid = game._valid_skill_target(game.armed_skill, game.hovered)
+		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)
 		var mouse := get_viewport().get_mouse_position()
 		draw_arc(mouse, 13.0, 0, TAU, 32, reticle_color, 1.5, true)
 		if valid and game.hovered != null:
 			_ring(game.hovered.global_position, 3.4, reticle_color, 2.0)
-		if game.faction_skills[0].commander == game.SKILL_RULES.RABBIT:
-			_draw_rabbit_preview(camera)
 	if game.selected != null and game.selected.kind == 1:
 		_ring(game.selected.global_position, game.tower_range(game.selected), Color(1.0, 0.81, 0.43, 0.35), 1.5)
 	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:
@@ -64,7 +61,13 @@ func _draw() -> void:
 			points.append(get_viewport().get_mouse_position())
 		if points.size() >= 2:
 			color.a = 0.75
-			draw_polyline(points, color, 3.5, true)
+			if game.drag_source.burrow_remaining > 0.0 and game.order_route.size() >= 2:
+				draw_dashed_line(points[0], points[1], color, 3.5, 9.0, true)
+				_ring(game.order_route[1], 1.1, color, 2.0)
+				if points.size() > 2:
+					draw_polyline(points.slice(1), color, 3.5, true)
+			else:
+				draw_polyline(points, color, 3.5, true)
 			var end: Vector2 = points[-1]
 			var direction: Vector2 = (end - points[-2]).normalized()
 			var side := Vector2(-direction.y, direction.x)
@@ -84,7 +87,7 @@ func _draw() -> void:
 		_ring(effect.at, radius, color, 2.5)
 
 func _update_dispatch_hint() -> void:
-	var count := floori(game.drag_source.available_population * game.percentage / 100.0)
+	var count: int = game.dispatch_count(game.drag_source, game.percentage)
 	hint_label.text = str(count)
 	var font := hint_label.get_theme_font("font")
 	var font_size := hint_label.get_theme_font_size("font_size")
@@ -99,19 +102,11 @@ func _update_dispatch_hint() -> void:
 	hint_label.size = extent - Vector2(28.0, 2.0)
 
 func _draw_rabbit_preview(camera: Camera3D) -> void:
-	var color := Color(0.58, 0.87, 0.70, 0.85)
-	if game.armed_skill == 2 and game.hovered != null:
-		_ring(game.hovered.global_position, game.SKILL_RULES.RECALL_RADIUS, color, 1.4)
-		for plan: Dictionary in game.recall_preview:
-			_draw_world_path(plan.route, color)
-		_draw_skill_number(game.recall_preview.size(), camera.unproject_position(game.hovered.global_position + Vector3(3, 1, 0)))
-	elif game.armed_skill == 3 and not game.rabbit_preview.is_empty():
-		var plan: Dictionary = game.rabbit_preview
-		_ring(plan.entrance, 1.0, color, 2.0)
-		_ring(plan.exit, 1.15, color, 2.0)
+	for plan: Dictionary in game.recall_preview:
+		var color: Color = game.faction_color(plan.unit.order.faction)
+		color.a = 0.72
 		_draw_world_path(plan.route, color)
-		draw_dashed_line(camera.unproject_position(plan.entrance + Vector3.UP * 0.1), camera.unproject_position(plan.exit + Vector3.UP * 0.1), Color(color, 0.5), 1.5, 7.0, true)
-		_draw_skill_number(plan.count, camera.unproject_position(plan.exit + Vector3(0, 1.5, 0)))
+	_draw_skill_number(game.recall_preview.size(), camera.unproject_position(game.ground_skill_target + Vector3(3, 1, 0)))
 
 func _draw_world_path(route: PackedVector3Array, color: Color) -> void:
 	var points := PackedVector2Array()

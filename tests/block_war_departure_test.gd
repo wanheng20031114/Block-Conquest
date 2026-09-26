@@ -141,22 +141,23 @@ func _run() -> void:
 	check(not source.is_constructing and source.population == 30.0 and game.marches.total_for(0) == 30, "AI also cannot develop or dispatch using a committed garrison")
 
 	await reset_match(60.0)
-	var tunnel: Dictionary = {}
-	for candidate: WarBuilding in game.buildings:
-		tunnel = game.RABBIT_SKILLS.burrow_plan(game, candidate, 0, source.building_id)
-		if not tunnel.is_empty():
-			break
-	check(not tunnel.is_empty(), "rabbit fixture has a valid nearby tunnel destination")
-	if not tunnel.is_empty():
-		game.issue_order(source, target, 50)
-		check(game.RABBIT_SKILLS.cast(game, 3, tunnel.target, 0, source.building_id), "rabbit can spend the unreserved remainder")
-		check(source.population == 40.0 and source.queued_population == 30 and source.available_population == 10.0, "tunnel entry pays immediately while the normal queue stays inside")
-		check(game.total_for(0) == 60, "mixed tunnel and ordinary departures conserve the army")
-		check(game.RABBIT_SKILLS.burrow_plan(game, tunnel.target, 0, source.building_id).is_empty(), "rabbit cannot borrow the remaining ordinary reservations")
-		game._on_unit_arrived(source.building_id, 1, 41.0)
-		check(source.faction == 1 and source.queued_population == 0 and game.marches.total_for(0) == 20, "source capture cancels ordinary reservations and preserves paid tunnel travelers")
-		game.marches.tick(0.2)
-		check(game.marches.total_for(0) == 20, "delayed tunnel exits do not debit the captured building")
+	game.faction_skills[0].commander = game.SKILL_RULES.RABBIT
+	game.energy = 100.0
+	game.issue_order(source, target, 50)
+	var tunnel: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, source, other, 100)
+	check(tunnel.count == 30, "rabbit plan only uses troops not committed to the ordinary queue")
+	check(game.cast_skill(3, source) and game.issue_order(source, other, 100) == 30, "the next order reserves the uncommitted remainder for digging")
+	check(source.population == 60.0 and source.queued_population == 60 and source.available_population == 0.0, "ordinary and tunnel queues both remain inside until real departures")
+	check(game.total_for(0) == 60, "mixed tunnel and ordinary reservations conserve the army")
+	check(game.RABBIT_SKILLS.burrow_plan(game, source, other, 100).is_empty(), "rabbit cannot borrow either set of reservations")
+	game.marches.tick(tunnel.dig_duration + 0.01)
+	var departed: int = game.marches.get_units().size()
+	check(departed > 0 and source.queued_population > 0, "both departure systems progress while later tunnel ranks remain inside")
+	game._on_unit_arrived(source.building_id, 1, source.population + 1.0)
+	check(source.faction == 1 and source.queued_population == 0 and game.marches.total_for(0) == departed, "source capture cancels both pending queues and preserves departed travelers")
+	var captured_population: float = source.population
+	game.marches.tick(0.2)
+	check(game.marches.total_for(0) == departed and source.population == captured_population, "canceled delayed tunnel ranks never debit the captured building")
 
 	await reset_match()
 	var route: PackedVector3Array = game.map.get_building_route(source, target)

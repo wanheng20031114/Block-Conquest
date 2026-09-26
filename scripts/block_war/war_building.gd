@@ -23,6 +23,7 @@ const SELECTION_REBOUND_DURATION := 0.38
 var construction_remaining := 0.0
 var conversion_target := -1
 var disruption_remaining := 0.0
+var burrow_remaining := 0.0
 var is_constructing: bool:
 	get:
 		return construction_remaining > 0.0
@@ -120,6 +121,7 @@ func set_visual_paused(value: bool) -> void:
 	$Visual/Smithy/Smoke.speed_scale = 0.0 if value else 1.0
 	$Visual/Smithy/ForgeAnimation.speed_scale = 0.0 if value or disruption_remaining > 0.0 else 1.0
 	$Disruption.set_running(not value)
+	$BurrowReady.set_running(not value)
 	for particles: GPUParticles3D in _construction_particles:
 		particles.speed_scale = 0.0 if value else 1.0
 	for tween: Tween in [_selection_tween, _selection_body_tween, _capture_tween, _recoil_tween]:
@@ -130,6 +132,25 @@ func set_visual_paused(value: bool) -> void:
 				tween.pause()
 			else:
 				tween.play()
+
+
+func begin_burrow(seconds: float) -> void:
+	burrow_remaining = seconds
+	$BurrowReady.set_remaining(seconds)
+
+
+func advance_burrow(delta: float) -> void:
+	if burrow_remaining <= 0.0:
+		return
+	burrow_remaining = maxf(0.0, burrow_remaining - delta)
+	if burrow_remaining < 0.000001:
+		burrow_remaining = 0.0
+	$BurrowReady.set_remaining(burrow_remaining)
+
+
+func clear_burrow() -> void:
+	burrow_remaining = 0.0
+	$BurrowReady.set_remaining(0.0)
 
 
 func begin_disruption(seconds: float) -> void:

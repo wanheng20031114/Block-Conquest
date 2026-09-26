@@ -23,6 +23,7 @@ func reset_game() -> void:
 	game.camera_rig.keyboard_pan = false
 	game.ai_enabled = false
 	game.audio.muted = true
+	game.energy = 100.0
 	game.select_building(null)
 	await physics_frame
 	await create_timer(0.5).timeout
@@ -34,6 +35,11 @@ func clip(label: String, frames: int) -> void:
 		await process_frame
 		if index % 2 == 0:
 			await capture("%s_%03d" % [label, index])
+		if index == 12:
+			var close_zoom: float = game.camera.size
+			game.camera.size = 58.0
+			await capture(label + "_normal_zoom")
+			game.camera.size = close_zoom
 
 func _run() -> void:
 	create_timer(160.0, true, false, true).timeout.connect(func(): quit(3))
@@ -84,33 +90,48 @@ func _run() -> void:
 	await reset_game()
 	game.hud.hide()
 	var home: WarBuilding = game.buildings[0]
-	var route: PackedVector3Array = game.map.get_building_route(home, game.buildings[2])
-	game.camera_rig.focus_at(home.global_position + Vector3(1, 0, 1), true)
-	game.camera.size = 14.0
-	game.marches.send(0, game.buildings[2].building_id, 0, 36, route)
-	game.marches.tick(0.95)
-	assert(game.cast_skill(2, home))
+	var other_home: WarBuilding = game.by_id[2]
+	other_home.faction = 1
+	other_home.population = 60.0
+	other_home.refresh_visual()
+	var route: PackedVector3Array = game.map.get_building_route(home, other_home)
+	var reverse_route: PackedVector3Array = game.map.get_building_route(other_home, home)
+	center = (home.global_position + other_home.global_position) * 0.5
+	game.camera_rig.focus_at(center, true)
+	game.camera.size = 24.0
+	game.marches.send(home.building_id, other_home.building_id, 0, 36, route)
+	game.marches.send(other_home.building_id, home.building_id, 1, 36, reverse_route)
+	game.marches.tick(3.0)
+	await capture("recall_before")
+	var recalled: Array[Dictionary] = game.RABBIT_SKILLS.recall_plan(game, center)
+	assert(recalled.size() > 24)
+	assert(game.cast_ground_skill(2, center))
 	await clip("recall", 48)
 	await reset_game()
 	home = game.buildings[0]
-	home.population = 60.0
-	var plan := {}
-	for building: WarBuilding in game.buildings:
-		plan = game.RABBIT_SKILLS.burrow_plan(game, building, 0)
-		if not plan.is_empty():
-			break
+	home.population = 70.0
+	target = game.by_id[1]
+	var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, home, target, 100)
 	assert(not plan.is_empty())
-	game.camera_rig.focus_at((plan.entrance + plan.exit) * 0.5, true)
-	game.camera.size = 23.0
+	assert(home.global_position.distance_to(target.global_position) > 30.0)
+	game.camera_rig.focus_at(home.global_position, true)
+	game.camera.size = 24.0
 	await process_frame
 	game.request_skill(3)
-	game._update_skill_drag(game.camera.unproject_position(plan.target.global_position + Vector3.UP * 1.5))
+	game._update_skill_drag(game.camera.unproject_position(home.global_position + Vector3.UP * 1.5))
 	game.overlay.queue_redraw()
 	await capture("rabbit_burrow_aim")
 	game._cancel_skill_drag()
 	game.hud.hide()
-	assert(game.cast_skill(3, plan.target))
-	await clip("burrow", 108)
+	assert(game.cast_skill(3, home))
+	await clip("burrow_ready", 24)
+	game.camera_rig.focus_at((plan.entrance + plan.exit) * 0.5, true)
+	game.camera.size = 58.0
+	assert(game.issue_order(home, target, 100) == 50)
+	await clip("burrow_dig", 36)
+	game.camera_rig.focus_at(plan.exit, true)
+	game.camera.size = 24.0
+	await clip("burrow_exit", 60)
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_RABBIT_VISUAL completed output=", output)
 	quit()

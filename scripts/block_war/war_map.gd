@@ -118,6 +118,37 @@ func get_building_distance(source: WarBuilding, target: WarBuilding) -> float:
 	return 0.0 if source == target else _route_distances[_route_key(source, target)]
 
 
+func get_return_route(from: Vector3, source: WarBuilding, destination: WarBuilding) -> PackedVector3Array:
+	# Join the saved surface guide, including from a tunnel's exit. Reversing it
+	# keeps distant returns on authored bridges without a new global navigation grid.
+	if from.distance_to(source.global_position) <= 8.0:
+		return get_recall_route(from, source)
+	var guide := get_building_route(source, destination)
+	var join := Vector3.ZERO
+	var segment := -1
+	var candidates: Array[Dictionary] = []
+	for index: int in range(1, guide.size()):
+		var point := Geometry3D.get_closest_point_to_segment(from, guide[index - 1], guide[index])
+		var distance := from.distance_squared_to(point)
+		if distance <= FORMATION_CLEARANCE * FORMATION_CLEARANCE:
+			candidates.append({"point": point, "distance": distance, "segment": index})
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary): return a.distance < b.distance)
+	for candidate: Dictionary in candidates:
+		if _recall_segment_clear(from, candidate.point, source):
+			join = candidate.point
+			segment = candidate.segment
+			break
+	if segment < 0:
+		return PackedVector3Array()
+	var route := PackedVector3Array([from])
+	if from.distance_to(join) > 0.01:
+		route.append(join)
+	for index: int in range(segment - 1, -1, -1):
+		if route[-1].distance_to(guide[index]) > 0.01:
+			route.append(guide[index])
+	return route
+
+
 func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
 	var finish := target.march_perimeter_towards(from)
 	if from.distance_to(finish) < 0.02:

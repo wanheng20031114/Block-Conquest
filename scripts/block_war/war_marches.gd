@@ -146,8 +146,30 @@ func departure_step_limit() -> float:
 	var limit := INF
 	for unit: MarchUnit in _units:
 		if unit.pending_departure:
-			limit = minf(limit, maxf(0.000001, -unit.distance / SPEED))
+			limit = minf(limit, maxf(0.000001, unit.spawn_delay + maxf(0.0, -unit.distance / SPEED)))
 	return limit
+
+func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float, dig_duration: float) -> void:
+	# The digging team prepares the passage while soldiers still defend their home.
+	# Each rank enters the completed tunnel as it emerges at the other end.
+	if count <= 0:
+		return
+	var order := _make_order(source_id, target_id, faction, route)
+	departure_queue_changed.emit(source_id, faction, count)
+	for index: int in count:
+		var unit := MarchUnit.new()
+		unit.order = order
+		unit.pending_departure = true
+		unit.departure_sequence = _departure_sequence
+		_departure_sequence += 1
+		unit.distance = 0.0
+		unit.lane = (float(index % COLUMNS) - 2.5) * COLUMN_SPACING
+		unit.gait = float(index % COLUMNS) * 0.08
+		unit.spawn_delay = dig_duration + floorf(float(index) / COLUMNS) * interval
+		_update_pose(unit)
+		_units.append(unit)
+	_ensure_capacity(_units.size())
+	_render()
 
 func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float) -> void:
 	var order := _make_order(source_id, target_id, faction, route)
@@ -181,7 +203,9 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		var concealed_time := minf(delta, unit.spawn_delay)
 		var step := movement_distance(unit, delta)
 		unit.spawn_delay = maxf(0.0, unit.spawn_delay - delta)
-		if concealed_time >= delta:
+		if unit.spawn_delay < 0.000001:
+			unit.spawn_delay = 0.0
+		if concealed_time >= delta and unit.spawn_delay > 0.0:
 			index += 1
 			continue
 		var before := unit.position
@@ -195,8 +219,8 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 			# Check the visible part of the movement before arrival is settled.
 			# Queued soldiers are protected until they actually emerge from a doorway.
 			var concealed_fraction := concealed_time / delta
-			var emerged := concealed_fraction + (1.0 - concealed_fraction) * clampf(-previous_distance / step, 0.0, 1.0)
-			var arrived := concealed_fraction + (1.0 - concealed_fraction) * clampf((unit.order.length - previous_distance) / step, 0.0, 1.0)
+			var emerged := concealed_fraction + (1.0 - concealed_fraction) * clampf(-previous_distance / maxf(step, 0.000001), 0.0, 1.0)
+			var arrived := concealed_fraction + (1.0 - concealed_fraction) * clampf((unit.order.length - previous_distance) / maxf(step, 0.000001), 0.0, 1.0)
 			var burned := false
 			for fire: Dictionary in fire_segments:
 				var contact := fire_contact(before, unit.position, fire, emerged, arrived)

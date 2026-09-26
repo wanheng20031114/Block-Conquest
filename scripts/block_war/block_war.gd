@@ -64,10 +64,8 @@ var _match_ready: bool = false
 var _previous_taa: bool = false
 var _previous_auto_quit: bool = true
 var _closing: bool = false
-var rabbit_preview: Dictionary = {}
 var recall_preview: Array[Dictionary] = []
-var _rabbit_preview_target := -1
-var _rabbit_preview_source := -1
+var _recall_preview_center := Vector3.INF
 var _rabbit_preview_time := -1.0
 
 @onready var map: Node3D = $Map
@@ -113,6 +111,7 @@ func _ready() -> void:
 	marches.unit_arrived.connect(_on_unit_arrived)
 	marches.departure_queue_changed.connect(_on_departure_queue_changed)
 	marches.unit_departed.connect(_on_unit_departed)
+	world_effects.get_node("Rabbit").tunnel_opened.connect(func(at: Vector3): audio.play_world(&"war_rabbit_burrow", at))
 	marches.unit_defeated.connect(world_effects.casualty)
 	hud.percentage_changed.connect(set_percentage)
 	hud.skill_requested.connect(request_skill)
@@ -207,6 +206,7 @@ func _simulate_step(delta: float) -> void:
 	for building: WarBuilding in buildings:
 		# End-of-step restoration: movement and already-fired projectiles still
 		# belong to the interval during which the building was disabled.
+		building.advance_burrow(delta)
 		var restored := building.advance_disruption(delta)
 		if restored and building.faction >= 0 and building.kind == 1 and tower_clocks[building.building_id] <= 0.0:
 			_fire_tower(building)
@@ -280,12 +280,16 @@ func select_building(building: Node3D) -> void:
 	hud.track_building(selected, camera, buildings)
 	update_hud()
 
+func dispatch_count(source: WarBuilding, amount_percent: int) -> int:
+	var count := floori(source.available_population * amount_percent / 100.0)
+	return mini(count, SKILL_RULES.BURROW_LIMIT) if source.burrow_remaining > 0.0 else count
+
 func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = PLAYER) -> int:
 	if finished or _local_menu or source == null or target == null or source == target:
 		return 0
 	if source.faction != faction or amount_percent not in [25, 50, 75, 100]:
 		return 0
-	var count := floori(source.available_population * amount_percent / 100.0)
+	var count := dispatch_count(source, amount_percent)
 	if count < 1:
 		if faction == PLAYER:
 			hud.notify("当前比例不足 1 名可用民兵 · 待出发部队已预留")
@@ -297,7 +301,15 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 			hud.notify("没有可通行的路线")
 			audio.play_ui(&"war_denied")
 		return 0
-	marches.queue_departure(source.building_id, target.building_id, faction, count, route)
+	if source.burrow_remaining > 0.0:
+		var plan := RABBIT_SKILLS.burrow_plan(self, source, target, amount_percent)
+		if plan.is_empty():
+			return 0
+		_clear_building_burrow(source)
+		marches.queue_tunnel_departure(source.building_id, target.building_id, faction, count, plan.route, SKILL_RULES.BURROW_BATCH_INTERVAL, plan.dig_duration)
+		world_effects.get_node("Rabbit").start_tunnel(faction, plan.entrance, plan.exit, plan.route[1] - plan.route[0], count, plan.dig_duration)
+	else:
+		marches.queue_departure(source.building_id, target.building_id, faction, count, route)
 	if faction == PLAYER:
 		audio.play_ui(&"war_order")
 		var verb := "增援" if FACTIONS.allied(target.faction, PLAYER) else "进攻"
@@ -362,6 +374,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 				marches.trim_departures(target_id, previous_faction, 0)
 			target.cancel_construction()
 			target.clear_disruption()
+			_clear_building_burrow(target)
 			target.faction = faction
 			_cancel_building_recruitment(target_id)
 			target.population = survivors
@@ -453,12 +466,10 @@ func _update_skill_drag(screen: Vector2, refresh_preview: bool = false) -> void:
 	ground_skill_target = skill_ground_at(screen)
 	var over_battlefield: bool = get_viewport().get_visible_rect().has_point(screen) and not hud.is_pointer_blocked(screen)
 	hovered = pick_building(screen) if over_battlefield and not skill_is_ground(armed_skill) else null
-	var valid: bool
-	if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT and armed_skill in [2, 3]:
+	var valid := ground_skill_target.is_finite() if skill_is_ground(armed_skill) else _valid_skill_target(armed_skill, hovered)
+	if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT and armed_skill == 2:
 		_refresh_rabbit_preview(refresh_preview)
-		valid = not recall_preview.is_empty() if armed_skill == 2 else not rabbit_preview.is_empty()
-	else:
-		valid = ground_skill_target.is_finite() if skill_is_ground(armed_skill) else _valid_skill_target(armed_skill, hovered)
+		valid = not recall_preview.is_empty()
 	hud.set_skill_drag_target(valid, screen)
 	overlay.queue_redraw()
 
@@ -470,8 +481,7 @@ func release_skill_drag(screen: Vector2) -> void:
 	if skill_is_ground(index) and ground_skill_target.is_finite():
 		success = cast_ground_skill(index, ground_skill_target)
 	elif not skill_is_ground(index) and _valid_skill_target(index, target):
-		if faction_skills[PLAYER].commander != SKILL_RULES.RABBIT or index != 3 or not rabbit_preview.is_empty():
-			success = cast_skill(index, target, PLAYER, _rabbit_preview_source)
+		success = cast_skill(index, target)
 	_cancel_skill_drag()
 	if success and target != null:
 		select_building(target)
@@ -485,10 +495,8 @@ func _cancel_skill_drag() -> void:
 	_skill_keycode = 0
 	ground_skill_target = Vector3.INF
 	hovered = null
-	rabbit_preview = {}
 	recall_preview = []
-	_rabbit_preview_target = -1
-	_rabbit_preview_source = -1
+	_recall_preview_center = Vector3.INF
 	_rabbit_preview_time = -1.0
 
 func skill_is_ground(index: int, faction: int = PLAYER) -> bool:
@@ -500,20 +508,17 @@ func skill_radius(index: int, faction: int = PLAYER) -> float:
 	return SKILL_RULES.HASTE_RADIUS if index == 1 else IMPACT_RADIUS
 
 func _refresh_rabbit_preview(force: bool = false) -> void:
-	var id: int = hovered.building_id if hovered != null else -1
-	var changed := id != _rabbit_preview_target
+	var changed := ground_skill_target != _recall_preview_center
 	if not force and not changed and elapsed - _rabbit_preview_time < 0.1:
 		return
 	_rabbit_preview_time = elapsed
-	_rabbit_preview_target = id
-	if changed:
-		_rabbit_preview_source = -1
-	if armed_skill == 2:
-		recall_preview = RABBIT_SKILLS.recall_plan(self, hovered, PLAYER)
-	else:
-		rabbit_preview = RABBIT_SKILLS.burrow_plan(self, hovered, PLAYER, _rabbit_preview_source)
-		if _rabbit_preview_source < 0 and not rabbit_preview.is_empty():
-			_rabbit_preview_source = rabbit_preview.source.building_id
+	_recall_preview_center = ground_skill_target
+	recall_preview = RABBIT_SKILLS.recall_plan(self, ground_skill_target)
+
+func _clear_building_burrow(building: WarBuilding) -> void:
+	if building.burrow_remaining > 0.0 and building.faction >= 0:
+		faction_skills[building.faction].durations[3] = 0.0
+	building.clear_burrow()
 
 func can_cast_skill(index: int, faction: int = PLAYER) -> bool:
 	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and not _local_menu and not finished and faction_skills[faction].cooldowns[index] <= 0.0 and faction_skills[faction].energy >= SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
@@ -540,8 +545,7 @@ func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> b
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		match index:
 			1: return FACTIONS.hostile(target.faction, faction) and target.disruption_remaining <= 0.0
-			2: return not RABBIT_SKILLS.recall_plan(self, target, faction).is_empty()
-			3: return not RABBIT_SKILLS.burrow_plan(self, target, faction).is_empty()
+			3: return target.faction == faction and target.burrow_remaining <= 0.0
 		return false
 	if index == 0:
 		if not FACTIONS.allied(target.faction, faction) or target.kind != 0:
@@ -554,23 +558,24 @@ func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> b
 		return FACTIONS.allied(target.faction, faction) and not shields.has(target.building_id)
 	return false
 
-func cast_skill(index: int, target: Node3D, faction: int = PLAYER, locked_source: int = -1) -> bool:
+func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 	if not _skill_available(index, faction):
 		return false
 	if not _valid_skill_target(index, target, faction):
 		if faction == PLAYER:
 			if faction_skills[faction].commander == SKILL_RULES.RABBIT:
-				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择附近有部队可召回的自己的建筑", "附近需要有至少 22 人的自己的建筑"][index])
+				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择有行军部队的地面区域", "选择尚未获得兔洞待命的自己的建筑"][index])
 			else:
 				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
-		if not RABBIT_SKILLS.cast(self, index, target, faction, locked_source):
+		if not RABBIT_SKILLS.cast(self, index, target, faction):
 			return false
 		_commit_skill(index, faction)
-		if index != 3:
-			audio.play_world(&"war_rabbit_seal" if index == 1 else &"war_rabbit_recall", target.global_position)
+		audio.play_world(&"war_rabbit_seal" if index == 1 else &"war_rabbit_burrow", target.global_position)
+		if faction == PLAYER:
+			hud.notify("封条急件 · 停工 6 秒" if index == 1 else "兔洞待命 15 秒 · 下次派兵最多 50 人，距离不限")
 		target.refresh_visual()
 		update_hud()
 		return true
@@ -601,9 +606,19 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 		return false
 	var center := Vector3(at.x, 0.0, at.z)
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
-		marches.create_haste_zone(faction, center, SKILL_RULES.RABBIT_HASTE_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0], SKILL_RULES.RABBIT_HASTE_MULTIPLIER, SKILL_RULES.RABBIT)
+		if index == 0:
+			marches.create_haste_zone(faction, center, SKILL_RULES.RABBIT_HASTE_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0], SKILL_RULES.RABBIT_HASTE_MULTIPLIER, SKILL_RULES.RABBIT)
+			world_effects.get_node("Rabbit").start_haste(faction, center, SKILL_RULES.RABBIT_HASTE_RADIUS)
+		else:
+			var recalled := RABBIT_SKILLS.recall(self, center, faction)
+			if recalled == 0:
+				if faction == PLAYER:
+					hud.notify("范围内没有需要折返的行军部队")
+				return false
+			if faction == PLAYER:
+				hud.notify("归巢口哨 · %d 名双方部队返回各自出发建筑" % recalled)
 		_commit_skill(index, faction)
-		audio.play_world(&"war_rabbit_dash", center)
+		audio.play_world(&"war_rabbit_dash" if index == 0 else &"war_rabbit_recall", center)
 		world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 		update_hud()
 		return true
@@ -751,6 +766,8 @@ func update_hud() -> void:
 			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])
 		if selected.disruption_remaining > 0.0:
 			detail += " · 停工 %ds" % ceili(selected.disruption_remaining)
+		if selected.burrow_remaining > 0.0:
+			detail += " · 兔洞待命 %ds · 下次最多 50 人" % ceili(selected.burrow_remaining)
 		if selected.queued_population > 0:
 			detail += " · 待出发 %d · 可用 %d" % [selected.queued_population, floori(selected.available_population)]
 		if selected.faction >= 0 and faction_count > 2:
@@ -760,13 +777,13 @@ func update_hud() -> void:
 	hud.update_state({"player_total": team_total_for(PLAYER), "enemy_total": team_total_for(ENEMY), "time": elapsed,
 		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
-		"send_count": floori(selected.available_population * percentage / 100.0) if selected != null else 0,
+		"send_count": dispatch_count(selected, percentage) if selected != null else 0,
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
 		"selected_available_population": floori(selected.available_population) if selected != null else 0,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_RULES.costs_for(faction_skills[PLAYER].commander),
 		"commander": faction_skills[PLAYER].commander, "enemy_commander": faction_skills[ENEMY].commander,
-		"skill_target_types": ["ground", "building", "building", "building"] if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT else ["building", "ground", "building", "ground"], "ground_skill_radius": skill_radius(armed_skill),
+		"skill_target_types": ["ground", "building", "ground", "building"] if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT else ["building", "ground", "building", "ground"], "ground_skill_radius": skill_radius(armed_skill),
 		"forges": forge_count(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
@@ -897,8 +914,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		MOUSE_BUTTON_RIGHT:
 			if armed_skill >= 0:
 				audio.play_ui(&"war_cancel")
-			armed_skill = -1
-			ground_skill_target = Vector3.INF
+			_cancel_skill_drag()
 			_cancel_drag()
 			update_hud()
 		MOUSE_BUTTON_LEFT:
@@ -926,11 +942,15 @@ func pick_building(screen: Vector2) -> Node3D:
 	return hit.collider.get_parent()
 
 func _update_drag(screen: Vector2) -> void:
-	var target: Node3D = pick_building(screen) if not hud.is_pointer_blocked(screen) else null
-	if target != hovered:
-		hovered = target
-		order_route = PackedVector3Array()
-		if hovered != null and hovered != drag_source:
+	hovered = pick_building(screen) if not hud.is_pointer_blocked(screen) else null
+	order_route = PackedVector3Array()
+	if hovered != null and hovered != drag_source:
+		if drag_source.burrow_remaining > 0.0:
+			var plan := RABBIT_SKILLS.burrow_plan(self, drag_source, hovered, percentage)
+			if not plan.is_empty():
+				order_route = PackedVector3Array([plan.entrance, plan.exit])
+				order_route.append_array(plan.route)
+		else:
 			order_route = map.get_building_route(drag_source, hovered)
 
 func _cancel_drag() -> void:
