@@ -1,7 +1,7 @@
 [gd_resource type="Environment" load_steps=5 format=3]
 
 [ext_resource type="Shader" path="res://assets/block_war/environment/daylight_sky.gdshader" id="sky_shader"]
-[ext_resource type="Texture2D" path="res://assets/block_war/environment/meadow_noise.tres" id="clouds"]
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/daylight_clouds.tres" id="clouds"]
 
 [sub_resource type="ShaderMaterial" id="daylight"]
 shader = ExtResource("sky_shader")

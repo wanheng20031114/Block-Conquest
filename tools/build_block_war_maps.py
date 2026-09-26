@@ -45,7 +45,7 @@ def layouts():
         def number(key):
             return float(re.search(rf"^{key} = ([^\n]+)", record, re.M)[1])
         homes.append((x, z, int(number("kind")), int(number("faction")), number("population")))
-    common = dict(size=0, half=(40, 28), team=1, water=[], mountains=[], bridges=[], color=(0.34, 0.49, 0.255))
+    common = dict(size=0, half=(40, 28), team=1, water=[], mountains=[], bridges=[], color=(0.36, 0.465, 0.2))
     maps = [dict(common, id="rift", title="裂谷交汇", description="两道溪谷、四座石桥。保留原有的小型战场，争夺中央住宅与桥头炮塔。", buildings=homes,
                  water=[(-15, -68, 6, 136), (9, -68, 6, 136)], bridges=[(x, z - 3.2, 6, 6.4) for x in (-15, 9) for z in (-14, 14)])]
     maps.append(dict(common, id="lake", title="林湖回廊", half=(40, 30), description="湖泊隔开两军，南北两条林间回廊连接战场。绕行扩张与侧翼增援同样重要。",
@@ -57,7 +57,7 @@ def layouts():
                      buildings=starts(48, [-26, 26]) + mirrored([48], [-6, 6]) + mirrored([28], [-30, 30])
                      + mirrored([28], [-7, 7], 1, 22) + mirrored([38], [-17, 17], 2, 18)
                      + [building(0, z, 1 if z == 0 else 0, population=30 if z == 0 else 20) for z in (-32, -16, 0, 16, 32)]))
-    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.39, 0.47, 0.28), description="两段岩脊将战场分成中央谷口和两端山道。队友可以守住谷口，也可沿外围迂回。",
+    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.38, 0.47, 0.215), description="两段岩脊将战场分成中央谷口和两端山道。队友可以守住谷口，也可沿外围迂回。",
                      mountains=[(-6, -34, 12, 20), (-6, 14, 12, 20)],
                      buildings=starts(48, [-26, 26]) + mirrored([48], [-6, 6]) + mirrored([30], [-30, 30])
                      + mirrored([30], [-10, 10], 2, 18) + mirrored([16], [-22, 22], 1, 24)
@@ -69,7 +69,7 @@ def layouts():
                      buildings=starts(68, [-42, 0, 42]) + mirrored([46], [-42, 0, 42]) + mirrored([68, 46], [-21, 21])
                      + [building(x, z, 2 if x == 0 else 0, population=22) for z in (-42, 0, 42) for x in (-10, 0, 10)]
                      + mirrored([78], [-35, 10, 35], 2, 18) + mirrored([34], [-42, 0, 42], 1, 25)))
-    maps.append(dict(large, id="highland", title="环湖高原", half=(84, 64), color=(0.365, 0.465, 0.26), description="宽阔湖面围绕中央石台，南北高原与中央长桥形成三条不同长度的通道。控制中央也要兼顾两翼。",
+    maps.append(dict(large, id="highland", title="环湖高原", half=(84, 64), color=(0.35, 0.455, 0.195), description="宽阔湖面围绕中央石台，南北高原与中央长桥形成三条不同长度的通道。控制中央也要兼顾两翼。",
                      water=[(-20, -30, 40, 60)], bridges=[(-22, -4.5, 44, 9), (-8, -8, 16, 16)],
                      buildings=starts(68, [-44, 0, 44]) + mirrored([46], [-44, 0, 44]) + mirrored([68, 44], [-22, 22])
                      + mirrored([30], [-44, 0, 44], 1, 25) + mirrored([58], [-50, -12, 12, 50], 2, 18)
@@ -125,6 +125,7 @@ building_factions = PackedInt32Array({', '.join(str(b[3]) for b in items)})
 def author(layout):
     items, (hx, hz) = layout["buildings"], layout["half"]
     paths = author_paths(layout)
+    assert len(layout["bridges"]) <= 16
     externals = [
         '[ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]',
         f'[ext_resource type="Resource" path="res://data/block_war/maps/{layout["id"]}.tres" id="definition"]',
@@ -140,7 +141,9 @@ shader_parameter/meadow = {vec((*layout['color'], 1), 'Color')}
 shader_parameter/site_count = {len(items)}
 shader_parameter/sites = PackedVector2Array({', '.join(str(v) for b in [b[:2] for b in items] + [(0, 0)] * (64 - len(items)) for v in b)})
 shader_parameter/path_count = {len(paths)}
-shader_parameter/paths = PackedVector4Array({', '.join(str(v) for path in paths + [(0, 0, 0, 0)] * (64 - len(paths)) for v in path)})''',
+shader_parameter/paths = PackedVector4Array({', '.join(str(v) for path in paths + [(0, 0, 0, 0)] * (64 - len(paths)) for v in path)})
+shader_parameter/bridge_count = {len(layout['bridges'])}
+shader_parameter/bridge_regions = PackedVector4Array({', '.join(str(v) for region in layout['bridges'] + [(0, 0, 0, 0)] * (16 - len(layout['bridges'])) for v in region)})''',
         '[sub_resource type="BoxMesh" id="Cube"]\nsize = Vector3(1, 1, 1)']
     water_paths = 'NodePath("Terrain/Water")' if layout["water"] else ''
     nodes = [f'[node name="WarMap" type="Node3D"]\nscript = ExtResource("script")\ndefinition = ExtResource("definition")\nwater_paths = Array[NodePath]([{water_paths}])']

@@ -2,9 +2,9 @@ shader_type spatial;
 render_mode specular_disabled;
 
 uniform sampler2D meadow_noise : filter_linear_mipmap, repeat_enable;
-uniform vec4 grass_base : source_color = vec4(0.47, 0.49, 0.29, 1.0);
-uniform vec4 grass_shade : source_color = vec4(0.365, 0.405, 0.265, 1.0);
-uniform vec4 grass_light : source_color = vec4(0.60, 0.585, 0.34, 1.0);
+uniform vec4 grass_base : source_color = vec4(0.445, 0.475, 0.25, 1.0);
+uniform vec4 grass_shade : source_color = vec4(0.410, 0.440, 0.225, 1.0);
+uniform vec4 grass_light : source_color = vec4(0.480, 0.505, 0.275, 1.0);
 varying vec3 world_position;
 
 #include "res://assets/block_war/environment/meadow_surface.gdshaderinc"
