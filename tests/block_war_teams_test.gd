@@ -105,7 +105,7 @@ func _run() -> void:
 	game.cooldowns.fill(0.0)
 	check(game.cast_skill(0, ally), "the player can recruit directly into a teammate's residence")
 	game.simulate(1.0)
-	check(ally.population > 20.0 and game._recruit_target_id == ally.building_id, "recruitment stays with the allied recipient")
+	check(ally.population > 20.0 and game.faction_skills[0].recruit_target_id == ally.building_id, "recruitment stays with the allied recipient")
 	game._cancel_recruitment()
 	check(game.cast_skill(2, ally), "a teammate's building can receive the player's defensive shield")
 	var ally_population: float = ally.population

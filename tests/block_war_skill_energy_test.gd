@@ -310,7 +310,7 @@ func _ground_impact() -> void:
 	near(enemy.population, 100.0, "Ignition does not damage distant buildings before the flame arrives")
 	var wave: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
 	check(wave.visible and wave.global_position.is_equal_approx(center), "Native fire effect starts at the requested ground location")
-	game.simulate(WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
 	near(ally.population, 100.0, "Ground impact leaves friendly buildings unharmed")
 	near(enemy.population, 65.0, "Residence level grants no passive defense against ground impact")
 	check(neutral.population == 0.0 and neutral.faction == -1, "Ground impact damages neutral garrison but never captures it")
@@ -324,7 +324,7 @@ func _ground_impact() -> void:
 	check(game.cast_ground_skill(3, empty), "A valid empty ground location is still a deliberate cast")
 	near(game.energy, 0.0, "Casting on empty ground still pays the full cost")
 	near(game.cooldowns[3], 60.0, "Casting on empty ground still starts cooldown")
-	game.simulate(WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
 	near(enemy.population, 65.0, "Empty-ground fire does not damage distant buildings")
 
 
@@ -432,7 +432,7 @@ func _native_selection_and_hud() -> void:
 	near(enemy.population, before_enemy, "Distant enemy is not damaged before the flame reaches it")
 	var fire: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
 	check(fire.global_position.distance_to(impact_at) < 0.01, "Native fire starts at the exact release point")
-	game.simulate(WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
 	near(enemy.population, before_enemy - 35.0, "Screen-cast fire reaches the enemy inside its radius")
 	game.cooldowns[3] = 0.0
 	game.energy = 100.0
@@ -454,6 +454,7 @@ func _native_selection_and_hud() -> void:
 	check(game.armed_skill == -1, "Skill shortcuts cannot arm while paused")
 	key(KEY_ESCAPE)
 	# Shortcuts use the same hold / aim / release gesture as the cards.
+	game._cancel_recruitment() # Artificial cooldown reset must also reset its previous effect.
 	game.cooldowns[0] = 0.0
 	game.update_hud()
 	motion(empty_at)

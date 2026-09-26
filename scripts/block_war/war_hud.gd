@@ -15,8 +15,8 @@ const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁垒", "天降冲击"]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
 const SKILL_DETAILS: Array[String] = [
-	"拖至自己或盟友住宅，松手施放。\n每秒征召 5 人，持续 6 秒。", "拖至战场，松手施放。\n自己的行军部队加速，持续 8 秒。",
-	"拖至自己或盟友建筑，松手施放。\n守备 +50%，持续 10 秒。", "拖至地面，松手点燃。\n火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
+	"拖至自己或盟友住宅，松手施放。\n每秒征召 5 人，持续 6 秒，不叠加。", "拖至战场，松手施放。\n自己的行军部队提速 70%，持续 8 秒。",
+	"拖至自己或盟友建筑，松手施放。\n守备 +50%，持续 10 秒，不叠加。", "拖至地面，松手施放。\n蓄热 0.65 秒后，火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
 ]
 
 var _paused: bool = false
@@ -102,7 +102,7 @@ func update_state(state: Dictionary) -> void:
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
-		var target_text := "拖至地面 · 松手点燃 · 敌我均伤" if armed == 3 else ("拖至战场 · 松手施放" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
+		var target_text := "拖至地面 · 蓄热后点燃 · 敌我均伤" if armed == 3 else ("拖至战场 · 松手施放" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
 	%SkillDrag.visible = armed >= 0
 	if armed >= 0:

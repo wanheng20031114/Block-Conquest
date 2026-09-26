@@ -42,10 +42,6 @@ func _draw() -> void:
 			_ring(game.hovered.global_position, 3.4, reticle_color, 2.0)
 	if game.selected != null and game.selected.kind == 1:
 		_ring(game.selected.global_position, game.tower_range(game.selected), Color(1.0, 0.81, 0.43, 0.35), 1.5)
-	for id: int in game.shields:
-		var building: Node3D = game.by_id[id]
-		_ring(building.global_position, 3.2, Color(0.47, 0.82, 1.0, 0.8), 3.0)
-		_ring(building.global_position + Vector3(0, 2.8, 0), 2.6, Color(0.47, 0.82, 1.0, 0.3), 1.5)
 	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:
 		var points := PackedVector2Array()
 		var color := Color(1.0, 0.81, 0.32, 0.9)

@@ -90,7 +90,7 @@ func run() -> void:
 	tower.faction = -1
 	tower.population = 10.0
 	check(game.cast_ground_skill(3, tower.global_position), "ground fire starts without capturing")
-	game.simulate(0.05)
+	game.simulate(WarFireWave.WINDUP_TIME + 0.05)
 	check(tower.population == 0.0 and tower.faction == -1, "expanding fire cannot capture without militia")
 	game.cooldowns[1] = 0.0
 	check(game.cast_skill(1, null) and game.active_durations[1] == 8.0, "haste activates without selected building")

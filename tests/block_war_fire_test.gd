@@ -56,6 +56,12 @@ func _run() -> void:
 	var partition_totals: Array[Vector2i] = []
 	for small_steps: bool in [false, true]:
 		await reset_match()
+		check(game.cast_ground_skill(3, CENTER), "ground fire begins at a valid point")
+		check(game.energy == 40.0 and game.cooldowns[3] == 60.0, "warning pays once and starts R's independent cooldown")
+		var escaping := spawn(CENTER + Vector3(0, 0, 4), 0)
+		game.simulate(WarFireWave.WINDUP_TIME)
+		check(escaping.alive and deaths.is_empty(), "warning gives exposed soldiers time to escape without damage")
+		game.marches.clear()
 		var inner: Array[WarMarches.MarchUnit] = []
 		var middle: Array[WarMarches.MarchUnit] = []
 		var outside: Array[WarMarches.MarchUnit] = []
@@ -80,8 +86,6 @@ func _run() -> void:
 		var far: WarBuilding = game.by_id[3]
 		far.position = CENTER + Vector3(4.51, 0, 0)
 		far.population = 100.0
-		check(game.cast_ground_skill(3, CENTER), "ground fire begins at a valid point")
-		check(game.energy == 40.0 and game.cooldowns[3] == 60.0, "ignition pays once and starts R's independent cooldown")
 		check(inner[0].alive and inner[1].alive and enemy.population == 100.0, "ignition does not erase the entire radius before the flame arrives")
 		game.simulate(0.2)
 		check(not inner[0].alive and not inner[1].alive, "inner flame kills both factions")
@@ -116,10 +120,11 @@ func _run() -> void:
 		check(not wave.visible and game.world_effects._deaths.is_empty(), "flames, marks and falling bodies finish their lifetimes")
 	check(partition_totals[0] == partition_totals[1], "large and small frame partitions produce the same survivors")
 	await reset_match()
+	check(game.cast_ground_skill(3, CENTER), "crowded opposing formations can be ignited together")
+	game.simulate(WarFireWave.WINDUP_TIME)
 	for faction: int in [0, 1]:
 		for troop: int in 300:
 			spawn(CENTER, faction)
-	check(game.cast_ground_skill(3, CENTER), "crowded opposing formations can be ignited together")
 	var started := Time.get_ticks_usec()
 	game.simulate(0.1)
 	print("BLOCK_WAR_FIRE mass_casualties=600 cpu_ms=", float(Time.get_ticks_usec() - started) / 1000.0)

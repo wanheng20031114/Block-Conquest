@@ -112,7 +112,7 @@ func run() -> void:
 	mouse(w_at, MOUSE_BUTTON_LEFT, true)
 	mouse(impact_screen, MOUSE_BUTTON_LEFT, false)
 	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.energy == 0.0, "haste drop consumes the remaining forty energy")
-	game.simulate(WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
 	check(target.population == 0.0, "fire damages the garrison only after expanding to the building")
 	var previous: Vector3 = game.camera_rig.destination
 	var ground := Vector2(800, 470)

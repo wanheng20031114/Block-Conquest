@@ -24,6 +24,7 @@ func _load_match() -> void:
 	game.camera_rig.set_process(false)
 	game.ai_enabled = false
 	game.audio.muted = true
+	game.faction_skills[1].cooldowns.fill(999999.0) # Isolate economy; skills have their own integration suite.
 
 func _fixture() -> void:
 	game.marches.clear()
@@ -33,6 +34,7 @@ func _fixture() -> void:
 	game.ai_clock = 6.0
 	game.elapsed = 0.0
 	game._ai_strategy = game.AI_STRATEGY.new()
+	game.faction_skills[1].cooldowns.fill(999999.0)
 	for building: WarBuilding in game.buildings:
 		building.cancel_construction()
 		building.faction = -1

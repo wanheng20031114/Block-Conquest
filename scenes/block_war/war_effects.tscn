@@ -6,6 +6,9 @@
 [ext_resource type="PackedScene" path="res://scenes/block_war/fire_wave.tscn" id="fire"]
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/militia.res" id="militia"]
 [ext_resource type="Shader" path="res://assets/models/block_war/casualty.gdshader" id="casualty"]
+[ext_resource type="Shader" path="res://assets/models/block_war/recruit_ground.gdshader" id="recruit_ground"]
+[ext_resource type="Shader" path="res://assets/models/block_war/bulwark.gdshader" id="bulwark"]
+[ext_resource type="Shader" path="res://assets/models/block_war/haste_trail.gdshader" id="haste_trail"]
 
 [sub_resource type="ShaderMaterial" id="CasualtyMaterial"]
 shader = ExtResource("casualty")
@@ -39,18 +42,93 @@ visible_instance_count = 0
 custom_aabb = AABB(-60, -3, -45, 120, 12, 90)
 mesh = SubResource("BallMesh")
 
-[sub_resource type="Shader" id="shield_shader"]
-code = "shader_type spatial;\nrender_mode blend_mix, depth_draw_opaque, cull_back, unshaded;\nvoid fragment() {\n float rim = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 2.8);\n float bands = pow(0.5 + 0.5 * sin(UV.y * 100.0), 24.0);\n ALBEDO = vec3(0.26, 0.63, 0.76);\n ALPHA = rim * 0.42 + bands * 0.025;\n}"
-
 [sub_resource type="ShaderMaterial" id="shield_material"]
-shader = SubResource("shield_shader")
+resource_local_to_scene = true
+shader = ExtResource("bulwark")
 
-[sub_resource type="SphereMesh" id="shield_mesh"]
+[sub_resource type="CylinderMesh" id="shield_mesh"]
 material = SubResource("shield_material")
-radius = 3.25
-height = 6.5
-radial_segments = 48
-rings = 24
+top_radius = 3.1
+bottom_radius = 3.25
+height = 2.6
+radial_segments = 12
+rings = 1
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="MultiMesh" id="Shields"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -1, -70, 180, 12, 140)
+mesh = SubResource("shield_mesh")
+
+[sub_resource type="ShaderMaterial" id="RecruitMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("recruit_ground")
+
+[sub_resource type="PlaneMesh" id="RecruitMesh"]
+material = SubResource("RecruitMaterial")
+size = Vector2(7.4, 7.4)
+
+[sub_resource type="MultiMesh" id="RecruitRings"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -1, -70, 180, 12, 140)
+mesh = SubResource("RecruitMesh")
+
+[sub_resource type="Gradient" id="SkillFade"]
+offsets = PackedFloat32Array(0, 0.12, 0.55, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.9, 1, 1, 1, 0.65, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="SkillFadeRamp"]
+gradient = SubResource("SkillFade")
+
+[sub_resource type="StandardMaterial3D" id="MoteMaterial"]
+shading_mode = 0
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 1)
+
+[sub_resource type="BoxMesh" id="RecruitMote"]
+material = SubResource("MoteMaterial")
+size = Vector3(0.10, 0.23, 0.08)
+
+[sub_resource type="BoxMesh" id="ShieldMote"]
+material = SubResource("MoteMaterial")
+size = Vector3(0.06, 0.28, 0.06)
+
+[sub_resource type="ParticleProcessMaterial" id="RecruitProcess"]
+color = Color(0.52, 0.28, 0.04, 1)
+direction = Vector3(0, 1, 0)
+spread = 0.0
+gravity = Vector3(0, 0.25, 0)
+angular_velocity_min = -100.0
+angular_velocity_max = 100.0
+color_ramp = SubResource("SkillFadeRamp")
+
+[sub_resource type="ParticleProcessMaterial" id="ShieldProcess"]
+color = Color(0.30, 0.56, 0.45, 1)
+direction = Vector3(0, 1, 0)
+spread = 0.0
+gravity = Vector3(0, -0.10, 0)
+color_ramp = SubResource("SkillFadeRamp")
+
+[sub_resource type="ParticleProcessMaterial" id="HasteProcess"]
+direction = Vector3(0, 0, 1)
+spread = 0.0
+gravity = Vector3(0, 0.05, 0)
+color_ramp = SubResource("SkillFadeRamp")
+
+[sub_resource type="ShaderMaterial" id="HasteMaterial"]
+shader = ExtResource("haste_trail")
+
+[sub_resource type="PlaneMesh" id="HasteMesh"]
+material = SubResource("HasteMaterial")
+size = Vector2(0.20, 1.2)
 
 [node name="Effects" type="Node3D"]
 physics_interpolation_mode = 2
@@ -70,6 +148,8 @@ cast_shadow = 0
 [node name="Fire1" parent="FireWaves" instance=ExtResource("fire")]
 [node name="Fire2" parent="FireWaves" instance=ExtResource("fire")]
 [node name="Fire3" parent="FireWaves" instance=ExtResource("fire")]
+[node name="Fire4" parent="FireWaves" instance=ExtResource("fire")]
+[node name="Fire5" parent="FireWaves" instance=ExtResource("fire")]
 
 [node name="Hits" type="Node3D" parent="."]
 
@@ -105,7 +185,37 @@ light_color = Color(1.0, 0.61, 0.23, 1)
 light_energy = 0.0
 omni_range = 8.0
 
-[node name="Shield" type="MeshInstance3D" parent="."]
-visible = false
-mesh = SubResource("shield_mesh")
+[node name="Shield" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Shields")
+cast_shadow = 0
+
+[node name="RecruitRings" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("RecruitRings")
+cast_shadow = 0
+
+[node name="RecruitMotes" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 512
+lifetime = 1.1
+visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+process_material = SubResource("RecruitProcess")
+draw_pass_1 = SubResource("RecruitMote")
+cast_shadow = 0
+
+[node name="ShieldMotes" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 512
+lifetime = 1.0
+visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+process_material = SubResource("ShieldProcess")
+draw_pass_1 = SubResource("ShieldMote")
+cast_shadow = 0
+
+[node name="HasteTrails" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 512
+lifetime = 0.5
+visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+process_material = SubResource("HasteProcess")
+draw_pass_1 = SubResource("HasteMesh")
 cast_shadow = 0

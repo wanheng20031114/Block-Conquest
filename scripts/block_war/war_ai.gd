@@ -5,8 +5,10 @@ const TURN_INTERVAL := 3.0
 const ATTACK_INTERVAL := 15.0
 const EXPANSION_INTERVAL := 6.0
 const FRONT_DISTANCE := 30.0
+const SKILL_TACTICS := preload("res://scripts/block_war/war_ai_skills.gd")
 
 var faction := 1
+var _skills: RefCounted
 var _next_attack_at := 0.0
 var _next_expansion_at := 0.0
 var _reserves: Dictionary = {}
@@ -16,10 +18,12 @@ var _departure_delays: Dictionary[Vector2i, float] = {}
 
 func _init(controlled_faction: int = 1) -> void:
 	faction = controlled_faction
+	_skills = SKILL_TACTICS.new(faction)
 
 func take_turn(game: Node3D) -> void:
 	if game.finished or game._local_menu:
 		return
+	_skills.take_turn(game)
 	_reserves.clear()
 	_departure_delays.clear()
 	# No simulation runs within one decision. Count each soldier once instead

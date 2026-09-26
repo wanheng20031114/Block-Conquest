@@ -6,8 +6,15 @@ var _light_remaining: float = 0.0
 var _next_hit := 0
 var _next_fire := 0
 var _deaths: Array[Dictionary] = []
+var _skill_time := 0.0
+var _skill_emission := 0.0
+var _wind_offset := 0
+var _mote_serial := 0
+const EMIT_FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_ROTATION_SCALE | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
 
 func _ready() -> void:
+	$Shield.multimesh.instance_count = 6
+	$RecruitRings.multimesh.instance_count = 6
 	$Casualties.multimesh.instance_count = 512
 	$Casualties.multimesh.visible_instance_count = 0
 	$Cannonballs.multimesh.instance_count = 64
@@ -28,10 +35,10 @@ func casualty(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, bur
 	if not burning:
 		hit(at + Vector3(0, 0.6, 0), impulse)
 
-func start_fire(at: Vector3, radius: float) -> void:
+func start_fire(at: Vector3, radius: float, faction: int = 0) -> void:
 	var fire: WarFireWave = $FireWaves.get_child(_next_fire)
 	_next_fire = (_next_fire + 1) % $FireWaves.get_child_count()
-	fire.start(at, radius)
+	fire.start(at, radius, faction)
 
 func has_fire() -> bool:
 	for fire: WarFireWave in $FireWaves.get_children():
@@ -42,7 +49,7 @@ func has_fire() -> bool:
 func fire_step_limit() -> float:
 	var step := INF
 	for fire: WarFireWave in $FireWaves.get_children():
-		for boundary: float in [WarFireWave.EXPANSION_TIME, WarFireWave.EMISSION_TIME, WarFireWave.BURN_TIME]:
+		for boundary: float in [0.0, WarFireWave.EXPANSION_TIME, WarFireWave.EMISSION_TIME, WarFireWave.BURN_TIME]:
 			if fire.age < boundary:
 				step = minf(step, boundary - fire.age)
 	return step
@@ -50,7 +57,7 @@ func fire_step_limit() -> float:
 func fire_segments(delta: float) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for fire: WarFireWave in $FireWaves.get_children():
-		if fire.age < WarFireWave.BURN_TIME:
+		if fire.age >= 0.0 and fire.age < WarFireWave.BURN_TIME:
 			result.append(fire.segment(delta))
 	return result
 
@@ -93,14 +100,9 @@ func burst(at: Vector3, color: Color, impact: bool = false) -> void:
 		$ImpactLight.light_energy = 3.5
 		_light_remaining = 0.35
 
-func shield(at: Vector3) -> void:
-	$Shield.position = at + Vector3(0, 1.0, 0)
-	$Shield.show()
-
-func tick(delta: float, shield_active: bool) -> void:
+func tick(delta: float) -> void:
 	_light_remaining = maxf(0.0, _light_remaining - delta)
 	$ImpactLight.light_energy = _light_remaining * 10.0
-	$Shield.visible = shield_active
 	for index: int in range(_deaths.size() - 1, -1, -1):
 		_deaths[index].age += delta
 		if _deaths[index].age >= 0.7:
@@ -109,7 +111,64 @@ func tick(delta: float, shield_active: bool) -> void:
 	for fire: WarFireWave in $FireWaves.get_children():
 		fire.tick(delta)
 
+func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dictionary, marches: WarMarches) -> void:
+	_skill_time += delta
+	_skill_emission += delta
+	var emit := _skill_emission >= 0.12
+	if emit:
+		_skill_emission = fmod(_skill_emission, 0.12)
+	var rings: MultiMesh = $RecruitRings.multimesh
+	var walls: MultiMesh = $Shield.multimesh
+	rings.mesh.material.set_shader_parameter("visual_time", _skill_time)
+	walls.mesh.material.set_shader_parameter("visual_time", _skill_time)
+	var count := 0
+	for state: RefCounted in states:
+		if state.recruit_target_id < 0:
+			continue
+		var building: WarBuilding = by_id[state.recruit_target_id]
+		var color: Color = WarMarches.FACTION_COLORS[building.faction]
+		rings.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 0.07, 0)))
+		rings.set_instance_custom_data(count, Color(color, state.durations[0] / 6.0))
+		count += 1
+		if emit:
+			for mote: int in 4:
+				_mote_serial += 1
+				var angle := _mote_serial * 2.399963
+				var radial := Vector3(cos(angle), 0, sin(angle))
+				var at := building.global_position + radial * (2.5 + 0.35 * sin(angle * 3.0)) + Vector3(0, 0.3, 0)
+				var basis := Basis(Vector3.UP, angle) * Basis(Vector3.FORWARD, sin(angle) * 0.6)
+				$RecruitMotes.emit_particle(Transform3D(basis, at), -radial * 0.22 + Vector3(0, 1.1 + sin(angle) * 0.3, 0), Color("b48b35").srgb_to_linear(), Color(), EMIT_FLAGS)
+	rings.visible_instance_count = count
+	count = 0
+	for id: int in shields:
+		var building: WarBuilding = by_id[id]
+		var color: Color = WarMarches.FACTION_COLORS[building.faction]
+		walls.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 1.3, 0)))
+		walls.set_instance_custom_data(count, Color(color, shields[id] / 10.0))
+		count += 1
+		if emit:
+			for mote: int in 3:
+				_mote_serial += 1
+				var angle := _mote_serial * 2.399963
+				var at := building.global_position + Vector3(cos(angle) * 3.17, 0.15, sin(angle) * 3.17)
+				$ShieldMotes.emit_particle(Transform3D(Basis.IDENTITY, at), Vector3(0, 1.4, 0), Color("a2c6b9").srgb_to_linear(), Color(), EMIT_FLAGS)
+	walls.visible_instance_count = count
+	if emit:
+		var active: Array[WarMarches.MarchUnit] = []
+		for unit: WarMarches.MarchUnit in marches._units:
+			if unit.distance >= 0.0 and states[unit.order.faction].durations[1] > 0.0:
+				active.append(unit)
+		if not active.is_empty():
+			for index: int in mini(48, active.size()):
+				var unit := active[(_wind_offset + index) % active.size()]
+				var basis := Basis.looking_at(unit.heading)
+				var at := unit.position + Vector3(0, 0.13, 0) - unit.heading * 0.4
+				$HasteTrails.emit_particle(Transform3D(basis, at), -unit.heading * 1.4, Color("e0e8d1"), Color(), EMIT_FLAGS)
+			_wind_offset = (_wind_offset + 48) % active.size()
+
 func set_running(value: bool) -> void:
+	for particles: GPUParticles3D in [$RecruitMotes, $ShieldMotes, $HasteTrails]:
+		particles.speed_scale = 1.0 if value else 0.0
 	for particles: GPUParticles3D in $Bursts.get_children():
 		particles.speed_scale = 1.0 if value else 0.0
 	for effect: Node3D in $Hits.get_children():
