@@ -222,10 +222,11 @@ Godot --path . --script res://tests/block_war_combat_visual.gd --fixed-fps 60
 新增地图保存在 `scenes/block_war/maps/`，尺寸、障碍、桥梁和选图数据保存在 `data/block_war/maps/`。确定性重建地图及路线：
 
 ```text
+Godot --headless --audio-driver Dummy --path . --script res://tools/export_war_shore_support.gd
 python tools/build_block_war_maps.py
 Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_war_routes.gd
 ```
 
-第一步生成五张可直接在编辑器调整的原生场景及六份地图定义，保留原 `map.tscn`；第二步为全部六图保存 `data/block_war/routes/*.res`。地图专项可追加 `-- islands` 等地图 ID 单独检查；视觉截图保存在 `artifacts/block_war_maps/`。
+先导出已有岸坡的支撑面，再生成五张可直接在编辑器调整的原生场景及六份地图定义（保留原 `map.tscn`），最后为全部六图保存 `data/block_war/routes/*.res`。地图专项可追加 `-- islands` 等地图 ID 单独检查；视觉截图保存在 `artifacts/block_war_maps/`。
 
-景观可重现构建顺序：使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）与 `tools/bake_war_map_details.gd`（桥岸网格），最后 Python 执行 `tools/dress_war_map.py`（确定性场景布置）。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点；`dress_war_map.py --plan` 可只查看布置数量。
+景观可重现构建顺序：使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）、`tools/bake_war_map_details.gd`（桥岸网格）与 `tools/export_war_shore_support.gd`（真实岸坡支撑面），最后 Python 执行 `tools/dress_war_map.py`（确定性场景布置），并用 Godot 执行 `tools/bake_block_war_routes.gd -- rift` 更新树石障碍对应的路线。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点；`dress_war_map.py --plan` 可只查看布置数量。其他五图的构建与岩石支撑、树林疏密检查见 [环境制作规范](art/block_war_environment_direction.md)。

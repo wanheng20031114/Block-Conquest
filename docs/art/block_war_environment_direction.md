@@ -34,7 +34,7 @@
 
 ## 不变的玩法边界
 
-13 座建筑的 ID、位置、类型、初始归属和人口保持；46 个导航树障碍的位置、缩放和半径保持。建筑从任意方向的周界进出，六列编队、单位模型缩放与桥梁有效通行区保持。九套模型都接受同一周界和路径净空检查，升级或改建不会使既有路线穿墙。模型细节不得成为新的隐形阻挡。
+13 座建筑的 ID、位置、类型、初始归属和人口保持。2026-09-26 将裂谷的 46 棵导航树从单排林缘重排成树丛，并同步重烘焙树石障碍对应的路线。建筑从任意方向的周界进出，六列编队、单位模型缩放与桥梁有效通行区保持。九套模型都接受同一周界和路径净空检查，升级或改建不会使既有路线穿墙。模型细节不得成为新的隐形阻挡。
 
 不修改人口、产速、升级/改建成本、攻防倍率、技能冷却与持续时间、AI 或胜负逻辑。
 
@@ -44,9 +44,9 @@
 
 建筑：`tools/build_war_architecture.py` → `tools/build_war_architecture.gd`。只重建四级住宅时，Python 使用 `--model house_4`，Godot 烘焙脚本后传入 `-- house_4`；运行时切换现有 MeshInstance3D 的原生网格，不新增节点。
 
-自然模型：`tools/build_war_nature.py` → `tools/build_war_nature.gd`。
+自然模型：`tools/build_war_nature.py` → `tools/build_war_nature.gd`。两者均可在命令末尾指定树种，只烘焙需要修改的资产；Godot 脚本参数放在 `--` 后。四种树保留原生网格 LOD；松树使用细分的侧向针叶枝组，阔叶树使用大小、方向变化的小叶片。树叶与树干共用相同风摆幅度与高度范围，避免枝冠分离。
 
-地图：`tools/bake_war_map_details.gd` → `tools/dress_war_map.py`。布景器保存固定种子的场景结果，运行时不生成景观节点。
+裂谷地图：`tools/bake_war_map_details.gd` → `tools/export_war_shore_support.gd` → `tools/dress_war_map.py` → `tools/bake_block_war_routes.gd -- rift`。布景器保存固定种子的场景结果，运行时不生成景观节点。
 
 Python 依赖为 numpy、trimesh、shapely，仅供离线建模工具使用。正式运行游戏不需要 Python。
 
@@ -67,11 +67,16 @@ Python 依赖为 numpy、trimesh、shapely，仅供离线建模工具使用。�
 
 离线重建顺序：
 
-1. `python tools/build_block_war_maps.py` 保存可编辑 `.tscn` 和地图定义，桥梁、道路、自然布景分别由三个 `block_war_*_authoring.py` helper 负责。
-2. Godot 无头运行 `res://tools/bake_block_war_shores.gd`，保存四张有水地图的草岸、石岸和水面 `.res`；断脊山道无需水面资源。
-3. Godot 无头运行 `res://tools/bake_block_war_routes.gd -- lake rivers ridges islands highland`，重新保存包含景观障碍的行军路线。修改景观障碍后必须重烘焙，原图可跳过。
+1. 修改地形时先执行 `python tools/build_block_war_maps.py --definitions-only` 更新地图定义，再用 Godot 无头运行 `res://tools/bake_block_war_shores.gd` 保存四张有水地图的草岸、石岸和水面 `.res`。仅修改树林、石头布局时可跳过这一步。
+2. Godot 无头运行 `res://tools/export_war_shore_support.gd`。使用原生 `Mesh.get_faces()` 导出真实草岸三角面到忽略版本管理的 `.local/war_shore_support.json`，包括源网格 SHA-256；网格变动后布景器会要求重新导出。
+3. `python tools/build_block_war_maps.py` 保存可编辑 `.tscn`；桥梁、道路、自然布景分别由三个 `block_war_*_authoring.py` helper 负责。原图使用 `python tools/dress_war_map.py`。
+4. Godot 无头运行 `res://tools/bake_block_war_routes.gd`，重新保存六图包含景观障碍的行军路线。可通过 `-- lake rivers ...` 筛选修改的地图。
+
+岸石从真实草唇向陆地寻找支撑点，每块检查中心及一圈足迹的坡度和支撑，底部少量埋入；大小石块保留独立间隙，避开建筑、土路和桥头。干岸石头写入导航半径。断脊山道的三块主岩体有独立轮廓与接触阴影，取消相互穿入的大块堆叠。树林按整丛接受或舍弃候选点，成年树形成主体，幼树过渡到林缘，树丛之间留出空地。方向光法线偏移设为 0.7，消除放大岩体表面的阴影条纹；不关闭投影。
 
 `tests/block_war_map_authoring_test.py` 检查真实网格包围盒和层级变换，覆盖桥梁朝向、与地面的高度关系、平台表面无重叠、栏杆净空及土路连通。`tests/block_war_maps_test.gd` 在实际对局场景遍历全部建筑对，并检查六列士兵的完整脚印。`tests/block_war_maps_visual.gd` 保存全景、正常缩放近景、桥面静止间隔帧及小幅移动镜头截图，支持 `-- rivers highland` 等地图筛选。截图输出至 `artifacts/block_war_maps/`。
+
+`tests/block_war_nature_placement_test.py` 使用建模 Python 环境检查实际 glTF 顶点投影，确认岩石之间、岩石与树干之间不交叠，并沿真实轮廓检查岸石支撑和露出体积。`tests/block_war_nature_visual.gd` 通过原生预览场景加载六图，保存全景、岩石正反低角度、树丛近景至 `artifacts/nature_review/`；预览灯光与对局一致，独立于音频、UI 和战斗脚本。
 
 ## 官方能力参考
 
@@ -79,6 +84,8 @@ Python 依赖为 numpy、trimesh、shapely，仅供离线建模工具使用。�
 - [Godot MeshInstance3D](https://docs.godotengine.org/en/stable/classes/class_meshinstance3d.html)
 - [Godot MultiMesh](https://docs.godotengine.org/en/stable/classes/class_multimesh.html)
 - [Godot Environment 与后处理](https://docs.godotengine.org/en/stable/tutorials/3d/environment_and_post_processing.html)
+- [Godot Mesh.get_faces](https://docs.godotengine.org/en/stable/classes/class_mesh.html#class-mesh-method-get-faces)
+- [Godot 原生网格 LOD](https://docs.godotengine.org/en/stable/tutorials/3d/mesh_lod.html)
 
 ## 历史概念图生成记录（已停用）
 

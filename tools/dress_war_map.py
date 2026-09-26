@@ -1,6 +1,6 @@
 """Author the woodland battlefield as editable native Godot scene nodes.
 
-Preserves the thirteen gameplay buildings and all 46 navigation trunks exactly.
+Preserves the thirteen gameplay buildings; groups 46 navigation trunks into groves.
 The running game loads saved meshes and never generates environment nodes.
 Run tools/bake_war_map_details.gd first; --plan only prints scene counts.
 """
@@ -12,6 +12,7 @@ import math
 from pathlib import Path
 import random
 import re
+from war_nature_placement import ShoreSupport
 
 ROOT = Path(__file__).resolve().parents[1]
 MAP = ROOT / "scenes/block_war/map.tscn"
@@ -43,17 +44,24 @@ def author(source: str) -> tuple[str, dict[str, int]]:
     assert len(trees) == 46, "All 46 navigation trunks must be retained"
     rng = random.Random(922094)
     counts: Counter[str] = Counter()
+    waters = [(-15, -68, 6, 136), (9, -68, 6, 136)]
+    support = ShoreSupport("rift", waters)
+    tree_sites = []
+    rock_sites = []
     externals = [
         '[ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]',
         '[ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]',
         f'[ext_resource type="Shader" path="{ENVIRONMENT}river.gdshader" id="water_shader"]',
         f'[ext_resource type="Material" path="{ENVIRONMENT}meadow_ground.tres" id="meadow_ground"]',
+        f'[ext_resource type="Texture2D" path="{ENVIRONMENT}water_noise.tres" id="water_noise"]',
+        f'[ext_resource type="Texture2D" path="{ENVIRONMENT}water_normals.tres" id="water_normals"]',
+        f'[ext_resource type="Material" path="{ENVIRONMENT}shore_rock.tres" id="shore_rock_material"]',
     ]
     externals += [f'[ext_resource type="PackedScene" path="{NATURE}{name}.tscn" id="nature_{name}"]' for name in SPECIES if name not in BATCHED]
     externals += [f'[ext_resource type="ArrayMesh" path="{NATURE}{name}_combined.res" id="plant_mesh_{name}"]' for name in BATCHED]
     externals.append(f'[ext_resource type="Material" path="{NATURE}grass.tres" id="plant_material"]')
     externals += [f'[ext_resource type="ArrayMesh" path="{ENVIRONMENT}{name}.res" id="detail_{name}"]' for name in DETAILS]
-    resources = ['[sub_resource type="ShaderMaterial" id="River"]\nshader = ExtResource("water_shader")']
+    resources = ['[sub_resource type="ShaderMaterial" id="River"]\nshader = ExtResource("water_shader")\nshader_parameter/surface_noise = ExtResource("water_noise")\nshader_parameter/wave_normals = ExtResource("water_normals")']
     palettes = {"Limestone": (0.59, 0.585, 0.535), "LightStone": (0.67, 0.65, 0.595), "MossStone": (0.41, 0.44, 0.36), "Recess": (0.38, 0.395, 0.35)}
     for name, rgb in palettes.items():
         resources.append(f'[sub_resource type="StandardMaterial3D" id="{name}"]\nalbedo_color = Color({", ".join(map(str, rgb))}, 1)\nroughness = 0.89')
@@ -65,12 +73,12 @@ def author(source: str) -> tuple[str, dict[str, int]]:
     batches: dict[tuple[str, int, int], list[tuple[float, ...]]] = {}
 
     def mesh(name: str, parent: str, asset: str, pos=(0, 0, 0), scale=(1, 1, 1), material="Limestone", rotation=(0, 0, 0)) -> None:
-        material_ref = f'ExtResource("{material}")' if material == "meadow_ground" else f'SubResource("{material}")'
+        material_ref = f'ExtResource("{material}")' if material in ("meadow_ground", "shore_rock_material") else f'SubResource("{material}")'
         mesh_ref = f'SubResource("{asset}")' if asset in ("OuterLand", "CentralLand", "Water") else f'ExtResource("detail_{asset}")'
         nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="{parent}"]\nposition = {vector(pos)}\nrotation = {vector(rotation)}\nscale = {vector(scale)}\nmesh = {mesh_ref}\nmaterial_override = {material_ref}')
         counts["environment_mesh"] += 1
 
-    def plant(name: str, species: str, x: float, y: float, z: float, size: float, yaw: float | None = None, proportions=(1, 1, 1)) -> None:
+    def plant(name: str, species: str, x: float, y: float, z: float, size: float, yaw: float | None = None, proportions=(1, 1, 1), radius=0.0) -> None:
         yaw = rng.uniform(0, math.tau) if yaw is None else yaw
         scale = tuple(size * component for component in proportions)
         counts[species] += 1
@@ -79,6 +87,10 @@ def author(source: str) -> tuple[str, dict[str, int]]:
             batches.setdefault(cell, []).append((x, y, z, *scale, yaw))
             return
         nodes.append(f'[node name="{name}" parent="Nature" instance=ExtResource("nature_{species}")]\nposition = {vector((x, y, z))}\nrotation = {vector((0, yaw, 0))}\nscale = {vector(scale)}')
+        if radius > 0:
+            nodes[-1] += f'\nmetadata/route_radius = {radius / scale[0]:.6f}'
+        if species in ("canopy_oak", "silver_birch", "wind_pine", "weeping_willow"):
+            tree_sites.append((x, z, .72 * size))
 
     # Walkable surfaces stay at y=0. Slopes occupy only excluded river channels.
     for name, x, asset in (("WestLand", -57.5, "OuterLand"), ("HeartLand", 0, "CentralLand"), ("EastLand", 57.5, "OuterLand")):
@@ -86,7 +98,7 @@ def author(source: str) -> tuple[str, dict[str, int]]:
     for index, x in enumerate((-12, 12)):
         mesh(f"River{index}", "Terrain", "Water", (x, -1.42, 0), material="River")
     mesh("SculptedGrassLips", "Cliffs", "meadow_bank_grass", material="meadow_ground")
-    mesh("WarmStoneSlopes", "Cliffs", "meadow_bank_stone", material="PaintedStone")
+    mesh("WarmStoneSlopes", "Cliffs", "meadow_bank_stone", material="shore_rock_material")
     nodes.extend(buildings)
 
     # Copings begin beyond z +/-3.2: the full 6.4m army corridor stays free.
@@ -105,15 +117,25 @@ def author(source: str) -> tuple[str, dict[str, int]]:
                 plant(f"BridgeheadGrass{index}_{side}_{end}", "meadow_tuft", x + end * 5.45, -0.015, z + side * 4.18, 0.72)
         counts["stone_bridge"] += 1
 
-    # Preserve exact position, scale and route_radius. Only the visual changes.
-    for index, block in enumerate(trees):
-        species = "silver_birch" if index % 6 == 1 else "canopy_oak"
-        if index % 9 == 3:
-            species = "wind_pine"
-        block = re.sub(r'instance=ExtResource\("nature_[^"]+"\)', f'instance=ExtResource("nature_{species}")', block)
-        nodes.append(block)
+    # Deliberate groves replace the old single-file perimeter fence. Two small
+    # inner landmarks remain; full bridge corridors and settlement yards stay open.
+    authored_trunks = []
+    for sign in (-1, 1):
+        for cx, cz in ((37.3, -23.5), (38.5, -.8), (37.8, 21.2)):
+            for dx, dz, size in ((0, 0, 1.02), (1.9, 1.1, .87), (-.1, 2.6, .63)):
+                authored_trunks.append((sign * (cx + dx), cz + dz, size))
+        for cz in (-28.2, 28.2):
+            for dx, dz, size in ((-2.1, 0, .98), (.5, -1, 1.04), (2.7, .5, .81), (.9, 1.8, .59)):
+                authored_trunks.append((sign * (24.7 + dx), cz + dz, size))
+        for cz in (-29, 29):
+            for dx, dz, size in ((0, 0, .91), (.9, 2.0, .63)):
+                authored_trunks.append((sign * (4.6 + dx), cz + dz, size))
+    authored_trunks += [(-35, -8, .84), (35, 8, .84), (-5, -5, .76), (5, 5, .76)]
+    assert len(authored_trunks) == len(trees)
+    for index, (x, z, size) in enumerate(authored_trunks):
+        species = ("canopy_oak", "canopy_oak", "silver_birch", "wind_pine")[index % 4]
+        plant(f"WayfindingTree{index}", species, x, 0, z, size, radius=.72 * size)
         counts["navigation_tree"] += 1
-        x, _, z = position(block)
         if index % 3 == 0:
             plant(f"TrunkFern{index}", "fern_patch", x + 0.55, -0.015, z + 0.30, 0.60)
         if index % 2 == 0:
@@ -127,9 +149,11 @@ def author(source: str) -> tuple[str, dict[str, int]]:
     for grove, (cx, cz, count) in enumerate(groves):
         for index in range(count):
             angle = index * 2.39996 + grove * 0.48
-            spread = 1.1 + 2.6 * math.sqrt(index)
+            spread = 0.3 + 1.65 * math.sqrt(index)
             x, z = cx + math.cos(angle) * spread, cz + math.sin(angle) * spread * 0.76
             if abs(x) < 41.5 and abs(z) < 31.0 or 7.7 < abs(x) < 16.7:
+                continue
+            if any(math.hypot(x - tx, z - tz) < tr + .9 for tx, tz, tr in tree_sites):
                 continue
             species = ("canopy_oak", "silver_birch", "canopy_oak", "wind_pine")[(grove + index) % 4]
             size = rng.uniform(0.49, 0.63) if index % 4 == 2 else rng.uniform(0.78, 1.08)
@@ -143,22 +167,42 @@ def author(source: str) -> tuple[str, dict[str, int]]:
     for index, (x, z) in enumerate(((-18.5, -31), (18.8, -32), (-5.4, 31.5), (5.8, -33), (-19, 32), (19.5, 32))):
         plant(f"WatersideWillow{index}", "weeping_willow", x, 0, z, rng.uniform(0.74, 0.88))
 
-    # Outcrops and reeds stay in river exclusions, away from bridge mouths.
+    def rock_clear(x, z, radius):
+        return (all(math.hypot(x - position(b)[0], z - position(b)[2]) > radius + 4.8 for b in buildings)
+                and not any(abs(x - bx) < radius + 6.3 and abs(z - bz) < radius + 7.0
+                            for bx in (-12, 12) for bz in (-14, 14))
+                and all(math.hypot(x - tx, z - tz) > radius + tr + .3 for tx, tz, tr in tree_sites)
+                and all(math.hypot(x - rx, z - rz) > radius + rr + .18 for rx, rz, rr in rock_sites))
+
+    # Project every river group onto the sculpted grass lip and test its entire
+    # footprint. Avoid the previous fixed Y that left rocks hanging on a wall.
     for river in (-12, 12):
         for side in (-1, 1):
             sites = (-31.5, -4.8, 27.5) if side * river > 0 else (-24.5, 4.5, 34.0)
             for index, z in enumerate(sites):
                 z += rng.uniform(-1.5, 1.5)
-                reach = 0.64 + 0.24 * math.sin(z * 0.28 + river * 0.42)
-                x = river - side * (3.0 - reach)
-                plant(f"RiverStone{river}_{side}_{index}", "moss_boulder", x, -0.48, z, rng.uniform(0.84, 1.22), proportions=(1.12, 0.76, 0.86))
-                for pebble in range(2):
-                    plant(f"RiverPebble{river}_{side}_{index}_{pebble}", "moss_boulder", x + side * 0.22, -0.32 - pebble * 0.2, z + (pebble * 2 - 1) * 0.88, rng.uniform(0.3, 0.58), proportions=(1.08, 0.72, 0.94))
-                if index % 2 == 0:
-                    plant(f"RiverReeds{river}_{side}_{index}", "reed_cluster", x + side * 0.65, -0.73, z + 1.08, rng.uniform(0.8, 1.15))
+                x = river - side * 3.0
+                size = rng.uniform(.77, 1.08)
+                for part, (along, factor) in enumerate(((0, 1), (1.9, .41))):
+                    radius = size * factor * 1.16
+                    seat = support.seat(x, z + along, radius, size * factor * .9, rock_clear)
+                    if seat is None:
+                        continue
+                    bx, by, bz = seat
+                    plant(f"RiverStone{river}_{side}_{index}_{part}", "moss_boulder", bx, by, bz,
+                          size * factor, proportions=(1.08, .9, .88), radius=radius)
+                    rock_sites.append((bx, bz, radius))
+                    if part == 0:
+                        plant(f"RiverReeds{river}_{side}_{index}", "reed_cluster", bx - side * (radius + .25), 0, bz + .2, .74)
     for group, (x, z) in enumerate(((-41, -29), (-43, 11), (-21, 31), (6, -31), (39, -29), (42, 13), (22, 31), (-3, 32))):
-        plant(f"ClearingRock{group}", "moss_boulder", x, -0.12, z, rng.uniform(0.95, 1.45), proportions=(1.15, 0.92, 0.78))
-        plant(f"ClearingPebble{group}", "moss_boulder", x + 1.3, -0.06, z + 0.45, rng.uniform(0.35, 0.58), proportions=(1.04, 0.72, 1.12))
+        size = rng.uniform(.86, 1.2)
+        for part, (dx, dz, factor) in enumerate(((0, 0, 1), (size * 1.35 + .85, .35, .42))):
+            radius = size * factor * 1.22
+            if not rock_clear(x + dx, z + dz, radius):
+                continue
+            plant(f"ClearingRock{group}_{part}", "moss_boulder", x + dx, -.11 * size * factor * .92,
+                  z + dz, size * factor, proportions=(1.15, .92, .78), radius=radius)
+            rock_sites.append((x + dx, z + dz, radius))
         plant(f"RockGrass{group}", "meadow_tuft", x + 0.72, -0.015, z + 0.9, 0.78)
         for index in range(3):
             plant(f"ClearingFlowers{group}_{index}", "daisies" if group % 2 == 0 else "bluebells", x + 0.70 * index - 1.1, 0, z + 1.1, rng.uniform(0.70, 0.95))

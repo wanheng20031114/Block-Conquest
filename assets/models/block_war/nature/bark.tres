@@ -4,6 +4,6 @@
 
 [resource]
 shader = ExtResource("shader")
-shader_parameter/wind_amount = 0.025
+shader_parameter/wind_amount = 0.06
 shader_parameter/wind_start = 1.2
 shader_parameter/wind_full = 6.0

@@ -5,6 +5,7 @@ The original rift scene is retained; no runtime node or image generation is used
 """
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 import re
 
@@ -181,11 +182,14 @@ shader_parameter/paths = PackedVector4Array({', '.join(str(v) for path in paths 
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--definitions-only", action="store_true", help="Update bank inputs before baking changed terrain")
+    args = parser.parse_args()
     for layout in layouts():
         for x, z, *_ in layout["buildings"]:
             assert walkable(layout, x, z), (layout["id"], x, z)
         write_definition(layout)
-        if layout["id"] != "rift":
+        if layout["id"] != "rift" and not args.definitions_only:
             target = ROOT / scene_path(layout).removeprefix("res://")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(author(layout), encoding="utf-8")

@@ -26,7 +26,10 @@ func with_native_lods(mesh: ArrayMesh) -> ArrayMesh:
 
 
 func _initialize() -> void:
-	for model: String in ["canopy_oak", "silver_birch", "wind_pine", "weeping_willow", "hazel_thicket", "moss_boulder", "fern_patch", "meadow_tuft", "reed_cluster", "daisies", "bluebells"]:
+	var models := OS.get_cmdline_user_args()
+	if models.is_empty():
+		models = PackedStringArray(["canopy_oak", "silver_birch", "wind_pine", "weeping_willow", "hazel_thicket", "moss_boulder", "fern_patch", "meadow_tuft", "reed_cluster", "daisies", "bluebells"])
+	for model: String in models:
 		var folder := "res://assets/models/block_war/nature/"
 		var document := GLTFDocument.new()
 		var state := GLTFState.new()

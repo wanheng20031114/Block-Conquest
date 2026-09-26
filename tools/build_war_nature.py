@@ -7,6 +7,7 @@ no geometry is generated during gameplay.  No source environment asset changes.
 """
 from __future__ import annotations
 
+import argparse
 import math
 from collections import defaultdict
 from pathlib import Path
@@ -25,8 +26,8 @@ PALETTE = {
     "birch": ((151, 142, 104), (239, 223, 173)),
     "scar": ((96, 82, 49), (145, 125, 81)),
     "oak": ((38, 98, 62), (108, 170, 82)),
-    "oak_sun": ((57, 116, 59), (140, 184, 85)),
-    "birch_leaf": ((79, 117, 47), (178, 187, 82)),
+    "oak_sun": ((51, 111, 59), (128, 176, 85)),
+    "birch_leaf": ((69, 112, 51), (163, 181, 89)),
     "willow": ((44, 108, 65), (134, 166, 78)),
     "pine": ((35, 107, 79), (103, 170, 102)),
     "hazel": ((46, 118, 59), (145, 183, 64)),
@@ -209,12 +210,12 @@ def leaf_pad(center, outward, length, width, depth, heading=0.0):
     along = down * math.cos(heading) + side * math.sin(heading)
     across = norm(np.cross(outward, along))
     vertices, faces = [], []
-    rings, sections = 6, 8
+    rings, sections = 5, 6
     for i in range(rings + 1):
         t = (i + .002) / (rings + .004)
-        width_at = math.sin(math.pi * t) ** .85 * width * .5
+        width_at = math.sin(math.pi * t) ** .72 * width * .5 * (1 + .10 * math.sin(t * math.pi * 7))
         # The tip turns slightly away from the cluster, making a leaf edge.
-        mid = np.asarray(center) + along * (t - .5) * length + outward * (.055 * t * t)
+        mid = np.asarray(center) + along * (t - .5) * length + outward * (length * .085 * t * t)
         for j in range(sections):
             a = TAU * j / sections
             vertices.append(mid + across * math.cos(a) * width_at + outward * math.sin(a) * depth * math.sin(math.pi * t))
@@ -226,28 +227,31 @@ def leaf_pad(center, outward, length, width, depth, heading=0.0):
 
 
 def foliage_mass(m, center, radii, seed, palette="oak", shade=1.0, detail=True):
-    """Large crown structure plus overlapping, explicitly sculpted leaf plates.
+    """Asymmetric branch pads, small leaf clusters and a continuous dark core.
 
-    Leaf plates follow the surface downhill. Their ridges catch light in close
-    views, and native LODs simplify them at the tactical camera distance.
+    Three scales of shape survive native LOD: the whole crown, uneven lobes,
+    and curled leaves. Avoid regular horizontal rings of identical big plates.
     """
-    m.add(crown(center, np.asarray(radii) * (.87 if detail else 1.0), seed, 24, 12), palette, shift=seed, shade=shade * .97)
+    center, radii = np.asarray(center), np.asarray(radii)
+    m.add(crown(center, radii * (.84 if detail else 1.0), seed, 24, 12), palette,
+          shift=seed, shade=shade * .91)
     if not detail:
         return
     slender = palette == "willow"
-    for row, (phi, count) in enumerate(((.32, 6), (.69, 11), (1.08, 15), (1.49, 15), (1.91, 11))):
-        for j in range(count):
-            a = j * TAU / count + seed * .61 + row * .37
-            phi_at = phi + .045 * math.sin(j * 1.7 + seed)
-            unit = np.array([math.sin(phi_at) * math.cos(a), math.cos(phi_at), math.sin(phi_at) * math.sin(a)])
-            at = np.asarray(center) + np.asarray(radii) * unit * .93
-            normal = norm(unit / np.asarray(radii))
-            scale = min(radii[0], radii[2])
-            pad = leaf_pad(at, normal, scale * (.99 if slender else .85),
-                           scale * (.29 if slender else .47), scale * .06,
-                           .29 * math.sin(a * 3 + seed))
-            m.add(pad, palette, shift=seed + row * .14, shade=shade * (1.025 + .025 * math.sin(j * 2.1)),
-                  color_height=(center[1] - radii[1], center[1] + radii[1]))
+    for j in range(104):
+        a = j * 2.399963 + seed * .61
+        y = .98 - (j + .5) / 104 * 1.61
+        radial = math.sqrt(1 - y * y)
+        unit = np.array([radial * math.cos(a), y, radial * math.sin(a)])
+        relief = .91 + .035 * math.sin(a * 3 + seed) * radial
+        at = center + radii * unit * relief
+        normal = norm(unit / radii)
+        scale = min(radii[0], radii[2]) * (1 + .16 * math.sin(j * 1.73 + seed))
+        pad = leaf_pad(at, normal, scale * (.60 if slender else .54),
+                       scale * (.18 if slender else .30), scale * .033,
+                       .78 * math.sin(a * 2 + seed) + .26 * math.sin(j * 2.7))
+        m.add(pad, palette, shift=seed, shade=shade * (1.01 + .035 * math.sin(j * 2.1)),
+              color_height=(center[1] - radii[1], center[1] + radii[1]))
 
 
 def roots(m, radius=.43, count=5):
@@ -289,6 +293,10 @@ def canopy_oak():
                 ((-.46, 4.03, -.92), (-.11, 2.93, -.38))]
     for i, (tip, elbow) in enumerate(branches):
         m.add(tube([(.03, 1.53 + i * .18, .03), elbow, tip], [.23 - i * .025, .16, .055], 11, 4, .045), "bark", "Wood", i)
+        for side in (-1, 1):
+            start = np.asarray(elbow) * .45 + np.asarray(tip) * .55
+            end = np.asarray(tip) + [side * .38, .37, side * .34]
+            m.add(tube([start, (start + end) * .5 + [0, .10, 0], end], [.085, .047, .012], 8, 3), "bark", "Wood", i)
     clusters = [(-1.25, 3.29, .13, 1.17, .77, .99),
                 (1.15, 3.66, -.12, 1.17, .83, 1.01),
                 (-.12, 3.36, 1.07, 1.17, .74, .98),
@@ -311,8 +319,13 @@ def silver_birch():
                    [.21, .17, .105, .026], 12, 4, .018), "birch", "Wood")
         for j in range(6):
             y = .42 + j * .48
-            scar = crown((x + lean * y / height, y, z + .143 - y * .018), (.10, .027, .025), j, 12, 6)
-            m.add(scar, "scar", "Wood")
+            for side in (-1, 1):
+                angle = j * 1.7 + side * 1.6
+                radius = .205 - y * .026
+                scar = crown((0, 0, 0), (.075 + .025 * math.sin(j), .022, .016), j, 12, 6)
+                scar.apply_transform(tm.transformations.rotation_matrix(angle, [0, 1, 0]))
+                scar.apply_translation([x + lean * y / height + math.sin(angle) * radius, y, z + math.cos(angle) * radius])
+                m.add(scar, "scar", "Wood")
         for j in range(3):
             a = j * 2.35 + i * 1.65
             y = 2.63 + j * .66 - i * .13
@@ -330,13 +343,13 @@ def pine_bough(center, radius, height, angle, seed):
     radial = np.array([math.cos(angle), 0., math.sin(angle)])
     across = np.array([-math.sin(angle), 0., math.cos(angle)])
     normal = norm([math.cos(angle) * height * .6, radius, math.sin(angle) * height * .6])
-    sections, rings = 10, 12
+    sections, rings = 8, 20
     for i in range(rings + 1):
         t = (i + .005) / (rings + .010)
         mid = np.asarray(center) + radial * radius * t
         mid[1] += height * (1 - t) ** .91 + .12 * math.sin(math.pi * t)
-        breadth = radius * .48 * math.sin(math.pi * t) ** .60 * (1 + .16 * math.sin(t * math.pi * 5 + seed))
-        thickness = radius * .105 * math.sin(math.pi * t) ** .7
+        breadth = radius * .36 * math.sin(math.pi * t) ** .60 * (1 + .27 * math.sin(t * math.pi * 9 + seed))
+        thickness = radius * .055 * math.sin(math.pi * t) ** .7
         for j in range(sections):
             a = TAU * j / sections
             vertices.append(mid + across * math.cos(a) * breadth + normal * math.sin(a) * thickness)
@@ -354,17 +367,34 @@ def wind_pine():
     roots(m, .32)
     m.add(tube([(0, 0, 0), (.08, 1.1, .04), (-.1, 2.7, .08), (.08, 4.2, 0), (.18, 5.6, -.04)],
                [.33, .25, .18, .105, .035], 12, 4, .03), "bark", "Wood")
-    for i, (cx, y, r, h) in enumerate([(-.10, 1.10, 1.77, 1.78), (.14, 2.28, 1.44, 1.65),
-                                       (-.02, 3.36, 1.09, 1.44), (.16, 4.30, .71, 1.45)]):
-        for j in range(7):
-            a = j * TAU / 7 + i * .47
-            reach = r * (1 + .065 * math.sin(j * 1.83 + i))
-            m.add(pine_bough((cx, y, 0), reach, h, a, i * .5), "pine", shift=i + a,
-                  shade=.96 + i * .025 + .035 * math.sin(a))
-            outer = (cx + math.cos(a) * reach * .91, y + h * .10, math.sin(a) * reach * .91)
-            m.add(tube([(cx, y + h * .57, 0), (outer[0] * .56, y + h * .33, outer[2] * .56), outer],
-                       [.065, .036, .008], 7, 3), "bark", "Wood")
-    foliage_mass(m, (.16, 5.22, 0), (.29, .56, .28), 17, "pine", detail=False)
+    levels = [(-.06, 1.35, 1.78), (.08, 2.10, 1.57), (-.07, 2.88, 1.32),
+              (.02, 3.57, 1.08), (.13, 4.20, .80), (.18, 4.77, .49)]
+    for i, (cx, y, radius) in enumerate(levels):
+        count = 6 if i < 4 else 5
+        for j in range(count):
+            angle = j * TAU / count + i * .79
+            reach = radius * (1 + .10 * math.sin(j * 1.83 + i))
+            radial = np.array([math.cos(angle), 0, math.sin(angle)])
+            across = np.array([-math.sin(angle), 0, math.cos(angle)])
+            base = np.array([cx, y + .18 * math.sin(j * 1.6 + i), 0])
+            tip = base + radial * reach + [0, -.06, 0]
+            m.add(tube([base + [0, .20, 0], base + radial * reach * .55, tip],
+                       [.075 * (1 - i * .1), .035, .006], 8, 3), "bark", "Wood")
+            # A broad central spray with smaller swept lateral needle fans.
+            m.add(pine_bough(base, reach, .40, angle, i + j), "pine", shift=i,
+                  shade=.89 + i * .025)
+            for step, t in enumerate((.36, .59, .78)):
+                for side in (-1, 1):
+                    twig = base + radial * reach * t + across * side * reach * .12
+                    twig[1] += .32 * (1 - t)
+                    fan_angle = angle + side * (.77 - .15 * t)
+                    fan_reach = reach * (.46 - .15 * t)
+                    m.add(pine_bough(twig, fan_reach, .15, fan_angle, step * 1.8 + side),
+                          "pine", shift=i + step * .3, shade=.99 + i * .014)
+    for y, radius in ((5.12, .34), (5.39, .18)):
+        for j in range(5):
+            m.add(pine_bough((.18, y, -.02), radius, .29, j * TAU / 5 + y, j),
+                  "pine", shift=y, shade=1.06)
     return m
 
 
@@ -564,6 +594,12 @@ def bluebells():
 
 
 if __name__ == "__main__":
-    for builder in (canopy_oak, silver_birch, wind_pine, weeping_willow, hazel_thicket, moss_boulder,
-                    fern_patch, meadow_tuft, reed_cluster, daisies, bluebells):
-        builder().save(builder.__name__)
+    builders = {builder.__name__: builder for builder in (canopy_oak, silver_birch, wind_pine,
+                weeping_willow, hazel_thicket, moss_boulder, fern_patch, meadow_tuft, reed_cluster, daisies, bluebells)}
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("models", nargs="*", help="Only rebuild these named assets; omit for all")
+    args = parser.parse_args()
+    for name in args.models or builders:
+        if name not in builders:
+            parser.error(f"Unknown model {name}")
+        builders[name]().save(name)

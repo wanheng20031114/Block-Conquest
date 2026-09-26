@@ -2,6 +2,8 @@ extends SceneTree
 ## Native geometry gallery: full trees, trunk/branch details and the rock understorey.
 
 func _initialize() -> void:
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
+	DisplayServer.window_set_position(Vector2i(-20000, -20000))
 	_run.call_deferred()
 
 
@@ -28,18 +30,18 @@ func _run() -> void:
 		for other: String in specimens:
 			gallery.get_node(other).visible = other == specimen
 		var tree: Node3D = gallery.get_node(specimen)
-		camera.position = tree.position + Vector3(6.5, 7.5, 11)
+		camera.position = tree.position + Vector3(6.5, 7.5, 11) * 3.0
 		camera.look_at(tree.position + Vector3(0, 2.8, 0))
 		camera.size = 9.0
 		await _capture(specimen.to_lower())
 	for specimen: String in specimens:
 		gallery.get_node(specimen).hide()
-	camera.position = Vector3(-0.5, 8.8, 15)
+	camera.position = Vector3(-1.5, 25.4, 34.6)
 	camera.look_at(Vector3(0, 0.5, 5.2))
 	camera.size = 13.0
 	await _capture("understorey")
 	var rock: Node3D = gallery.get_node("Rock")
-	camera.position = rock.position + Vector3(5, 4, 7)
+	camera.position = rock.position + Vector3(5, 4, 7) * 3.0
 	camera.look_at(rock.position + Vector3(0, 0.6, 0))
 	camera.size = 4.6
 	await _capture("rock")
