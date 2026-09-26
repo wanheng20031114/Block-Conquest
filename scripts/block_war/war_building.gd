@@ -30,7 +30,7 @@ var production_rate: float:
 		return HOUSE_PRODUCTION_RATES[level - 1] if kind == 0 else 0.0
 var max_level: int:
 	get:
-		return 4 if kind == 0 else 3
+		return [4, 3, 1][kind]
 var upgrade_cost: int:
 	get:
 		return level * (10 if kind == 0 else 30) if level < max_level else 0
@@ -93,6 +93,13 @@ func _ready() -> void:
 	_kind_label.visible = false
 
 
+func _exit_tree() -> void:
+	# Explicitly release paused animation tracks too when the match is removed.
+	for tween: Tween in [_selection_tween, _selection_body_tween, _capture_tween, _recoil_tween]:
+		if tween:
+			tween.kill()
+
+
 func _process(delta: float) -> void:
 	if _visual_paused:
 		return
@@ -109,7 +116,9 @@ func set_visual_paused(value: bool) -> void:
 	for particles: GPUParticles3D in _construction_particles:
 		particles.speed_scale = 0.0 if value else 1.0
 	for tween: Tween in [_selection_tween, _selection_body_tween, _capture_tween, _recoil_tween]:
-		if tween and tween.is_valid():
+		# A completed tween can remain valid until the next SceneTree cleanup.
+		# Only unfinished loops may be paused or resumed during that interval.
+		if tween and tween.is_valid() and tween.get_loops_left() != 0:
 			if value:
 				tween.pause()
 			else:

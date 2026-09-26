@@ -16,6 +16,8 @@ func _check(condition: bool, label: String) -> void:
 		printerr("FAIL ", label)
 
 func _reset() -> void:
+	if game != null:
+		await game.prepare_shutdown()
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
 	await scene_changed
 	game = current_scene
@@ -54,6 +56,7 @@ func _run() -> void:
 	_audit_same_column_ai()
 	await _reset()
 	_audit_routes()
+	await game.prepare_shutdown()
 	print("BLOCK_WAR_CAMPAIGN checks=", checks, " failures=", failures.size(), " audit_findings=", audit_findings)
 	quit(0 if failures.is_empty() else 1)
 
@@ -84,7 +87,7 @@ func _player_turn() -> void:
 			if target.faction == 0:
 				continue
 			var incoming: int = game.marches.incoming_for(target.building_id, 0)
-			var required: float = target.population * game.defense_multiplier(target) / game.attack_multiplier(0) + 5.0
+			var required: float = target.population / game.combat_multiplier(0, target) + 5.0
 			if incoming >= required or floorf(source.population * 0.75) + incoming < required:
 				continue
 			var route: PackedVector3Array = game.map.get_building_route(source, target)
@@ -161,8 +164,9 @@ func _audit_fractional_victory() -> void:
 		building.kind = 1
 		building.population = 0.0
 	var last_enemy: Node3D = game.by_id[1]
+	last_enemy.level = 1
 	last_enemy.faction = 1
-	last_enemy.population = 0.5
+	last_enemy.population = 0.475
 	# A final arriving soldier defeats the fractional guard and occupies the last
 	# enemy tower with half a survivor; no residence or marching army remains.
 	game._on_unit_arrived(last_enemy.building_id, 0, 1.0)

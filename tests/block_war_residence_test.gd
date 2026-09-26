@@ -150,7 +150,7 @@ func _run() -> void:
 	game.convert_selected(2)
 	check(home.kind == 0 and home.level == 4 and home.population == 110.0 and home.is_constructing, "conversion pays twenty and retains level-four housing until completion")
 	game.simulate(10.0)
-	check(home.kind == 2 and home.level == 1 and home.max_level == 3, "level-four residence converts to a level-one forge")
+	check(home.kind == 2 and home.level == 1 and home.max_level == 1, "level-four residence converts to a fixed level-one forge")
 	game.simulate(2.0)
 	near(home.population, 110.0, "forge conversion pays twenty and does not produce")
 	game.convert_selected(0)

@@ -149,11 +149,8 @@ func _development(game: Node3D, homes: int, constructing: int) -> Dictionary:
 			if building.population < building.capacity * 0.7:
 				continue
 			score = [38.0, 24.0, 15.0][building.level - 1] + 6.0 * minf(1.0, building.population / building.capacity)
-		elif homes >= 2 and game.total_for(faction) >= 100:
-			if building.kind == 2:
-				score = 22.0 + homes * 2.0 - cost * 0.1
-			elif _enemy_distance(game, building) < FRONT_DISTANCE:
-				score = 18.0 - cost * 0.1
+		elif building.kind == 1 and homes >= 2 and game.total_for(faction) >= 100 and _enemy_distance(game, building) < FRONT_DISTANCE:
+			score = 18.0 - cost * 0.1
 		if score <= 0.0 or building.population < cost + reserve:
 			continue
 		if best.is_empty() or score > best.score:
@@ -192,7 +189,7 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 					# Reinforcements, growth and fortifications all belong to the defender.
 					defenders += _incoming_for(target.building_id, target.faction)
 					defenders += minf(maxf(0.0, target.capacity - target.population), target.production_rate * arrival)
-				required = defenders * game.defense_multiplier(target) / game.attack_multiplier(faction)
+				required = defenders / game.combat_multiplier(faction, target)
 				required = required * (1.0 if neutral else 1.35) + (6.0 if neutral else 10.0)
 				if count < required:
 					continue

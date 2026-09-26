@@ -52,7 +52,7 @@ func _run() -> void:
 	for kind: int in 3:
 		building.kind = kind
 		var signatures: Array[String] = []
-		var tiers := [1, 2, 3, 4, 3, 2, 1] if kind == 0 else [1, 2, 3, 2, 1]
+		var tiers: Array = [[1, 2, 3, 4, 3, 2, 1], [1, 2, 3, 2, 1], [1]][kind]
 		for tier: int in tiers:
 			building.level = tier
 			var original_capacity := building.capacity
@@ -113,16 +113,19 @@ func _run() -> void:
 	building.refresh_visual()
 	check(building.get_node("Visual/House/Stone").mesh.resource_path.ends_with("house_stone.res"), "same-level conversion restores the correct house model")
 	# A capture downgrade updates both mesh resources and team tint immediately.
-	building.kind = 2
+	building.kind = 0
 	building.level = 3
 	building.faction = 0
 	building.refresh_visual()
 	building.level = 2
 	building.faction = 1
 	building.pulse_capture()
-	check(building.get_node("Visual/Smithy/Stone").mesh.resource_path.ends_with("smithy_2_stone.res") and
-		building.get_node("Visual/Smithy/Roof").get_instance_shader_parameter("team_tint").is_equal_approx(WarBuilding.FACTION_COLORS[1]),
+	check(building.get_node("Visual/House/Stone").mesh.resource_path.ends_with("house_2_stone.res") and
+		building.get_node("Visual/House/Roof").get_instance_shader_parameter("team_tint").is_equal_approx(WarBuilding.FACTION_COLORS[1]),
 		"capture downgrade changes the model and ownership together")
+	building.kind = 2
+	building.level = 1
+	building.refresh_visual()
 	building.set_visual_paused(true)
 	var before_time := building._visual_time
 	var animation: AnimationPlayer = building.get_node("Visual/Smithy/ForgeAnimation")

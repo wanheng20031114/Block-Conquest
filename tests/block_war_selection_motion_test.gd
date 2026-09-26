@@ -156,6 +156,7 @@ func _run() -> void:
 	var pending_motion := home._selection_body_tween
 	await game.prepare_shutdown()
 	game.queue_free()
+	await game.tree_exited
 	await process_frame
 	check(not pending_motion.is_valid(), "leaving the match kills its bound selection tween")
 	print("BLOCK_WAR_SELECTION_MOTION checks=", checks, " failures=", failures.size())

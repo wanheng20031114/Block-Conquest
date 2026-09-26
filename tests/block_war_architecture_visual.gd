@@ -1,7 +1,7 @@
 extends SceneTree
-## Native ten-model review; screenshots stay in the system temporary directory.
+## Native playable-model review; screenshots stay in the system temporary directory.
 
-const BUILDING_NAMES: Array[String] = ["House", "Tower", "Smithy", "House2", "Tower2", "Smithy2", "House3", "Tower3", "Smithy3", "House4"]
+const BUILDING_NAMES: Array[String] = ["House", "Tower", "Smithy", "House2", "Tower2", "House3", "Tower3", "House4"]
 var review: Node3D
 var camera: Camera3D
 
@@ -41,7 +41,7 @@ func _run() -> void:
 			var building: WarBuilding = review.get_node(node_name)
 			building.visible = building.kind == kind
 			if building.visible:
-				building.position = Vector3((building.level - (2.5 if kind == 0 else 2.0)) * 6.4, 0, 0)
+				building.position = Vector3((building.level - [2.5, 2.0, 1.0][kind]) * 6.4, 0, 0)
 				building.get_node("KindLabel").pixel_size = 0.010
 				building.get_node("Visual/Smithy/Smoke").restart()
 		camera.position = Vector3(1, 16, 24)
@@ -80,7 +80,7 @@ func _run() -> void:
 		await create_timer(0.40).timeout
 		assert(is_zero_approx(tower.get_node("Visual/Tower/Gun/Barrel").position.z))
 		assert(tower.get_node("Visual/Tower/Stone").global_transform == stationary)
-	for node_name: String in ["Smithy", "Smithy2", "Smithy3"]:
+	for node_name: String in ["Smithy"]:
 		var smithy: WarBuilding = review.get_node(node_name)
 		smithy.set_visual_paused(true)
 		var visual_time: float = smithy._visual_time
@@ -88,7 +88,7 @@ func _run() -> void:
 		assert(smithy._visual_time == visual_time)
 		assert(smithy.get_node("Visual/Smithy/Smoke").speed_scale == 0.0)
 		assert(smithy.get_node("Visual/Smithy/ForgeAnimation").speed_scale == 0.0)
-	print("WAR_ARCHITECTURE_VISUAL ten models captured; every cannon aim/recoil/pause and forge visual pause passed")
+	print("WAR_ARCHITECTURE_VISUAL eight models captured; every cannon aim/recoil/pause and forge visual pause passed")
 	review.queue_free()
 	await process_frame
 	quit()

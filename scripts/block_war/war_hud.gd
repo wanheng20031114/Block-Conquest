@@ -16,7 +16,7 @@ const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁�
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
 const SKILL_DETAILS: Array[String] = [
 	"拖至自己或盟友住宅，松手施放。\n每秒征召 5 人，持续 6 秒。", "拖至战场，松手施放。\n自己的行军部队加速，持续 8 秒。",
-	"拖至自己或盟友建筑，松手施放。\n守备壁垒持续 10 秒。", "拖至地面，松手点燃。\n火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
+	"拖至自己或盟友建筑，松手施放。\n守备 +50%，持续 10 秒。", "拖至地面，松手点燃。\n火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
 ]
 
 var _paused: bool = false
@@ -97,7 +97,7 @@ func update_state(state: Dictionary) -> void:
 		_balance_tween.tween_property(%Balance, "value", target, 0.28)
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
-	%ForgeBonus.text = ("你的锻造  +%d%%" if state.team_size > 1 else "锻造加成  +%d%%") % (int(state.forges) * 10)
+	%ForgeBonus.text = ("你的攻击  +%d%%" if state.team_size > 1 else "攻击加成  +%d%%") % (int(state.forges) * 10)
 	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
@@ -188,6 +188,7 @@ func _update_building_actions(state: Dictionary) -> void:
 	var busy := remaining > 0
 	var converting := int(state.conversion_target)
 	var upgrading := busy and converting < 0
+	%Upgrade.visible = int(state.selected_kind) != 2
 	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, max_level))
 	%Upgrade.get_node("Cost/Population").visible = not capped and not upgrading
 	var detail := "开工后剩余 %d 名驻军" % (population - cost)
@@ -223,6 +224,8 @@ func _update_building_actions(state: Dictionary) -> void:
 		_update_action(button, bool(state.selected_owned) and not busy and population >= convert_cost, "%ds" % remaining if active_conversion else str(convert_cost), hint, not busy and population < convert_cost)
 		if active_conversion:
 			button.get_node("Icon").modulate.a = 0.8
+	%BuildingActions.size = %BuildingActions.get_combined_minimum_size()
+	%Selection.size = %BuildingActions.size + Vector2(6.0, 0.0)
 	_position_selection()
 
 func _update_action(button: Button, available: bool, cost: String, hint: String, shortfall: bool) -> void:

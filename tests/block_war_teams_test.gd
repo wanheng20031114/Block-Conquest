@@ -30,6 +30,7 @@ func _run() -> void:
 	for building: WarBuilding in game.buildings:
 		building.kind = 2
 		building.refresh_visual()
+	ally.kind = 1
 	ally.level = 2
 	ally.begin_construction()
 	var team_total: int = game.team_total_for(0)
@@ -49,7 +50,7 @@ func _run() -> void:
 	var before: float = ally.population
 	game.upgrade_selected()
 	game.convert_selected(0)
-	check(ally.population == before and ally.kind == 2 and ally.construction_remaining == 10.0, "selecting a teammate never grants construction controls")
+	check(ally.population == before and ally.kind == 1 and ally.construction_remaining == 10.0, "selecting a teammate never grants construction controls")
 	check(game.hud.get_node("%Upgrade").disabled, "the native upgrade control is disabled for allied buildings")
 	check(game.issue_order(ally, player, 50, 2) == 45, "the recipient AI can dispatch its combined army")
 	for step: int in 1200:
@@ -67,13 +68,19 @@ func _run() -> void:
 		var targets: Array[WarMarches.MarchUnit] = game.marches.acquire_targets(Vector3(3, 0, 0), faction, 15.0, 1)
 		check(targets.size() == 1 and game.FACTIONS.hostile(targets[0].order.faction, faction), "every faction's tower targets opponents and protects all allies")
 	game.marches.clear()
-	# Different opponents retain their own forge upgrades; incoming damage sums
-	# those attack multipliers rather than treating every opponent as faction 1.
-	game.by_id[1].level = 1
-	game.by_id[3].level = 3
+	# Different opponents own different numbers of forges; bonuses stay personal.
+	for building: WarBuilding in game.buildings:
+		building.kind = 0
+		building.level = 1
+	game.by_id[1].kind = 2
+	game.by_id[3].kind = 2
+	game.by_id[6].kind = 2
+	game.by_id[6].faction = 3
+	player.kind = 1
+	player.level = 2
 	game.marches.send(1, 0, 1, 10, PackedVector3Array([Vector3.ZERO, Vector3(8, 0, 0)]))
 	game.marches.send(3, 0, 3, 10, PackedVector3Array([Vector3.ZERO, Vector3(8, 0, 0)]))
-	var expected: float = (10 * game.attack_multiplier(1) + 10 * game.attack_multiplier(3)) / game.defense_multiplier(player)
+	var expected := 21.0 # 10 * (1 + .1 - .1) + 10 * (1 + .2 - .1).
 	check(is_equal_approx(game.incoming_damage_for(player, game.marches.snapshot_incoming()), expected), "defense planning accounts for all hostile factions and their real bonuses")
 	game.marches.clear()
 	for building: WarBuilding in game.buildings:

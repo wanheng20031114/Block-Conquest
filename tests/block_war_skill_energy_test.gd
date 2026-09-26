@@ -312,12 +312,12 @@ func _ground_impact() -> void:
 	check(wave.visible and wave.global_position.is_equal_approx(center), "Native fire effect starts at the requested ground location")
 	game.simulate(WarFireWave.EXPANSION_TIME)
 	near(ally.population, 100.0, "Ground impact leaves friendly buildings unharmed")
-	near(enemy.population, 100.0 - 35.0 / 1.2, "Ground impact respects a level-three enemy's defense")
+	near(enemy.population, 65.0, "Residence level grants no passive defense against ground impact")
 	check(neutral.population == 0.0 and neutral.faction == -1, "Ground impact damages neutral garrison but never captures it")
 	near(edge.population, 65.0, "A hostile building exactly on the radius is hit")
 	near(outside.population, 100.0, "A hostile building just outside the radius is untouched")
 	game.simulate(0.5)
-	near(enemy.population, 100.0 - 35.0 / 1.2, "The lingering fire does not repeatedly damage the same garrison")
+	near(enemy.population, 65.0, "The lingering fire does not repeatedly damage the same garrison")
 	game.energy = 60.0
 	game.cooldowns[3] = 0.0
 	var empty := Vector3(0, 0, 26)
@@ -325,7 +325,7 @@ func _ground_impact() -> void:
 	near(game.energy, 0.0, "Casting on empty ground still pays the full cost")
 	near(game.cooldowns[3], 60.0, "Casting on empty ground still starts cooldown")
 	game.simulate(WarFireWave.EXPANSION_TIME)
-	near(enemy.population, 100.0 - 35.0 / 1.2, "Empty-ground fire does not damage distant buildings")
+	near(enemy.population, 65.0, "Empty-ground fire does not damage distant buildings")
 
 
 func _native_skill_hint(button: Button) -> void:

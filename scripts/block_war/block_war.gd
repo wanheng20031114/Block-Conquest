@@ -259,23 +259,28 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 	update_hud()
 	return count
 
-func forge_levels(faction: int) -> int:
+func forge_count(faction: int) -> int:
 	if faction < 0:
 		return 0
-	var levels: int = 0
+	var count: int = 0
 	for building: Node3D in buildings:
 		if building.faction == faction and building.kind == 2:
-			levels += building.level
-	return levels
+			count += 1
+	return count
 
-func attack_multiplier(faction: int) -> float:
-	return 1.0 + 0.1 * forge_levels(faction)
+func attack_bonus(faction: int) -> float:
+	return 0.1 * forge_count(faction)
 
-func defense_multiplier(building: Node3D) -> float:
-	var value: float = 1.0 + 0.1 * forge_levels(building.faction) + 0.1 * (building.level - 1)
+func defense_bonus(building: Node3D) -> float:
+	var value: float = 0.05 * building.level if building.kind == 1 else 0.0
 	if shields.has(building.building_id):
-		value *= 2.0
+		value += 0.5
 	return value
+
+func combat_multiplier(faction: int, target: Node3D) -> float:
+	# Sum percentage-point bonuses before scaling troops. Preview and AI use
+	# this same live coefficient, including ownership and construction changes.
+	return 1.0 + attack_bonus(faction) - defense_bonus(target)
 
 func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 	var target: Node3D = by_id[target_id]
@@ -285,7 +290,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 		target.population += strength
 		audio.play_world(&"war_reinforce", target.global_position)
 	else:
-		var damage: float = strength * attack_multiplier(faction) / defense_multiplier(target)
+		var damage: float = strength * combat_multiplier(faction, target)
 		if target.population + 0.00001 >= damage:
 			target.population = maxf(0.0, target.population - damage)
 		else:
@@ -305,7 +310,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 			elif previous_faction == PLAYER:
 				audio.play_ui(&"war_lost")
 			if faction == PLAYER:
-				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +%s 民兵" % target.production_rate if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻防提升")])
+				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +%s 民兵" % target.production_rate if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻击 +10%")])
 			tower_clocks[target_id] = 0.6
 		if effects.size() < 80:
 			add_effect(target.global_position, faction_color(faction), "hit", 0.2)
@@ -354,7 +359,7 @@ func _tick_fire_buildings() -> void:
 			var offset := Vector2(building.global_position.x - fire.global_position.x, building.global_position.z - fire.global_position.z)
 			if offset.length() <= fire.front(fire.age):
 				fire.hit_buildings[building.building_id] = true
-				building.population = maxf(0.0, building.population - IMPACT_DAMAGE / defense_multiplier(building))
+				building.population = maxf(0.0, building.population - IMPACT_DAMAGE * (1.0 - defense_bonus(building)))
 				building.refresh_visual()
 
 func tower_range(building: Node3D) -> float:
@@ -450,7 +455,7 @@ func cast_skill(index: int, target: Node3D) -> bool:
 			shields[target.building_id] = 10.0
 			world_effects.shield(target.global_position)
 			add_effect(target.global_position, Color(0.45, 0.8, 1.0), "skill", 1.1)
-			hud.notify("磐石壁垒 · 守备减伤 50%，持续 10 秒")
+			hud.notify("磐石壁垒 · 守备 +50%，持续 10 秒")
 	_commit_skill(index)
 	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield"]
 	audio.play_world(skill_sounds[index], target.global_position if target != null and index != 1 else camera_rig.global_position)
@@ -537,7 +542,7 @@ func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, i
 	var damage := 0.0
 	for faction: int in faction_count:
 		if FACTIONS.hostile(building.faction, faction):
-			damage += incoming.get(Vector2i(building.building_id, faction), 0) * attack_multiplier(faction) / defense_multiplier(building)
+			damage += incoming.get(Vector2i(building.building_id, faction), 0) * combat_multiplier(faction, building)
 	return damage
 
 func total_for(faction: int) -> int:
@@ -592,12 +597,12 @@ func _finish_match(winner: int) -> void:
 func update_hud() -> void:
 	if not is_node_ready():
 		return
-	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升所属军团攻防"
+	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升所属军团攻击"
 	if selected != null:
 		match selected.kind:
-			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限 · 守备 +%d%%" % [selected.production_rate, selected.capacity, (selected.level - 1) * 10]
-			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 不自动产兵" % [tower_range(selected), tower_interval(selected), selected.level]
-			2: detail = "所属军团攻击与守备 +%d%% · 不自动产兵" % (selected.level * 10)
+			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限" % [selected.production_rate, selected.capacity]
+			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 守备 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, selected.level * 5]
+			2: detail = "所属军团攻击 +10% · 不可升级 · 不自动产兵"
 		if shields.has(selected.building_id):
 			detail += " · 壁垒 %ds" % ceili(shields[selected.building_id])
 		if selected.faction >= 0 and faction_count > 2:
@@ -612,7 +617,7 @@ func update_hud() -> void:
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_ENERGY_COSTS,
 		"skill_target_types": ["building", "self", "building", "ground"], "ground_skill_radius": IMPACT_RADIUS,
-		"forges": forge_levels(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
+		"forges": forge_count(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
 		"selected_max_level": selected.max_level if selected != null else 4,

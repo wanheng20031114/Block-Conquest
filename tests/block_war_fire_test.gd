@@ -69,9 +69,10 @@ func _run() -> void:
 		ally.population = 200.0
 		var enemy: WarBuilding = game.by_id[1]
 		enemy.position = CENTER + Vector3(3, 0, 0)
-		enemy.kind = 2
+		enemy.kind = 1
 		enemy.level = 3
 		enemy.population = 100.0
+		game.tower_clocks[enemy.building_id] = 100.0
 		enemy.refresh_visual()
 		var neutral: WarBuilding = game.by_id[2]
 		neutral.position = CENTER + Vector3(4.5, 0, 0)
@@ -104,7 +105,7 @@ func _run() -> void:
 		check(deaths.size() > 20 and deaths.all(func(death: Dictionary): return death.burning), "every contacted soldier has a burning casualty event without a damage-count cap")
 		check(deaths.any(func(death: Dictionary): return death.faction == 0) and deaths.any(func(death: Dictionary): return death.faction == 1), "casualty effects include both faction colors")
 		near(ally.population, 200.0, "friendly garrison remains protected inside its building")
-		near(enemy.population, 100.0 - 35.0 / 1.5, "enemy building takes one defense-adjusted hit when the front arrives")
+		near(enemy.population, 100.0 - 35.0 * 0.85, "level-three tower takes one hit reduced by its fifteen percent defense")
 		check(neutral.population == 0.0 and neutral.faction == -1, "fire damages a boundary garrison without capturing it")
 		near(far.population, 100.0, "building beyond the radius is never hit")
 		partition_totals.append(Vector2i(game.marches.total_for(0), game.marches.total_for(1)))

@@ -4,6 +4,8 @@ extends Control
 # Match the population badge's porcelain as it appears after world tonemapping.
 const CLOUD_FILL := Color("edecec")
 const CLOUD_EDGE_SPEED := 24.0 # UI pixels per second along the outline.
+const ADVANTAGE_COLOR := Color("38a9dd")
+const DISADVANTAGE_COLOR := Color("d85b52")
 
 var _hint_time := 0.0
 var _hint_rect := Rect2()
@@ -100,6 +102,25 @@ func _draw_dispatch_hint() -> void:
 	draw_colored_polygon(outline, CLOUD_FILL)
 	outline.append(outline[0])
 	draw_polyline(outline, CLOUD_FILL, 1.0, true)
+	var advantage := dispatch_advantage()
+	if advantage == 0:
+		return
+	var color := ADVANTAGE_COLOR if advantage > 0 else DISADVANTAGE_COLOR
+	var tip := -4.0 if advantage > 0 else 4.0
+	# A small corner annotation; the cached number and cloud keep their layout
+	# when the target's coefficient changes or returns to an even exchange.
+	for index: int in absi(advantage):
+		var at := _hint_rect.end - Vector2(12.0, 13.0 + index * 5.0)
+		if advantage < 0:
+			at.y -= 4.0
+		draw_polyline(PackedVector2Array([at + Vector2(-4, 0), at + Vector2(0, tip), at + Vector2(4, 0)]), color, 2.0, true)
+
+func dispatch_advantage() -> int:
+	if game.drag_source == null or game.hovered == null or game.FACTIONS.allied(game.drag_source.faction, game.hovered.faction):
+		return 0
+	# Integer percentage points avoid floating-point noise at 100/120/140%.
+	var difference := roundi((game.combat_multiplier(game.drag_source.faction, game.hovered) - 1.0) * 100.0)
+	return signi(difference) * ceili(absi(difference) / 20.0)
 
 func _cloud_outline(rect: Rect2) -> PackedVector2Array:
 	var profile := _cloud_profile(rect.size)

@@ -166,7 +166,7 @@ func _run() -> void:
 	game.by_id[0].population = 25.0
 	game.shields[0] = 10.0
 	game._ai_turn()
-	check(game.marches.total_for(1) == 0, "shield and forge defense prevent an understrength assault")
+	check(game.marches.total_for(1) == 0, "shield defense prevents an understrength assault")
 	game.shields.clear()
 	game._ai_turn()
 	check(game.marches.incoming_for(0, 1) == 60, "the same army attacks once the shield expires and the exchange is favorable")
@@ -195,10 +195,10 @@ func _run() -> void:
 	forge.kind = 2
 	forge.population = 60.0
 	game._ai_turn()
-	check(forge.is_constructing and forge.population == 30.0, "an established economy invests in its army's forge")
-	check(is_equal_approx(game.attack_multiplier(1), 1.1), "unfinished forge investment grants no free combat bonus")
+	check(not forge.is_constructing and forge.population == 60.0, "an established economy never attempts to upgrade its fixed-level forge")
+	check(is_equal_approx(game.attack_bonus(1), 0.1), "one forge provides ten percent attack")
 	game.simulate(10.0)
-	check(forge.level == 2 and is_equal_approx(game.attack_multiplier(1), 1.2), "forge improvements take effect only after paid construction completes")
+	check(forge.level == 1 and is_equal_approx(game.attack_bonus(1), 0.1), "forge remains at level one without an automatic upgrade")
 
 	_fixture()
 	home.kind = 2

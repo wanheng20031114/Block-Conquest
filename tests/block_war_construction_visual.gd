@@ -16,7 +16,10 @@ func _capture(label: String) -> void:
 func _start_work() -> void:
 	for site: WarBuilding in sites:
 		game.select_building(site)
-		game.upgrade_selected()
+		if site.kind == 2:
+			game.convert_selected(0)
+		else:
+			game.upgrade_selected()
 	game.select_building(sites[0])
 	game.hud.get_node("%Toast").hide()
 
@@ -40,7 +43,7 @@ func _run() -> void:
 	sites.assign([game.by_id[0], game.by_id[6], game.by_id[8]])
 	for site: WarBuilding in sites:
 		site.faction = 0
-		site.level = 2
+		site.level = 1 if site.kind == 2 else 2
 		site.population = 120.0
 		site.refresh_visual()
 	game.select_building(sites[0])
