@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_seal_effect.gd" id="script"]
+[ext_resource type="Shader" path="res://assets/models/block_war/rabbit_paper.gdshader" id="paper_shader"]
+
+[sub_resource type="ShaderMaterial" id="PaperMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("paper_shader")
+
+[sub_resource type="StandardMaterial3D" id="Wax"]
+albedo_color = Color(0.62, 0.27, 0.18, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Ivory"]
+albedo_color = Color(0.96, 0.86, 0.61, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Ribbon"]
+albedo_color = Color(0.14, 0.43, 0.39, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="WaxMesh"]
+material = SubResource("Wax")
+top_radius = 0.30
+bottom_radius = 0.33
+height = 0.11
+radial_segments = 8
+rings = 1
+
+[sub_resource type="BoxMesh" id="Ear"]
+material = SubResource("Ivory")
+size = Vector3(0.085, 0.20, 0.025)
+
+[sub_resource type="BoxMesh" id="Nose"]
+material = SubResource("Ivory")
+size = Vector3(0.13, 0.12, 0.025)
+
+[sub_resource type="BoxMesh" id="Tail"]
+material = SubResource("Ribbon")
+size = Vector3(0.18, 0.55, 0.03)
+
+[sub_resource type="StandardMaterial3D" id="ParticleMaterial"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.94, 0.84, 0.60, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="PaperBit"]
+material = SubResource("ParticleMaterial")
+size = Vector3(0.10, 0.08, 0.025)
+
+[sub_resource type="Gradient" id="Fade"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.9, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="FadeTexture"]
+gradient = SubResource("Fade")
+
+[sub_resource type="ParticleProcessMaterial" id="PaperProcess"]
+direction = Vector3(0, 0.6, 1)
+spread = 65.0
+initial_velocity_min = 0.7
+initial_velocity_max = 1.9
+gravity = Vector3(0, -2.1, 0)
+angular_velocity_min = -180.0
+angular_velocity_max = 180.0
+color_ramp = SubResource("FadeTexture")
+
+[node name="Disruption" type="Node3D"]
+script = ExtResource("script")
+
+[node name="Seal" type="Node3D" parent="."]
+visible = false
+rotation = Vector3(0, 0, -0.10)
+
+[node name="Paper" type="CSGPolygon3D" parent="Seal"]
+polygon = PackedVector2Array(-1.3, -0.24, -1.22, -0.1, -1.3, 0.04, -1.22, 0.25, 1.25, 0.25, 1.17, 0.08, 1.3, -0.04, 1.22, -0.24)
+depth = 0.035
+material = SubResource("PaperMaterial")
+
+[node name="RibbonLeft" type="MeshInstance3D" parent="Seal"]
+position = Vector3(-0.14, -0.32, 0.03)
+rotation = Vector3(0, 0, -0.3)
+mesh = SubResource("Tail")
+
+[node name="RibbonRight" type="MeshInstance3D" parent="Seal"]
+position = Vector3(0.17, -0.32, 0.04)
+rotation = Vector3(0, 0, 0.34)
+mesh = SubResource("Tail")
+
+[node name="WaxStamp" type="MeshInstance3D" parent="Seal"]
+position = Vector3(0, 0, 0.08)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("WaxMesh")
+
+[node name="LeftEar" type="MeshInstance3D" parent="Seal"]
+position = Vector3(-0.075, 0.065, 0.15)
+rotation = Vector3(0, 0, 0.18)
+mesh = SubResource("Ear")
+
+[node name="RightEar" type="MeshInstance3D" parent="Seal"]
+position = Vector3(0.075, 0.065, 0.15)
+rotation = Vector3(0, 0, -0.18)
+mesh = SubResource("Ear")
+
+[node name="Paw" type="MeshInstance3D" parent="Seal"]
+position = Vector3(0, -0.105, 0.15)
+mesh = SubResource("Nose")
+
+[node name="PaperBits" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 12
+lifetime = 0.85
+one_shot = true
+explosiveness = 1.0
+randomness = 0.35
+visibility_aabb = AABB(-3, -2, -2, 6, 5, 5)
+process_material = SubResource("PaperProcess")
+draw_pass_1 = SubResource("PaperBit")

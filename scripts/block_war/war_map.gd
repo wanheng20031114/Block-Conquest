@@ -24,6 +24,7 @@ var _tree_obstacle_grid: Dictionary[Vector2i, Array] = {}
 var _flow_time := 0.0
 var _visual_paused := false
 var _water_materials: Array[ShaderMaterial] = []
+var _recall_navigation: Dictionary[int, AStar3D] = {}
 const NATURE_MATERIALS: Array[ShaderMaterial] = [
 	preload("res://assets/models/block_war/nature/leaves.tres"),
 	preload("res://assets/models/block_war/nature/grass.tres"),
@@ -115,6 +116,78 @@ func get_building_route(source: WarBuilding, target: WarBuilding) -> PackedVecto
 
 func get_building_distance(source: WarBuilding, target: WarBuilding) -> float:
 	return 0.0 if source == target else _route_distances[_route_key(source, target)]
+
+
+func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
+	var finish := target.march_perimeter_towards(from)
+	if from.distance_to(finish) < 0.02:
+		finish = from.move_toward(target.global_position, 0.04)
+	if _recall_segment_clear(from, finish, target):
+		return PackedVector3Array([from, finish])
+	# Individual returners need only soldier-width clearance. Cache a small native
+	# AStar graph around each destination; the authored terrain/buildings are static.
+	if not _recall_navigation.has(target.building_id):
+		var graph := AStar3D.new()
+		graph.add_point(0, target.global_position)
+		var cells: Dictionary[Vector2i, int] = {}
+		for x: int in range(-10, 11):
+			for z: int in range(-10, 11):
+				var point := target.global_position + Vector3(x, 0, z) * 0.8
+				if point.distance_to(target.global_position) < 2.5 or not _recall_point_clear(point, target):
+					continue
+				var id := graph.get_available_point_id()
+				graph.add_point(id, point)
+				cells[Vector2i(x, z)] = id
+				if point.distance_to(target.global_position) < 4.0 and _recall_segment_clear(point, target.march_perimeter_towards(point), target):
+					graph.connect_points(id, 0)
+		for cell: Vector2i in cells:
+			for direction: Vector2i in [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, -1)]:
+				var neighbor := cell + direction
+				if cells.has(neighbor) and _recall_segment_clear(graph.get_point_position(cells[cell]), graph.get_point_position(cells[neighbor]), target):
+					graph.connect_points(cells[cell], cells[neighbor])
+		_recall_navigation[target.building_id] = graph
+	var navigation := _recall_navigation[target.building_id]
+	var start := navigation.get_available_point_id()
+	navigation.add_point(start, from)
+	for id: int in navigation.get_point_ids():
+		if id == start or id == 0:
+			continue
+		var point := navigation.get_point_position(id)
+		if from.distance_squared_to(point) <= 2.56 and _recall_segment_clear(from, point, target):
+			navigation.connect_points(start, id)
+	var raw := navigation.get_point_path(start, 0)
+	navigation.remove_point(start)
+	if raw.size() < 2:
+		return PackedVector3Array()
+	raw[-1] = target.march_perimeter_towards(raw[-2])
+	var route := PackedVector3Array([from])
+	var anchor := 0
+	while anchor < raw.size() - 1:
+		var next := raw.size() - 1
+		while next > anchor + 1 and not _recall_segment_clear(raw[anchor], raw[next], target):
+			next -= 1
+		route.append(raw[next])
+		anchor = next
+	return route
+
+
+func _recall_point_clear(point: Vector3, target: WarBuilding) -> bool:
+	for offset: Vector3 in [Vector3.ZERO, Vector3(0.25, 0, 0), Vector3(-0.25, 0, 0), Vector3(0, 0, 0.25), Vector3(0, 0, -0.25)]:
+		if not is_walkable(point + offset):
+			return false
+	for building: WarBuilding in $Buildings.get_children():
+		var radius := 2.30 if building == target else WarBuilding.MARCH_PERIMETER_RADIUS
+		if point.distance_squared_to(building.global_position) < radius * radius:
+			return false
+	return true
+
+
+func _recall_segment_clear(from: Vector3, to: Vector3, target: WarBuilding) -> bool:
+	var steps := maxi(1, ceili(from.distance_to(to) / 0.25))
+	for index: int in range(steps + 1):
+		if not _recall_point_clear(from.lerp(to, float(index) / steps), target):
+			return false
+	return true
 
 
 func _route_key(source: WarBuilding, target: WarBuilding) -> Vector4:

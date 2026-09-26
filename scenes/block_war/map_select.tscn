@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/block_war/war_map_select.gd" id="script"]
 [ext_resource type="Script" path="res://scripts/block_war/war_map_preview.gd" id="preview"]
 [ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/squirrel.png" id="squirrel"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/rabbit.png" id="rabbit"]
 
 [sub_resource type="StyleBoxFlat" id="Panel"]
 bg_color = Color(0.11, 0.17, 0.145, 0.98)
@@ -264,7 +266,7 @@ text = "小型战场 · 1v1 · 80 × 56 米 · 13 座据点"
 [node name="Preview" type="Control" parent="Margin/Column/Content/Overview/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 280)
+custom_minimum_size = Vector2(0, 190)
 size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("preview")
@@ -275,3 +277,117 @@ theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.72, 0.77, 0.65, 1)
 text = "暖色：我方  ·  冷色：敌方  ·  灰白：中立\n圆点：住宅  ·  方块：炮塔  ·  菱形：铁匠铺"
 horizontal_alignment = 1
+
+[node name="Commanders" type="VBoxContainer" parent="Margin/Column/Content/Overview/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerRow" type="HBoxContainer" parent="Margin/Column/Content/Overview/Column/Commanders"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Margin/Column/Content/Overview/Column/Commanders/PlayerRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 0)
+text = "我方"
+theme_override_colors/font_color = Color(0.93, 0.90, 0.77, 1)
+theme_override_font_sizes/font_size = 17
+
+[node name="PlayerCommander0" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/PlayerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+size_flags_horizontal = 3
+toggle_mode = true
+focus_mode = 0
+icon = ExtResource("squirrel")
+expand_icon = true
+texture_filter = 1
+theme_override_constants/icon_max_width = 36
+theme_override_font_sizes/font_size = 17
+text = "榛果 · 松鼠"
+theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_styles/normal = SubResource("Button")
+theme_override_styles/hover = SubResource("Selected")
+theme_override_styles/pressed = SubResource("Selected")
+theme_override_styles/hover_pressed = SubResource("Selected")
+
+[node name="PlayerCommander1" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/PlayerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+size_flags_horizontal = 3
+toggle_mode = true
+focus_mode = 0
+icon = ExtResource("rabbit")
+expand_icon = true
+texture_filter = 1
+theme_override_constants/icon_max_width = 36
+theme_override_font_sizes/font_size = 17
+text = "跳豆 · 兔子"
+theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_styles/normal = SubResource("Button")
+theme_override_styles/hover = SubResource("Selected")
+theme_override_styles/pressed = SubResource("Selected")
+theme_override_styles/hover_pressed = SubResource("Selected")
+
+[node name="OpponentRow" type="HBoxContainer" parent="Margin/Column/Content/Overview/Column/Commanders"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Margin/Column/Content/Overview/Column/Commanders/OpponentRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 0)
+text = "敌方"
+theme_override_colors/font_color = Color(0.93, 0.90, 0.77, 1)
+theme_override_font_sizes/font_size = 17
+
+[node name="OpponentCommander0" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/OpponentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+size_flags_horizontal = 3
+toggle_mode = true
+focus_mode = 0
+icon = ExtResource("squirrel")
+expand_icon = true
+texture_filter = 1
+theme_override_constants/icon_max_width = 36
+theme_override_font_sizes/font_size = 17
+text = "榛果 · 松鼠"
+theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_styles/normal = SubResource("Button")
+theme_override_styles/hover = SubResource("Selected")
+theme_override_styles/pressed = SubResource("Selected")
+theme_override_styles/hover_pressed = SubResource("Selected")
+
+[node name="OpponentCommander1" type="Button" parent="Margin/Column/Content/Overview/Column/Commanders/OpponentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+size_flags_horizontal = 3
+toggle_mode = true
+focus_mode = 0
+icon = ExtResource("rabbit")
+expand_icon = true
+texture_filter = 1
+theme_override_constants/icon_max_width = 36
+theme_override_font_sizes/font_size = 17
+text = "跳豆 · 兔子"
+theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 0.96, 0.84, 1)
+theme_override_styles/normal = SubResource("Button")
+theme_override_styles/hover = SubResource("Selected")
+theme_override_styles/pressed = SubResource("Selected")
+theme_override_styles/hover_pressed = SubResource("Selected")

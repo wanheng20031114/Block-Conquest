@@ -2,7 +2,7 @@
 
 对应用户批准的 `docs/art/block_war_commanders.png`：squirrel 榛果、rabbit 跳豆、bear 栗团、beaver 木丁、fox 灯芯、frog 苔铃。
 
-当前默认头像使用 squirrel.png。其余五张是正式采用的美术素材，专属技能与选人流程尚未实装。
+当前默认头像使用 squirrel.png；战场选择页可分别为双方选择 squirrel.png 或 rabbit.png，对应松鼠和兔子的完整四技能。其余四张是正式采用的美术素材，专属技能尚未实装。底部技能图标继续采用既有单色 SVG 线条样式，角色立绘仍保持最近邻像素采样。
 
 通过内置 image_gen 对批准造型做透明背景提取，输出 1536×1024 RGBA；空白区具有真实 Alpha=0。后处理只按区域切分、按 Alpha 包围盒裁切、居中并底部对齐补入 576×576 透明画布（底边 20 px），保存 PNG。未根据 RGB 推断透明度，未重新描绘或缩放像素。Godot 导入无损、无 mipmap，HUD 最近邻采样。
 

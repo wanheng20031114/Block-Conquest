@@ -17,6 +17,7 @@ const SELECTION_REBOUND_DURATION := 0.38
 # The match advances this clock, so pause and game-over freeze construction too.
 var construction_remaining := 0.0
 var conversion_target := -1
+var disruption_remaining := 0.0
 var is_constructing: bool:
 	get:
 		return construction_remaining > 0.0
@@ -112,7 +113,8 @@ func _process(delta: float) -> void:
 func set_visual_paused(value: bool) -> void:
 	_visual_paused = value
 	$Visual/Smithy/Smoke.speed_scale = 0.0 if value else 1.0
-	$Visual/Smithy/ForgeAnimation.speed_scale = 0.0 if value else 1.0
+	$Visual/Smithy/ForgeAnimation.speed_scale = 0.0 if value or disruption_remaining > 0.0 else 1.0
+	$Disruption.set_running(not value)
 	for particles: GPUParticles3D in _construction_particles:
 		particles.speed_scale = 0.0 if value else 1.0
 	for tween: Tween in [_selection_tween, _selection_body_tween, _capture_tween, _recoil_tween]:
@@ -123,6 +125,40 @@ func set_visual_paused(value: bool) -> void:
 				tween.pause()
 			else:
 				tween.play()
+
+
+func begin_disruption(seconds: float) -> void:
+	disruption_remaining = seconds
+	$Disruption.start(seconds)
+	_sync_disruption_visual()
+
+
+func advance_disruption(delta: float) -> bool:
+	var was_active := disruption_remaining > 0.0
+	disruption_remaining = maxf(0.0, disruption_remaining - delta)
+	if disruption_remaining < 0.000001:
+		disruption_remaining = 0.0
+	$Disruption.tick(delta)
+	if was_active and disruption_remaining <= 0.0:
+		_sync_disruption_visual()
+		return true
+	return false
+
+
+func clear_disruption() -> void:
+	if disruption_remaining <= 0.0:
+		return
+	disruption_remaining = 0.0
+	$Disruption.finish()
+	_sync_disruption_visual()
+
+
+func _sync_disruption_visual() -> void:
+	var working := disruption_remaining <= 0.0
+	$Visual/Smithy/Smoke.emitting = kind == 2 and working
+	$Visual/Smithy/Embers.visible = kind == 2 and working
+	$Visual/Smithy/HearthLight.visible = kind == 2 and working
+	$Visual/Smithy/ForgeAnimation.speed_scale = 1.0 if working and not _visual_paused else 0.0
 
 
 func begin_construction(target_kind: int = -1) -> void:
@@ -210,7 +246,7 @@ func refresh_visual() -> void:
 		$Visual/House.visible = kind == 0
 		$Visual/Tower.visible = kind == 1
 		$Visual/Smithy.visible = kind == 2
-		$Visual/Smithy/Smoke.emitting = kind == 2
+		_sync_disruption_visual()
 	if kind != _last_kind or level != _last_level:
 		_kind_label.text = KIND_NAMES[kind] if level == 1 else "%s · %d" % [KIND_NAMES[kind], level]
 		_last_kind = kind

@@ -1,7 +1,8 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=57 format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_building.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/construction.tscn" id="construction"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_seal.tscn" id="rabbit_seal"]
 [ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/surface.gdshader" id="surface_shader"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/flag.gdshader" id="flag_shader"]
@@ -372,3 +373,6 @@ text = "住宅"
 font_size = 36
 pixel_size = 0.023
 modulate = Color(0.9, 0.93, 0.85, 1)
+
+[node name="Disruption" parent="." instance=ExtResource("rabbit_seal")]
+position = Vector3(0, 1.65, 2.38)

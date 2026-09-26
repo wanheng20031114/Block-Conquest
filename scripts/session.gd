@@ -4,6 +4,8 @@ signal load_failed(message: String)
 var config: Dictionary = {}
 var online: bool = false
 var block_war_map_id := "rift"
+var block_war_commander: StringName = &"squirrel"
+var block_war_opponent_commander: StringName = &"squirrel"
 @onready var relay: RelayClient = $RelayClient
 @onready var settings: GameSettings = $Settings
 @onready var rogue: RogueSession = $Rogue

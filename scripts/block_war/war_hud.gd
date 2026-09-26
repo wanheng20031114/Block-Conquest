@@ -13,8 +13,6 @@ signal convert_requested(kind: int)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const SKILL_NAMES := SKILL_RULES.NAMES
-const COOLDOWNS := SKILL_RULES.COOLDOWNS
 
 var _paused: bool = false
 var _finished: bool = false
@@ -32,6 +30,8 @@ var _selection_buildings: Array[Node3D] = []
 var _selection_slot := -1
 var _actions_visible: bool = false
 var _pointer_blockers: Array[Control] = []
+var _commander: StringName = &""
+var _enemy_commander: StringName = &""
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -75,13 +75,24 @@ func _ready() -> void:
 		)
 
 func update_state(state: Dictionary) -> void:
+	var commander: StringName = state.commander
+	var skill_names := SKILL_RULES.names_for(commander)
+	var skill_cooldowns := SKILL_RULES.cooldowns_for(commander)
+	if _commander != commander:
+		_commander = commander
+		$UI/Player/Icon.texture = SKILL_RULES.PORTRAITS[commander]
+		for index: int in 4:
+			_skill_buttons[index].get_node("Icon").texture = SKILL_RULES.icons_for(commander)[index]
+	if _enemy_commander != state.enemy_commander:
+		_enemy_commander = state.enemy_commander
+		$UI/Enemy/Icon.texture = SKILL_RULES.PORTRAITS[_enemy_commander]
 	var player_total: int = int(state.player_total)
 	var enemy_total: int = int(state.enemy_total)
 	%PlayerTotal.text = str(player_total)
 	%EnemyTotal.text = str(enemy_total)
 	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
-	$UI/Player/Name.text = "%s · %s" % [SKILL_RULES.COMMANDER_NAME, "我方联盟" if state.team_size > 1 else "松鼠"]
-	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else "%s · 松鼠" % SKILL_RULES.COMMANDER_NAME
+	$UI/Player/Name.text = SKILL_RULES.name_for(commander)
+	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else SKILL_RULES.name_for(_enemy_commander)
 	$UI/Enemy/Role.text = "%d 名电脑对手" % state.team_size
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
@@ -100,7 +111,9 @@ func update_state(state: Dictionary) -> void:
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
 		var target_text := "拖至地面 · 蓄热后点燃 · 敌我均伤" if armed == 3 else ("拖至地面 · 圈内自己的部队加速" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
-		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
+		if commander == SKILL_RULES.RABBIT:
+			target_text = ["拖至地面 · 圈内自己的部队加速", "拖至敌方建筑 · 停工 6 秒", "拖至自己的建筑 · 召回附近部队", "拖至建筑 · 预览来源与出口"][armed]
+		%TargetHint.text = "%s  ·  %s  /  右键取消" % [skill_names[armed], target_text]
 	%SkillDrag.visible = armed >= 0
 	if armed >= 0:
 		%SkillDrag.get_node("Icon").texture = _skill_buttons[armed].get_node("Icon").texture
@@ -116,15 +129,15 @@ func update_state(state: Dictionary) -> void:
 		var ready: bool = not cooling and affordable and not _paused and not _finished
 		button.disabled = not ready
 		button.set_pressed_no_signal(armed == index)
-		button.get_node("Cooldown").value = cooldown / COOLDOWNS[index] * 100.0
+		button.get_node("Cooldown").value = cooldown / skill_cooldowns[index] * 100.0
 		button.get_node("Cooldown").visible = cooling
 		button.get_node("Seconds").text = str(ceili(cooldown)) if cooling else ""
 		button.get_node("Cost").text = str(cost)
 		var status := ""
 		if duration > 0.0:
-			status = "%s %ds" % [["征召", "疾行", "壁垒", "冲击"][index], ceili(duration)]
+			status = "%s %ds" % [skill_names[index], ceili(duration)]
 		elif armed == index:
-			status = "选择地面" if index in [1, 3] else "选择目标"
+			status = "选择地面" if SKILL_RULES.is_ground(index, commander) else "选择目标"
 		elif cooling:
 			status = "冷却 %ds" % ceili(cooldown)
 		elif not affordable:
@@ -134,7 +147,7 @@ func update_state(state: Dictionary) -> void:
 		button.get_node("ReadyLight").visible = ready
 		if not ready:
 			button.get_node("ReadyGlow").hide()
-		button.set_hint(SKILL_NAMES[index], SKILL_RULES.description(index), cost, COOLDOWNS[index], energy, status)
+		button.set_hint(skill_names[index], SKILL_RULES.description(index, commander), cost, skill_cooldowns[index], energy, status)
 		if ready and not _last_ready[index] and _skills_initialized:
 			_pulse_ready(button)
 		_last_ready[index] = ready

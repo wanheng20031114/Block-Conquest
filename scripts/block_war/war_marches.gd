@@ -33,6 +33,10 @@ class MarchUnit extends RefCounted:
 	var position: Vector3
 	var heading: Vector3 = Vector3.FORWARD
 	var gait: float
+	var spawn_delay := 0.0
+
+	func is_exposed() -> bool:
+		return alive and distance >= 0.0 and spawn_delay <= 0.0
 
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 var _units: Array[MarchUnit] = []
@@ -42,11 +46,9 @@ func _ready() -> void:
 	_multimesh.instance_count = 4096
 	_multimesh.visible_instance_count = 0
 
-func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0) -> void:
+func _make_order(source_id: int, target_id: int, faction: int, route: PackedVector3Array, strength: float = 1.0) -> MarchOrder:
 	assert(route.size() >= 2, "A march needs a source and destination in its route.")
 	assert(faction >= 0 and faction < FACTION_COLORS.size(), "Unknown marching faction.")
-	if count <= 0:
-		return
 	var order := MarchOrder.new()
 	order.source_id = source_id
 	order.target_id = target_id
@@ -67,6 +69,12 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 		last = point
 	order.length = order.curve.get_baked_length()
 	assert(order.length > 0.01, "Cannot send soldiers along a zero-length route.")
+	return order
+
+func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0) -> void:
+	if count <= 0:
+		return
+	var order := _make_order(source_id, target_id, faction, route, strength)
 	# All exits of a building share one queue, including orders heading to different sides.
 	var first_distance := 0.0
 	for existing: MarchUnit in _units:
@@ -91,6 +99,28 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 	_ensure_capacity(_units.size())
 	_render()
 
+func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, warning: float, interval: float) -> void:
+	var order := _make_order(source_id, target_id, faction, route)
+	for index: int in count:
+		var unit := MarchUnit.new()
+		unit.order = order
+		unit.distance = 0.0
+		unit.lane = (float(index % COLUMNS) - 2.5) * COLUMN_SPACING
+		unit.gait = float(index % COLUMNS) * 0.08
+		unit.spawn_delay = warning + floorf(float(index) / COLUMNS) * interval
+		_update_pose(unit)
+		_units.append(unit)
+	_ensure_capacity(_units.size())
+	_render()
+
+func redirect(unit: MarchUnit, target_id: int, route: PackedVector3Array) -> void:
+	assert(unit.is_exposed())
+	# Keep the same soldier object: in-flight cannonballs retain their real target.
+	unit.order = _make_order(unit.order.source_id, target_id, unit.order.faction, route, unit.order.strength)
+	unit.distance = 0.0
+	unit.lane = 0.0
+	_update_pose(unit)
+
 func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	if delta <= 0.0:
 		return
@@ -98,17 +128,23 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	var index := 0
 	while index < _units.size():
 		var unit := _units[index]
+		var concealed_time := minf(delta, unit.spawn_delay)
+		var step := movement_distance(unit, delta)
+		unit.spawn_delay = maxf(0.0, unit.spawn_delay - delta)
+		if concealed_time >= delta:
+			index += 1
+			continue
 		var before := unit.position
 		var previous_distance := unit.distance
-		var step := movement_distance(unit, delta)
 		unit.distance += step
 		unit.gait += step * 7.0
 		if unit.distance >= 0.0:
 			_update_pose(unit)
 			# Check the visible part of the movement before arrival is settled.
 			# Queued soldiers are protected until they actually emerge from a doorway.
-			var emerged := clampf(-previous_distance / step, 0.0, 1.0)
-			var arrived := clampf((unit.order.length - previous_distance) / step, 0.0, 1.0)
+			var concealed_fraction := concealed_time / delta
+			var emerged := concealed_fraction + (1.0 - concealed_fraction) * clampf(-previous_distance / step, 0.0, 1.0)
+			var arrived := concealed_fraction + (1.0 - concealed_fraction) * clampf((unit.order.length - previous_distance) / step, 0.0, 1.0)
 			var burned := false
 			for fire: Dictionary in fire_segments:
 				var contact := fire_contact(before, unit.position, fire, emerged, arrived)
@@ -183,7 +219,7 @@ func estimate_arrival_time(source_id: int, route_length: float, count: int) -> f
 func get_units() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for unit: MarchUnit in _units:
-		if unit.distance >= 0.0:
+		if unit.is_exposed():
 			result.append({"position": unit.position, "faction": unit.order.faction,
 				"source_id": unit.order.source_id, "target_id": unit.order.target_id,
 				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane})
@@ -197,7 +233,7 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 		var nearest_distance := radius_squared
 		for index: int in _units.size():
 			var unit := _units[index]
-			if FACTIONS.allied(unit.order.faction, attacking_faction) or unit.distance < 0.0 or unit.reserved:
+			if FACTIONS.allied(unit.order.faction, attacking_faction) or not unit.is_exposed() or unit.reserved:
 				continue
 			var distance_squared := unit.position.distance_squared_to(center)
 			if distance_squared <= nearest_distance:
@@ -254,24 +290,26 @@ static func fire_contact(from: Vector3, to: Vector3, fire: Dictionary, emerged: 
 		contact = maxf(first, second)
 	return contact if contact >= emerged and contact <= end_time else -1.0
 
-func create_haste_zone(faction: int, at: Vector3, radius: float, duration: float, multiplier: float) -> void:
-	haste_zones[faction] = {"at": at, "radius": radius, "remaining": duration, "duration": duration, "multiplier": multiplier}
+func create_haste_zone(faction: int, at: Vector3, radius: float, duration: float, multiplier: float, style: StringName = &"squirrel") -> void:
+	haste_zones[faction] = {"at": at, "radius": radius, "remaining": duration, "duration": duration, "multiplier": multiplier, "style": style}
 	for unit: MarchUnit in _units:
 		if unit.order.faction == faction:
 			unit.order.haste_intervals.clear()
 
 func speed_multiplier(unit: MarchUnit) -> float:
-	if unit.distance < 0.0 or not haste_zones.has(unit.order.faction):
+	if not unit.is_exposed() or not haste_zones.has(unit.order.faction):
 		return 1.0
 	var zone := haste_zones[unit.order.faction]
 	var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
 	return zone.multiplier if offset.length_squared() <= zone.radius * zone.radius else 1.0
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
+	var concealed_time := minf(delta, unit.spawn_delay)
+	delta -= concealed_time
 	if not haste_zones.has(unit.order.faction):
 		return SPEED * delta
 	var zone := haste_zones[unit.order.faction]
-	var active: float = minf(delta, zone.remaining)
+	var active: float = minf(delta, maxf(0.0, zone.remaining - concealed_time))
 	var remaining := active
 	var distance := unit.distance
 	if not unit.order.haste_intervals.has(unit.lane):
@@ -377,7 +415,7 @@ func _formation_position(order: MarchOrder, distance: float, lane: float, headin
 func _render() -> void:
 	var slot := 0
 	for unit: MarchUnit in _units:
-		if unit.distance < 0.0:
+		if not unit.is_exposed():
 			continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)

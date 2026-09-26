@@ -16,10 +16,13 @@ func take_turn(game: Node3D) -> void:
 		return
 	# Never chain four casts in one frame, including repeated calls at the same time.
 	next_decision = game.elapsed + DECISION_GAP
+	if game.faction_skills[faction].commander == SKILL_RULES.RABBIT:
+		_rabbit_turn(game)
+		return
 	var visible: Array[WarMarches.MarchUnit] = []
 	var threats: Dictionary[int, float] = {}
 	for unit: WarMarches.MarchUnit in game.marches._units:
-		if unit.distance < 0.0:
+		if not unit.is_exposed():
 			continue
 		visible.append(unit)
 		var imminent: bool = game.marches.movement_distance(unit, 7.0) >= unit.order.length - unit.distance
@@ -66,14 +69,14 @@ func take_turn(game: Node3D) -> void:
 	elif best.index >= 0:
 		game.cast_skill(best.index, best.target, faction)
 
-func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Dictionary:
+func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit], radius: float = SKILL_RULES.HASTE_RADIUS, minimum: int = 16) -> Dictionary:
 	# Look ahead along actual routes. Distant armies do not contribute to a
 	# single global score: one local field must cover a useful group of soldiers.
 	var cells: Dictionary[Vector2i, Dictionary] = {}
 	for unit: WarMarches.MarchUnit in visible:
-		if unit.order.faction != faction or unit.order.length - unit.distance < SKILL_RULES.HASTE_RADIUS * 1.25:
+		if unit.order.faction != faction or unit.order.length - unit.distance < radius * 1.25:
 			continue
-		var at := unit.order.curve.sample_baked(unit.distance + SKILL_RULES.HASTE_RADIUS * 0.6)
+		var at := unit.order.curve.sample_baked(unit.distance + radius * 0.6)
 		var cell := Vector2i(floori(at.x / FIRE_CELL), floori(at.z / FIRE_CELL))
 		if not cells.has(cell):
 			cells[cell] = {"count": 0, "sum": Vector3.ZERO}
@@ -88,12 +91,12 @@ func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Dictio
 			continue
 		var count := 0
 		for unit: WarMarches.MarchUnit in visible:
-			if unit.order.faction != faction or unit.order.length - unit.distance < SKILL_RULES.HASTE_RADIUS * 1.25:
+			if unit.order.faction != faction or unit.order.length - unit.distance < radius * 1.25:
 				continue
-			var ahead := unit.order.curve.sample_baked(unit.distance + SKILL_RULES.HASTE_RADIUS * 0.6)
-			if ahead.distance_to(at) <= SKILL_RULES.HASTE_RADIUS - 0.7:
+			var ahead := unit.order.curve.sample_baked(unit.distance + radius * 0.6)
+			if ahead.distance_to(at) <= radius - 0.7:
 				count += 1
-		if count >= 16 and (best.is_empty() or float(count) > best.score):
+		if count >= minimum and (best.is_empty() or float(count) > best.score):
 			best = {"at": at, "score": float(count)}
 	return best
 
@@ -108,6 +111,8 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	# short-lived friendly near its destination must not disappear from this test.
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not game.FACTIONS.allied(unit.order.faction, faction):
+			continue
+		if unit.spawn_delay >= WarFireWave.WINDUP_TIME + WarFireWave.BURN_TIME:
 			continue
 		var end := minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, WarFireWave.WINDUP_TIME + WarFireWave.BURN_TIME))
 		if end < 0.0:
@@ -170,3 +175,91 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 		if best.is_empty() or score > best.score:
 			best = {"at": at, "score": score}
 	return best
+
+func _rabbit_turn(game: Node3D) -> void:
+	var visible: Array[WarMarches.MarchUnit] = []
+	var threats: Dictionary[int, float] = {}
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if unit.is_exposed():
+			visible.append(unit)
+		var target: WarBuilding = game.by_id[unit.order.target_id]
+		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 6.0) >= unit.order.length - unit.distance:
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target)
+	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
+	if game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= 45.0:
+		var haste := _haste_target(game, visible, SKILL_RULES.RABBIT_HASTE_RADIUS, 12)
+		if not haste.is_empty() and haste.score > best.score:
+			best = {"index": 0, "score": haste.score, "target": null, "at": haste.at}
+	if game.can_cast_skill(1, faction):
+		for building: WarBuilding in game.buildings:
+			if not game._valid_skill_target(1, building, faction):
+				continue
+			var score := _disable_score(game, building, visible)
+			if score > best.score:
+				best = {"index": 1, "score": score, "target": building, "at": Vector3.ZERO}
+	if game.can_cast_skill(2, faction):
+		for id: int in threats:
+			var building: WarBuilding = game.by_id[id]
+			if building.faction != faction or threats[id] < building.population * 0.65:
+				continue
+			var plans: Array[Dictionary] = game.RABBIT_SKILLS.recall_plan(game, building, faction)
+			var timely := 0
+			for plan: Dictionary in plans:
+				if plan.length / WarMarches.SPEED < 3.0:
+					timely += 1
+			var score := minf(timely, threats[id]) * 1.6 + (18.0 if threats[id] >= building.population and timely > 0 else 0.0)
+			if score > best.score:
+				best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
+	if game.can_cast_skill(3, faction):
+		for building: WarBuilding in game.buildings:
+			var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, building, faction)
+			if plan.is_empty() or threats.get(plan.source.building_id, 0.0) >= plan.source.population - plan.count:
+				continue
+			var burning := false
+			for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():
+				if fire.age + SKILL_RULES.BURROW_WARNING < WarFireWave.BURN_TIME and fire.global_position.distance_to(plan.exit) <= game.IMPACT_RADIUS + 0.7:
+					burning = true
+			if burning:
+				continue
+			var score := 0.0
+			if game.FACTIONS.allied(building.faction, faction):
+				var danger: float = threats.get(building.building_id, 0.0)
+				if danger >= building.population * 0.75 and danger > 8.0:
+					score = 25.0 + minf(plan.count, danger) * 1.5
+			else:
+				var growth := minf(maxf(0.0, building.capacity - building.population), building.production_rate * 4.0) if building.disruption_remaining <= 0.0 else 0.0
+				var damage: float = plan.count * game.combat_multiplier(faction, building)
+				var committed: int = game.marches.team_incoming_for(building.building_id, faction)
+				if committed == 0 and damage > building.population + growth + 2.0 and plan.length >= 9.0:
+					score = 28.0 + minf(18.0, damage - building.population - growth)
+			if score > best.score:
+				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
+	if best.index == 0:
+		game.cast_ground_skill(0, best.at, faction)
+	elif best.index > 0:
+		game.cast_skill(best.index, best.target, faction)
+
+func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarches.MarchUnit]) -> float:
+	if building.kind == 0:
+		var prevented := minf(building.production_rate * 6.0, maxf(0.0, building.capacity - building.population))
+		for state: RefCounted in game.faction_skills:
+			if state.recruit_target_id == building.building_id:
+				prevented += SKILL_RULES.RECRUIT_RATE * minf(6.0, state.durations[0])
+		return prevented * 1.6
+	if building.kind == 2:
+		var engaged := 0.0
+		for unit: WarMarches.MarchUnit in visible:
+			if unit.order.faction != building.faction:
+				continue
+			var target: WarBuilding = game.by_id[unit.order.target_id]
+			if game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 6.0) >= unit.order.length - unit.distance:
+				engaged += unit.order.strength
+		return engaged * 0.1 * 2.0
+	var exposed := 0
+	for unit: WarMarches.MarchUnit in visible:
+		if not game.FACTIONS.allied(unit.order.faction, faction):
+			continue
+		var future := unit.order.curve.sample_baked(minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, 4.0)))
+		if Geometry3D.get_closest_point_to_segment(building.global_position, unit.position, future).distance_to(building.global_position) <= game.tower_range(building):
+			exposed += 1
+	return minf(exposed, building.level * ceili(6.0 / game.tower_interval(building))) * 2.0 + (8.0 if exposed >= 12 else 0.0)

@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_effects.tscn" id="rabbit"]
+
 [ext_resource type="Script" path="res://scripts/block_war/war_effects.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/effect_burst.tscn" id="burst"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/soldier_hit.tscn" id="hit"]
@@ -162,6 +164,8 @@ size = Vector2(0.20, 1.2)
 [node name="Effects" type="Node3D"]
 physics_interpolation_mode = 2
 script = ExtResource("script")
+
+[node name="Rabbit" parent="." instance=ExtResource("rabbit")]
 
 [node name="Cannonballs" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Balls")

@@ -104,6 +104,7 @@ func burst(at: Vector3, color: Color, impact: bool = false) -> void:
 		_light_remaining = 0.35
 
 func tick(delta: float) -> void:
+	$Rabbit.tick(delta)
 	_light_remaining = maxf(0.0, _light_remaining - delta)
 	$ImpactLight.light_energy = _light_remaining * 10.0
 	for index: int in range(_deaths.size() - 1, -1, -1):
@@ -129,6 +130,8 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 		if state.recruit_target_id < 0:
 			continue
 		var building: WarBuilding = by_id[state.recruit_target_id]
+		if building.disruption_remaining > 0.0:
+			continue
 		var color: Color = WarMarches.FACTION_COLORS[building.faction]
 		rings.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 0.07, 0)))
 		rings.set_instance_custom_data(count, Color(color, state.durations[0] / SKILL_RULES.DURATIONS[0]))
@@ -161,6 +164,8 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 	count = 0
 	for faction: int in marches.haste_zones:
 		var zone: Dictionary = marches.haste_zones[faction]
+		if zone.style == SKILL_RULES.RABBIT:
+			continue
 		fields.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * zone.radius), zone.at + Vector3(0, 0.08, 0)))
 		fields.set_instance_custom_data(count, Color(WarMarches.FACTION_COLORS[faction], zone.remaining / zone.duration))
 		count += 1
@@ -173,10 +178,11 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				var wind := Vector3(-radial.z, 0.14, radial.x)
 				$HasteMotes.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), wind * 0.8, Color("c0d8a4").srgb_to_linear(), Color(), EMIT_FLAGS)
 	fields.visible_instance_count = count
+	$Rabbit.update_haste(delta, marches)
 	if emit:
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.distance >= 0.0 and marches.speed_multiplier(unit) > 1.0:
+			if unit.is_exposed() and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
 				active.append(unit)
 		if not active.is_empty():
 			for index: int in mini(48, active.size()):
@@ -187,6 +193,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			_wind_offset = (_wind_offset + 48) % active.size()
 
 func set_running(value: bool) -> void:
+	$Rabbit.set_running(value)
 	for particles: GPUParticles3D in [$RecruitMotes, $ShieldMotes, $HasteTrails, $HasteMotes]:
 		particles.speed_scale = 1.0 if value else 0.0
 	for particles: GPUParticles3D in $Bursts.get_children():

@@ -1,6 +1,8 @@
 extends Control
 
 const CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
+const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const COMMANDERS: Array[StringName] = [&"squirrel", &"rabbit"]
 var selected: Resource
 var _maps: Array[Resource] = []
 var _launching := false
@@ -14,9 +16,24 @@ func _ready() -> void:
 		get_node("%%Map%d" % index).pressed.connect(_select_map.bind(index))
 	%Start.pressed.connect(_start)
 	%Back.pressed.connect(func(): session.back_to_lobby())
+	for index: int in 2:
+		get_node("%%PlayerCommander%d" % index).pressed.connect(_select_commander.bind(index, false))
+		get_node("%%OpponentCommander%d" % index).pressed.connect(_select_commander.bind(index, true))
+		for side: String in ["Player", "Opponent"]:
+			get_node("%%%sCommander%d" % [side, index]).tooltip_text = " · ".join(RULES.names_for(COMMANDERS[index]))
+	_select_commander(COMMANDERS.find(session.block_war_commander), false)
+	_select_commander(COMMANDERS.find(session.block_war_opponent_commander), true)
 	selected = CATALOG.find_map(session.block_war_map_id)
 	_select_size(selected.size_class)
 	UIMotion.bind_buttons(self)
+
+func _select_commander(index: int, opponent: bool) -> void:
+	if opponent:
+		session.block_war_opponent_commander = COMMANDERS[index]
+	else:
+		session.block_war_commander = COMMANDERS[index]
+	for i: int in 2:
+		get_node("%%%sCommander%d" % ["Opponent" if opponent else "Player", i]).set_pressed_no_signal(i == index)
 
 func _select_size(size_class: int) -> void:
 	_maps.clear()
