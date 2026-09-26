@@ -48,3 +48,9 @@ Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dr
 `sources.json` 记录下载地址、日期、压缩包 SHA-256、原文件 SHA-256 和许可；`block_war/audio_manifest.json` 将每个成品对应到实际使用的源文件和发布页。具体剪辑由 `tools/build_war_audio.py` 复现。上述署名不表示作者为本游戏背书。
 
 运行时 F1 帮助页保留 ViRiX 与 dklon 署名及许可链接文字。Windows 导出明确包含本文件、许可全文和来源清单；只用于离线制作的原始音源不重复导入游戏包。
+
+## 2026-09-27：收简交互与复用 arc-nice 点击
+
+建筑选择、技能拖起、派兵确认改为 Kenney Impact Sounds 的单次木材接触，分别为 0.08、0.09、0.16 秒；没有旋律、纸张层或额外叠层，播放器增益分别为 -6、-8、-3 dB。拉动派兵线、经过其他建筑和拖动中调整比例均不请求声音，成功松手才响一次确认。其余 38 个积木战争 WAV 保持原文件哈希。
+
+菜单选择直接复用用户指定的 arc-nice 项目 `resources/audio/ui/ui_click.wav`，原件与运行副本 `ui/arc_nice_click.wav` 字节一致，保留 44.1 kHz 单声道 PCM16、0.115 秒与 -8 dB 播放器增益。来源项目提交及哈希见 [arc-nice 来源记录](sources/arc_nice_ui/SOURCE.md)。本素材按用户指示作为其项目资产复用，记录为 `LicenseRef-User-Project`，不将其标注为 CC0 或 CC BY；上述第三方素材许可不适用于这一文件。

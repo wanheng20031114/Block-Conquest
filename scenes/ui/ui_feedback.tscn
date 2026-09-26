@@ -1,8 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ui_feedback.gd" id="script"]
-[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_select_01.wav" id="select1"]
-[ext_resource type="AudioStream" path="res://assets/audio/block_war/war_select_02.wav" id="select2"]
+[ext_resource type="AudioStream" path="res://assets/audio/ui/arc_nice_click.wav" id="select1"]
 [ext_resource type="AudioStream" path="res://assets/audio/block_war/war_order_01.wav" id="order1"]
 [ext_resource type="AudioStream" path="res://assets/audio/block_war/war_order_02.wav" id="order2"]
 [ext_resource type="AudioStream" path="res://assets/audio/block_war/war_cancel_01.wav" id="cancel"]
@@ -11,9 +10,9 @@
 
 [sub_resource type="AudioStreamRandomizer" id="select"]
 resource_local_to_scene = true
-streams_count = 2
+random_pitch = 1.008
+streams_count = 1
 stream_0/stream = ExtResource("select1")
-stream_1/stream = ExtResource("select2")
 
 [sub_resource type="AudioStreamRandomizer" id="order"]
 resource_local_to_scene = true
@@ -34,12 +33,13 @@ script = ExtResource("script")
 [node name="select" type="AudioStreamPlayer" parent="."]
 stream = SubResource("select")
 bus = &"UI"
-volume_db = -1.0
+volume_db = -8.0
 max_polyphony = 2
 
 [node name="order" type="AudioStreamPlayer" parent="."]
 stream = SubResource("order")
 bus = &"UI"
+volume_db = -3.0
 max_polyphony = 2
 
 [node name="cancel" type="AudioStreamPlayer" parent="."]

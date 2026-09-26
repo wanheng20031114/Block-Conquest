@@ -120,6 +120,15 @@
       "license": "CC0-1.0",
       "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
       "retrieved": "2026-09-26"
+    },
+    "arc_nice_ui": {
+      "title": "arc-nice UI click",
+      "author": "User project asset",
+      "page": "arc-nice:resources/audio/ui/ui_click.wav",
+      "license": "LicenseRef-User-Project",
+      "retrieved": "2026-09-27",
+      "source_commit": "6a9ab5c57db2763e6093852093fc2afd39c5f487",
+      "reuse": "Explicit user instruction; unchanged copy and original player gain"
     }
   },
   "retained_originals": [
@@ -856,6 +865,13 @@
       "bytes": 3908120,
       "source_pack": "hector_drums",
       "license": "CC0-1.0",
+      "modified": false
+    },
+    {
+      "path": "arc_nice_ui/ui_click.wav",
+      "sha256": "39684b58ef8cf6355b69ad2b994c8620172eb1751487b37785b83cd9d0ecd475",
+      "license": "LicenseRef-User-Project",
+      "source_pack": "arc_nice_ui",
       "modified": false
     }
   ],

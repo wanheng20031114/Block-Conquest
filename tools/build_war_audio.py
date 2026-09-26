@@ -25,10 +25,10 @@ SOURCE_PACKS = json.loads((ROOT / "assets/audio/sources.json").read_text(encodin
 
 # name, variants, bus, gain dB, priority, minimum gap ms, simultaneous limit
 EVENTS = [
-    ("select", 2, "UI", -1, 2, 95, 2),
-    ("drag", 2, "UI", -4, 1, 140, 2),
+    ("select", 2, "UI", -6, 2, 95, 2),
+    ("drag", 2, "UI", -8, 1, 140, 2),
     ("ratio", 2, "UI", -3, 2, 75, 2),
-    ("order", 2, "UI", 0, 3, 150, 2),
+    ("order", 2, "UI", -3, 3, 150, 2),
     ("denied", 1, "UI", -1, 4, 350, 1),
     ("cancel", 1, "UI", -2, 2, 130, 1),
     ("pause", 1, "UI", -1, 4, 180, 1),
@@ -54,10 +54,10 @@ EVENTS = [
 ]
 
 DESCRIPTIONS = {
-    "select": "Short existing UI pick cue; dry attack and a light tonal tail",
-    "drag": "A brief recorded paper turn for picking up or extending a drag",
+    "select": "Very quiet 80 ms single wood tap for selecting a building; no tonal tail",
+    "drag": "Quiet 90 ms single wood tap on skill pickup; marching-line movement is silent",
     "ratio": "Light menu note, shortened for repeated dispatch-ratio changes",
-    "order": "Bright existing menu confirmation with its natural short decay",
+    "order": "One restrained 160 ms dry wood-block contact on dispatch release; no layers or melody",
     "denied": "Existing downward back cue with a clear, restrained rejection tail",
     "cancel": "Quieter, shorter version of the back cue for cancellation",
     "pause": "Recorded book opening; a soft paper-led menu opening gesture",
@@ -165,14 +165,14 @@ def recorded(relative, seconds, rate=1.0):
 
 def refined(name, n):
     clip = recorded
-    if name == "select":
-        return clip("virix_ui/MENU_Pick.wav", .22, 1.0 + n * .025)
-    if name == "drag":
-        return clip(f"kenney_rpg/bookFlip{n + 1}.ogg", .24)
+    if name in ("select", "drag", "order"):
+        seconds = {"select": .08, "drag": .09, "order": .16}[name]
+        material = "medium" if name == "order" else "light"
+        contact = clip(f"kenney_impact/impactWood_{material}_{n + 1:03}.ogg", seconds)
+        # A single dry contact, padded only to keep the sample boundary silent.
+        return mix(seconds, [(contact, 0, 1.0)])
     if name == "ratio":
         return clip("virix_ui1/Menu1B.wav", .14, 1.0 + n * .025)
-    if name == "order":
-        return clip(f"virix_ui1/Menu1{'A' if n == 0 else 'B'}.wav", .55)
     if name in ("denied", "cancel"):
         return clip("virix_ui/MENU B_Back.wav", .56 if name == "denied" else .25)
     if name in ("pause", "resume"):
@@ -252,6 +252,7 @@ def export(name, samples, description):
     event = name[4:-3]
     transparent = event in REFINED
     target_db = -22.0 if event in {"select", "drag", "ratio", "cancel", "pause", "resume"} else -19.5
+    target_db = {"select": -24.0, "drag": -26.0, "order": -22.0}.get(event, target_db)
     if not transparent:
         samples = filt(samples, 60, "highpass")
         samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
@@ -302,6 +303,15 @@ def main():
                 "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
                 "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
                 "events": len(EVENTS), "files": files}
+    # Keep the user's requested arc-nice click byte-for-byte, including its 44.1 kHz format.
+    menu_source = SOURCES / "arc_nice_ui/ui_click.wav"
+    menu_path = ROOT / "assets/audio/ui/arc_nice_click.wav"
+    menu_path.parent.mkdir(parents=True, exist_ok=True)
+    menu_path.write_bytes(menu_source.read_bytes())
+    manifest["menu_click"] = {"file": "../ui/arc_nice_click.wav", "source": "arc_nice_ui/ui_click.wav",
+                              "sha256": hashlib.sha256(menu_source.read_bytes()).hexdigest(),
+                              "processing": "Unmodified copy; native player -8 dB, pitch 0.992..1.008 as in arc-nice",
+                              "license": "LicenseRef-User-Project", "gain_db": -8.0}
     (OUT / "audio_manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
     print(f"Built {len(EVENTS)} events / {len(files)} WAV files / {sum(f['bytes'] for f in files):,} bytes")
     print(f"True peaks: {min(f['true_peak_db'] for f in files):.2f} to {max(f['true_peak_db'] for f in files):.2f} dBFS")

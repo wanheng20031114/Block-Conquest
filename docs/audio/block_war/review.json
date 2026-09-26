@@ -1,12 +1,14 @@
 {
-  "date": "2026-09-26",
-  "unchanged_runtime_files": 19,
-  "changed_runtime_files": 25,
+  "date": "2026-09-27",
+  "unchanged_runtime_files": 38,
+  "changed_runtime_files": 6,
+  "menu_click_original_sha256": "39684b58ef8cf6355b69ad2b994c8620172eb1751487b37785b83cd9d0ecd475",
   "preview_events": [
     {
       "event": "war_select",
-      "label": "建筑选择／菜单点击",
+      "label": "建筑选择",
       "preview": "select.wav",
+      "gain_db": -6,
       "variants": [
         {
           "file": "war_select_01.wav",
@@ -14,14 +16,15 @@
         },
         {
           "file": "war_select_02.wav",
-          "start_seconds": 0.5
+          "start_seconds": 0.36
         }
       ]
     },
     {
       "event": "war_drag",
-      "label": "拖起技能／拖选",
+      "label": "拖起技能",
       "preview": "drag.wav",
+      "gain_db": -8,
       "variants": [
         {
           "file": "war_drag_01.wav",
@@ -29,22 +32,7 @@
         },
         {
           "file": "war_drag_02.wav",
-          "start_seconds": 0.52
-        }
-      ]
-    },
-    {
-      "event": "war_ratio",
-      "label": "派兵比例／设置滑条",
-      "preview": "ratio.wav",
-      "variants": [
-        {
-          "file": "war_ratio_01.wav",
-          "start_seconds": 0.0
-        },
-        {
-          "file": "war_ratio_02.wav",
-          "start_seconds": 0.42
+          "start_seconds": 0.37
         }
       ]
     },
@@ -52,6 +40,7 @@
       "event": "war_order",
       "label": "派兵确认／开始对局",
       "preview": "order.wav",
+      "gain_db": -3,
       "variants": [
         {
           "file": "war_order_01.wav",
@@ -59,166 +48,19 @@
         },
         {
           "file": "war_order_02.wav",
-          "start_seconds": 0.747
+          "start_seconds": 0.44
         }
       ]
     },
     {
-      "event": "war_denied",
-      "label": "条件不足",
-      "preview": "denied.wav",
+      "event": "menu_select",
+      "label": "arc-nice 菜单点击",
+      "preview": "ui_click.wav",
+      "gain_db": -8.0,
       "variants": [
         {
-          "file": "war_denied_01.wav",
+          "file": "arc_nice_click.wav",
           "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_cancel",
-      "label": "取消／返回",
-      "preview": "cancel.wav",
-      "variants": [
-        {
-          "file": "war_cancel_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_pause",
-      "label": "打开暂停",
-      "preview": "pause.wav",
-      "variants": [
-        {
-          "file": "war_pause_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_resume",
-      "label": "继续游戏",
-      "preview": "resume.wav",
-      "variants": [
-        {
-          "file": "war_resume_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_skill_command",
-      "label": "松鼠 Q · 征召军令",
-      "preview": "skill_command.wav",
-      "variants": [
-        {
-          "file": "war_skill_command_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_skill_drum",
-      "label": "松鼠 W · 疾行战鼓",
-      "preview": "skill_drum.wav",
-      "variants": [
-        {
-          "file": "war_skill_drum_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_skill_shield",
-      "label": "松鼠 E · 防护罩",
-      "preview": "skill_shield.wav",
-      "variants": [
-        {
-          "file": "war_skill_shield_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_skill_breach",
-      "label": "松鼠 R · 火攻",
-      "preview": "skill_breach.wav",
-      "variants": [
-        {
-          "file": "war_skill_breach_01.wav",
-          "start_seconds": 0.0
-        },
-        {
-          "file": "war_skill_breach_02.wav",
-          "start_seconds": 2.416
-        }
-      ]
-    },
-    {
-      "event": "war_rabbit_dash",
-      "label": "兔子 Q · 蹦蹦小径",
-      "preview": "rabbit_dash.wav",
-      "variants": [
-        {
-          "file": "war_rabbit_dash_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_rabbit_seal",
-      "label": "兔子 W · 封条急件",
-      "preview": "rabbit_seal.wav",
-      "variants": [
-        {
-          "file": "war_rabbit_seal_01.wav",
-          "start_seconds": 0.0
-        },
-        {
-          "file": "war_rabbit_seal_02.wav",
-          "start_seconds": 0.62
-        }
-      ]
-    },
-    {
-      "event": "war_rabbit_recall",
-      "label": "兔子 E · 归巢口哨",
-      "preview": "rabbit_recall.wav",
-      "variants": [
-        {
-          "file": "war_rabbit_recall_01.wav",
-          "start_seconds": 0.0
-        }
-      ]
-    },
-    {
-      "event": "war_rabbit_burrow",
-      "label": "兔子 R · 兔洞快递",
-      "preview": "rabbit_burrow.wav",
-      "variants": [
-        {
-          "file": "war_rabbit_burrow_01.wav",
-          "start_seconds": 0.0
-        },
-        {
-          "file": "war_rabbit_burrow_02.wav",
-          "start_seconds": 1.06
-        }
-      ]
-    },
-    {
-      "event": "war_projectile_hit",
-      "label": "炮弹实际命中",
-      "preview": "projectile_hit.wav",
-      "variants": [
-        {
-          "file": "war_projectile_hit_01.wav",
-          "start_seconds": 0.0
-        },
-        {
-          "file": "war_projectile_hit_02.wav",
-          "start_seconds": 0.54
         }
       ]
     }
@@ -226,129 +68,34 @@
   "measurements": [
     {
       "file": "war_select_01.wav",
-      "onset_ms": 0.31,
-      "true_peak_dbfs": -15.51
+      "onset_ms": 0.23,
+      "true_peak_dbfs": -13.26
     },
     {
       "file": "war_select_02.wav",
-      "onset_ms": 0.31,
-      "true_peak_dbfs": -15.41
+      "onset_ms": 0.29,
+      "true_peak_dbfs": -11.35
     },
     {
       "file": "war_drag_01.wav",
-      "onset_ms": 0.58,
-      "true_peak_dbfs": -7.12
+      "onset_ms": 0.23,
+      "true_peak_dbfs": -15.26
     },
     {
       "file": "war_drag_02.wav",
-      "onset_ms": 1.46,
-      "true_peak_dbfs": -7.0
-    },
-    {
-      "file": "war_ratio_01.wav",
-      "onset_ms": 1.19,
-      "true_peak_dbfs": -11.84
-    },
-    {
-      "file": "war_ratio_02.wav",
-      "onset_ms": 1.17,
-      "true_peak_dbfs": -11.81
+      "onset_ms": 0.29,
+      "true_peak_dbfs": -13.35
     },
     {
       "file": "war_order_01.wav",
-      "onset_ms": 1.02,
-      "true_peak_dbfs": -7.0
+      "onset_ms": 0.33,
+      "true_peak_dbfs": -7.97
     },
     {
       "file": "war_order_02.wav",
-      "onset_ms": 1.19,
-      "true_peak_dbfs": -7.14
-    },
-    {
-      "file": "war_denied_01.wav",
-      "onset_ms": 1.0,
-      "true_peak_dbfs": -7.5
-    },
-    {
-      "file": "war_cancel_01.wav",
-      "onset_ms": 1.0,
-      "true_peak_dbfs": -11.75
-    },
-    {
-      "file": "war_pause_01.wav",
-      "onset_ms": 1.46,
-      "true_peak_dbfs": -7.0
-    },
-    {
-      "file": "war_resume_01.wav",
-      "onset_ms": 2.15,
-      "true_peak_dbfs": -7.0
-    },
-    {
-      "file": "war_skill_command_01.wav",
-      "onset_ms": 1.31,
-      "true_peak_dbfs": -6.49
-    },
-    {
-      "file": "war_skill_drum_01.wav",
-      "onset_ms": 1.06,
-      "true_peak_dbfs": -9.13
-    },
-    {
-      "file": "war_skill_shield_01.wav",
-      "onset_ms": 2.02,
-      "true_peak_dbfs": -3.0
-    },
-    {
-      "file": "war_skill_breach_01.wav",
-      "onset_ms": 0.92,
-      "true_peak_dbfs": -11.24
-    },
-    {
-      "file": "war_skill_breach_02.wav",
-      "onset_ms": 0.9,
-      "true_peak_dbfs": -11.13
-    },
-    {
-      "file": "war_rabbit_dash_01.wav",
-      "onset_ms": 0.75,
-      "true_peak_dbfs": -6.68
-    },
-    {
-      "file": "war_rabbit_seal_01.wav",
-      "onset_ms": 1.96,
-      "true_peak_dbfs": -3.04
-    },
-    {
-      "file": "war_rabbit_seal_02.wav",
-      "onset_ms": 1.92,
-      "true_peak_dbfs": -6.99
-    },
-    {
-      "file": "war_rabbit_recall_01.wav",
-      "onset_ms": 0.21,
-      "true_peak_dbfs": -15.18
-    },
-    {
-      "file": "war_rabbit_burrow_01.wav",
-      "onset_ms": 1.02,
-      "true_peak_dbfs": -3.0
-    },
-    {
-      "file": "war_rabbit_burrow_02.wav",
-      "onset_ms": 1.17,
-      "true_peak_dbfs": -3.0
-    },
-    {
-      "file": "war_projectile_hit_01.wav",
-      "onset_ms": 0.46,
-      "true_peak_dbfs": -8.48
-    },
-    {
-      "file": "war_projectile_hit_02.wav",
-      "onset_ms": 0.46,
-      "true_peak_dbfs": -8.68
+      "onset_ms": 0.29,
+      "true_peak_dbfs": -8.45
     }
   ],
-  "note": "Runtime WAVs at source level, every variant in order; game master volume and spatial attenuation are not baked into auditions."
+  "note": "All event variants in order; per-event gain is listed above. Master volume and spatial attenuation are not baked into auditions."
 }

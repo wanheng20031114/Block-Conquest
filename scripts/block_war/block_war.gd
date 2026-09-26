@@ -263,7 +263,8 @@ func _cancel_building_recruitment(building_id: int) -> void:
 func set_percentage(value: int) -> void:
 	if value in [25, 50, 75, 100] and value != percentage and not _local_menu and not finished:
 		percentage = value
-		audio.play_ui(&"war_ratio")
+		if drag_source == null:
+			audio.play_ui(&"war_ratio")
 		update_hud()
 		overlay.queue_redraw()
 
@@ -841,6 +842,8 @@ func _input(event: InputEvent) -> void:
 			var target: Node3D = pick_building(event.position) if not hud.is_pointer_blocked(event.position) else null
 			if target != null and target != drag_source and event.position.distance_to(_drag_start) > 6.0:
 				issue_order(drag_source, target, percentage)
+			elif target == drag_source and event.position.distance_to(_drag_start) <= 6.0:
+				audio.play_ui(&"war_select")
 			_cancel_drag()
 			get_viewport().set_input_as_handled()
 	if event is InputEventMouseMotion and camera_rig.dragging and not _local_menu:
@@ -870,7 +873,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				camera_rig.zoom_by(3.0)
 		MOUSE_BUTTON_RIGHT:
-			if drag_source != null or armed_skill >= 0:
+			if armed_skill >= 0:
 				audio.play_ui(&"war_cancel")
 			armed_skill = -1
 			ground_skill_target = Vector3.INF
@@ -883,11 +886,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			var building: Node3D = pick_building(event.position)
 			select_building(building)
 			if building != null:
-				audio.play_ui(&"war_select")
 				if building.faction == PLAYER:
 					drag_source = building
 					_drag_start = event.position
 					hovered = null
+				else:
+					audio.play_ui(&"war_select")
 	get_viewport().set_input_as_handled()
 
 func pick_building(screen: Vector2) -> Node3D:
@@ -906,7 +910,6 @@ func _update_drag(screen: Vector2) -> void:
 		order_route = PackedVector3Array()
 		if hovered != null and hovered != drag_source:
 			order_route = map.get_building_route(drag_source, hovered)
-			audio.play_ui(&"war_drag")
 
 func _cancel_drag() -> void:
 	drag_source = null

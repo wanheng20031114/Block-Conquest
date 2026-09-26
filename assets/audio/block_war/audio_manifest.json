@@ -7,73 +7,73 @@
   "files": [
     {
       "file": "war_select_01.wav",
-      "description": "Short existing UI pick cue; dry attack and a light tonal tail",
-      "seconds": 0.22,
-      "active_rms_db": -22.08,
-      "true_peak_db": -15.51,
-      "bytes": 21164,
-      "sha256": "4d8fdbf491e7e66989b9184a4d34f7aa90b6cae15d5987f6322ff6a18b4c08f3",
+      "description": "Very quiet 80 ms single wood tap for selecting a building; no tonal tail",
+      "seconds": 0.08,
+      "active_rms_db": -27.81,
+      "true_peak_db": -13.26,
+      "bytes": 7724,
+      "sha256": "ad1064d5d75128bb3fcd46d60d0e53c44ebfb9c49df5f4d727908cad0ba97861",
       "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
       "sources": [
         {
-          "path": "virix_ui/MENU_Pick.wav",
-          "sha256": "85c82dedf352df4874ddb585f7e6e70c36790dd24f2bd2fc4a71f73275925bc1",
-          "license": "CC-BY-3.0",
-          "page": "https://opengameart.org/content/ui-sound-effects-pack"
+          "path": "kenney_impact/impactWood_light_001.ogg",
+          "sha256": "4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
         }
       ]
     },
     {
       "file": "war_select_02.wav",
-      "description": "Short existing UI pick cue; dry attack and a light tonal tail",
-      "seconds": 0.22,
-      "active_rms_db": -22.08,
-      "true_peak_db": -15.41,
-      "bytes": 21164,
-      "sha256": "3f1f24e6b18ee0c209f3dabd7d325aeacbd970b814b2f9eee9f107b8e73a093e",
+      "description": "Very quiet 80 ms single wood tap for selecting a building; no tonal tail",
+      "seconds": 0.08,
+      "active_rms_db": -26.62,
+      "true_peak_db": -11.35,
+      "bytes": 7724,
+      "sha256": "a4ee68342ca81f5a7c8f228371a79ebeaa9dd8638a28912aaa1da02200158634",
       "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
       "sources": [
         {
-          "path": "virix_ui/MENU_Pick.wav",
-          "sha256": "85c82dedf352df4874ddb585f7e6e70c36790dd24f2bd2fc4a71f73275925bc1",
-          "license": "CC-BY-3.0",
-          "page": "https://opengameart.org/content/ui-sound-effects-pack"
+          "path": "kenney_impact/impactWood_light_002.ogg",
+          "sha256": "b183cf7a5bd783817e0e4b82af34ac6658fa1927049089dadc8b15c2ecc771dc",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
         }
       ]
     },
     {
       "file": "war_drag_01.wav",
-      "description": "A brief recorded paper turn for picking up or extending a drag",
-      "seconds": 0.24,
-      "active_rms_db": -22.03,
-      "true_peak_db": -7.12,
-      "bytes": 23084,
-      "sha256": "fcf53fa2687fdf3f0aa631e3e3ad8852ebf41172d0910b8257feb4da34a993a3",
+      "description": "Quiet 90 ms single wood tap on skill pickup; marching-line movement is silent",
+      "seconds": 0.09,
+      "active_rms_db": -29.81,
+      "true_peak_db": -15.26,
+      "bytes": 8684,
+      "sha256": "fe6a9d2ef47c00d760b474c09f728a3d9b0e82e79cec2396a0ac498e27825aa9",
       "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
       "sources": [
         {
-          "path": "kenney_rpg/bookFlip1.ogg",
-          "sha256": "fa81ac2fedc8c641661b87e349630a36c9800e795e0c800e029214efdbe26a7d",
+          "path": "kenney_impact/impactWood_light_001.ogg",
+          "sha256": "4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f",
           "license": "CC0-1.0",
-          "page": "https://kenney.nl/assets/rpg-audio"
+          "page": "https://kenney.nl/assets/impact-sounds"
         }
       ]
     },
     {
       "file": "war_drag_02.wav",
-      "description": "A brief recorded paper turn for picking up or extending a drag",
-      "seconds": 0.24,
-      "active_rms_db": -32.88,
-      "true_peak_db": -7.0,
-      "bytes": 23084,
-      "sha256": "6c49748fbc975127d74baa901ef1493cd88d03203f20e430320f32bf854b298f",
+      "description": "Quiet 90 ms single wood tap on skill pickup; marching-line movement is silent",
+      "seconds": 0.09,
+      "active_rms_db": -28.62,
+      "true_peak_db": -13.35,
+      "bytes": 8684,
+      "sha256": "44fbdbcdd7676cf4b1db72ffbf1c80118c08b811ba0fffca49150bdf42a1a3de",
       "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
       "sources": [
         {
-          "path": "kenney_rpg/bookFlip2.ogg",
-          "sha256": "3409042acbfaebc24c1a6327dc073e36f9250841712e96c5040da566a97df73c",
+          "path": "kenney_impact/impactWood_light_002.ogg",
+          "sha256": "b183cf7a5bd783817e0e4b82af34ac6658fa1927049089dadc8b15c2ecc771dc",
           "license": "CC0-1.0",
-          "page": "https://kenney.nl/assets/rpg-audio"
+          "page": "https://kenney.nl/assets/impact-sounds"
         }
       ]
     },
@@ -115,37 +115,37 @@
     },
     {
       "file": "war_order_01.wav",
-      "description": "Bright existing menu confirmation with its natural short decay",
-      "seconds": 0.467,
-      "active_rms_db": -19.96,
-      "true_peak_db": -7.0,
-      "bytes": 44906,
-      "sha256": "77c3f63a9df227c28b1f56d3f03c7433be8ed219d09a44a4c39d785c64abe6a6",
+      "description": "One restrained 160 ms dry wood-block contact on dispatch release; no layers or melody",
+      "seconds": 0.16,
+      "active_rms_db": -23.47,
+      "true_peak_db": -7.97,
+      "bytes": 15404,
+      "sha256": "143b4dc10b4d3d0008110ee2fc4edafe8535a1dee2158f962967e80158164561",
       "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
       "sources": [
         {
-          "path": "virix_ui1/Menu1A.wav",
-          "sha256": "dc469b8dfde31fb56f933bed6b19ea510cbc57b3cb40759fb35f8a9af2345f4e",
-          "license": "CC-BY-3.0",
-          "page": "https://opengameart.org/content/ui-and-item-sounds-sample-1"
+          "path": "kenney_impact/impactWood_medium_001.ogg",
+          "sha256": "15271dbe8e2872dbb0ff1aeb7b12b2d2b92b7c1951c88532b9ab9158c36dfc73",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
         }
       ]
     },
     {
       "file": "war_order_02.wav",
-      "description": "Bright existing menu confirmation with its natural short decay",
-      "seconds": 0.497,
-      "active_rms_db": -19.5,
-      "true_peak_db": -7.14,
-      "bytes": 47776,
-      "sha256": "a671e6a8ff0ab68ef72f217fd5099a80524dec581ded54275d85bb47a44a1004",
+      "description": "One restrained 160 ms dry wood-block contact on dispatch release; no layers or melody",
+      "seconds": 0.16,
+      "active_rms_db": -23.71,
+      "true_peak_db": -8.45,
+      "bytes": 15404,
+      "sha256": "14dc0e0271715a607a9231679fac72012fd5233b9cb5360a86cddade6fd4352b",
       "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
       "sources": [
         {
-          "path": "virix_ui1/Menu1B.wav",
-          "sha256": "a047554eedb0e2ef310283854d1e0e82f6c2ff72a710d5e0ccbcbad62fdf53e1",
-          "license": "CC-BY-3.0",
-          "page": "https://opengameart.org/content/ui-and-item-sounds-sample-1"
+          "path": "kenney_impact/impactWood_medium_002.ogg",
+          "sha256": "3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
         }
       ]
     },
@@ -1151,5 +1151,13 @@
         }
       ]
     }
-  ]
+  ],
+  "menu_click": {
+    "file": "../ui/arc_nice_click.wav",
+    "source": "arc_nice_ui/ui_click.wav",
+    "sha256": "39684b58ef8cf6355b69ad2b994c8620172eb1751487b37785b83cd9d0ecd475",
+    "processing": "Unmodified copy; native player -8 dB, pitch 0.992..1.008 as in arc-nice",
+    "license": "LicenseRef-User-Project",
+    "gain_db": -8.0
+  }
 }
