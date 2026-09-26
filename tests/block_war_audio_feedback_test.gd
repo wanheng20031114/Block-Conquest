@@ -51,13 +51,16 @@ func _run() -> void:
 	mouse(screen(dispatch_target), true, MOUSE_BUTTON_RIGHT)
 	mouse(screen(dispatch_target), false)
 	check(sounds.is_empty() and game.drag_source == null, "canceling a dispatch line stays silent and cannot send later")
+	var rush_center := Vector3(-22, 0, 10)
+	expose(0, 6, rush_center, rush_center + Vector3(30, 0, 0), enemy().building_id)
 	clear_sounds()
 	key(KEY_Q, true)
 	check(heard(&"war_drag") == 1, "skill pickup gives immediate soft drag feedback")
-	var drop: Vector2 = game.camera.unproject_position(Vector3(-22, 0, 10))
+	var drop: Vector2 = game.camera.unproject_position(rush_center)
 	motion(drop)
 	key(KEY_Q, false)
 	check(heard(&"war_rabbit_dash") == 1 and heard(&"war_skill_drum") == 0, "rabbit Q release uses its own wind sound")
+	game.marches.clear()
 	refill()
 	clear_sounds()
 	key(KEY_W, true)
@@ -127,6 +130,12 @@ func _run() -> void:
 	game._tick_projectiles(.6)
 	check(heard(&"war_projectile_hit") == 1 and game.marches.get_units().is_empty(), "projectile collision produces one hit at the actual casualty")
 	await game.prepare_shutdown()
+	if OS.get_cmdline_user_args().has("--battle-only"):
+		if FileAccess.file_exists(settings_path):
+			DirAccess.remove_absolute(settings_path)
+		print("BLOCK_WAR_AUDIO_FEEDBACK checks=%d failures=%d scope=battle-only" % [checks, failures.size()])
+		quit(0 if failures.is_empty() else 1)
+		return
 	var feedback: Node = root.get_node("Session/UIFeedback")
 	feedback.stop_all()
 	feedback.sound_played.connect(func(kind: StringName): menu_sounds.append(kind))
@@ -168,5 +177,5 @@ func _run() -> void:
 	await process_frame
 	if FileAccess.file_exists(settings_path):
 		DirAccess.remove_absolute(settings_path)
-	print("BLOCK_WAR_AUDIO_FEEDBACK checks=%d failures=%d" % [checks, failures.size()])
+	print("BLOCK_WAR_AUDIO_FEEDBACK checks=%d failures=%d scope=full" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

@@ -62,22 +62,27 @@ func _run() -> void:
 	await _native_input()
 	await _boundaries()
 	await _ai_decisions()
-	await _selector()
+	var battle_only := OS.get_cmdline_user_args().has("--battle-only")
+	if not battle_only:
+		await _selector()
 	await game.prepare_shutdown()
-	print("BLOCK_WAR_RABBIT_INTEGRATION checks=%d failures=%d" % [checks, failures.size()])
+	print("BLOCK_WAR_RABBIT_INTEGRATION checks=%d failures=%d scope=%s" % [checks, failures.size(), "battle-only" if battle_only else "full"])
 	quit(0 if failures.is_empty() else 1)
 
 func _native_input() -> void:
 	await reset()
 	game.select_building(null)
+	var center := Vector3(-22, 0, 10)
+	expose(0, 6, center, center + Vector3(30, 0, 0), enemy().building_id)
 	mouse(icon(0), true)
 	check(game.armed_skill == 0, "native Q button press arms the ground skill")
 	near(game.energy, 100.0, "button press alone never casts")
-	var ground: Vector2 = game.camera.unproject_position(Vector3(-22, 0, 10))
+	var ground: Vector2 = game.camera.unproject_position(center)
 	motion(ground)
 	mouse(ground, false)
-	check(game.marches.haste_zones.has(0) and game.armed_skill == -1, "native Q drag releases into local haste")
+	check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining == 6.0) and game.marches.haste_zones.is_empty() and game.armed_skill == -1, "native Q release empowers the selected squad without placing a persistent field")
 	near(game.energy, 75.0, "native release pays once")
+	game.marches.clear()
 	refill()
 	key(KEY_W, true)
 	check(game.armed_skill == 1, "held W arms hostile building targeting")
@@ -205,10 +210,36 @@ func _ai_decisions() -> void:
 	var center := Vector3(-22, 0, 10)
 	expose(1, 18, center, center + Vector3(20, 0, 0), 0)
 	ai.take_turn(game)
-	check(game.marches.haste_zones.has(1), "rabbit AI chooses Q over a useful marching group")
+	check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining > 0.0) and game.marches.haste_zones.is_empty(), "rabbit AI chooses Q on the actual exposed squad")
 	near(game.faction_skills[1].energy, 75.0, "AI pays the player's Q cost")
 	ai.take_turn(game)
 	near(game.faction_skills[1].energy, 75.0, "same-time AI calls cannot chain casts")
+	await reset()
+	ai = ai_setup()
+	game.elapsed = 6.0
+	game.faction_skills[1].energy = 30.0
+	enemy().population = 30.0
+	var expansion_target: WarBuilding
+	var nearest := INF
+	for building: WarBuilding in game.buildings:
+		if building.faction == -1:
+			var distance: float = game.map.get_building_distance(enemy(), building)
+			if distance < nearest:
+				nearest = distance
+				expansion_target = building
+	expansion_target.population = 8.0
+	check(game.issue_order(enemy(), expansion_target, 50, 1) == 15, "opening AI sends a legal fifteen-person neutral expansion")
+	game.marches.tick(0.1)
+	ai.take_turn(game)
+	near(game.faction_skills[1].energy, 5.0, "AI with thirty energy can fund rush for its first expansion squad")
+	check(game.faction_skills[1].cooldowns[0] == 24.0, "opening squad triggers the normal Q cooldown")
+	var rushed := 0
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if unit.is_exposed():
+			rushed += int(unit.rush_remaining == 6.0)
+		else:
+			check(unit.rush_remaining == 0.0, "queued ranks in the same opening order cannot inherit the first squad's rush")
+	check(rushed == 6 and game.marches.total_for(1) == 15, "all six exposed opening soldiers are rushed without changing the fifteen-person army")
 	await reset()
 	ai = ai_setup()
 	game.faction_skills[0].commander = &"squirrel"
@@ -225,6 +256,7 @@ func _ai_decisions() -> void:
 	ai = ai_setup()
 	home().kind = 1
 	home().level = 3
+	game.faction_skills[1].cooldowns[0] = 100.0 # Isolate suppression from the stronger snapshot rush.
 	expose(1, 20, home().global_position + Vector3(-6, 0, 0), home().global_position + Vector3(30, 0, 0), 0)
 	ai.take_turn(game)
 	near(home().disruption_remaining, 6.0, "rabbit AI seals tower covering its column")

@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_tunnel.tscn" id="tunnel"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_rally.tscn" id="rally"]
 [ext_resource type="Shader" path="res://assets/models/block_war/rabbit_ground.gdshader" id="ground"]
+[ext_resource type="Shader" path="res://assets/models/block_war/rabbit_rush_trail.gdshader" id="rush_trail"]
 
 [sub_resource type="ShaderMaterial" id="FieldMaterial"]
 resource_local_to_scene = true
@@ -31,9 +32,12 @@ roughness = 1.0
 material = SubResource("MoteMaterial")
 size = Vector3(0.19, 0.10, 0.19)
 
-[sub_resource type="BoxMesh" id="LeafMesh"]
-material = SubResource("MoteMaterial")
-size = Vector3(0.14, 0.04, 0.27)
+[sub_resource type="ShaderMaterial" id="RushMaterial"]
+shader = ExtResource("rush_trail")
+
+[sub_resource type="PlaneMesh" id="RushMesh"]
+material = SubResource("RushMaterial")
+size = Vector2(0.20, 1.45)
 
 [sub_resource type="Gradient" id="Fade"]
 offsets = PackedFloat32Array(0, 0.15, 1)
@@ -48,18 +52,24 @@ spread = 0.0
 gravity = Vector3(0, 0.05, 0)
 color_ramp = SubResource("FadeTexture")
 
-[sub_resource type="ParticleProcessMaterial" id="LeafProcess"]
-direction = Vector3(0, 1, 0)
+[sub_resource type="Gradient" id="RushFade"]
+offsets = PackedFloat32Array(0, 0.10, 1)
+colors = PackedColorArray(1, 1, 1, 0.85, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="RushFadeTexture"]
+gradient = SubResource("RushFade")
+
+[sub_resource type="ParticleProcessMaterial" id="RushProcess"]
+color = Color(1, 0.082, 0.065, 1)
+direction = Vector3(0, 0, 1)
 spread = 0.0
-gravity = Vector3(0, -0.25, 0)
-angular_velocity_min = -65.0
-angular_velocity_max = 65.0
-color_ramp = SubResource("FadeTexture")
+gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("RushFadeTexture")
 
 [node name="Rabbit" type="Node3D"]
 script = ExtResource("script")
 
-[node name="Fields" type="MultiMeshInstance3D" parent="."]
+[node name="RushBursts" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Fields")
 cast_shadow = 0
 
@@ -71,13 +81,15 @@ visibility_aabb = AABB(-90, -1, -70, 180, 8, 140)
 process_material = SubResource("FootProcess")
 draw_pass_1 = SubResource("DustMesh")
 
-[node name="Leaves" type="GPUParticles3D" parent="."]
+[node name="RushStreaks" type="GPUParticles3D" parent="."]
 emitting = false
-amount = 256
-lifetime = 0.85
+amount = 512
+lifetime = 0.23
+local_coords = false
 visibility_aabb = AABB(-90, -1, -70, 180, 8, 140)
-process_material = SubResource("LeafProcess")
-draw_pass_1 = SubResource("LeafMesh")
+process_material = SubResource("RushProcess")
+draw_pass_1 = SubResource("RushMesh")
+cast_shadow = 0
 
 [node name="Tunnels" type="Node3D" parent="."]
 

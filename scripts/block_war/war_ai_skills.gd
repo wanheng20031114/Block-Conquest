@@ -28,7 +28,7 @@ func take_turn(game: Node3D) -> void:
 		var imminent: bool = game.marches.movement_distance(unit, 7.0) >= unit.order.length - unit.distance
 		var target: WarBuilding = game.by_id[unit.order.target_id]
 		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and imminent:
-			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target)
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target, game.marches.projected_attack_bonus(unit))
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
 	if game.can_cast_skill(2, faction):
 		for id: int in threats:
@@ -184,12 +184,12 @@ func _rabbit_turn(game: Node3D) -> void:
 			visible.append(unit)
 		var target: WarBuilding = game.by_id[unit.order.target_id]
 		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 6.0) >= unit.order.length - unit.distance:
-			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target)
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target, game.marches.projected_attack_bonus(unit))
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
-	if game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= 45.0:
-		var haste := _haste_target(game, visible, SKILL_RULES.RABBIT_HASTE_RADIUS, 12)
-		if not haste.is_empty() and haste.score > best.score:
-			best = {"index": 0, "score": haste.score, "target": null, "at": haste.at}
+	if game.can_cast_skill(0, faction):
+		var rush := _rush_target(game, visible)
+		if not rush.is_empty() and rush.score > best.score:
+			best = {"index": 0, "score": rush.score, "target": null, "at": rush.at}
 	if game.can_cast_skill(1, faction):
 		for building: WarBuilding in game.buildings:
 			if not game._valid_skill_target(1, building, faction):
@@ -270,6 +270,43 @@ func _rabbit_turn(game: Node3D) -> void:
 			game.issue_order(best.target, best.destination, best.percent, faction)
 	elif best.index == 1:
 		game.cast_skill(1, best.target, faction)
+
+func _rush_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Dictionary:
+	# Aim at the present squad, not a future ground field. Small opening waves
+	# are valuable when they can strike a neutral garrison during the six seconds.
+	var cells: Dictionary[Vector2i, Dictionary] = {}
+	var cell_size := SKILL_RULES.RABBIT_RUSH_RADIUS
+	for unit: WarMarches.MarchUnit in visible:
+		if unit.order.faction != faction or unit.rush_remaining > 0.0:
+			continue
+		var cell := Vector2i(floori(unit.position.x / cell_size), floori(unit.position.z / cell_size))
+		if not cells.has(cell):
+			cells[cell] = {"sum": Vector3.ZERO, "count": 0}
+		cells[cell].sum += unit.position
+		cells[cell].count += 1
+	var candidates := cells.values()
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary): return a.count > b.count)
+	var best := {}
+	for candidate: Dictionary in candidates.slice(0, 24):
+		var at: Vector3 = candidate.sum / candidate.count
+		var score := 0.0
+		var count := 0
+		for unit: WarMarches.MarchUnit in visible:
+			if unit.order.faction != faction or unit.rush_remaining > 0.0 or unit.position.distance_squared_to(at) > cell_size * cell_size:
+				continue
+			var target: WarBuilding = game.by_id[unit.order.target_id]
+			var remaining := unit.order.length - unit.distance
+			if remaining < 0.5:
+				continue
+			count += 1
+			var reaches: bool = remaining < WarMarches.SPEED * SKILL_RULES.RABBIT_RUSH_MULTIPLIER * SKILL_RULES.RABBIT_DURATIONS[0]
+			if not game.FACTIONS.allied(target.faction, faction) and reaches:
+				score += 3.0
+			else:
+				score += minf(1.3, remaining / 10.0)
+		if count >= 5 and (best.is_empty() or score > best.score):
+			best = {"at": at, "score": score}
+	return best
 
 func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarches.MarchUnit]) -> float:
 	if building.kind == 0:

@@ -59,7 +59,7 @@ func _run() -> void:
 	map.set_visual_paused(true)
 	var marches: WarMarches = MARCHES.instantiate()
 	root.add_child(marches)
-	marches.unit_arrived.connect(func(target_id: int, _faction: int, _strength: float): _arrivals.append(target_id))
+	marches.unit_arrived.connect(func(target_id: int, _faction: int, _strength: float, _attack_bonus: float): _arrivals.append(target_id))
 	var buildings: Array[Node] = map.get_node("Buildings").get_children()
 	var outlines: Array[PackedVector2Array] = []
 	for building: WarBuilding in buildings:

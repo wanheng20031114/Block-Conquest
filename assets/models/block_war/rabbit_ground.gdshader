@@ -1,25 +1,26 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
-uniform float visual_time = 0.0;
-varying vec4 field_data;
-void vertex() { field_data = INSTANCE_CUSTOM; }
+
+varying vec4 burst_data;
+
+void vertex() {
+	burst_data = INSTANCE_CUSTOM;
+}
+
 void fragment() {
- vec2 p = UV * 2.0 - 1.0;
- float r = length(p);
- float a = atan(p.y, p.x);
- float fade = smoothstep(0.0, 0.10, field_data.a);
- float rim = (1.0 - smoothstep(0.014, 0.026, abs(r - 0.97))) * (0.55 + 0.45 * step(0.1, sin(a * 12.0 - visual_time * 1.6)));
- float front = fract(visual_time * 0.55);
- float wind_ring = (1.0 - smoothstep(0.010, 0.025, abs(r - mix(0.2, 0.92, front)))) * sin(front * 3.1415926);
- wind_ring *= pow(0.5 + 0.5 * sin(a * 3.0 - visual_time * 2.8), 3.0);
- vec2 grid = p * 4.0;
- vec2 cell = floor(grid);
- vec2 q = fract(grid) - 0.5;
- float sway = sin(visual_time * 2.0 + cell.x * 1.3 + cell.y) * 0.12;
- float stem = abs(q.x - q.y * (0.5 + sway));
- float blade = (1.0 - smoothstep(0.025, 0.07, stem)) * smoothstep(-0.26, -0.12, q.y) * (1.0 - smoothstep(0.08, 0.3, q.y));
- float rhythm = 0.45 + 0.55 * smoothstep(-0.6, 0.6, sin(visual_time * 1.9 - cell.x + cell.y * 0.6));
- ALBEDO = mix(vec3(0.73, 0.83, 0.49), field_data.rgb, 0.3);
- EMISSION = ALBEDO * 0.20;
- ALPHA = (rim * 0.73 + wind_ring * 0.6 + blade * rhythm * 0.46 * (1.0 - smoothstep(0.7, 0.94, r))) * fade;
+	vec2 p = UV * 2.0 - 1.0;
+	float radius = length(p);
+	float angle = atan(p.y, p.x);
+	float progress = clamp(burst_data.a, 0.0, 1.0);
+	float fade = 1.0 - smoothstep(0.32, 1.0, progress);
+	float front = mix(0.16, 0.96, 1.0 - pow(1.0 - progress, 2.0));
+	float ring = 1.0 - smoothstep(0.018, 0.048, abs(radius - front));
+	// Short pointed rays replace the old persistent wind-and-leaf field.
+	float segment = abs(fract(angle / 6.2831853 * 12.0 + 0.5) - 0.5);
+	float ray_width = 0.16 * (1.0 - smoothstep(front * 0.52, front, radius));
+	float rays = 1.0 - smoothstep(ray_width, ray_width + 0.025, segment);
+	rays *= smoothstep(front * 0.32, front * 0.48, radius) * (1.0 - smoothstep(front * 0.86, front, radius));
+	ALBEDO = burst_data.rgb;
+	EMISSION = burst_data.rgb * 0.42;
+	ALPHA = min(0.88, ring * 0.82 + rays * 0.58) * fade;
 }

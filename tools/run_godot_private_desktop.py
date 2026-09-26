@@ -46,6 +46,8 @@ def main():
     parser.add_argument("script")
     parser.add_argument("--output", required=True)
     parser.add_argument("--timeout", type=int, default=150)
+    parser.add_argument("--script-arg", action="append", default=[],
+                        help="Extra Godot script argument; use --script-arg=--flag for flags")
     args = parser.parse_args()
     project = Path(__file__).resolve().parents[1]
     output = Path(args.output).resolve()
@@ -89,7 +91,7 @@ def main():
             executable, "--path", str(project), "--audio-driver", "Dummy",
             "--rendering-method", "forward_plus", "--resolution", "960x540",
             "--max-fps", "24", "--fixed-fps", "24", "--log-file", str(log),
-            "--script", args.script, "--", str(output)])
+            "--script", args.script, "--", str(output), *args.script_arg])
         startup = Startup()
         startup.cb = c.sizeof(startup)
         startup.desktop = "WinSta0\\" + name

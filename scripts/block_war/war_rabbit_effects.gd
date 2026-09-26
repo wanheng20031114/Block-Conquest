@@ -1,17 +1,19 @@
 extends Node3D
 signal tunnel_opened(at: Vector3)
 
-const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_ROTATION_SCALE | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
-var age := 0.0
+const RUSH_BURST_DURATION := 0.4
+const RUSH_EMISSION_INTERVAL := 0.07
+const RUSH_COLOR := Color("ff5148")
+var rush_bursts: Dictionary[int, Dictionary] = {}
 var emission := 0.0
 var serial := 0
 var soldier_offset := 0
 var running := true
 
 func _ready() -> void:
-	$Fields.multimesh.instance_count = 6
-	$Fields.multimesh.visible_instance_count = 0
+	$RushBursts.multimesh.instance_count = WarMarches.FACTION_COLORS.size()
+	$RushBursts.multimesh.visible_instance_count = 0
 	for tunnel: Node3D in $Tunnels.get_children():
 		tunnel.tunnel_opened.connect(_on_tunnel_opened)
 
@@ -24,12 +26,14 @@ func _on_tunnel_opened(at: Vector3) -> void:
 func start_recall(faction: int, center: Vector3, radius: float) -> void:
 	$Rallies.get_child(faction).start(center, radius, faction)
 
-func start_haste(faction: int, center: Vector3, radius: float) -> void:
-	for index: int in 24:
-		var angle := float(index) * TAU / 24.0
+func start_rush(faction: int, center: Vector3, radius: float) -> void:
+	rush_bursts[faction] = {"at": center, "radius": radius, "remaining": RUSH_BURST_DURATION}
+	_draw_rush_bursts()
+	for index: int in 18:
+		var angle := float(index) * TAU / 18.0
 		var radial := Vector3(cos(angle), 0, sin(angle))
-		var at := center + radial * radius * 0.75 + Vector3.UP * 0.2
-		$Leaves.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), radial * 2.0 + Vector3.UP * 0.85, WarMarches.FACTION_COLORS[faction].lightened(0.3), Color(), FLAGS)
+		var at := center + radial * radius * 0.48 + Vector3.UP * 0.16
+		$RushStreaks.emit_particle(Transform3D(Basis.looking_at(radial), at), radial * 5.0, RUSH_COLOR.srgb_to_linear(), Color(), FLAGS)
 
 func return_dust(at: Vector3, direction: Vector3) -> void:
 	for i: int in 3:
@@ -38,58 +42,62 @@ func return_dust(at: Vector3, direction: Vector3) -> void:
 func tick(delta: float) -> void:
 	if not running:
 		return
-	age += delta
+	for faction: int in rush_bursts.keys():
+		rush_bursts[faction].remaining -= delta
+		if rush_bursts[faction].remaining <= 0.0:
+			rush_bursts.erase(faction)
+	_draw_rush_bursts()
 	for effect: Node3D in $Tunnels.get_children():
 		effect.tick(delta)
 	for effect: Node3D in $Rallies.get_children():
 		effect.tick(delta)
 
-func update_haste(delta: float, marches: WarMarches) -> void:
-	if not running:
-		return
-	emission += delta
-	var emit := emission >= 0.12
-	if emit:
-		emission = fmod(emission, 0.12)
-	var mesh: MultiMesh = $Fields.multimesh
-	mesh.mesh.material.set_shader_parameter("visual_time", age)
+func _draw_rush_bursts() -> void:
+	var mesh: MultiMesh = $RushBursts.multimesh
 	var count := 0
 	var bounds := AABB()
-	for faction: int in marches.haste_zones:
-		var zone: Dictionary = marches.haste_zones[faction]
-		if zone.style != RULES.RABBIT:
-			continue
-		mesh.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * zone.radius), zone.at + Vector3.UP * 0.085))
-		mesh.set_instance_custom_data(count, Color(WarMarches.FACTION_COLORS[faction], zone.remaining / zone.duration))
-		var field_bounds := AABB(zone.at - Vector3(zone.radius, 0, zone.radius), Vector3(zone.radius * 2, 1, zone.radius * 2))
-		bounds = field_bounds if count == 0 else bounds.merge(field_bounds)
+	for faction: int in rush_bursts:
+		var burst: Dictionary = rush_bursts[faction]
+		mesh.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * burst.radius), burst.at + Vector3.UP * 0.085))
+		mesh.set_instance_custom_data(count, Color(RUSH_COLOR.srgb_to_linear(), 1.0 - burst.remaining / RUSH_BURST_DURATION))
+		var burst_bounds := AABB(burst.at - Vector3(burst.radius, 0, burst.radius), Vector3(burst.radius * 2, 1, burst.radius * 2))
+		bounds = burst_bounds if count == 0 else bounds.merge(burst_bounds)
 		count += 1
-		if emit:
-			for i: int in 5:
-				serial += 1
-				var angle := serial * 2.399963
-				var radial := Vector3(cos(angle), 0, sin(angle))
-				var at: Vector3 = zone.at + radial * zone.radius * (0.3 + 0.6 * absf(sin(angle * 1.7))) + Vector3.UP * 0.1
-				$Leaves.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), Vector3(0.5, 0.4, 0.3), Color("b4c78a"), Color(), FLAGS)
 	mesh.visible_instance_count = count
 	if count > 0:
 		mesh.custom_aabb = bounds
-	if not emit:
+
+func update_rush(delta: float, marches: WarMarches) -> void:
+	if not running:
 		return
+	emission += delta
+	if emission < RUSH_EMISSION_INTERVAL:
+		return
+	emission = fmod(emission, RUSH_EMISSION_INTERVAL)
 	var runners: Array[WarMarches.MarchUnit] = []
 	for unit: WarMarches.MarchUnit in marches._units:
-		if unit.is_exposed() and marches.haste_zones.has(unit.order.faction) and marches.haste_zones[unit.order.faction].style == RULES.RABBIT and marches.speed_multiplier(unit) > 1.0:
+		if unit.is_exposed() and unit.rush_remaining > 0.0:
 			runners.append(unit)
 	if runners.is_empty():
 		return
-	for i: int in mini(24, runners.size()):
+	var bounds := AABB(runners[0].position, Vector3.ZERO)
+	for unit: WarMarches.MarchUnit in runners:
+		bounds = bounds.expand(unit.position)
+	for faction: int in rush_bursts:
+		bounds = bounds.expand(rush_bursts[faction].at)
+	$RushStreaks.visibility_aabb = bounds.grow(4.0)
+	for i: int in mini(48, runners.size()):
 		var unit := runners[(soldier_offset + i) % runners.size()]
-		$FootDust.emit_particle(Transform3D(Basis.IDENTITY, unit.position - unit.heading * 0.35 + Vector3.UP * 0.09), -unit.heading * 0.6 + Vector3.UP * 0.3, Color("e1d6bc"), Color(), FLAGS)
-	soldier_offset = (soldier_offset + 24) % runners.size()
+		serial += 1
+		var sideways := Vector3(-unit.heading.z, 0, unit.heading.x)
+		var offset := 0.20 if serial % 2 == 0 else -0.20
+		var at := unit.position - unit.heading * 0.52 + sideways * offset + Vector3.UP * 0.27
+		$RushStreaks.emit_particle(Transform3D(Basis.looking_at(unit.heading), at), -unit.heading * 1.1, RUSH_COLOR.srgb_to_linear(), Color(), FLAGS)
+	soldier_offset = (soldier_offset + 48) % runners.size()
 
 func set_running(value: bool) -> void:
 	running = value
-	for particles: GPUParticles3D in [$FootDust, $Leaves]:
+	for particles: GPUParticles3D in [$FootDust, $RushStreaks]:
 		particles.speed_scale = 1.0 if value else 0.0
 	for effect: Node3D in $Tunnels.get_children():
 		effect.set_running(value)
@@ -97,15 +105,15 @@ func set_running(value: bool) -> void:
 		effect.set_running(value)
 
 func reset() -> void:
-	age = 0.0
+	rush_bursts.clear()
 	emission = 0.0
 	serial = 0
 	soldier_offset = 0
-	$Fields.multimesh.visible_instance_count = 0
+	$RushBursts.multimesh.visible_instance_count = 0
 	for effect: Node3D in $Tunnels.get_children():
 		effect.reset()
 	for effect: Node3D in $Rallies.get_children():
 		effect.reset()
-	for particles: GPUParticles3D in [$FootDust, $Leaves]:
+	for particles: GPUParticles3D in [$FootDust, $RushStreaks]:
 		particles.restart()
 		particles.emitting = false

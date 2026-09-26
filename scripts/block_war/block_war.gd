@@ -65,6 +65,7 @@ var _previous_taa: bool = false
 var _previous_auto_quit: bool = true
 var _closing: bool = false
 var recall_preview: Array[Dictionary] = []
+var rush_preview: Array[WarMarches.MarchUnit] = []
 var _recall_preview_center := Vector3.INF
 var _rabbit_preview_time := -1.0
 
@@ -337,10 +338,10 @@ func defense_bonus(building: Node3D) -> float:
 		value += SKILL_RULES.SHIELD_DEFENSE
 	return value
 
-func combat_multiplier(faction: int, target: Node3D) -> float:
+func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 0.0) -> float:
 	# Sum percentage-point bonuses before scaling troops. Preview and AI use
 	# this same live coefficient, including ownership and construction changes.
-	return 1.0 + attack_bonus(faction) - defense_bonus(target)
+	return 1.0 + attack_bonus(faction) + unit_attack_bonus - defense_bonus(target)
 
 func _on_departure_queue_changed(source_id: int, faction: int, change: int) -> void:
 	var source: WarBuilding = by_id[source_id]
@@ -354,7 +355,7 @@ func _on_unit_departed(source_id: int, faction: int) -> void:
 	source.population -= 1.0
 	source.refresh_visual()
 
-func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
+func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack_bonus: float = 0.0) -> void:
 	var target: Node3D = by_id[target_id]
 	if FACTIONS.allied(target.faction, faction):
 		# Entering a teammate's building transfers command with the garrison.
@@ -362,7 +363,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 		target.population += strength
 		audio.play_world(&"war_reinforce", target.global_position)
 	else:
-		var damage: float = strength * combat_multiplier(faction, target)
+		var damage: float = strength * combat_multiplier(faction, target, unit_attack_bonus)
 		if target.population + 0.00001 >= damage:
 			target.population = maxf(0.0, target.population - damage)
 			if target.queued_population > floori(target.population):
@@ -467,9 +468,13 @@ func _update_skill_drag(screen: Vector2, refresh_preview: bool = false) -> void:
 	var over_battlefield: bool = get_viewport().get_visible_rect().has_point(screen) and not hud.is_pointer_blocked(screen)
 	hovered = pick_building(screen) if over_battlefield and not skill_is_ground(armed_skill) else null
 	var valid := ground_skill_target.is_finite() if skill_is_ground(armed_skill) else _valid_skill_target(armed_skill, hovered)
-	if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT and armed_skill == 2:
-		_refresh_rabbit_preview(refresh_preview)
-		valid = not recall_preview.is_empty()
+	if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT:
+		if armed_skill == 0:
+			rush_preview = marches.rush_targets(PLAYER, ground_skill_target, SKILL_RULES.RABBIT_RUSH_RADIUS)
+			valid = not rush_preview.is_empty()
+		elif armed_skill == 2:
+			_refresh_rabbit_preview(refresh_preview)
+			valid = not recall_preview.is_empty()
 	hud.set_skill_drag_target(valid, screen)
 	overlay.queue_redraw()
 
@@ -496,6 +501,7 @@ func _cancel_skill_drag() -> void:
 	ground_skill_target = Vector3.INF
 	hovered = null
 	recall_preview = []
+	rush_preview = []
 	_recall_preview_center = Vector3.INF
 	_rabbit_preview_time = -1.0
 
@@ -504,7 +510,7 @@ func skill_is_ground(index: int, faction: int = PLAYER) -> bool:
 
 func skill_radius(index: int, faction: int = PLAYER) -> float:
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
-		return SKILL_RULES.RABBIT_HASTE_RADIUS if index == 0 else SKILL_RULES.RECALL_RADIUS
+		return SKILL_RULES.RABBIT_RUSH_RADIUS if index == 0 else SKILL_RULES.RECALL_RADIUS
 	return SKILL_RULES.HASTE_RADIUS if index == 1 else IMPACT_RADIUS
 
 func _refresh_rabbit_preview(force: bool = false) -> void:
@@ -607,8 +613,14 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 	var center := Vector3(at.x, 0.0, at.z)
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		if index == 0:
-			marches.create_haste_zone(faction, center, SKILL_RULES.RABBIT_HASTE_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0], SKILL_RULES.RABBIT_HASTE_MULTIPLIER, SKILL_RULES.RABBIT)
-			world_effects.get_node("Rabbit").start_haste(faction, center, SKILL_RULES.RABBIT_HASTE_RADIUS)
+			var rushing: int = marches.apply_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0])
+			if rushing == 0:
+				if faction == PLAYER:
+					hud.notify("小圈内没有自己的行军部队 · 请选择已出发的士兵")
+				return false
+			world_effects.get_node("Rabbit").start_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS)
+			if faction == PLAYER:
+				hud.notify("迅猛冲刺 · %d 人移速 +100%%、攻击 +50%%，持续 6 秒" % rushing)
 		else:
 			var recalled := RABBIT_SKILLS.recall(self, center, faction)
 			if recalled == 0:
@@ -702,6 +714,9 @@ func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, i
 	for faction: int in faction_count:
 		if FACTIONS.hostile(building.faction, faction):
 			damage += incoming.get(Vector2i(building.building_id, faction), 0) * combat_multiplier(faction, building)
+	for unit: WarMarches.MarchUnit in marches._units:
+		if unit.order.target_id == building.building_id and FACTIONS.hostile(building.faction, unit.order.faction):
+			damage += unit.order.strength * marches.projected_attack_bonus(unit)
 	return damage
 
 func total_for(faction: int) -> int:

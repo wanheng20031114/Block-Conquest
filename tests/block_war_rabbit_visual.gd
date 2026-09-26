@@ -28,9 +28,18 @@ func reset_game() -> void:
 	await physics_frame
 	await create_timer(0.5).timeout
 
-func clip(label: String, frames: int) -> void:
+func clip(label: String, frames: int, follow_rush: bool = false) -> void:
 	for index: int in frames:
 		game.simulate(1.0 / FPS)
+		if follow_rush:
+			var focus := Vector3.ZERO
+			var count := 0
+			for unit: WarMarches.MarchUnit in game.marches._units:
+				if unit.is_exposed() and unit.rush_remaining > 0.0:
+					focus += unit.position
+					count += 1
+			if count > 0:
+				game.camera_rig.focus_at(focus / float(count), true)
 		game.overlay.queue_redraw()
 		await process_frame
 		if index % 2 == 0:
@@ -50,10 +59,11 @@ func _run() -> void:
 	session.block_war_map_id = "rift"
 	session.block_war_commander = &"rabbit"
 	session.block_war_opponent_commander = &"squirrel"
-	change_scene_to_file("res://scenes/block_war/map_select.tscn")
-	await scene_changed
-	await create_timer(0.8).timeout
-	await capture("rabbit_selection")
+	if "--battle-only" not in OS.get_cmdline_user_args():
+		change_scene_to_file("res://scenes/block_war/map_select.tscn")
+		await scene_changed
+		await create_timer(0.8).timeout
+		await capture("rabbit_selection")
 	await reset_game()
 	await capture("rabbit_hud")
 	for index: int in 4:
@@ -70,10 +80,13 @@ func _run() -> void:
 	var center := Vector3(-22, 0, 10)
 	game.camera_rig.focus_at(center, true)
 	game.camera.size = 19.0
-	game.marches.send(0, 1, 0, 66, PackedVector3Array([center + Vector3(-6, 0, 0), center + Vector3(30, 0, 0)]))
-	game.marches.tick(0.6)
+	game.marches.send(0, 1, 0, 66, PackedVector3Array([center + Vector3(-5, 0, 0), center + Vector3(55, 0, 0)]))
+	game.marches.tick(1.6)
+	var rushed: Array[WarMarches.MarchUnit] = game.marches.rush_targets(0, center, game.SKILL_RULES.RABBIT_RUSH_RADIUS)
+	assert(rushed.size() > 0 and rushed.size() < 66)
+	await capture("dash_before")
 	assert(game.cast_ground_skill(0, center))
-	await clip("dash", 162)
+	await clip("dash", 162, true)
 	await reset_game()
 	game.hud.hide()
 	var target: WarBuilding

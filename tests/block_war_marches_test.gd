@@ -16,7 +16,7 @@ func _check(condition: bool, description: String) -> void:
 		_failures.append(description)
 		printerr("FAIL ", description)
 
-func _on_arrived(target_id: int, faction: int, strength: float) -> void:
+func _on_arrived(target_id: int, faction: int, strength: float, _attack_bonus: float) -> void:
 	_arrived.append({"target_id": target_id, "faction": faction, "strength": strength})
 
 func _run() -> void:

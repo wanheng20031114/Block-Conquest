@@ -3,7 +3,7 @@ extends Node3D
 ## Every entry is one population point. Marchers never collide or fight in transit.
 ## The controller calls tick from _process; stopping tick also stops the GPU gait.
 
-signal unit_arrived(target_id: int, faction: int, strength: float)
+signal unit_arrived(target_id: int, faction: int, strength: float, attack_bonus: float)
 signal unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool)
 signal departure_queue_changed(source_id: int, faction: int, change: int)
 signal unit_departed(source_id: int, faction: int)
@@ -15,6 +15,7 @@ const SPEED := 3.1
 const MODEL_SCALE := 0.62
 const GATE_LENGTH := 2.4
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTION_COLORS: Array[Color] = FACTIONS.COLORS
 
 class MarchOrder extends RefCounted:
@@ -38,6 +39,7 @@ class MarchUnit extends RefCounted:
 	var spawn_delay := 0.0
 	var pending_departure := false
 	var departure_sequence := 0
+	var rush_remaining := 0.0
 
 	func is_exposed() -> bool:
 		return alive and not pending_departure and distance >= 0.0 and spawn_delay <= 0.0
@@ -196,12 +198,21 @@ func redirect(unit: MarchUnit, target_id: int, route: PackedVector3Array) -> voi
 func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	if delta <= 0.0:
 		return
-	var arrivals: Array[MarchOrder] = []
+	var arrivals: Array[Dictionary] = []
 	var index := 0
 	while index < _units.size():
 		var unit := _units[index]
 		var concealed_time := minf(delta, unit.spawn_delay)
 		var step := movement_distance(unit, delta)
+		# Sample the buff at contact, including an arrival before its expiry within
+		# one long frame. Population strength remains independent of combat bonuses.
+		var arrival_bonus := 0.0
+		if unit.rush_remaining > 0.0 and unit.distance + step >= unit.order.length:
+			if unit.rush_remaining > delta or unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001:
+				arrival_bonus = RULES.RABBIT_RUSH_ATTACK_BONUS
+		unit.rush_remaining = maxf(0.0, unit.rush_remaining - delta)
+		if unit.rush_remaining < 0.000001:
+			unit.rush_remaining = 0.0
 		unit.spawn_delay = maxf(0.0, unit.spawn_delay - delta)
 		if unit.spawn_delay < 0.000001:
 			unit.spawn_delay = 0.0
@@ -232,7 +243,7 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 			if burned:
 				continue
 		if unit.distance >= unit.order.length:
-			arrivals.append(unit.order)
+			arrivals.append({"order": unit.order, "attack_bonus": arrival_bonus})
 			_remove_unit(index)
 			continue
 		index += 1
@@ -242,8 +253,9 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 			haste_zones.erase(faction)
 	_render()
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
-	for order: MarchOrder in arrivals:
-		unit_arrived.emit(order.target_id, order.faction, order.strength)
+	for arrival: Dictionary in arrivals:
+		var order: MarchOrder = arrival.order
+		unit_arrived.emit(order.target_id, order.faction, order.strength, arrival.attack_bonus)
 
 func total_for(faction: int) -> int:
 	var total := 0
@@ -298,7 +310,7 @@ func get_units() -> Array[Dictionary]:
 		if unit.is_exposed():
 			result.append({"position": unit.position, "faction": unit.order.faction,
 				"source_id": unit.order.source_id, "target_id": unit.order.target_id,
-				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane})
+				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane, "rush_remaining": unit.rush_remaining})
 	return result
 
 func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int) -> Array[MarchUnit]:
@@ -381,42 +393,78 @@ func create_haste_zone(faction: int, at: Vector3, radius: float, duration: float
 		if unit.order.faction == faction:
 			unit.order.haste_intervals.clear()
 
+func rush_targets(faction: int, at: Vector3, radius: float) -> Array[MarchUnit]:
+	var targets: Array[MarchUnit] = []
+	if not at.is_finite():
+		return targets
+	for unit: MarchUnit in _units:
+		var offset := Vector2(unit.position.x - at.x, unit.position.z - at.z)
+		if unit.order.faction == faction and unit.is_exposed() and offset.length_squared() <= radius * radius:
+			targets.append(unit)
+	return targets
+
+func apply_rush(faction: int, at: Vector3, radius: float, duration: float) -> int:
+	var targets := rush_targets(faction, at, radius)
+	for unit: MarchUnit in targets:
+		unit.rush_remaining = maxf(unit.rush_remaining, duration)
+	_render()
+	return targets.size()
+
+func projected_attack_bonus(unit: MarchUnit) -> float:
+	if unit.rush_remaining <= 0.0:
+		return 0.0
+	return RULES.RABBIT_RUSH_ATTACK_BONUS if unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001 else 0.0
+
 func speed_multiplier(unit: MarchUnit) -> float:
-	if not unit.is_exposed() or not haste_zones.has(unit.order.faction):
+	if not unit.is_exposed():
 		return 1.0
-	var zone := haste_zones[unit.order.faction]
-	var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
-	return zone.multiplier if offset.length_squared() <= zone.radius * zone.radius else 1.0
+	var multiplier := RULES.RABBIT_RUSH_MULTIPLIER if unit.rush_remaining > 0.0 else 1.0
+	if haste_zones.has(unit.order.faction):
+		var zone := haste_zones[unit.order.faction]
+		var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
+		if offset.length_squared() <= zone.radius * zone.radius:
+			multiplier = maxf(multiplier, zone.multiplier)
+	return multiplier
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
 	var concealed_time := minf(delta, unit.spawn_delay)
 	delta -= concealed_time
-	if not haste_zones.has(unit.order.faction):
-		return SPEED * delta
+	var rushing := minf(delta, maxf(0.0, unit.rush_remaining - concealed_time))
+	var zone_time := 0.0
+	if haste_zones.has(unit.order.faction):
+		zone_time = maxf(0.0, haste_zones[unit.order.faction].remaining - concealed_time)
+	var step := _movement_segment(unit, unit.distance, rushing, RULES.RABBIT_RUSH_MULTIPLIER, zone_time)
+	return step + _movement_segment(unit, unit.distance + step, delta - rushing, 1.0, maxf(0.0, zone_time - rushing))
+
+func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float) -> float:
+	# A unit buff and a ground field use their stronger speed, never multiply.
+	# Split both independent expiry times, then integrate route entry/exit exactly.
+	var speed := SPEED * multiplier
+	if delta <= 0.0 or zone_time <= 0.0:
+		return speed * delta
 	var zone := haste_zones[unit.order.faction]
-	var active: float = minf(delta, maxf(0.0, zone.remaining - concealed_time))
+	var active := minf(delta, zone_time)
 	var remaining := active
-	var distance := unit.distance
+	var distance := from_distance
 	if not unit.order.haste_intervals.has(unit.lane):
 		unit.order.haste_intervals[unit.lane] = _zone_intervals(unit.order, unit.lane, zone)
-	# Integrate the time spent inside each route interval, including entering,
-	# leaving, re-entering, doorway queues and expiry within a single long tick.
 	for interval: Vector2 in unit.order.haste_intervals[unit.lane]:
 		if interval.y <= distance:
 			continue
-		var before_time := maxf(0.0, interval.x - distance) / SPEED
+		var before_time := maxf(0.0, interval.x - distance) / speed
 		var before_step := minf(remaining, before_time)
-		distance += before_step * SPEED
+		distance += before_step * speed
 		remaining -= before_step
 		if remaining <= 0.0:
 			break
-		var inside_time: float = (interval.y - distance) / (SPEED * zone.multiplier)
+		var inside_speed := SPEED * maxf(multiplier, zone.multiplier)
+		var inside_time: float = (interval.y - distance) / inside_speed
 		var inside_step := minf(remaining, inside_time)
-		distance += inside_step * SPEED * float(zone.multiplier)
+		distance += inside_step * inside_speed
 		remaining -= inside_step
 		if remaining <= 0.0:
 			break
-	return distance - unit.distance + SPEED * (remaining + delta - active)
+	return distance - from_distance + speed * (remaining + delta - active)
 
 func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> PackedVector2Array:
 	var intervals := PackedVector2Array()
@@ -514,7 +562,7 @@ func _render() -> void:
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)
 		_multimesh.set_instance_transform(slot, Transform3D(basis, unit.position + Vector3(0, 0.035, 0)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
-		color.a = unit.gait
+		color.a = -(unit.gait + 1.0) if unit.rush_remaining > 0.0 else unit.gait
 		_multimesh.set_instance_custom_data(slot, color)
 		slot += 1
 	_multimesh.visible_instance_count = slot

@@ -180,11 +180,11 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				var wind := Vector3(-radial.z, 0.14, radial.x)
 				$HasteMotes.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), wind * 0.8, Color("c0d8a4").srgb_to_linear(), Color(), EMIT_FLAGS)
 	fields.visible_instance_count = count
-	$Rabbit.update_haste(delta, marches)
+	$Rabbit.update_rush(delta, marches)
 	if emit:
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.is_exposed() and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
+			if unit.is_exposed() and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
 				active.append(unit)
 		if not active.is_empty():
 			for index: int in mini(48, active.size()):

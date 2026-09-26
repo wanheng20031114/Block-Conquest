@@ -31,6 +31,8 @@ func _draw() -> void:
 			var rabbit: bool = game.faction_skills[0].commander == game.SKILL_RULES.RABBIT
 			var haste: bool = (rabbit and game.armed_skill == 0) or (not rabbit and game.armed_skill == 1)
 			var color := Color(0.65, 0.94, 0.8, 0.9) if haste else Color(1.0, 0.61, 0.25, 0.9)
+			if rabbit and game.armed_skill == 0:
+				color = Color(1.0, 0.36, 0.23, 0.9)
 			if not game.can_cast_skill(game.armed_skill):
 				color = Color(0.9, 0.35, 0.27, 0.65)
 			_ring(center, game.skill_radius(game.armed_skill), color, 2.5)
@@ -39,6 +41,10 @@ func _draw() -> void:
 			draw_line(screen - Vector2(0, 7), screen + Vector2(0, 7), color, 1.5, true)
 			if rabbit and game.armed_skill == 2:
 				_draw_rabbit_preview(camera)
+			elif rabbit and game.armed_skill == 0:
+				for unit: WarMarches.MarchUnit in game.rush_preview:
+					_ring(unit.position, 0.32, color, 1.3)
+				_draw_skill_number(game.rush_preview.size(), camera.unproject_position(center + Vector3(2.4, 1, 0)))
 	elif game.armed_skill >= 0:
 		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)
