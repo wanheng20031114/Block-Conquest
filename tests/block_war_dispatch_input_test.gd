@@ -63,6 +63,8 @@ func point(building: Node3D, badge: bool = false) -> Vector2:
 
 
 func drag_case(source: Node3D, target: Node3D, badge: bool, target_badge: bool = false) -> void:
+	# Each input fixture starts without commitments from earlier gestures.
+	game.marches.clear()
 	source.population = 80.0
 	source.refresh_visual()
 	key(KEY_2)
@@ -86,7 +88,7 @@ func drag_case(source: Node3D, target: Node3D, badge: bool, target_badge: bool =
 	var before: int = game.marches.incoming_for(target.building_id, 0)
 	button(finish, false)
 	await frames()
-	check(game.marches.incoming_for(target.building_id, 0) == before + 40 and is_equal_approx(source.population, 40.0), label + " sends exactly half the garrison")
+	check(game.marches.incoming_for(target.building_id, 0) == before + 40 and source.available_population == 40.0 and source.population == 80.0, label + " reserves exactly half the garrison until departure")
 	check(game.drag_source == null and game.order_route.is_empty(), label + " clears drag after release")
 	check(game.map.get_building_route(source, target).size() >= 2, label + " repeated orders retain the cached route")
 
@@ -134,6 +136,7 @@ func _run() -> void:
 	# Every top-row and numpad shortcut is observable, and affects the next order.
 	var codes: Array[int] = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4]
 	for index: int in codes.size():
+		game.marches.clear()
 		home.population = 80.0
 		home.refresh_visual()
 		motion(point(home))
@@ -152,6 +155,7 @@ func _run() -> void:
 		button(point(neutral), false)
 		check(game.marches.incoming_for(neutral.building_id, 0) == before + amount, "shortcut dispatches %d actual troops" % amount)
 	# A held gesture uses the most recently chosen ratio, not the press-time ratio.
+	game.marches.clear()
 	home.population = 80.0
 	key(KEY_1)
 	motion(point(home))
@@ -162,6 +166,7 @@ func _run() -> void:
 	var before: int = game.marches.incoming_for(enemy.building_id, 0)
 	button(point(enemy), false)
 	check(game.marches.incoming_for(enemy.building_id, 0) == before + 80, "mid-drag 25 to 100 percent switch dispatches the final ratio")
+	game.marches.clear()
 	home.population = 80.0
 	key(KEY_2)
 	motion(point(home))
@@ -175,6 +180,7 @@ func _run() -> void:
 	before = game.marches.incoming_for(neutral.building_id, 0)
 	button(point(neutral), false)
 	check(game.marches.incoming_for(neutral.building_id, 0) == before + 60, "drag wheel ratio controls the dispatched amount")
+	game.marches.clear()
 	home.population = 80.0
 	key(KEY_2)
 	motion(point(home))

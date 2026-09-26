@@ -84,7 +84,7 @@ func _draw() -> void:
 		_ring(effect.at, radius, color, 2.5)
 
 func _update_dispatch_hint() -> void:
-	var count := floori(game.drag_source.population * game.percentage / 100.0)
+	var count := floori(game.drag_source.available_population * game.percentage / 100.0)
 	hint_label.text = str(count)
 	var font := hint_label.get_theme_font("font")
 	var font_size := hint_label.get_theme_font_size("font_size")

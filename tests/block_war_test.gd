@@ -50,13 +50,13 @@ func run() -> void:
 	game.simulate(1.0)
 	check(home.population == 31.0, "reinforcement above cap is preserved")
 	home.population = 60.0
-	check(game.issue_order(home, neutral, 25) == 15 and home.population == 45.0, "25 percent dispatch deducts exact integer count")
+	check(game.issue_order(home, neutral, 25) == 15 and home.available_population == 45.0 and home.population == 60.0, "25 percent dispatch reserves fifteen until they leave the garrison")
 	check(game.marches.total_for(0) == 15 and game.marches.incoming_for(2, 0) == 15, "queued ranks remain in population total")
 	check(game.issue_order(home, home, 100) == 0 and game.issue_order(game.by_id[1], home, 100) == 0, "self orders and enemy-source orders rejected")
 	game.marches.clear()
 	home.population = 30.0
 	neutral.population = 14.0
-	check(game.issue_order(home, neutral, 100) == 30 and home.population == 0.0, "100 percent sends all available militia")
+	check(game.issue_order(home, neutral, 100) == 30 and home.available_population == 0.0 and home.population == 30.0, "100 percent commits all available militia without removing queued ranks")
 	for step: int in 500:
 		game.simulate(0.05)
 	check(neutral.faction == 0 and neutral.population >= 16.0 and game.marches.total_for(0) == 0, "real marching soldiers capture and enter destination")

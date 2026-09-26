@@ -28,7 +28,7 @@ static func burrow_plan(game: Node3D, target: WarBuilding, faction: int, locked_
 	var source: WarBuilding
 	var shortest := RULES.BURROW_RANGE + 0.0001
 	for building: WarBuilding in game.buildings:
-		if building == target or building.faction != faction or floori(building.population) < RULES.BURROW_RESERVE + RULES.BURROW_MINIMUM:
+		if building == target or building.faction != faction or floori(building.available_population) < RULES.BURROW_RESERVE + RULES.BURROW_MINIMUM:
 			continue
 		if locked_source >= 0 and building.building_id != locked_source:
 			continue
@@ -52,7 +52,7 @@ static func burrow_plan(game: Node3D, target: WarBuilding, faction: int, locked_
 	if not game.map._is_route_point_clear(tail[0]):
 		return {}
 	return {"source": source, "target": target, "route": tail, "length": shortest,
-		"entrance": full[0], "exit": tail[0], "count": mini(RULES.BURROW_LIMIT, floori(source.population) - RULES.BURROW_RESERVE)}
+		"entrance": full[0], "exit": tail[0], "count": mini(RULES.BURROW_LIMIT, floori(source.available_population) - RULES.BURROW_RESERVE)}
 
 static func cast(game: Node3D, index: int, target: WarBuilding, faction: int, locked_source: int = -1) -> bool:
 	match index:
@@ -70,6 +70,7 @@ static func cast(game: Node3D, index: int, target: WarBuilding, faction: int, lo
 			var plan := burrow_plan(game, target, faction, locked_source)
 			if plan.is_empty():
 				return false
+			# These unreserved soldiers enter the tunnel now; delayed exits are in transit.
 			plan.source.population -= plan.count
 			plan.source.refresh_visual()
 			game.marches.send_tunnel(plan.source.building_id, target.building_id, faction, plan.count, plan.route, RULES.BURROW_BATCH_INTERVAL)

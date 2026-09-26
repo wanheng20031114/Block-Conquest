@@ -192,7 +192,7 @@ func set_skill_drag_target(valid: bool, screen: Vector2) -> void:
 func _update_building_actions(state: Dictionary) -> void:
 	_actions_visible = bool(state.selected_owned) and int(state.armed_skill) < 0
 	var level := int(state.selected_level)
-	var population := int(state.selected_population)
+	var population := int(state.selected_available_population)
 	var cost := int(state.upgrade_cost)
 	var max_level := int(state.selected_max_level)
 	var capped := level >= max_level
@@ -203,7 +203,7 @@ func _update_building_actions(state: Dictionary) -> void:
 	%Upgrade.visible = int(state.selected_kind) != 2
 	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, max_level))
 	%Upgrade.get_node("Cost/Population").visible = not capped and not upgrading
-	var detail := "开工后剩余 %d 名驻军" % (population - cost)
+	var detail := "开工后剩余 %d 名可用驻军" % (population - cost)
 	if population < cost:
 		detail = "还差 %d 名驻军" % (cost - population)
 	var upgrade_hint := "升级至 %d 级 · 耗时 10 秒\n消耗 %d 名驻军 · %s\n%s" % [level + 1, cost, detail, state.selected_detail]

@@ -46,12 +46,12 @@ func take_turn(game: Node3D) -> void:
 			if not game._valid_skill_target(0, building, faction) or building.conversion_target in [1, 2]:
 				continue
 			# Supply an active front or a drained residence, not an unused giant stockpile.
-			if building.population > maxf(building.capacity + SKILL_RULES.RECRUIT_RATE * SKILL_RULES.DURATIONS[0], 90.0):
+			if building.available_population > maxf(building.capacity + SKILL_RULES.RECRUIT_RATE * SKILL_RULES.DURATIONS[0], 90.0):
 				continue
 			var danger: float = threats.get(building.building_id, 0.0)
 			if danger > building.population + 20.0:
 				continue # Six-second recruitment cannot rescue an immediately lost house.
-			var score := 18.0 + maxf(0.0, 30.0 - building.population) * 0.25
+			var score := 18.0 + maxf(0.0, 30.0 - building.available_population) * 0.25
 			score += 5.0 if building.faction == faction else 0.0
 			score += 8.0 if danger > building.population * 0.4 else 0.0
 			if score > best.score:
@@ -213,7 +213,7 @@ func _rabbit_turn(game: Node3D) -> void:
 	if game.can_cast_skill(3, faction):
 		for building: WarBuilding in game.buildings:
 			var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, building, faction)
-			if plan.is_empty() or threats.get(plan.source.building_id, 0.0) >= plan.source.population - plan.count:
+			if plan.is_empty() or threats.get(plan.source.building_id, 0.0) >= plan.source.available_population - plan.count:
 				continue
 			var burning := false
 			for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():

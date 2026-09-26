@@ -44,6 +44,8 @@ func _run() -> void:
 		home.level = tier
 		enemy.level = tier
 		neutral.level = tier
+		# The previous tier's departed army may have captured this destination.
+		neutral.faction = -1
 		home.population = 10.0
 		enemy.population = 10.0
 		neutral.population = 10.0
@@ -69,6 +71,9 @@ func _run() -> void:
 		near(home.population, limit + 1500.0, "large reinforcement survives above the limit without natural growth")
 		home.population = limit
 		check(game.issue_order(home, neutral, 100) == int(limit), "all natural garrison can leave through normal dispatch")
+		# Advance departures alone so natural production cannot obscure the cost.
+		game.marches.tick(5.0)
+		check(home.population == 0.0 and home.queued_population == 0, "the entire garrison is deducted after its final rank exits")
 		game.marches.clear()
 		game.simulate(1.0)
 		near(home.population, rate, "production resumes after dispatch leaves space")

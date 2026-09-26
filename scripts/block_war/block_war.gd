@@ -111,6 +111,8 @@ func _ready() -> void:
 		by_id[building.building_id] = building
 		tower_clocks[building.building_id] = 0.0
 	marches.unit_arrived.connect(_on_unit_arrived)
+	marches.departure_queue_changed.connect(_on_departure_queue_changed)
+	marches.unit_departed.connect(_on_unit_departed)
 	marches.unit_defeated.connect(world_effects.casualty)
 	hud.percentage_changed.connect(set_percentage)
 	hud.skill_requested.connect(request_skill)
@@ -161,6 +163,7 @@ func simulate(delta: float) -> void:
 			step = minf(step, maxf(ai_clock, 0.000001))
 		if marches.has_marchers() or not projectiles.is_empty() or world_effects.has_fire():
 			step = minf(step, 0.05)
+		step = minf(step, marches.departure_step_limit())
 		step = minf(step, world_effects.fire_step_limit())
 		for building: WarBuilding in buildings:
 			if building.is_constructing:
@@ -282,10 +285,10 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		return 0
 	if source.faction != faction or amount_percent not in [25, 50, 75, 100]:
 		return 0
-	var count := floori(source.population * amount_percent / 100.0)
+	var count := floori(source.available_population * amount_percent / 100.0)
 	if count < 1:
 		if faction == PLAYER:
-			hud.notify("当前比例不足 1 名民兵 · 按 4 派出全部驻军")
+			hud.notify("当前比例不足 1 名可用民兵 · 待出发部队已预留")
 			audio.play_ui(&"war_denied")
 		return 0
 	var route: PackedVector3Array = map.get_building_route(source, target)
@@ -294,14 +297,12 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 			hud.notify("没有可通行的路线")
 			audio.play_ui(&"war_denied")
 		return 0
-	source.population -= count
-	source.refresh_visual()
-	marches.send(source.building_id, target.building_id, faction, count, route, 1.0)
+	marches.queue_departure(source.building_id, target.building_id, faction, count, route)
 	if faction == PLAYER:
 		audio.play_ui(&"war_order")
 		var verb := "增援" if FACTIONS.allied(target.faction, PLAYER) else "进攻"
 		var transfer := " · 抵达后归队友指挥" if target.faction != PLAYER and FACTIONS.allied(target.faction, PLAYER) else ""
-		hud.notify("%d 名民兵出发 · %s%s%s" % [count, verb, KIND_NAMES[target.kind], transfer])
+		hud.notify("%d 名民兵依次出发 · %s%s%s" % [count, verb, KIND_NAMES[target.kind], transfer])
 		add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
 	update_hud()
 	return count
@@ -329,6 +330,18 @@ func combat_multiplier(faction: int, target: Node3D) -> float:
 	# this same live coefficient, including ownership and construction changes.
 	return 1.0 + attack_bonus(faction) - defense_bonus(target)
 
+func _on_departure_queue_changed(source_id: int, faction: int, change: int) -> void:
+	var source: WarBuilding = by_id[source_id]
+	assert(source.faction == faction)
+	source.queued_population += change
+	assert(source.queued_population >= 0)
+
+func _on_unit_departed(source_id: int, faction: int) -> void:
+	var source: WarBuilding = by_id[source_id]
+	assert(source.faction == faction and source.population >= 1.0)
+	source.population -= 1.0
+	source.refresh_visual()
+
 func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 	var target: Node3D = by_id[target_id]
 	if FACTIONS.allied(target.faction, faction):
@@ -340,9 +353,13 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float) -> void:
 		var damage: float = strength * combat_multiplier(faction, target)
 		if target.population + 0.00001 >= damage:
 			target.population = maxf(0.0, target.population - damage)
+			if target.queued_population > floori(target.population):
+				marches.trim_departures(target_id, target.faction, floori(target.population))
 		else:
 			var survivors: float = strength * (1.0 - target.population / damage)
 			var previous_faction: int = target.faction
+			if target.queued_population > 0:
+				marches.trim_departures(target_id, previous_faction, 0)
 			target.cancel_construction()
 			target.clear_disruption()
 			target.faction = faction
@@ -410,6 +427,8 @@ func _tick_fire_buildings() -> void:
 			if offset.length() <= fire.front(fire.age):
 				fire.hit_buildings[building.building_id] = true
 				building.population = maxf(0.0, building.population - IMPACT_DAMAGE * (1.0 - defense_bonus(building)))
+				if building.queued_population > floori(building.population):
+					marches.trim_departures(building.building_id, building.faction, floori(building.population))
 				building.refresh_visual()
 
 func tower_range(building: Node3D) -> float:
@@ -626,8 +645,8 @@ func upgrade_selected() -> void:
 	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level or selected.is_constructing:
 		return
 	var cost: int = selected.upgrade_cost
-	if selected.population < cost:
-		hud.notify("升级需要 %d 名驻军" % cost)
+	if selected.available_population < cost:
+		hud.notify("升级需要 %d 名未编入出发队列的驻军" % cost)
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= cost
@@ -640,8 +659,8 @@ func upgrade_selected() -> void:
 func convert_selected(kind: int) -> void:
 	if _local_menu or finished or selected == null or selected.faction != PLAYER or kind not in [0, 1, 2] or selected.kind == kind or selected.is_constructing:
 		return
-	if selected.population < CONVERSION_COST:
-		hud.notify("改建需要 %d 名驻军" % CONVERSION_COST)
+	if selected.available_population < CONVERSION_COST:
+		hud.notify("改建需要 %d 名未编入出发队列的驻军" % CONVERSION_COST)
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= CONVERSION_COST
@@ -660,7 +679,7 @@ func team_total_for(faction: int) -> int:
 	var count: float = marches.team_total_for(faction)
 	for building: WarBuilding in buildings:
 		if FACTIONS.allied(building.faction, faction):
-			count += building.population
+			count += building.available_population
 	return floori(count)
 
 func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, int]) -> float:
@@ -674,7 +693,7 @@ func total_for(faction: int) -> int:
 	var count: float = marches.total_for(faction)
 	for building: Node3D in buildings:
 		if building.faction == faction:
-			count += building.population
+			count += building.available_population
 	return floori(count)
 
 func _check_victory() -> void:
@@ -732,6 +751,8 @@ func update_hud() -> void:
 			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])
 		if selected.disruption_remaining > 0.0:
 			detail += " · 停工 %ds" % ceili(selected.disruption_remaining)
+		if selected.queued_population > 0:
+			detail += " · 待出发 %d · 可用 %d" % [selected.queued_population, floori(selected.available_population)]
 		if selected.faction >= 0 and faction_count > 2:
 			detail = "%s · %s" % [FACTIONS.NAMES[selected.faction], detail]
 			if FACTIONS.allied(selected.faction, PLAYER) and selected.faction != PLAYER:
@@ -739,8 +760,9 @@ func update_hud() -> void:
 	hud.update_state({"player_total": team_total_for(PLAYER), "enemy_total": team_total_for(ENEMY), "time": elapsed,
 		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
-		"send_count": floori(selected.population * percentage / 100.0) if selected != null else 0,
+		"send_count": floori(selected.available_population * percentage / 100.0) if selected != null else 0,
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
+		"selected_available_population": floori(selected.available_population) if selected != null else 0,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_RULES.costs_for(faction_skills[PLAYER].commander),
 		"commander": faction_skills[PLAYER].commander, "enemy_commander": faction_skills[ENEMY].commander,
@@ -752,7 +774,7 @@ func update_hud() -> void:
 		"construction_remaining": selected.construction_remaining if selected != null else 0.0,
 		"conversion_target": selected.conversion_target if selected != null else -1,
 		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": CONVERSION_COST,
-		"can_upgrade": selected != null and selected.faction == PLAYER and not selected.is_constructing and selected.level < selected.max_level and selected.population >= selected.upgrade_cost})
+		"can_upgrade": selected != null and selected.faction == PLAYER and not selected.is_constructing and selected.level < selected.max_level and selected.available_population >= selected.upgrade_cost})
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:

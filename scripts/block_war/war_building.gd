@@ -8,6 +8,11 @@ extends Node3D
 @export var population: float = 20.0
 @export var level: int = 1
 
+# Queued soldiers still defend this building until they cross its doorway.
+var queued_population := 0
+var available_population: float:
+	get: return maxf(0.0, population - queued_population)
+
 const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
 const CONSTRUCTION_DURATION := 10.0

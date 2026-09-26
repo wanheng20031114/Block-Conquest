@@ -85,14 +85,14 @@ func _player_turn() -> void:
 	var best_target: Node3D
 	var best_score := -INF
 	for source: Node3D in game.buildings:
-		if source.faction != 0 or source.population < 15.0:
+		if source.faction != 0 or source.available_population < 15.0:
 			continue
 		for target: Node3D in game.buildings:
 			if target.faction == 0:
 				continue
 			var incoming: int = game.marches.incoming_for(target.building_id, 0)
 			var required: float = target.population / game.combat_multiplier(0, target) + 5.0
-			if incoming >= required or floorf(source.population * 0.75) + incoming < required:
+			if incoming >= required or floorf(source.available_population * 0.75) + incoming < required:
 				continue
 			var route: PackedVector3Array = game.map.get_building_route(source, target)
 			var distance := _route_length(route)
@@ -120,7 +120,7 @@ func _player_turn() -> void:
 					front_distance = distance
 	if front != null and game.marches.incoming_for(front.building_id, 0) < 80:
 		for source: Node3D in game.buildings:
-			if source.faction == 0 and source != front and source.population >= 40.0:
+			if source.faction == 0 and source != front and source.available_population >= 40.0:
 				game.issue_order(source, front, 75)
 				return
 
@@ -140,16 +140,19 @@ func _audit_queue_ownership() -> void:
 	var source: Node3D = game.by_id[0]
 	var target: Node3D = game.by_id[2]
 	source.population = 60.0
+	target.population = 14.0
 	game.issue_order(source, target, 100)
+	game.marches.tick(1.0)
+	var departed: int = game.marches.get_units().size()
+	_check(departed > target.population and departed < 60 and source.queued_population > 0, "a rescue force exits while later ranks still wait inside their source")
 	source.kind = 2
-	source.faction = 1
-	source.population = 0.0
+	game._on_unit_arrived(source.building_id, 1, source.population + 1.0)
 	game._check_victory()
-	_check(not game.finished and game.marches.total_for(0) == 60, "Capturing a source preserves already-dispatched soldiers and delays defeat")
+	_check(not game.finished and source.faction == 1 and source.queued_population == 0 and game.marches.total_for(0) == departed, "capture cancels waiting ranks but preserves departed soldiers and delays defeat")
 	for step: int in 600:
 		game.simulate(0.05)
-	_check(target.faction == 0 and game.marches.total_for(0) == 0, "The old owner's queued soldiers can capture a new home after losing their source")
-	_check(not game.finished, "A successful queued rescue prevents premature defeat")
+	_check(target.faction == 0 and game.marches.total_for(0) == 0, "the old owner's departed soldiers can capture a new home after losing their source")
+	_check(not game.finished, "a successful rescue by departed soldiers prevents premature defeat")
 
 func _audit_empty_conversions() -> void:
 	for building: Node3D in game.buildings:

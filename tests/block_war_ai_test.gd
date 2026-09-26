@@ -57,7 +57,7 @@ func _run() -> void:
 	check(game.selected == game.by_id[0] and game.by_id[0].population == 60.0, "enemy investment does not alter the player's selection or garrison")
 	game._ai_turn()
 	check(game.marches.incoming_for(4, 1) + game.marches.incoming_for(5, 1) == 25, "opening chooses a nearby neutral residence with a sufficient legal wave")
-	check(home.population == 25.0 and game.total_for(1) == 50, "expansion keeps a guard and conserves all unspent troops")
+	check(home.available_population == 25.0 and home.population == 50.0 and game.total_for(1) == 50, "expansion reserves its wave, keeps a guard and conserves all troops")
 	game._ai_turn()
 	check(game.total_for(1) == 50 and game.marches.total_for(1) == 25, "pending construction and expansion cannot be paid twice")
 	game.simulate(9.9)
@@ -102,7 +102,7 @@ func _run() -> void:
 	game.by_id[0].population = 40.0
 	game.issue_order(game.by_id[0], home, 75)
 	game._ai_turn()
-	check(game.marches.incoming_for(1, 1) == 20 and second.population == 60.0, "a threatened residence receives reinforcements before any development")
+	check(game.marches.incoming_for(1, 1) == 20 and second.available_population == 60.0 and second.population == 80.0, "a threatened residence receives reserved reinforcements before any development")
 	check(home.population == 18.0 and not home.is_constructing, "incoming attackers prevent investment or dispatch from the endangered home")
 	game._ai_turn()
 	check(game.marches.incoming_for(1, 1) == 20, "reinforcement planning accounts for the support already on its way")
@@ -116,7 +116,7 @@ func _run() -> void:
 	game.by_id[0].population = 100.0
 	game.issue_order(game.by_id[0], home, 100)
 	game._ai_turn()
-	check(game.marches.incoming_for(1, 1) == 20 and second.population == 20.0, "partial relief uses a legal safe percentage even when the full deficit is unaffordable")
+	check(game.marches.incoming_for(1, 1) == 20 and second.available_population == 20.0 and second.population == 40.0, "partial relief reserves a legal safe percentage even when the full deficit is unaffordable")
 	game._ai_turn()
 	check(not home.is_constructing and not second.is_constructing, "unresolved invasion suspends nonessential spending")
 
@@ -233,7 +233,7 @@ func _run() -> void:
 	var target_id := 4 if game.marches.incoming_for(4, 1) > 0 else 5
 	var source_id := 5 if target_id == 4 else 4
 	check(game.marches.incoming_for(target_id, 1) > 0, "surplus troops gather even when both homes share an X coordinate")
-	check(game.by_id[source_id].population >= 14.0, "rear consolidation preserves the donor's garrison")
+	check(game.by_id[source_id].available_population >= 14.0, "rear consolidation preserves the donor's uncommitted garrison")
 	game._ai_turn()
 	check(game.marches.incoming_for(source_id, 1) == 0, "consolidation never bounces troops back toward the donor")
 
@@ -242,7 +242,7 @@ func _run() -> void:
 	home.population = 220.0
 	game.by_id[0].population = 10.0
 	game._ai_turn()
-	check(game.marches.incoming_for(0, 1) > 0 and home.population >= 100.0, "a prepared army commits enough troops and keeps substantial reserves")
+	check(game.marches.incoming_for(0, 1) > 0 and home.available_population >= 100.0, "a prepared army commits enough troops and keeps substantial uncommitted reserves")
 	var committed: int = game.marches.total_for(1)
 	game.elapsed += 3.0
 	game._ai_turn()

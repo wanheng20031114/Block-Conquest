@@ -89,7 +89,7 @@ func run() -> void:
 	check(home._selection_body_tween != null and home._selection_body_tween.is_running(), "native building press starts the selected rebound animation")
 	move_mouse(target_screen, target_screen - source_screen, MOUSE_BUTTON_MASK_LEFT)
 	mouse(target_screen, MOUSE_BUTTON_LEFT, false)
-	check(game.marches.incoming_for(target.building_id, 0) == 45 and home.population == 15.0, "dragging from building to building dispatches selected percentage")
+	check(game.marches.incoming_for(target.building_id, 0) == 45 and home.available_population == 15.0 and home.population == 60.0, "dragging between buildings reserves the selected percentage for departure")
 	check(game.drag_source == null and game.order_route.is_empty(), "release clears drag preview")
 	var percent_button: Button = game.hud.get_node("UI/Percentages/Stack/P25")
 	var percent_screen := percent_button.get_global_rect().get_center()

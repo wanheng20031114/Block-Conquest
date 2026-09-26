@@ -46,7 +46,8 @@ func take_turn(game: Node3D) -> void:
 		var reserve := _base_reserve(game, building)
 		reserve += game.incoming_damage_for(building, incoming)
 		_reserves[building.building_id] = reserve
-		if reserve > building.population + _incoming_for(building.building_id, faction):
+		# Guards already committed to an exit queue will not remain to defend here.
+		if reserve > building.available_population + _incoming_for(building.building_id, faction):
 			unsafe = unsafe or _incoming_for(building.building_id, 1 - faction % 2) > 0
 	if _reinforce(game):
 		return
@@ -98,10 +99,11 @@ func _enemy_distance(game: Node3D, source: WarBuilding) -> float:
 
 func _dispatch_percent(source: WarBuilding, reserve: float, needed: float) -> int:
 	# Use the player's four dispatch choices, but never empty a garrison.
+	var available := source.available_population
 	var partial := 0
 	for percent: int in [25, 50, 75]:
-		var count := floori(source.population * percent / 100.0)
-		if source.population - count >= reserve:
+		var count := floori(available * percent / 100.0)
+		if available - count >= reserve:
 			partial = percent
 			if count >= needed:
 				return percent
@@ -112,16 +114,16 @@ func _reinforce(game: Node3D) -> bool:
 	for target: WarBuilding in game.buildings:
 		if not game.FACTIONS.allied(target.faction, faction) or _incoming_for(target.building_id, 1 - faction % 2) == 0:
 			continue
-		var missing: float = _reserves[target.building_id] - target.population - _incoming_for(target.building_id, faction)
+		var missing: float = _reserves[target.building_id] - target.available_population - _incoming_for(target.building_id, faction)
 		if missing <= 0.0:
 			continue
 		for source: WarBuilding in game.buildings:
 			if source == target or source.faction != faction:
 				continue
 			var percent := _dispatch_percent(source, _reserves[source.building_id], missing)
-			if percent == 0 or floori(source.population * percent / 100.0) < 5:
+			if percent == 0 or floori(source.available_population * percent / 100.0) < 5:
 				continue
-			var score := minf(missing, floorf(source.population * percent / 100.0)) - _distance(game, source, target) * 0.3
+			var score := minf(missing, floorf(source.available_population * percent / 100.0)) - _distance(game, source, target) * 0.3
 			if best.is_empty() or score > best.score:
 				best = {"source": source, "target": target, "percent": percent, "score": score}
 	if best.is_empty():
@@ -150,12 +152,12 @@ func _development(game: Node3D, homes: int, constructing: int) -> Dictionary:
 		elif building.level >= building.max_level:
 			continue
 		elif building.kind == 0:
-			if building.population < building.capacity * 0.7:
+			if building.available_population < building.capacity * 0.7:
 				continue
-			score = [38.0, 24.0, 15.0][building.level - 1] + 6.0 * minf(1.0, building.population / building.capacity)
+			score = [38.0, 24.0, 15.0][building.level - 1] + 6.0 * minf(1.0, building.available_population / building.capacity)
 		elif building.kind == 1 and homes >= 2 and game.total_for(faction) >= 100 and _enemy_distance(game, building) < FRONT_DISTANCE:
 			score = 18.0 - cost * 0.1
-		if score <= 0.0 or building.population < cost + reserve:
+		if score <= 0.0 or building.available_population < cost + reserve:
 			continue
 		if best.is_empty() or score > best.score:
 			best = {"building": building, "cost": cost, "kind": kind, "score": score}
@@ -181,8 +183,8 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 			var percent := 0
 			var required := 0.0
 			for option: int in [25, 50, 75]:
-				var count := floori(source.population * option / 100.0)
-				if count < 1 or source.population - count < reserve:
+				var count := floori(source.available_population * option / 100.0)
+				if count < 1 or source.available_population - count < reserve:
 					continue
 				var departure := Vector2i(source.building_id, count)
 				if not _departure_delays.has(departure):
@@ -251,14 +253,14 @@ func _consolidate(game: Node3D) -> void:
 			continue
 		var reserve: float = _reserves[source.building_id]
 		if source.kind == 0:
-			if source.population < source.capacity * 0.85:
+			if source.available_population < source.capacity * 0.85:
 				continue
 			# Rear residences keep their next investment as well as a defensive guard.
 			if not source.is_constructing:
 				reserve += source.upgrade_cost
 		for percent: int in [75, 50, 25]:
-			var count := floori(source.population * percent / 100.0)
-			if count < 8 or source.population - count < reserve:
+			var count := floori(source.available_population * percent / 100.0)
+			if count < 8 or source.available_population - count < reserve:
 				continue
 			var score := count - _distance(game, source, front) * 0.3
 			if best.is_empty() or score > best.score:

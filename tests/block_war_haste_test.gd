@@ -41,6 +41,7 @@ func _run() -> void:
 	game.camera_rig.set_process(false)
 	game.ai_enabled = false
 	game.audio.muted = true
+	reset() # These movement fixtures need a funded skill pool after the 30-energy opening.
 	for building: WarBuilding in game.buildings:
 		building.kind = 2
 		building.population = 1000.0

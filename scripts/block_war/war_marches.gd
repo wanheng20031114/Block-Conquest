@@ -5,6 +5,8 @@ extends Node3D
 
 signal unit_arrived(target_id: int, faction: int, strength: float)
 signal unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool)
+signal departure_queue_changed(source_id: int, faction: int, change: int)
+signal unit_departed(source_id: int, faction: int)
 
 const COLUMNS := 6
 const COLUMN_SPACING := 0.56
@@ -34,13 +36,16 @@ class MarchUnit extends RefCounted:
 	var heading: Vector3 = Vector3.FORWARD
 	var gait: float
 	var spawn_delay := 0.0
+	var pending_departure := false
+	var departure_sequence := 0
 
 	func is_exposed() -> bool:
-		return alive and distance >= 0.0 and spawn_delay <= 0.0
+		return alive and not pending_departure and distance >= 0.0 and spawn_delay <= 0.0
 
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 var _units: Array[MarchUnit] = []
 var haste_zones: Dictionary[int, Dictionary] = {}
+var _departure_sequence := 0
 
 func _ready() -> void:
 	_multimesh.instance_count = 4096
@@ -72,9 +77,19 @@ func _make_order(source_id: int, target_id: int, faction: int, route: PackedVect
 	return order
 
 func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0) -> void:
+	# Transport soldiers whose source has already paid for them (including fixtures).
+	_send(source_id, target_id, faction, count, route, strength, false)
+
+func queue_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array) -> void:
+	# Normal building orders reserve a garrison, then pay one soldier per departure.
+	_send(source_id, target_id, faction, count, route, 1.0, true)
+
+func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool) -> void:
 	if count <= 0:
 		return
 	var order := _make_order(source_id, target_id, faction, route, strength)
+	if from_garrison:
+		departure_queue_changed.emit(source_id, faction, count)
 	# All exits of a building share one queue, including orders heading to different sides.
 	var first_distance := 0.0
 	for existing: MarchUnit in _units:
@@ -86,6 +101,9 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 	for index: int in count:
 		var unit := MarchUnit.new()
 		unit.order = order
+		unit.pending_departure = from_garrison
+		unit.departure_sequence = _departure_sequence
+		_departure_sequence += 1
 		var row: int = index / columns
 		var row_count := mini(columns, count - row * columns)
 		unit.lane = (float(index % columns) - float(row_count - 1) * 0.5) * COLUMN_SPACING
@@ -94,10 +112,42 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 		# Adjacent ranks share a cadence, with a restrained phase offset per file.
 		unit.gait = float(row % 2) * 0.35 + float(index % columns) * 0.08
 		if unit.distance >= 0.0:
+			_depart(unit)
 			_update_pose(unit)
 		_units.append(unit)
 	_ensure_capacity(_units.size())
 	_render()
+
+func _depart(unit: MarchUnit) -> void:
+	if not unit.pending_departure:
+		return
+	unit.pending_departure = false
+	departure_queue_changed.emit(unit.order.source_id, unit.order.faction, -1)
+	unit_departed.emit(unit.order.source_id, unit.order.faction)
+
+func trim_departures(source_id: int, faction: int, remaining: int) -> void:
+	var pending: Array[MarchUnit] = []
+	for unit: MarchUnit in _units:
+		if unit.pending_departure and unit.order.source_id == source_id and unit.order.faction == faction:
+			pending.append(unit)
+	var cancelled := pending.size() - maxi(0, remaining)
+	if cancelled <= 0:
+		return
+	# Combat removal swaps array slots. An explicit sequence preserves older orders.
+	pending.sort_custom(func(a: MarchUnit, b: MarchUnit): return a.departure_sequence > b.departure_sequence)
+	for index: int in cancelled:
+		pending[index].alive = false
+		pending[index].pending_departure = false
+	_units = _units.filter(func(unit: MarchUnit): return unit.alive)
+	departure_queue_changed.emit(source_id, faction, -cancelled)
+
+func departure_step_limit() -> float:
+	# Production changes only after a real departure creates room in the garrison.
+	var limit := INF
+	for unit: MarchUnit in _units:
+		if unit.pending_departure:
+			limit = minf(limit, maxf(0.000001, -unit.distance / SPEED))
+	return limit
 
 func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float) -> void:
 	var order := _make_order(source_id, target_id, faction, route)
@@ -139,6 +189,8 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		unit.distance += step
 		unit.gait += step * 7.0
 		if unit.distance >= 0.0:
+			# Debit before exposure, fire contact or arrival, even within a long tick.
+			_depart(unit)
 			_update_pose(unit)
 			# Check the visible part of the movement before arrival is settled.
 			# Queued soldiers are protected until they actually emerge from a doorway.
@@ -366,9 +418,17 @@ func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> Packed
 	return intervals
 
 func clear() -> void:
+	var cancelled: Dictionary[Vector2i, int] = {}
 	for unit: MarchUnit in _units:
+		if unit.pending_departure:
+			var source := Vector2i(unit.order.source_id, unit.order.faction)
+			cancelled[source] = cancelled.get(source, 0) + 1
+			unit.pending_departure = false
 		unit.alive = false
 	_units.clear()
+	for source: Vector2i in cancelled:
+		departure_queue_changed.emit(source.x, source.y, -cancelled[source])
+	_departure_sequence = 0
 	haste_zones.clear()
 	_multimesh.visible_instance_count = 0
 
@@ -390,7 +450,7 @@ func _ensure_capacity(required: int) -> void:
 	if required <= _multimesh.instance_count:
 		return
 	# Allocation is exceptional; the initial 4096-slot resource covers normal play.
-	# Grow rather than cap: dispatch has already deducted every soldier at its source.
+	# Grow rather than cap: every entry represents a paid soldier or a reservation.
 	var capacity := maxi(4096, _multimesh.instance_count)
 	while capacity < required:
 		capacity *= 2
