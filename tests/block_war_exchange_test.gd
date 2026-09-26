@@ -63,7 +63,7 @@ func _run() -> void:
 			target.level = maxi(1, tier)
 			for count: int in 6:
 				forges(count)
-				var coefficient: float = coefficients[tier][count] - (0.5 if shielded else 0.0)
+				var coefficient: float = coefficients[tier][count] - (0.25 if shielded else 0.0)
 				var label := "tower=%d forges=%d shield=%s" % [tier, count, shielded]
 				near(game.combat_multiplier(0, target), coefficient, label + " additive coefficient")
 				target.population = 100.0
@@ -160,7 +160,7 @@ func _run() -> void:
 	target.level = 2
 	check(game.overlay.dispatch_advantage() == 0, "equal ten-percent attack and defense cancel with no symbol")
 	game.shields[target.building_id] = 10.0
-	check(game.overlay.dispatch_advantage() == -3, "net fifty-percent disadvantage stacks three downward chevrons")
+	check(game.overlay.dispatch_advantage() == -2, "net twenty-five-percent disadvantage stacks two downward chevrons")
 	for owner: int in [0, 2]:
 		target.faction = owner
 		check(game.overlay.dispatch_advantage() == 0, "own and allied reinforcements have no combat symbol")

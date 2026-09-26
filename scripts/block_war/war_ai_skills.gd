@@ -35,7 +35,7 @@ func take_turn(game: Node3D) -> void:
 			var danger := threats[id]
 			if danger < 8.0 or danger < building.population * 0.55:
 				continue
-			var score := minf(danger * 0.5, 45.0) + (28.0 if danger >= building.population else 12.0)
+			var score := minf(danger * SKILL_RULES.SHIELD_DEFENSE, 45.0) + (28.0 if danger >= building.population else 12.0)
 			if score > best.score:
 				best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
 	if game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[0] + SKILL_RULES.COSTS[2]:

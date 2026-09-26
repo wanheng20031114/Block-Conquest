@@ -84,7 +84,7 @@ func run() -> void:
 	check(game.cast_skill(2, home), "shield targets allied building")
 	home.population = 50.0
 	game._on_unit_arrived(0, 1, 1.0)
-	check(is_equal_approx(home.population, 49.5), "shield halves incoming building damage")
+	check(is_equal_approx(home.population, 49.25), "shield reduces ordinary incoming building damage by twenty-five percent")
 	game.cooldowns[3] = 0.0
 	game.energy = game.ENERGY_MAX
 	tower.faction = -1

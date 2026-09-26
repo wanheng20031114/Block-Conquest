@@ -165,7 +165,9 @@ func _run() -> void:
 	home.level = 4
 	home.population = 80.0
 	game.by_id[0].kind = 2
-	game.by_id[0].population = 25.0
+	# With the planner's margin: 30 / .75 * 1.35 + 10 = 64 troops
+	# under the wall, versus 50.5 after expiry; this home can dispatch at most 60.
+	game.by_id[0].population = 30.0
 	game.shields[0] = 10.0
 	game._ai_turn()
 	check(game.marches.total_for(1) == 0, "shield defense prevents an understrength assault")

@@ -152,8 +152,9 @@ func _run() -> void:
 	near(game.faction_skills[1].energy, 64.0, "computer reserves energy rather than spending its final shield budget")
 	await reset_match()
 	game.elapsed = 10.0
-	game.by_id[1].population = 15.0
-	expose(0, 20, Vector3(-10, 0, 0), Vector3.ZERO)
+	# A 25% wall reduces this 24-person threat to 18, below the garrison of 20.
+	game.by_id[1].population = 20.0
+	expose(0, 24, Vector3(-10, 0, 0), Vector3.ZERO)
 	game.faction_skills[1].cooldowns[3] = 100.0
 	TACTICS.new(1).take_turn(game)
 	check(game.shields.has(1), "imminent dangerous attack chooses defense ahead of economy")
