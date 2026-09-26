@@ -560,7 +560,6 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER, locked_source
 			add_effect(target.global_position, Color(1.0, 0.8, 0.25), "skill", 1.1)
 		2:
 			shields[target.building_id] = SKILL_DURATIONS[2]
-			add_effect(target.global_position, Color(0.45, 0.8, 1.0), "skill", 1.1)
 	_commit_skill(index, faction)
 	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield"]
 	audio.play_world(skill_sounds[index], target.global_position)

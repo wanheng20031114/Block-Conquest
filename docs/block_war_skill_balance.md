@@ -48,7 +48,11 @@
 
 本轮专项检查 **782 项通过**：火焰 54、技力/拖拽 185、电脑技能 98、兔子规则 92、兔子输入与战术 92、原生输入 24、玩法 43、攻防换损 194。覆盖瞬时中心命中、向外扩散、第一排立即出洞、短间隔分排、真实人口扣除、暂停、友军误伤、电脑火攻的新预判时距，以及防护罩名称、球形资源和暂停冻结。
 
-最新原生预览：[动态防护罩](art/block_war_shield_gloss.gif)、[火攻与兔洞的释放时序](art/block_war_instant_casts.gif)。由 `block_war_responsiveness_visual.gd` 捕获释放当帧起的画面，以 12 FPS 正常速度合成；兔洞片段在第 2 秒结束后定格 1 秒。另核对四级住宅的罩体、技能名称提示及封条、集合旗的释放帧。
+最新原生预览：[扫光形成防护罩](art/block_war_shield_gloss.gif)、[火攻与兔洞的释放时序](art/block_war_instant_casts.gif)。护罩由 `block_war_shield_sweep_visual.gd` 捕获实际渲染，24 FPS 正常速度，施放前停留约 0.33 秒、施放后展示 3 秒，末帧停留约 0.42 秒。火攻与兔洞由 `block_war_responsiveness_visual.gd` 捕获，以 12 FPS 正常速度合成；兔洞片段在第 2 秒结束后定格 1 秒。
+
+2026-09-26 防护罩起手改为一次斜向掠过的贴面光弧：0.26 秒扫过球面，光弧身后留下透明罩体，0.16—0.34 秒衔接原有流动高光。采用窄亮边和短柔光尾迹，弧度来自球面的深度，避免平直的白色光条遮住建筑。移除施放时的通用中心爆粒与扩散地面圆环；原有边缘微粒在起手完成后才出现。防御加成依旧在松手当帧生效。
+
+实现沿用原生 SphereMesh 和 MultiMesh；每个罩体通过 INSTANCE_CUSTOM 接收自己的模拟年龄，暂停时扫光和持续流光一起冻结。依据 Godot [空间着色器文档](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html)使用 MODELVIEW_MATRIX 计算贴面扫光，没有新增节点或材质贴图。私有桌面复核一级住宅、四级住宅、三级炮塔的释放帧与后续光泽；技力/拖拽专项 295 项通过，包含防护罩不触发通用爆粒的回归检查。
 
 此前版本原生画面：[默认松鼠](art/block_war_squirrel_default.png)、[区域疾行](art/block_war_squirrel_haste.png)、[本轮四技能动画](art/block_war_skills_review.gif)。GIF 以 12 FPS 合成；Q/W/E 在最后一秒保留第 3 秒的画面，R 展示完整 4 秒片段。
 
@@ -62,4 +66,7 @@
 
 # 原生粒子截图（后台隔离桌面；进程树由 job object 自动回收）
 python tools/run_godot_private_desktop.py tests/block_war_responsiveness_visual.gd --output "$env:TEMP/block_war_responsiveness_review"
+
+# 护罩弧形扫光：住宅、四级住宅与炮塔的实际帧
+python tools/run_godot_private_desktop.py tests/block_war_shield_sweep_visual.gd --output "$env:TEMP/block_war_shield_sweep_review"
 ```

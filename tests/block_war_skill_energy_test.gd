@@ -463,8 +463,11 @@ func _native_selection_and_hud() -> void:
 	check(game.armed_skill == -1 and game.energy == 70.0, "A cooling card cannot begin a drag or spend twice")
 	mouse(e.get_global_rect().get_center(), true)
 	check(game.armed_skill == 2 and not game.shields.has(home.building_id), "E also waits for release even with its target selected")
+	var burst_cursor: int = game.world_effects._next
+	var ring_count: int = game.effects.size()
 	mouse(home_at, false)
 	check(game.shields.has(home.building_id) and game.cooldowns[2] == 45.0 and game.energy == 35.0, "E drop applies its shield and pays once")
+	check(game.world_effects._next == burst_cursor and game.effects.size() == ring_count, "Shield release never triggers the generic central burst or expanding ground ring")
 	check(e.hint.title == "防护罩", "E tooltip uses the requested simple shield name")
 	var shell: MultiMesh = game.world_effects.get_node("Shield").multimesh
 	check(shell.mesh is SphereMesh and shell.visible_instance_count == 1, "E release immediately shows the original spherical shield")

@@ -149,11 +149,12 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 	count = 0
 	for id: int in shields:
 		var building: WarBuilding = by_id[id]
-		var color: Color = WarMarches.FACTION_COLORS[building.faction]
+		var age := maxf(0.0, SKILL_RULES.DURATIONS[2] - float(shields[id]))
 		walls.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 1.0, 0)))
-		walls.set_instance_custom_data(count, Color(color, shields[id] / SKILL_RULES.DURATIONS[2]))
+		# Each building's sweep follows its own simulation age, including pause.
+		walls.set_instance_custom_data(count, Color(age, 0.0, 0.0, shields[id] / SKILL_RULES.DURATIONS[2]))
 		count += 1
-		if emit:
+		if emit and age >= 0.34:
 			for mote: int in 3:
 				_mote_serial += 1
 				var angle := _mote_serial * 2.399963
