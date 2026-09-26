@@ -45,11 +45,11 @@ max_polyphony = 2
 [node name="cancel" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("cancel")
 bus = &"UI"
-volume_db = -2.0
+volume_db = -8.0
 max_polyphony = 2
 
 [node name="ratio" type="AudioStreamPlayer" parent="."]
 stream = SubResource("ratio")
 bus = &"UI"
-volume_db = -3.0
+volume_db = -11.0
 max_polyphony = 2

@@ -27,6 +27,13 @@ func _sample() -> float:
 	await create_timer(0.25).timeout
 	return _rms()
 
+func _seek_playback(playback: AudioStreamPlayback, seconds: float) -> void:
+	# This test seeks the decoder directly to retain the chosen random song.
+	# MP3 decoder state must not be mutated while the native mixer is reading it.
+	AudioServer.lock()
+	playback.seek(seconds)
+	AudioServer.unlock()
+
 func _check_library(pool: AudioStreamRandomizer) -> void:
 	_check(pool.streams_count == 2 and pool.playback_mode == AudioStreamRandomizer.PLAYBACK_RANDOM, "native music library chooses randomly from two approved tracks")
 	_check(pool.random_pitch == 1.0 and pool.random_volume_offset_db == 0.0, "music randomization preserves each song's pitch and volume")
@@ -71,10 +78,10 @@ func _run() -> void:
 	var capture_slot := AudioServer.get_bus_effect_count(0)
 	AudioServer.add_bus_effect(0, capture)
 	var playback: AudioStreamPlayback = music.get_stream_playback()
-	playback.seek(12.0)
+	_seek_playback(playback, 12.0)
 	_check(await _sample() > 0.001, "approved music produces real PCM in the native Master mix")
 	# Seek the current playback directly; player.play/seek would roll a new song.
-	playback.seek(music.stream.get_length() - 0.15)
+	_seek_playback(playback, music.stream.get_length() - 0.15)
 	var previous_loops := playback.get_loop_count()
 	await create_timer(0.6).timeout
 	_check(music.playing and playback.get_loop_count() > previous_loops and music.get_playback_position() < 2.0 and playback == music.get_stream_playback(), "the chosen song loops without rolling a new native playback")

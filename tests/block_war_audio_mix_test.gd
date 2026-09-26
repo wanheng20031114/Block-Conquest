@@ -31,10 +31,13 @@ func _clear() -> void:
 	capture.clear_buffer()
 
 func _measure() -> Vector2:
+	return _measure_frames(capture.get_buffer(capture.get_frames_available()))
+
+func _measure_frames(frames: PackedVector2Array) -> Vector2:
 	var peak := 0.0
 	var energy := 0.0
 	var active := 0
-	for frame: Vector2 in capture.get_buffer(capture.get_frames_available()):
+	for frame: Vector2 in frames:
 		peak = maxf(peak, maxf(absf(frame.x), absf(frame.y)))
 		if frame.length_squared() > 0.0000000001:
 			energy += frame.length_squared()
@@ -83,6 +86,30 @@ func _run() -> void:
 		var level := _measure()
 		_check(level.y > 0.005 and level.x <= db_to_linear(-0.9), "%s reaches the real Master mix (RMS %.1f dBFS, peak %.1f dBFS)" % [kind, linear_to_db(level.y), linear_to_db(level.x)])
 	_check(sample_count == 44, "all 44 campaign variants loaded")
+	# Regression: positive event gains used to be silently clamped by max_db=0.
+	# Compare the same source before combat compression, which intentionally
+	# reduces the gain difference at the final mix's loudest transients.
+	var gain_probe: AudioStreamPlayer3D = audio.get_node("Combat/Voice00")
+	var probe_capture := AudioEffectCapture.new()
+	probe_capture.buffer_length = 2.0
+	var combat_bus := AudioServer.get_bus_index(&"Combat")
+	AudioServer.add_bus_effect(combat_bus, probe_capture, 0)
+	var probe_levels: Array[float] = []
+	for gain: float in [0.0, 3.0]:
+		await _clear()
+		probe_capture.clear_buffer()
+		gain_probe.stream = WAR_BANK.EVENTS[&"war_skill_command"].streams[0]
+		gain_probe.volume_db = gain
+		gain_probe.pitch_scale = 1.0
+		gain_probe.global_position = Vector3(8, 0, 0)
+		gain_probe.play()
+		await create_timer(gain_probe.stream.get_length() + 0.12).timeout
+		probe_levels.append(_measure_frames(probe_capture.get_buffer(probe_capture.get_frames_available())).y)
+	AudioServer.remove_bus_effect(combat_bus, 0)
+	_check(probe_levels[1] > probe_levels[0] * 1.3, "authored +3 dB reaches the native spatial mix before bus compression")
+	var feedback: Node = root.get_node("Session/UIFeedback")
+	for kind: String in ["order", "cancel", "ratio"]:
+		_check(is_equal_approx(feedback.get_node(kind).volume_db, WAR_BANK.EVENTS["war_" + kind].gain_db), kind + " has matching menu and battlefield gain")
 	await _clear()
 	for request in range(500):
 		audio.play_world(&"war_melee", Vector3.ZERO)

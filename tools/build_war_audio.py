@@ -24,33 +24,35 @@ USED = set()
 SOURCE_PACKS = json.loads((ROOT / "assets/audio/sources.json").read_text(encoding="utf-8"))["packs"]
 
 # name, variants, bus, gain dB, priority, minimum gap ms, simultaneous limit
+# Balanced against the native spatial mix, not just the source WAVs. Campaign
+# 3D voices allow up to +3 dB; do not silently clamp these authored gains to 0.
 EVENTS = [
     ("select", 2, "UI", -6, 2, 95, 2),
     ("drag", 2, "UI", -8, 1, 140, 2),
-    ("ratio", 2, "UI", -3, 2, 75, 2),
+    ("ratio", 2, "UI", -11, 2, 100, 2),
     ("order", 2, "UI", -3, 3, 150, 2),
-    ("denied", 1, "UI", -1, 4, 350, 1),
-    ("cancel", 1, "UI", -2, 2, 130, 1),
+    ("denied", 1, "UI", -8, 4, 350, 1),
+    ("cancel", 1, "UI", -8, 2, 130, 1),
     ("pause", 1, "UI", -1, 4, 180, 1),
-    ("resume", 1, "UI", -1, 4, 180, 1),
-    ("march", 4, "Foley", 2, 1, 190, 2),
+    ("resume", 1, "UI", -4, 4, 180, 1),
+    ("march", 4, "Foley", -3, 1, 190, 2),
     ("melee", 4, "Combat", -1, 2, 130, 3),
-    ("capture", 2, "UI", 0, 5, 550, 2),
-    ("lost", 1, "UI", 0, 5, 650, 1),
+    ("capture", 2, "UI", -5, 5, 550, 2),
+    ("lost", 1, "UI", -5, 5, 650, 1),
     ("reinforce", 2, "Combat", -2, 2, 280, 2),
-    ("upgrade", 2, "Combat", 1, 4, 500, 2),
-    ("rebuild", 2, "Combat", 1, 4, 500, 2),
+    ("upgrade", 2, "Combat", 0, 4, 500, 2),
+    ("rebuild", 2, "Combat", 0, 4, 500, 2),
     ("skill_command", 1, "Combat", 2, 5, 550, 1),
-    ("skill_drum", 1, "Combat", 2, 5, 650, 1),
+    ("skill_drum", 1, "Combat", -1, 5, 650, 1),
     ("skill_shield", 1, "Combat", 1, 5, 650, 1),
     ("skill_breach", 2, "Combat", 1, 6, 500, 2),
     ("rabbit_dash", 1, "Combat", 1, 5, 120, 2),
-    ("rabbit_seal", 2, "Combat", 1, 5, 120, 2),
-    ("rabbit_recall", 1, "Combat", -1, 5, 120, 2),
-    ("rabbit_burrow", 2, "Combat", 1, 5, 120, 2),
+    ("rabbit_seal", 2, "Combat", 2, 5, 120, 2),
+    ("rabbit_recall", 1, "Combat", -3, 5, 120, 2),
+    ("rabbit_burrow", 2, "Combat", 3, 5, 120, 2),
     ("projectile_hit", 2, "Combat", -3, 3, 120, 3),
-    ("victory", 1, "UI", 0, 7, 1200, 1),
-    ("defeat", 1, "UI", 0, 7, 1200, 1),
+    ("victory", 1, "UI", -4, 7, 1200, 1),
+    ("defeat", 1, "UI", -4, 7, 1200, 1),
 ]
 
 DESCRIPTIONS = {
