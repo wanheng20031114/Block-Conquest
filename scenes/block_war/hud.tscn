@@ -537,17 +537,17 @@ shadow_size = 9
 
 [sub_resource type="StyleBoxFlat" id="SkillEnergyBackground"]
 bg_color = Color(0.05, 0.08, 0.055, 0.66)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_left = 2
-corner_radius_bottom_right = 2
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
 
 [sub_resource type="StyleBoxFlat" id="SkillEnergyFill"]
 bg_color = Color(0.98, 1, 0.965, 0.96)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_left = 2
-corner_radius_bottom_right = 2
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
 
 [sub_resource type="StyleBoxFlat" id="WhiteSkillCooldown"]
 bg_color = Color(0.23, 0.29, 0.26, 0.40)
