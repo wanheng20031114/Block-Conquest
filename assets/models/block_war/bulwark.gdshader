@@ -1,16 +1,25 @@
 shader_type spatial;
-render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
+render_mode blend_mix, depth_draw_never, cull_back, shadows_disabled;
 uniform float visual_time = 0.0;
 varying vec4 effect_data;
-void vertex() { effect_data = INSTANCE_CUSTOM; }
+varying vec3 dome_direction;
+void vertex() {
+	effect_data = INSTANCE_CUSTOM;
+	dome_direction = normalize(VERTEX);
+}
 void fragment() {
-	float ribs = pow(abs(cos(UV.x * 12.0 * 3.14159)), 32.0);
-	float lower = exp(-abs(UV.y - 0.9) * 45.0);
-	float crest = exp(-abs(UV.y - 0.15) * 50.0);
-	float rise = fract(visual_time * 0.23 + UV.x * 2.0);
-	float glint = exp(-abs(UV.y - (1.0 - rise)) * 40.0) * ribs;
-	float fade = smoothstep(0.0, 0.15, effect_data.a);
-	ALBEDO = mix(vec3(0.73, 0.85, 0.84), effect_data.rgb, 0.23);
-	EMISSION = ALBEDO * (lower * 0.4 + glint * 0.3);
-	ALPHA = (0.025 + ribs * 0.18 + lower * 0.46 + crest * 0.055 + glint * 0.24) * fade;
+	vec3 dome = normalize(dome_direction);
+	float rim = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 2.8);
+	// Broad moving reflections restore the original blue bubble without hiding the roof.
+	vec3 light_sweep = normalize(vec3(cos(visual_time * 0.7), 0.9, sin(visual_time * 0.7)));
+	float sheen = pow(max(dot(dome, light_sweep), 0.0), 28.0);
+	float band = pow(0.5 + 0.5 * sin(UV.y * 36.0 - visual_time * 2.2), 12.0);
+	float pulse = 0.94 + 0.06 * sin(visual_time * 1.8);
+	float fade = smoothstep(0.0, 0.09, effect_data.a);
+	ALBEDO = mix(vec3(0.26, 0.63, 0.76), vec3(0.83, 0.96, 1.0), sheen);
+	ROUGHNESS = 0.16;
+	SPECULAR = 0.75;
+	CLEARCOAT = 0.65;
+	EMISSION = vec3(0.30, 0.74, 0.9) * (rim * 0.3 + band * 0.055) + vec3(0.7, 0.92, 1.0) * sheen * 0.75;
+	ALPHA = (0.025 + rim * 0.43 * pulse + band * 0.018 + sheen * 0.3) * fade;
 }

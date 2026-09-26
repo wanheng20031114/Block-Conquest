@@ -112,9 +112,9 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not game.FACTIONS.allied(unit.order.faction, faction):
 			continue
-		if unit.spawn_delay >= WarFireWave.WINDUP_TIME + WarFireWave.BURN_TIME:
+		if unit.spawn_delay >= WarFireWave.BURN_TIME:
 			continue
-		var end := minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, WarFireWave.WINDUP_TIME + WarFireWave.BURN_TIME))
+		var end := minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, WarFireWave.BURN_TIME))
 		if end < 0.0:
 			continue
 		var start := maxf(0.0, unit.distance)
@@ -133,7 +133,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	for unit: WarMarches.MarchUnit in visible:
 		if not game.FACTIONS.hostile(unit.order.faction, faction):
 			continue
-		var lead: float = game.marches.movement_distance(unit, WarFireWave.WINDUP_TIME + 0.3)
+		var lead: float = game.marches.movement_distance(unit, WarFireWave.EXPANSION_TIME * 0.5)
 		if unit.distance + lead >= unit.order.length:
 			continue
 		var at := unit.order.curve.sample_baked(unit.distance + lead)
@@ -217,7 +217,7 @@ func _rabbit_turn(game: Node3D) -> void:
 				continue
 			var burning := false
 			for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():
-				if fire.age + SKILL_RULES.BURROW_WARNING < WarFireWave.BURN_TIME and fire.global_position.distance_to(plan.exit) <= game.IMPACT_RADIUS + 0.7:
+				if fire.age < WarFireWave.BURN_TIME and fire.global_position.distance_to(plan.exit) <= game.IMPACT_RADIUS + 0.7:
 					burning = true
 			if burning:
 				continue
@@ -227,7 +227,8 @@ func _rabbit_turn(game: Node3D) -> void:
 				if danger >= building.population * 0.75 and danger > 8.0:
 					score = 25.0 + minf(plan.count, danger) * 1.5
 			else:
-				var growth := minf(maxf(0.0, building.capacity - building.population), building.production_rate * 4.0) if building.disruption_remaining <= 0.0 else 0.0
+				var arrival := SKILL_RULES.BURROW_EXIT_DISTANCE / WarMarches.SPEED + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
+				var growth := minf(maxf(0.0, building.capacity - building.population), building.production_rate * maxf(0.0, arrival - building.disruption_remaining))
 				var damage: float = plan.count * game.combat_multiplier(faction, building)
 				var committed: int = game.marches.team_incoming_for(building.building_id, faction)
 				if committed == 0 and damage > building.population + growth + 2.0 and plan.length >= 9.0:

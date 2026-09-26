@@ -99,7 +99,7 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 	_ensure_capacity(_units.size())
 	_render()
 
-func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, warning: float, interval: float) -> void:
+func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float) -> void:
 	var order := _make_order(source_id, target_id, faction, route)
 	for index: int in count:
 		var unit := MarchUnit.new()
@@ -107,7 +107,7 @@ func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route
 		unit.distance = 0.0
 		unit.lane = (float(index % COLUMNS) - 2.5) * COLUMN_SPACING
 		unit.gait = float(index % COLUMNS) * 0.08
-		unit.spawn_delay = warning + floorf(float(index) / COLUMNS) * interval
+		unit.spawn_delay = floorf(float(index) / COLUMNS) * interval
 		_update_pose(unit)
 		_units.append(unit)
 	_ensure_capacity(_units.size())
@@ -254,6 +254,15 @@ func hit_target(unit: MarchUnit, impulse: Vector3) -> bool:
 	_defeat(_units.find(unit), impulse, false)
 	_render()
 	return true
+
+func ignite_at(center: Vector3, radius: float) -> void:
+	# Resolve the ignition core on release, using the same contact rule as expansion.
+	var core := {"center": center, "from_radius": radius, "to_radius": radius, "active_fraction": 1.0}
+	for index: int in range(_units.size() - 1, -1, -1):
+		var unit := _units[index]
+		if unit.is_exposed() and fire_contact(unit.position, unit.position, core) >= 0.0:
+			_defeat(index, (unit.position - center).normalized(), true)
+	_render()
 
 func _defeat(index: int, impulse: Vector3, burning: bool) -> void:
 	var unit := _units[index]

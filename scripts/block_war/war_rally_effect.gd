@@ -12,7 +12,7 @@ func tick(delta: float) -> void:
 	if age > 1.6:
 		return
 	age += delta
-	var reveal := smoothstep(0.0, 0.16, age) * (1.0 - smoothstep(1.0, 1.5, age))
+	var reveal := lerpf(0.88, 1.0, smoothstep(0.0, 0.09, age)) * (1.0 - smoothstep(1.0, 1.5, age))
 	$Marker.scale = Vector3.ONE * reveal
 	$Marker.rotation.z = sin(age * 12.0) * exp(-age * 3.5) * 0.1
 	$Marker/Flag.material.set_shader_parameter("visual_time", age)

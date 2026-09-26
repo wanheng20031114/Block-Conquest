@@ -72,7 +72,7 @@ static func cast(game: Node3D, index: int, target: WarBuilding, faction: int, lo
 				return false
 			plan.source.population -= plan.count
 			plan.source.refresh_visual()
-			game.marches.send_tunnel(plan.source.building_id, target.building_id, faction, plan.count, plan.route, RULES.BURROW_WARNING, RULES.BURROW_BATCH_INTERVAL)
+			game.marches.send_tunnel(plan.source.building_id, target.building_id, faction, plan.count, plan.route, RULES.BURROW_BATCH_INTERVAL)
 			game.world_effects.get_node("Rabbit").start_tunnel(faction, plan.entrance, plan.exit, plan.route[1] - plan.route[0], plan.count)
 		_:
 			return false

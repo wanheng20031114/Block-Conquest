@@ -398,7 +398,7 @@ func _tick_projectiles(delta: float) -> void:
 
 func _tick_fire_buildings() -> void:
 	for fire: WarFireWave in world_effects.get_node("FireWaves").get_children():
-		if fire.age < 0.0 or fire.age > WarFireWave.BURN_TIME:
+		if fire.age >= WarFireWave.BURN_TIME:
 			continue
 		for building: WarBuilding in buildings:
 			if FACTIONS.allied(building.faction, fire.faction) or fire.hit_buildings.has(building.building_id):
@@ -537,7 +537,7 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER, locked_source
 			if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择附近有部队可召回的自己的建筑", "附近需要有至少 22 人的自己的建筑"][index])
 			else:
-				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受壁垒保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
+				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
@@ -585,11 +585,13 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 	if index == 1:
 		marches.create_haste_zone(faction, center, SKILL_RULES.HASTE_RADIUS, SKILL_DURATIONS[1], SKILL_RULES.HASTE_MULTIPLIER)
 	else:
-		world_effects.start_fire(center, IMPACT_RADIUS, faction)
+		var fire: WarFireWave = world_effects.start_fire(center, IMPACT_RADIUS, faction)
+		marches.ignite_at(center, fire.front(0.0))
+		_tick_fire_buildings()
 	_commit_skill(index, faction)
 	audio.play_world(&"war_skill_drum" if index == 1 else &"war_skill_breach", center)
 	if faction == PLAYER:
-		hud.notify("疾行区域已展开 · 圈内自己的部队提速，离开恢复" if index == 1 else "地面蓄热后点燃 · 接触火焰的双方士兵都会死亡")
+		hud.notify("疾行区域已展开 · 圈内自己的部队提速，离开恢复" if index == 1 else "火焰已点燃 · 接触火焰的双方士兵都会死亡")
 	world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 	update_hud()
 	return true
@@ -721,7 +723,7 @@ func update_hud() -> void:
 			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 守备 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, selected.level * 5]
 			2: detail = "所属军团攻击 +10% · 不可升级 · 不自动产兵"
 		if shields.has(selected.building_id):
-			detail += " · 壁垒 %ds" % ceili(shields[selected.building_id])
+			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])
 		if selected.disruption_remaining > 0.0:
 			detail += " · 停工 %ds" % ceili(selected.disruption_remaining)
 		if selected.faction >= 0 and faction_count > 2:

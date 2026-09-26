@@ -130,6 +130,7 @@ func _native_input() -> void:
 	motion(screen(plan.target))
 	mouse(screen(plan.target), false)
 	check(game.marches.total_for(0) == 30, "native R release creates thirty real passengers")
+	check(game.marches.get_units().size() == 6, "native R release exposes the first rank in the same frame")
 	near(game.energy, 35.0, "native R release pays correct energy")
 
 func _boundaries() -> void:
@@ -160,8 +161,8 @@ func _boundaries() -> void:
 	check(game.marches.total_for(0) == 30, "capturing donor cannot delete paid passengers")
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		check(unit.order.faction == 0, "hidden passenger retains original faction")
-	game.simulate(1.3)
-	check(game.marches.get_units().size() == 6, "passengers still emerge after donor capture")
+	game.simulate(0.33)
+	check(game.marches.get_units().size() == 18, "passengers continue emerging promptly after donor capture")
 	await reset()
 	var forge := enemy()
 	forge.kind = 2

@@ -11,8 +11,8 @@ func _ready() -> void:
 	$Fields.multimesh.visible_instance_count = 0
 
 func start_tunnel(faction: int, entrance: Vector3, exit: Vector3, direction: Vector3, count: int) -> void:
-	var duration := RULES.BURROW_WARNING + floorf(float(count - 1) / WarMarches.COLUMNS) * RULES.BURROW_BATCH_INTERVAL + 0.3
-	$Tunnels.get_child(faction * 2).start(entrance, direction, 1.35)
+	var duration := floorf(float(count - 1) / WarMarches.COLUMNS) * RULES.BURROW_BATCH_INTERVAL + 0.3
+	$Tunnels.get_child(faction * 2).start(entrance, direction, 0.45)
 	$Tunnels.get_child(faction * 2 + 1).start(exit, direction, duration)
 
 func start_rally(faction: int, at: Vector3) -> void:

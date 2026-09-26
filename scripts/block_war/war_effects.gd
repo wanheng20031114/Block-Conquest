@@ -38,10 +38,11 @@ func casualty(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, bur
 	if not burning:
 		hit(at + Vector3(0, 0.6, 0), impulse)
 
-func start_fire(at: Vector3, radius: float, faction: int = 0) -> void:
+func start_fire(at: Vector3, radius: float, faction: int = 0) -> WarFireWave:
 	var fire: WarFireWave = $FireWaves.get_child(_next_fire)
 	_next_fire = (_next_fire + 1) % $FireWaves.get_child_count()
 	fire.start(at, radius, faction)
+	return fire
 
 func has_fire() -> bool:
 	for fire: WarFireWave in $FireWaves.get_children():
@@ -52,7 +53,7 @@ func has_fire() -> bool:
 func fire_step_limit() -> float:
 	var step := INF
 	for fire: WarFireWave in $FireWaves.get_children():
-		for boundary: float in [0.0, WarFireWave.EXPANSION_TIME, WarFireWave.EMISSION_TIME, WarFireWave.BURN_TIME]:
+		for boundary: float in [WarFireWave.EXPANSION_TIME, WarFireWave.EMISSION_TIME, WarFireWave.BURN_TIME]:
 			if fire.age < boundary:
 				step = minf(step, boundary - fire.age)
 	return step
@@ -60,7 +61,7 @@ func fire_step_limit() -> float:
 func fire_segments(delta: float) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for fire: WarFireWave in $FireWaves.get_children():
-		if fire.age >= 0.0 and fire.age < WarFireWave.BURN_TIME:
+		if fire.age < WarFireWave.BURN_TIME:
 			result.append(fire.segment(delta))
 	return result
 
@@ -149,7 +150,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 	for id: int in shields:
 		var building: WarBuilding = by_id[id]
 		var color: Color = WarMarches.FACTION_COLORS[building.faction]
-		walls.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 1.3, 0)))
+		walls.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 1.0, 0)))
 		walls.set_instance_custom_data(count, Color(color, shields[id] / SKILL_RULES.DURATIONS[2]))
 		count += 1
 		if emit:

@@ -119,19 +119,17 @@ func _run() -> void:
 		check(game.cast_ground_skill(3, Vector3(-35 + faction * 12, 0, 0), faction), "six simultaneous fires use independent pool entries")
 	for faction: int in 6:
 		var fire: WarFireWave = game.world_effects.get_node("FireWaves").get_child(faction)
-		check(fire.faction == faction and fire.age < 0.0, "every warning retains its caster")
+		check(fire.faction == faction and fire.age == 0.0, "every instant fire retains its caster")
 	await reset_match()
 	var center := Vector3.ZERO
 	for faction: int in 6:
 		game.by_id[faction].position = center + Vector3((faction - 3) * 0.2, 0, 0)
 		game.by_id[faction].kind = 2 # Isolate damage from post-hit residential regrowth.
 	game.cast_ground_skill(3, center, 1)
-	game.simulate(0.6)
-	near(game.by_id[0].population, 60.0, "warning cannot damage a garrison")
-	game.simulate(WarFireWave.WINDUP_TIME - 0.6)
+	near(game.by_id[2].population, 35.0, "AI fire damages an opposing garrison in its ignition core immediately")
 	expose(1, 1, center, center + Vector3(20, 0, 0))
 	expose(0, 1, center, center + Vector3(20, 0, 0))
-	game.simulate(1.15)
+	game.simulate(WarFireWave.EXPANSION_TIME)
 	for faction: int in 6:
 		near(game.by_id[faction].population, 60.0 if faction % 2 == 1 else 35.0, "enemy fire protects its own alliance and damages opponents")
 	check(game.marches._units.is_empty(), "AI fire burns both exposed factions")
@@ -183,7 +181,7 @@ func _run() -> void:
 	check(TACTICS.new(1)._fire_target(game, visible_units()).is_empty(), "near-arrival ally still blocks friendly fire")
 	game.marches.clear()
 	expose(0, 24, Vector3(-3, 0, 2), Vector3(28, 0, 2), 0)
-	expose(3, 1, Vector3(10, 0, 2), Vector3(-15, 0, 2), 3)
+	expose(3, 1, Vector3(8, 0, 2), Vector3(-15, 0, 2), 3)
 	check(TACTICS.new(1)._fire_target(game, visible_units()).is_empty(), "friend crossing later in the burn window blocks fire")
 	game.marches.clear()
 	expose(0, 7, Vector3(-3, 0, 2), Vector3(28, 0, 2), 0)

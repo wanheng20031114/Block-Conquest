@@ -2180,7 +2180,7 @@ offset_bottom = 482.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "拖动图标或按住 Q / W / E / R 瞄准，松手施放；电脑使用相同技力与冷却。\n征召与壁垒不叠加；W 在落点建立 4.5 米疾行区域，8 秒内仅圈内自己的部队提速 60%。\nR 蓄热 0.8 秒后扩散至 4.5 米，接触的双方士兵均死亡。"
+text = "拖动图标或按住 Q / W / E / R 瞄准，松手立即施放；电脑使用相同技力与冷却。\n松鼠的征召与防护罩不叠加；W 在落点建立疾行区域，仅圈内自己的部队提速。\n松鼠 R 立即点燃并快速扩散，接触的双方士兵均死亡；兔子 R 松手即出兵。"
 
 [node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0

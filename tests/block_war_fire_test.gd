@@ -56,11 +56,15 @@ func _run() -> void:
 	var partition_totals: Array[Vector2i] = []
 	for small_steps: bool in [false, true]:
 		await reset_match()
-		check(game.cast_ground_skill(3, CENTER), "ground fire begins at a valid point")
-		check(game.energy == 30.0 and game.cooldowns[3] == 70.0, "warning pays once and starts R's independent cooldown")
+		var core_friend := spawn(CENTER, 0)
+		var core_enemy := spawn(CENTER, 1)
 		var escaping := spawn(CENTER + Vector3(0, 0, 4), 0)
-		game.simulate(WarFireWave.WINDUP_TIME)
-		check(escaping.alive and deaths.is_empty(), "warning gives exposed soldiers time to escape without damage")
+		check(game.cast_ground_skill(3, CENTER), "ground fire begins at a valid point")
+		check(game.energy == 30.0 and game.cooldowns[3] == 70.0, "instant cast pays once and starts R's independent cooldown")
+		check(not core_friend.alive and not core_enemy.alive, "release immediately burns both factions in the ignition core")
+		check(escaping.alive, "outer soldiers are struck by the spreading fire, not an invisible full-radius hit")
+		var started_wave: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
+		check(started_wave.age == 0.0 and started_wave.get_node("Flames").emitting and started_wave.get_node("Light").light_energy > 0.0, "fire and light start in the release frame without a windup")
 		game.marches.clear()
 		var inner: Array[WarMarches.MarchUnit] = []
 		var middle: Array[WarMarches.MarchUnit] = []
@@ -87,7 +91,7 @@ func _run() -> void:
 		far.position = CENTER + Vector3(4.51, 0, 0)
 		far.population = 100.0
 		check(inner[0].alive and inner[1].alive and enemy.population == 100.0, "ignition does not erase the entire radius before the flame arrives")
-		game.simulate(0.2)
+		game.simulate(0.03)
 		check(not inner[0].alive and not inner[1].alive, "inner flame kills both factions")
 		check(middle[0].alive and middle[1].alive and outside[0].alive, "soldiers ahead of the expanding front remain alive")
 		check(enemy.population == 100.0, "distant building is untouched until the fire reaches it")
@@ -121,7 +125,6 @@ func _run() -> void:
 	check(partition_totals[0] == partition_totals[1], "large and small frame partitions produce the same survivors")
 	await reset_match()
 	check(game.cast_ground_skill(3, CENTER), "crowded opposing formations can be ignited together")
-	game.simulate(WarFireWave.WINDUP_TIME)
 	for faction: int in [0, 1]:
 		for troop: int in 300:
 			spawn(CENTER, faction)

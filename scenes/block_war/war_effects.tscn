@@ -49,15 +49,12 @@ mesh = SubResource("BallMesh")
 resource_local_to_scene = true
 shader = ExtResource("bulwark")
 
-[sub_resource type="CylinderMesh" id="shield_mesh"]
+[sub_resource type="SphereMesh" id="shield_mesh"]
 material = SubResource("shield_material")
-top_radius = 3.1
-bottom_radius = 3.25
-height = 2.6
-radial_segments = 12
-rings = 1
-cap_top = false
-cap_bottom = false
+radius = 3.25
+height = 6.5
+radial_segments = 48
+rings = 24
 
 [sub_resource type="MultiMesh" id="Shields"]
 resource_local_to_scene = true

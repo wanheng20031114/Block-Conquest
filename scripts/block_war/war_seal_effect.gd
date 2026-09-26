@@ -17,10 +17,10 @@ func tick(delta: float) -> void:
 	if age > duration + 0.4:
 		return
 	age += delta
-	var progress := clampf(age / 0.22, 0.0, 1.0)
+	var progress := clampf(age / 0.10, 0.0, 1.0)
 	var rebound := 1.0 + 2.4 * pow(progress - 1.0, 3.0) + 1.4 * pow(progress - 1.0, 2.0)
 	var release := smoothstep(duration - 0.12, duration + 0.35, age)
-	$Seal.scale = Vector3.ONE * lerpf(0.5, 1.0, rebound) * (1.0 - release * 0.4)
+	$Seal.scale = Vector3.ONE * lerpf(0.88, 1.0, rebound) * (1.0 - release * 0.4)
 	$Seal.position.y = release * 0.55
 	$Seal.rotation.z = -0.10 + release * 0.7
 	$Seal/Paper.material.set_shader_parameter("visual_time", age)

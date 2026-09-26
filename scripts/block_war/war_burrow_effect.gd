@@ -1,6 +1,7 @@
 extends Node3D
 ## A physical earth lip, dark opening, grass tufts and a courier pennant.
 const FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
+const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var age := 100.0
 var duration := 3.4
 var last_batch := -1
@@ -27,12 +28,12 @@ func tick(delta: float) -> void:
 	if age > duration + 0.5:
 		return
 	age += delta
-	var open := lerpf(0.18, 1.0, smoothstep(0.05, 1.2, age))
+	var open := 1.0 + sin(age * 24.0) * exp(-age * 16.0) * 0.07
 	var close := 1.0 - smoothstep(duration, duration + 0.4, age)
 	$Mouth.scale = Vector3(1.25 * open * close, maxf(0.05, close), open * close)
-	$Mouth.position.y = sin(age * 31.0) * 0.018 * (1.0 - smoothstep(0.5, 1.2, age))
+	$Mouth.position.y = sin(age * 31.0) * 0.018 * exp(-age * 14.0)
 	$Mouth/Pennant.material.set_shader_parameter("visual_time", age)
-	var batch := floori((age - 1.2) / 0.4)
+	var batch := floori(age / RULES.BURROW_BATCH_INTERVAL)
 	if batch >= 0 and batch != last_batch and age < duration:
 		_soil(6)
 		last_batch = batch

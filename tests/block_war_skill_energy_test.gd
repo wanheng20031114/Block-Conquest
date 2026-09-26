@@ -312,7 +312,7 @@ func _ground_impact() -> void:
 	near(enemy.population, 100.0, "Ignition does not damage distant buildings before the flame arrives")
 	var wave: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
 	check(wave.visible and wave.global_position.is_equal_approx(center), "Native fire effect starts at the requested ground location")
-	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.EXPANSION_TIME)
 	near(ally.population, 100.0, "Ground impact leaves friendly buildings unharmed")
 	near(enemy.population, 75.0, "Residence level grants no passive defense against ground impact")
 	check(neutral.population == 0.0 and neutral.faction == -1, "Ground impact damages neutral garrison but never captures it")
@@ -326,7 +326,7 @@ func _ground_impact() -> void:
 	check(game.cast_ground_skill(3, empty), "A valid empty ground location is still a deliberate cast")
 	near(game.energy, 0.0, "Casting on empty ground still pays the full cost")
 	near(game.cooldowns[3], 70.0, "Casting on empty ground still starts cooldown")
-	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.EXPANSION_TIME)
 	near(enemy.population, 75.0, "Empty-ground fire does not damage distant buildings")
 
 
@@ -401,6 +401,15 @@ func _native_selection_and_hud() -> void:
 	check(game.armed_skill == 2 and not game.shields.has(home.building_id), "E also waits for release even with its target selected")
 	mouse(home_at, false)
 	check(game.shields.has(home.building_id) and game.cooldowns[2] == 45.0 and game.energy == 35.0, "E drop applies its shield and pays once")
+	check(e.hint.title == "防护罩", "E tooltip uses the requested simple shield name")
+	var shell: MultiMesh = game.world_effects.get_node("Shield").multimesh
+	check(shell.mesh is SphereMesh and shell.visible_instance_count == 1, "E release immediately shows the original spherical shield")
+	var material: ShaderMaterial = shell.mesh.material
+	var shell_time: float = material.get_shader_parameter("visual_time")
+	game.set_paused(true)
+	game.simulate(0.4)
+	near(material.get_shader_parameter("visual_time"), shell_time, "shield gloss freezes with the paused battle")
+	game.set_paused(false)
 	game.energy = 69.0
 	game.update_hud()
 	check(r.disabled, "HUD disables R when common energy is below seventy")
@@ -434,7 +443,7 @@ func _native_selection_and_hud() -> void:
 	near(enemy.population, before_enemy, "Distant enemy is not damaged before the flame reaches it")
 	var fire: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
 	check(fire.global_position.distance_to(impact_at) < 0.01, "Native fire starts at the exact release point")
-	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
+	game.simulate(WarFireWave.EXPANSION_TIME)
 	near(enemy.population, before_enemy - 25.0, "Screen-cast fire reaches the enemy inside its radius")
 	game.cooldowns[3] = 0.0
 	game.energy = 100.0
