@@ -72,14 +72,14 @@ func _run() -> void:
 		game.marches.clear()
 		game.simulate(1.0)
 		near(home.population, rate, "production resumes after dispatch leaves space")
-		# Q contributes +5/s while normal production uses the same tier rate/cap.
+		# Q contributes +4/s while normal production uses the same tier rate/cap.
 		game.energy = 100.0
 		game.cooldowns[0] = 0.0
 		home.population = limit - 1.0
 		check(game.cast_skill(0, home), "near-cap residence accepts Q")
 		game.simulate(8.0)
 		var result: float = home.population
-		near(result, limit - 1.0 + 30.0 + rate / (5.0 + rate), "Q crossing the cap integrates both rates exactly")
+		near(result, limit - 1.0 + 24.0 + rate / (4.0 + rate), "Q crossing the cap integrates both rates exactly")
 		game.energy = 100.0
 		game.cooldowns[0] = 0.0
 		home.population = limit - 1.0
@@ -92,7 +92,7 @@ func _run() -> void:
 		home.population = limit + 20.0
 		check(game.cast_skill(0, home), "over-cap residence accepts Q")
 		game.simulate(7.0)
-		near(home.population, limit + 50.0, "Q adds thirty above the cap and then stops")
+		near(home.population, limit + 44.0, "Q adds twenty-four above the cap and then stops")
 	# Each purchase accepts the exact cost, rejects fractional shortfalls, and
 	# changes the model, natural rate and limit only after ten seconds of work.
 	game.select_building(home)
@@ -128,7 +128,7 @@ func _run() -> void:
 	game.simulate(1.0)
 	game.upgrade_selected()
 	game.simulate(1.0)
-	near(home.population, 12.0, "active Q retains the 1/s natural rate during construction")
+	near(home.population, 10.0, "active Q retains the 1/s natural rate during construction")
 	game._cancel_recruitment()
 	game.simulate(9.0)
 	check(home.level == 2 and not home.is_constructing, "construction completes after Q is cancelled")

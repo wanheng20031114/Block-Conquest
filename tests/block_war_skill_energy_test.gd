@@ -111,7 +111,7 @@ func _run() -> void:
 
 func _energy_and_cooldowns() -> void:
 	near(game.energy, 100.0, "New match starts with full shared energy")
-	check(game.SKILL_ENERGY_COSTS == [30.0, 40.0, 35.0, 60.0], "Q/W/E/R expose distinct energy costs")
+	check(game.SKILL_ENERGY_COSTS == [30.0, 30.0, 35.0, 70.0], "Squirrel Q/W/E/R expose their balanced energy costs")
 	game.simulate(0.25)
 	near(game.energy, 100.0, "Regeneration cannot exceed the energy cap")
 	game.energy = 20.0
@@ -125,11 +125,13 @@ func _energy_and_cooldowns() -> void:
 	check(game.cast_skill(0, home), "Q can begin on the player's residence")
 	near(game.energy, 70.0, "Q spends thirty from the common pool")
 	near(home.population, original_population, "Q does not award troops instantly")
-	check(game.cast_skill(1, null), "W can cast while Q is cooling")
-	near(game.energy, 30.0, "W spends forty from that same pool")
+	check(game.cast_ground_skill(1, Vector3.ZERO), "W can place a local field while Q is cooling")
+	near(game.energy, 40.0, "W spends thirty from that same pool")
 	check(game.cooldowns == [35.0, 28.0, 0.0, 0.0], "Casting Q and W starts only their own cooldowns")
-	check(not game.cast_skill(2, home), "E is unaffordable after Q and W despite being off cooldown")
-	near(game.energy, 30.0, "Rejected E spends no energy")
+	check(game.can_cast_skill(2), "Q and W leave enough energy for a defensive E")
+	game.energy = 34.0
+	check(not game.cast_skill(2, home), "E rejects a one-energy shortfall despite being off cooldown")
+	near(game.energy, 34.0, "Rejected E spends no energy")
 	near(game.cooldowns[2], 0.0, "Rejected E starts no cooldown")
 	game.energy = 35.0
 	check(game.cast_skill(2, home), "Exactly thirty-five energy is sufficient for E")
@@ -138,7 +140,7 @@ func _energy_and_cooldowns() -> void:
 	game.simulate(1.0)
 	near(game.energy, 2.0, "Energy regeneration continues while all three skills cool")
 	check(game.cooldowns == [34.0, 27.0, 44.0, 0.0], "Each cooldown advances independently by elapsed time")
-	near(home.population, original_population + 5.0, "Q continues alongside W and E")
+	near(home.population, original_population + 4.0, "Q continues alongside W and E")
 	var before_cooldowns: Array = game.cooldowns.duplicate()
 	var before_durations: Array = game.active_durations.duplicate()
 	var before_time: float = game.elapsed
@@ -154,7 +156,7 @@ func _energy_and_cooldowns() -> void:
 	near(game.energy, 100.0, "Paused cast consumes nothing")
 	game.set_paused(false)
 	game.simulate(0.25)
-	near(home.population, before_population + 1.25, "Resume continues the remaining recruitment duration")
+	near(home.population, before_population + 1.0, "Resume continues the remaining recruitment duration")
 	game.finished = true
 	game.energy = 12.0
 	game.simulate(5.0)
@@ -178,7 +180,7 @@ func _invalid_casts() -> void:
 		check(not game.cast_skill(2, target), "E rejects missing or non-allied targets")
 	for index: int in [-1, 4]:
 		check(not game.cast_skill(index, home) and not game.can_cast_skill(index), "Invalid skill index is rejected")
-	check(not game.cast_skill(3, enemy), "R cannot bypass ground targeting through the building-cast API")
+	check(not game.cast_skill(3, enemy) and not game.cast_skill(1, null), "Neither W nor R can bypass ground targeting through the building-cast API")
 	check(not game.cast_ground_skill(0, Vector3.ZERO), "Ground-cast API rejects non-R skills")
 	for at: Vector3 in [Vector3.INF, Vector3(NAN, 0, 0), Vector3(40.01, 0, 0), Vector3(0, 0, 28.01)]:
 		check(not game.cast_ground_skill(3, at), "R rejects non-finite or out-of-map ground coordinates")
@@ -186,12 +188,12 @@ func _invalid_casts() -> void:
 	check(game.cooldowns == [0.0, 0.0, 0.0, 0.0], "All invalid targets preserve all cooldowns")
 	for index: int in 4:
 		game.energy = game.SKILL_ENERGY_COSTS[index] - 0.01
-		var success: bool = game.cast_ground_skill(index, Vector3.ZERO) if index == 3 else game.cast_skill(index, home)
+		var success: bool = game.cast_ground_skill(index, Vector3.ZERO) if index in [1, 3] else game.cast_skill(index, home)
 		check(not success and not game.can_cast_skill(index), "Skill %d rejects even a fractional energy shortfall" % index)
 		near(game.energy, game.SKILL_ENERGY_COSTS[index] - 0.01, "Failed skill %d has no partial payment" % index)
 		game.energy = 100.0
 		game.cooldowns[index] = 0.1
-		success = game.cast_ground_skill(index, Vector3.ZERO) if index == 3 else game.cast_skill(index, home)
+		success = game.cast_ground_skill(index, Vector3.ZERO) if index in [1, 3] else game.cast_skill(index, home)
 		check(not success and not game.can_cast_skill(index), "Skill %d must also satisfy its own cooldown" % index)
 		near(game.energy, 100.0, "Cooldown rejection %d spends no energy" % index)
 		game.cooldowns[index] = 0.0
@@ -207,7 +209,7 @@ func _recruitment_growth() -> void:
 	check(game.cast_skill(0, home), "Q starts its six-second recruitment period")
 	near(game.active_durations[0], 6.0, "Q exposes its full duration for HUD feedback")
 	game.simulate(0.2)
-	near(home.population - control.population, 1.0, "A subsecond frame grants proportional recruitment in addition to normal production")
+	near(home.population - control.population, 0.8, "A subsecond frame grants proportional recruitment in addition to normal production")
 	# Starting above the soft cap isolates recruitment from ordinary +1/s growth.
 	home.population = home.capacity + 10.0
 	var baseline: float = home.population
@@ -215,17 +217,17 @@ func _recruitment_growth() -> void:
 	for delta: float in [0.1, 0.25, 0.65, 1.35, 5.4]:
 		game.simulate(delta)
 		recruited_time = minf(5.8, recruited_time + delta)
-		near(home.population, baseline + recruited_time * 5.0, "Q integrates exactly the active part of irregular delta %s" % delta)
-	near(home.population, baseline + 29.0, "Q's remaining 5.8 seconds produce exactly twenty-nine more troops")
+		near(home.population, baseline + recruited_time * 4.0, "Q integrates exactly the active part of irregular delta %s" % delta)
+	near(home.population, baseline + 23.2, "Q's remaining 5.8 seconds produce exactly 23.2 more troops")
 	near(game.active_durations[0], 0.0, "Q ends at exactly six active seconds")
 	game.simulate(3.0)
-	near(home.population, baseline + 29.0, "Expired recruitment cannot keep granting over-cap troops")
+	near(home.population, baseline + 23.2, "Expired recruitment cannot keep granting over-cap troops")
 	# A second legal cast after its independent cooldown covers a single long frame.
 	game.simulate(35.0)
 	baseline = home.population
 	check(game.cast_skill(0, home), "Q becomes reusable after its cooldown and energy recover")
 	game.simulate(8.0)
-	near(home.population, baseline + 30.0, "A frame spanning all six seconds grants thirty, never forty")
+	near(home.population, baseline + 24.0, "A frame spanning all six seconds grants twenty-four, never thirty-two")
 	near(game.active_durations[0], 0.0, "Long-frame recruitment also expires cleanly")
 	game.energy = 100.0
 	game.cooldowns[0] = 0.0
@@ -233,7 +235,7 @@ func _recruitment_growth() -> void:
 	check(game.cast_skill(0, home), "Q can start just below the ordinary production cap")
 	game.simulate(6.0)
 	var whole_step: float = home.population
-	near(whole_step, home.capacity + 29.0 + 1.0 / 6.0, "Only the first one-sixth second of ordinary growth contributes while Q crosses the cap")
+	near(whole_step, home.capacity + 23.0 + 1.0 / 5.0, "Only the first one-fifth second of ordinary growth contributes while Q crosses the cap")
 	game.energy = 100.0
 	game.cooldowns[0] = 0.0
 	home.population = home.capacity - 1.0
@@ -270,7 +272,7 @@ func _recruitment_interruption() -> void:
 	game.convert_selected(2)
 	check(home.kind == 0 and home.is_constructing and game.active_durations[0] == 6.0, "Conversion keeps the residence and its recruitment during construction")
 	game.simulate(2.0)
-	near(home.population, 190.0, "Conversion costs twenty and the original Q continues recruiting")
+	near(home.population, 188.0, "Conversion costs twenty and the original Q continues recruiting")
 	near(game.energy, 74.0, "Conversion preserves the original Q payment and normal regeneration")
 	game.simulate(6.0)
 	game.cooldowns[0] = 0.0
@@ -278,9 +280,9 @@ func _recruitment_interruption() -> void:
 	check(game.cast_skill(0, home), "Residence can begin recruitment late in its conversion")
 	game.simulate(2.0)
 	check(home.kind == 2 and not home.is_constructing and game.active_durations[0] == 0.0, "Completing conversion into a forge cancels remaining recruitment")
-	near(home.population, 220.0, "Recruitment contributes only its two seconds before conversion completes")
+	near(home.population, 212.0, "Recruitment contributes only its two seconds before conversion completes")
 	game.simulate(2.0)
-	near(home.population, 220.0, "Converted forge cannot receive the remaining four seconds of Q")
+	near(home.population, 212.0, "Converted forge cannot receive the remaining four seconds of Q")
 
 
 func _ground_impact() -> void:
@@ -305,27 +307,27 @@ func _ground_impact() -> void:
 	edge.position = center + Vector3(-4.5, 0, 0)
 	edge.faction = 1
 	check(game.cast_ground_skill(3, center), "R accepts a chosen ground point without requiring a building there")
-	near(game.energy, 40.0, "Ground impact spends sixty shared energy")
-	check(game.cooldowns == [0.0, 0.0, 0.0, 60.0], "R starts only its sixty-second cooldown")
+	near(game.energy, 30.0, "Ground impact spends seventy shared energy")
+	check(game.cooldowns == [0.0, 0.0, 0.0, 70.0], "R starts only its seventy-second cooldown")
 	near(enemy.population, 100.0, "Ignition does not damage distant buildings before the flame arrives")
 	var wave: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
 	check(wave.visible and wave.global_position.is_equal_approx(center), "Native fire effect starts at the requested ground location")
 	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
 	near(ally.population, 100.0, "Ground impact leaves friendly buildings unharmed")
-	near(enemy.population, 65.0, "Residence level grants no passive defense against ground impact")
+	near(enemy.population, 75.0, "Residence level grants no passive defense against ground impact")
 	check(neutral.population == 0.0 and neutral.faction == -1, "Ground impact damages neutral garrison but never captures it")
-	near(edge.population, 65.0, "A hostile building exactly on the radius is hit")
+	near(edge.population, 75.0, "A hostile building exactly on the radius is hit")
 	near(outside.population, 100.0, "A hostile building just outside the radius is untouched")
 	game.simulate(0.5)
-	near(enemy.population, 65.0, "The lingering fire does not repeatedly damage the same garrison")
-	game.energy = 60.0
+	near(enemy.population, 75.0, "The lingering fire does not repeatedly damage the same garrison")
+	game.energy = 70.0
 	game.cooldowns[3] = 0.0
 	var empty := Vector3(0, 0, 26)
 	check(game.cast_ground_skill(3, empty), "A valid empty ground location is still a deliberate cast")
 	near(game.energy, 0.0, "Casting on empty ground still pays the full cost")
-	near(game.cooldowns[3], 60.0, "Casting on empty ground still starts cooldown")
+	near(game.cooldowns[3], 70.0, "Casting on empty ground still starts cooldown")
 	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
-	near(enemy.population, 65.0, "Empty-ground fire does not damage distant buildings")
+	near(enemy.population, 75.0, "Empty-ground fire does not damage distant buildings")
 
 
 func _native_skill_hint(button: Button) -> void:
@@ -337,7 +339,7 @@ func _native_skill_hint(button: Button) -> void:
 		var card: Control = cards[0]
 		check(card.get_parent().size.y < 240, "native tooltip fits its text without a tall empty backplate")
 		check(card.get_node("%Title").text == "征召军令" and card.get_node("%Shortcut").text == "[Q]", "hover card separates the skill title and shortcut")
-		check(card.get_node("%Description").text.contains("每秒征召 5 人") and card.get_node("%Stats").text.contains("35 秒"), "hover card exposes effect, energy cost and cooldown")
+		check(card.get_node("%Description").text.contains("每秒征召 4 人") and card.get_node("%Stats").text.contains("35 秒"), "hover card exposes effect, energy cost and cooldown")
 		var identity := card.get_instance_id()
 		game.energy = 25.0
 		game.update_hud()
@@ -399,11 +401,11 @@ func _native_selection_and_hud() -> void:
 	check(game.armed_skill == 2 and not game.shields.has(home.building_id), "E also waits for release even with its target selected")
 	mouse(home_at, false)
 	check(game.shields.has(home.building_id) and game.cooldowns[2] == 45.0 and game.energy == 35.0, "E drop applies its shield and pays once")
-	game.energy = 59.0
+	game.energy = 69.0
 	game.update_hud()
-	check(r.disabled, "HUD disables R when common energy is below sixty")
-	near(energy_bar.value, 59.0, "HUD bar reflects the common pool after spending")
-	check(r.hint.energy.contains("59 / 100"), "hover hint energy matches its bar")
+	check(r.disabled, "HUD disables R when common energy is below seventy")
+	near(energy_bar.value, 69.0, "HUD bar reflects the common pool after spending")
+	check(r.hint.energy.contains("69 / 100"), "hover hint energy matches its bar")
 	game.energy = 100.0
 	game.select_building(enemy)
 	var r_at := r.get_global_rect().get_center()
@@ -427,13 +429,13 @@ func _native_selection_and_hud() -> void:
 	var before_enemy: float = enemy.population
 	check(game.cooldowns[3] == 0.0, "Moving the held R card never casts early")
 	mouse(impact_screen, false)
-	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and not hint.visible and not ghost.visible, "Terrain release casts R and closes the drag visuals")
-	near(game.energy, 40.0, "Terrain release charges R exactly once")
+	check(game.armed_skill == -1 and game.cooldowns[3] == 70.0 and not hint.visible and not ghost.visible, "Terrain release casts R and closes the drag visuals")
+	near(game.energy, 30.0, "Terrain release charges R exactly once")
 	near(enemy.population, before_enemy, "Distant enemy is not damaged before the flame reaches it")
 	var fire: WarFireWave = game.world_effects.get_node("FireWaves/Fire0")
 	check(fire.global_position.distance_to(impact_at) < 0.01, "Native fire starts at the exact release point")
 	game.simulate(WarFireWave.WINDUP_TIME + WarFireWave.EXPANSION_TIME)
-	near(enemy.population, before_enemy - 35.0, "Screen-cast fire reaches the enemy inside its radius")
+	near(enemy.population, before_enemy - 25.0, "Screen-cast fire reaches the enemy inside its radius")
 	game.cooldowns[3] = 0.0
 	game.energy = 100.0
 	game.update_hud()
@@ -465,19 +467,20 @@ func _native_selection_and_hud() -> void:
 	check(game.armed_skill == 0, "Releasing an unrelated key cannot trigger the held skill")
 	key_event(KEY_Q, false)
 	check(game.armed_skill == -1 and game.energy == 70.0 and game.cooldowns[0] == 35.0, "Releasing Q over an allied residence casts through the native input pipeline")
-	game.energy = 39.5
+	game.energy = 29.5
 	game.update_hud()
-	check(w.disabled, "W remains visibly unavailable below forty energy")
+	check(w.disabled, "W remains visibly unavailable below thirty energy")
 	game.simulate(0.25)
 	game.update_hud()
 	check(not w.disabled, "Regeneration makes W available at its exact cost")
 	var w_at := w.get_global_rect().get_center()
 	click(w_at)
-	check(is_equal_approx(game.energy, 40.0) and game.cooldowns[1] == 0.0, "W also requires a battlefield drop instead of a click")
+	check(is_equal_approx(game.energy, 30.0) and game.cooldowns[1] == 0.0, "W also requires a battlefield drop instead of a click")
 	mouse(w_at, true)
-	check(is_equal_approx(game.energy, 40.0) and game.armed_skill == 1, "Holding W waits for release")
+	check(is_equal_approx(game.energy, 30.0) and game.armed_skill == 1, "Holding W waits for release")
 	mouse(empty_at, false)
 	near(game.energy, 0.0, "Native W drop spends the regenerated common energy")
+	check(game.marches.haste_zones[0].at.distance_to(Vector3(-4, 0, 6)) < 0.01, "W field is placed at the native terrain release point")
 	check(game.cooldowns[1] == 28.0 and game.active_durations[1] == 8.0 and game.cooldowns[2] > 0.0, "W drop preserves its independent cooldown and active duration")
 	for index: int in 4:
 		check(game.hud.get_node("UI/Skills/Row/Skill%d" % index).disabled, "Zero shared energy disables skill button %d" % index)

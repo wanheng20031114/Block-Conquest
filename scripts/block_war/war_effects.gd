@@ -1,6 +1,8 @@
 extends Node3D
 ## A scene-authored native particle pool for short capture and ability bursts.
 
+const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+
 var _next: int = 0
 var _light_remaining: float = 0.0
 var _next_hit := 0
@@ -15,6 +17,7 @@ const EMIT_FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG
 func _ready() -> void:
 	$Shield.multimesh.instance_count = 6
 	$RecruitRings.multimesh.instance_count = 6
+	$HasteFields.multimesh.instance_count = 6
 	$Casualties.multimesh.instance_count = 512
 	$Casualties.multimesh.visible_instance_count = 0
 	$Cannonballs.multimesh.instance_count = 64
@@ -128,7 +131,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 		var building: WarBuilding = by_id[state.recruit_target_id]
 		var color: Color = WarMarches.FACTION_COLORS[building.faction]
 		rings.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 0.07, 0)))
-		rings.set_instance_custom_data(count, Color(color, state.durations[0] / 6.0))
+		rings.set_instance_custom_data(count, Color(color, state.durations[0] / SKILL_RULES.DURATIONS[0]))
 		count += 1
 		if emit:
 			for mote: int in 4:
@@ -144,7 +147,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 		var building: WarBuilding = by_id[id]
 		var color: Color = WarMarches.FACTION_COLORS[building.faction]
 		walls.set_instance_transform(count, Transform3D(Basis.IDENTITY, building.global_position + Vector3(0, 1.3, 0)))
-		walls.set_instance_custom_data(count, Color(color, shields[id] / 10.0))
+		walls.set_instance_custom_data(count, Color(color, shields[id] / SKILL_RULES.DURATIONS[2]))
 		count += 1
 		if emit:
 			for mote: int in 3:
@@ -153,10 +156,27 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				var at := building.global_position + Vector3(cos(angle) * 3.17, 0.15, sin(angle) * 3.17)
 				$ShieldMotes.emit_particle(Transform3D(Basis.IDENTITY, at), Vector3(0, 1.4, 0), Color("a2c6b9").srgb_to_linear(), Color(), EMIT_FLAGS)
 	walls.visible_instance_count = count
+	var fields: MultiMesh = $HasteFields.multimesh
+	fields.mesh.material.set_shader_parameter("visual_time", _skill_time)
+	count = 0
+	for faction: int in marches.haste_zones:
+		var zone: Dictionary = marches.haste_zones[faction]
+		fields.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * zone.radius), zone.at + Vector3(0, 0.08, 0)))
+		fields.set_instance_custom_data(count, Color(WarMarches.FACTION_COLORS[faction], zone.remaining / zone.duration))
+		count += 1
+		if emit:
+			for mote: int in 3:
+				_mote_serial += 1
+				var angle := _mote_serial * 2.399963
+				var radial := Vector3(cos(angle), 0, sin(angle))
+				var at: Vector3 = zone.at + radial * zone.radius * (0.35 + 0.55 * absf(sin(angle * 2.7))) + Vector3(0, 0.18, 0)
+				var wind := Vector3(-radial.z, 0.14, radial.x)
+				$HasteMotes.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), wind * 0.8, Color("c0d8a4").srgb_to_linear(), Color(), EMIT_FLAGS)
+	fields.visible_instance_count = count
 	if emit:
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.distance >= 0.0 and states[unit.order.faction].durations[1] > 0.0:
+			if unit.distance >= 0.0 and marches.speed_multiplier(unit) > 1.0:
 				active.append(unit)
 		if not active.is_empty():
 			for index: int in mini(48, active.size()):
@@ -167,7 +187,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			_wind_offset = (_wind_offset + 48) % active.size()
 
 func set_running(value: bool) -> void:
-	for particles: GPUParticles3D in [$RecruitMotes, $ShieldMotes, $HasteTrails]:
+	for particles: GPUParticles3D in [$RecruitMotes, $ShieldMotes, $HasteTrails, $HasteMotes]:
 		particles.speed_scale = 1.0 if value else 0.0
 	for particles: GPUParticles3D in $Bursts.get_children():
 		particles.speed_scale = 1.0 if value else 0.0

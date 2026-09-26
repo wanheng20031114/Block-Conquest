@@ -3,6 +3,7 @@ extends RefCounted
 
 const DECISION_GAP := 6.0
 const FIRE_CELL := 4.0
+const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var faction: int
 var next_decision: float
 
@@ -17,20 +18,14 @@ func take_turn(game: Node3D) -> void:
 	next_decision = game.elapsed + DECISION_GAP
 	var visible: Array[WarMarches.MarchUnit] = []
 	var threats: Dictionary[int, float] = {}
-	var moving := 0
-	var travel := 0.0
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if unit.distance < 0.0:
 			continue
 		visible.append(unit)
-		var speed: float = WarMarches.SPEED * (1.7 if game.faction_skills[unit.order.faction].durations[1] > 0.0 else 1.0)
-		var arrival := (unit.order.length - unit.distance) / speed
+		var imminent: bool = game.marches.movement_distance(unit, 7.0) >= unit.order.length - unit.distance
 		var target: WarBuilding = game.by_id[unit.order.target_id]
-		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and arrival <= 7.0:
+		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and imminent:
 			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target)
-		if unit.order.faction == faction and arrival >= 3.0:
-			moving += 1
-			travel += minf(8.0, arrival)
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
 	if game.can_cast_skill(2, faction):
 		for id: int in threats:
@@ -43,12 +38,12 @@ func take_turn(game: Node3D) -> void:
 			var score := minf(danger * 0.5, 45.0) + (28.0 if danger >= building.population else 12.0)
 			if score > best.score:
 				best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
-	if game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= 65.0:
+	if game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[0] + SKILL_RULES.COSTS[2]:
 		for building: WarBuilding in game.buildings:
 			if not game._valid_skill_target(0, building, faction) or building.conversion_target in [1, 2]:
 				continue
 			# Supply an active front or a drained residence, not an unused giant stockpile.
-			if building.population > maxf(building.capacity + 30.0, 90.0):
+			if building.population > maxf(building.capacity + SKILL_RULES.RECRUIT_RATE * SKILL_RULES.DURATIONS[0], 90.0):
 				continue
 			var danger: float = threats.get(building.building_id, 0.0)
 			if danger > building.population + 20.0:
@@ -58,18 +53,49 @@ func take_turn(game: Node3D) -> void:
 			score += 8.0 if danger > building.population * 0.4 else 0.0
 			if score > best.score:
 				best = {"index": 0, "score": score, "target": building, "at": Vector3.ZERO}
-	if game.can_cast_skill(1, faction) and moving >= 16 and game.faction_skills[faction].energy >= 60.0:
-		var score := moving * 0.45 + travel * 0.065
-		if score > best.score:
-			best = {"index": 1, "score": score, "target": null, "at": Vector3.ZERO}
+	if game.can_cast_skill(1, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[1] + 20.0:
+		var haste := _haste_target(game, visible)
+		if not haste.is_empty() and haste.score > best.score:
+			best = {"index": 1, "score": haste.score, "target": null, "at": haste.at}
 	if game.can_cast_skill(3, faction):
 		var fire := _fire_target(game, visible)
 		if not fire.is_empty() and fire.score > best.score:
 			best = {"index": 3, "score": fire.score, "target": null, "at": fire.at}
-	if best.index == 3:
-		game.cast_ground_skill(3, best.at, faction)
+	if best.index in [1, 3]:
+		game.cast_ground_skill(best.index, best.at, faction)
 	elif best.index >= 0:
 		game.cast_skill(best.index, best.target, faction)
+
+func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Dictionary:
+	# Look ahead along actual routes. Distant armies do not contribute to a
+	# single global score: one local field must cover a useful group of soldiers.
+	var cells: Dictionary[Vector2i, Dictionary] = {}
+	for unit: WarMarches.MarchUnit in visible:
+		if unit.order.faction != faction or unit.order.length - unit.distance < SKILL_RULES.HASTE_RADIUS * 1.25:
+			continue
+		var at := unit.order.curve.sample_baked(unit.distance + SKILL_RULES.HASTE_RADIUS * 0.6)
+		var cell := Vector2i(floori(at.x / FIRE_CELL), floori(at.z / FIRE_CELL))
+		if not cells.has(cell):
+			cells[cell] = {"count": 0, "sum": Vector3.ZERO}
+		cells[cell].count += 1
+		cells[cell].sum += at
+	var candidates := cells.keys()
+	candidates.sort_custom(func(a: Vector2i, b: Vector2i): return cells[a].count > cells[b].count)
+	var best := {}
+	for cell: Vector2i in candidates.slice(0, 24):
+		var at: Vector3 = cells[cell].sum / float(cells[cell].count)
+		if not game._valid_ground_skill_target(at):
+			continue
+		var count := 0
+		for unit: WarMarches.MarchUnit in visible:
+			if unit.order.faction != faction or unit.order.length - unit.distance < SKILL_RULES.HASTE_RADIUS * 1.25:
+				continue
+			var ahead := unit.order.curve.sample_baked(unit.distance + SKILL_RULES.HASTE_RADIUS * 0.6)
+			if ahead.distance_to(at) <= SKILL_RULES.HASTE_RADIUS - 0.7:
+				count += 1
+		if count >= 16 and (best.is_empty() or float(count) > best.score):
+			best = {"at": at, "score": float(count)}
+	return best
 
 func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Dictionary:
 	# Bin short-horizon estimates once. Evaluate at most 24 occupied cells and
@@ -83,8 +109,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not game.FACTIONS.allied(unit.order.faction, faction):
 			continue
-		var speed := WarMarches.SPEED * (1.7 if game.faction_skills[unit.order.faction].durations[1] > 0.0 else 1.0)
-		var end := minf(unit.order.length, unit.distance + speed * (WarFireWave.WINDUP_TIME + WarFireWave.BURN_TIME))
+		var end := minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, WarFireWave.WINDUP_TIME + WarFireWave.BURN_TIME))
 		if end < 0.0:
 			continue
 		var start := maxf(0.0, unit.distance)
@@ -103,8 +128,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	for unit: WarMarches.MarchUnit in visible:
 		if not game.FACTIONS.hostile(unit.order.faction, faction):
 			continue
-		var speed: float = WarMarches.SPEED * (1.7 if game.faction_skills[unit.order.faction].durations[1] > 0.0 else 1.0)
-		var lead := speed * (WarFireWave.WINDUP_TIME + 0.3)
+		var lead: float = game.marches.movement_distance(unit, WarFireWave.WINDUP_TIME + 0.3)
 		if unit.distance + lead >= unit.order.length:
 			continue
 		var at := unit.order.curve.sample_baked(unit.distance + lead)

@@ -107,7 +107,7 @@ func run() -> void:
 	if impact_screen.is_finite():
 		move_mouse(impact_screen, impact_screen - r_at, MOUSE_BUTTON_MASK_LEFT)
 		mouse(impact_screen, MOUSE_BUTTON_LEFT, false)
-	check(game.armed_skill == -1 and game.cooldowns[3] == 60.0 and target.population > 0.0 and game.energy == 40.0, "impact drop ignites the native ground point and spends sixty energy before distant damage")
+	check(game.armed_skill == -1 and game.cooldowns[3] == 70.0 and target.population > 0.0 and game.energy == 30.0, "impact drop ignites the native ground point and spends seventy energy before distant damage")
 	var w_at: Vector2 = game.hud.get_node("UI/Skills/Row/Skill1").get_global_rect().get_center()
 	mouse(w_at, MOUSE_BUTTON_LEFT, true)
 	mouse(impact_screen, MOUSE_BUTTON_LEFT, false)

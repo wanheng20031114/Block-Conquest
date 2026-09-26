@@ -117,7 +117,7 @@ func _run() -> void:
 				game.simulate(0.1)
 		else:
 			game.simulate(8.0)
-		near(home.population, 47.5, "recruitment and natural growth use the correct rates across completion")
+		near(home.population, 41.5, "recruitment and natural growth use the correct rates across completion")
 	fixture(0, 1, 40.0)
 	game.upgrade_selected()
 	game.simulate(12.0)

@@ -55,7 +55,7 @@ func _run() -> void:
 	await reset_game(CENTER + Vector3(4, 0, 0), 22.0)
 	game.marches.send(900, 1, 0, 96, PackedVector3Array([CENTER + Vector3(-8, 0, 0), CENTER + Vector3(35, 0, 0)]))
 	game.marches.tick(1.0)
-	game.cast_skill(1, null)
+	game.cast_ground_skill(1, CENTER)
 	await clip("haste", 72)
 	await reset_game(CENTER, 18.0)
 	game.marches.send(900, 1, 0, 72, PackedVector3Array([CENTER + Vector3(-7, 0, 0.6), CENTER + Vector3(30, 0, 0.6)]))

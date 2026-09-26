@@ -2,14 +2,15 @@ extends Node3D
 ## Building-node conquest. Population is simulated here; marches only transport it.
 
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
-const SKILL_COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
-const SKILL_DURATIONS: Array[float] = [6.0, 8.0, 10.0, 0.0]
-const SKILL_ENERGY_COSTS: Array[float] = [30.0, 40.0, 35.0, 60.0]
-const ENERGY_MAX := 100.0
-const ENERGY_REGEN := 2.0
-const RECRUIT_RATE := 5.0
-const IMPACT_RADIUS := 4.5
-const IMPACT_DAMAGE := 35.0
+const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const SKILL_COOLDOWNS := SKILL_RULES.COOLDOWNS
+const SKILL_DURATIONS := SKILL_RULES.DURATIONS
+const SKILL_ENERGY_COSTS := SKILL_RULES.COSTS
+const ENERGY_MAX := SKILL_RULES.ENERGY_MAX
+const ENERGY_REGEN := SKILL_RULES.ENERGY_REGEN
+const RECRUIT_RATE := SKILL_RULES.RECRUIT_RATE
+const IMPACT_RADIUS := SKILL_RULES.FIRE_RADIUS
+const IMPACT_DAMAGE := SKILL_RULES.FIRE_DAMAGE
 const CONVERSION_COST := 20
 const PLAYER := 0
 const ENEMY := 1
@@ -297,7 +298,7 @@ func attack_bonus(faction: int) -> float:
 func defense_bonus(building: Node3D) -> float:
 	var value: float = 0.05 * building.level if building.kind == 1 else 0.0
 	if shields.has(building.building_id):
-		value += 0.5
+		value += SKILL_RULES.SHIELD_DEFENSE
 	return value
 
 func combat_multiplier(faction: int, target: Node3D) -> float:
@@ -413,10 +414,8 @@ func release_skill_drag(screen: Vector2) -> void:
 	_update_skill_drag(screen)
 	var target := hovered
 	var success := false
-	if index == 3 and ground_skill_target.is_finite():
+	if index in [1, 3] and ground_skill_target.is_finite():
 		success = cast_ground_skill(index, ground_skill_target)
-	elif index == 1 and ground_skill_target.is_finite():
-		success = cast_skill(index, null)
 	elif index in [0, 2] and _valid_skill_target(index, target):
 		success = cast_skill(index, target)
 	_cancel_skill_drag()
@@ -450,8 +449,6 @@ func _skill_available(index: int, faction: int = PLAYER) -> bool:
 	return true
 
 func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> bool:
-	if index == 1:
-		return true
 	if target == null:
 		return false
 	if index == 0:
@@ -473,30 +470,18 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 			hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受壁垒保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
-	var message := ""
 	match index:
 		0:
 			faction_skills[faction].recruit_target_id = target.building_id
 			add_effect(target.global_position, Color(1.0, 0.8, 0.25), "skill", 1.1)
-			message = "征召军令 · 持续 6 秒，每秒补充 5 名民兵"
-		1:
-			marches.boost_faction(faction, 8.0, 1.7)
-			message = "疾行战鼓 · 自己的行军部队提速 70%，持续 8 秒"
 		2:
-			shields[target.building_id] = 10.0
+			shields[target.building_id] = SKILL_DURATIONS[2]
 			add_effect(target.global_position, Color(0.45, 0.8, 1.0), "skill", 1.1)
-			message = "磐石壁垒 · 守备 +50%，持续 10 秒"
 	_commit_skill(index, faction)
 	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield"]
-	var sound_at: Vector3 = target.global_position if target != null else camera_rig.global_position
-	if index == 1 and faction != PLAYER:
-		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.order.faction == faction and unit.distance >= 0.0:
-				sound_at = unit.position
-				break
-	audio.play_world(skill_sounds[index], sound_at)
+	audio.play_world(skill_sounds[index], target.global_position)
 	if faction == PLAYER:
-		hud.notify(message)
+		hud.notify("%s · %s" % [SKILL_RULES.NAMES[index], SKILL_RULES.effect_text(index)])
 	if target != null:
 		target.refresh_visual()
 	world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
@@ -504,7 +489,7 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 	return true
 
 func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
-	if index != 3 or not _skill_available(index, faction):
+	if index not in [1, 3] or not _skill_available(index, faction):
 		return false
 	if not _valid_ground_skill_target(at):
 		if faction == PLAYER:
@@ -512,11 +497,15 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 			audio.play_ui(&"war_denied")
 		return false
 	var center := Vector3(at.x, 0.0, at.z)
-	world_effects.start_fire(center, IMPACT_RADIUS, faction)
+	if index == 1:
+		marches.create_haste_zone(faction, center, SKILL_RULES.HASTE_RADIUS, SKILL_DURATIONS[1], SKILL_RULES.HASTE_MULTIPLIER)
+	else:
+		world_effects.start_fire(center, IMPACT_RADIUS, faction)
 	_commit_skill(index, faction)
-	audio.play_world(&"war_skill_breach", center)
+	audio.play_world(&"war_skill_drum" if index == 1 else &"war_skill_breach", center)
 	if faction == PLAYER:
-		hud.notify("地面蓄热后点燃 · 接触火焰的双方士兵都会死亡")
+		hud.notify("疾行区域已展开 · 圈内自己的部队提速，离开恢复" if index == 1 else "地面蓄热后点燃 · 接触火焰的双方士兵都会死亡")
+	world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 	update_hud()
 	return true
 
@@ -659,7 +648,7 @@ func update_hud() -> void:
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_ENERGY_COSTS,
-		"skill_target_types": ["building", "self", "building", "ground"], "ground_skill_radius": IMPACT_RADIUS,
+		"skill_target_types": ["building", "ground", "building", "ground"], "ground_skill_radius": SKILL_RULES.HASTE_RADIUS if armed_skill == 1 else IMPACT_RADIUS,
 		"forges": forge_count(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,

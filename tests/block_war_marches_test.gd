@@ -100,7 +100,7 @@ func _run() -> void:
 	marches.clear()
 	_arrived.clear()
 	marches.send(0, 1, 0, 1, straight)
-	marches.boost_faction(0, 1.0, 2.0)
+	marches.create_haste_zone(0, Vector3.ZERO, 12.0, 1.0, 2.0)
 	marches.tick(2.0)
 	var boosted: Dictionary = marches.get_units()[0]
 	_check(is_equal_approx(boosted.distance, marches.SPEED * 3.0), "Haste expires at its exact duration within a long tick")

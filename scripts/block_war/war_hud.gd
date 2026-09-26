@@ -12,12 +12,9 @@ signal upgrade_requested()
 signal convert_requested(kind: int)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
-const SKILL_NAMES: Array[String] = ["征召军令", "疾行战鼓", "磐石壁垒", "天降冲击"]
-const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 60.0]
-const SKILL_DETAILS: Array[String] = [
-	"拖至自己或盟友住宅，松手施放。\n每秒征召 5 人，持续 6 秒，不叠加。", "拖至战场，松手施放。\n自己的行军部队提速 70%，持续 8 秒。",
-	"拖至自己或盟友建筑，松手施放。\n守备 +50%，持续 10 秒，不叠加。", "拖至地面，松手施放。\n蓄热 0.65 秒后，火焰从圆心向外扩散。\n接触火焰的双方士兵都会死亡。",
-]
+const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const SKILL_NAMES := SKILL_RULES.NAMES
+const COOLDOWNS := SKILL_RULES.COOLDOWNS
 
 var _paused: bool = false
 var _finished: bool = false
@@ -83,8 +80,8 @@ func update_state(state: Dictionary) -> void:
 	%PlayerTotal.text = str(player_total)
 	%EnemyTotal.text = str(enemy_total)
 	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
-	$UI/Player/Name.text = "我方联盟" if state.team_size > 1 else "琥珀军团"
-	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else "翡翠军团"
+	$UI/Player/Name.text = "%s · %s" % [SKILL_RULES.COMMANDER_NAME, "我方联盟" if state.team_size > 1 else "松鼠"]
+	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else "%s · 松鼠" % SKILL_RULES.COMMANDER_NAME
 	$UI/Enemy/Role.text = "%d 名电脑对手" % state.team_size
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
@@ -102,7 +99,7 @@ func update_state(state: Dictionary) -> void:
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
-		var target_text := "拖至地面 · 蓄热后点燃 · 敌我均伤" if armed == 3 else ("拖至战场 · 松手施放" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
+		var target_text := "拖至地面 · 蓄热后点燃 · 敌我均伤" if armed == 3 else ("拖至地面 · 圈内自己的部队加速" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [SKILL_NAMES[armed], target_text]
 	%SkillDrag.visible = armed >= 0
 	if armed >= 0:
@@ -127,7 +124,7 @@ func update_state(state: Dictionary) -> void:
 		if duration > 0.0:
 			status = "%s %ds" % [["征召", "疾行", "壁垒", "冲击"][index], ceili(duration)]
 		elif armed == index:
-			status = "选择地面" if index == 3 else "选择目标"
+			status = "选择地面" if index in [1, 3] else "选择目标"
 		elif cooling:
 			status = "冷却 %ds" % ceili(cooldown)
 		elif not affordable:
@@ -137,7 +134,7 @@ func update_state(state: Dictionary) -> void:
 		button.get_node("ReadyLight").visible = ready
 		if not ready:
 			button.get_node("ReadyGlow").hide()
-		button.set_hint(SKILL_NAMES[index], SKILL_DETAILS[index], cost, COOLDOWNS[index], energy, status)
+		button.set_hint(SKILL_NAMES[index], SKILL_RULES.description(index), cost, COOLDOWNS[index], energy, status)
 		if ready and not _last_ready[index] and _skills_initialized:
 			_pulse_ready(button)
 		_last_ready[index] = ready

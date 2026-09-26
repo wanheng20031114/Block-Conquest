@@ -46,7 +46,7 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/line_spacing = 5
-text = "选择己方住宅。\n每秒征召 5 人，持续 6 秒。"
+text = "拖至自己或盟友住宅，松手施放。\n每秒征召 4 人，持续 6 秒，不叠加。"
 
 [node name="Stats" type="Label" parent="."]
 unique_name_in_owner = true

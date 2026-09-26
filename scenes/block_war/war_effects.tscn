@@ -9,6 +9,7 @@
 [ext_resource type="Shader" path="res://assets/models/block_war/recruit_ground.gdshader" id="recruit_ground"]
 [ext_resource type="Shader" path="res://assets/models/block_war/bulwark.gdshader" id="bulwark"]
 [ext_resource type="Shader" path="res://assets/models/block_war/haste_trail.gdshader" id="haste_trail"]
+[ext_resource type="Shader" path="res://assets/models/block_war/haste_ground.gdshader" id="haste_ground"]
 
 [sub_resource type="ShaderMaterial" id="CasualtyMaterial"]
 shader = ExtResource("casualty")
@@ -84,6 +85,22 @@ mesh = SubResource("RecruitMesh")
 offsets = PackedFloat32Array(0, 0.12, 0.55, 1)
 colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.9, 1, 1, 1, 0.65, 1, 1, 1, 0)
 
+[sub_resource type="ShaderMaterial" id="HasteGroundMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("haste_ground")
+
+[sub_resource type="PlaneMesh" id="HasteGroundMesh"]
+material = SubResource("HasteGroundMaterial")
+size = Vector2(2, 2)
+
+[sub_resource type="MultiMesh" id="HasteFields"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -1, -70, 180, 12, 140)
+mesh = SubResource("HasteGroundMesh")
+
 [sub_resource type="GradientTexture1D" id="SkillFadeRamp"]
 gradient = SubResource("SkillFade")
 
@@ -100,6 +117,18 @@ size = Vector3(0.10, 0.23, 0.08)
 [sub_resource type="BoxMesh" id="ShieldMote"]
 material = SubResource("MoteMaterial")
 size = Vector3(0.06, 0.28, 0.06)
+
+[sub_resource type="BoxMesh" id="HasteMote"]
+material = SubResource("MoteMaterial")
+size = Vector3(0.08, 0.04, 0.22)
+
+[sub_resource type="ParticleProcessMaterial" id="HasteMoteProcess"]
+direction = Vector3(0, 1, 0)
+spread = 0.0
+gravity = Vector3(0, 0.18, 0)
+angular_velocity_min = -50.0
+angular_velocity_max = 50.0
+color_ramp = SubResource("SkillFadeRamp")
 
 [sub_resource type="ParticleProcessMaterial" id="RecruitProcess"]
 color = Color(0.52, 0.28, 0.04, 1)
@@ -218,4 +247,17 @@ lifetime = 0.5
 visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
 process_material = SubResource("HasteProcess")
 draw_pass_1 = SubResource("HasteMesh")
+cast_shadow = 0
+
+[node name="HasteFields" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("HasteFields")
+cast_shadow = 0
+
+[node name="HasteMotes" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 192
+lifetime = 0.9
+visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+process_material = SubResource("HasteMoteProcess")
+draw_pass_1 = SubResource("HasteMote")
 cast_shadow = 0

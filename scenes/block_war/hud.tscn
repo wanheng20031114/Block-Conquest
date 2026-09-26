@@ -16,8 +16,7 @@
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_impact.svg" id="strike"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_amber.png" id="amber_portrait"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commander_jade.png" id="jade_portrait"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/squirrel.png" id="squirrel_portrait"]
 [ext_resource type="Texture2D" path="res://assets/ui/medieval/textures/button.png" id="parchment_texture"]
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/action_upgrade.svg" id="action_upgrade"]
@@ -412,21 +411,6 @@ content_margin_right = 4.0
 content_margin_bottom = 4.0
 modulate_color = Color(0.73, 0.73, 0.65, 1)
 
-[sub_resource type="StyleBoxFlat" id="PortraitRing"]
-bg_color = Color(0.20, 0.18, 0.12, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.94, 0.90, 0.71, 1)
-corner_radius_top_left = 40
-corner_radius_top_right = 40
-corner_radius_bottom_left = 40
-corner_radius_bottom_right = 40
-shadow_color = Color(0.015,0.012,0.006,0.45)
-shadow_size = 4
-shadow_offset = Vector2(0,2)
-
 [sub_resource type="StyleBoxFlat" id="ReadyRing"]
 bg_color = Color(0,0,0,0)
 border_width_left = 2
@@ -441,17 +425,6 @@ corner_radius_bottom_right = 10
 shadow_color = Color(0.015,0.012,0.006,0.45)
 shadow_size = 4
 shadow_offset = Vector2(0,2)
-
-[sub_resource type="Shader" id="RoundPortrait"]
-code = "shader_type canvas_item;
-void fragment(){
-vec4 face = texture(TEXTURE,UV);
-face.a *= 1.0-smoothstep(0.47,0.5,length(UV-vec2(0.5)));
-COLOR = face;
-}"
-
-[sub_resource type="ShaderMaterial" id="RoundPortraitMaterial"]
-shader = SubResource("RoundPortrait")
 
 [sub_resource type="StyleBoxFlat" id="SkillShadow"]
 bg_color = Color(0.055,0.041,0.016,0.5)
@@ -787,34 +760,21 @@ offset_bottom = -10.0
 mouse_filter = 2
 
 
-[node name="Badge" type="Panel" parent="UI/Player"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 1.0
-offset_right = 80.0
-offset_bottom = 81.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("PortraitRing")
-
 [node name="Icon" type="TextureRect" parent="UI/Player"]
+texture_filter = 1
 layout_mode = 0
 anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 3.0
-offset_top = 4.0
-offset_right = 77.0
-offset_bottom = 78.0
+offset_left = -8.0
+offset_top = -12.0
+offset_right = 92.0
+offset_bottom = 88.0
 mouse_filter = 2
-texture = ExtResource("amber_portrait")
+texture = ExtResource("squirrel_portrait")
 expand_mode = 1
 stretch_mode = 5
-material = SubResource("RoundPortraitMaterial")
 
 [node name="Name" type="Label" parent="UI/Player"]
 layout_mode = 0
@@ -829,7 +789,7 @@ offset_bottom = 50.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1,0.78,0.37,1)
-text = "琥珀军团"
+text = "榛果 · 松鼠"
 theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
@@ -869,34 +829,21 @@ offset_bottom = -10.0
 mouse_filter = 2
 
 
-[node name="Badge" type="Panel" parent="UI/Enemy"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 202.0
-offset_top = 1.0
-offset_right = 282.0
-offset_bottom = 81.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("PortraitRing")
-
 [node name="Icon" type="TextureRect" parent="UI/Enemy"]
+texture_filter = 1
 layout_mode = 0
 anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 205.0
-offset_top = 4.0
-offset_right = 279.0
-offset_bottom = 78.0
+offset_left = 190.0
+offset_top = -12.0
+offset_right = 290.0
+offset_bottom = 88.0
 mouse_filter = 2
-texture = ExtResource("jade_portrait")
+texture = ExtResource("squirrel_portrait")
 expand_mode = 1
 stretch_mode = 5
-material = SubResource("RoundPortraitMaterial")
 
 [node name="Name" type="Label" parent="UI/Enemy"]
 layout_mode = 0
@@ -911,7 +858,7 @@ offset_bottom = 50.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.52,0.9,0.70,1)
-text = "翡翠军团"
+text = "榛果 · 松鼠"
 theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
@@ -2233,7 +2180,7 @@ offset_bottom = 482.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.64, 0.73, 0.66, 1)
-text = "拖动图标或按住 Q / W / E / R 瞄准，松手施放；电脑使用相同技力与冷却。\n征召与壁垒不叠加。R 蓄热 0.65 秒后扩散至 4.5 米，接触的双方士兵均死亡。"
+text = "拖动图标或按住 Q / W / E / R 瞄准，松手施放；电脑使用相同技力与冷却。\n征召与壁垒不叠加；W 在落点建立 4.5 米疾行区域，8 秒内仅圈内自己的部队提速 60%。\nR 蓄热 0.8 秒后扩散至 4.5 米，接触的双方士兵均死亡。"
 
 [node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
 layout_mode = 0

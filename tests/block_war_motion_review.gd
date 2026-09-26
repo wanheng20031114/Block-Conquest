@@ -22,7 +22,7 @@ func run() -> void:
 	for pair: Vector2i in [Vector2i(0, 10), Vector2i(3, 11), Vector2i(1, 10), Vector2i(5, 11)]:
 		game.issue_order(game.by_id[pair.x], game.by_id[pair.y], 75, game.by_id[pair.x].faction)
 	await create_timer(6.0).timeout
-	game.cast_skill(1, null)
+	game.cast_ground_skill(1, Vector3(-12, 0, 14))
 	await create_timer(3.0).timeout
 	game.camera_rig.zoom_target = 37.0
 	game.camera_rig.focus_at(Vector3(-12, 0, 14))

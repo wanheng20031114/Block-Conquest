@@ -57,7 +57,7 @@ func _run() -> void:
 	for small_steps: bool in [false, true]:
 		await reset_match()
 		check(game.cast_ground_skill(3, CENTER), "ground fire begins at a valid point")
-		check(game.energy == 40.0 and game.cooldowns[3] == 60.0, "warning pays once and starts R's independent cooldown")
+		check(game.energy == 30.0 and game.cooldowns[3] == 70.0, "warning pays once and starts R's independent cooldown")
 		var escaping := spawn(CENTER + Vector3(0, 0, 4), 0)
 		game.simulate(WarFireWave.WINDUP_TIME)
 		check(escaping.alive and deaths.is_empty(), "warning gives exposed soldiers time to escape without damage")
@@ -109,7 +109,7 @@ func _run() -> void:
 		check(deaths.size() > 20 and deaths.all(func(death: Dictionary): return death.burning), "every contacted soldier has a burning casualty event without a damage-count cap")
 		check(deaths.any(func(death: Dictionary): return death.faction == 0) and deaths.any(func(death: Dictionary): return death.faction == 1), "casualty effects include both faction colors")
 		near(ally.population, 200.0, "friendly garrison remains protected inside its building")
-		near(enemy.population, 100.0 - 35.0 * 0.85, "level-three tower takes one hit reduced by its fifteen percent defense")
+		near(enemy.population, 100.0 - 25.0 * 0.85, "level-three tower takes one hit reduced by its fifteen percent defense")
 		check(neutral.population == 0.0 and neutral.faction == -1, "fire damages a boundary garrison without capturing it")
 		near(far.population, 100.0, "building beyond the radius is never hit")
 		partition_totals.append(Vector2i(game.marches.total_for(0), game.marches.total_for(1)))

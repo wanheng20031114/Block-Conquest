@@ -22,6 +22,7 @@ class MarchOrder extends RefCounted:
 	var strength: float
 	var curve: Curve3D
 	var length: float
+	var haste_intervals: Dictionary[float, PackedVector2Array] = {}
 
 class MarchUnit extends RefCounted:
 	var alive := true
@@ -35,7 +36,7 @@ class MarchUnit extends RefCounted:
 
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 var _units: Array[MarchUnit] = []
-var _boosts: Dictionary = {}
+var haste_zones: Dictionary[int, Dictionary] = {}
 
 func _ready() -> void:
 	_multimesh.instance_count = 4096
@@ -93,24 +94,13 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	if delta <= 0.0:
 		return
-	var step_boosts: Dictionary = {}
-	for faction: int in _boosts:
-		var boost: Vector2 = _boosts[faction]
-		# Integrate only the portion of this tick still covered by the skill.
-		var boosted_time := minf(delta, boost.x)
-		step_boosts[faction] = (boosted_time * boost.y + delta - boosted_time) / delta
-		boost.x -= delta
-		_boosts[faction] = boost
-	for faction: int in _boosts.keys():
-		if _boosts[faction].x <= 0.0:
-			_boosts.erase(faction)
 	var arrivals: Array[MarchOrder] = []
 	var index := 0
 	while index < _units.size():
 		var unit := _units[index]
 		var before := unit.position
 		var previous_distance := unit.distance
-		var step := SPEED * delta * float(step_boosts.get(unit.order.faction, 1.0))
+		var step := movement_distance(unit, delta)
 		unit.distance += step
 		unit.gait += step * 7.0
 		if unit.distance >= 0.0:
@@ -134,6 +124,10 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 			_remove_unit(index)
 			continue
 		index += 1
+	for faction: int in haste_zones.keys():
+		haste_zones[faction].remaining -= delta
+		if haste_zones[faction].remaining <= 0.000001:
+			haste_zones.erase(faction)
 	_render()
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
 	for order: MarchOrder in arrivals:
@@ -260,15 +254,75 @@ static func fire_contact(from: Vector3, to: Vector3, fire: Dictionary, emerged: 
 		contact = maxf(first, second)
 	return contact if contact >= emerged and contact <= end_time else -1.0
 
-func boost_faction(faction: int, duration: float, speed_multiplier: float) -> void:
-	assert(duration > 0.0 and speed_multiplier >= 1.0)
-	_boosts[faction] = Vector2(duration, speed_multiplier)
+func create_haste_zone(faction: int, at: Vector3, radius: float, duration: float, multiplier: float) -> void:
+	haste_zones[faction] = {"at": at, "radius": radius, "remaining": duration, "duration": duration, "multiplier": multiplier}
+	for unit: MarchUnit in _units:
+		if unit.order.faction == faction:
+			unit.order.haste_intervals.clear()
+
+func speed_multiplier(unit: MarchUnit) -> float:
+	if unit.distance < 0.0 or not haste_zones.has(unit.order.faction):
+		return 1.0
+	var zone := haste_zones[unit.order.faction]
+	var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
+	return zone.multiplier if offset.length_squared() <= zone.radius * zone.radius else 1.0
+
+func movement_distance(unit: MarchUnit, delta: float) -> float:
+	if not haste_zones.has(unit.order.faction):
+		return SPEED * delta
+	var zone := haste_zones[unit.order.faction]
+	var active: float = minf(delta, zone.remaining)
+	var remaining := active
+	var distance := unit.distance
+	if not unit.order.haste_intervals.has(unit.lane):
+		unit.order.haste_intervals[unit.lane] = _zone_intervals(unit.order, unit.lane, zone)
+	# Integrate the time spent inside each route interval, including entering,
+	# leaving, re-entering, doorway queues and expiry within a single long tick.
+	for interval: Vector2 in unit.order.haste_intervals[unit.lane]:
+		if interval.y <= distance:
+			continue
+		var before_time := maxf(0.0, interval.x - distance) / SPEED
+		var before_step := minf(remaining, before_time)
+		distance += before_step * SPEED
+		remaining -= before_step
+		if remaining <= 0.0:
+			break
+		var inside_time: float = (interval.y - distance) / (SPEED * zone.multiplier)
+		var inside_step := minf(remaining, inside_time)
+		distance += inside_step * SPEED * float(zone.multiplier)
+		remaining -= inside_step
+		if remaining <= 0.0:
+			break
+	return distance - unit.distance + SPEED * (remaining + delta - active)
+
+func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> PackedVector2Array:
+	var intervals := PackedVector2Array()
+	var center := Vector2(zone.at.x, zone.at.z)
+	var count := ceili(order.length / 0.24)
+	var from := order.curve.sample_baked(0.0)
+	for index: int in count:
+		var low := order.length * float(index) / count
+		var high := order.length * float(index + 1) / count
+		var to := _formation_position(order, high, lane, _route_heading(order, high))
+		var a := Vector2(from.x, from.z)
+		var b := Vector2(to.x, to.z)
+		var start := 0.0 if a.distance_to(center) <= zone.radius else Geometry2D.segment_intersects_circle(a, b, center, zone.radius)
+		if start >= 0.0:
+			var end := 1.0 if b.distance_to(center) <= zone.radius else 1.0 - Geometry2D.segment_intersects_circle(b, a, center, zone.radius)
+			var span := Vector2(lerpf(low, high, start), lerpf(low, high, end))
+			if span.y > span.x:
+				if not intervals.is_empty() and absf(intervals[-1].y - span.x) < 0.00001:
+					intervals[-1] = Vector2(intervals[-1].x, span.y)
+				else:
+					intervals.append(span)
+		from = to
+	return intervals
 
 func clear() -> void:
 	for unit: MarchUnit in _units:
 		unit.alive = false
 	_units.clear()
-	_boosts.clear()
+	haste_zones.clear()
 	_multimesh.visible_instance_count = 0
 
 func snapshot_incoming() -> Dictionary[Vector2i, int]:
@@ -298,13 +352,19 @@ func _ensure_capacity(required: int) -> void:
 func _update_pose(unit: MarchUnit) -> void:
 	var order := unit.order
 	var distance := unit.distance
-	var center := order.curve.sample_baked(distance)
+	unit.heading = _route_heading(order, distance)
+	unit.position = _formation_position(order, distance, unit.lane, unit.heading)
+
+func _route_heading(order: MarchOrder, distance: float) -> Vector3:
 	var before := order.curve.sample_baked(maxf(0.0, distance - 0.3))
 	var after := order.curve.sample_baked(minf(order.length, distance + 0.3))
 	var heading := after - before
 	heading.y = 0.0
-	unit.heading = heading.normalized()
-	var sideways := Vector3(-unit.heading.z, 0.0, unit.heading.x)
+	return heading.normalized()
+
+func _formation_position(order: MarchOrder, distance: float, lane: float, heading: Vector3) -> Vector3:
+	var center := order.curve.sample_baked(distance)
+	var sideways := Vector3(-heading.z, 0.0, heading.x)
 	var gate_width := smoothstep(0.0, GATE_LENGTH, minf(distance, order.length - distance))
 	# Measure the upcoming bend over a fixed distance, independent of the number
 	# of sampled guide points. Broad curves stay wide; tight turns gather the files.
@@ -312,7 +372,7 @@ func _update_pose(unit: MarchUnit) -> void:
 	var departure := order.curve.sample_baked(minf(order.length, distance + 1.2)) - center
 	var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
 	var corner_width := lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
-	unit.position = center + sideways * unit.lane * gate_width * corner_width
+	return center + sideways * lane * gate_width * corner_width
 
 func _render() -> void:
 	var slot := 0

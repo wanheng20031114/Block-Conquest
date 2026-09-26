@@ -30,9 +30,10 @@ func _reset() -> void:
 func _run() -> void:
 	await _reset()
 	game.ai_enabled = true
-	# Development and defensive relief can keep the last army alive longer than
-	# the former all-out attacker, including its already committed rescue march.
-	for step: int in 8400:
+	# Local haste and the reduced siege damage no longer guarantee the old
+	# seven-minute finish. Use the same bounded horizon as the team campaigns;
+	# this audits eventual resolution, not a balance promise about match length.
+	for step: int in 18000:
 		if step % 40 == 0:
 			_player_turn()
 		game.simulate(0.05)
@@ -41,7 +42,7 @@ func _run() -> void:
 		if game.finished:
 			break
 	print("CAMPAIGN_RESULT time=", game.elapsed, " finished=", game.finished, " player=", game.total_for(0), " enemy=", game.total_for(1), " ownership=", _ownership())
-	_check(game.finished, "A player using legal expansion, reinforcement and skills finishes within 420 simulated seconds")
+	_check(game.finished, "Legal expansion, reinforcement and local skills resolve within 900 simulated seconds")
 	for building: Node3D in game.buildings:
 		_check(building.population >= 0.0 and is_finite(building.population), "Campaign keeps valid population at building %d" % building.building_id)
 	await _reset()
@@ -69,7 +70,10 @@ func _player_turn() -> void:
 	if residence != null and game.cooldowns[0] <= 0.0:
 		game.cast_skill(0, residence)
 	if game.marches.total_for(0) >= 24 and game.cooldowns[1] <= 0.0:
-		game.cast_skill(1, null)
+		for unit: WarMarches.MarchUnit in game.marches._units:
+			if unit.order.faction == 0 and unit.distance >= 0.0:
+				game.cast_ground_skill(1, unit.position + unit.heading * 2.7)
+				break
 	var bombard: Node3D
 	for building: Node3D in game.buildings:
 		if building.faction == 1 and building.population > 20.0:

@@ -25,16 +25,18 @@ func _draw() -> void:
 	if not game._match_ready:
 		return
 	var camera: Camera3D = game.camera
-	if game.armed_skill == 3:
+	if game.armed_skill in [1, 3]:
 		var center: Vector3 = game.ground_skill_target
 		if center.is_finite():
-			var color := Color(1.0, 0.61, 0.25, 0.9) if game.can_cast_skill(3) else Color(0.9, 0.35, 0.27, 0.65)
-			_ring(center, game.IMPACT_RADIUS, color, 2.5)
+			var color := Color(0.65, 0.94, 0.8, 0.9) if game.armed_skill == 1 else Color(1.0, 0.61, 0.25, 0.9)
+			if not game.can_cast_skill(game.armed_skill):
+				color = Color(0.9, 0.35, 0.27, 0.65)
+			_ring(center, game.SKILL_RULES.HASTE_RADIUS if game.armed_skill == 1 else game.IMPACT_RADIUS, color, 2.5)
 			var screen := camera.unproject_position(center + Vector3(0, 0.15, 0))
 			draw_line(screen - Vector2(7, 0), screen + Vector2(7, 0), color, 1.5, true)
 			draw_line(screen - Vector2(0, 7), screen + Vector2(0, 7), color, 1.5, true)
 	elif game.armed_skill >= 0:
-		var valid: bool = game.ground_skill_target.is_finite() if game.armed_skill == 1 else game._valid_skill_target(game.armed_skill, game.hovered)
+		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)
 		var mouse := get_viewport().get_mouse_position()
 		draw_arc(mouse, 13.0, 0, TAU, 32, reticle_color, 1.5, true)

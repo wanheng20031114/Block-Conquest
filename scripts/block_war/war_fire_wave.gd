@@ -3,7 +3,7 @@ extends Node3D
 ## The same expanding radius drives the ground material, emitters and casualties.
 
 const EXPANSION_TIME := 1.15
-const WINDUP_TIME := 0.65
+const WINDUP_TIME := preload("res://scripts/block_war/war_skill_rules.gd").FIRE_WINDUP
 const EMISSION_TIME := 1.65
 const BURN_TIME := 2.15
 const LIFETIME := 3.0
@@ -19,6 +19,7 @@ func start(at: Vector3, reach: float, caster: int = 0) -> void:
 	age = -WINDUP_TIME
 	hit_buildings.clear()
 	$Ground.scale = Vector3.ONE * reach
+	$Ground.material_override.set_shader_parameter("windup_time", WINDUP_TIME)
 	show()
 	_update_visual()
 	for particles: GPUParticles3D in [$Flames, $Afterfire, $Smoke]:
