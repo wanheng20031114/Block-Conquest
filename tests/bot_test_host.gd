@@ -67,7 +67,7 @@ func nearest_mine(at: Vector3) -> ResourceVein:
 			best = mine
 	return best
 
-func next_command_sequence(owner: int) -> int:
+func next_command_sequence(owner: int, _from_bot: bool = false) -> int:
 	sequences[owner] = int(sequences.get(owner, 0)) + 1
 	return sequences[owner]
 
@@ -116,7 +116,7 @@ func _set_worker_order(worker: Node3D, order: int, target: Node3D) -> void:
 	worker.work_target = target
 	worker.gathering_seconds = 0.0
 
-func submit_command(command: Dictionary, owner: int = -1) -> Dictionary:
+func submit_command(command: Dictionary, owner: int = -1, _from_bot: bool = false) -> Dictionary:
 	var cost: int = 0
 	var player: PlayerState = players[owner]
 	var target: Node3D = entities.get(int(command.get("target", 0)))

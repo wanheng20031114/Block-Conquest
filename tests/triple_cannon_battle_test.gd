@@ -164,6 +164,7 @@ func _run() -> void:
 	subject.issue_attack(primary)
 	await step(.9)
 	check(shots.size() == 3 and shots_for(primary.entity_id).size() == 3 and left.hp == 360 and right.hp == 360,"manual focus sends every gun at the requested enemy")
+	await _retreating_target()
 	await reset()
 	var structure: BattleBuilding = game.spawn_building("barracks",1,Vector3(0,0,-6))
 	var extra: BattleBuilding = game.spawn_building("barracks",1,Vector3(5,0,-6))
@@ -193,3 +194,33 @@ func _run() -> void:
 	await game.prepare_shutdown()
 	print("TRIPLE_CANNON_BATTLE ",checks," checks; ",failures.size()," failures")
 	quit(0 if failures.is_empty() else 1)
+
+func _retreating_target() -> void:
+	for reloading: bool in [false, true]:
+		await reset()
+		var victim := spawn("swordsman", 1, Vector3(0, 0, -8.3))
+		victim.max_hp = 20000
+		victim.hp = 20000
+		victim._observed_velocity = Vector3.FORWARD
+		await physics_frame
+		await physics_frame
+		subject.issue_attack(victim)
+		if reloading:
+			for gun: UnitBattery.Gun in subject.battery.guns:
+				gun.ready_at = game.elapsed + 1.0
+		check(subject._within_attack_range(victim) and not subject._can_start_strike(victim), "retreating target starts inside range but outside safe release distance")
+		check(not subject.battery.engage(victim), "idle or reloading battery allows pursuit into release distance")
+		subject.set_physics_process(true)
+		game.set_running(true)
+		var until: float = game.elapsed + 8.0
+		while game.elapsed < until:
+			victim.position.z -= subject.get_physics_process_delta_time()
+			victim._observed_velocity = Vector3.FORWARD
+			await physics_frame
+		check(shots.size() >= 3 and victim.hp < victim.max_hp, "faster cannon catches and fires on steadily retreating infantry")
+		cadence(victim.entity_id)
+		var at: Vector3 = subject.position
+		subject.hold()
+		subject.target = victim
+		await step(.4)
+		check(subject.position.distance_to(at) < .05, "HOLD still prevents pursuit after firing at retreating infantry")

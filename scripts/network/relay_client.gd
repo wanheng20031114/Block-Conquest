@@ -4,6 +4,7 @@ extends Node
 
 signal room_changed(room: Dictionary)
 signal match_started(config: Dictionary)
+signal match_resumed(config: Dictionary)
 signal command_received(owner: int, command: Dictionary)
 signal snapshot_received(snapshot: Dictionary)
 signal event_received(event: Dictionary)
@@ -16,6 +17,8 @@ const CERTIFICATE_PATH: String = "res://scripts/network/relay_trust.crt"
 const INITIAL_CONNECT_MS: int = 20000
 const PRESENTATION_BURST_BYTES: int = 48 * 1024
 const PRESENTATION_OWNERS_PER_FRAME: int = 3
+const DISCONNECT_GRACE_MS: int = 3000
+const MAX_CLOSING_TRANSPORTS: int = 4
 
 var owner_id: int = -1
 var is_host: bool = false
@@ -32,9 +35,12 @@ var last_error_code: String = ""
 var last_error_message: String = ""
 var _connection: ENetConnection
 var _peer: ENetPacketPeer
+var _closing_transports: Array[Dictionary] = []
+var _leave_queued: bool = false
 var _token: String = ""
 var _intent: Dictionary = {}
 var _match: Dictionary = {}
+var _pending_resume_events: Dictionary = {}
 var _heartbeat_at: int = 0
 var _last_received: int = 0
 var _connecting_at: int = 0
@@ -58,6 +64,9 @@ func _ready() -> void:
 
 func connect_relay(endpoint: String, endpoint_port: int = Protocol.PORT) -> Error:
 	disconnect_relay()
+	_poll_closing_transports(Time.get_ticks_msec())
+	if _closing_transports.size() >= MAX_CLOSING_TRANSPORTS:
+		return ERR_BUSY
 	last_error_code = ""
 	last_error_message = ""
 	address = endpoint.strip_edges()
@@ -69,6 +78,7 @@ func connect_relay(endpoint: String, endpoint_port: int = Protocol.PORT) -> Erro
 
 func _open() -> Error:
 	_close_transport()
+	_leave_queued = false
 	var certificate := X509Certificate.new()
 	var error := certificate.load(certificate_path)
 	if error != OK:
@@ -190,15 +200,25 @@ func finish_match(result: Dictionary) -> void:
 		flush_outbound()
 
 func leave_room() -> void:
-	if connection_state != "finished":
-		_send({"op": "leave"})
+	if connection_state == "finished":
+		_leave_queued = true
+	elif not _leave_queued:
+		_leave_queued = _send({"op": "leave"}) == OK
 	_clear_membership()
 	_set_state("connected" if _peer != null else "disconnected")
 
 func disconnect_relay() -> void:
-	if _peer != null and _peer.is_active():
-		_peer.peer_disconnect_now()
-	_close_transport()
+	if _peer != null and _peer.is_active() and _peer.get_state() == ENetPacketPeer.STATE_CONNECTED:
+		# Control packets must remain alive through ENet's reliable acknowledgements.
+		# The Session persists across scene changes, so old transports can finish
+		# independently while a new scene or connection starts immediately.
+		leave_room()
+		_peer.peer_disconnect_later()
+		_closing_transports.append({"connection": _connection, "deadline": Time.get_ticks_msec() + DISCONNECT_GRACE_MS})
+		_peer = null
+		_connection = null
+	else:
+		_close_transport()
 	_clear_membership()
 	_intent.clear()
 	_retry_at = 0
@@ -207,6 +227,7 @@ func disconnect_relay() -> void:
 
 func _clear_membership() -> void:
 	outbound_invalidated.emit()
+	_pending_resume_events.clear()
 	_token = ""
 	owner_id = -1
 	is_host = false
@@ -228,6 +249,7 @@ func _close_transport() -> void:
 
 func _process(_delta: float) -> void:
 	var now := Time.get_ticks_msec()
+	_poll_closing_transports(now)
 	if _connection != null:
 		for _index in range(256):
 			var event: Array = _connection.service(0)
@@ -295,11 +317,17 @@ func _receive(message: Dictionary) -> void:
 			outbound_invalidated.emit()
 			_match = message.config
 			_last_snapshot_sequence = -1
+			if resuming:
+				match_resumed.emit(_match)
 			_set_state("match")
 			if resuming:
 				event_received.emit({"kind": "connection_restored", "owner": owner_id})
 			else:
 				match_started.emit(_match)
+			var pending_events := _pending_resume_events
+			_pending_resume_events = {}
+			for pending: Dictionary in pending_events.values():
+				_receive(pending)
 		"command":
 			command_received.emit(int(message.owner), message.payload)
 		"snapshot":
@@ -309,6 +337,15 @@ func _receive(message: Dictionary) -> void:
 				snapshot_received.emit(message.payload)
 		"event":
 			var payload: Dictionary = message.payload
+			# The relay binds a resumed peer before sending start. Lifecycle events
+			# on that new peer are newer, but their ENet channel can overtake start.
+			# Keep each seat's latest control state and the latest pause state:
+			# at most players.size() + 1 entries, applied after the resumed roster.
+			if not _match.is_empty() and connection_state in ["reconnecting", "connecting", "connected", "lobby"] and payload.get("kind") in ["bot_takeover", "player_reconnected", "host_paused", "host_resumed"]:
+				if Protocol.integer(payload.get("owner"), 0, _match.players.size() - 1):
+					var key: int = -1 if payload.kind in ["host_paused", "host_resumed"] else int(payload.owner)
+					_pending_resume_events[key] = message.duplicate(true)
+				return
 			if payload.get("kind") == "match_finished":
 				var result: Variant = payload.get("result")
 				# The room roster already exists if this event overtakes start on
@@ -336,6 +373,7 @@ func _receive(message: Dictionary) -> void:
 
 func _flush_intent() -> void:
 	if connection_state == "connected" and not _intent.is_empty():
+		_leave_queued = false
 		_send(_intent)
 		_intent.clear()
 
@@ -404,6 +442,7 @@ func flush_outbound() -> void:
 		_connection.flush()
 
 func _lost(now: int, reason: String = "transport_lost") -> void:
+	_pending_resume_events.clear()
 	_diagnostic("connection_lost", {"reason": reason, "receive_age_ms": maxi(0, now - _last_received)})
 	_close_transport()
 	if auto_reconnect and (not _token.is_empty() or _reconnect_deadline > 0):
@@ -445,5 +484,33 @@ func _set_state(state: String) -> void:
 		_diagnostic("state", {})
 		connection_state_changed.emit(state)
 
+func _poll_closing_transports(now: int, wait_ms: int = 0) -> void:
+	for index: int in range(_closing_transports.size() - 1, -1, -1):
+		var pending: Dictionary = _closing_transports[index]
+		var transport: ENetConnection = pending.connection
+		var complete: bool = now >= int(pending.deadline)
+		for event_index: int in 256:
+			if complete:
+				break
+			var event: Array = transport.service(wait_ms if event_index == 0 else 0)
+			if event[0] == ENetConnection.EVENT_NONE:
+				break
+			if event[0] in [ENetConnection.EVENT_DISCONNECT, ENetConnection.EVENT_ERROR]:
+				complete = true
+			elif event[0] == ENetConnection.EVENT_RECEIVE:
+				# Late room/start replies belong to the retired connection only.
+				event[1].get_packet()
+		if complete:
+			transport.destroy()
+			_closing_transports.remove_at(index)
+
 func _exit_tree() -> void:
-	_close_transport()
+	disconnect_relay()
+	# SceneTree.quit() stops _process(), including on window close. Keep servicing
+	# reliable leave/finish packets during teardown, with one shared shutdown bound.
+	var deadline: int = Time.get_ticks_msec() + DISCONNECT_GRACE_MS
+	while not _closing_transports.is_empty() and Time.get_ticks_msec() < deadline:
+		_poll_closing_transports(Time.get_ticks_msec(), 1)
+	for pending: Dictionary in _closing_transports:
+		pending.connection.destroy()
+	_closing_transports.clear()

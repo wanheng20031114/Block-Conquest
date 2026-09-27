@@ -169,8 +169,8 @@ func _building(kind: String, complete: bool = false) -> Node3D:
 func _submit(command: Dictionary, cost: int = 0) -> bool:
 	if cost > _budget:
 		return false
-	command["seq"] = _game.next_command_sequence(_owner)
-	var result: Dictionary = _game.submit_command(command, _owner)
+	command["seq"] = _game.next_command_sequence(_owner, true)
+	var result: Dictionary = _game.submit_command(command, _owner, true)
 	if not result.ok:
 		return false
 	_budget -= cost

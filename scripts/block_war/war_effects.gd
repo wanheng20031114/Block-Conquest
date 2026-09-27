@@ -67,6 +67,8 @@ func fire_segments(delta: float) -> Array[Dictionary]:
 
 func render_projectiles(projectiles: Array[Dictionary]) -> void:
 	var mesh: MultiMesh = $Cannonballs.multimesh
+	if projectiles.size() > mesh.instance_count:
+		mesh.instance_count = maxi(projectiles.size(), mesh.instance_count * 2)
 	for index: int in projectiles.size():
 		mesh.set_instance_transform(index, Transform3D(Basis.IDENTITY, projectiles[index].position))
 	mesh.visible_instance_count = projectiles.size()

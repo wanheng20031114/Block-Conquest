@@ -751,7 +751,9 @@ func _valid_snapshot(snapshot: Dictionary) -> bool:
 				for turret: Variant in turrets:
 					if not turret is Dictionary or turret.size() != 3:
 						return false
-					if not _number(turret.get("yaw"), -PI, PI) or not _number(turret.get("pitch"), DefensiveGunVisual.MIN_PITCH - .00001, DefensiveGunVisual.MAX_PITCH + .00001):
+					# Node3D stores rotation components as float32, including a
+					# rounded +/-PI after the visual's native wrapf/aim_at update.
+					if not _number(turret.get("yaw"), -PI - .00001, PI + .00001) or not _number(turret.get("pitch"), DefensiveGunVisual.MIN_PITCH - .00001, DefensiveGunVisual.MAX_PITCH + .00001):
 						return false
 					if not _number(turret.get("fired"), -1, float(snapshot.time)) or (float(turret.fired) < 0.0 and float(turret.fired) != -1.0):
 						return false

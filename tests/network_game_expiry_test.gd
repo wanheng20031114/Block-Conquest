@@ -15,6 +15,8 @@ func _run() -> void:
 	session = root.get_node("Session")
 	session.relay.error_received.connect(func(code: String, _message: String): errors.append(code))
 	for owner in range(2):
+		while session.transition.busy:
+			await process_frame
 		var relay: RelayClient = session.relay
 		relay.disconnect_relay()
 		relay.owner_id = owner
@@ -28,6 +30,8 @@ func _run() -> void:
 		session.start_online(config)
 		check(await until(func(): return current_scene != null and current_scene.scene_file_path == "res://scenes/main.tscn" and current_scene._match_ready, 15.0), "authored_game_ready_owner_%d" % owner)
 		var game: Node3D = current_scene
+		while session.transition.busy:
+			await process_frame
 		game.tests_running = true
 		game.camera_rig.edge_scroll = false
 		relay._set_state("match")

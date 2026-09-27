@@ -27,6 +27,7 @@ func _ready() -> void:
 	players = [PlayerState.new(0, 0), PlayerState.new(1, 1)]
 	players[0].display_name = "远征军"
 	players[1].display_name = "林地守军" if battle_kind == "outpost" else "围剿部队"
+	players[1].controller = "bot"
 	for player: PlayerState in players:
 		player.gold = 0
 	command_bus = MatchCommands.new(self)

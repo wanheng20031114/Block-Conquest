@@ -18,6 +18,9 @@ var _unit: String = ""
 var _building: String = ""
 var _hp: float = 100.0
 var _max_hp: float = 100.0
+var _stats: UnitDefinition:
+	get:
+		return BalanceCatalog.unit(unit_type)
 
 var unit_type: String:
 	get:

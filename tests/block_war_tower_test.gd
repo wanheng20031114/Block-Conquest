@@ -7,6 +7,9 @@ var checks := 0
 var failures: Array[String] = []
 
 func _initialize() -> void:
+	if DisplayServer.get_name() != "headless":
+		root.unfocusable = true
+		root.position = Vector2i(-4000, 0)
 	_run.call_deferred()
 
 func check(condition: bool, message: String) -> void:
@@ -45,6 +48,10 @@ func land() -> void:
 
 func _run() -> void:
 	create_timer(60.0).timeout.connect(func(): quit(3))
+	if "--large-volley-only" in OS.get_cmdline_user_args():
+		await _large_volley()
+		await _finish()
+		return
 	for faction: int in [0, 1]:
 		for tier: int in [1, 2, 3]:
 			await reset_match(tier, faction)
@@ -151,6 +158,43 @@ func _run() -> void:
 	game.simulate(0.61)
 	land()
 	check(tower.level == 1 and game.marches.total_for(0) == 0, "recapture reverses target allegiance and immediately downgrades again")
+	await _large_volley()
+	await _finish()
+
+func _finish() -> void:
 	print("BLOCK_WAR_TOWER checks=", checks, " failures=", failures.size())
 	await game.prepare_shutdown()
 	quit(0 if failures.is_empty() else 1)
+
+func _large_volley() -> void:
+	root.get_node("Session").block_war_map_id = "highland"
+	await reset_match(3)
+	for building: WarBuilding in game.buildings:
+		building.kind = 1
+		building.level = 3
+		building.faction = 0
+		building.population = 100.0
+		building.refresh_visual()
+	for index: int in 22:
+		var battery: WarBuilding = game.buildings[index]
+		var at := battery.global_position + Vector3(4, 0, 0)
+		game.marches.send(index, battery.building_id, 1, 6, PackedVector3Array([at, at + Vector3(0, 0, 10)]))
+	game.marches.tick(.1)
+	for index: int in 22:
+		game._fire_tower(game.buildings[index])
+	var mesh: MultiMesh = game.world_effects.get_node("Cannonballs").multimesh
+	check(game.projectiles.size() == 66, "twenty-two authored highland towers launch a 66-ball volley")
+	check(mesh.visible_instance_count == 66 and mesh.instance_count >= 66, "every in-flight ball has a visible native instance")
+	# Dummy rendering returns identity transforms, so read back only on a GPU run.
+	if DisplayServer.get_name() != "headless":
+		var positions_match: bool = mesh.instance_count >= game.projectiles.size()
+		if positions_match:
+			for index: int in game.projectiles.size():
+				positions_match = positions_match and mesh.get_instance_transform(index).origin.is_equal_approx(game.projectiles[index].position)
+		check(positions_match, "growing the MultiMesh preserves all earlier and later projectile transforms")
+	game.projectiles.resize(3)
+	game.world_effects.render_projectiles(game.projectiles)
+	check(mesh.visible_instance_count == 3, "smaller volley hides unused capacity without ghost balls")
+	game.projectiles.clear()
+	game.world_effects.render_projectiles(game.projectiles)
+	check(mesh.visible_instance_count == 0, "empty volley hides every retained instance")

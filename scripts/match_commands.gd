@@ -8,30 +8,39 @@ var game: Node3D
 var pending: Array[Dictionary] = []
 var _issued: Dictionary = {}
 var _accepted: Dictionary = {}
+var _bot_issued: Dictionary = {}
+var _bot_accepted: Dictionary = {}
 
 func _init(controller: Node3D) -> void:
 	game = controller
 
-func next_sequence(owner: int) -> int:
-	_issued[owner] = maxi(int(_issued.get(owner, 0)), int(_accepted.get(owner, 0))) + 1
-	return _issued[owner]
+func next_sequence(owner: int, from_bot: bool = false) -> int:
+	var issued: Dictionary = _bot_issued if from_bot else _issued
+	var accepted: Dictionary = _bot_accepted if from_bot else _accepted
+	issued[owner] = maxi(int(issued.get(owner, 0)), int(accepted.get(owner, 0))) + 1
+	return issued[owner]
 
-func submit(command: Dictionary, owner: int) -> Dictionary:
+func submit(command: Dictionary, owner: int, from_bot: bool = false) -> Dictionary:
 	if owner < 0 or owner >= game.players.size() or game.finished:
 		return failure("对局已结束或玩家不存在")
 	if not game.get_player(owner).is_participating() or game.get_player(owner).eliminated:
 		return failure("你的阵营已出局")
+	if from_bot and (not game.is_authority or game.get_player(owner).controller != "bot"):
+		return failure("电脑已失去控制权")
+	# The local caller chooses the stream, never a field in the remote payload.
+	# Bot takeover must not consume the disconnected human's independent sequence.
+	var accepted: Dictionary = _bot_accepted if from_bot else _accepted
 	var raw_sequence: Variant = command.get("seq", 0)
 	if command.get("kind", "") not in KINDS:
 		return failure("无效命令")
 	if not NetworkProtocol.integer(raw_sequence, 1, MAX_INTEGER):
 		return failure("无效命令序号")
 	var sequence: int = int(raw_sequence)
-	if sequence <= int(_accepted.get(owner, 0)):
+	if sequence <= int(accepted.get(owner, 0)):
 		return failure("重复命令")
-	if sequence > int(_accepted.get(owner, 0)) + 10000 or pending.size() >= 512:
+	if sequence > int(accepted.get(owner, 0)) + 10000 or pending.size() >= 512:
 		return failure("命令过于频繁")
-	_accepted[owner] = sequence
+	accepted[owner] = sequence
 	var copied := command.duplicate(true)
 	copied["owner"] = owner
 	pending.append(copied)

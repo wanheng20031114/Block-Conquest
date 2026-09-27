@@ -95,7 +95,10 @@ func _ready() -> void:
 	footprint.size = Vector3(4.4, 5.0, 4.4)
 	_placement_query = PhysicsShapeQueryParameters3D.new()
 	_placement_query.shape = footprint
-	_placement_query.collision_mask = 6 | 128
+	_placement_query.collision_mask = 7 | 128
+	# Natural obstacles share the terrain layer with the authored flat ground.
+	# Exclude only the supporting floor, never the trees and rocks above it.
+	_placement_query.exclude = [map_instance.get_node("Environment/Ground").get_rid()]
 	$ConstructionNavigation.refresh()
 	if is_authority and ($PathBudget.shared_paths_enabled or $StaticMotionGrid.fast_path_enabled):
 		$StaticMotionGrid.configure(map_instance, $Buildings, Rect2(-map_size * 0.5, map_size))
@@ -117,6 +120,7 @@ func _ready() -> void:
 		replication.visual_event_due.connect(_play_network_visual)
 		Session.relay.command_received.connect(_on_network_command)
 		Session.relay.event_received.connect(_on_network_event)
+		Session.relay.match_resumed.connect(_on_match_resumed)
 		Session.relay.connection_state_changed.connect(_on_connection_state)
 		replication.snapshot_applied.connect(_on_snapshot_applied)
 		hud.get_node("%RestartButton").text = "返回大厅"
@@ -1030,11 +1034,11 @@ func clamp_to_map(at: Vector3) -> Vector3:
 	return Vector3(clampf(at.x, -map_size.x * 0.5 + 2, map_size.x * 0.5 - 2), 0,
 		clampf(at.z, -map_size.y * 0.5 + 2, map_size.y * 0.5 - 2))
 
-func next_command_sequence(owner: int) -> int:
-	return command_bus.next_sequence(owner)
+func next_command_sequence(owner: int, from_bot: bool = false) -> int:
+	return command_bus.next_sequence(owner, from_bot)
 
-func submit_command(command: Dictionary, owner: int = -1) -> Dictionary:
-	return command_bus.submit(command, local_owner_id if owner < 0 else owner)
+func submit_command(command: Dictionary, owner: int = -1, from_bot: bool = false) -> Dictionary:
+	return command_bus.submit(command, local_owner_id if owner < 0 else owner, from_bot)
 
 func submit_local(command: Dictionary) -> Dictionary:
 	command["seq"] = next_command_sequence(local_owner_id)
@@ -1321,6 +1325,21 @@ func _on_network_command(owner: int, command: Dictionary) -> void:
 	if is_authority:
 		submit_command(command, owner)
 
+func _set_network_controller(owner: int, controller: String) -> void:
+	if not is_authority or owner < 0 or owner >= players.size() or not get_player(owner).is_participating():
+		return
+	get_player(owner).controller = controller
+	if controller == "bot" and not get_player(owner).eliminated:
+		if not bots.has(owner):
+			bots[owner] = SkirmishBot.new(self, owner)
+	else:
+		bots.erase(owner)
+
+func _on_match_resumed(config: Dictionary) -> void:
+	# RelayClient emits this before changing back to match/unpausing simulation.
+	for player: Dictionary in config.players:
+		_set_network_controller(int(player.owner_id), str(player.controller))
+
 func _on_snapshot_applied(_tick: int) -> void:
 	if selection.is_empty() and is_instance_valid(headquarters) and not game_started:
 		select_entities([headquarters])
@@ -1331,15 +1350,9 @@ func _on_network_event(event: Dictionary) -> void:
 	match str(event.get("kind", "")):
 		"notice": hud.toast(str(event.get("text", "")), 2.5)
 		"bot_takeover":
-			var owner: int = int(event.owner)
-			if is_authority and owner >= 0 and owner < players.size() and get_player(owner).is_participating() and not get_player(owner).eliminated:
-				get_player(owner).controller = "bot"
-				bots[owner] = SkirmishBot.new(self, owner)
+			_set_network_controller(int(event.owner), "bot")
 		"player_reconnected":
-			var owner: int = int(event.owner)
-			if is_authority and owner >= 0 and owner < players.size() and get_player(owner).is_participating():
-				get_player(owner).controller = "human"
-				bots.erase(owner)
+			_set_network_controller(int(event.owner), "human")
 		"host_paused":
 			set_match_paused(true)
 			hud.toast("房主连接中断 · 等待恢复（最多 30 秒）", 30)

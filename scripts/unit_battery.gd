@@ -53,7 +53,7 @@ func engage(primary: Variant) -> bool:
 	for i: int in guns.size():
 		if guns[i].release_at < 0 and now + .000001 >= guns[i].ready_at:
 			ready_mask |= 1 << i
-	if ready_mask == 0: return true
+	if ready_mask == 0: return winding or unit._can_start_strike(primary)
 	if unit.order == BattleUnit.Order.ATTACK or now >= _next_query:
 		_assign_targets(primary, now)
 	var started: bool = false
@@ -69,7 +69,9 @@ func engage(primary: Variant) -> bool:
 		pending_mask |= 1 << i
 		started = true
 	if started: _schedule_release()
-	return true
+	# A target merely inside today's range may leave it during preparation.
+	# Without a pending shot, let the body close that gap even while reloading.
+	return winding or unit._can_start_strike(primary)
 
 func _eligible(candidate: Variant, primary: Variant) -> bool:
 	if not unit._valid_target(candidate) or not unit._within_attack_range(candidate): return false

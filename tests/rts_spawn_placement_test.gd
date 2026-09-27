@@ -50,6 +50,7 @@ func _run() -> void:
 	await sync_navigation()
 	game.get_node("FogOfWar")._recompute()
 	_adjacency()
+	_natural_obstacles()
 	await _exits()
 	await _mining()
 	await game.prepare_shutdown()
@@ -60,6 +61,13 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _adjacency() -> void:
+	# Isolate building-to-building contact: 2v2 has authored rocks beside the
+	# center. Restore scenery before the separate obstacle and spawn checks.
+	var floor_only: Array[RID] = game._placement_query.exclude
+	var without_scenery: Array[RID] = floor_only.duplicate()
+	for obstacle: StaticBody3D in game.map_instance.get_node("Environment/NaturalObstacles").get_children():
+		without_scenery.append(obstacle.get_rid())
+	game._placement_query.exclude = without_scenery
 	var definition := producer.get_combat_definition()
 	var contact_positions: Array[Vector3] = [Vector3(definition.size.x, 0, 0), Vector3(-definition.size.x, 0, 0), Vector3(0, 0, definition.size.z), Vector3(0, 0, -definition.size.z)]
 	var allowed: int = 0
@@ -76,6 +84,25 @@ func _adjacency() -> void:
 	check(game.placement_error(transient.global_position, 0, "defense_tower") == "这里已有建筑或工地", "same_tick_new_site_reserves_exact_footprint_before_physics_sync")
 	transient.cancel_construction()
 	check(not game.placement_error(Vector3(game.map_size.x, 0, 0), 0, "barracks").is_empty(), "out_of_map_placement_rejected")
+	game._placement_query.exclude = floor_only
+
+func _natural_obstacles() -> void:
+	var trees := 0
+	var rocks := 0
+	var worker: BattleUnit = game.owned_entities(0, "units")[0]
+	for obstacle: StaticBody3D in game.map_instance.get_node("Environment/NaturalObstacles").get_children():
+		var at: Vector3 = game.snap_build_position(obstacle.global_position)
+		if not game.can_see_position(0, at): continue
+		if String(obstacle.name).begins_with("tree_"): trees += 1
+		elif String(obstacle.name).begins_with("rock_"): rocks += 1
+		else: continue
+		check(not game.placement_error(at, 0, "defense_tower").is_empty(), "visible_nature_footprint_blocks_construction_" + String(obstacle.name))
+		var gold: int = game.get_player(0).gold
+		var buildings: int = game.owned_entities(0, "buildings").size()
+		var result: Dictionary = game.command_bus.execute({"kind": "build", "building_type": "defense_tower", "units": [worker.entity_id], "at": game.vector_data(at)}, 0)
+		check(not result.ok and game.get_player(0).gold == gold and game.owned_entities(0, "buildings").size() == buildings, "rejected_nature_site_never_charges_or_spawns_" + String(obstacle.name))
+	check(trees > 0 and rocks > 0, "authored_map_exercises_both_tree_and_rock_collision")
+
 func _exits() -> void:
 	for rally: Vector3 in [Vector3(20, 0, -20), Vector3(-20, 0, 20)]:
 		producer.rally_point = rally

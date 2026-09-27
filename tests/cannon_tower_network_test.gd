@@ -81,6 +81,21 @@ func _run() -> void:
 	receiver.render(1.0)
 	check(receiver.last_received_tick == 2 and is_equal_approx(replica.artillery.guns[0].turret.rotation.y,-.8), "later snapshots interpolate fresh turret direction")
 	check(client_target.hp == 315, "subsequent snapshots preserve authoritative HP")
+	# Node3D stores angles as float32: legitimate back-facing angles can round
+	# just outside the float64 PI bounds after a real aiming update.
+	var gun: DefensiveGunVisual = tower.artillery.guns[0]
+	for direction: Vector3 in [Vector3(0, 0, 10), Vector3(-0.0000001, 0, 10)]:
+		gun.aim_at(gun.to_global(direction), 2.0)
+		host.simulation_tick += 1
+		host.elapsed += 1.0
+		var boundary := wire(sender.build_snapshot(0))
+		check(absf(float(state_for(boundary, tower.entity_id).turrets[0].yaw)) >= PI, "native rear aim exercises float32 PI boundary")
+		receiver.receive_snapshot(boundary)
+		check(receiver.last_received_tick == host.simulation_tick, "rear-facing cannon does not freeze the full client snapshot")
+	for yaw: float in [PI + .001, -PI - .001, INF, -INF, NAN]:
+		var invalid_yaw: Dictionary = snapshot.duplicate(true)
+		state_for(invalid_yaw, tower.entity_id).turrets[0].yaw = yaw
+		check(not receiver._valid_snapshot(invalid_yaw), "angle tolerance still rejects invalid yaw " + str(yaw))
 	client.queue_free(); host.queue_free()
 	await process_frame
 	await process_frame
