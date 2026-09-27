@@ -1,11 +1,14 @@
 extends TextureProgressBar
 ## Fractional charge is native clipped texture fill; only complete stars emit light.
 
+const PARTIAL_TINT := Color(0.6, 0.6, 0.6, 1.0)
 var _glow_tween: Tween
 
 func set_charge(charge: float) -> void:
 	value = clampf(charge, 0.0, 1.0)
 	var full: bool = value >= 1.0
+	# A near-full 16 px star can lose only a subpixel tip; tint keeps it distinct.
+	tint_progress = Color.WHITE if full else PARTIAL_TINT
 	if $Glow.visible == full:
 		return
 	$Glow.visible = full

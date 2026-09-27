@@ -30,6 +30,9 @@ func update_factions(totals: Array, morale: Array, count: int) -> void:
 		var row: HBoxContainer = get_node("Stars/Faction%d" % faction)
 		var full_stars: int = floori(float(morale[faction]))
 		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [FACTIONS.NAMES[faction], full_stars, full_stars * 5, full_stars * 25, full_stars * 10]
+		if full_stars < 5:
+			var next_star_percent: float = floorf((float(morale[faction]) - full_stars) * 1000.0) / 10.0
+			row.tooltip_text += "\n下颗星充能 %.1f%%" % next_star_percent
 		for index: int in 5:
 			row.get_child(index).set_charge(float(morale[faction]) - float(index))
 	if _faction_count != count:

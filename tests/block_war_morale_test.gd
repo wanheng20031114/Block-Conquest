@@ -47,6 +47,9 @@ func _run() -> void:
 	_combat()
 	_interceptions()
 	_movement()
+	_idle_decay_in_battle()
+	_combat_activity_and_decay()
+	_ai_upgrades_without_combat()
 	_construction_and_time()
 	game.update_hud()
 	await game.prepare_shutdown()
@@ -164,6 +167,88 @@ func _movement() -> void:
 	game.morale.adjust(1, -8000.0)
 	near(game.marches.departure_step_limit(), limit * 1.5, "doorway timing changes with live morale")
 	game.marches.clear()
+
+func _check_fifth_star(faction: int, charge: float, label: String) -> void:
+	var row: HBoxContainer = game.hud.get_node("%Balance").get_node("Stars/Faction%d" % faction)
+	var fifth: TextureProgressBar = row.get_child(4)
+	near(fifth.value, charge, label + ": actual HUD fifth-star charge")
+	check(fifth.get_node("Glow").visible == (charge == 1.0), label + ": only a complete fifth star glows")
+
+func _idle_decay_in_battle() -> void:
+	for small_steps: bool in [false, true]:
+		reset()
+		for faction: int in game.faction_count:
+			game.morale.adjust(faction, 8000.0)
+		game.update_hud()
+		for faction: int in game.faction_count:
+			_check_fifth_star(faction, 1.0, "all six factions start at five stars")
+		var previous := 0.0
+		for sample: Vector3 in [Vector3(10.0, 7300.0, 0.825), Vector3(30.0, 5300.0, 0.325), Vector3(60.0, 3100.0, 0.0)]:
+			var delta := sample.x - previous
+			if small_steps:
+				for step: int in roundi(delta * 10.0):
+					game.simulate(0.1)
+			else:
+				game.simulate(delta)
+			game.update_hud()
+			for faction: int in game.faction_count:
+				var label := "faction %d, idle %ds, short frames %s" % [faction, sample.x, small_steps]
+				near(game.morale.points(faction), sample.y, label + ": real simulation settles idle decay")
+				check(game.morale.level(faction) == (3 if sample.x == 60.0 else 4), label + ": bonuses use complete stars")
+				_check_fifth_star(faction, sample.z, label)
+			previous = sample.x
+
+func _combat_activity_and_decay() -> void:
+	for defender: int in [0, 1]:
+		reset()
+		game.morale.adjust(defender, 8000.0)
+		for event: int in 3:
+			game.marches.send(1 - defender, defender, 1 - defender, 1, PackedVector3Array([Vector3.ZERO, Vector3(0.1, 0, 0)]))
+			game.simulate(4.0)
+			near(game.morale.points(defender), 8000.0, "actual defensive casualties refresh capped morale for either team")
+		check(game.marches._units.is_empty(), "every attacker has actually arrived before the quiet interval")
+		game.update_hud()
+		_check_fifth_star(defender, 1.0, "recent defensive casualty keeps the complete fifth star")
+		game.simulate(5.0 - game.morale.idle_seconds(defender))
+		near(game.morale.points(defender), 7800.0, "stopping real defensive kills restores decay at the exact idle deadline")
+		check(game.morale.level(defender) == 4, "post-combat decay removes the fifth full bonus")
+		game.update_hud()
+		_check_fifth_star(defender, 0.95, "post-combat fifth star is partial and cannot glow")
+
+func _ai_upgrades_without_combat() -> void:
+	reset()
+	game.elapsed = 0.0
+	game.ai_clock = 3.0
+	game.ai_enabled = true
+	# A developed opponent can keep building during a ceasefire. The passive
+	# human's garrison makes invasion unaffordable, isolating paid AI upgrades.
+	game.by_id[0].population = 100000.0
+	for building: WarBuilding in game.buildings:
+		if building.building_id > 0:
+			building.faction = 1
+			building.population = 100.0
+	for state: RefCounted in game.faction_skills:
+		state.energy = 0.0
+	game._ai_turn()
+	game.simulate(9.0)
+	game.morale.adjust(1, 8000.0)
+	for sample: int in 3:
+		game.simulate(10.0)
+		check(game.marches._units.is_empty(), "AI economy-only scenario has no marching or fighting soldiers")
+		near(game.morale.points(1), 8000.0, "staggered actual AI upgrades sustain full morale without combat")
+		check(game.morale.idle_seconds(1) < 3.01, "completed AI construction refreshes the activity clock")
+		game.update_hud()
+		_check_fifth_star(1, 1.0, "actual construction activity can keep a full glowing fifth star")
+	game.ai_enabled = false
+	for building: WarBuilding in game.buildings:
+		building.cancel_construction()
+	for state: RefCounted in game.faction_skills:
+		state.recruit_target_id = -1
+		state.durations.fill(0.0)
+	game.simulate(5.0 - game.morale.idle_seconds(1))
+	near(game.morale.points(1), 7800.0, "stopping construction as well as combat restores idle decay")
+	game.update_hud()
+	_check_fifth_star(1, 0.95, "the AI's fifth star becomes partial after all morale activity ends")
 
 func _construction_and_time() -> void:
 	reset()

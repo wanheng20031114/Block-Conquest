@@ -49,6 +49,21 @@ func verify_attack_bonus() -> void:
 	hud.update_state(team_state)
 	check(hud.get_node("%ForgeBonus").text == "你的攻击  +37.5%", "team label shows own permanent attack without temporary rabbit buff")
 
+func verify_near_full_stars() -> void:
+	var row: Control = balance.get_node("Stars/Faction1")
+	var star: TextureProgressBar = row.get_child(4)
+	hud.update_state(sample([100, 100], [0.0, 5.0]))
+	check(star.value == 1.0 and star.tint_progress == Color.WHITE and star.get_node("Glow").visible, "full fifth star retains bright gold and white glow")
+	check(not row.tooltip_text.contains("下颗星充能"), "maximum level has no nonexistent next star")
+	for example: Array in [[4.9, "90.0%"], [4.99, "99.0%"], [4.9975, "99.7%"], [4.999999, "99.9%"]]:
+		hud.update_state(sample([100, 100], [0.0, 5.0]))
+		hud.update_state(sample([100, 100], [0.0, example[0]]))
+		check(absf(star.value - (float(example[0]) - 4.0)) < 0.000000000001, "near-full charge keeps its original continuous ratio %s" % example[0])
+		check(star.tint_progress.r <= 0.65 and star.tint_progress.g <= 0.65 and star.tint_progress.b <= 0.65 and star.tint_progress.a == 1.0 and not star.get_node("Glow").visible, "dropping below full charge immediately dims gold and removes glow %s" % example[0])
+		check(row.tooltip_text.contains("敌方一 · 4 星") and row.tooltip_text.contains("攻击 +20% · 防御 +100% · 移速 +40%") and row.tooltip_text.ends_with("下颗星充能 " + example[1]), "tooltip keeps whole-star bonuses and floors the next-star percentage %s" % example[0])
+		hud.update_state(sample([100, 100], [0.0, 5.0]))
+		check(star.tint_progress == Color.WHITE and star.get_node("Glow").visible, "refilling restores full brightness and glow %s" % example[0])
+
 func verify(totals: Array, morale: Array, label: String) -> void:
 	hud.update_state(sample(totals, morale))
 	await create_timer(0.35).timeout
@@ -95,6 +110,7 @@ func _run() -> void:
 	check(first_star.texture_under != null and first_star.texture_progress != null and first_star.get_node("Glow").texture != null, "all star textures are imported")
 	await create_timer(0.8).timeout
 	verify_attack_bonus()
+	verify_near_full_stars()
 	await verify([120, 120], [0.0, 2.5], "01_duel_partial")
 	await verify([120, 120, 120, 120], [1.0, 2.0, 3.0, 4.0], "02_four_players")
 	await verify([120, 120, 120, 120, 120, 120], [0.0, 1.0, 2.25, 3.5, 4.75, 5.0], "03_six_players")
