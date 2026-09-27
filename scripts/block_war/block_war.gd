@@ -18,6 +18,8 @@ const AI_STRATEGY := preload("res://scripts/block_war/war_ai.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const MAP_CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
+const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
+var bear := BEAR_SKILLS.new()
 
 class SkillState extends RefCounted:
 	var commander: StringName = &"squirrel"
@@ -165,6 +167,7 @@ func simulate(delta: float) -> void:
 			step = minf(step, 0.05)
 		step = minf(step, marches.departure_step_limit())
 		step = minf(step, world_effects.fire_step_limit())
+		step = minf(step, bear.step_limit())
 		for building: WarBuilding in buildings:
 			if building.is_constructing:
 				step = minf(step, building.construction_remaining)
@@ -196,6 +199,7 @@ func _simulate_step(delta: float) -> void:
 		building.refresh_visual()
 	marches.tick(delta, world_effects.fire_segments(delta))
 	_tick_projectiles(delta)
+	bear.tick_projectiles(self, delta)
 	audio.tick_marches(delta, marches)
 	world_effects.tick(delta)
 	world_effects.update_skills(delta, faction_skills, shields, by_id, marches)
@@ -219,6 +223,7 @@ func _simulate_step(delta: float) -> void:
 			if building.faction == PLAYER:
 				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
+	bear.advance(self, delta)
 	_check_victory()
 	# Orders are decisions at the end of this step. New construction must not
 	# receive the production time that passed before the AI paid for it.
@@ -363,17 +368,19 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 		target.population += strength
 		audio.play_world(&"war_reinforce", target.global_position)
 	else:
-		var damage: float = strength * combat_multiplier(faction, target, unit_attack_bonus)
+		var original_damage: float = strength * combat_multiplier(faction, target, unit_attack_bonus)
+		var damage: float = bear.damage_for(self, target, original_damage)
 		if target.population + 0.00001 >= damage:
 			target.population = maxf(0.0, target.population - damage)
 			if target.queued_population > floori(target.population):
 				marches.trim_departures(target_id, target.faction, floori(target.population))
 		else:
-			var survivors: float = strength * (1.0 - target.population / damage)
+			var survivors: float = clampf(strength * (damage - target.population) / maxf(original_damage, 0.000001), 0.0, strength)
 			var previous_faction: int = target.faction
 			if target.queued_population > 0:
 				marches.trim_departures(target_id, previous_faction, 0)
 			target.cancel_construction()
+			bear.clear_building(self, target_id)
 			target.clear_disruption()
 			_clear_building_burrow(target)
 			target.faction = faction
@@ -440,7 +447,8 @@ func _tick_fire_buildings() -> void:
 			var offset := Vector2(building.global_position.x - fire.global_position.x, building.global_position.z - fire.global_position.z)
 			if offset.length() <= fire.front(fire.age):
 				fire.hit_buildings[building.building_id] = true
-				building.population = maxf(0.0, building.population - IMPACT_DAMAGE * (1.0 - defense_bonus(building)))
+				var damage := bear.damage_for(self, building, IMPACT_DAMAGE * (1.0 - defense_bonus(building)))
+				building.population = maxf(0.0, building.population - damage)
 				if building.queued_population > floori(building.population):
 					marches.trim_departures(building.building_id, building.faction, floori(building.population))
 				building.refresh_visual()
@@ -509,6 +517,8 @@ func skill_is_ground(index: int, faction: int = PLAYER) -> bool:
 	return index >= 0 and SKILL_RULES.is_ground(index, faction_skills[faction].commander)
 
 func skill_radius(index: int, faction: int = PLAYER) -> float:
+	if faction_skills[faction].commander == SKILL_RULES.BEAR:
+		return SKILL_RULES.BEAR_SLOW_RADIUS
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		return SKILL_RULES.RABBIT_RUSH_RADIUS if index == 0 else SKILL_RULES.RECALL_RADIUS
 	return SKILL_RULES.HASTE_RADIUS if index == 1 else IMPACT_RADIUS
@@ -548,6 +558,8 @@ func _skill_available(index: int, faction: int = PLAYER) -> bool:
 func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 	if target == null:
 		return false
+	if faction_skills[faction].commander == SKILL_RULES.BEAR:
+		return bear.valid_target(self, index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		match index:
 			1: return FACTIONS.hostile(target.faction, faction) and target.disruption_remaining <= 0.0
@@ -569,12 +581,20 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 		return false
 	if not _valid_skill_target(index, target, faction):
 		if faction == PLAYER:
-			if faction_skills[faction].commander == SKILL_RULES.RABBIT:
+			if faction_skills[faction].commander == SKILL_RULES.BEAR:
+				hud.notify(["选择正在升级或转换的己方建筑", "拖至战场地面后松手", "选择附近 18 米内有己方支援建筑的据点", "选择尚未无敌的己方建筑"][index])
+			elif faction_skills[faction].commander == SKILL_RULES.RABBIT:
 				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择有行军部队的地面区域", "选择尚未获得兔洞待命的自己的建筑"][index])
 			else:
 				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
+	if faction_skills[faction].commander == SKILL_RULES.BEAR:
+		bear.cast(self, index, target, faction)
+		_commit_skill(index, faction)
+		target.refresh_visual()
+		update_hud()
+		return true
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		if not RABBIT_SKILLS.cast(self, index, target, faction):
 			return false
@@ -611,6 +631,14 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 			audio.play_ui(&"war_denied")
 		return false
 	var center := Vector3(at.x, 0.0, at.z)
+	if faction_skills[faction].commander == SKILL_RULES.BEAR:
+		marches.create_slow_zone(faction, center, SKILL_RULES.BEAR_SLOW_RADIUS, SKILL_RULES.BEAR_DURATIONS[1])
+		world_effects.get_node("Bear").stomp(faction, center)
+		world_effects.get_node("Bear").sync(bear, marches, by_id, 0.0)
+		_commit_skill(index, faction)
+		audio.play_world(&"war_skill_drum", center)
+		update_hud()
+		return true
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		if index == 0:
 			var rushing: int = marches.apply_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0])
@@ -677,7 +705,7 @@ func upgrade_selected() -> void:
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= cost
-	selected.begin_construction()
+	selected.begin_construction(-1, cost)
 	selected.refresh_visual()
 	audio.play_world(&"war_rebuild", selected.global_position)
 	hud.notify("%s开始升级 · 10 秒后完成" % KIND_NAMES[selected.kind])
@@ -691,7 +719,7 @@ func convert_selected(kind: int) -> void:
 		audio.play_ui(&"war_denied")
 		return
 	selected.population -= CONVERSION_COST
-	selected.begin_construction(kind)
+	selected.begin_construction(kind, CONVERSION_COST)
 	selected.refresh_visual()
 	audio.play_world(&"war_rebuild", selected.global_position)
 	hud.notify("开始改建%s · 10 秒后完成" % KIND_NAMES[kind])

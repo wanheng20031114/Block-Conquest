@@ -2,7 +2,7 @@ extends Control
 
 const CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const COMMANDERS: Array[StringName] = [&"squirrel", &"rabbit"]
+const COMMANDERS: Array[StringName] = [&"squirrel", &"rabbit", &"bear"]
 var selected: Resource
 var _maps: Array[Resource] = []
 var _launching := false
@@ -17,7 +17,7 @@ func _ready() -> void:
 	%Start.pressed.connect(_start)
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
-	for index: int in 2:
+	for index: int in COMMANDERS.size():
 		get_node("%%OpponentCommander%d" % index).pressed.connect(_select_commander.bind(index))
 		get_node("%%OpponentCommander%d" % index).tooltip_text = " · ".join(RULES.names_for(COMMANDERS[index]))
 	_select_commander(COMMANDERS.find(session.block_war_opponent_commander))
@@ -30,7 +30,7 @@ func _ready() -> void:
 
 func _select_commander(index: int) -> void:
 	session.block_war_opponent_commander = COMMANDERS[index]
-	for i: int in 2:
+	for i: int in COMMANDERS.size():
 		get_node("%%OpponentCommander%d" % i).set_pressed_no_signal(i == index)
 
 func _select_size(size_class: int) -> void:

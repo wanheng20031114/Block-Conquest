@@ -197,6 +197,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			_wind_offset = (_wind_offset + 48) % active.size()
 
 func set_running(value: bool) -> void:
+	$Bear.set_running(value)
 	$Rabbit.set_running(value)
 	for particles: GPUParticles3D in [$RecruitMotes, $ShieldMotes, $HasteTrails, $HasteMotes]:
 		particles.speed_scale = 1.0 if value else 0.0

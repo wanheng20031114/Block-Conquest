@@ -26,6 +26,7 @@ class MarchOrder extends RefCounted:
 	var curve: Curve3D
 	var length: float
 	var haste_intervals: Dictionary[float, PackedVector2Array] = {}
+	var slow_intervals: Dictionary[Vector2, PackedVector2Array] = {}
 
 class MarchUnit extends RefCounted:
 	var alive := true
@@ -47,6 +48,8 @@ class MarchUnit extends RefCounted:
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 var _units: Array[MarchUnit] = []
 var haste_zones: Dictionary[int, Dictionary] = {}
+var slow_zones: Dictionary[int, Dictionary] = {}
+var blocked_destinations: Dictionary[int, int] = {}
 var _departure_sequence := 0
 
 func _ready() -> void:
@@ -204,6 +207,10 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		var unit := _units[index]
 		var concealed_time := minf(delta, unit.spawn_delay)
 		var step := movement_distance(unit, delta)
+		# A protected destination holds hostile soldiers visibly outside its gate.
+		# They remain exposed to projectiles/fire and resume when protection ends.
+		if blocked_destinations.has(unit.order.target_id) and FACTIONS.hostile(unit.order.faction, blocked_destinations[unit.order.target_id]):
+			step = minf(step, maxf(0.0, unit.order.length - 0.12 - unit.distance))
 		# Sample the buff at contact, including an arrival before its expiry within
 		# one long frame. Population strength remains independent of combat bonuses.
 		var arrival_bonus := 0.0
@@ -251,6 +258,10 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		haste_zones[faction].remaining -= delta
 		if haste_zones[faction].remaining <= 0.000001:
 			haste_zones.erase(faction)
+	for faction: int in slow_zones.keys():
+		slow_zones[faction].remaining -= delta
+		if slow_zones[faction].remaining <= 0.000001:
+			slow_zones.erase(faction)
 	_render()
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
 	for arrival: Dictionary in arrivals:
@@ -313,18 +324,18 @@ func get_units() -> Array[Dictionary]:
 				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane, "rush_remaining": unit.rush_remaining})
 	return result
 
-func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int) -> Array[MarchUnit]:
+func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int, farthest: bool = false) -> Array[MarchUnit]:
 	var targets: Array[MarchUnit] = []
 	var radius_squared := radius * radius
 	for target_index: int in count:
 		var nearest := -1
-		var nearest_distance := radius_squared
+		var nearest_distance := -1.0 if farthest else radius_squared
 		for index: int in _units.size():
 			var unit := _units[index]
 			if FACTIONS.allied(unit.order.faction, attacking_faction) or not unit.is_exposed() or unit.reserved:
 				continue
 			var distance_squared := unit.position.distance_squared_to(center)
-			if distance_squared <= nearest_distance:
+			if distance_squared <= radius_squared and ((farthest and distance_squared > nearest_distance) or (not farthest and distance_squared <= nearest_distance)):
 				nearest_distance = distance_squared
 				nearest = index
 		if nearest < 0:
@@ -410,6 +421,12 @@ func apply_rush(faction: int, at: Vector3, radius: float, duration: float) -> in
 	_render()
 	return targets.size()
 
+func create_slow_zone(faction: int, at: Vector3, radius: float, duration: float) -> void:
+	slow_zones[faction] = {"at": at, "radius": radius, "remaining": duration, "duration": duration}
+	for unit: MarchUnit in _units:
+		unit.order.slow_intervals.clear()
+	_render()
+
 func projected_attack_bonus(unit: MarchUnit) -> float:
 	if unit.rush_remaining <= 0.0:
 		return 0.0
@@ -424,6 +441,10 @@ func speed_multiplier(unit: MarchUnit) -> float:
 		var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
 		if offset.length_squared() <= zone.radius * zone.radius:
 			multiplier = maxf(multiplier, zone.multiplier)
+	for faction: int in slow_zones:
+		var zone := slow_zones[faction]
+		if FACTIONS.hostile(faction, unit.order.faction) and Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z).length_squared() <= zone.radius * zone.radius:
+			return multiplier * RULES.BEAR_SLOW_MULTIPLIER
 	return multiplier
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
@@ -433,10 +454,12 @@ func movement_distance(unit: MarchUnit, delta: float) -> float:
 	var zone_time := 0.0
 	if haste_zones.has(unit.order.faction):
 		zone_time = maxf(0.0, haste_zones[unit.order.faction].remaining - concealed_time)
-	var step := _movement_segment(unit, unit.distance, rushing, RULES.RABBIT_RUSH_MULTIPLIER, zone_time)
-	return step + _movement_segment(unit, unit.distance + step, delta - rushing, 1.0, maxf(0.0, zone_time - rushing))
+	var step := _movement_segment(unit, unit.distance, rushing, RULES.RABBIT_RUSH_MULTIPLIER, zone_time, concealed_time)
+	return step + _movement_segment(unit, unit.distance + step, delta - rushing, 1.0, maxf(0.0, zone_time - rushing), concealed_time + rushing)
 
-func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float) -> float:
+func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float, time_offset: float = 0.0) -> float:
+	if not slow_zones.is_empty():
+		return _movement_with_fields(unit, from_distance, delta, multiplier, zone_time, time_offset)
 	# A unit buff and a ground field use their stronger speed, never multiply.
 	# Split both independent expiry times, then integrate route entry/exit exactly.
 	var speed := SPEED * multiplier
@@ -465,6 +488,50 @@ func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, mult
 		if remaining <= 0.0:
 			break
 	return distance - from_distance + speed * (remaining + delta - active)
+
+func _movement_with_fields(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float, time_offset: float) -> float:
+	# Integrate actual route crossings and expiries. Stacking slows use the same
+	# 60% reduction; friendly haste/rush take their maximum before this reduction.
+	var fields: Array[Dictionary] = []
+	if zone_time > 0.0:
+		var haste := haste_zones[unit.order.faction]
+		if not unit.order.haste_intervals.has(unit.lane):
+			unit.order.haste_intervals[unit.lane] = _zone_intervals(unit.order, unit.lane, haste)
+		fields.append({"spans": unit.order.haste_intervals[unit.lane], "until": zone_time, "speed": haste.multiplier})
+	for faction: int in slow_zones:
+		var slow := slow_zones[faction]
+		if not FACTIONS.hostile(faction, unit.order.faction) or slow.remaining <= time_offset:
+			continue
+		var key := Vector2(faction, unit.lane)
+		if not unit.order.slow_intervals.has(key):
+			unit.order.slow_intervals[key] = _zone_intervals(unit.order, unit.lane, slow)
+		fields.append({"spans": unit.order.slow_intervals[key], "until": slow.remaining - time_offset, "speed": RULES.BEAR_SLOW_MULTIPLIER})
+	var distance := from_distance
+	var elapsed := 0.0
+	while delta - elapsed > 0.0000001:
+		var next_distance := INF
+		var next_time := delta - elapsed
+		var boost := multiplier
+		var slowest := 1.0
+		for field: Dictionary in fields:
+			if field.until - elapsed <= 0.0000001:
+				continue
+			next_time = minf(next_time, field.until - elapsed)
+			for span: Vector2 in field.spans:
+				if span.y <= distance + 0.0000001:
+					continue
+				if span.x > distance + 0.0000001:
+					next_distance = minf(next_distance, span.x)
+				else:
+					next_distance = minf(next_distance, span.y)
+					boost = maxf(boost, field.speed)
+					slowest = minf(slowest, field.speed)
+				break
+		var speed := SPEED * boost * slowest
+		var step := minf(next_time, (next_distance - distance) / speed)
+		distance += step * speed
+		elapsed += step
+	return distance - from_distance
 
 func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> PackedVector2Array:
 	var intervals := PackedVector2Array()
@@ -502,6 +569,8 @@ func clear() -> void:
 		departure_queue_changed.emit(source.x, source.y, -cancelled[source])
 	_departure_sequence = 0
 	haste_zones.clear()
+	slow_zones.clear()
+	blocked_destinations.clear()
 	_multimesh.visible_instance_count = 0
 
 func snapshot_incoming() -> Dictionary[Vector2i, int]:

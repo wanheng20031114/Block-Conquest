@@ -31,29 +31,47 @@ const BURROW_READY_DURATION := 15.0
 const BURROW_DIG_SPEED := 45.0
 const BURROW_BATCH_INTERVAL := 0.16
 const BURROW_EXIT_DISTANCE := 3.0
+const BEAR := &"bear"
+const BEAR_NAMES: Array[String] = ["工具箱", "重重跺脚", "链式防守", "不落堡垒"]
+const BEAR_COSTS: Array[float] = [25.0, 25.0, 30.0, 70.0]
+const BEAR_COOLDOWNS: Array[float] = [30.0, 30.0, 35.0, 70.0]
+const BEAR_DURATIONS: Array[float] = [0.0, 4.0, 8.0, 5.0]
+const BEAR_SLOW_RADIUS := 4.5
+const BEAR_SLOW_MULTIPLIER := 0.4
+const BEAR_LINK_RADIUS := 18.0
+const BEAR_ORB_RANGE := 12.0
+const BEAR_ORB_INTERVAL := 0.5
 const SQUIRREL_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_muster.svg"), preload("res://assets/ui/block_war/skill_haste.svg"), preload("res://assets/ui/block_war/skill_bulwark.svg"), preload("res://assets/ui/block_war/skill_impact.svg")]
 const RABBIT_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_rabbit_dash.svg"), preload("res://assets/ui/block_war/skill_rabbit_seal.svg"), preload("res://assets/ui/block_war/skill_rabbit_recall.svg"), preload("res://assets/ui/block_war/skill_rabbit_burrow.svg")]
-const PORTRAITS := {&"squirrel": preload("res://assets/ui/block_war/commanders/squirrel.png"), RABBIT: preload("res://assets/ui/block_war/commanders/rabbit.png")}
+const BEAR_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_bear_toolbox.svg"), preload("res://assets/ui/block_war/skill_bear_stomp.svg"), preload("res://assets/ui/block_war/skill_bear_link.svg"), preload("res://assets/ui/block_war/skill_bear_fortress.svg")]
+const PORTRAITS := {&"squirrel": preload("res://assets/ui/block_war/commanders/squirrel.png"), RABBIT: preload("res://assets/ui/block_war/commanders/rabbit.png"), BEAR: preload("res://assets/ui/block_war/commanders/bear.png")}
 
 static func names_for(commander: StringName) -> Array[String]:
+	if commander == BEAR: return BEAR_NAMES
 	return RABBIT_NAMES if commander == RABBIT else NAMES
 
 static func costs_for(commander: StringName) -> Array[float]:
+	if commander == BEAR: return BEAR_COSTS
 	return RABBIT_COSTS if commander == RABBIT else COSTS
 
 static func cooldowns_for(commander: StringName) -> Array[float]:
+	if commander == BEAR: return BEAR_COOLDOWNS
 	return RABBIT_COOLDOWNS if commander == RABBIT else COOLDOWNS
 
 static func durations_for(commander: StringName) -> Array[float]:
+	if commander == BEAR: return BEAR_DURATIONS
 	return RABBIT_DURATIONS if commander == RABBIT else DURATIONS
 
 static func is_ground(index: int, commander: StringName) -> bool:
+	if commander == BEAR: return index == 1
 	return index in [0, 2] if commander == RABBIT else index in [1, 3]
 
 static func name_for(commander: StringName) -> String:
+	if commander == BEAR: return "熊"
 	return "兔子" if commander == RABBIT else "松鼠"
 
 static func icons_for(commander: StringName) -> Array[Texture2D]:
+	if commander == BEAR: return BEAR_ICONS
 	return RABBIT_ICONS if commander == RABBIT else SQUIRREL_ICONS
 
 static func effect_text(index: int) -> String:
@@ -65,6 +83,13 @@ static func effect_text(index: int) -> String:
 	return ""
 
 static func description(index: int, commander: StringName = COMMANDER_ID) -> String:
+	if commander == BEAR:
+		return [
+			"拖至正在升级或转换的己方建筑。\n立即完工，返还本次消耗人口的 50%。",
+			"拖至地面，展开半径 4.5 米的震地区域。\n圈内敌军减速 60%，持续 4 秒。\n友军不受影响，离开后恢复速度。",
+			"连接 18 米内最近的另一座己方建筑，持续 8 秒。\n支援方分担一半驻军伤害，奇数多承担 1 人。\n支援兵力不足或一端失守时断开。",
+			"己方建筑无敌 5 秒，敌军在外围等待交战。\n上方法术球立即开火，优先打击远处敌兵。\n射程 12 米，每 0.5 秒击杀 1 人。"
+		][index]
 	if commander == RABBIT:
 		return [
 			"选中半径 2.4 米内自己的行军，持续 6 秒。\n移速 +100%，攻击 +50%，离开落点仍生效。\n仅强化施放瞬间选中的部队，不叠加。",

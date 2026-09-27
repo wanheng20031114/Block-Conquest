@@ -58,7 +58,7 @@ func _run() -> void:
 	check(current_scene.scene_file_path.ends_with("commander_select.tscn"), "lobby enters animal selection first")
 	var picker := current_scene
 	check(picker.get_node("%AnimalName").text == "松鼠", "species name has no nickname or title")
-	for i: int in range(2, 6):
+	for i: int in range(3, 6):
 		var locked: Button = picker.get_node("%%Animal%d" % i)
 		check(locked.is_visible_in_tree() and locked.disabled and locked.focus_mode == Control.FOCUS_NONE, "locked animal %d is visible but excluded from mouse and keyboard selection" % i)
 		click(locked)
@@ -66,6 +66,11 @@ func _run() -> void:
 		check(locked.get_node("Content/Status/Availability").text == "尚未开放", "locked status uses words as well as color")
 	picker._select(5)
 	check(session.block_war_commander == &"squirrel", "selection boundary rejects unimplemented profiles")
+	click(picker.get_node("%Animal2"))
+	await settle()
+	check(session.block_war_commander == &"bear" and picker.get_node("%AnimalName").text == "熊", "bear is playable with its simple species name")
+	for i: int in 4:
+		check(picker.get_node("%%SkillName%d" % i).text == RULES.BEAR_NAMES[i], "bear menu skill %d" % i)
 	click(picker.get_node("%Animal1"))
 	await settle()
 	check(session.block_war_commander == &"rabbit" and picker.get_node("%Animal1").button_pressed, "native rabbit click updates and retains selection")
@@ -87,6 +92,8 @@ func _run() -> void:
 	await scene_changed
 	await settle()
 	check(current_scene.scene_file_path.ends_with("map_select.tscn"), "confirmation enters battlefield selection")
+	click(current_scene.get_node("%OpponentCommander2"))
+	check(session.block_war_opponent_commander == &"bear", "bear can be chosen as computer opponent")
 	click(current_scene.get_node("%Size2"))
 	await settle()
 	click(current_scene.get_node("%Map1"))

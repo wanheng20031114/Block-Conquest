@@ -2,13 +2,13 @@ extends Control
 ## Six authored roster slots; only implemented commanders can enter a match.
 
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const PLAYABLE: Array[StringName] = [&"squirrel", &"rabbit"]
+const PLAYABLE: Array[StringName] = [&"squirrel", &"rabbit", &"bear"]
 var _portrait_tween: Tween
 @onready var session: Node = get_node("/root/Session")
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = true
-	for index: int in 2:
+	for index: int in PLAYABLE.size():
 		get_node("%%Animal%d" % index).pressed.connect(_select.bind(index))
 	%Next.pressed.connect(_next)
 	%Back.pressed.connect(_back)
@@ -22,13 +22,13 @@ func _select(index: int, animate: bool = true) -> void:
 		return
 	var commander := PLAYABLE[index]
 	session.block_war_commander = commander
-	for i: int in 2:
+	for i: int in PLAYABLE.size():
 		get_node("%%Animal%d" % i).set_pressed_no_signal(i == index)
 	%Portrait.texture = RULES.PORTRAITS[commander]
 	%AnimalName.text = RULES.name_for(commander)
 	%Next.text = "就选%s   →" % RULES.name_for(commander)
-	%Personality.text = "稳稳扎营，也能一鼓作气。" if index == 0 else "跑得轻快，打个出其不意。"
-	%Role.text = "增援 · 加速 · 守护 · 范围火攻" if index == 0 else "冲刺 · 停工 · 召回 · 兔洞突袭"
+	%Personality.text = ["稳稳扎营，也能一鼓作气。", "跑得轻快，打个出其不意。", "修好小屋，举盾守住大家。"][index]
+	%Role.text = ["增援 · 加速 · 守护 · 范围火攻", "冲刺 · 停工 · 召回 · 兔洞突袭", "赶工 · 牵制 · 互保 · 无敌守护"][index]
 	var summaries := PackedStringArray([
 		"每秒增援 %d 人，持续 %d 秒。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
 		"区域内自己的部队提速 %d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
@@ -40,6 +40,8 @@ func _select(index: int, animate: bool = true) -> void:
 		"让区域内双方部队各自返回出发建筑。",
 		"建筑待命 %d 秒，下次派兵经兔洞突袭。" % RULES.BURROW_READY_DURATION,
 	])
+	if commander == RULES.BEAR:
+		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军减速 60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "建筑无敌 5 秒，法术球优先攻击远处敌兵。"])
 	for i: int in 4:
 		get_node("%%SkillIcon%d" % i).texture = RULES.icons_for(commander)[i]
 		get_node("%%SkillName%d" % i).text = RULES.names_for(commander)[i]

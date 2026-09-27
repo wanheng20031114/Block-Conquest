@@ -21,6 +21,7 @@ const SELECTION_REBOUND_DURATION := 0.38
 
 # The match advances this clock, so pause and game-over freeze construction too.
 var construction_remaining := 0.0
+var construction_cost := 0
 var conversion_target := -1
 var disruption_remaining := 0.0
 var burrow_remaining := 0.0
@@ -187,10 +188,11 @@ func _sync_disruption_visual() -> void:
 	$Visual/Smithy/ForgeAnimation.speed_scale = 1.0 if working and not _visual_paused else 0.0
 
 
-func begin_construction(target_kind: int = -1) -> void:
+func begin_construction(target_kind: int = -1, paid_cost: int = 0) -> void:
 	assert(not is_constructing)
 	assert((target_kind == -1 and level < max_level) or (target_kind in [0, 1, 2] and target_kind != kind))
 	conversion_target = target_kind
+	construction_cost = paid_cost
 	construction_remaining = CONSTRUCTION_DURATION
 	$Construction.show()
 	$Construction/Complete.hide()
@@ -206,6 +208,7 @@ func advance_construction(delta: float) -> bool:
 	if construction_remaining > 0.000001:
 		return false
 	construction_remaining = 0.0
+	construction_cost = 0
 	if conversion_target >= 0:
 		kind = conversion_target
 		level = 1
@@ -222,6 +225,7 @@ func advance_construction(delta: float) -> bool:
 
 func cancel_construction() -> void:
 	construction_remaining = 0.0
+	construction_cost = 0
 	conversion_target = -1
 	# Hide immediately on capture, including any dust from a recent completion.
 	$Construction.hide()

@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_effects.tscn" id="rabbit"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/bear_effects.tscn" id="bear"]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_effects.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/effect_burst.tscn" id="burst"]
@@ -262,3 +263,5 @@ visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
 process_material = SubResource("HasteMoteProcess")
 draw_pass_1 = SubResource("HasteMote")
 cast_shadow = 0
+
+[node name="Bear" parent="." instance=ExtResource("bear")]

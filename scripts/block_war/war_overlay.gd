@@ -33,6 +33,8 @@ func _draw() -> void:
 			var color := Color(0.65, 0.94, 0.8, 0.9) if haste else Color(1.0, 0.61, 0.25, 0.9)
 			if rabbit and game.armed_skill == 0:
 				color = Color(1.0, 0.36, 0.23, 0.9)
+			elif game.faction_skills[0].commander == game.SKILL_RULES.BEAR:
+				color = Color(0.94, 0.77, 0.43, 0.9)
 			if not game.can_cast_skill(game.armed_skill):
 				color = Color(0.9, 0.35, 0.27, 0.65)
 			_ring(center, game.skill_radius(game.armed_skill), color, 2.5)
@@ -52,6 +54,17 @@ func _draw() -> void:
 		draw_arc(mouse, 13.0, 0, TAU, 32, reticle_color, 1.5, true)
 		if valid and game.hovered != null:
 			_ring(game.hovered.global_position, 3.4, reticle_color, 2.0)
+			if game.faction_skills[0].commander == game.SKILL_RULES.BEAR:
+				if game.armed_skill == 2:
+					var support: WarBuilding = game.bear.partner(game, game.hovered)
+					_ring(support.global_position, 2.8, reticle_color, 1.8)
+					var from := camera.unproject_position(game.hovered.global_position + Vector3.UP)
+					var to := camera.unproject_position(support.global_position + Vector3.UP)
+					draw_dashed_line(from, to, reticle_color, 2.0, 7.0, true)
+				elif game.armed_skill == 0:
+					_draw_skill_number(game.hovered.construction_cost / 2, camera.unproject_position(game.hovered.global_position + Vector3(3, 2, 0)))
+				elif game.armed_skill == 3:
+					_ring(game.hovered.global_position, game.SKILL_RULES.BEAR_ORB_RANGE, Color(0.94, 0.77, 0.43, 0.48), 1.5)
 	if game.selected != null and game.selected.kind == 1:
 		_ring(game.selected.global_position, game.tower_range(game.selected), Color(1.0, 0.81, 0.43, 0.35), 1.5)
 	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:

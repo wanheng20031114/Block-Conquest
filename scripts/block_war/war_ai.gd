@@ -69,7 +69,7 @@ func take_turn(game: Node3D) -> void:
 	if not development.is_empty() and (expansion.is_empty() or development.score >= expansion.score):
 		var building: WarBuilding = development.building
 		building.population -= development.cost
-		building.begin_construction(development.kind)
+		building.begin_construction(development.kind, development.cost)
 		building.refresh_visual()
 		game.audio.play_world(&"war_rebuild", building.global_position)
 		game.update_hud()

@@ -16,6 +16,9 @@ func take_turn(game: Node3D) -> void:
 		return
 	# Never chain four casts in one frame, including repeated calls at the same time.
 	next_decision = game.elapsed + DECISION_GAP
+	if game.faction_skills[faction].commander == SKILL_RULES.BEAR:
+		_bear_turn(game)
+		return
 	if game.faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		_rabbit_turn(game)
 		return
@@ -66,6 +69,65 @@ func take_turn(game: Node3D) -> void:
 			best = {"index": 3, "score": fire.score, "target": null, "at": fire.at}
 	if best.index in [1, 3]:
 		game.cast_ground_skill(best.index, best.at, faction)
+	elif best.index >= 0:
+		game.cast_skill(best.index, best.target, faction)
+
+func _bear_turn(game: Node3D) -> void:
+	var threats: Dictionary[int, float] = {}
+	var cells: Dictionary[Vector2i, Dictionary] = {}
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if not unit.is_exposed() or not game.FACTIONS.hostile(unit.order.faction, faction):
+			continue
+		var target: WarBuilding = game.by_id[unit.order.target_id]
+		if target.faction == faction and game.marches.movement_distance(unit, 5.0) >= unit.order.length - unit.distance:
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target, game.marches.projected_attack_bonus(unit))
+		# Slowing a harmless distant march spends energy without buying a useful
+		# defensive window. Prefer an approaching gate or exposure to our guns.
+		var value := 0.0
+		var remaining := unit.order.length - unit.distance
+		if target.faction == faction and remaining > 1.0 and remaining < game.marches.movement_distance(unit, 4.0) and not game.bear.is_invulnerable(target.building_id):
+			value = 1.0
+		for tower: WarBuilding in game.buildings:
+			if tower.faction == faction and tower.kind == 1 and tower.disruption_remaining <= 0.0 and tower.global_position.distance_to(unit.position) < game.tower_range(tower):
+				value = maxf(value, 1.0 + tower.level * 0.4)
+		if value <= 0.0 or remaining <= 0.15:
+			continue
+		var cell := Vector2i(floori(unit.position.x / 4.0), floori(unit.position.z / 4.0))
+		if not cells.has(cell):
+			cells[cell] = {"count": 0, "sum": Vector3.ZERO, "value": 0.0}
+		cells[cell].count += 1
+		cells[cell].sum += unit.position
+		cells[cell].value += value
+	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
+	for building: WarBuilding in game.buildings:
+		if building.faction != faction:
+			continue
+		var danger: float = threats.get(building.building_id, 0.0)
+		if game.can_cast_skill(3, faction) and game._valid_skill_target(3, building, faction) and danger >= maxf(8.0, building.population * 0.7):
+			var score := 45.0 + minf(45.0, danger) + (25.0 if danger > building.population else 0.0)
+			if score > best.score:
+				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
+		if game.can_cast_skill(2, faction) and game._valid_skill_target(2, building, faction) and danger >= 8.0 and not game.bear.is_invulnerable(building.building_id):
+			var support: WarBuilding = game.bear.partner(game, building)
+			var spare: float = support.population - threats.get(support.building_id, 0.0)
+			if spare >= ceili(danger * 0.5) and danger > building.population * 0.5:
+				var score := 25.0 + minf(30.0, danger * 0.5)
+				if score > best.score:
+					best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
+		if game.can_cast_skill(0, faction) and game._valid_skill_target(0, building, faction):
+			var score: float = building.construction_cost * 0.5 + building.construction_remaining * 2.0
+			if danger < building.population + building.construction_cost * 0.5 and score > best.score:
+				best = {"index": 0, "score": score, "target": building, "at": Vector3.ZERO}
+	if game.can_cast_skill(1, faction):
+		for cell: Vector2i in cells:
+			if cells[cell].count < 5:
+				continue
+			var at: Vector3 = cells[cell].sum / float(cells[cell].count)
+			var score: float = 12.0 + minf(28.0, cells[cell].value * 1.8)
+			if score > best.score and game._valid_ground_skill_target(at):
+				best = {"index": 1, "score": score, "target": null, "at": at}
+	if best.index == 1:
+		game.cast_ground_skill(1, best.at, faction)
 	elif best.index >= 0:
 		game.cast_skill(best.index, best.target, faction)
 

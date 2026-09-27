@@ -49,7 +49,7 @@ func _run() -> void:
 	var portrait: TextureRect = game.hud.get_node("UI/Player/Icon")
 	check(portrait.texture.resource_path.ends_with("commanders/squirrel.png") and portrait.material == null, "default squirrel keeps its full silhouette without a circular crop")
 	check(portrait.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "pixel commander uses nearest filtering")
-	check(game.hud.get_node("UI/Player/Name").text.contains("榛果"), "default commander is named 榛果")
+	check(game.hud.get_node("UI/Player/Name").text == "松鼠", "default commander uses the approved simple animal name")
 	check(not game.cast_skill(1, null) and not game.cast_skill(1, game.by_id[0]), "W requires a ground location, never a global or building cast")
 	for at: Vector3 in [Vector3.INF, Vector3(NAN, 0, 0), Vector3(100, 0, 0)]:
 		check(not game.cast_ground_skill(1, at), "invalid W terrain cannot place a field")
