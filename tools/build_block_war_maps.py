@@ -1,13 +1,13 @@
-"""Author five editable battlefields and a six-map Resource catalog.
+"""Author six editable battlefields and their shared Resource catalog.
 
 All terrain, bridges, buildings and scenery are saved as native scene nodes.
-The original rift scene is retained; no runtime node or image generation is used.
+Layouts are explicit inputs, including the original rift's stable building IDs.
+No runtime node or image generation is used.
 """
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import re
 
 from block_war_bridge_authoring import author_bridges
 from block_war_nature_authoring import author_nature
@@ -38,42 +38,51 @@ def starts(x, rows):
 
 
 def layouts():
-    original = (ROOT / "scenes/block_war/map.tscn").read_text(encoding="utf-8")
-    homes = []
-    for record in re.findall(r'\[node name="Building\d+" parent="Buildings"[^\[]+', original):
-        x, _, z = map(float, re.search(r"position = Vector3\(([^)]+)\)", record)[1].split(","))
-        def number(key):
-            return float(re.search(rf"^{key} = ([^\n]+)", record, re.M)[1])
-        homes.append((x, z, int(number("kind")), int(number("faction")), number("population")))
-    common = dict(size=0, half=(40, 28), team=1, water=[], mountains=[], bridges=[], color=(0.36, 0.465, 0.2))
-    maps = [dict(common, id="rift", title="裂谷交汇", description="两道溪谷、四座石桥。保留原有的小型战场，争夺中央住宅与桥头炮塔。", buildings=homes,
-                 water=[(-15, -68, 6, 136), (9, -68, 6, 136)], bridges=[(x, z - 3.2, 6, 6.4) for x in (-15, 9) for z in (-14, 14)])]
-    maps.append(dict(common, id="lake", title="林湖回廊", half=(40, 30), description="湖泊隔开两军，南北两条林间回廊连接战场。绕行扩张与侧翼增援同样重要。",
-                     water=[(-9, -12, 18, 24)], buildings=starts(30, [0]) + mirrored([30], [-20, 20]) + mirrored([18], [0], 2, 18)
-                     + [building(0, z, population=20) for z in (-22, 22)] + mirrored([14], [-22, 22], 1, 22)))
-    medium = dict(common, size=1, half=(60, 44), team=2)
-    maps.append(dict(medium, id="rivers", title="双河平原", description="双河上的六座宽桥形成三条战线。两位队友分别扩张上下区域，在中央平原会合。",
-                     water=[(-17, -68, 6, 136), (11, -68, 6, 136)], bridges=[(x, z - 4, 6, 8) for x in (-17, 11) for z in (-26, 0, 26)],
-                     buildings=starts(48, [-26, 26]) + mirrored([48], [-6, 6]) + mirrored([28], [-30, 30])
-                     + mirrored([28], [-7, 7], 1, 22) + mirrored([38], [-17, 17], 2, 18)
-                     + [building(0, z, 1 if z == 0 else 0, population=30 if z == 0 else 20) for z in (-32, -16, 0, 16, 32)]))
-    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.38, 0.47, 0.215), description="两段岩脊将战场分成中央谷口和两端山道。队友可以守住谷口，也可沿外围迂回。",
-                     mountains=[(-6, -34, 12, 20), (-6, 14, 12, 20)],
-                     buildings=starts(48, [-26, 26]) + mirrored([48], [-6, 6]) + mirrored([30], [-30, 30])
-                     + mirrored([30], [-10, 10], 2, 18) + mirrored([16], [-22, 22], 1, 24)
-                     + mirrored([14], [-39, 39]) + [building(0, 0, 2, population=28)] + mirrored([14], [0], 0, 20)))
-    large = dict(common, size=2, half=(84, 60), team=3)
-    maps.append(dict(large, id="islands", title="群岛长滩", description="三片中央岛屿、八座桥梁连接三条主战线。每位队友经营一翼，跨岛调兵支援薄弱方向。",
-                     water=[(-28, -84, 8, 168), (20, -84, 8, 168), (-20, -25, 40, 8), (-20, 17, 40, 8)],
-                     bridges=[(x, z - 5, 8, 10) for x in (-28, 20) for z in (-42, 0, 42)] + [(-4, z, 8, 8) for z in (-25, 17)],
-                     buildings=starts(68, [-42, 0, 42]) + mirrored([46], [-42, 0, 42]) + mirrored([68, 46], [-21, 21])
-                     + [building(x, z, 2 if x == 0 else 0, population=22) for z in (-42, 0, 42) for x in (-10, 0, 10)]
-                     + mirrored([78], [-35, 10, 35], 2, 18) + mirrored([34], [-42, 0, 42], 1, 25)))
-    maps.append(dict(large, id="highland", title="环湖高原", half=(84, 64), color=(0.35, 0.455, 0.195), description="宽阔湖面围绕中央石台，南北高原与中央长桥形成三条不同长度的通道。控制中央也要兼顾两翼。",
-                     water=[(-20, -30, 40, 60)], bridges=[(-22, -4.5, 44, 9), (-8, -8, 16, 16)],
-                     buildings=starts(68, [-44, 0, 44]) + mirrored([46], [-44, 0, 44]) + mirrored([68, 44], [-22, 22])
-                     + mirrored([30], [-44, 0, 44], 1, 25) + mirrored([58], [-50, -12, 12, 50], 2, 18)
-                     + [building(0, z, 1 if z == 0 else 0, population=35 if z == 0 else 22) for z in (-46, 0, 46)]))
+    # Bring settlements inward independently of the terrain: army clearances,
+    # bridge road widths and the model footprints retain their authored sizes.
+    common = dict(size=0, half=(36, 26), team=1, water=[], mountains=[], bridges=[], color=(0.36, 0.465, 0.2))
+    rift_homes = [building(-27, 0, faction=0), building(27, 0, faction=1),
+                  building(-26, -17), building(-24, 15), building(24, -15), building(26, 17),
+                  building(-18, 0, 1, population=25), building(18, 0, 1, population=25),
+                  building(-20, -10, 2, population=20), building(20, 10, 2, population=20),
+                  building(0, -15, population=20), building(0, 15, population=20),
+                  building(0, 0, 1, population=40)]
+    maps = [dict(common, id="rift", title="裂谷交汇", description="四座石桥围绕中央塔台，两处内湾收紧谷心。近岸据点更紧凑，抢桥与绕后可以同时展开。", buildings=rift_homes,
+                 water=[(-14, -54, 5, 108), (9, -54, 5, 108), (-9, -4, 2, 8), (7, -4, 2, 8)],
+                 bridges=[(x, z - 3.6, 5, 7.2) for x in (-14, 9) for z in (-12, 12)])]
+    maps.append(dict(common, id="lake", title="林湖回廊", half=(36, 28), description="十字湖湾伸向两侧工坊，南北回廊形成两条完整包抄线。贴湖争夺前哨，也能沿林缘调兵。",
+                     water=[(-8, -11, 16, 22), (-12, -4, 4, 8), (8, -4, 4, 8)],
+                     buildings=starts(26, [0]) + mirrored([26], [-18, 18]) + mirrored([16], [0], 2, 18)
+                     + [building(0, z, population=20) for z in (-20, 20)] + mirrored([12], [-20, 20], 1, 22)))
+    medium = dict(common, size=1, half=(54, 40), team=2)
+    # Preserve central outpost / tower spacing while compacting the outer villages;
+    # overlapping tower fire otherwise turns the middle lanes into prolonged sieges.
+    maps.append(dict(medium, id="rivers", title="双河平原", description="六座宽桥串起三条战线，河湾把中央平原收成两段狭长前哨。抢下中桥，可在上下战线之间快速转兵。",
+                     water=[(-15, -60, 6, 120), (9, -60, 6, 120)]
+                     + [(x, z, 2, 10) for x in (-9, 7) for z in (-17, 7)],
+                     bridges=[(x, z - 4, 6, 8) for x in (-15, 9) for z in (-23, 0, 23)],
+                     buildings=starts(42, [-23, 23]) + mirrored([42], [-5.5, 5.5]) + mirrored([25], [-27, 27])
+                     + mirrored([25], [-7, 7], 1, 22) + mirrored([34], [-15, 15], 2, 18)
+                     + [building(0, z, 1 if z == 0 else 0, population=30 if z == 0 else 20) for z in (-29, -16, 0, 16, 29)]))
+    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.38, 0.47, 0.215), description="两道长岩脊和两处侧峰围成分叉谷口。外圈山道适合包抄，中央工坊则能连通两翼的支援。",
+                     mountains=[(-5, -30, 10, 17), (-5, 13, 10, 17), (-28, -5, 8, 10), (20, -5, 8, 10)],
+                     buildings=starts(42, [-23, 23]) + mirrored([42], [-5.5, 5.5]) + mirrored([27], [-27, 27])
+                     + mirrored([27], [-9, 9], 2, 18) + mirrored([14], [-19.5, 19.5], 1, 24)
+                     + mirrored([13], [-35, 35]) + [building(0, 0, 2, population=28)] + mirrored([12], [0], 0, 20)))
+    large = dict(common, size=2, half=(76, 54), team=3)
+    maps.append(dict(large, id="islands", title="群岛长滩", description="三座纵向岛屿与八座宽桥连接三条战线。两岸内凹水湾分开集结区，沿岛心转兵可迅速支援队友。",
+                     water=[(-25, -76, 7, 152), (18, -76, 7, 152), (-18, -23, 36, 7), (-18, 16, 36, 7)]
+                     + [(x, z, 4, 6) for x in (-29, 25) for z in (-13, 7)],
+                     bridges=[(x, z - 5, 7, 10) for x in (-25, 18) for z in (-37, 0, 37)] + [(-4, z, 8, 7) for z in (-23, 16)],
+                     buildings=starts(60, [-36, 0, 36]) + mirrored([40], [-36, 0, 36]) + mirrored([60, 40], [-18.5, 18.5])
+                     + [building(x, z, 2 if x == 0 else 0, population=22) for z in (-36, 0, 36) for x in (-9, 0, 9)]
+                     + mirrored([70], [-31, 9, 31], 2, 18) + mirrored([30], [-36, 0, 36], 1, 25)))
+    maps.append(dict(large, id="highland", title="环湖高原", half=(76, 58), color=(0.35, 0.455, 0.195), description="中央石台扼守长桥，湖岸四处岩岬分出内侧捷径和外侧迂回线。三位队友分别推进，也能借中央快速换翼。",
+                     water=[(-18, -26, 36, 52)], bridges=[(-20, -4.5, 40, 9), (-7, -7, 14, 14)],
+                     mountains=[(x, z, 8, 10) for x in (-36, 28) for z in (-20, 10)],
+                     buildings=starts(60, [-39, 0, 39]) + mirrored([40], [-39, 0, 39]) + mirrored([60, 39], [-19.5, 19.5])
+                     + mirrored([26], [-39, 0, 39], 1, 25) + mirrored([52], [-44, -10.5, 10.5, 44], 2, 18)
+                     + [building(0, z, 1 if z == 0 else 0, population=35 if z == 0 else 22) for z in (-41, 0, 41)]))
     return maps
 
 
@@ -187,12 +196,16 @@ shader_parameter/bridge_regions = PackedVector4Array({', '.join(str(v) for regio
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--definitions-only", action="store_true", help="Update bank inputs before baking changed terrain")
+    parser.add_argument("--map", choices=("rift", "lake", "rivers", "ridges", "islands", "highland"),
+                        help="Author one map without rewriting the other saved scenes")
     args = parser.parse_args()
     for layout in layouts():
+        if args.map and layout["id"] != args.map:
+            continue
         for x, z, *_ in layout["buildings"]:
             assert walkable(layout, x, z), (layout["id"], x, z)
         write_definition(layout)
-        if layout["id"] != "rift" and not args.definitions_only:
+        if not args.definitions_only:
             target = ROOT / scene_path(layout).removeprefix("res://")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(author(layout), encoding="utf-8")

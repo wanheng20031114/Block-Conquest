@@ -9,38 +9,45 @@ def author_paths(layout):
         paths.extend((*a, *b) for a, b in zip(points, points[1:]))
 
     map_id = layout["id"]
-    if map_id == "lake":
-        line((-28, 0), (-30, -17), (-18, -20), (0, -19), (18, -20),
-             (30, -17), (28, 0), (30, 23), (16, 25), (0, 25),
-             (-16, 25), (-30, 23), (-28, 0))
-    elif map_id == "rivers":
-        for z in (-26, 0, 26):
-            line((-49, z + 2), (-29, z), (29, z), (49, z + 2))
+    if map_id == "rift":
+        for z in (-12, 12):
+            line((-28, z), (0, z), (28, z))
         for side in (-1, 1):
-            line((side * 40, -29), (side * 41, -12), (side * 40, 12), (side * 40, 29))
-        line((0, -32), (3, -16), (0, 0), (-3, 16), (0, 32))
+            line((side * 26, -20), (side * 26, 0), (side * 26, 20))
+        line((0, -19), (0, 0), (0, 20))
+    elif map_id == "lake":
+        line((-26, 0), (-26, -16), (-14, -17), (0, -17), (14, -17),
+             (26, -16), (26, 0), (26, 21), (12, 23), (0, 23),
+             (-12, 23), (-26, 21), (-26, 0))
+    elif map_id == "rivers":
+        for z in (-23, 0, 23):
+            line((-43, z + 2), (-25, z), (25, z), (43, z + 2))
+        for side in (-1, 1):
+            line((side * 35, -26), (side * 36, -12), (side * 35, 12), (side * 35, 26))
+        line((0, -29), (2, -16), (0, 0), (-2, 16), (0, 29))
     elif map_id == "ridges":
         for side in (-1, 1):
-            line((side * 48, -26), (side * 31, -27), (side * 18, -38),
-                 (0, -39))
-            line((side * 48, 26), (side * 31, 29), (side * 18, 39), (0, 39))
-            line((side * 34, -30), (side * 25, -12), (side * 22, 0),
-                 (side * 25, 12), (side * 34, 30))
-        line((-48, 2), (-24, 3), (0, 3), (24, 3), (48, 2))
+            line((side * 42, -23), (side * 27, -24), (side * 16, -34), (0, -35))
+            line((side * 42, 23), (side * 27, 26), (side * 16, 36), (0, 37))
+            line((side * 29, -27), (side * 17, -10), (side * 12, 3),
+                 (side * 17, 10), (side * 29, 27))
+            for direction in (-1, 1):
+                line((side * 42, direction * 2), (side * 34, direction * 9),
+                     (side * 17, direction * 9), (side * 12, direction * 3), (0, direction * 3))
     elif map_id == "islands":
-        for z in (-42, 0, 42):
-            line((-70, z + 2), (-34, z), (34, z), (70, z + 2))
-        line((0, -42), (0, 0), (0, 42))
+        for z in (-37, 0, 37):
+            line((-62, z + 2), (-30, z), (30, z), (62, z + 2))
+        line((0, -37), (0, 0), (0, 37))
         for side in (-1, 1):
-            line((side * 58, -44), (side * 57, -21), (side * 60, 0),
-                 (side * 57, 21), (side * 58, 44))
+            line((side * 51, -39), (side * 50, -18.5), (side * 52, 0),
+                 (side * 50, 18.5), (side * 51, 39))
     elif map_id == "highland":
         for side in (-1, 1):
-            line((side * 68, -42), (side * 46, -41), (side * 28, -43), (0, -43))
-            line((side * 68, 46), (side * 46, 47), (side * 28, 46), (0, 49))
-            line((side * 52, -43), (side * 53, -24), (side * 48, 0),
-                 (side * 53, 24), (side * 52, 46))
-        line((-68, 2), (-35, 0), (35, 0), (68, 2))
+            line((side * 60, -37), (side * 40, -36), (side * 24, -38), (0, -38))
+            line((side * 60, 41), (side * 40, 42), (side * 24, 42), (0, 44))
+            line((side * 46, -38), (side * 47, -21), (side * 43, 0),
+                 (side * 47, 21), (side * 46, 41))
+        line((-60, 2), (-38, 0), (38, 0), (60, 2))
     else:
         raise ValueError(f"No road plan for {map_id}")
 

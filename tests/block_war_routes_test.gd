@@ -139,11 +139,14 @@ func _run() -> void:
 	var north := map.get_building_route(buildings[0], buildings[2])
 	var south := map.get_building_route(buildings[0], buildings[3])
 	var west := map.get_building_route(buildings[1], buildings[7])
-	var direct := north[-1] - north[0]
+	# The closer starting home uses short connectors; the workshop's northern
+	# bridge approach remains long enough to exercise the authored gentle arc.
+	var arc_route := map.get_building_route(buildings[8], buildings[10])
+	var direct := arc_route[-1] - arc_route[0]
 	var bow := 0.0
-	for point: Vector3 in north:
-		bow = maxf(bow, (point - north[0]).cross(direct).length() / direct.length())
-	_check(bow > 0.4 and bow < 1.5, "Open ground uses a visible but restrained arc instead of a ruler-straight line")
+	for point: Vector3 in arc_route:
+		bow = maxf(bow, (point - arc_route[0]).cross(direct).length() / direct.length())
+	_check(bow > 0.4 and bow < 1.5, "The long workshop approach keeps a visible but restrained arc")
 	_check(east.size() == 2, "The short neighboring-building link stays direct where there is no room for an arc")
 	_check(east[0].x > -30.0 and north[0].z < 0.0 and south[0].z > 0.0 and west[0].x < 30.0, "Buildings can dispatch from east, north, south and west sides")
 	var cached := east.duplicate()

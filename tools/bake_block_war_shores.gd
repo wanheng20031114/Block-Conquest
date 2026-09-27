@@ -1,7 +1,7 @@
 extends SceneTree
 ## Offline authoring; no runtime nodes or navigation edits.
 ## Run: Godot.exe --headless --path . --script tools/bake_block_war_shores.gd
-## Inputs: data/block_war/maps/{lake,rivers,ridges,islands,highland}.tres.
+## Inputs: data/block_war/maps/{rift,lake,rivers,ridges,islands,highland}.tres.
 ## Outputs, for each map with water:
 ## assets/block_war/environment/maps/<id>_{bank_grass,bank_stone,water}.res
 ## Grass uses the map's ground shader; stone uses its original vertex colors.
@@ -13,7 +13,7 @@ extends SceneTree
 ## https://docs.godotengine.org/en/stable/classes/class_geometry2d.html
 
 const OUTPUT := "res://assets/block_war/environment/maps/"
-const MAP_IDS := ["lake", "rivers", "ridges", "islands", "highland"]
+const MAP_IDS := ["rift", "lake", "rivers", "ridges", "islands", "highland"]
 const SHORE_STEP := 0.5
 const WATER_STEP := 0.75
 const WATER_HEIGHT := -1.18
@@ -27,7 +27,7 @@ func _initialize() -> void:
 		if definition.water_regions.is_empty():
 			continue
 		_bake_map(definition)
-	print("Saved sculpted union shorelines and water meshes for four block-war maps")
+	print("Saved sculpted union shorelines and water meshes for all water-bearing block-war maps")
 	quit()
 
 
@@ -173,7 +173,14 @@ func _shore_rows(outline: PackedVector2Array, bridges: Array[Rect2], lake_region
 		var straight_end := next - outgoing * radii[(i + 1) % outline.size()]
 		var steps := maxi(1, ceili(straight_start.distance_to(straight_end) / SHORE_STEP))
 		for step in steps:
-			rows.append(_straight_row(straight_start.lerp(straight_end, float(step) / steps), inward, bridges, lake_region))
+			var point := straight_start.lerp(straight_end, float(step) / steps)
+			# Small bays need a narrower bank at their rounded corners. Expand
+			# its horizontal profile gradually along the adjoining straight edge,
+			# keeping exactly the same profile at each arc/straight junction.
+			var start_limit := radius * 0.85 + point.distance_to(straight_start) * 0.6 if radius > 0.0 else INF
+			var next_radius := radii[(i + 1) % outline.size()]
+			var end_limit := next_radius * 0.85 + point.distance_to(straight_end) * 0.6 if next_radius > 0.0 else INF
+			rows.append(_straight_row(point, inward, bridges, lake_region, minf(start_limit, end_limit)))
 	return rows
 
 
@@ -209,12 +216,12 @@ func _shelf_lobe(point: Vector2, center: Vector2, width: Vector2) -> float:
 	return exp(-offset.length_squared())
 
 
-func _profile(point: Vector2, bridges: Array[Rect2], lake_region: Rect2) -> PackedVector2Array:
+func _profile(point: Vector2, bridges: Array[Rect2], lake_region: Rect2, max_reach: float = INF) -> PackedVector2Array:
 	# Same six grass/stone levels and colors as bake_war_map_details.gd.
 	var reach := _bank_reach(point, bridges)
 	var shelf := _lake_shelf(point, lake_region, bridges)
 	var ripple := 0.035 * sin(point.y * 3.2 + point.x * 1.7) + 0.022 * cos(point.y * 5.4 - point.x * 2.1)
-	return PackedVector2Array([
+	var profile := PackedVector2Array([
 		Vector2(0.0, 0.009),
 		Vector2(shelf + reach * 0.45, 0.025 + ripple),
 		Vector2(shelf + reach * 0.75, -0.16 + ripple),
@@ -222,11 +229,16 @@ func _profile(point: Vector2, bridges: Array[Rect2], lake_region: Rect2) -> Pack
 		Vector2(shelf + reach + 0.40, -0.96),
 		Vector2(shelf + reach + 0.69, -1.65),
 	])
+	if profile[-1].x > max_reach:
+		var scale_factor := max_reach / profile[-1].x
+		for index: int in profile.size():
+			profile[index].x *= scale_factor
+	return profile
 
 
-func _straight_row(point: Vector2, inward: Vector2, bridges: Array[Rect2], lake_region: Rect2) -> PackedVector3Array:
+func _straight_row(point: Vector2, inward: Vector2, bridges: Array[Rect2], lake_region: Rect2, max_reach: float = INF) -> PackedVector3Array:
 	var row := PackedVector3Array()
-	for level: Vector2 in _profile(point, bridges, lake_region):
+	for level: Vector2 in _profile(point, bridges, lake_region, max_reach):
 		var position := point + inward * level.x
 		row.append(Vector3(position.x, level.y, position.y))
 	return row
@@ -240,7 +252,7 @@ func _convex_corner_row(corner: Vector2, incoming: Vector2, outgoing: Vector2, r
 	var curve_point := center + radial * radius
 	var edge_point := corner - incoming * radius * (1.0 - 2.0 * ratio) if ratio <= 0.5 else corner + outgoing * radius * (2.0 * ratio - 1.0)
 	var row := PackedVector3Array([Vector3(edge_point.x, 0.009, edge_point.y)])
-	var profile := _profile(curve_point, bridges, lake_region)
+	var profile := _profile(curve_point, bridges, lake_region, radius * 0.85)
 	for band in range(1, 6):
 		assert(profile[band].x < radius, "Corner radius must exceed the submerged rock profile")
 		var point := center + radial * (radius - profile[band].x)

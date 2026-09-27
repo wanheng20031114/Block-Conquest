@@ -7,7 +7,7 @@ extends SceneTree
 func _initialize() -> void:
 	var output: Dictionary = {}
 	for map_id: String in ["rift", "lake", "rivers", "islands", "highland"]:
-		var path := "res://assets/block_war/environment/meadow_bank_grass.res" if map_id == "rift" else "res://assets/block_war/environment/maps/%s_bank_grass.res" % map_id
+		var path := "res://assets/block_war/environment/maps/%s_bank_grass.res" % map_id
 		var mesh: Mesh = load(path)
 		var values: Array[float] = []
 		for point: Vector3 in mesh.get_faces():

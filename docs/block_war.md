@@ -223,14 +223,20 @@ Godot --path . --script res://tests/block_war_combat_visual.gd --fixed-fps 60
 
 建筑与头像构建入口位于 `tools/build_war_architecture.py`、`tools/build_war_architecture.gd`、`tools/build_war_militia.gd` 和 `tools/render_war_portraits.gd`。
 
-新增地图保存在 `scenes/block_war/maps/`，尺寸、障碍、桥梁和选图数据保存在 `data/block_war/maps/`。确定性重建地图及路线：
+新增地图保存在 `scenes/block_war/maps/`，尺寸、障碍、桥梁和选图数据保存在 `data/block_war/maps/`。
+
+2026-09-28：重做战场预览，六张地图最近据点平均间距缩短约 10%–14%，加入内湾、分叉谷口与岩岬。设计、实机截图与验证记录见 [地图改进记录](art/block_war_maps_refresh.md)。
+
+确定性重建地图及路线：
 
 ```text
+python tools/build_block_war_maps.py --definitions-only
+Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_war_shores.gd
 Godot --headless --audio-driver Dummy --path . --script res://tools/export_war_shore_support.gd
 python tools/build_block_war_maps.py
 Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_war_routes.gd
 ```
 
-先导出已有岸坡的支撑面，再生成五张可直接在编辑器调整的原生场景及六份地图定义（保留原 `map.tscn`），最后为全部六图保存 `data/block_war/routes/*.res`。地图专项可追加 `-- islands` 等地图 ID 单独检查；视觉截图保存在 `artifacts/block_war_maps/`。
+先保存布局定义并烘焙岸线，导出真实岸坡的支撑面，再生成六张可直接在编辑器调整的原生场景及对应地图定义，最后为全部六图保存 `data/block_war/routes/*.res`。裂谷地图仍保存为 `map.tscn`，使用相同构建流程。地图专项可追加 `-- islands` 等地图 ID 单独检查；视觉截图保存在 `artifacts/block_war_maps/`。
 
-景观可重现构建顺序：使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）、`tools/bake_war_map_details.gd`（桥岸网格）与 `tools/export_war_shore_support.gd`（真实岸坡支撑面），最后 Python 执行 `tools/dress_war_map.py`（确定性场景布置），并用 Godot 执行 `tools/bake_block_war_routes.gd -- rift` 更新树石障碍对应的路线。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点；`dress_war_map.py --plan` 可只查看布置数量。其他五图的构建与岩石支撑、树林疏密检查见 [环境制作规范](art/block_war_environment_direction.md)。
+需要重建基础自然素材时，使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）与 `tools/bake_war_map_details.gd`（桥梁基础网格），最后执行上面的统一地图构建流程。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点。`dress_war_map.py` 属于旧裂谷布局的历史制作工具，当前六图使用 `build_block_war_maps.py`。岩石支撑、树林疏密检查见 [环境制作规范](art/block_war_environment_direction.md)。

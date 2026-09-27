@@ -17,6 +17,7 @@ func _ready() -> void:
 	%Start.pressed.connect(_start)
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
+	%Preview.inspected.connect(func(text: String): %Inspection.text = text)
 	for index: int in COMMANDERS.size():
 		get_node("%%OpponentCommander%d" % index).pressed.connect(_select_commander.bind(index))
 		get_node("%%OpponentCommander%d" % index).tooltip_text = " · ".join(RULES.names_for(COMMANDERS[index]))
@@ -44,6 +45,7 @@ func _select_size(size_class: int) -> void:
 	for index: int in 2:
 		var button: Button = get_node("%%Map%d" % index)
 		button.text = _maps[index].title
+		button.tooltip_text = _maps[index].description
 	_select_map(selected_index)
 
 func _select_map(index: int) -> void:
@@ -52,7 +54,24 @@ func _select_map(index: int) -> void:
 	for i: int in 2:
 		get_node("%%Map%d" % i).set_pressed_no_signal(i == index)
 	%MapName.text = selected.title
-	%MapInfo.text = "%s型战场   ·   %s   ·   %d × %d 米   ·   %d 座据点" % [["小", "中", "大"][selected.size_class], selected.mode_label(), selected.half_size.x * 2, selected.half_size.y * 2, selected.building_positions.size()]
+	%MapNumber.text = "%02d / %02d" % [CATALOG.MAPS.find(selected) + 1, CATALOG.MAPS.size()]
+	%MapInfo.text = "%s   ·   %d × %d 米   ·   %d 座据点" % [selected.mode_label(), selected.half_size.x * 2, selected.half_size.y * 2, selected.building_positions.size()]
+	var terrain: Array[String] = []
+	if not selected.water_regions.is_empty():
+		terrain.append("水域迂回")
+	if not selected.mountain_regions.is_empty():
+		terrain.append("山地隘口")
+	if not selected.bridges.is_empty():
+		terrain.append("桥梁连接")
+	%TerrainInfo.text = " · ".join(terrain)
+	var spawns: Array[String] = ["① 你", "② 敌方一"]
+	if selected.team_size >= 2:
+		spawns.append("③ 盟友一")
+		spawns.append("④ 敌方二")
+	if selected.team_size >= 3:
+		spawns.append("⑤ 盟友二")
+		spawns.append("⑥ 敌方三")
+	%SpawnLegend.text = "   ".join(spawns)
 	%Description.text = selected.description
 	%Teams.text = "你对战 1 名电脑" if selected.team_size == 1 else "你 + %d 名电脑盟友，对战 %d 名电脑\n增援抵达队友建筑后，交由队友指挥。" % [selected.team_size - 1, selected.team_size]
 	%Start.text = "开始 %s 对局   →" % selected.mode_label()
