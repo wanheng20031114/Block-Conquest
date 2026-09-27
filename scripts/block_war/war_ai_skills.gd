@@ -89,18 +89,23 @@ func _frog_turn(game: Node3D) -> void:
 		var hostile: bool = game.FACTIONS.hostile(unit.order.faction, faction)
 		var incoming: bool = game.FACTIONS.allied(destination.faction, faction) and hostile
 		var close: bool = game.marches.movement_distance(unit, 3.0) > unit.order.length - unit.distance
-		var q_value := SKILL_RULES.FROG_WEAKNESS if incoming and close else 0.0
+		var q_value := SKILL_RULES.FROG_WEAKNESS if hostile and not unit.weakened and not game.FACTIONS.allied(unit.order.faction, destination.faction) else 0.0
 		var floating := 1.3 if incoming and close else 0.0
+		var can_cloak := unit.order.faction == faction and not unit.cloaked
+		var cloak := 1.0 if can_cloak and destination.faction >= 0 and game.FACTIONS.hostile(faction, destination.faction) else 0.0
 		if not hostile and game.FACTIONS.hostile(unit.order.faction, destination.faction) and close:
 			floating -= 1.5
 		for tower: WarBuilding in game.buildings:
 			if tower.kind != 1 or tower.faction < 0 or tower.disruption_remaining > 0.0 or not game.FACTIONS.hostile(tower.faction, unit.order.faction):
 				continue
-			if tower.global_position.distance_to(unit.position) < game.tower_range(tower):
+			if tower.global_position.distance_to(unit.position) < game.tower_range(tower) and game.marches.tower_can_target(unit):
 				floating += (-1.8 if hostile else 1.8) * tower.level
-		var cloak := 0.0
-		if unit.order.faction == faction and unit.cloak_remaining <= 0.0 and game.FACTIONS.hostile(faction, game.PLAYER) and game.FACTIONS.allied(destination.faction, game.PLAYER):
-			cloak = 1.0
+				# A cloud also shields enemy soldiers from our cannons; account for it.
+				q_value += (-0.25 if hostile else 0.30) * tower.level
+			if can_cloak:
+				var ahead := unit.order.sample(minf(unit.order.length, unit.distance + 12.0))
+				if Geometry3D.get_closest_point_to_segment(tower.global_position, unit.position, ahead).distance_to(tower.global_position) < game.tower_range(tower):
+					cloak = maxf(cloak, 1.5 * tower.level)
 		visible.append({"unit": unit, "q": q_value, "float": floating if unit.levitation_remaining <= 0.0 else 0.0, "cloak": cloak})
 		var at := unit.position
 		at.y = 0.0
@@ -133,7 +138,7 @@ func _frog_turn(game: Node3D) -> void:
 			var value := 0.0
 			for entry: Dictionary in visible:
 				var unit: WarMarches.MarchUnit = entry.unit
-				var p: Vector3 = unit.order.sample(unit.order.length) if index == 0 else unit.position
+				var p: Vector3 = unit.position
 				if Vector2(p.x - at.x, p.z - at.z).length_squared() <= pow(SKILL_RULES.FROG_RADII[index], 2):
 					value += entry[["q", "float", "cloak"][index]]
 			var threshold: float = [1.0, 6.0, 8.0][index]

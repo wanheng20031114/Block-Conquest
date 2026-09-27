@@ -116,7 +116,7 @@ func update_state(state: Dictionary) -> void:
 		elif commander == SKILL_RULES.BEAR:
 			target_text = ["拖至己方施工建筑 · 立即完工并返还 50% 人口", "拖至地面 · 圈内敌军减速 60%", "拖至己方建筑 · 预览连线后松手", "拖至己方建筑 · 无敌 5 秒并召唤法术球"][armed]
 		elif commander == SKILL_RULES.FROG:
-			target_text = ["拖至地面 · 雾内敌军攻击 -20%", "圈选双方士兵 · 滞空 3 秒", "圈选己方士兵 · 透明 6 秒", "拖至敌方或中立建筑 · 削减 80% 驻军并降至 1 级"][armed]
+			target_text = ["拖至地面 · 虚弱持续至入城，雾内避开炮塔", "圈选双方士兵 · 滞空 3 秒", "圈选己方士兵 · 隐身至入城，避开炮塔", "拖至敌方或中立建筑 · 削减 80% 驻军并降至 1 级"][armed]
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [skill_names[armed], target_text]
 	%SkillDrag.visible = armed >= 0
 	if armed >= 0:

@@ -458,7 +458,7 @@ func _fire_tower(building: Node3D) -> void:
 	for target: WarMarches.MarchUnit in targets:
 		var destination := target.position + Vector3(0, 0.65, 0)
 		projectiles.append({"target": target, "at": muzzle, "position": muzzle, "previous": muzzle,
-			"to": destination, "age": 0.0, "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
+			"to": destination, "tracking": true, "age": 0.0, "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 	world_effects.render_projectiles(projectiles)
 	audio.play_world(&"cannon_shot", building.global_position)
 
@@ -468,13 +468,16 @@ func _tick_projectiles(delta: float) -> void:
 		var target: WarMarches.MarchUnit = shot.target
 		shot.age += delta
 		shot.previous = shot.position
-		if target.alive and target.levitation_remaining <= 0.0:
+		shot.tracking = shot.tracking and marches.tower_can_target(target)
+		if shot.tracking:
 			shot.to = target.position + Vector3(0, 0.65, 0)
 		var progress := minf(1.0, shot.age / shot.duration)
 		shot.position = shot.at.lerp(shot.to, progress) + Vector3(0, sin(progress * PI) * 0.65, 0)
 		if progress >= 1.0:
 			var direction: Vector3 = (shot.to - shot.at).normalized()
-			if not marches.hit_target(target, direction, true):
+			if not shot.tracking or not marches.hit_target(target, direction, true):
+				target.reserved = false
+				target.intercepted_by = -1
 				world_effects.hit(shot.to, direction)
 			audio.play_world(&"war_projectile_hit", shot.to)
 			projectiles.remove_at(index)

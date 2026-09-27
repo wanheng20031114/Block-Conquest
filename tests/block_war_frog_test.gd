@@ -100,16 +100,16 @@ func _run() -> void:
 		game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(5, 0, 0), center + Vector3(2.4, 0, 0)]))
 	game.marches.tick(1.0)
 	near(home.population, 120.0, "weakened enemy reinforcements still carry their full population")
-	for arrival_time: float in [2.98, 3.02]:
+	for entry_time: float in [2.98, 3.02]:
 		for short_steps: bool in [false, true]:
 			await reset()
 			home = game.buildings[0]
 			center = home.global_position
 			game.marches.apply_frog_field(0, 0, center)
-			game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(2.4 + arrival_time * 3.1, 0, 0), center + Vector3(2.4, 0, 0)]))
-			for step: int in (64 if short_steps else 1):
-				game.marches.tick(0.05 if short_steps else 3.2)
-			near(home.population, 99.2 if arrival_time < 3.0 else 99.0, "fog expiry samples actual arrival in both long and short frames")
+			game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(3.5 + entry_time * 3.1, 0, 0), center + Vector3(2.4, 0, 0)]))
+			for step: int in (72 if short_steps else 1):
+				game.marches.tick(0.05 if short_steps else 3.6)
+			near(home.population, 99.2 if entry_time < 3.0 else 99.0, "fog expiry samples entry, with lasting weakness after arrival in long and short frames")
 	await reset()
 	center = Vector3(-22, 0, 10)
 	var enemy := soldier(1, center, 0, 2.0)
@@ -124,12 +124,10 @@ func _run() -> void:
 	game.buildings[1].faction = 1
 	game.shields[0] = 8.0
 	near(game.combat_multiplier(1, game.buildings[0], game.marches.projected_attack_bonus(enemy)), 0.5 + RULES.RABBIT_RUSH_ATTACK_BONUS, "forge + rush - mist - tower - shield additive formula")
-	enemy.distance = -20.0
-	near(game.marches.projected_attack_bonus(enemy), RULES.RABBIT_RUSH_ATTACK_BONUS, "arrival after mist expiry gets no weakness")
-	enemy.distance = 0.0
-	game.marches.weak_zones[0].at = center - Vector3(6, 0, 0)
-	game.marches.weak_zones[2].at = center - Vector3(6, 0, 0)
-	near(game.marches.projected_attack_bonus(enemy), RULES.RABBIT_RUSH_ATTACK_BONUS, "outside fog at contact has full attack")
+	game.marches.weak_zones.clear()
+	near(game.marches.projected_attack_bonus(enemy), RULES.RABBIT_RUSH_ATTACK_BONUS - 0.2, "weakness remains after the cloud disappears")
+	var unaffected := soldier(1, center, 0, 2.0)
+	near(game.marches.projected_attack_bonus(unaffected), 0.0, "a later troop receives no vanished mist debuff")
 	await reset()
 	var own := soldier(0, center)
 	enemy = soldier(1, center + Vector3(0, 0, 1))
@@ -199,26 +197,26 @@ func _run() -> void:
 	enemy = soldier(1, center + Vector3(0, 0, 1))
 	ally = soldier(2, center + Vector3(0, 0, -1))
 	check(game.cast_ground_skill(2, center), "cloak casts on own exposed troops")
-	near(own.cloak_remaining, 6, "cloak starts immediately")
-	near(enemy.cloak_remaining, 0, "cloak excludes enemy")
-	near(ally.cloak_remaining, 0, "cloak excludes teammate owned army")
+	check(own.cloaked, "cloak starts immediately")
+	check(not enemy.cloaked, "cloak excludes enemy")
+	check(not ally.cloaked, "cloak excludes teammate owned army")
 	check(game.marches.get_node("CloakedMilitia").multimesh.visible_instance_count == 1, "transparent pool holds hidden unit")
 	check(game.marches.get_node("Militia").multimesh.visible_instance_count == 2, "opaque pool keeps ordinary soldiers")
 	var cloak_targets: Array = game.marches.acquire_targets(center, 1, 12.0, 3, false, true)
-	check(own in cloak_targets, "visual invisibility does not cheat turret detection")
+	check(own not in cloak_targets and ally in cloak_targets, "tower skips invisible soldiers and still targets visible enemies")
 	check(game.marches.get_node("CloakedMilitia").cast_shadow == 0, "hidden soldier casts no revealing solid shadow")
 	game.marches.apply_frog_field(1, 0, center)
 	game.world_effects.get_node("Frog").sync(game.marches, 0.0)
 	check(game.world_effects.get_node("Frog/Bubbles").multimesh.visible_instance_count == 2, "float membrane does not reveal cloaked unit")
 	game.set_paused(true)
 	game.simulate(1.0)
-	near(own.cloak_remaining, 6.0, "pause freezes invisibility")
+	check(own.cloaked, "pause preserves invisibility")
 	near(game.world_effects.get_node("Frog/Puffs").speed_scale, 0, "pause freezes native fog particles")
 	game.set_paused(false)
 	game.marches.tick(6.0)
-	near(own.cloak_remaining, 0, "cloak expires at six seconds")
-	check(game.marches.get_node("CloakedMilitia").multimesh.visible_instance_count == 0, "expired cloak leaves no transparent ghost")
-	check(game.marches.get_node("Militia").multimesh.visible_instance_count == 3, "all living troops return to ordinary material")
+	check(own.cloaked, "cloak remains after six seconds")
+	check(game.marches.get_node("CloakedMilitia").multimesh.visible_instance_count == 1, "permanent cloak stays in transparent pool")
+	check(game.marches.get_node("Militia").multimesh.visible_instance_count == 2, "ordinary soldiers remain separate")
 	refill()
 	check(not game.cast_ground_skill(2, center - Vector3(10, 0, 0)), "empty cloak rejects")
 	near(game.energy, 100, "empty cast does not consume energy")

@@ -67,7 +67,7 @@ func sync(marches: WarMarches, delta: float) -> void:
 		if unit.levitation_remaining <= 0.0 or not unit.is_exposed():
 			continue
 		# A cloaked soldier must not be revealed by a bright membrane around it.
-		if unit.cloak_remaining > 0.0:
+		if unit.cloaked:
 			continue
 		bubbles.set_instance_transform(slot, Transform3D(Basis.IDENTITY, unit.position + Vector3.UP * 0.64))
 		bubbles.set_instance_custom_data(slot, Color(0, 0, 0, unit.levitation_remaining / RULES.FROG_DURATIONS[1]))

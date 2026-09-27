@@ -43,7 +43,7 @@ func _select(index: int, animate: bool = true) -> void:
 	if commander == RULES.BEAR:
 		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军减速 60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "建筑无敌 5 秒，法术球优先攻击远处敌兵。"])
 	elif commander == RULES.FROG:
-		summaries = PackedStringArray(["薄雾持续 3 秒，雾内敌军攻击 -20%。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己方士兵透明 6 秒，留下很淡的轮廓。", "削减当前驻军 80%，建筑降至 1 级。"])
+		summaries = PackedStringArray(["薄雾遮挡炮塔，敌军虚弱 -20% 至入城。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己军隐身至入城，避开炮塔的攻击。", "削减当前驻军 80%，建筑降至 1 级。"])
 	for i: int in 4:
 		get_node("%%SkillIcon%d" % i).texture = RULES.icons_for(commander)[i]
 		get_node("%%SkillName%d" % i).text = RULES.names_for(commander)[i]

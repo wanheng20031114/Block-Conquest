@@ -48,9 +48,9 @@ func verify_surface(label: String) -> void:
 	for unit: WarMarches.MarchUnit in units:
 		headings.append(unit.heading)
 	units[0].reserved = true
-	units[0].cloak_remaining = 3.0
+	units[0].cloaked = true
 	check(game.RABBIT_SKILLS.recall(game, center, 0) == 24, label + " recalls the entire four-rank squad")
-	check(units[0].reserved and units[0].cloak_remaining == 3.0, label + " retains projectile locks and cloak")
+	check(units[0].reserved and units[0].cloaked, label + " retains projectile locks and cloak")
 	for index: int in units.size():
 		check(units[index].position.is_equal_approx(history[-1][index]), label + " no sideways teleport")
 		check(units[index].heading.dot(headings[index]) < -0.999, label + " turns each soldier home")

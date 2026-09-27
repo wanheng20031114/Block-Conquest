@@ -30,6 +30,7 @@ class MarchOrder extends RefCounted:
 	var departure_distance := 0.0
 	var haste_intervals: Dictionary[float, PackedVector2Array] = {}
 	var slow_intervals: Dictionary[Vector2, PackedVector2Array] = {}
+	var mist_intervals: Dictionary[Vector2, PackedVector2Array] = {}
 
 	func sample(distance: float) -> Vector3:
 		return curve.sample_baked(length - distance if returning else distance)
@@ -49,7 +50,9 @@ class MarchUnit extends RefCounted:
 	var departure_sequence := 0
 	var rush_remaining := 0.0
 	var levitation_remaining := 0.0
-	var cloak_remaining := 0.0
+	# These effects belong to this march, ending when the soldier enters a building.
+	var cloaked := false
+	var weakened := false
 
 	func is_exposed() -> bool:
 		return alive and not pending_departure and distance >= 0.0 and spawn_delay <= 0.0
@@ -256,15 +259,14 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		# They remain exposed to projectiles/fire and resume when protection ends.
 		if blocked_destinations.has(unit.order.target_id) and FACTIONS.hostile(unit.order.faction, blocked_destinations[unit.order.target_id]):
 			step = minf(step, maxf(0.0, unit.order.length - 0.12 - unit.distance))
+		if not unit.weakened and _touches_mist(unit, delta, step):
+			unit.weakened = true
 		# Sample the buff at contact, including an arrival before its expiry within
 		# one long frame. Population strength remains independent of combat bonuses.
 		var arrival_bonus := projected_attack_bonus(unit) if unit.distance + step >= unit.order.length else 0.0
 		unit.levitation_remaining = maxf(0.0, unit.levitation_remaining - delta)
-		unit.cloak_remaining = maxf(0.0, unit.cloak_remaining - delta)
 		if unit.levitation_remaining < 0.000001:
 			unit.levitation_remaining = 0.0
-		if unit.cloak_remaining < 0.000001:
-			unit.cloak_remaining = 0.0
 		unit.rush_remaining = maxf(0.0, unit.rush_remaining - delta)
 		if unit.rush_remaining < 0.000001:
 			unit.rush_remaining = 0.0
@@ -376,7 +378,16 @@ func get_units() -> Array[Dictionary]:
 				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane, "rush_remaining": unit.rush_remaining})
 	return result
 
-func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int, farthest: bool = false, grounded_only: bool = false) -> Array[MarchUnit]:
+func tower_can_target(unit: MarchUnit) -> bool:
+	if not unit.is_exposed() or unit.cloaked or unit.levitation_remaining > 0.0:
+		return false
+	# Fog hides every faction from cannon sight; weakness only affects its enemies.
+	for zone: Dictionary in weak_zones.values():
+		if _inside_mist(unit.position, zone):
+			return false
+	return true
+
+func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int, farthest: bool = false, tower_shot: bool = false) -> Array[MarchUnit]:
 	var targets: Array[MarchUnit] = []
 	var radius_squared := radius * radius
 	for target_index: int in count:
@@ -386,7 +397,7 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 			var unit := _units[index]
 			if FACTIONS.allied(unit.order.faction, attacking_faction) or not unit.is_exposed() or unit.reserved:
 				continue
-			if grounded_only and unit.levitation_remaining > 0.0:
+			if tower_shot and not tower_can_target(unit):
 				continue
 			var distance_squared := unit.position.distance_squared_to(center)
 			if distance_squared <= radius_squared and ((farthest and distance_squared > nearest_distance) or (not farthest and distance_squared <= nearest_distance)):
@@ -402,10 +413,10 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 func has_marchers() -> bool:
 	return not _units.is_empty()
 
-func hit_target(unit: MarchUnit, impulse: Vector3, grounded_only: bool = false) -> bool:
+func hit_target(unit: MarchUnit, impulse: Vector3, tower_shot: bool = false) -> bool:
 	if not unit.alive:
 		return false
-	if grounded_only and unit.levitation_remaining > 0.0:
+	if tower_shot and not tower_can_target(unit):
 		unit.reserved = false
 		unit.intercepted_by = -1
 		return false
@@ -491,16 +502,36 @@ func projected_attack_bonus(unit: MarchUnit) -> float:
 	var bonus := 0.0
 	if unit.rush_remaining > 0.0 and unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001:
 		bonus = RULES.RABBIT_RUSH_ATTACK_BONUS
-	if weak_zones.is_empty():
-		return bonus
-	var contact := _formation_position(unit.order, unit.order.length, unit.lane, _route_heading(unit.order, unit.order.length))
+	if unit.weakened or _touches_mist(unit, INF):
+		bonus -= RULES.FROG_WEAKNESS
+	return bonus
+
+func _inside_mist(at: Vector3, zone: Dictionary) -> bool:
+	return zone.remaining > 0.0 and Vector2(at.x - zone.at.x, at.z - zone.at.z).length_squared() <= zone.radius * zone.radius
+
+func _touches_mist(unit: MarchUnit, seconds: float, max_step: float = INF) -> bool:
+	# Sample the travelled files, including crossing a whole cloud within one tick.
+	# Cache per shared route/lane, and clip travel to each cloud's actual expiry.
 	for faction: int in weak_zones:
 		var zone := weak_zones[faction]
-		if FACTIONS.hostile(faction, unit.order.faction) and Vector2(contact.x - zone.at.x, contact.z - zone.at.z).length_squared() <= zone.radius * zone.radius:
-			if unit.distance + movement_distance(unit, zone.remaining) > unit.order.length + 0.000001:
-				bonus -= RULES.FROG_WEAKNESS
-				break
-	return bonus
+		if not FACTIONS.hostile(faction, unit.order.faction):
+			continue
+		if unit.is_exposed() and _inside_mist(unit.position, zone):
+			return true
+		var active := minf(seconds, zone.remaining)
+		if active <= unit.spawn_delay:
+			continue
+		var end := minf(unit.order.length, unit.distance + minf(max_step, movement_distance(unit, active)))
+		var start := maxf(0.0, unit.distance)
+		if end <= start:
+			continue
+		var key := Vector2(faction, unit.lane)
+		if not unit.order.mist_intervals.has(key):
+			unit.order.mist_intervals[key] = _zone_intervals(unit.order, unit.lane, zone)
+		for span: Vector2 in unit.order.mist_intervals[key]:
+			if end > span.x + 0.000001 and start < span.y:
+				return true
+	return false
 
 func frog_targets(index: int, faction: int, at: Vector3) -> Array[MarchUnit]:
 	var targets: Array[MarchUnit] = []
@@ -511,20 +542,24 @@ func frog_targets(index: int, faction: int, at: Vector3) -> Array[MarchUnit]:
 			targets.append(unit)
 		elif index == 1 and unit.levitation_remaining <= 0.0:
 			targets.append(unit)
-		elif index == 2 and unit.order.faction == faction and unit.cloak_remaining <= 0.0:
+		elif index == 2 and unit.order.faction == faction and not unit.cloaked:
 			targets.append(unit)
 	return targets
 
 func apply_frog_field(index: int, faction: int, at: Vector3) -> int:
 	if index == 0:
 		weak_zones[faction] = {"at": at, "radius": RULES.FROG_RADII[0], "remaining": RULES.FROG_DURATIONS[0]}
+		for unit: MarchUnit in _units:
+			unit.order.mist_intervals.clear()
+		for unit: MarchUnit in frog_targets(0, faction, at):
+			unit.weakened = true
 		return 1
 	var targets := frog_targets(index, faction, at)
 	for unit: MarchUnit in targets:
 		if index == 1:
 			unit.levitation_remaining = RULES.FROG_DURATIONS[1]
 		else:
-			unit.cloak_remaining = RULES.FROG_DURATIONS[2]
+			unit.cloaked = true
 	_render()
 	return targets.size()
 
@@ -739,13 +774,13 @@ func _render() -> void:
 			continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)
-		var mesh := _cloaked_mesh if unit.cloak_remaining > 0.0 else _multimesh
-		var index := cloaked_slot if unit.cloak_remaining > 0.0 else slot
+		var mesh := _cloaked_mesh if unit.cloaked else _multimesh
+		var index := cloaked_slot if unit.cloaked else slot
 		mesh.set_instance_transform(index, Transform3D(basis, unit.position + Vector3(0, 0.035, 0)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		color.a = -(unit.gait + 1.0) if unit.rush_remaining > 0.0 else unit.gait
 		mesh.set_instance_custom_data(index, color)
-		if unit.cloak_remaining > 0.0:
+		if unit.cloaked:
 			cloaked_slot += 1
 		else:
 			slot += 1

@@ -45,7 +45,7 @@ const FROG := &"frog"
 const FROG_NAMES: Array[String] = ["弱化雾气", "浮力薄隔", "隐身", "致命打击"]
 const FROG_COSTS: Array[float] = [20.0, 30.0, 20.0, 90.0]
 const FROG_COOLDOWNS: Array[float] = [20.0, 32.0, 26.0, 100.0]
-const FROG_DURATIONS: Array[float] = [3.0, 3.0, 6.0, 0.0]
+const FROG_DURATIONS: Array[float] = [3.0, 3.0, 0.0, 0.0]
 const FROG_RADII: Array[float] = [3.5, 3.5, 4.5, 0.0]
 const FROG_WEAKNESS := 0.20
 const FROG_STRIKE_FRACTION := 0.80
@@ -101,9 +101,9 @@ static func effect_text(index: int) -> String:
 static func description(index: int, commander: StringName = COMMANDER_ID) -> String:
 	if commander == FROG:
 		return [
-			"展开半径 3.5 米的薄雾，持续 3 秒。\n雾内敌军攻击 -20%，出雾后恢复。\n增援人数不变，相同雾气不叠加。",
+			"展开半径 3.5 米的薄雾，持续 3 秒。\n接触的敌军攻击 -20%，持续至入城。\n炮塔无法攻击雾内士兵；增援人数不变。",
 			"使半径 3.5 米内当前的双方士兵滞空 3 秒。\n无法移动，也不会被炮塔命中。\n落地后继续原路线，其他技能仍可影响。",
-			"半径 4.5 米内当前的己方士兵隐身 6 秒。\n仅留下很淡的轮廓，出圈后仍有效。\n只影响外观，不改变炮塔与电脑的识别。",
+			"半径 4.5 米内当前的己方士兵隐身。\n仅留下极淡轮廓，持续至进入建筑。\n炮塔无法攻击；仍会被火攻和法术击中。",
 			"敌方或中立建筑损失当前驻军的 80%，降至 1 级。\n损失按整个人口计算，打断施工，不直接占领。\n无敌可阻挡，链式防守不分担。"
 		][index]
 	if commander == BEAR:

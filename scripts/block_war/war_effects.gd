@@ -186,7 +186,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 	if emit:
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.is_exposed() and unit.cloak_remaining <= 0.0 and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
+			if unit.is_exposed() and not unit.cloaked and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
 				active.append(unit)
 		if not active.is_empty():
 			for index: int in mini(48, active.size()):

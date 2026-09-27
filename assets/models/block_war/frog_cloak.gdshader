@@ -10,5 +10,5 @@ void fragment() {
     SPECULAR = 0.1;
     // A quiet contour follows the actual animated mesh. No outline billboard,
     // visible shadow or bright rushing edge reveals the hidden formation.
-    ALPHA = 0.025 + rim * 0.12;
+    ALPHA = 0.012 + rim * 0.075;
 }
