@@ -19,8 +19,6 @@ var _paused: bool = false
 var _finished: bool = false
 var _help_from_pause: bool = false
 var _toast_tween: Tween
-var _balance_tween: Tween
-var _balance_target: float = -1.0
 var _last_ready: Array[bool] = [false, false, false, false]
 var _skills_initialized: bool = false
 var _skill_buttons: Array[Button] = []
@@ -102,16 +100,12 @@ func update_state(state: Dictionary) -> void:
 	$UI/Enemy/Role.text = "%d 名电脑对手" % state.team_size
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	var target: float = float(player_total) / maxf(float(player_total + enemy_total), 1.0) * 100.0
-	if not is_equal_approx(target, _balance_target):
-		_balance_target = target
-		if _balance_tween != null and _balance_tween.is_valid():
-			_balance_tween.kill()
-		_balance_tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_balance_tween.tween_property(%Balance, "value", target, 0.28)
+	%Balance.update_factions(state.faction_totals, state.morale_stars, int(state.faction_count))
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
-	%ForgeBonus.text = ("你的攻击  +%d%%" if state.team_size > 1 else "攻击加成  +%d%%") % (int(state.forges) * 10)
+	var permanent_attack_bonus: float = ((1.0 + int(state.forges) * 0.1) * (1.0 + floori(float(state.morale_stars[0])) * 0.05) - 1.0) * 100.0
+	var attack_text: String = ("%.1f" % permanent_attack_bonus).trim_suffix(".0")
+	%ForgeBonus.text = ("你的攻击  +%s%%" if state.team_size > 1 else "攻击加成  +%s%%") % attack_text
 	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
@@ -271,7 +265,7 @@ func _position_selection() -> void:
 	var extent: Vector2 = to_ui * _selection_camera.unproject_position(world + _selection_camera.global_basis.x * 3.0)
 	var gap: float = absf(extent.x - anchor.x) + 3.0
 	var menu_size: Vector2 = %Selection.size
-	var bounds := Rect2(Vector2(16, 64), Vector2($UI.size.x - 32.0, %Skills.position.y - 88.0))
+	var bounds := Rect2(Vector2(16, 96), Vector2($UI.size.x - 32.0, %Skills.position.y - 120.0))
 	var percentage_rect: Rect2 = %Percentages.get_global_rect().grow_side(SIDE_RIGHT, 40.0)
 	var obstacles: Array[Rect2] = []
 	# A compact side menu must not cover a neighboring building or its population.

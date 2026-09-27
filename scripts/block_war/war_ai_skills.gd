@@ -286,7 +286,7 @@ func _rabbit_turn(game: Node3D) -> void:
 				else:
 					var home: WarBuilding = game.by_id[unit.order.source_id]
 					var danger: float = threats.get(home.building_id, 0.0)
-					var defending: bool = danger >= home.population * 0.65 and danger > 0.0 and unit.position.distance_to(home.global_position) < WarMarches.SPEED * 4.0
+					var defending: bool = danger >= home.population * 0.65 and danger > 0.0 and unit.position.distance_to(home.global_position) < game.marches.base_speed(unit.order.faction) * 4.0
 					score += 2.0 if defending else -2.5
 			if score > best.score:
 				best = {"index": 2, "score": score, "target": null, "at": at}
@@ -317,7 +317,7 @@ func _rabbit_turn(game: Node3D) -> void:
 					if danger >= building.population * 0.75 and danger > 8.0:
 						score = 25.0 + minf(plan.count, danger) * 1.5
 				else:
-					var arrival: float = plan.dig_duration + SKILL_RULES.BURROW_EXIT_DISTANCE / WarMarches.SPEED + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
+					var arrival: float = plan.dig_duration + SKILL_RULES.BURROW_EXIT_DISTANCE / game.marches.base_speed(faction) + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
 					var growth := minf(maxf(0.0, building.capacity - building.population), building.production_rate * maxf(0.0, arrival - building.disruption_remaining))
 					var damage: float = plan.count * game.combat_multiplier(faction, building)
 					var committed: int = game.marches.team_incoming_for(building.building_id, faction)
@@ -361,7 +361,7 @@ func _rush_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 			if remaining < 0.5:
 				continue
 			count += 1
-			var reaches: bool = remaining < WarMarches.SPEED * SKILL_RULES.RABBIT_RUSH_MULTIPLIER * SKILL_RULES.RABBIT_DURATIONS[0]
+			var reaches: bool = remaining < game.marches.base_speed(faction) * SKILL_RULES.RABBIT_RUSH_MULTIPLIER * SKILL_RULES.RABBIT_DURATIONS[0]
 			if not game.FACTIONS.allied(target.faction, faction) and reaches:
 				score += 3.0
 			else:

@@ -188,14 +188,14 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 					continue
 				var departure := Vector2i(source.building_id, count)
 				if not _departure_delays.has(departure):
-					_departure_delays[departure] = game.marches.estimate_arrival_time(source.building_id, 0.0, count)
-				var arrival := distance / WarMarches.SPEED + _departure_delays[departure]
+					_departure_delays[departure] = game.marches.estimate_arrival_time(source.building_id, 0.0, count, faction)
+				var arrival: float = distance / game.marches.base_speed(faction) + _departure_delays[departure]
 				var defenders := target.population
 				if not neutral:
 					# Reinforcements, growth and fortifications all belong to the defender.
 					defenders += _incoming_for(target.building_id, target.faction)
 					defenders += minf(maxf(0.0, target.capacity - target.population), target.production_rate * arrival)
-				required = defenders / game.combat_multiplier(faction, target)
+				required = _assault_losses(game, target, defenders)
 				required = required * (1.0 if neutral else 1.35) + (6.0 if neutral else 10.0)
 				if count < required:
 					continue
@@ -211,6 +211,39 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 			if (not neutral or score > 0.0) and (best.is_empty() or score > best.score):
 				best = {"source": source, "target": target, "percent": percent, "score": score}
 	return best
+
+func _assault_losses(game: Node3D, target: WarBuilding, defenders: float) -> float:
+	# Arrivals fight one soldier at a time. Each lost attacker can remove an
+	# attack star and award a defense star before the rest of the wave arrives.
+	# Advance directly to those boundaries, at most five changes per faction.
+	var attack_points: float = game.morale.points(faction)
+	var attack_level: int = game.morale.level(faction)
+	var defense_points: float = 0.0 if target.faction < 0 else game.morale.points(target.faction)
+	var defense_level: int = 0 if target.faction < 0 else game.morale.level(target.faction)
+	var base_damage: float = 1.0 + game.attack_bonus(faction) - game.defense_bonus(target)
+	var remaining := defenders
+	var losses := 0.0
+	while remaining > 0.0:
+		var damage := base_damage * (1.0 + 0.05 * attack_level) / (1.0 + 0.25 * defense_level)
+		var until_change := INF
+		if attack_level > 0:
+			# A soldier at the exact threshold still fights with the current star.
+			until_change = floorf((attack_points - WarMorale.THRESHOLDS[attack_level]) / WarMorale.ATTACKER_LOSS_PENALTY) + 1.0
+		if target.faction >= 0 and defense_level < WarMorale.THRESHOLDS.size() - 1:
+			until_change = minf(until_change, ceilf((WarMorale.THRESHOLDS[defense_level + 1] - defense_points) / WarMorale.KILL_REWARD))
+		var needed := remaining / damage
+		if needed <= until_change:
+			return losses + needed
+		losses += until_change
+		remaining -= damage * until_change
+		attack_points = maxf(0.0, attack_points - WarMorale.ATTACKER_LOSS_PENALTY * until_change)
+		if attack_level > 0 and attack_points < WarMorale.THRESHOLDS[attack_level]:
+			attack_level -= 1
+		if target.faction >= 0:
+			defense_points = minf(WarMorale.MAX_POINTS, defense_points + WarMorale.KILL_REWARD * until_change)
+			if defense_level < WarMorale.THRESHOLDS.size() - 1 and defense_points >= WarMorale.THRESHOLDS[defense_level + 1]:
+				defense_level += 1
+	return losses
 
 func _tower_losses(game: Node3D, source: WarBuilding, target: WarBuilding, count: int) -> float:
 	var losses := 0.0
@@ -230,7 +263,7 @@ func _tower_losses(game: Node3D, source: WarBuilding, target: WarBuilding, count
 			_tower_exposure[key] = length
 		var exposed_length := _tower_exposure[key]
 		if exposed_length > 0.0:
-			var duration := (exposed_length + ceilf(float(count) / WarMarches.COLUMNS) * WarMarches.ROW_SPACING) / WarMarches.SPEED
+			var duration: float = (exposed_length + ceilf(float(count) / WarMarches.COLUMNS) * WarMarches.ROW_SPACING) / game.marches.base_speed(faction)
 			losses += ceilf(duration / game.tower_interval(tower)) * tower.level
 	return losses
 

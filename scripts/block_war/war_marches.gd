@@ -5,6 +5,7 @@ extends Node3D
 
 signal unit_arrived(target_id: int, faction: int, strength: float, attack_bonus: float)
 signal unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool)
+signal combat_death(faction: int, target_id: int, killer_faction: int)
 signal departure_queue_changed(source_id: int, faction: int, change: int)
 signal unit_departed(source_id: int, faction: int)
 
@@ -31,6 +32,7 @@ class MarchOrder extends RefCounted:
 class MarchUnit extends RefCounted:
 	var alive := true
 	var reserved := false
+	var intercepted_by := -1
 	var order: MarchOrder
 	var distance: float
 	var lane: float
@@ -51,6 +53,10 @@ var haste_zones: Dictionary[int, Dictionary] = {}
 var slow_zones: Dictionary[int, Dictionary] = {}
 var blocked_destinations: Dictionary[int, int] = {}
 var _departure_sequence := 0
+var morale_speed := PackedFloat64Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+
+func base_speed(faction: int) -> float:
+	return SPEED * morale_speed[faction]
 
 func _ready() -> void:
 	_multimesh.instance_count = 4096
@@ -151,7 +157,7 @@ func departure_step_limit() -> float:
 	var limit := INF
 	for unit: MarchUnit in _units:
 		if unit.pending_departure:
-			limit = minf(limit, maxf(0.000001, unit.spawn_delay + maxf(0.0, -unit.distance / SPEED)))
+			limit = minf(limit, maxf(0.000001, unit.spawn_delay + maxf(0.0, -unit.distance / base_speed(unit.order.faction))))
 	return limit
 
 func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float, dig_duration: float) -> void:
@@ -244,7 +250,7 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 				var contact := fire_contact(before, unit.position, fire, emerged, arrived)
 				if contact >= 0.0:
 					unit.position = before.lerp(unit.position, inverse_lerp(emerged, arrived, contact))
-					_defeat(index, (unit.position - fire.center).normalized(), true)
+					_defeat(index, (unit.position - fire.center).normalized(), true, int(fire.get("faction", -1)))
 					burned = true
 					break
 			if burned:
@@ -303,7 +309,7 @@ func hostile_incoming_for(target_id: int, faction: int) -> int:
 			total += 1
 	return total
 
-func estimate_arrival_time(source_id: int, route_length: float, count: int) -> float:
+func estimate_arrival_time(source_id: int, route_length: float, count: int, faction: int = 0) -> float:
 	# AI marches use ordinary speed. Include the shared doorway queue and last rank,
 	# so an apparently weak residence has time to recruit before the whole wave lands.
 	var first_distance := 0.0
@@ -313,7 +319,7 @@ func estimate_arrival_time(source_id: int, route_length: float, count: int) -> f
 	if first_distance < 0.0:
 		first_distance -= ROW_SPACING
 	var last_rank := floorf(float(count - 1) / COLUMNS) * ROW_SPACING
-	return (route_length - first_distance + last_rank + COLUMN_SPACING * (COLUMNS - 1) * 0.5 * 0.11) / SPEED
+	return (route_length - first_distance + last_rank + COLUMN_SPACING * (COLUMNS - 1) * 0.5 * 0.11) / base_speed(faction)
 
 func get_units() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -341,6 +347,7 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 		if nearest < 0:
 			break
 		_units[nearest].reserved = true
+		_units[nearest].intercepted_by = attacking_faction
 		targets.append(_units[nearest])
 	return targets
 
@@ -350,22 +357,23 @@ func has_marchers() -> bool:
 func hit_target(unit: MarchUnit, impulse: Vector3) -> bool:
 	if not unit.alive:
 		return false
-	_defeat(_units.find(unit), impulse, false)
+	_defeat(_units.find(unit), impulse, false, unit.intercepted_by)
 	_render()
 	return true
 
-func ignite_at(center: Vector3, radius: float) -> void:
+func ignite_at(center: Vector3, radius: float, faction: int = -1) -> void:
 	# Resolve the ignition core on release, using the same contact rule as expansion.
 	var core := {"center": center, "from_radius": radius, "to_radius": radius, "active_fraction": 1.0}
 	for index: int in range(_units.size() - 1, -1, -1):
 		var unit := _units[index]
 		if unit.is_exposed() and fire_contact(unit.position, unit.position, core) >= 0.0:
-			_defeat(index, (unit.position - center).normalized(), true)
+			_defeat(index, (unit.position - center).normalized(), true, faction)
 	_render()
 
-func _defeat(index: int, impulse: Vector3, burning: bool) -> void:
+func _defeat(index: int, impulse: Vector3, burning: bool, killer_faction: int = -1) -> void:
 	var unit := _units[index]
 	unit_defeated.emit(unit.position, unit.heading, unit.order.faction, impulse, burning)
+	combat_death.emit(unit.order.faction, unit.order.target_id, killer_faction)
 	_remove_unit(index)
 
 static func fire_contact(from: Vector3, to: Vector3, fire: Dictionary, emerged: float = 0.0, arrived: float = 1.0) -> float:
@@ -434,7 +442,7 @@ func projected_attack_bonus(unit: MarchUnit) -> float:
 
 func speed_multiplier(unit: MarchUnit) -> float:
 	if not unit.is_exposed():
-		return 1.0
+		return morale_speed[unit.order.faction]
 	var multiplier := RULES.RABBIT_RUSH_MULTIPLIER if unit.rush_remaining > 0.0 else 1.0
 	if haste_zones.has(unit.order.faction):
 		var zone := haste_zones[unit.order.faction]
@@ -444,8 +452,8 @@ func speed_multiplier(unit: MarchUnit) -> float:
 	for faction: int in slow_zones:
 		var zone := slow_zones[faction]
 		if FACTIONS.hostile(faction, unit.order.faction) and Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z).length_squared() <= zone.radius * zone.radius:
-			return multiplier * RULES.BEAR_SLOW_MULTIPLIER
-	return multiplier
+			return morale_speed[unit.order.faction] * multiplier * RULES.BEAR_SLOW_MULTIPLIER
+	return morale_speed[unit.order.faction] * multiplier
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
 	var concealed_time := minf(delta, unit.spawn_delay)
@@ -462,7 +470,7 @@ func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, mult
 		return _movement_with_fields(unit, from_distance, delta, multiplier, zone_time, time_offset)
 	# A unit buff and a ground field use their stronger speed, never multiply.
 	# Split both independent expiry times, then integrate route entry/exit exactly.
-	var speed := SPEED * multiplier
+	var speed := base_speed(unit.order.faction) * multiplier
 	if delta <= 0.0 or zone_time <= 0.0:
 		return speed * delta
 	var zone := haste_zones[unit.order.faction]
@@ -480,7 +488,7 @@ func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, mult
 		remaining -= before_step
 		if remaining <= 0.0:
 			break
-		var inside_speed := SPEED * maxf(multiplier, zone.multiplier)
+		var inside_speed := base_speed(unit.order.faction) * maxf(multiplier, zone.multiplier)
 		var inside_time: float = (interval.y - distance) / inside_speed
 		var inside_step := minf(remaining, inside_time)
 		distance += inside_step * inside_speed
@@ -527,7 +535,7 @@ func _movement_with_fields(unit: MarchUnit, from_distance: float, delta: float, 
 					boost = maxf(boost, field.speed)
 					slowest = minf(slowest, field.speed)
 				break
-		var speed := SPEED * boost * slowest
+		var speed := base_speed(unit.order.faction) * boost * slowest
 		var step := minf(next_time, (next_distance - distance) / speed)
 		distance += step * speed
 		elapsed += step

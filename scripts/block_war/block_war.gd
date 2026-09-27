@@ -17,6 +17,8 @@ const ENEMY := 1
 const AI_STRATEGY := preload("res://scripts/block_war/war_ai.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const MAP_CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
+const MORALE := preload("res://scripts/block_war/war_morale.gd")
+var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
 var bear := BEAR_SKILLS.new()
@@ -93,6 +95,7 @@ func _enter_tree() -> void:
 		add_child(replacement)
 		move_child(replacement, 0)
 	faction_count = definition.team_size * 2
+	morale.configure(faction_count)
 	for faction: int in faction_count:
 		var state := SkillState.new()
 		state.commander = get_node("/root/Session").block_war_commander if faction % 2 == 0 else get_node("/root/Session").block_war_opponent_commander
@@ -111,7 +114,12 @@ func _ready() -> void:
 		buildings.append(building)
 		by_id[building.building_id] = building
 		tower_clocks[building.building_id] = 0.0
+		building.construction_completed.connect(_on_building_completed.bind(building))
+	morale.changed.connect(_on_morale_changed)
+	for faction: int in faction_count:
+		_on_morale_changed(faction)
 	marches.unit_arrived.connect(_on_unit_arrived)
+	marches.combat_death.connect(_on_march_combat_death)
 	marches.departure_queue_changed.connect(_on_departure_queue_changed)
 	marches.unit_departed.connect(_on_unit_departed)
 	world_effects.get_node("Rabbit").tunnel_opened.connect(func(at: Vector3): audio.play_world(&"war_rabbit_burrow", at))
@@ -166,6 +174,7 @@ func simulate(delta: float) -> void:
 		if marches.has_marchers() or not projectiles.is_empty() or world_effects.has_fire():
 			step = minf(step, 0.05)
 		step = minf(step, marches.departure_step_limit())
+		step = minf(step, morale.step_limit())
 		step = minf(step, world_effects.fire_step_limit())
 		step = minf(step, bear.step_limit())
 		for building: WarBuilding in buildings:
@@ -177,6 +186,7 @@ func simulate(delta: float) -> void:
 		remaining = maxf(0.0, remaining - step)
 
 func _simulate_step(delta: float) -> void:
+	morale.begin_step()
 	elapsed += delta
 	var recruiting := _tick_recruitment(delta)
 	for state: SkillState in faction_skills:
@@ -204,6 +214,7 @@ func _simulate_step(delta: float) -> void:
 	world_effects.tick(delta)
 	world_effects.update_skills(delta, faction_skills, shields, by_id, marches)
 	_tick_fire_buildings()
+	morale.end_step(delta)
 	for index: int in range(effects.size() - 1, -1, -1):
 		effects[index].life -= delta
 		if effects[index].life <= 0.0:
@@ -346,7 +357,30 @@ func defense_bonus(building: Node3D) -> float:
 func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 0.0) -> float:
 	# Sum percentage-point bonuses before scaling troops. Preview and AI use
 	# this same live coefficient, including ownership and construction changes.
-	return 1.0 + attack_bonus(faction) + unit_attack_bonus - defense_bonus(target)
+	return (1.0 + attack_bonus(faction) + unit_attack_bonus - defense_bonus(target)) * morale.attack(faction) / morale.defense(target.faction)
+
+func _on_morale_changed(faction: int) -> void:
+	marches.morale_speed[faction] = morale.speed(faction)
+
+func _on_building_completed(kind: int, completed_level: int, converted: bool, building: WarBuilding) -> void:
+	if not converted and building.faction >= 0:
+		morale.adjust(building.faction, MORALE.upgrade_reward(kind, completed_level))
+
+func _record_attacker_losses(faction: int, defender: int, losses: float) -> void:
+	if losses <= 0.0:
+		return
+	morale.adjust(faction, -MORALE.ATTACKER_LOSS_PENALTY * losses)
+	if FACTIONS.hostile(faction, defender):
+		morale.adjust(defender, MORALE.KILL_REWARD * losses)
+
+func _on_march_combat_death(faction: int, target_id: int, killer_faction: int) -> void:
+	var destination: WarBuilding = by_id[target_id]
+	# Reinforcements are not attacking; neither friendly fire nor an unrelated
+	# intercepted transfer earns a defensive-kill reward.
+	if not FACTIONS.allied(faction, destination.faction):
+		morale.adjust(faction, -MORALE.ATTACKER_LOSS_PENALTY)
+		if FACTIONS.hostile(faction, killer_faction) and FACTIONS.allied(killer_faction, destination.faction):
+			morale.adjust(killer_faction, MORALE.KILL_REWARD)
 
 func _on_departure_queue_changed(source_id: int, faction: int, change: int) -> void:
 	var source: WarBuilding = by_id[source_id]
@@ -372,11 +406,17 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 		var damage: float = bear.damage_for(self, target, original_damage)
 		if target.population + 0.00001 >= damage:
 			target.population = maxf(0.0, target.population - damage)
+			_record_attacker_losses(faction, target.faction, strength)
 			if target.queued_population > floori(target.population):
 				marches.trim_departures(target_id, target.faction, floori(target.population))
 		else:
 			var survivors: float = clampf(strength * (damage - target.population) / maxf(original_damage, 0.000001), 0.0, strength)
 			var previous_faction: int = target.faction
+			var captured_level: int = target.level
+			_record_attacker_losses(faction, previous_faction, strength - survivors)
+			morale.adjust(faction, MORALE.capture_reward(target.kind, captured_level, previous_faction < 0))
+			if previous_faction >= 0:
+				morale.adjust(previous_faction, -MORALE.loss_penalty(target.kind, captured_level))
 			if target.queued_population > 0:
 				marches.trim_departures(target_id, previous_faction, 0)
 			target.cancel_construction()
@@ -447,7 +487,7 @@ func _tick_fire_buildings() -> void:
 			var offset := Vector2(building.global_position.x - fire.global_position.x, building.global_position.z - fire.global_position.z)
 			if offset.length() <= fire.front(fire.age):
 				fire.hit_buildings[building.building_id] = true
-				var damage := bear.damage_for(self, building, IMPACT_DAMAGE * (1.0 - defense_bonus(building)))
+				var damage := bear.damage_for(self, building, IMPACT_DAMAGE * (1.0 - defense_bonus(building)) * morale.attack(fire.faction) / morale.defense(building.faction))
 				building.population = maxf(0.0, building.population - damage)
 				if building.queued_population > floori(building.population):
 					marches.trim_departures(building.building_id, building.faction, floori(building.population))
@@ -666,7 +706,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 		marches.create_haste_zone(faction, center, SKILL_RULES.HASTE_RADIUS, SKILL_DURATIONS[1], SKILL_RULES.HASTE_MULTIPLIER)
 	else:
 		var fire: WarFireWave = world_effects.start_fire(center, IMPACT_RADIUS, faction)
-		marches.ignite_at(center, fire.front(0.0))
+		marches.ignite_at(center, fire.front(0.0), faction)
 		_tick_fire_buildings()
 	_commit_skill(index, faction)
 	audio.play_world(&"war_skill_drum" if index == 1 else &"war_skill_breach", center)
@@ -744,7 +784,7 @@ func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, i
 			damage += incoming.get(Vector2i(building.building_id, faction), 0) * combat_multiplier(faction, building)
 	for unit: WarMarches.MarchUnit in marches._units:
 		if unit.order.target_id == building.building_id and FACTIONS.hostile(building.faction, unit.order.faction):
-			damage += unit.order.strength * marches.projected_attack_bonus(unit)
+			damage += unit.order.strength * marches.projected_attack_bonus(unit) * morale.attack(unit.order.faction) / morale.defense(building.faction)
 	return damage
 
 func total_for(faction: int) -> int:
@@ -799,6 +839,11 @@ func _finish_match(winner: int) -> void:
 func update_hud() -> void:
 	if not is_node_ready():
 		return
+	var faction_totals: Array[int] = []
+	var morale_stars: Array[float] = []
+	for faction: int in faction_count:
+		faction_totals.append(total_for(faction))
+		morale_stars.append(morale.stars(faction))
 	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升所属军团攻击"
 	if selected != null:
 		match selected.kind:
@@ -818,6 +863,7 @@ func update_hud() -> void:
 			if FACTIONS.allied(selected.faction, PLAYER) and selected.faction != PLAYER:
 				detail += " · 增援抵达后归队友指挥"
 	hud.update_state({"player_total": team_total_for(PLAYER), "enemy_total": team_total_for(ENEMY), "time": elapsed,
+		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars,
 		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
 		"send_count": dispatch_count(selected, percentage) if selected != null else 0,

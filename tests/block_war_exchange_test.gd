@@ -62,6 +62,9 @@ func _run() -> void:
 			target.kind = 0 if tier == 0 else 1
 			target.level = maxi(1, tier)
 			for count: int in 6:
+				# Each golden coefficient describes a fresh zero-morale exchange.
+				# Battle-earned stars are exercised by block_war_morale_test instead.
+				game.morale.configure(game.faction_count)
 				forges(count)
 				var coefficient: float = coefficients[tier][count] - (0.25 if shielded else 0.0)
 				var label := "tower=%d forges=%d shield=%s" % [tier, count, shielded]
@@ -74,6 +77,7 @@ func _run() -> void:
 					game._on_unit_arrived(target.building_id, 0, 1.0)
 				near(target.population, 100.0 - 20.0 * coefficient, label + " individual arrivals retain fractional casualties")
 	game.shields.clear()
+	game.morale.configure(game.faction_count)
 	forges(1)
 	target.kind = 1
 	target.level = 1
@@ -136,6 +140,7 @@ func _run() -> void:
 	game._on_unit_arrived(target.building_id, 1, 1.0)
 	near(game.defense_bonus(target), 0.05, "capture downgrade immediately reduces tower defense")
 	# Corner badges use the same actual target and stay separate from count layout.
+	game.morale.configure(game.faction_count)
 	game.drag_source = source
 	game.hovered = target
 	source.population = 64.0

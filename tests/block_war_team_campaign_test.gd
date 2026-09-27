@@ -1,6 +1,10 @@
 extends SceneTree
 ## Real 2v2 / 3v3 campaigns with a passive human, including cold AI planning cost.
 
+# Defensive morale prolongs sieges. Still require a resolved match, with a
+# thirty-minute simulated ceiling instead of the old pre-morale fifteen minutes.
+const CAMPAIGN_SECONDS := 1800
+
 var game: Node3D
 var checks := 0
 var failures: Array[String] = []
@@ -34,7 +38,7 @@ func _run() -> void:
 		var expanded := PackedByteArray()
 		expanded.resize(game.faction_count)
 		var max_tick_us := 0
-		for step: int in 9000:
+		for step: int in CAMPAIGN_SECONDS * 10:
 			started = Time.get_ticks_usec()
 			game.simulate(0.1)
 			max_tick_us = maxi(max_tick_us, Time.get_ticks_usec() - started)
@@ -50,7 +54,7 @@ func _run() -> void:
 			check(expanded[faction] == 1, "each computer captures a new building during the campaign")
 		for building: WarBuilding in game.buildings:
 			check(is_finite(building.population) and building.population >= 0.0, "team battles keep population finite and nonnegative")
-		check(game.finished, "a passive human's alliance is resolved within 900 simulated seconds")
+		check(game.finished, "a passive human's alliance is resolved within %d simulated seconds" % CAMPAIGN_SECONDS)
 		print("TEAM_CAMPAIGN_RESULT map=", map_id, " time=", game.elapsed, " finished=", game.finished, " max_tick_ms=", max_tick_us / 1000.0)
 		await game.prepare_shutdown()
 	session.block_war_map_id = "rift"

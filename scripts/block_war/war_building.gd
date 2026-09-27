@@ -2,6 +2,8 @@ class_name WarBuilding
 extends Node3D
 ## Editable architectural scene; the match owns population and combat rules.
 
+signal construction_completed(kind: int, completed_level: int, converted: bool)
+
 @export var building_id: int = 0
 @export var faction: int = -1
 @export_enum("住宅", "炮塔", "铁匠铺") var kind: int = 0
@@ -209,6 +211,7 @@ func advance_construction(delta: float) -> bool:
 		return false
 	construction_remaining = 0.0
 	construction_cost = 0
+	var converted := conversion_target >= 0
 	if conversion_target >= 0:
 		kind = conversion_target
 		level = 1
@@ -220,6 +223,7 @@ func advance_construction(delta: float) -> bool:
 	$Construction/Complete.show()
 	$Construction/Complete.restart()
 	pulse_capture()
+	construction_completed.emit(kind, level, converted)
 	return true
 
 

@@ -34,7 +34,7 @@ func front(at_age: float) -> float:
 
 func segment(delta: float) -> Dictionary:
 	return {"center": global_position, "from_radius": front(age), "to_radius": front(age + delta),
-		"active_fraction": minf(1.0, (BURN_TIME - age) / delta)}
+		"active_fraction": minf(1.0, (BURN_TIME - age) / delta), "faction": faction}
 
 func tick(delta: float) -> void:
 	if age >= LIFETIME:

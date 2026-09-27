@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/block_war/war_hud.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/percentage_button.tscn" id="percentage_button"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/war_balance.tscn" id="balance"]
 
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="body"]
 
@@ -545,11 +546,11 @@ anchor_bottom = 0.0
 offset_left = 0.0
 offset_top = 4.0
 offset_right = 0.0
-offset_bottom = 39.0
+offset_bottom = 88.0
 mouse_filter = 2
 
 
-[node name="Balance" type="ProgressBar" parent="UI/Top"]
+[node name="Balance" parent="UI/Top" instance=ExtResource("balance")]
 unique_name_in_owner = true
 layout_mode = 0
 anchor_left = 0.0
@@ -559,12 +560,8 @@ anchor_bottom = 0.0
 offset_left = 0.0
 offset_top = 0.0
 offset_right = 0.0
-offset_bottom = 16.0
+offset_bottom = 40.0
 mouse_filter = 2
-theme_override_styles/background = SubResource("BarBack")
-theme_override_styles/fill = SubResource("BarFill")
-value = 50.0
-show_percentage = false
 
 [node name="PlayerTotal" type="Label" parent="UI/Top"]
 unique_name_in_owner = true
@@ -617,9 +614,9 @@ anchor_top = 0.0
 anchor_right = 0.5
 anchor_bottom = 0.0
 offset_left = -37.0
-offset_top = 17.0
+offset_top = 42.0
 offset_right = 37.0
-offset_bottom = 36.0
+offset_bottom = 61.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 12
 theme_override_fonts/font = ExtResource("numbers")
@@ -637,9 +634,9 @@ layout_mode = 0
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -250.0
-offset_top = 38.0
+offset_top = 61.0
 offset_right = 250.0
-offset_bottom = 61.0
+offset_bottom = 84.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.94, 0.92, 0.80, 1)
@@ -1669,9 +1666,9 @@ anchor_top = 0.0
 anchor_right = 0.5
 anchor_bottom = 0.0
 offset_left = -280.0
-offset_top = 59.0
+offset_top = 100.0
 offset_right = 280.0
-offset_bottom = 101.0
+offset_bottom = 142.0
 mouse_filter = 2
 visible = false
 theme_override_styles/panel = ExtResource("dispatch_hint")
