@@ -26,8 +26,13 @@ class MarchOrder extends RefCounted:
 	var strength: float
 	var curve: Curve3D
 	var length: float
+	var returning := false
+	var departure_distance := 0.0
 	var haste_intervals: Dictionary[float, PackedVector2Array] = {}
 	var slow_intervals: Dictionary[Vector2, PackedVector2Array] = {}
+
+	func sample(distance: float) -> Vector3:
+		return curve.sample_baked(length - distance if returning else distance)
 
 class MarchUnit extends RefCounted:
 	var alive := true
@@ -172,6 +177,9 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 	if count <= 0:
 		return
 	var order := _make_order(source_id, target_id, faction, route)
+	# Retain the complete surface guide even when only its final metres are walked.
+	# A recalled tunnel squad can then retrace the safe bridges all the way home.
+	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
 	departure_queue_changed.emit(source_id, faction, count)
 	for index: int in count:
 		var unit := MarchUnit.new()
@@ -179,7 +187,7 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 		unit.pending_departure = true
 		unit.departure_sequence = _departure_sequence
 		_departure_sequence += 1
-		unit.distance = 0.0
+		unit.distance = order.departure_distance
 		unit.lane = (float(index % COLUMNS) - 2.5) * COLUMN_SPACING
 		unit.gait = float(index % COLUMNS) * 0.08
 		unit.spawn_delay = dig_duration + floorf(float(index) / COLUMNS) * interval
@@ -190,10 +198,11 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 
 func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float) -> void:
 	var order := _make_order(source_id, target_id, faction, route)
+	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
 	for index: int in count:
 		var unit := MarchUnit.new()
 		unit.order = order
-		unit.distance = 0.0
+		unit.distance = order.departure_distance
 		unit.lane = (float(index % COLUMNS) - 2.5) * COLUMN_SPACING
 		unit.gait = float(index % COLUMNS) * 0.08
 		unit.spawn_delay = floorf(float(index) / COLUMNS) * interval
@@ -202,13 +211,37 @@ func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route
 	_ensure_capacity(_units.size())
 	_render()
 
-func redirect(unit: MarchUnit, target_id: int, route: PackedVector3Array) -> void:
+func return_order(outbound: MarchOrder) -> MarchOrder:
+	assert(not outbound.returning)
+	var order := MarchOrder.new()
+	order.source_id = outbound.source_id
+	order.target_id = outbound.source_id
+	order.faction = outbound.faction
+	order.strength = outbound.strength
+	order.curve = outbound.curve
+	order.length = outbound.length
+	order.departure_distance = outbound.departure_distance
+	order.returning = true
+	return order
+
+func redirect(unit: MarchUnit, order: MarchOrder) -> void:
 	assert(unit.is_exposed())
-	# Keep the same soldier object: in-flight cannonballs retain their real target.
-	unit.order = _make_order(unit.order.source_id, target_id, unit.order.faction, route, unit.order.strength)
-	unit.distance = 0.0
-	unit.lane = 0.0
+	assert(order.returning and order.curve == unit.order.curve)
+	# Mirror travel, not the squad's world positions. Rank spacing, files and the
+	# actual soldier objects (including projectile locks/statuses) stay intact.
+	unit.distance = order.length - unit.distance
+	unit.lane = -unit.lane
+	unit.order = order
 	_update_pose(unit)
+
+func return_preview(unit: MarchUnit, order: MarchOrder) -> PackedVector3Array:
+	var route := PackedVector3Array([unit.position])
+	var start := order.length - unit.distance
+	var samples := maxi(1, ceili(unit.distance / 1.0))
+	for index: int in range(1, samples + 1):
+		var distance := lerpf(start, order.length, float(index) / samples)
+		route.append(_formation_position(order, distance, -unit.lane, _route_heading(order, distance)))
+	return route
 
 func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	if delta <= 0.0:
@@ -603,7 +636,7 @@ func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> Packed
 	var intervals := PackedVector2Array()
 	var center := Vector2(zone.at.x, zone.at.z)
 	var count := ceili(order.length / 0.24)
-	var from := order.curve.sample_baked(0.0)
+	var from := order.sample(0.0)
 	for index: int in count:
 		var low := order.length * float(index) / count
 		var high := order.length * float(index + 1) / count
@@ -677,20 +710,23 @@ func _update_pose(unit: MarchUnit) -> void:
 		unit.position.y += (1.65 + sin(age * 3.0) * 0.035) * lift
 
 func _route_heading(order: MarchOrder, distance: float) -> Vector3:
-	var before := order.curve.sample_baked(maxf(0.0, distance - 0.3))
-	var after := order.curve.sample_baked(minf(order.length, distance + 0.3))
+	var before := order.sample(maxf(0.0, distance - 0.3))
+	var after := order.sample(minf(order.length, distance + 0.3))
 	var heading := after - before
 	heading.y = 0.0
 	return heading.normalized()
 
 func _formation_position(order: MarchOrder, distance: float, lane: float, heading: Vector3) -> Vector3:
-	var center := order.curve.sample_baked(distance)
+	var center := order.sample(distance)
 	var sideways := Vector3(-heading.z, 0.0, heading.x)
-	var gate_width := smoothstep(0.0, GATE_LENGTH, minf(distance, order.length - distance))
+	var forward_distance := order.length - distance if order.returning else distance
+	var gate_distance := minf(forward_distance, order.length - forward_distance)
+	gate_distance = minf(gate_distance, absf(forward_distance - order.departure_distance))
+	var gate_width := smoothstep(0.0, GATE_LENGTH, gate_distance)
 	# Measure the upcoming bend over a fixed distance, independent of the number
 	# of sampled guide points. Broad curves stay wide; tight turns gather the files.
-	var approach := center - order.curve.sample_baked(maxf(0.0, distance - 1.2))
-	var departure := order.curve.sample_baked(minf(order.length, distance + 1.2)) - center
+	var approach := center - order.sample(maxf(0.0, distance - 1.2))
+	var departure := order.sample(minf(order.length, distance + 1.2)) - center
 	var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
 	var corner_width := lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
 	return center + sideways * lane * gate_width * corner_width

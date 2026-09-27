@@ -326,7 +326,7 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		if plan.is_empty():
 			return 0
 		_clear_building_burrow(source)
-		marches.queue_tunnel_departure(source.building_id, target.building_id, faction, count, plan.route, SKILL_RULES.BURROW_BATCH_INTERVAL, plan.dig_duration)
+		marches.queue_tunnel_departure(source.building_id, target.building_id, faction, count, route, SKILL_RULES.BURROW_BATCH_INTERVAL, plan.dig_duration)
 		world_effects.get_node("Rabbit").start_tunnel(faction, plan.entrance, plan.exit, plan.route[1] - plan.route[0], count, plan.dig_duration)
 	else:
 		marches.queue_departure(source.building_id, target.building_id, faction, count, route)

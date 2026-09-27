@@ -133,7 +133,7 @@ func _frog_turn(game: Node3D) -> void:
 			var value := 0.0
 			for entry: Dictionary in visible:
 				var unit: WarMarches.MarchUnit = entry.unit
-				var p: Vector3 = unit.order.curve.sample_baked(unit.order.length) if index == 0 else unit.position
+				var p: Vector3 = unit.order.sample(unit.order.length) if index == 0 else unit.position
 				if Vector2(p.x - at.x, p.z - at.z).length_squared() <= pow(SKILL_RULES.FROG_RADII[index], 2):
 					value += entry[["q", "float", "cloak"][index]]
 			var threshold: float = [1.0, 6.0, 8.0][index]
@@ -211,7 +211,7 @@ func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit], radius: f
 	for unit: WarMarches.MarchUnit in visible:
 		if unit.order.faction != faction or unit.order.length - unit.distance < radius * 1.25:
 			continue
-		var at := unit.order.curve.sample_baked(unit.distance + radius * 0.6)
+		var at := unit.order.sample(unit.distance + radius * 0.6)
 		var cell := Vector2i(floori(at.x / FIRE_CELL), floori(at.z / FIRE_CELL))
 		if not cells.has(cell):
 			cells[cell] = {"count": 0, "sum": Vector3.ZERO}
@@ -228,7 +228,7 @@ func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit], radius: f
 		for unit: WarMarches.MarchUnit in visible:
 			if unit.order.faction != faction or unit.order.length - unit.distance < radius * 1.25:
 				continue
-			var ahead := unit.order.curve.sample_baked(unit.distance + radius * 0.6)
+			var ahead := unit.order.sample(unit.distance + radius * 0.6)
 			if ahead.distance_to(at) <= radius - 0.7:
 				count += 1
 		if count >= minimum and (best.is_empty() or float(count) > best.score):
@@ -259,10 +259,10 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	# than resampling the same route for hundreds of neighboring soldiers.
 	for order: WarMarches.MarchOrder in friendly_routes:
 		var span := friendly_routes[order]
-		var previous := order.curve.sample_baked(span.x)
+		var previous := order.sample(span.x)
 		var samples := maxi(1, ceili((span.y - span.x) / 1.5))
 		for sample: int in samples:
-			var point := order.curve.sample_baked(lerpf(span.x, span.y, float(sample + 1) / samples))
+			var point := order.sample(lerpf(span.x, span.y, float(sample + 1) / samples))
 			friendly_paths.append({"from": previous, "to": point, "padding": span.z})
 			previous = point
 	for unit: WarMarches.MarchUnit in visible:
@@ -271,7 +271,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 		var lead: float = game.marches.movement_distance(unit, WarFireWave.EXPANSION_TIME * 0.5)
 		if unit.distance + lead >= unit.order.length:
 			continue
-		var at := unit.order.curve.sample_baked(unit.distance + lead)
+		var at := unit.order.sample(unit.distance + lead)
 		var cell := Vector2i(floori(at.x / FIRE_CELL), floori(at.z / FIRE_CELL))
 		if not cells.has(cell):
 			cells[cell] = []
@@ -463,7 +463,7 @@ func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarch
 	for unit: WarMarches.MarchUnit in visible:
 		if not game.FACTIONS.allied(unit.order.faction, faction):
 			continue
-		var future := unit.order.curve.sample_baked(minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, 4.0)))
+		var future := unit.order.sample(minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, 4.0)))
 		if Geometry3D.get_closest_point_to_segment(building.global_position, unit.position, future).distance_to(building.global_position) <= game.tower_range(building):
 			exposed += 1
 	return minf(exposed, building.level * ceili(6.0 / game.tower_interval(building))) * 2.0 + (8.0 if exposed >= 12 else 0.0)

@@ -5,6 +5,7 @@ const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 
 static func recall_plan(game: Node3D, center: Vector3) -> Array[Dictionary]:
 	var plans: Array[Dictionary] = []
+	var orders: Dictionary[WarMarches.MarchOrder, WarMarches.MarchOrder] = {}
 	if not center.is_finite():
 		return plans
 	for unit: WarMarches.MarchUnit in game.marches._units:
@@ -14,14 +15,11 @@ static func recall_plan(game: Node3D, center: Vector3) -> Array[Dictionary]:
 		if offset.length_squared() > RULES.RECALL_RADIUS * RULES.RECALL_RADIUS:
 			continue
 		var source: WarBuilding = game.by_id[unit.order.source_id]
-		var destination: WarBuilding = game.by_id[unit.order.target_id]
-		var route: PackedVector3Array = game.map.get_return_route(unit.position, source, destination)
-		if route.size() < 2:
-			continue
-		var length := 0.0
-		for index: int in range(1, route.size()):
-			length += route[index - 1].distance_to(route[index])
-		plans.append({"unit": unit, "route": route, "target": source, "length": length})
+		if not orders.has(unit.order):
+			orders[unit.order] = game.marches.return_order(unit.order)
+		var order := orders[unit.order]
+		var route: PackedVector3Array = game.marches.return_preview(unit, order)
+		plans.append({"unit": unit, "order": order, "route": route, "target": source, "length": unit.distance})
 	return plans
 
 static func burrow_plan(game: Node3D, source: WarBuilding, target: WarBuilding, amount_percent: int = 100) -> Dictionary:
@@ -51,8 +49,8 @@ static func burrow_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 static func recall(game: Node3D, center: Vector3, faction: int) -> int:
 	var plans := recall_plan(game, center)
 	for plan: Dictionary in plans:
-		game.world_effects.get_node("Rabbit").return_dust(plan.unit.position, plan.route[1] - plan.route[0])
-		game.marches.redirect(plan.unit, plan.target.building_id, plan.route)
+		game.world_effects.get_node("Rabbit").return_dust(plan.unit.position, -plan.unit.heading)
+		game.marches.redirect(plan.unit, plan.order)
 	if not plans.is_empty():
 		game.world_effects.get_node("Rabbit").start_recall(faction, center, RULES.RECALL_RADIUS)
 	return plans.size()
