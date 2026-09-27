@@ -2,6 +2,7 @@ extends RefCounted
 ## Deliberate, paid skill decisions from the same visible battlefield as the player.
 
 const DECISION_GAP := 6.0
+const RABBIT_DECISION_GAP := 3.0
 const FIRE_CELL := 4.0
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var faction: int
@@ -15,7 +16,9 @@ func take_turn(game: Node3D) -> void:
 	if game.finished or game._local_menu or game.elapsed < next_decision:
 		return
 	# Never chain four casts in one frame, including repeated calls at the same time.
-	next_decision = game.elapsed + DECISION_GAP
+	# Short marches can finish between six-second decisions. Rabbit's instant
+	# squad selection needs a chance to act after the preceding turn's dispatch.
+	next_decision = game.elapsed + (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP)
 	if game.faction_skills[faction].commander == SKILL_RULES.BEAR:
 		_bear_turn(game)
 		return
@@ -335,7 +338,7 @@ func _rabbit_turn(game: Node3D) -> void:
 
 func _rush_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Dictionary:
 	# Aim at the present squad, not a future ground field. Small opening waves
-	# are valuable when they can strike a neutral garrison during the six seconds.
+	# are valuable when they can strike a neutral garrison during the rush.
 	var cells: Dictionary[Vector2i, Dictionary] = {}
 	var cell_size := SKILL_RULES.RABBIT_RUSH_RADIUS
 	for unit: WarMarches.MarchUnit in visible:

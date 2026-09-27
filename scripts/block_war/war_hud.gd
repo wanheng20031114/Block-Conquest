@@ -112,7 +112,7 @@ func update_state(state: Dictionary) -> void:
 	if armed >= 0:
 		var target_text := "拖至地面 · 松手即点燃 · 敌我均伤" if armed == 3 else ("拖至地面 · 圈内自己的部队加速" if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
 		if commander == SKILL_RULES.RABBIT:
-			target_text = ["圈选自己的行军 · 6 秒移速 +100%、攻击 +50%", "拖至敌方建筑 · 停工 6 秒", "拖至地面 · 双方部队各自返回出发建筑", "拖至自己的建筑 · 15 秒内下次出兵走兔洞"][armed]
+			target_text = ["圈选自己的行军 · %d 秒移速 +%d%%、攻击 +%d%%" % [SKILL_RULES.RABBIT_DURATIONS[0], roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0)], "拖至敌方建筑 · 停工 6 秒", "拖至地面 · 双方部队各自返回出发建筑", "拖至自己的建筑 · 15 秒内下次出兵走兔洞"][armed]
 		elif commander == SKILL_RULES.BEAR:
 			target_text = ["拖至己方施工建筑 · 立即完工并返还 50% 人口", "拖至地面 · 圈内敌军减速 60%", "拖至己方建筑 · 预览连线后松手", "拖至己方建筑 · 无敌 5 秒并召唤法术球"][armed]
 		%TargetHint.text = "%s  ·  %s  /  右键取消" % [skill_names[armed], target_text]

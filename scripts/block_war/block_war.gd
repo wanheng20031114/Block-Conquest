@@ -688,7 +688,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 				return false
 			world_effects.get_node("Rabbit").start_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS)
 			if faction == PLAYER:
-				hud.notify("迅猛冲刺 · %d 人移速 +100%%、攻击 +50%%，持续 6 秒" % rushing)
+				hud.notify("迅猛冲刺 · %d 人移速 +%d%%、攻击 +%d%%，持续 %d 秒" % [rushing, roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]])
 		else:
 			var recalled := RABBIT_SKILLS.recall(self, center, faction)
 			if recalled == 0:

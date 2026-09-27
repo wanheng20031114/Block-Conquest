@@ -46,7 +46,7 @@ func _draw() -> void:
 			elif rabbit and game.armed_skill == 0:
 				for unit: WarMarches.MarchUnit in game.rush_preview:
 					_ring(unit.position, 0.32, color, 1.3)
-				_draw_skill_number(game.rush_preview.size(), camera.unproject_position(center + Vector3(2.4, 1, 0)))
+				_draw_skill_number(game.rush_preview.size(), camera.unproject_position(center + Vector3(game.skill_radius(game.armed_skill), 1, 0)))
 	elif game.armed_skill >= 0:
 		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)

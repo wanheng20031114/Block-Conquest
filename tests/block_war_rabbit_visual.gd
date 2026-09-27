@@ -86,7 +86,7 @@ func _run() -> void:
 	assert(rushed.size() > 0 and rushed.size() < 66)
 	await capture("dash_before")
 	assert(game.cast_ground_skill(0, center))
-	await clip("dash", 162, true)
+	await clip("dash", ceili((game.SKILL_RULES.RABBIT_DURATIONS[0] + 0.75) * FPS), true)
 	await reset_game()
 	game.hud.hide()
 	var target: WarBuilding
