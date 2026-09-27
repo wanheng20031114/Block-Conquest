@@ -19,6 +19,9 @@ func take_turn(game: Node3D) -> void:
 	# Short marches can finish between six-second decisions. Rabbit's instant
 	# squad selection needs a chance to act after the preceding turn's dispatch.
 	next_decision = game.elapsed + (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP)
+	if game.faction_skills[faction].commander == SKILL_RULES.FROG:
+		_frog_turn(game)
+		return
 	if game.faction_skills[faction].commander == SKILL_RULES.BEAR:
 		_bear_turn(game)
 		return
@@ -74,6 +77,73 @@ func take_turn(game: Node3D) -> void:
 		game.cast_ground_skill(best.index, best.at, faction)
 	elif best.index >= 0:
 		game.cast_skill(best.index, best.target, faction)
+
+func _frog_turn(game: Node3D) -> void:
+	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
+	var cells: Dictionary[Vector2i, Dictionary] = {}
+	var visible: Array[Dictionary] = []
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if not unit.is_exposed():
+			continue
+		var destination: WarBuilding = game.by_id[unit.order.target_id]
+		var hostile: bool = game.FACTIONS.hostile(unit.order.faction, faction)
+		var incoming: bool = game.FACTIONS.allied(destination.faction, faction) and hostile
+		var close: bool = game.marches.movement_distance(unit, 3.0) > unit.order.length - unit.distance
+		var q_value := SKILL_RULES.FROG_WEAKNESS if incoming and close else 0.0
+		var floating := 1.3 if incoming and close else 0.0
+		if not hostile and game.FACTIONS.hostile(unit.order.faction, destination.faction) and close:
+			floating -= 1.5
+		for tower: WarBuilding in game.buildings:
+			if tower.kind != 1 or tower.faction < 0 or tower.disruption_remaining > 0.0 or not game.FACTIONS.hostile(tower.faction, unit.order.faction):
+				continue
+			if tower.global_position.distance_to(unit.position) < game.tower_range(tower):
+				floating += (-1.8 if hostile else 1.8) * tower.level
+		var cloak := 0.0
+		if unit.order.faction == faction and unit.cloak_remaining <= 0.0 and game.FACTIONS.hostile(faction, game.PLAYER) and game.FACTIONS.allied(destination.faction, game.PLAYER):
+			cloak = 1.0
+		visible.append({"unit": unit, "q": q_value, "float": floating if unit.levitation_remaining <= 0.0 else 0.0, "cloak": cloak})
+		var at := unit.position
+		at.y = 0.0
+		var cell := Vector2i(floori(at.x / 4.0), floori(at.z / 4.0))
+		if not cells.has(cell):
+			cells[cell] = {"at": Vector3.ZERO, "count": 0}
+		cells[cell].at += at
+		cells[cell].count += 1
+	var candidates: Array[Vector3] = []
+	var keys := cells.keys()
+	keys.sort_custom(func(a: Vector2i, b: Vector2i): return cells[a].count > cells[b].count)
+	for key: Vector2i in keys.slice(0, 24):
+		candidates.append(cells[key].at / float(cells[key].count))
+	for building: WarBuilding in game.buildings:
+		if game.FACTIONS.allied(building.faction, faction):
+			candidates.append(building.global_position)
+		elif game.can_cast_skill(3, faction) and game._valid_skill_target(3, building, faction):
+			var loss: int = game.FROG_SKILLS.strike_loss(building)
+			var score := float(loss) + float(building.level - 1) * 14.0
+			if building.faction < 0:
+				score *= 0.45
+			if score >= 28.0 and score > best.score:
+				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
+	for at: Vector3 in candidates:
+		if not game._valid_ground_skill_target(at):
+			continue
+		for index: int in 3:
+			if not game.can_cast_skill(index, faction):
+				continue
+			var value := 0.0
+			for entry: Dictionary in visible:
+				var unit: WarMarches.MarchUnit = entry.unit
+				var p: Vector3 = unit.order.curve.sample_baked(unit.order.length) if index == 0 else unit.position
+				if Vector2(p.x - at.x, p.z - at.z).length_squared() <= pow(SKILL_RULES.FROG_RADII[index], 2):
+					value += entry[["q", "float", "cloak"][index]]
+			var threshold: float = [1.0, 6.0, 8.0][index]
+			var score: float = 12.0 + minf(30.0, value * [5.0, 1.2, 0.5][index])
+			if value >= threshold and score > best.score:
+				best = {"index": index, "score": score, "target": null, "at": at}
+	if best.index == 3:
+		game.cast_skill(3, best.target, faction)
+	elif best.index >= 0:
+		game.cast_ground_skill(best.index, best.at, faction)
 
 func _bear_turn(game: Node3D) -> void:
 	var threats: Dictionary[int, float] = {}

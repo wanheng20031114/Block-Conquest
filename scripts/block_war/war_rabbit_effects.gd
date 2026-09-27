@@ -76,7 +76,7 @@ func update_rush(delta: float, marches: WarMarches) -> void:
 	emission = fmod(emission, RUSH_EMISSION_INTERVAL)
 	var runners: Array[WarMarches.MarchUnit] = []
 	for unit: WarMarches.MarchUnit in marches._units:
-		if unit.is_exposed() and unit.rush_remaining > 0.0:
+		if unit.is_exposed() and unit.cloak_remaining <= 0.0 and unit.levitation_remaining <= 0.0 and unit.rush_remaining > 0.0:
 			runners.append(unit)
 	if runners.is_empty():
 		return

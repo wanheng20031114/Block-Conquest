@@ -43,14 +43,18 @@ class MarchUnit extends RefCounted:
 	var pending_departure := false
 	var departure_sequence := 0
 	var rush_remaining := 0.0
+	var levitation_remaining := 0.0
+	var cloak_remaining := 0.0
 
 	func is_exposed() -> bool:
 		return alive and not pending_departure and distance >= 0.0 and spawn_delay <= 0.0
 
 @onready var _multimesh: MultiMesh = $Militia.multimesh
+@onready var _cloaked_mesh: MultiMesh = $CloakedMilitia.multimesh
 var _units: Array[MarchUnit] = []
 var haste_zones: Dictionary[int, Dictionary] = {}
 var slow_zones: Dictionary[int, Dictionary] = {}
+var weak_zones: Dictionary[int, Dictionary] = {}
 var blocked_destinations: Dictionary[int, int] = {}
 var _departure_sequence := 0
 var morale_speed := PackedFloat64Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
@@ -61,6 +65,8 @@ func base_speed(faction: int) -> float:
 func _ready() -> void:
 	_multimesh.instance_count = 4096
 	_multimesh.visible_instance_count = 0
+	_cloaked_mesh.instance_count = 4096
+	_cloaked_mesh.visible_instance_count = 0
 
 func _make_order(source_id: int, target_id: int, faction: int, route: PackedVector3Array, strength: float = 1.0) -> MarchOrder:
 	assert(route.size() >= 2, "A march needs a source and destination in its route.")
@@ -219,10 +225,13 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 			step = minf(step, maxf(0.0, unit.order.length - 0.12 - unit.distance))
 		# Sample the buff at contact, including an arrival before its expiry within
 		# one long frame. Population strength remains independent of combat bonuses.
-		var arrival_bonus := 0.0
-		if unit.rush_remaining > 0.0 and unit.distance + step >= unit.order.length:
-			if unit.rush_remaining > delta or unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001:
-				arrival_bonus = RULES.RABBIT_RUSH_ATTACK_BONUS
+		var arrival_bonus := projected_attack_bonus(unit) if unit.distance + step >= unit.order.length else 0.0
+		unit.levitation_remaining = maxf(0.0, unit.levitation_remaining - delta)
+		unit.cloak_remaining = maxf(0.0, unit.cloak_remaining - delta)
+		if unit.levitation_remaining < 0.000001:
+			unit.levitation_remaining = 0.0
+		if unit.cloak_remaining < 0.000001:
+			unit.cloak_remaining = 0.0
 		unit.rush_remaining = maxf(0.0, unit.rush_remaining - delta)
 		if unit.rush_remaining < 0.000001:
 			unit.rush_remaining = 0.0
@@ -268,6 +277,10 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		slow_zones[faction].remaining -= delta
 		if slow_zones[faction].remaining <= 0.000001:
 			slow_zones.erase(faction)
+	for faction: int in weak_zones.keys():
+		weak_zones[faction].remaining -= delta
+		if weak_zones[faction].remaining <= 0.000001:
+			weak_zones.erase(faction)
 	_render()
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
 	for arrival: Dictionary in arrivals:
@@ -330,7 +343,7 @@ func get_units() -> Array[Dictionary]:
 				"strength": unit.order.strength, "distance": unit.distance, "lane": unit.lane, "rush_remaining": unit.rush_remaining})
 	return result
 
-func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int, farthest: bool = false) -> Array[MarchUnit]:
+func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int, farthest: bool = false, grounded_only: bool = false) -> Array[MarchUnit]:
 	var targets: Array[MarchUnit] = []
 	var radius_squared := radius * radius
 	for target_index: int in count:
@@ -339,6 +352,8 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 		for index: int in _units.size():
 			var unit := _units[index]
 			if FACTIONS.allied(unit.order.faction, attacking_faction) or not unit.is_exposed() or unit.reserved:
+				continue
+			if grounded_only and unit.levitation_remaining > 0.0:
 				continue
 			var distance_squared := unit.position.distance_squared_to(center)
 			if distance_squared <= radius_squared and ((farthest and distance_squared > nearest_distance) or (not farthest and distance_squared <= nearest_distance)):
@@ -354,8 +369,12 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 func has_marchers() -> bool:
 	return not _units.is_empty()
 
-func hit_target(unit: MarchUnit, impulse: Vector3) -> bool:
+func hit_target(unit: MarchUnit, impulse: Vector3, grounded_only: bool = false) -> bool:
 	if not unit.alive:
+		return false
+	if grounded_only and unit.levitation_remaining > 0.0:
+		unit.reserved = false
+		unit.intercepted_by = -1
 		return false
 	_defeat(_units.find(unit), impulse, false, unit.intercepted_by)
 	_render()
@@ -436,11 +455,49 @@ func create_slow_zone(faction: int, at: Vector3, radius: float, duration: float)
 	_render()
 
 func projected_attack_bonus(unit: MarchUnit) -> float:
-	if unit.rush_remaining <= 0.0:
-		return 0.0
-	return RULES.RABBIT_RUSH_ATTACK_BONUS if unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001 else 0.0
+	var bonus := 0.0
+	if unit.rush_remaining > 0.0 and unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001:
+		bonus = RULES.RABBIT_RUSH_ATTACK_BONUS
+	if weak_zones.is_empty():
+		return bonus
+	var contact := _formation_position(unit.order, unit.order.length, unit.lane, _route_heading(unit.order, unit.order.length))
+	for faction: int in weak_zones:
+		var zone := weak_zones[faction]
+		if FACTIONS.hostile(faction, unit.order.faction) and Vector2(contact.x - zone.at.x, contact.z - zone.at.z).length_squared() <= zone.radius * zone.radius:
+			if unit.distance + movement_distance(unit, zone.remaining) > unit.order.length + 0.000001:
+				bonus -= RULES.FROG_WEAKNESS
+				break
+	return bonus
+
+func frog_targets(index: int, faction: int, at: Vector3) -> Array[MarchUnit]:
+	var targets: Array[MarchUnit] = []
+	for unit: MarchUnit in _units:
+		if not unit.is_exposed() or Vector2(unit.position.x - at.x, unit.position.z - at.z).length_squared() > pow(RULES.FROG_RADII[index], 2):
+			continue
+		if index == 0 and FACTIONS.hostile(faction, unit.order.faction):
+			targets.append(unit)
+		elif index == 1 and unit.levitation_remaining <= 0.0:
+			targets.append(unit)
+		elif index == 2 and unit.order.faction == faction and unit.cloak_remaining <= 0.0:
+			targets.append(unit)
+	return targets
+
+func apply_frog_field(index: int, faction: int, at: Vector3) -> int:
+	if index == 0:
+		weak_zones[faction] = {"at": at, "radius": RULES.FROG_RADII[0], "remaining": RULES.FROG_DURATIONS[0]}
+		return 1
+	var targets := frog_targets(index, faction, at)
+	for unit: MarchUnit in targets:
+		if index == 1:
+			unit.levitation_remaining = RULES.FROG_DURATIONS[1]
+		else:
+			unit.cloak_remaining = RULES.FROG_DURATIONS[2]
+	_render()
+	return targets.size()
 
 func speed_multiplier(unit: MarchUnit) -> float:
+	if unit.levitation_remaining > 0.0:
+		return 0.0
 	if not unit.is_exposed():
 		return morale_speed[unit.order.faction]
 	var multiplier := RULES.RABBIT_RUSH_MULTIPLIER if unit.rush_remaining > 0.0 else 1.0
@@ -456,7 +513,8 @@ func speed_multiplier(unit: MarchUnit) -> float:
 	return morale_speed[unit.order.faction] * multiplier
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
-	var concealed_time := minf(delta, unit.spawn_delay)
+	# Timed boosts and fields continue aging while a soldier is held in the air.
+	var concealed_time := minf(delta, maxf(unit.spawn_delay, unit.levitation_remaining))
 	delta -= concealed_time
 	var rushing := minf(delta, maxf(0.0, unit.rush_remaining - concealed_time))
 	var zone_time := 0.0
@@ -578,8 +636,10 @@ func clear() -> void:
 	_departure_sequence = 0
 	haste_zones.clear()
 	slow_zones.clear()
+	weak_zones.clear()
 	blocked_destinations.clear()
 	_multimesh.visible_instance_count = 0
+	_cloaked_mesh.visible_instance_count = 0
 
 func snapshot_incoming() -> Dictionary[Vector2i, int]:
 	var incoming: Dictionary[Vector2i, int] = {}
@@ -604,12 +664,17 @@ func _ensure_capacity(required: int) -> void:
 	while capacity < required:
 		capacity *= 2
 	_multimesh.instance_count = capacity
+	_cloaked_mesh.instance_count = capacity
 
 func _update_pose(unit: MarchUnit) -> void:
 	var order := unit.order
 	var distance := unit.distance
 	unit.heading = _route_heading(order, distance)
 	unit.position = _formation_position(order, distance, unit.lane, unit.heading)
+	if unit.levitation_remaining > 0.0:
+		var age := RULES.FROG_DURATIONS[1] - unit.levitation_remaining
+		var lift := smoothstep(0.0, 0.12, age) * smoothstep(0.0, 0.16, unit.levitation_remaining)
+		unit.position.y += (1.65 + sin(age * 3.0) * 0.035) * lift
 
 func _route_heading(order: MarchOrder, distance: float) -> Vector3:
 	var before := order.curve.sample_baked(maxf(0.0, distance - 0.3))
@@ -632,14 +697,21 @@ func _formation_position(order: MarchOrder, distance: float, lane: float, headin
 
 func _render() -> void:
 	var slot := 0
+	var cloaked_slot := 0
 	for unit: MarchUnit in _units:
 		if not unit.is_exposed():
 			continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)
-		_multimesh.set_instance_transform(slot, Transform3D(basis, unit.position + Vector3(0, 0.035, 0)))
+		var mesh := _cloaked_mesh if unit.cloak_remaining > 0.0 else _multimesh
+		var index := cloaked_slot if unit.cloak_remaining > 0.0 else slot
+		mesh.set_instance_transform(index, Transform3D(basis, unit.position + Vector3(0, 0.035, 0)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		color.a = -(unit.gait + 1.0) if unit.rush_remaining > 0.0 else unit.gait
-		_multimesh.set_instance_custom_data(slot, color)
-		slot += 1
+		mesh.set_instance_custom_data(index, color)
+		if unit.cloak_remaining > 0.0:
+			cloaked_slot += 1
+		else:
+			slot += 1
 	_multimesh.visible_instance_count = slot
+	_cloaked_mesh.visible_instance_count = cloaked_slot

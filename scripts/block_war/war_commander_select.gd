@@ -2,33 +2,33 @@ extends Control
 ## Six authored roster slots; only implemented commanders can enter a match.
 
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const PLAYABLE: Array[StringName] = [&"squirrel", &"rabbit", &"bear"]
+const PLAYABLE := {0: &"squirrel", 1: &"rabbit", 2: &"bear", 5: &"frog"}
 var _portrait_tween: Tween
 @onready var session: Node = get_node("/root/Session")
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = true
-	for index: int in PLAYABLE.size():
+	for index: int in PLAYABLE:
 		get_node("%%Animal%d" % index).pressed.connect(_select.bind(index))
 	%Next.pressed.connect(_next)
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
-	_select(PLAYABLE.find(session.block_war_commander), false)
+	_select(PLAYABLE.find_key(session.block_war_commander), false)
 	UIMotion.bind_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 
 func _select(index: int, animate: bool = true) -> void:
-	if index < 0 or index >= PLAYABLE.size():
+	if not PLAYABLE.has(index):
 		return
-	var commander := PLAYABLE[index]
+	var commander: StringName = PLAYABLE[index]
 	session.block_war_commander = commander
-	for i: int in PLAYABLE.size():
+	for i: int in PLAYABLE:
 		get_node("%%Animal%d" % i).set_pressed_no_signal(i == index)
 	%Portrait.texture = RULES.PORTRAITS[commander]
 	%AnimalName.text = RULES.name_for(commander)
 	%Next.text = "就选%s   →" % RULES.name_for(commander)
-	%Personality.text = ["稳稳扎营，也能一鼓作气。", "跑得轻快，打个出其不意。", "修好小屋，举盾守住大家。"][index]
-	%Role.text = ["增援 · 加速 · 守护 · 范围火攻", "冲刺 · 停工 · 召回 · 兔洞突袭", "赶工 · 牵制 · 互保 · 无敌守护"][index]
+	%Personality.text = {0: "稳稳扎营，也能一鼓作气。", 1: "跑得轻快，打个出其不意。", 2: "修好小屋，举盾守住大家。", 5: "呼一口雾，藏好下一步。"}[index]
+	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 无敌守护", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
 	var summaries := PackedStringArray([
 		"每秒增援 %d 人，持续 %d 秒。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
 		"区域内自己的部队提速 %d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
@@ -42,6 +42,8 @@ func _select(index: int, animate: bool = true) -> void:
 	])
 	if commander == RULES.BEAR:
 		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军减速 60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "建筑无敌 5 秒，法术球优先攻击远处敌兵。"])
+	elif commander == RULES.FROG:
+		summaries = PackedStringArray(["薄雾持续 3 秒，雾内敌军攻击 -20%。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己方士兵透明 6 秒，留下很淡的轮廓。", "削减当前驻军 80%，建筑降至 1 级。"])
 	for i: int in 4:
 		get_node("%%SkillIcon%d" % i).texture = RULES.icons_for(commander)[i]
 		get_node("%%SkillName%d" % i).text = RULES.names_for(commander)[i]

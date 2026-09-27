@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/rabbit.png" id="rabbit"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/bear.png" id="bear"]
 
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/frog.png" id="frog"]
+
 [sub_resource type="ShaderMaterial" id="Background"]
 shader = ExtResource("backdrop")
 
@@ -321,6 +323,20 @@ custom_minimum_size = Vector2(0,64)
 size_flags_horizontal = 3
 toggle_mode = true
 icon = ExtResource("bear")
+expand_icon = true
+texture_filter = 1
+theme_override_constants/icon_max_width = 48
+
+[node name="OpponentCommander3" type="Button" parent="Margin/Column/Content/Details/Opponents"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "青蛙"
+metadata/ui_motion_hover_scale = 1.01
+custom_minimum_size = Vector2(0,64)
+size_flags_horizontal = 3
+toggle_mode = true
+icon = ExtResource("frog")
 expand_icon = true
 texture_filter = 1
 theme_override_constants/icon_max_width = 48

@@ -21,6 +21,7 @@ const MORALE := preload("res://scripts/block_war/war_morale.gd")
 var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
+const FROG_SKILLS := preload("res://scripts/block_war/war_frog_skills.gd")
 var bear := BEAR_SKILLS.new()
 
 class SkillState extends RefCounted:
@@ -70,6 +71,7 @@ var _previous_auto_quit: bool = true
 var _closing: bool = false
 var recall_preview: Array[Dictionary] = []
 var rush_preview: Array[WarMarches.MarchUnit] = []
+var frog_preview: Array[WarMarches.MarchUnit] = []
 var _recall_preview_center := Vector3.INF
 var _rabbit_preview_time := -1.0
 
@@ -235,6 +237,7 @@ func _simulate_step(delta: float) -> void:
 				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
 	bear.advance(self, delta)
+	world_effects.get_node("Frog").sync(marches, delta)
 	_check_victory()
 	# Orders are decisions at the end of this step. New construction must not
 	# receive the production time that passed before the AI paid for it.
@@ -445,7 +448,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 func _fire_tower(building: Node3D) -> void:
 	if building.disruption_remaining > 0.0:
 		return
-	var targets: Array[WarMarches.MarchUnit] = marches.acquire_targets(building.global_position, building.faction, tower_range(building), building.level)
+	var targets: Array[WarMarches.MarchUnit] = marches.acquire_targets(building.global_position, building.faction, tower_range(building), building.level, false, true)
 	if targets.is_empty():
 		return
 	tower_clocks[building.building_id] = tower_interval(building)
@@ -465,13 +468,13 @@ func _tick_projectiles(delta: float) -> void:
 		var target: WarMarches.MarchUnit = shot.target
 		shot.age += delta
 		shot.previous = shot.position
-		if target.alive:
+		if target.alive and target.levitation_remaining <= 0.0:
 			shot.to = target.position + Vector3(0, 0.65, 0)
 		var progress := minf(1.0, shot.age / shot.duration)
 		shot.position = shot.at.lerp(shot.to, progress) + Vector3(0, sin(progress * PI) * 0.65, 0)
 		if progress >= 1.0:
 			var direction: Vector3 = (shot.to - shot.at).normalized()
-			if not marches.hit_target(target, direction):
+			if not marches.hit_target(target, direction, true):
 				world_effects.hit(shot.to, direction)
 			audio.play_world(&"war_projectile_hit", shot.to)
 			projectiles.remove_at(index)
@@ -516,6 +519,12 @@ func _update_skill_drag(screen: Vector2, refresh_preview: bool = false) -> void:
 	var over_battlefield: bool = get_viewport().get_visible_rect().has_point(screen) and not hud.is_pointer_blocked(screen)
 	hovered = pick_building(screen) if over_battlefield and not skill_is_ground(armed_skill) else null
 	var valid := ground_skill_target.is_finite() if skill_is_ground(armed_skill) else _valid_skill_target(armed_skill, hovered)
+	if faction_skills[PLAYER].commander == SKILL_RULES.FROG and skill_is_ground(armed_skill):
+		frog_preview.clear()
+		if ground_skill_target.is_finite():
+			frog_preview = marches.frog_targets(armed_skill, PLAYER, ground_skill_target)
+		if armed_skill in [1, 2]:
+			valid = not frog_preview.is_empty()
 	if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT:
 		if armed_skill == 0:
 			rush_preview = marches.rush_targets(PLAYER, ground_skill_target, SKILL_RULES.RABBIT_RUSH_RADIUS)
@@ -550,6 +559,7 @@ func _cancel_skill_drag() -> void:
 	hovered = null
 	recall_preview = []
 	rush_preview = []
+	frog_preview = []
 	_recall_preview_center = Vector3.INF
 	_rabbit_preview_time = -1.0
 
@@ -557,6 +567,8 @@ func skill_is_ground(index: int, faction: int = PLAYER) -> bool:
 	return index >= 0 and SKILL_RULES.is_ground(index, faction_skills[faction].commander)
 
 func skill_radius(index: int, faction: int = PLAYER) -> float:
+	if faction_skills[faction].commander == SKILL_RULES.FROG:
+		return SKILL_RULES.FROG_RADII[index]
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
 		return SKILL_RULES.BEAR_SLOW_RADIUS
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
@@ -598,6 +610,8 @@ func _skill_available(index: int, faction: int = PLAYER) -> bool:
 func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 	if target == null:
 		return false
+	if faction_skills[faction].commander == SKILL_RULES.FROG:
+		return FROG_SKILLS.valid_target(self, index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
 		return bear.valid_target(self, index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
@@ -621,7 +635,9 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 		return false
 	if not _valid_skill_target(index, target, faction):
 		if faction == PLAYER:
-			if faction_skills[faction].commander == SKILL_RULES.BEAR:
+			if faction_skills[faction].commander == SKILL_RULES.FROG:
+				hud.notify("选择未处于无敌保护的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
+			elif faction_skills[faction].commander == SKILL_RULES.BEAR:
 				hud.notify(["选择正在升级或转换的己方建筑", "拖至战场地面后松手", "选择附近 18 米内有己方支援建筑的据点", "选择尚未无敌的己方建筑"][index])
 			elif faction_skills[faction].commander == SKILL_RULES.RABBIT:
 				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择有行军部队的地面区域", "选择尚未获得兔洞待命的自己的建筑"][index])
@@ -629,8 +645,11 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
-	if faction_skills[faction].commander == SKILL_RULES.BEAR:
-		bear.cast(self, index, target, faction)
+	if faction_skills[faction].commander in [SKILL_RULES.BEAR, SKILL_RULES.FROG]:
+		if faction_skills[faction].commander == SKILL_RULES.FROG:
+			FROG_SKILLS.strike(self, target, faction)
+		else:
+			bear.cast(self, index, target, faction)
 		_commit_skill(index, faction)
 		target.refresh_visual()
 		update_hud()
@@ -671,6 +690,17 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 			audio.play_ui(&"war_denied")
 		return false
 	var center := Vector3(at.x, 0.0, at.z)
+	if faction_skills[faction].commander == SKILL_RULES.FROG:
+		if marches.apply_frog_field(index, faction, center) == 0:
+			if faction == PLAYER:
+				hud.notify("范围内没有可滞空的士兵" if index == 1 else "范围内没有可隐身的己方士兵")
+			return false
+		world_effects.get_node("Frog").release(index, faction, center)
+		world_effects.get_node("Frog").sync(marches, 0.0)
+		_commit_skill(index, faction)
+		audio.play_world(&"war_rabbit_seal" if index == 0 else &"war_skill_shield", center)
+		update_hud()
+		return true
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
 		marches.create_slow_zone(faction, center, SKILL_RULES.BEAR_SLOW_RADIUS, SKILL_RULES.BEAR_DURATIONS[1])
 		world_effects.get_node("Bear").stomp(faction, center)

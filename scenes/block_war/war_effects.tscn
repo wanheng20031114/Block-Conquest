@@ -14,6 +14,8 @@
 [ext_resource type="Shader" path="res://assets/models/block_war/haste_trail.gdshader" id="haste_trail"]
 [ext_resource type="Shader" path="res://assets/models/block_war/haste_ground.gdshader" id="haste_ground"]
 
+[ext_resource type="PackedScene" path="res://scenes/block_war/frog_effects.tscn" id="frog"]
+
 [sub_resource type="ShaderMaterial" id="CasualtyMaterial"]
 shader = ExtResource("casualty")
 
@@ -265,3 +267,5 @@ draw_pass_1 = SubResource("HasteMote")
 cast_shadow = 0
 
 [node name="Bear" parent="." instance=ExtResource("bear")]
+
+[node name="Frog" parent="." instance=ExtResource("frog")]

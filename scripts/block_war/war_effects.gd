@@ -186,7 +186,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 	if emit:
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.is_exposed() and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
+			if unit.is_exposed() and unit.cloak_remaining <= 0.0 and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
 				active.append(unit)
 		if not active.is_empty():
 			for index: int in mini(48, active.size()):
@@ -197,6 +197,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			_wind_offset = (_wind_offset + 48) % active.size()
 
 func set_running(value: bool) -> void:
+	$Frog.set_running(value)
 	$Bear.set_running(value)
 	$Rabbit.set_running(value)
 	for particles: GPUParticles3D in [$RecruitMotes, $ShieldMotes, $HasteTrails, $HasteMotes]:
