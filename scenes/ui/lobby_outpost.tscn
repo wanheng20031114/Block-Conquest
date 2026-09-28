@@ -42,6 +42,44 @@ radial_segments = 6
 [sub_resource type="BoxShape3D" id="PickShape"]
 size = Vector3(3.3, 3.9, 3.3)
 
+[sub_resource type="StandardMaterial3D" id="SmokeSurface"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="SphereMesh" id="SmokePuff"]
+material = SubResource("SmokeSurface")
+radius = 0.5
+height = 1.0
+radial_segments = 10
+rings = 5
+
+[sub_resource type="Gradient" id="SmokeFade"]
+offsets = PackedFloat32Array(0, 0.15, 0.65, 1)
+colors = PackedColorArray(0.92, 0.91, 0.81, 0, 0.92, 0.91, 0.81, 0.52, 0.92, 0.91, 0.81, 0.30, 0.92, 0.91, 0.81, 0)
+
+[sub_resource type="GradientTexture1D" id="SmokeColor"]
+gradient = SubResource("SmokeFade")
+
+[sub_resource type="Curve" id="SmokeGrowth"]
+max_value = 3.0
+_data = [Vector2(0, 0.65), 0.0, 2.35, 0, 0, Vector2(1, 3), 2.35, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="SmokeScale"]
+curve = SubResource("SmokeGrowth")
+
+[sub_resource type="ParticleProcessMaterial" id="SmokeProcess"]
+direction = Vector3(0.32, 1, 0.08)
+spread = 12.0
+initial_velocity_min = 0.5
+initial_velocity_max = 0.7
+gravity = Vector3(0.10, 0.04, 0)
+scale_min = 0.30
+scale_max = 0.42
+scale_curve = SubResource("SmokeScale")
+color_ramp = SubResource("SmokeColor")
+
 [node name="Outpost" type="Node3D"]
 script = ExtResource("script")
 
@@ -82,6 +120,17 @@ material_override = SubResource("PoleMaterial")
 position = Vector3(1.52, 3.04, 0.4)
 mesh = SubResource("FlagMesh")
 material_override = SubResource("FlagMaterial")
+
+[node name="Smoke" type="GPUParticles3D" parent="Lift/Model"]
+position = Vector3(0.87, 3.27, -0.68)
+amount = 7
+lifetime = 2.8
+preprocess = 2.8
+visibility_aabb = AABB(-1, 0, -1, 3, 3, 2)
+local_coords = true
+process_material = SubResource("SmokeProcess")
+draw_pass_1 = SubResource("SmokePuff")
+cast_shadow = 0
 
 [node name="Pick" type="Area3D" parent="."]
 collision_layer = 1

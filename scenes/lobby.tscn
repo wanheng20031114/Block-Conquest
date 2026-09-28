@@ -33,6 +33,15 @@ grow_vertical = 2
 mouse_filter = 2
 material = SubResource("Background")
 
+[node name="Diorama" parent="." instance=ExtResource("diorama")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -40,28 +49,33 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 120
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_top = 76
-theme_override_constants/margin_bottom = 46
+mouse_filter = 2
+theme_override_constants/margin_left = 88
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_top = 64
+theme_override_constants/margin_bottom = 30
 
 [node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 28
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
+mouse_filter = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 45
 
 [node name="Welcome" type="VBoxContainer" parent="Margin/Column/Body"]
 layout_mode = 2
-custom_minimum_size = Vector2(495, 0)
+custom_minimum_size = Vector2(450, 0)
 size_flags_vertical = 4
-theme_override_constants/separation = 34
+theme_override_constants/separation = 40
+mouse_filter = 2
 
 [node name="Brand" type="VBoxContainer" parent="Margin/Column/Body/Welcome"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Margin/Column/Body/Welcome/Brand"]
@@ -69,29 +83,30 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "积木战争"
 theme_type_variation = &"MenuTitle"
-theme_override_font_sizes/font_size = 94
+theme_override_font_sizes/font_size = 106
 
 [node name="Menu" type="VBoxContainer" parent="Margin/Column/Body/Welcome"]
 layout_mode = 2
+mouse_filter = 2
 size_flags_horizontal = 0
-custom_minimum_size = Vector2(380, 0)
-theme_override_constants/separation = 14
+custom_minimum_size = Vector2(400, 0)
+theme_override_constants/separation = 18
 
 [node name="BlockWarMode" type="Button" parent="Margin/Column/Body/Welcome/Menu"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(380, 76)
+custom_minimum_size = Vector2(400, 84)
 mouse_default_cursor_shape = 2
 text = "开始战争    →"
 theme_type_variation = &"MenuPrimary"
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 30
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.018
 
 [node name="Settings" type="Button" parent="Margin/Column/Body/Welcome/Menu"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(380, 60)
+custom_minimum_size = Vector2(400, 66)
 mouse_default_cursor_shape = 2
 text = "设置"
 metadata/ui_motion_hover_scale = 1.018
@@ -99,7 +114,7 @@ metadata/ui_motion_hover_scale = 1.018
 [node name="Quit" type="Button" parent="Margin/Column/Body/Welcome/Menu"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(380, 60)
+custom_minimum_size = Vector2(400, 66)
 mouse_default_cursor_shape = 2
 text = "退出游戏"
 theme_type_variation = &"MenuBack"
@@ -114,12 +129,9 @@ text = ""
 theme_type_variation = &"MenuMuted"
 autowrap_mode = 2
 
-[node name="Diorama" parent="Margin/Column/Body" instance=ExtResource("diorama")]
-unique_name_in_owner = true
-layout_mode = 2
-
 [node name="Footer" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 2
 

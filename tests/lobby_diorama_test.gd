@@ -58,7 +58,8 @@ func _run() -> void:
 	var session: Node = root.get_node("Session")
 	var preferences: Dictionary = session.settings.snapshot()
 	var drift: AnimationPlayer = toy.get_node("World/Stage/Island/Drift")
-	var raft: Node3D = toy.get_node("World/Stage/Island/Raft")
+	var ferry: PathFollow3D = toy.ferry
+	var rotor: Node3D = toy.get_node("World/Stage/Island/Windmill/Rotor")
 	var title: Control = lobby.get_node("%Title")
 	var title_position := title.global_position
 	var version: Label = lobby.get_node("%Version")
@@ -70,7 +71,8 @@ func _run() -> void:
 	home.hover_changed.connect(func(_building, _hover): hover_changes += 1)
 	check(toy.viewport.own_world_3d, "miniature has its own world")
 	check(drift.is_playing(), "background drift plays on entry")
-	var raft_before := raft.position
+	var ferry_before := ferry.position
+	var rotor_before := rotor.rotation.z
 	move(building_point(home))
 	await settle(0.5)
 	check(home.hovered and not east.hovered, "native mouse finds the first building")
@@ -79,7 +81,8 @@ func _run() -> void:
 	check(shape.global_transform.is_equal_approx(pick_rest), "hover never displaces its pick shape")
 	check(hover_changes == 1, "stationary pointer does not flicker")
 	check(not toy.pointer_target.is_zero_approx(), "native container motion drives parallax")
-	check(not raft.position.is_equal_approx(raft_before), "background raft keeps moving")
+	check(ferry.position.distance_to(ferry_before) > 0.3, "ferry makes visible progress through the river in half a second")
+	check(absf(rotor.rotation.z - rotor_before) > 0.2, "windmill turns visibly without user input")
 	click(building_point(home))
 	await settle(0.1)
 	check(taps == 1 and home.reaction > 0.0, "one native click reacts once")
@@ -109,11 +112,12 @@ func _run() -> void:
 	check(session.settings.is_open() and not toy.interactive, "settings disables miniature input")
 	check(not toy.viewport.physics_object_picking and toy.viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED, "settings stops picking and rendering")
 	var frozen_clock := toy.clock
-	var frozen_raft := raft.position
+	var frozen_ferry := ferry.position
+	var frozen_rotor := rotor.rotation
 	click(building_point(home))
 	await settle()
 	check(taps == 1 and not home.hovered, "settings shields the building from background clicks")
-	check(is_equal_approx(toy.clock, frozen_clock) and raft.position.is_equal_approx(frozen_raft), "settings pauses shaders and authored animation")
+	check(is_equal_approx(toy.clock, frozen_clock) and ferry.position.is_equal_approx(frozen_ferry) and rotor.rotation.is_equal_approx(frozen_rotor), "settings pauses shaders, ferry and windmill")
 	click(session.settings.menu.get_node("%Close").get_global_rect().get_center())
 	await settle()
 	check(not session.settings.is_open() and toy.interactive and toy.clock > frozen_clock, "closing settings resumes the miniature")
@@ -127,7 +131,9 @@ func _run() -> void:
 		root.size = resolution
 		await settle()
 		check(lobby.get_global_rect().encloses(toy.get_global_rect()), "miniature fits at %s" % resolution)
-		check(not lobby.get_node("%BlockWarMode").get_global_rect().intersects(toy.get_global_rect()), "miniature stays clear of buttons at %s" % resolution)
+		var controls: Rect2 = lobby.get_node("Margin/Column/Body/Welcome").get_global_rect()
+		for building: LobbyOutpost in toy.outposts:
+			check(not controls.has_point(building_point(building)), "buildings stay clear of menu text and buttons at %s" % resolution)
 		move(building_point(east))
 		await settle()
 		check(east.hovered, "native picking follows viewport resizing at %s" % resolution)

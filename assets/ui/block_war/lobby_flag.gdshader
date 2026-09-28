@@ -7,9 +7,9 @@ instance uniform float response = 0.0;
 
 void vertex() {
 	float edge = clamp(VERTEX.x / 1.35, 0.0, 1.0);
-	float amplitude = 0.07 + response * 0.10;
-	VERTEX.z += sin(visual_time * 1.9 - VERTEX.x * 4.1) * amplitude * edge;
-	VERTEX.y += sin(visual_time * 1.1 + VERTEX.x * 2.7) * 0.025 * edge;
+	float amplitude = 0.13 + response * 0.10;
+	VERTEX.z += sin(visual_time * 2.8 - VERTEX.x * 4.1) * amplitude * edge;
+	VERTEX.y += sin(visual_time * 1.6 + VERTEX.x * 2.7) * 0.045 * edge;
 }
 
 void fragment() {

@@ -1,0 +1,120 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Stone"]
+albedo_color = Color(0.81, 0.77, 0.60, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Timber"]
+albedo_color = Color(0.41, 0.29, 0.18, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Sail"]
+albedo_color = Color(0.97, 0.91, 0.73, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Roof"]
+albedo_color = Color(0.48, 0.59, 0.42, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Tower"]
+top_radius = 0.32
+bottom_radius = 0.53
+height = 2.25
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="Cap"]
+top_radius = 0.0
+bottom_radius = 0.63
+height = 0.68
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="Block"]
+
+[sub_resource type="CylinderMesh" id="Hub"]
+top_radius = 0.17
+bottom_radius = 0.17
+height = 0.24
+radial_segments = 8
+
+[sub_resource type="Animation" id="Turn"]
+resource_name = "turn"
+length = 10.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rotor:rotation:z")
+tracks/0/interp = 1
+tracks/0/keys = {"times": PackedFloat32Array(0, 10), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [0.0, 6.283185307]}
+
+[sub_resource type="AnimationLibrary" id="Motion"]
+_data = {&"turn": SubResource("Turn")}
+
+[node name="Windmill" type="Node3D"]
+
+[node name="Tower" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.12, 0)
+mesh = SubResource("Tower")
+material_override = SubResource("Stone")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.43, 0)
+mesh = SubResource("Cap")
+material_override = SubResource("Roof")
+
+[node name="Foot" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0)
+scale = Vector3(1.12, 0.24, 1.12)
+mesh = SubResource("Block")
+material_override = SubResource("Timber")
+
+[node name="Door" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.53, 0.48)
+scale = Vector3(0.32, 0.65, 0.08)
+mesh = SubResource("Block")
+material_override = SubResource("Timber")
+
+[node name="Rotor" type="Node3D" parent="."]
+position = Vector3(0, 2.07, 0.64)
+
+[node name="Upright" type="MeshInstance3D" parent="Rotor"]
+scale = Vector3(0.09, 2.7, 0.09)
+mesh = SubResource("Block")
+material_override = SubResource("Timber")
+
+[node name="Crossbar" type="MeshInstance3D" parent="Rotor"]
+scale = Vector3(2.7, 0.09, 0.09)
+mesh = SubResource("Block")
+material_override = SubResource("Timber")
+
+[node name="North" type="MeshInstance3D" parent="Rotor"]
+position = Vector3(0.14, 0.88, 0.04)
+scale = Vector3(0.30, 0.94, 0.045)
+mesh = SubResource("Block")
+material_override = SubResource("Sail")
+
+[node name="East" type="MeshInstance3D" parent="Rotor"]
+position = Vector3(0.88, -0.14, 0.04)
+scale = Vector3(0.94, 0.30, 0.045)
+mesh = SubResource("Block")
+material_override = SubResource("Sail")
+
+[node name="South" type="MeshInstance3D" parent="Rotor"]
+position = Vector3(-0.14, -0.88, 0.04)
+scale = Vector3(0.30, 0.94, 0.045)
+mesh = SubResource("Block")
+material_override = SubResource("Sail")
+
+[node name="West" type="MeshInstance3D" parent="Rotor"]
+position = Vector3(-0.88, 0.14, 0.04)
+scale = Vector3(0.94, 0.30, 0.045)
+mesh = SubResource("Block")
+material_override = SubResource("Sail")
+
+[node name="Hub" type="MeshInstance3D" parent="Rotor"]
+position = Vector3(0, 0, 0.10)
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Hub")
+material_override = SubResource("Timber")
+
+[node name="Motion" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("Motion")}
+autoplay = &"turn"

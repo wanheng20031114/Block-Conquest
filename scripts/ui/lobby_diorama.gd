@@ -1,6 +1,6 @@
 class_name LobbyDiorama
 extends SubViewportContainer
-## A small, authored world, isolated from the match and its simulation/audio.
+## An authored riverside world, isolated from match simulation and audio.
 var clock := 0.0
 var pointer_target := Vector2.ZERO
 var pointer := Vector2.ZERO
@@ -15,6 +15,8 @@ var hover_owner: LobbyOutpost
 @onready var water_material: ShaderMaterial = $World/Stage/Island/Water.material_override
 @onready var leaves: ShaderMaterial = $World/Stage/Island/Trees/Oak/Foliage.material_override
 @onready var camera_rest: Vector3 = rig.rotation
+@onready var ferry: PathFollow3D = $World/Stage/Island/FerryRoute/Ferry
+@onready var raft: Node3D = $World/Stage/Island/FerryRoute/Ferry/Raft
 
 func _ready() -> void:
 	mouse_exited.connect(_leave)
@@ -66,6 +68,9 @@ func _ripple(at: Vector2) -> void:
 func _process(delta: float) -> void:
 	clock += delta
 	ripple_age += delta
+	ferry.progress += delta * 0.9
+	raft.position.y = sin(clock * 2.3) * 0.026
+	raft.rotation.z = sin(clock * 1.7) * 0.045
 	pointer = pointer.lerp(pointer_target, 1.0 - exp(-delta * 4.0))
 	# Slow, bounded camera breathing; text and hitboxes never bob independently.
 	rig.rotation = camera_rest + Vector3(pointer.y * 0.018 + sin(clock * 0.22) * 0.004, pointer.x * 0.035 + sin(clock * 0.16) * 0.009, 0)
@@ -73,5 +78,8 @@ func _process(delta: float) -> void:
 	leaves.set_shader_parameter("flow_time", clock)
 	water_material.set_shader_parameter("visual_time", clock)
 	water_material.set_shader_parameter("ripple_age", ripple_age)
+	water_material.set_shader_parameter("ferry_at", Vector2(ferry.position.x, ferry.position.z))
+	var forward := -ferry.basis.z
+	water_material.set_shader_parameter("ferry_direction", Vector2(forward.x, forward.z).normalized())
 	for outpost: LobbyOutpost in outposts:
 		outpost.advance(delta)
