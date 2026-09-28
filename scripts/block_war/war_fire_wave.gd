@@ -1,23 +1,23 @@
 class_name WarFireWave
 extends Node3D
-## The same expanding radius drives the ground material, emitters and casualties.
+## Read-only native renderer of an independent fire rule state.
 
-const EXPANSION_TIME := 0.28
-const IGNITION_RADIUS := 0.45
-const EMISSION_TIME := 1.65
-const BURN_TIME := 2.15
-const LIFETIME := 3.0
+const STATE := preload("res://scripts/block_war/war_fire_state.gd")
+const EXPANSION_TIME := STATE.EXPANSION_TIME
+const IGNITION_RADIUS := STATE.IGNITION_RADIUS
+const EMISSION_TIME := STATE.EMISSION_TIME
+const BURN_TIME := STATE.BURN_TIME
+const LIFETIME := STATE.LIFETIME
 var age := LIFETIME
 var radius := 4.5
 var faction := 0
-var hit_buildings: Dictionary = {}
+var effect_id := 0
 
 func start(at: Vector3, reach: float, caster: int = 0) -> void:
 	position = at
 	radius = reach
 	faction = caster
 	age = 0.0
-	hit_buildings.clear()
 	$Ground.scale = Vector3.ONE * reach
 	$Ground.material_override.set_shader_parameter("expansion_time", EXPANSION_TIME)
 	$Ground.material_override.set_shader_parameter("ignition_ratio", minf(1.0, IGNITION_RADIUS / reach))
@@ -28,13 +28,31 @@ func start(at: Vector3, reach: float, caster: int = 0) -> void:
 		particles.emitting = true
 
 func front(at_age: float) -> float:
-	if is_equal_approx(at_age, EXPANSION_TIME):
-		return radius
-	return lerpf(minf(IGNITION_RADIUS, radius), radius, clampf(at_age / EXPANSION_TIME, 0.0, 1.0))
+	return STATE.radius_at(radius, at_age)
 
-func segment(delta: float) -> Dictionary:
-	return {"center": global_position, "from_radius": front(age), "to_radius": front(age + delta),
-		"active_fraction": minf(1.0, (BURN_TIME - age) / delta), "faction": faction}
+func sync_state(state: RefCounted) -> void:
+	if effect_id != state.effect_id:
+		effect_id = state.effect_id
+		start(state.global_position, state.radius, state.faction)
+	age = state.age
+	position = state.global_position
+	radius = state.radius
+	faction = state.faction
+	_update_visual()
+	visible = age < LIFETIME
+	if age >= EMISSION_TIME:
+		for particles: GPUParticles3D in [$Flames, $Afterfire, $Sparks, $Smoke]:
+			particles.emitting = false
+
+func clear_visual() -> void:
+	if effect_id == 0:
+		return
+	effect_id = 0
+	age = LIFETIME
+	hide()
+	$Light.light_energy = 0.0
+	for particles: GPUParticles3D in [$Flames, $Afterfire, $Sparks, $Smoke]:
+		particles.emitting = false
 
 func tick(delta: float) -> void:
 	if age >= LIFETIME:

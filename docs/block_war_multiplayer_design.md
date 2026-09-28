@@ -286,4 +286,4 @@ Bot Jump 当前共享固定 1280×720 屏幕坐标、向全房广播；这两点
 - Godot 官方：[高层多人、传输模式与通道](https://docs.godotengine.org/en/stable/tutorials/networking/high_level_multiplayer.html)、[MultiplayerPeer](https://docs.godotengine.org/en/stable/classes/class_multiplayerpeer.html)、[ENetMultiplayerPeer](https://docs.godotengine.org/en/stable/classes/class_enetmultiplayerpeer.html)。原生 ENet 仅 UDP；可靠有序只对同一逻辑流成立；不同 channel 不提供跨通道的因果顺序。
 - 最终传输选型对应的官方 API：[ENetConnection](https://docs.godotengine.org/en/stable/classes/class_enetconnection.html)、[ENetPacketPeer](https://docs.godotengine.org/en/stable/classes/class_enetpacketpeer.html)、[TLSOptions](https://docs.godotengine.org/en/stable/classes/class_tlsoptions.html)、[SceneMultiplayer](https://docs.godotengine.org/en/stable/classes/class_scenemultiplayer.html)。选择低层原生 ENet 与 DTLS，绕开 SceneMultiplayer 自动转发，保留应用层唯一经过认证的房间路由。
 
-本轮验证范围：源码与参考工程审查、官方 API 语义核对、设计一致性检查。没有执行联机测试、访问 Tokyo 或实测公网延迟；上述验收矩阵是实施要求，不是已通过的结果。
+以上为设计阶段的审查结论；实现阶段的架构、构建和验证入口见 [多人联机 1.1.0 实现与验证](block_war_multiplayer_implementation.md)。验收矩阵中的要求需以对应实测结果为准。

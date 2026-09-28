@@ -31,6 +31,8 @@ var _actions_visible: bool = false
 var _pointer_blockers: Array[Control] = []
 var _commander: StringName = &""
 var _enemy_commander: StringName = &""
+var _online_menu := false
+var _online_action := ""
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -48,11 +50,17 @@ func _ready() -> void:
 	%PauseHelp.pressed.connect(_open_help)
 	%PauseSettings.pressed.connect(_open_settings)
 	get_node("/root/Session/Settings").closed.connect(_settings_closed)
-	%PauseRestart.pressed.connect(func(): restart_requested.emit())
-	%PauseExit.pressed.connect(func(): exit_requested.emit())
+	%PauseRestart.pressed.connect(_request_restart)
+	%PauseExit.pressed.connect(_request_exit)
 	%HelpClose.pressed.connect(_close_help)
-	%ResultRestart.pressed.connect(func(): restart_requested.emit())
-	%ResultExit.pressed.connect(func(): exit_requested.emit())
+	%ResultRestart.pressed.connect(_request_restart)
+	%ResultExit.pressed.connect(_request_exit)
+	%OnlineConfirm.get_node("Center/Card/Column/Actions/Cancel").pressed.connect(_cancel_online_action)
+	%OnlineConfirm.get_node("Center/Card/Column/Actions/Confirm").pressed.connect(_confirm_online_action)
+	var online: Node = get_node("/root/Session/Online")
+	_online_menu = not online.match_config.is_empty()
+	if _online_menu:
+		_configure_online_menu(online)
 	%HintClose.pressed.connect(func(): UIMotion.dismiss(%QuickHint))
 	%HintClose.pressed.connect(func(): ui_sound_requested.emit(&"war_cancel"))
 	%Upgrade.pressed.connect(func(): upgrade_requested.emit())
@@ -61,7 +69,7 @@ func _ready() -> void:
 	%ConvertForge.pressed.connect(func(): convert_requested.emit(2))
 	for button: BaseButton in $UI.find_children("*", "BaseButton", true, false):
 		_pointer_blockers.append(button)
-	for panel: Control in [%PauseOverlay, %HelpOverlay, %ResultOverlay]:
+	for panel: Control in [%PauseOverlay, %HelpOverlay, %ResultOverlay, %OnlineConfirm]:
 		_pointer_blockers.append(panel)
 	_pointer_blockers.append(%Selection)
 	UIMotion.bind_buttons($UI)
@@ -78,6 +86,7 @@ func _ready() -> void:
 
 func update_state(state: Dictionary) -> void:
 	var commander: StringName = state.commander
+	var local_faction := int(state.get("local_faction", 0))
 	var skill_names := SKILL_RULES.names_for(commander)
 	var skill_cooldowns := SKILL_RULES.cooldowns_for(commander)
 	if _commander != commander:
@@ -97,13 +106,15 @@ func update_state(state: Dictionary) -> void:
 	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
 	$UI/Player/Name.text = SKILL_RULES.name_for(commander)
 	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else SKILL_RULES.name_for(_enemy_commander)
-	$UI/Enemy/Role.text = "%d 名电脑对手" % state.team_size
+	$UI/Enemy/Role.text = state.get("enemy_role", "%d 名电脑对手" % state.team_size)
+	%PlayerTotal.add_theme_color_override("font_color", preload("res://scripts/block_war/war_factions.gd").COLORS[local_faction])
+	%EnemyTotal.add_theme_color_override("font_color", preload("res://scripts/block_war/war_factions.gd").COLORS[1 - local_faction % 2])
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	%Balance.update_factions(state.faction_totals, state.morale_stars, int(state.faction_count))
+	%Balance.update_factions(state.faction_totals, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
-	var permanent_attack_bonus: float = ((1.0 + int(state.forges) * 0.1) * (1.0 + floori(float(state.morale_stars[0])) * 0.05) - 1.0) * 100.0
+	var permanent_attack_bonus: float = ((1.0 + int(state.forges) * 0.1) * (1.0 + floori(float(state.morale_stars[local_faction])) * 0.05) - 1.0) * 100.0
 	var attack_text: String = ("%.1f" % permanent_attack_bonus).trim_suffix(".0")
 	%ForgeBonus.text = ("你的攻击  +%s%%" if state.team_size > 1 else "攻击加成  +%s%%") % attack_text
 	_update_building_actions(state)
@@ -159,6 +170,8 @@ func update_state(state: Dictionary) -> void:
 
 func show_result(won: bool) -> void:
 	_finished = true
+	%OnlineConfirm.hide()
+	_online_action = ""
 	%PauseOverlay.hide()
 	%HelpOverlay.hide()
 	%ResultTitle.text = "胜利" if won else "战线失守"
@@ -169,6 +182,8 @@ func show_result(won: bool) -> void:
 
 func show_draw() -> void:
 	_finished = true
+	%OnlineConfirm.hide()
+	_online_action = ""
 	%PauseOverlay.hide()
 	%HelpOverlay.hide()
 	%ResultTitle.text = "战局僵持"
@@ -340,10 +355,35 @@ func notify(message: String) -> void:
 	_toast_tween.tween_interval(2.8)
 	_toast_tween.tween_callback(func(): UIMotion.dismiss(%Toast, Vector2(0, -6)))
 
+func set_network_status(message: String, detail: String = "") -> void:
+	# Waiting/recovery lasts until authority confirms it, not a toast duration.
+	if message.is_empty():
+		%OnlineStatus.hide()
+		return
+	var changed: bool = %OnlineStatusTitle.text != message
+	%OnlineStatusTitle.text = message
+	%OnlineStatusDetail.text = detail
+	%OnlineStatusDetail.visible = not detail.is_empty()
+	%OnlineStatus.show()
+	if changed:
+		UIMotion.reveal(%OnlineStatus, Vector2(0, -8))
+
 func is_pointer_blocked(screen: Vector2) -> bool:
 	# _input runs before GUI hover updates. Test this event's position, not the
 	# previous hovered control, and ignore transparent layout containers.
 	for control: Control in _pointer_blockers:
+		if control.is_visible_in_tree():
+			var local := control.get_global_transform_with_canvas().affine_inverse() * screen
+			if Rect2(Vector2.ZERO, control.size).has_point(local):
+				return true
+	return false
+
+func is_pointer_over_hud(screen: Vector2) -> bool:
+	# Presence is hidden over informational HUD too. These non-interactive panels
+	# still permit ordinary battlefield input according to is_pointer_blocked.
+	if is_pointer_blocked(screen):
+		return true
+	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %QuickHint, %Toast, %OnlineStatus]:
 		if control.is_visible_in_tree():
 			var local := control.get_global_transform_with_canvas().affine_inverse() * screen
 			if Rect2(Vector2.ZERO, control.size).has_point(local):
@@ -393,6 +433,67 @@ func _open_exit() -> void:
 	pause_requested.emit()
 	%PauseExit.grab_focus()
 
+func _configure_online_menu(online: Node) -> void:
+	%Pause.text = "菜单"
+	%Pause.tooltip_text = "打开菜单 · 对局继续进行 · Esc"
+	%PauseCard.get_node("Title").text = "战斗仍在继续"
+	%PauseCard.get_node("Sub").text = "联机对局不会因打开菜单而暂停。"
+	%PauseCard.get_node("CompanionNote").text = "你的军团仍在战场。"
+	%PauseCard.get_node("Eyebrow").text = "积木战争  /  联机对局"
+	%PauseRestart.text = "全员返回房间" if online.is_host else "等待房主返回房间"
+	%ResultRestart.text = "返回房间" if online.is_host else "等待房主返回房间"
+	%PauseRestart.disabled = not online.is_host
+	%ResultRestart.disabled = not online.is_host
+	%PauseExit.text = "离开对局"
+	%ResultExit.text = "离开房间"
+	%Exit.tooltip_text = "联机对局菜单"
+
+func _request_restart() -> void:
+	if not _online_menu:
+		restart_requested.emit()
+	elif _finished:
+		restart_requested.emit()
+	else:
+		_show_online_confirm("room", "全员返回房间？", "当前对局将结束，所有玩家一起返回房间。", "确认返回")
+
+func _request_exit() -> void:
+	if not _online_menu:
+		exit_requested.emit()
+		return
+	var host: bool = get_node("/root/Session/Online").is_host
+	var detail := "你是房主，离开将结束当前房间和所有玩家的对局。" if host else "离开后将由电脑接管你的军团，其他玩家继续战斗。"
+	if _finished:
+		detail = "你是房主，离开会关闭这个房间。" if host else "返回主菜单，离开这个房间。"
+	_show_online_confirm("leave", "离开房间？", detail, "确认离开")
+
+func _show_online_confirm(action: String, title: String, detail: String, confirm: String) -> void:
+	_online_action = action
+	var column: Node = %OnlineConfirm.get_node("Center/Card/Column")
+	column.get_node("Title").text = title
+	column.get_node("Detail").text = detail
+	column.get_node("Actions/Confirm").text = confirm
+	column.get_node("Actions/Cancel").text = "留下来" if _finished else "继续战斗"
+	%OnlineConfirm.show()
+	column.get_node("Actions/Cancel").grab_focus(true)
+	UIMotion.reveal(%OnlineConfirm.get_node("Center/Card"), Vector2(0, 12))
+
+func _cancel_online_action() -> void:
+	_online_action = ""
+	%OnlineConfirm.hide()
+	if _finished:
+		%ResultExit.grab_focus(true)
+	else:
+		%Resume.grab_focus(true)
+
+func _confirm_online_action() -> void:
+	var action := _online_action
+	_online_action = ""
+	%OnlineConfirm.hide()
+	if action == "room":
+		restart_requested.emit()
+	elif action == "leave":
+		exit_requested.emit()
+
 func _open_settings() -> void:
 	ui_sound_requested.emit(&"war_select")
 	get_node("/root/Session/Settings").open_menu()
@@ -402,6 +503,11 @@ func _settings_closed() -> void:
 		%PauseSettings.grab_focus(true)
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if %OnlineConfirm.visible:
+		if event.is_action_pressed("ui_cancel"):
+			_cancel_online_action()
+			get_viewport().set_input_as_handled()
+		return
 	if get_node("/root/Session/Settings").is_open():
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:

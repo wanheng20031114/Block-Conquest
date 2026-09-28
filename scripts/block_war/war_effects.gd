@@ -6,7 +6,6 @@ const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var _next: int = 0
 var _light_remaining: float = 0.0
 var _next_hit := 0
-var _next_fire := 0
 var _deaths: Array[Dictionary] = []
 var _skill_time := 0.0
 var _skill_emission := 0.0
@@ -38,21 +37,34 @@ func casualty(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, bur
 	if not burning:
 		hit(at + Vector3(0, 0.6, 0), impulse)
 
-func start_fire(at: Vector3, radius: float, faction: int = 0) -> WarFireWave:
-	var fire: WarFireWave = $FireWaves.get_child(_next_fire)
-	_next_fire = (_next_fire + 1) % $FireWaves.get_child_count()
-	fire.start(at, radius, faction)
-	return fire
+func start_fire(at: Vector3, radius: float, faction: int = 0) -> RefCounted:
+	# Compatibility for existing skill fixtures; the match owns the rule state.
+	return get_parent().start_fire(at, radius, faction)
+
+func sync_fire_states(states: Array) -> void:
+	# A reused visual slot must never erase an active hazard. Select its latest
+	# stable effect id, while the independent rule array retains every fire.
+	var slots: Dictionary[int, RefCounted] = {}
+	for state: RefCounted in states:
+		var slot: int = (int(state.effect_id) - 1) % $FireWaves.get_child_count()
+		if not slots.has(slot) or int(slots[slot].effect_id) < int(state.effect_id):
+			slots[slot] = state
+	for slot: int in $FireWaves.get_child_count():
+		var visual: WarFireWave = $FireWaves.get_child(slot)
+		if slots.has(slot):
+			visual.sync_state(slots[slot])
+		else:
+			visual.clear_visual()
 
 func has_fire() -> bool:
-	for fire: WarFireWave in $FireWaves.get_children():
+	for fire: RefCounted in get_parent().fire_states:
 		if fire.age < WarFireWave.BURN_TIME:
 			return true
 	return false
 
 func fire_step_limit() -> float:
 	var step := INF
-	for fire: WarFireWave in $FireWaves.get_children():
+	for fire: RefCounted in get_parent().fire_states:
 		for boundary: float in [WarFireWave.EXPANSION_TIME, WarFireWave.EMISSION_TIME, WarFireWave.BURN_TIME]:
 			if fire.age < boundary:
 				step = minf(step, boundary - fire.age)
@@ -60,7 +72,7 @@ func fire_step_limit() -> float:
 
 func fire_segments(delta: float) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for fire: WarFireWave in $FireWaves.get_children():
+	for fire: RefCounted in get_parent().fire_states:
 		if fire.age < WarFireWave.BURN_TIME:
 			result.append(fire.segment(delta))
 	return result
@@ -115,8 +127,7 @@ func tick(delta: float) -> void:
 		if _deaths[index].age >= 0.7:
 			_deaths.remove_at(index)
 	_render_deaths()
-	for fire: WarFireWave in $FireWaves.get_children():
-		fire.tick(delta)
+	sync_fire_states(get_parent().fire_states)
 
 func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dictionary, marches: WarMarches) -> void:
 	_skill_time += delta
@@ -183,7 +194,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				$HasteMotes.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), wind * 0.8, Color("c0d8a4").srgb_to_linear(), Color(), EMIT_FLAGS)
 	fields.visible_instance_count = count
 	$Rabbit.update_rush(delta, marches)
-	if emit:
+	if emit and not marches.haste_zones.is_empty():
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
 			if unit.is_exposed() and not unit.cloaked and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:

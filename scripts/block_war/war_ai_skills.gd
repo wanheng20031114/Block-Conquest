@@ -13,7 +13,7 @@ func _init(controlled_faction: int) -> void:
 	next_decision = 6.0 + 0.45 * (faction - 1)
 
 func take_turn(game: Node3D) -> void:
-	if game.finished or game._local_menu or game.elapsed < next_decision:
+	if game.finished or game.is_rule_paused() or game.elapsed < next_decision:
 		return
 	# Never chain four casts in one frame, including repeated calls at the same time.
 	# Short marches can finish between six-second decisions. Rabbit's instant
@@ -290,7 +290,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 		if not game._valid_ground_skill_target(at):
 			continue
 		var threatened := false
-		for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():
+		for fire: RefCounted in game.fire_states:
 			if fire.age < WarFireWave.BURN_TIME and fire.global_position.distance_to(at) < game.IMPACT_RADIUS * 1.5:
 				threatened = true
 		if threatened:
@@ -384,7 +384,7 @@ func _rabbit_turn(game: Node3D) -> void:
 				if plan.is_empty():
 					continue
 				var burning := false
-				for fire: WarFireWave in game.world_effects.get_node("FireWaves").get_children():
+				for fire: RefCounted in game.fire_states:
 					if fire.age < WarFireWave.BURN_TIME and fire.global_position.distance_to(plan.exit) <= game.IMPACT_RADIUS + 0.7:
 						burning = true
 				if burning:

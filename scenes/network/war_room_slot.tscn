@@ -1,0 +1,120 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/network/war_room_slot.gd" id="script"]
+
+[sub_resource type="StyleBoxFlat" id="Card"]
+bg_color = Color(1, 0.992157, 0.960784, 1)
+content_margin_left = 16.0
+content_margin_right = 16.0
+content_margin_top = 14.0
+content_margin_bottom = 14.0
+corner_radius_top_left = 20
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 20
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.76, 0.81, 0.74, 1)
+
+[node name="Seat" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 174)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("Card")
+script = ExtResource("script")
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Identity" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SeatColor" type="ColorRect" parent="Content/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(4, 0)
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="Content/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(42, 48)
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 1
+mouse_filter = 2
+
+[node name="Who" type="VBoxContainer" parent="Content/Identity"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="NameRow" type="HBoxContainer" parent="Content/Identity/Who"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Name" type="Label" parent="Content/Identity/Who/NameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "等待加入"
+text_overrun_behavior = 3
+
+[node name="Badge" type="Label" parent="Content/Identity/Who/NameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.52, 0.39, 0.19, 1)
+text = "你 · 房主"
+
+[node name="Status" type="Label" parent="Content/Identity/Who"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "尚未准备"
+
+[node name="Number" type="Label" parent="Content/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.59, 0.64, 0.53, 1)
+text = "01"
+
+[node name="Controls" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Commander" type="OptionButton" parent="Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 38)
+theme_override_font_sizes/font_size = 16
+mouse_default_cursor_shape = 2
+fit_to_longest_item = false
+
+[node name="Occupant" type="OptionButton" parent="Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(100, 38)
+theme_override_font_sizes/font_size = 15
+mouse_default_cursor_shape = 2
+item_count = 2
+selected = 0
+popup/item_0/text = "空位"
+popup/item_0/id = 0
+popup/item_1/text = "电脑"
+popup/item_1/id = 1
+
+[node name="Move" type="Button" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+theme_override_font_sizes/font_size = 14
+mouse_default_cursor_shape = 2
+text = "移至此处"

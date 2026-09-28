@@ -46,10 +46,19 @@ def main():
     parser.add_argument("script")
     parser.add_argument("--output", required=True)
     parser.add_argument("--timeout", type=int, default=150)
+    parser.add_argument("--godot", default=r"C:\Program Files\Godot\Godot.exe",
+                        help="Explicit engine executable for version-specific validation")
+    parser.add_argument("--real-time", action="store_true",
+                        help="Use real frame delta for native multiplayer clock tests")
+    parser.add_argument("--main-pack", help="Load an exported PCK instead of source resources")
+    parser.add_argument("--project-dir", help="Isolated empty project directory for PCK verification")
+    parser.add_argument("--headless", action="store_true", help="Run protocol checks without a renderer")
     parser.add_argument("--script-arg", action="append", default=[],
                         help="Extra Godot script argument; use --script-arg=--flag for flags")
     args = parser.parse_args()
     project = Path(__file__).resolve().parents[1]
+    run_project = Path(args.project_dir).resolve() if args.project_dir else project
+    run_project.mkdir(parents=True, exist_ok=True)
     output = Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     kernel = c.WinDLL("kernel32", use_last_error=True)
@@ -86,11 +95,14 @@ def main():
         limits = ExtendedLimits()
         limits.basic.flags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
         require(kernel.SetInformationJobObject(job, 9, c.byref(limits), c.sizeof(limits)))
-        executable = r"C:\Program Files\Godot\Godot.exe"
+        executable = str(Path(args.godot).resolve())
         command = subprocess.list2cmdline([
-            executable, "--path", str(project), "--audio-driver", "Dummy",
+            executable, *( ["--headless"] if args.headless else []),
+            "--path", str(run_project),
+            *( ["--main-pack", str(Path(args.main_pack).resolve())] if args.main_pack else []),
+            "--audio-driver", "Dummy",
             "--rendering-method", "forward_plus", "--resolution", "960x540",
-            "--max-fps", "24", "--fixed-fps", "24", "--log-file", str(log),
+            "--max-fps", "24", *([] if args.real_time else ["--fixed-fps", "24"]), "--log-file", str(log),
             "--script", args.script, "--", str(output), *args.script_arg])
         startup = Startup()
         startup.cb = c.sizeof(startup)
@@ -98,7 +110,7 @@ def main():
         # Suspended until assigned to the cleanup job; below-normal priority.
         require(kernel.CreateProcessW(executable, c.create_unicode_buffer(command),
                                       None, None, False, 0x08004004, None,
-                                      str(project), c.byref(startup), c.byref(process)))
+                                      str(run_project), c.byref(startup), c.byref(process)))
         if not kernel.AssignProcessToJobObject(job, process.process):
             kernel.TerminateProcess(process.process, 3)
             require(False)

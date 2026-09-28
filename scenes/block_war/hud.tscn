@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/block_war/war_hud.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/percentage_button.tscn" id="percentage_button"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/war_balance.tscn" id="balance"]
+[ext_resource type="PackedScene" path="res://scenes/network/online_confirm.tscn" id="online_confirm"]
 
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="body"]
 
@@ -2164,3 +2165,43 @@ offset_bottom = 44.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="OnlineStatus" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -270.0
+offset_right = 270.0
+offset_top = 104.0
+offset_bottom = 192.0
+theme = ExtResource("campaign_theme")
+theme_type_variation = &"MenuRow"
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="UI/OnlineStatus"]
+layout_mode = 2
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="OnlineStatusTitle" type="Label" parent="UI/OnlineStatus/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "等待其他指挥官"
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="OnlineStatusDetail" type="Label" parent="UI/OnlineStatus/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "所有玩家准备完成后，战场将同时开始。"
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+autowrap_mode = 2
+mouse_filter = 2
+
+[node name="OnlineConfirm" parent="UI" instance=ExtResource("online_confirm")]
+unique_name_in_owner = true

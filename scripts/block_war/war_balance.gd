@@ -11,6 +11,7 @@ var _has_population: bool = false
 var _weights := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _targets := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _balance_tween: Tween
+var _order: Array[int] = ORDER.duplicate()
 
 func _ready() -> void:
 	for faction: int in 6:
@@ -19,7 +20,14 @@ func _ready() -> void:
 	resized.connect(_layout)
 	_layout()
 
-func update_factions(totals: Array, morale: Array, count: int) -> void:
+func update_factions(totals: Array, morale: Array, count: int, local_faction: int = 0, names: Array = []) -> void:
+	_order = [local_faction]
+	for faction: int in ORDER:
+		if faction != local_faction and FACTIONS.allied(faction, local_faction):
+			_order.append(faction)
+	for faction: int in ORDER:
+		if FACTIONS.hostile(faction, local_faction):
+			_order.append(faction)
 	var total: float = 0.0
 	for faction: int in count:
 		total += float(totals[faction])
@@ -29,7 +37,7 @@ func update_factions(totals: Array, morale: Array, count: int) -> void:
 		targets[faction] = float(totals[faction]) / total if _has_population else 1.0 / float(count)
 		var row: HBoxContainer = get_node("Stars/Faction%d" % faction)
 		var full_stars: int = floori(float(morale[faction]))
-		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [FACTIONS.NAMES[faction], full_stars, full_stars * 5, full_stars * 25, full_stars * 10]
+		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [names[faction] if names.size() == count else FACTIONS.NAMES[faction], full_stars, full_stars * 5, full_stars * 25, full_stars * 10]
 		if full_stars < 5:
 			var next_star_percent: float = floorf((float(morale[faction]) - full_stars) * 1000.0) / 10.0
 			row.tooltip_text += "\n下颗星充能 %.1f%%" % next_star_percent
@@ -60,7 +68,7 @@ func _layout() -> void:
 	var seats: Array[int] = []
 	var centers: Array[float] = []
 	var cursor: float = 0.0
-	for faction: int in ORDER:
+	for faction: int in _order:
 		var segment: ColorRect = get_node("Segments/Faction%d" % faction)
 		var row: Control = get_node("Stars/Faction%d" % faction)
 		var leader: Line2D = get_node("Leaders/Faction%d" % faction)

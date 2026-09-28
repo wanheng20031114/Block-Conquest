@@ -1,6 +1,8 @@
 extends Node3D
 ## Building-node conquest. Population is simulated here; marches only transport it.
 
+signal presentation_event(kind: String, payload: Dictionary)
+
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const SKILL_COOLDOWNS := SKILL_RULES.COOLDOWNS
@@ -22,6 +24,7 @@ var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
 const FROG_SKILLS := preload("res://scripts/block_war/war_frog_skills.gd")
+const FIRE_STATE := preload("res://scripts/block_war/war_fire_state.gd")
 var bear := BEAR_SKILLS.new()
 
 class SkillState extends RefCounted:
@@ -32,14 +35,25 @@ class SkillState extends RefCounted:
 	var recruit_target_id := -1
 
 var faction_skills: Array[SkillState] = []
+var local_faction := 0
+var local_team: int:
+	get: return local_faction % 2
+var local_player_id := -1
+var online_host := false
+var match_config: Dictionary = {}
+var network_match: RefCounted
+var simulation_paused := false
+var winner_team := -2
+var _ai_by_faction: Dictionary[int, RefCounted] = {}
+var _bot_factions: Array[int] = []
 # The input layer and HUD expose only the human commander's account.
 var cooldowns: Array[float]:
-	get: return faction_skills[PLAYER].cooldowns
+	get: return faction_skills[local_faction].cooldowns
 var active_durations: Array[float]:
-	get: return faction_skills[PLAYER].durations
+	get: return faction_skills[local_faction].durations
 var energy: float:
-	get: return faction_skills[PLAYER].energy
-	set(value): faction_skills[PLAYER].energy = value
+	get: return faction_skills[local_faction].energy
+	set(value): faction_skills[local_faction].energy = value
 
 var buildings: Array[Node3D] = []
 var by_id: Dictionary = {}
@@ -62,6 +76,8 @@ var shields: Dictionary = {}
 var tower_clocks: Dictionary = {}
 var effects: Array[Dictionary] = []
 var projectiles: Array[Dictionary] = []
+var fire_states: Array[RefCounted] = []
+var _next_fire_id := 1
 var order_route := PackedVector3Array()
 var _hud_clock: float = 0.0
 var _drag_start := Vector2.ZERO
@@ -104,6 +120,73 @@ func _enter_tree() -> void:
 		faction_skills.append(state)
 	for faction: int in range(2, faction_count):
 		_other_ai.append(AI_STRATEGY.new(faction))
+	_ai_by_faction[0] = AI_STRATEGY.new(0)
+	_ai_by_faction[1] = _ai_strategy
+	for strategy: RefCounted in _other_ai:
+		_ai_by_faction[strategy.faction] = strategy
+	for faction: int in range(1, faction_count):
+		_bot_factions.append(faction)
+	var online := get_node_or_null("/root/Session/Online")
+	if online != null and not online.match_config.is_empty():
+		configure_match(online.match_config, online.player_id)
+
+func configure_match(config: Dictionary, player_id: int) -> void:
+	# Seat, controller, team and commander are independent. Reconnection updates
+	# controllers separately so no population, cooldown or AI plan gets reset.
+	assert(config.slots.size() == faction_count)
+	match_config = config.duplicate(true)
+	local_player_id = player_id
+	online_host = int(config.host_player_id) == player_id
+	var found := false
+	for slot: Dictionary in config.slots:
+		var faction := int(slot.faction_id)
+		assert(faction >= 0 and faction < faction_count and int(slot.team_id) == faction % 2)
+		faction_skills[faction].commander = StringName(slot.commander)
+		if int(slot.player_id) == player_id and slot.kind == "human":
+			local_faction = faction
+			found = true
+	assert(found, "A match participant must occupy one authored faction seat.")
+	configure_controllers(config.slots)
+
+func configure_controllers(slots: Array) -> void:
+	_bot_factions.clear()
+	for slot: Dictionary in slots:
+		if slot.controller == "bot":
+			_bot_factions.append(int(slot.faction_id))
+	if not match_config.is_empty():
+		match_config.slots = slots.duplicate(true)
+
+func is_rule_paused() -> bool:
+	return simulation_paused or (match_config.is_empty() and _local_menu)
+
+func is_authority() -> bool:
+	return match_config.is_empty() or online_host
+
+func opponent_faction() -> int:
+	return 1 - local_team
+
+func faction_name(faction: int) -> String:
+	if faction < 0:
+		return "中立"
+	if not match_config.is_empty():
+		for slot: Dictionary in match_config.slots:
+			if int(slot.faction_id) == faction:
+				return "%s（你）" % slot.name if faction == local_faction else str(slot.name)
+	return FACTIONS.NAMES[faction]
+
+func _enemy_role() -> String:
+	if match_config.is_empty():
+		return "%d 名电脑对手" % (faction_count / 2)
+	var humans := 0
+	var bots := 0
+	for slot: Dictionary in match_config.slots:
+		if int(slot.team_id) == local_team:
+			continue
+		if slot.controller == "bot":
+			bots += 1
+		else:
+			humans += 1
+	return "%d 名玩家 · %d 名电脑" % [humans, bots]
 
 func _ready() -> void:
 	# MSAA keeps the small world-space badges and moving spear rows crisp.
@@ -125,7 +208,7 @@ func _ready() -> void:
 	marches.departure_queue_changed.connect(_on_departure_queue_changed)
 	marches.unit_departed.connect(_on_unit_departed)
 	world_effects.get_node("Rabbit").tunnel_opened.connect(func(at: Vector3): audio.play_world(&"war_rabbit_burrow", at))
-	marches.unit_defeated.connect(world_effects.casualty)
+	marches.unit_defeated.connect(_on_unit_defeated)
 	hud.percentage_changed.connect(set_percentage)
 	hud.skill_requested.connect(request_skill)
 	hud.pause_requested.connect(set_paused.bind(true))
@@ -137,20 +220,30 @@ func _ready() -> void:
 	hud.ui_sound_requested.connect(audio.play_ui)
 	get_window().focus_exited.connect(_on_focus_exited)
 	camera_rig.maximum_zoom = maxf(95.0, map.definition.half_size.y * 2.1)
-	if map.definition.size_class > 0:
-		camera_rig.focus_at(buildings[0].global_position, true)
+	var home: Node3D
+	for building: Node3D in buildings:
+		if building.faction == local_faction:
+			home = building
+			break
+	if map.definition.size_class > 0 or not match_config.is_empty():
+		camera_rig.focus_at(home.global_position, true)
 		camera.far = 320.0
-	select_building(buildings[0])
+	select_building(home)
 	_match_ready = true
 	update_hud()
-	hud.notify("拖动橙色住宅到中立据点，派出你的第一支民兵。")
+	hud.notify("拖动自己的住宅到中立据点，派出你的第一支民兵。")
+	if not match_config.is_empty():
+		network_match = load("res://scripts/network/war_network_match.gd").new()
+		network_match.setup(self, get_node("/root/Session/Online"))
 
 func _exit_tree() -> void:
 	get_viewport().use_taa = _previous_taa
 	get_tree().auto_accept_quit = _previous_auto_quit
 
 func _process(delta: float) -> void:
-	if not _local_menu and not finished:
+	if network_match != null:
+		network_match.process(delta)
+	elif not is_rule_paused() and not finished:
 		simulate(delta)
 	_hud_clock -= delta
 	if _hud_clock <= 0.0:
@@ -163,7 +256,7 @@ func _process(delta: float) -> void:
 	overlay.queue_redraw()
 
 func simulate(delta: float) -> void:
-	if _local_menu or finished or delta <= 0.0:
+	if not is_authority() or is_rule_paused() or finished or delta <= 0.0:
 		return
 	# Integrate up to each completion before applying the next level's rules.
 	# Long frames and multiple simultaneous builds keep the same production as
@@ -213,6 +306,7 @@ func _simulate_step(delta: float) -> void:
 	_tick_projectiles(delta)
 	bear.tick_projectiles(self, delta)
 	audio.tick_marches(delta, marches)
+	_advance_fire_states(delta)
 	world_effects.tick(delta)
 	world_effects.update_skills(delta, faction_skills, shields, by_id, marches)
 	_tick_fire_buildings()
@@ -233,7 +327,7 @@ func _simulate_step(delta: float) -> void:
 			if converting and building.kind != 0:
 				_cancel_building_recruitment(building.building_id)
 			audio.play_world(&"war_upgrade", building.global_position)
-			if building.faction == PLAYER:
+			if building.faction == local_faction:
 				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
 	bear.advance(self, delta)
@@ -274,7 +368,8 @@ func _tick_recruitment(delta: float) -> Dictionary[int, bool]:
 			state.recruit_target_id = -1
 	return recruiting
 
-func _cancel_recruitment(faction: int = PLAYER) -> void:
+func _cancel_recruitment(faction: int = -2) -> void:
+	faction = local_faction if faction == -2 else faction
 	faction_skills[faction].recruit_target_id = -1
 	faction_skills[faction].durations[0] = 0.0
 
@@ -304,20 +399,21 @@ func dispatch_count(source: WarBuilding, amount_percent: int) -> int:
 	var count := floori(source.available_population * amount_percent / 100.0)
 	return mini(count, SKILL_RULES.BURROW_LIMIT) if source.burrow_remaining > 0.0 else count
 
-func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = PLAYER) -> int:
-	if finished or _local_menu or source == null or target == null or source == target:
+func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = -2) -> int:
+	faction = local_faction if faction == -2 else faction
+	if not is_authority() or finished or is_rule_paused() or source == null or target == null or source == target:
 		return 0
 	if source.faction != faction or amount_percent not in [25, 50, 75, 100]:
 		return 0
 	var count := dispatch_count(source, amount_percent)
 	if count < 1:
-		if faction == PLAYER:
+		if faction == local_faction:
 			hud.notify("当前比例不足 1 名可用民兵 · 待出发部队已预留")
 			audio.play_ui(&"war_denied")
 		return 0
 	var route: PackedVector3Array = map.get_building_route(source, target)
 	if route.size() < 2:
-		if faction == PLAYER:
+		if faction == local_faction:
 			hud.notify("没有可通行的路线")
 			audio.play_ui(&"war_denied")
 		return 0
@@ -328,12 +424,14 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		_clear_building_burrow(source)
 		marches.queue_tunnel_departure(source.building_id, target.building_id, faction, count, route, SKILL_RULES.BURROW_BATCH_INTERVAL, plan.dig_duration)
 		world_effects.get_node("Rabbit").start_tunnel(faction, plan.entrance, plan.exit, plan.route[1] - plan.route[0], count, plan.dig_duration)
+		presentation_event.emit("tunnel", {"faction": faction, "entrance": _vector_values(plan.entrance), "exit": _vector_values(plan.exit), "direction": _vector_values(plan.route[1] - plan.route[0]), "count": count, "dig_duration": plan.dig_duration})
 	else:
 		marches.queue_departure(source.building_id, target.building_id, faction, count, route)
-	if faction == PLAYER:
+	presentation_event.emit("dispatch", {"faction": faction, "source": source.building_id, "target": target.building_id, "count": count})
+	if faction == local_faction:
 		audio.play_ui(&"war_order")
-		var verb := "增援" if FACTIONS.allied(target.faction, PLAYER) else "进攻"
-		var transfer := " · 抵达后归队友指挥" if target.faction != PLAYER and FACTIONS.allied(target.faction, PLAYER) else ""
+		var verb := "增援" if FACTIONS.allied(target.faction, local_faction) else "进攻"
+		var transfer := " · 抵达后归队友指挥" if target.faction != local_faction and FACTIONS.allied(target.faction, local_faction) else ""
 		hud.notify("%d 名民兵依次出发 · %s%s%s" % [count, verb, KIND_NAMES[target.kind], transfer])
 		add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
 	update_hud()
@@ -368,6 +466,14 @@ func _on_morale_changed(faction: int) -> void:
 func _on_building_completed(kind: int, completed_level: int, converted: bool, building: WarBuilding) -> void:
 	if not converted and building.faction >= 0:
 		morale.adjust(building.faction, MORALE.upgrade_reward(kind, completed_level))
+	presentation_event.emit("construction_complete", {"building": building.building_id, "faction": building.faction, "kind": kind, "level": completed_level, "converted": converted})
+
+static func _vector_values(value: Vector3) -> Array:
+	return [value.x, value.y, value.z]
+
+func _on_unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool) -> void:
+	world_effects.casualty(at, heading, faction, impulse, burning)
+	presentation_event.emit("casualty", {"at": _vector_values(at), "heading": _vector_values(heading), "faction": faction, "impulse": _vector_values(impulse), "burning": burning})
 
 func _record_attacker_losses(faction: int, defender: int, losses: float) -> void:
 	if losses <= 0.0:
@@ -432,12 +538,13 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 			target.level = maxi(1, target.level - 1)
 			shields.erase(target_id)
 			target.pulse_capture()
+			presentation_event.emit("capture", {"building": target_id, "faction": faction, "previous_faction": previous_faction})
 			add_effect(target.global_position, faction_color(faction), "capture", 1.1)
-			if faction == PLAYER:
+			if faction == local_faction:
 				audio.play_ui(&"war_capture")
-			elif previous_faction == PLAYER:
+			elif previous_faction == local_faction:
 				audio.play_ui(&"war_lost")
-			if faction == PLAYER:
+			if faction == local_faction:
 				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +%s 民兵" % target.production_rate if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻击 +10%")])
 			tower_clocks[target_id] = 0.6
 		if effects.size() < 80:
@@ -457,6 +564,7 @@ func _fire_tower(building: Node3D) -> void:
 	world_effects.hit(muzzle, (targets[0].position - muzzle).normalized(), true)
 	for target: WarMarches.MarchUnit in targets:
 		var destination := target.position + Vector3(0, 0.65, 0)
+		presentation_event.emit("tower_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": _vector_values(muzzle), "to": _vector_values(destination), "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 		projectiles.append({"target": target, "at": muzzle, "position": muzzle, "previous": muzzle,
 			"to": destination, "tracking": true, "age": 0.0, "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 	world_effects.render_projectiles(projectiles)
@@ -483,9 +591,26 @@ func _tick_projectiles(delta: float) -> void:
 			projectiles.remove_at(index)
 	world_effects.render_projectiles(projectiles)
 
+func start_fire(at: Vector3, radius: float, faction: int) -> RefCounted:
+	var fire := FIRE_STATE.new()
+	fire.effect_id = _next_fire_id
+	_next_fire_id += 1
+	fire.global_position = at
+	fire.radius = radius
+	fire.faction = faction
+	fire_states.append(fire)
+	world_effects.sync_fire_states(fire_states)
+	return fire
+
+func _advance_fire_states(delta: float) -> void:
+	for index: int in range(fire_states.size() - 1, -1, -1):
+		fire_states[index].age += delta
+		if fire_states[index].age >= FIRE_STATE.LIFETIME:
+			fire_states.remove_at(index)
+
 func _tick_fire_buildings() -> void:
-	for fire: WarFireWave in world_effects.get_node("FireWaves").get_children():
-		if fire.age >= WarFireWave.BURN_TIME:
+	for fire: RefCounted in fire_states:
+		if fire.age >= FIRE_STATE.BURN_TIME:
 			continue
 		for building: WarBuilding in buildings:
 			if FACTIONS.allied(building.faction, fire.faction) or fire.hit_buildings.has(building.building_id):
@@ -506,7 +631,7 @@ func tower_interval(building: Node3D) -> float:
 	return maxf(0.55, 1.5 - 0.3 * (building.level - 1))
 
 func request_skill(index: int, from_keyboard: bool = false) -> void:
-	if not _skill_available(index):
+	if _local_menu or not _skill_available(index):
 		return
 	audio.play_ui(&"war_drag")
 	_cancel_skill_drag()
@@ -522,15 +647,15 @@ func _update_skill_drag(screen: Vector2, refresh_preview: bool = false) -> void:
 	var over_battlefield: bool = get_viewport().get_visible_rect().has_point(screen) and not hud.is_pointer_blocked(screen)
 	hovered = pick_building(screen) if over_battlefield and not skill_is_ground(armed_skill) else null
 	var valid := ground_skill_target.is_finite() if skill_is_ground(armed_skill) else _valid_skill_target(armed_skill, hovered)
-	if faction_skills[PLAYER].commander == SKILL_RULES.FROG and skill_is_ground(armed_skill):
+	if faction_skills[local_faction].commander == SKILL_RULES.FROG and skill_is_ground(armed_skill):
 		frog_preview.clear()
 		if ground_skill_target.is_finite():
-			frog_preview = marches.frog_targets(armed_skill, PLAYER, ground_skill_target)
+			frog_preview = marches.frog_targets(armed_skill, local_faction, ground_skill_target)
 		if armed_skill in [1, 2]:
 			valid = not frog_preview.is_empty()
-	if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT:
+	if faction_skills[local_faction].commander == SKILL_RULES.RABBIT:
 		if armed_skill == 0:
-			rush_preview = marches.rush_targets(PLAYER, ground_skill_target, SKILL_RULES.RABBIT_RUSH_RADIUS)
+			rush_preview = marches.rush_targets(local_faction, ground_skill_target, SKILL_RULES.RABBIT_RUSH_RADIUS)
 			valid = not rush_preview.is_empty()
 		elif armed_skill == 2:
 			_refresh_rabbit_preview(refresh_preview)
@@ -544,9 +669,9 @@ func release_skill_drag(screen: Vector2) -> void:
 	var target := hovered
 	var success := false
 	if skill_is_ground(index) and ground_skill_target.is_finite():
-		success = cast_ground_skill(index, ground_skill_target)
+		success = submit_player_command({"type": "skill_ground", "skill": index, "x": ground_skill_target.x, "z": ground_skill_target.z}).accepted
 	elif not skill_is_ground(index) and _valid_skill_target(index, target):
-		success = cast_skill(index, target)
+		success = submit_player_command({"type": "skill_building", "skill": index, "target": target.building_id}).accepted
 	_cancel_skill_drag()
 	if success and target != null:
 		select_building(target)
@@ -566,10 +691,12 @@ func _cancel_skill_drag() -> void:
 	_recall_preview_center = Vector3.INF
 	_rabbit_preview_time = -1.0
 
-func skill_is_ground(index: int, faction: int = PLAYER) -> bool:
-	return index >= 0 and SKILL_RULES.is_ground(index, faction_skills[faction].commander)
+func skill_is_ground(index: int, faction: int = -2) -> bool:
+	faction = local_faction if faction == -2 else faction
+	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and SKILL_RULES.is_ground(index, faction_skills[faction].commander)
 
-func skill_radius(index: int, faction: int = PLAYER) -> float:
+func skill_radius(index: int, faction: int = -2) -> float:
+	faction = local_faction if faction == -2 else faction
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		return SKILL_RULES.FROG_RADII[index]
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
@@ -591,13 +718,15 @@ func _clear_building_burrow(building: WarBuilding) -> void:
 		faction_skills[building.faction].durations[3] = 0.0
 	building.clear_burrow()
 
-func can_cast_skill(index: int, faction: int = PLAYER) -> bool:
-	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and not _local_menu and not finished and faction_skills[faction].cooldowns[index] <= 0.0 and faction_skills[faction].energy >= SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
+func can_cast_skill(index: int, faction: int = -2) -> bool:
+	faction = local_faction if faction == -2 else faction
+	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and not is_rule_paused() and not finished and faction_skills[faction].cooldowns[index] <= 0.0 and faction_skills[faction].energy >= SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
 
-func _skill_available(index: int, faction: int = PLAYER) -> bool:
-	if faction != PLAYER:
+func _skill_available(index: int, faction: int = -2) -> bool:
+	faction = local_faction if faction == -2 else faction
+	if faction != local_faction:
 		return can_cast_skill(index, faction)
-	if index < 0 or index >= 4 or _local_menu or finished:
+	if index < 0 or index >= 4 or is_rule_paused() or finished:
 		return false
 	if cooldowns[index] > 0.0:
 		hud.notify("技能冷却中 · 还需 %d 秒" % ceili(cooldowns[index]))
@@ -610,7 +739,8 @@ func _skill_available(index: int, faction: int = PLAYER) -> bool:
 		return false
 	return true
 
-func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> bool:
+func _valid_skill_target(index: int, target: Node3D, faction: int = -2) -> bool:
+	faction = local_faction if faction == -2 else faction
 	if target == null:
 		return false
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
@@ -633,11 +763,12 @@ func _valid_skill_target(index: int, target: Node3D, faction: int = PLAYER) -> b
 		return FACTIONS.allied(target.faction, faction) and not shields.has(target.building_id)
 	return false
 
-func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
-	if not _skill_available(index, faction):
+func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
+	faction = local_faction if faction == -2 else faction
+	if not is_authority() or not _skill_available(index, faction):
 		return false
 	if not _valid_skill_target(index, target, faction):
-		if faction == PLAYER:
+		if faction == local_faction:
 			if faction_skills[faction].commander == SKILL_RULES.FROG:
 				hud.notify("选择未处于无敌保护的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
 			elif faction_skills[faction].commander == SKILL_RULES.BEAR:
@@ -654,6 +785,7 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 		else:
 			bear.cast(self, index, target, faction)
 		_commit_skill(index, faction)
+		_present_skill(index, faction, target.global_position, target.building_id)
 		target.refresh_visual()
 		update_hud()
 		return true
@@ -661,8 +793,9 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 		if not RABBIT_SKILLS.cast(self, index, target, faction):
 			return false
 		_commit_skill(index, faction)
+		_present_skill(index, faction, target.global_position, target.building_id)
 		audio.play_world(&"war_rabbit_seal" if index == 1 else &"war_rabbit_burrow", target.global_position)
-		if faction == PLAYER:
+		if faction == local_faction:
 			hud.notify("封条急件 · 停工 6 秒" if index == 1 else "兔洞待命 15 秒 · 下次派兵最多 50 人，距离不限")
 		target.refresh_visual()
 		update_hud()
@@ -674,9 +807,10 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 		2:
 			shields[target.building_id] = SKILL_DURATIONS[2]
 	_commit_skill(index, faction)
+	_present_skill(index, faction, target.global_position, target.building_id)
 	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield"]
 	audio.play_world(skill_sounds[index], target.global_position)
-	if faction == PLAYER:
+	if faction == local_faction:
 		hud.notify("%s · %s" % [SKILL_RULES.NAMES[index], SKILL_RULES.effect_text(index)])
 	if target != null:
 		target.refresh_visual()
@@ -684,23 +818,25 @@ func cast_skill(index: int, target: Node3D, faction: int = PLAYER) -> bool:
 	update_hud()
 	return true
 
-func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
-	if not skill_is_ground(index, faction) or not _skill_available(index, faction):
+func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
+	faction = local_faction if faction == -2 else faction
+	if not is_authority() or not skill_is_ground(index, faction) or not _skill_available(index, faction):
 		return false
 	if not _valid_ground_skill_target(at):
-		if faction == PLAYER:
+		if faction == local_faction:
 			hud.notify("请选择战场内的地面 · 右键取消")
 			audio.play_ui(&"war_denied")
 		return false
 	var center := Vector3(at.x, 0.0, at.z)
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		if marches.apply_frog_field(index, faction, center) == 0:
-			if faction == PLAYER:
+			if faction == local_faction:
 				hud.notify("范围内没有可滞空的士兵" if index == 1 else "范围内没有可隐身的己方士兵")
 			return false
 		world_effects.get_node("Frog").release(index, faction, center)
 		world_effects.get_node("Frog").sync(marches, 0.0)
 		_commit_skill(index, faction)
+		_present_skill(index, faction, center)
 		var frog_sounds: Array[StringName] = [&"war_frog_mist", &"war_frog_float", &"war_frog_cloak"]
 		audio.play_world(frog_sounds[index], center)
 		update_hud()
@@ -710,6 +846,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 		world_effects.get_node("Bear").stomp(faction, center)
 		world_effects.get_node("Bear").sync(bear, marches, by_id, 0.0)
 		_commit_skill(index, faction)
+		_present_skill(index, faction, center)
 		audio.play_world(&"war_bear_stomp", center)
 		update_hud()
 		return true
@@ -717,21 +854,22 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 		if index == 0:
 			var rushing: int = marches.apply_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0])
 			if rushing == 0:
-				if faction == PLAYER:
+				if faction == local_faction:
 					hud.notify("小圈内没有自己的行军部队 · 请选择已出发的士兵")
 				return false
 			world_effects.get_node("Rabbit").start_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS)
-			if faction == PLAYER:
+			if faction == local_faction:
 				hud.notify("迅猛冲刺 · %d 人移速 +%d%%、攻击 +%d%%，持续 %d 秒" % [rushing, roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]])
 		else:
 			var recalled := RABBIT_SKILLS.recall(self, center, faction)
 			if recalled == 0:
-				if faction == PLAYER:
+				if faction == local_faction:
 					hud.notify("范围内没有需要折返的行军部队")
 				return false
-			if faction == PLAYER:
+			if faction == local_faction:
 				hud.notify("归巢口哨 · %d 名双方部队返回各自出发建筑" % recalled)
 		_commit_skill(index, faction)
+		_present_skill(index, faction, center)
 		audio.play_world(&"war_rabbit_dash" if index == 0 else &"war_rabbit_recall", center)
 		world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 		update_hud()
@@ -739,25 +877,30 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 	if index == 1:
 		marches.create_haste_zone(faction, center, SKILL_RULES.HASTE_RADIUS, SKILL_DURATIONS[1], SKILL_RULES.HASTE_MULTIPLIER)
 	else:
-		var fire: WarFireWave = world_effects.start_fire(center, IMPACT_RADIUS, faction)
+		var fire: RefCounted = start_fire(center, IMPACT_RADIUS, faction)
 		marches.ignite_at(center, fire.front(0.0), faction)
 		_tick_fire_buildings()
 	_commit_skill(index, faction)
+	_present_skill(index, faction, center)
 	audio.play_world(&"war_skill_drum" if index == 1 else &"war_skill_breach", center)
-	if faction == PLAYER:
+	if faction == local_faction:
 		hud.notify("疾行区域已展开 · 圈内自己的部队提速，离开恢复" if index == 1 else "火焰已点燃 · 接触火焰的双方士兵都会死亡")
 	world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 	update_hud()
 	return true
 
-func _commit_skill(index: int, faction: int = PLAYER) -> void:
+func _commit_skill(index: int, faction: int = -2) -> void:
+	faction = local_faction if faction == -2 else faction
 	var state := faction_skills[faction]
 	state.energy -= SKILL_RULES.costs_for(state.commander)[index]
 	state.cooldowns[index] = SKILL_RULES.cooldowns_for(state.commander)[index]
 	state.durations[index] = SKILL_RULES.durations_for(state.commander)[index]
-	if faction == PLAYER:
+	if faction == local_faction:
 		_cancel_skill_drag()
 		_cancel_drag()
+
+func _present_skill(index: int, faction: int, at: Vector3, target_id: int = -1) -> void:
+	presentation_event.emit("skill", {"faction": faction, "skill": index, "commander": str(faction_skills[faction].commander), "at": _vector_values(at), "target": target_id})
 
 func _valid_ground_skill_target(at: Vector3) -> bool:
 	return at.is_finite() and absf(at.x) <= map.definition.half_size.x and absf(at.z) <= map.definition.half_size.y
@@ -771,38 +914,102 @@ func skill_ground_at(screen: Vector2) -> Vector3:
 	return hit
 
 func upgrade_selected() -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or selected.level >= selected.max_level or selected.is_constructing:
+	if selected == null:
 		return
-	var cost: int = selected.upgrade_cost
-	if selected.available_population < cost:
-		hud.notify("升级需要 %d 名未编入出发队列的驻军" % cost)
-		audio.play_ui(&"war_denied")
-		return
-	selected.population -= cost
-	selected.begin_construction(-1, cost)
-	selected.refresh_visual()
-	audio.play_world(&"war_rebuild", selected.global_position)
-	hud.notify("%s开始升级 · 10 秒后完成" % KIND_NAMES[selected.kind])
-	update_hud()
+	submit_player_command({"type": "upgrade", "building": selected.building_id})
 
 func convert_selected(kind: int) -> void:
-	if _local_menu or finished or selected == null or selected.faction != PLAYER or kind not in [0, 1, 2] or selected.kind == kind or selected.is_constructing:
+	if selected == null:
 		return
-	if selected.available_population < CONVERSION_COST:
-		hud.notify("改建需要 %d 名未编入出发队列的驻军" % CONVERSION_COST)
-		audio.play_ui(&"war_denied")
-		return
-	selected.population -= CONVERSION_COST
-	selected.begin_construction(kind, CONVERSION_COST)
-	selected.refresh_visual()
-	audio.play_world(&"war_rebuild", selected.global_position)
-	hud.notify("开始改建%s · 10 秒后完成" % KIND_NAMES[kind])
+	submit_player_command({"type": "convert", "building": selected.building_id, "kind": kind})
+
+func begin_building_construction(building: WarBuilding, kind: int, faction: int) -> bool:
+	if not is_authority() or finished or is_rule_paused() or building == null or building.faction != faction or building.is_constructing:
+		return false
+	if kind == -1:
+		if building.level >= building.max_level:
+			return false
+	elif kind not in [0, 1, 2] or building.kind == kind:
+		return false
+	var cost: int = building.upgrade_cost if kind == -1 else CONVERSION_COST
+	if building.available_population < cost:
+		if faction == local_faction:
+			hud.notify("%s需要 %d 名未编入出发队列的驻军" % ["升级" if kind == -1 else "改建", cost])
+			audio.play_ui(&"war_denied")
+		return false
+	building.population -= cost
+	building.begin_construction(kind, cost)
+	building.refresh_visual()
+	audio.play_world(&"war_rebuild", building.global_position)
+	presentation_event.emit("construction", {"building": building.building_id, "faction": faction, "kind": kind})
+	if faction == local_faction:
+		hud.notify("%s开始升级 · 10 秒后完成" % KIND_NAMES[building.kind] if kind == -1 else "开始改建%s · 10 秒后完成" % KIND_NAMES[kind])
 	update_hud()
+	return true
+
+func submit_player_command(command: Dictionary) -> Dictionary:
+	if _local_menu or finished or _closing:
+		return {"accepted": false, "reason": "input_blocked"}
+	if network_match != null:
+		return network_match.submit(command)
+	return execute_network_command(local_faction, command)
+
+static func _integer_fields(command: Dictionary, fields: Array) -> bool:
+	# JSON transports represent integral numbers as doubles. Accept only finite,
+	# exact 32-bit integers so booleans, strings, fractions and overflow cannot
+	# silently turn into somebody else's building/skill identifier.
+	for field: String in fields:
+		var value: Variant = command.get(field)
+		if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
+			return false
+		if not is_finite(float(value)) or absf(float(value)) > 2147483647.0 or float(value) != floorf(float(value)):
+			return false
+	return true
+
+func execute_network_command(faction: int, command: Dictionary) -> Dictionary:
+	if not is_authority():
+		return {"accepted": false, "reason": "not_authority"}
+	if finished or is_rule_paused() or _closing:
+		return {"accepted": false, "reason": "match_not_running"}
+	if faction < 0 or faction >= faction_count:
+		return {"accepted": false, "reason": "invalid_faction"}
+	var accepted := false
+	var count := 0
+	match command.get("type", ""):
+		"dispatch":
+			if not _integer_fields(command, ["source", "target", "percent"]):
+				return {"accepted": false, "reason": "invalid_command"}
+			count = issue_order(by_id.get(int(command.source)), by_id.get(int(command.target)), int(command.percent), faction)
+			accepted = count > 0
+		"upgrade", "convert":
+			var converting: bool = command.type == "convert"
+			if not _integer_fields(command, ["building", "kind"] if converting else ["building"]):
+				return {"accepted": false, "reason": "invalid_command"}
+			if converting and int(command.kind) not in [0, 1, 2]:
+				return {"accepted": false, "reason": "invalid_command"}
+			accepted = begin_building_construction(by_id.get(int(command.building)), int(command.kind) if converting else -1, faction)
+		"skill_building":
+			if not _integer_fields(command, ["skill", "target"]):
+				return {"accepted": false, "reason": "invalid_command"}
+			accepted = cast_skill(int(command.skill), by_id.get(int(command.target)), faction)
+		"skill_ground":
+			if not _integer_fields(command, ["skill"]) or typeof(command.get("x")) not in [TYPE_INT, TYPE_FLOAT] or typeof(command.get("z")) not in [TYPE_INT, TYPE_FLOAT]:
+				return {"accepted": false, "reason": "invalid_command"}
+			accepted = cast_ground_skill(int(command.skill), Vector3(float(command.x), 0.0, float(command.z)), faction)
+		_:
+			return {"accepted": false, "reason": "invalid_command"}
+	return {"accepted": accepted, "reason": "" if accepted else "rule_rejected", "count": count}
 
 func _ai_turn() -> void:
-	_ai_strategy.take_turn(self)
-	for strategy: RefCounted in _other_ai:
-		strategy.take_turn(self)
+	if not is_authority() or is_rule_paused():
+		return
+	if match_config.is_empty():
+		_ai_strategy.take_turn(self)
+		for strategy: RefCounted in _other_ai:
+			strategy.take_turn(self)
+		return
+	for faction: int in _bot_factions:
+		_ai_by_faction[faction].take_turn(self)
 
 func team_total_for(faction: int) -> int:
 	var count: float = marches.team_total_for(faction)
@@ -831,8 +1038,8 @@ func total_for(faction: int) -> int:
 func _check_victory() -> void:
 	if finished:
 		return
-	var remaining: Array[bool] = [marches.team_total_for(PLAYER) > 0, marches.team_total_for(ENEMY) > 0]
-	var can_make_progress: bool = remaining[PLAYER] or remaining[ENEMY]
+	var remaining: Array[bool] = [false, false]
+	var can_make_progress := false
 	for building: Node3D in buildings:
 		if building.faction < 0:
 			continue
@@ -841,6 +1048,14 @@ func _check_victory() -> void:
 		# leaving one doorway. An existing or unfinished residence can still grow it.
 		if building.kind == 0 or building.conversion_target == 0 or floori(building.population) >= 1:
 			can_make_progress = true
+	# Living productive buildings already prove that ordinary battles continue.
+	# Only inspect marching armies when elimination/stalemate is possible.
+	if remaining[PLAYER] and remaining[ENEMY] and can_make_progress:
+		return
+	for unit: WarMarches.MarchUnit in marches._units:
+		remaining[unit.order.faction % 2] = true
+		can_make_progress = true
+		if remaining[PLAYER] and remaining[ENEMY]: return
 	# Resolve elimination before asking whether the remaining armies are stuck.
 	if not remaining[PLAYER] and not remaining[ENEMY]:
 		_finish_match(-1)
@@ -853,6 +1068,7 @@ func _check_victory() -> void:
 
 func _finish_match(winner: int) -> void:
 	finished = true
+	winner_team = winner
 	_local_menu = true
 	_cancel_drag()
 	camera_rig.dragging = false
@@ -860,14 +1076,15 @@ func _finish_match(winner: int) -> void:
 	if winner < 0:
 		hud.show_draw()
 	else:
-		hud.show_result(winner == PLAYER)
+		hud.show_result(winner == local_team)
 	audio.set_world_paused(true)
 	world_effects.set_running(false)
 	map.set_visual_paused(true)
 	for building: Node3D in buildings:
 		building.set_visual_paused(true)
 	if winner >= 0:
-		audio.play_ui(&"war_victory" if winner == PLAYER else &"war_defeat")
+		audio.play_ui(&"war_victory" if winner == local_team else &"war_defeat")
+	presentation_event.emit("result", {"winner": winner})
 	update_hud()
 
 func update_hud() -> void:
@@ -875,9 +1092,22 @@ func update_hud() -> void:
 		return
 	var faction_totals: Array[int] = []
 	var morale_stars: Array[float] = []
+	var faction_names: Array[String] = []
+	# One population census serves all six factions and both team totals. Keep
+	# fractions until the final team floor, matching the simulation's accounting.
+	var populations := PackedFloat64Array()
+	populations.resize(FACTIONS.COLORS.size())
+	for unit: WarMarches.MarchUnit in marches._units:
+		populations[unit.order.faction] += 1.0
+	for building: WarBuilding in buildings:
+		if building.faction >= 0: populations[building.faction] += building.available_population
+	var team_populations := PackedFloat64Array([0.0, 0.0])
+	for faction: int in populations.size():
+		team_populations[faction % 2] += populations[faction]
 	for faction: int in faction_count:
-		faction_totals.append(total_for(faction))
+		faction_totals.append(floori(populations[faction]))
 		morale_stars.append(morale.stars(faction))
+		faction_names.append(faction_name(faction))
 	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升所属军团攻击"
 	if selected != null:
 		match selected.kind:
@@ -893,28 +1123,29 @@ func update_hud() -> void:
 		if selected.queued_population > 0:
 			detail += " · 待出发 %d · 可用 %d" % [selected.queued_population, floori(selected.available_population)]
 		if selected.faction >= 0 and faction_count > 2:
-			detail = "%s · %s" % [FACTIONS.NAMES[selected.faction], detail]
-			if FACTIONS.allied(selected.faction, PLAYER) and selected.faction != PLAYER:
+			detail = "%s · %s" % [faction_name(selected.faction), detail]
+			if FACTIONS.allied(selected.faction, local_faction) and selected.faction != local_faction:
 				detail += " · 增援抵达后归队友指挥"
-	hud.update_state({"player_total": team_total_for(PLAYER), "enemy_total": team_total_for(ENEMY), "time": elapsed,
-		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars,
+	hud.update_state({"player_total": floori(team_populations[local_team]), "enemy_total": floori(team_populations[1 - local_team]), "time": elapsed,
+		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
+		"online": not match_config.is_empty(), "enemy_role": _enemy_role(),
 		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
 		"send_count": dispatch_count(selected, percentage) if selected != null else 0,
 		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
 		"selected_available_population": floori(selected.available_population) if selected != null else 0,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
-		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_RULES.costs_for(faction_skills[PLAYER].commander),
-		"commander": faction_skills[PLAYER].commander, "enemy_commander": faction_skills[ENEMY].commander,
-		"skill_target_types": ["ground", "building", "ground", "building"] if faction_skills[PLAYER].commander == SKILL_RULES.RABBIT else ["building", "ground", "building", "ground"], "ground_skill_radius": skill_radius(armed_skill),
-		"forges": forge_count(PLAYER), "selected_owned": selected != null and selected.faction == PLAYER,
+		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_RULES.costs_for(faction_skills[local_faction].commander),
+		"commander": faction_skills[local_faction].commander, "enemy_commander": faction_skills[opponent_faction()].commander,
+		"skill_target_types": ["ground", "building", "ground", "building"] if faction_skills[local_faction].commander == SKILL_RULES.RABBIT else ["building", "ground", "building", "ground"], "ground_skill_radius": skill_radius(armed_skill),
+		"forges": forge_count(local_faction), "selected_owned": selected != null and selected.faction == local_faction,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
 		"selected_max_level": selected.max_level if selected != null else 4,
 		"construction_remaining": selected.construction_remaining if selected != null else 0.0,
 		"conversion_target": selected.conversion_target if selected != null else -1,
 		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": CONVERSION_COST,
-		"can_upgrade": selected != null and selected.faction == PLAYER and not selected.is_constructing and selected.level < selected.max_level and selected.available_population >= selected.upgrade_cost})
+		"can_upgrade": selected != null and selected.faction == local_faction and not selected.is_constructing and selected.level < selected.max_level and selected.available_population >= selected.upgrade_cost})
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:
@@ -925,11 +1156,12 @@ func set_paused(value: bool) -> void:
 	_cancel_drag()
 	camera_rig.dragging = false
 	_cancel_skill_drag()
-	audio.set_world_paused(value)
-	world_effects.set_running(not value)
-	map.set_visual_paused(value)
+	var pause_world := is_rule_paused()
+	audio.set_world_paused(pause_world)
+	world_effects.set_running(not pause_world)
+	map.set_visual_paused(pause_world)
 	for building: Node3D in buildings:
-		building.set_visual_paused(value)
+		building.set_visual_paused(pause_world)
 	hud.set_paused(value)
 	update_hud()
 
@@ -937,8 +1169,11 @@ func restart() -> void:
 	if _closing:
 		return
 	get_node("/root/Session/UIFeedback").play(&"order")
-	await prepare_shutdown()
-	get_node("/root/Session").change_scene("res://scenes/block_war/block_war.tscn")
+	if not match_config.is_empty():
+		get_node("/root/Session").back_to_online_room()
+	else:
+		await prepare_shutdown()
+		get_node("/root/Session").change_scene("res://scenes/block_war/block_war.tscn")
 
 func exit_to_lobby() -> void:
 	if _closing:
@@ -1003,7 +1238,7 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_LEFT and drag_source != null:
 			var target: Node3D = pick_building(event.position) if not hud.is_pointer_blocked(event.position) else null
 			if target != null and target != drag_source and event.position.distance_to(_drag_start) > 6.0:
-				issue_order(drag_source, target, percentage)
+				submit_player_command({"type": "dispatch", "source": drag_source.building_id, "target": target.building_id, "percent": percentage})
 			elif target == drag_source and event.position.distance_to(_drag_start) <= 6.0:
 				audio.play_ui(&"war_select")
 			_cancel_drag()
@@ -1047,7 +1282,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var building: Node3D = pick_building(event.position)
 			select_building(building)
 			if building != null:
-				if building.faction == PLAYER:
+				if building.faction == local_faction:
 					drag_source = building
 					_drag_start = event.position
 					hovered = null

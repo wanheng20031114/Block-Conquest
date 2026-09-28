@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://server/relay_bootstrap.gd" id="1_boot"]
+[ext_resource type="Script" path="res://server/war_relay_server.gd" id="2_relay"]
+
+[node name="BlockConquestRelay" type="Node"]
+script = ExtResource("1_boot")
+
+[node name="RelayServer" type="Node" parent="."]
+script = ExtResource("2_relay")

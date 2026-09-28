@@ -21,7 +21,7 @@ func _init(controlled_faction: int = 1) -> void:
 	_skills = SKILL_TACTICS.new(faction)
 
 func take_turn(game: Node3D) -> void:
-	if game.finished or game._local_menu:
+	if game.finished or game.is_rule_paused():
 		return
 	_skills.take_turn(game)
 	_reserves.clear()
@@ -68,11 +68,7 @@ func take_turn(game: Node3D) -> void:
 			return
 	if not development.is_empty() and (expansion.is_empty() or development.score >= expansion.score):
 		var building: WarBuilding = development.building
-		building.population -= development.cost
-		building.begin_construction(development.kind, development.cost)
-		building.refresh_visual()
-		game.audio.play_world(&"war_rebuild", building.global_position)
-		game.update_hud()
+		game.begin_building_construction(building, development.kind, faction)
 		return
 	if not expansion.is_empty():
 		game.issue_order(expansion.source, expansion.target, expansion.percent, faction)

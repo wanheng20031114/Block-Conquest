@@ -20,6 +20,7 @@ const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTION_COLORS: Array[Color] = FACTIONS.COLORS
 
 class MarchOrder extends RefCounted:
+	var order_id := 0
 	var source_id: int
 	var target_id: int
 	var faction: int
@@ -36,6 +37,7 @@ class MarchOrder extends RefCounted:
 		return curve.sample_baked(length - distance if returning else distance)
 
 class MarchUnit extends RefCounted:
+	var unit_id := 0
 	var alive := true
 	var reserved := false
 	var intercepted_by := -1
@@ -43,6 +45,8 @@ class MarchUnit extends RefCounted:
 	var distance: float
 	var lane: float
 	var position: Vector3
+	# Client-only interpolation; never enters simulation snapshots or targeting.
+	var presentation_offset := Vector3.ZERO
 	var heading: Vector3 = Vector3.FORWARD
 	var gait: float
 	var spawn_delay := 0.0
@@ -65,6 +69,8 @@ var slow_zones: Dictionary[int, Dictionary] = {}
 var weak_zones: Dictionary[int, Dictionary] = {}
 var blocked_destinations: Dictionary[int, int] = {}
 var _departure_sequence := 0
+var _next_order_id := 1
+var _next_unit_id := 1
 var morale_speed := PackedFloat64Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
 func base_speed(faction: int) -> float:
@@ -80,6 +86,8 @@ func _make_order(source_id: int, target_id: int, faction: int, route: PackedVect
 	assert(route.size() >= 2, "A march needs a source and destination in its route.")
 	assert(faction >= 0 and faction < FACTION_COLORS.size(), "Unknown marching faction.")
 	var order := MarchOrder.new()
+	order.order_id = _next_order_id
+	_next_order_id += 1
 	order.source_id = source_id
 	order.target_id = target_id
 	order.faction = faction
@@ -125,6 +133,8 @@ func _send(source_id: int, target_id: int, faction: int, count: int, route: Pack
 	var columns := mini(COLUMNS, count)
 	for index: int in count:
 		var unit := MarchUnit.new()
+		unit.unit_id = _next_unit_id
+		_next_unit_id += 1
 		unit.order = order
 		unit.pending_departure = from_garrison
 		unit.departure_sequence = _departure_sequence
@@ -186,6 +196,8 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 	departure_queue_changed.emit(source_id, faction, count)
 	for index: int in count:
 		var unit := MarchUnit.new()
+		unit.unit_id = _next_unit_id
+		_next_unit_id += 1
 		unit.order = order
 		unit.pending_departure = true
 		unit.departure_sequence = _departure_sequence
@@ -204,6 +216,8 @@ func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route
 	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
 	for index: int in count:
 		var unit := MarchUnit.new()
+		unit.unit_id = _next_unit_id
+		_next_unit_id += 1
 		unit.order = order
 		unit.distance = order.departure_distance
 		unit.lane = (float(index % COLUMNS) - 2.5) * COLUMN_SPACING
@@ -230,6 +244,10 @@ func return_order(outbound: MarchOrder) -> MarchOrder:
 func redirect(unit: MarchUnit, order: MarchOrder) -> void:
 	assert(unit.is_exposed())
 	assert(order.returning and order.curve == unit.order.curve)
+	# Aiming must not consume identities. Register a return order on first use.
+	if order.order_id == 0:
+		order.order_id = _next_order_id
+		_next_order_id += 1
 	# Mirror travel, not the squad's world positions. Rank spacing, files and the
 	# actual soldier objects (including projectile locks/statuses) stay intact.
 	unit.distance = order.length - unit.distance
@@ -585,6 +603,10 @@ func movement_distance(unit: MarchUnit, delta: float) -> float:
 	var concealed_time := minf(delta, maxf(unit.spawn_delay, unit.levitation_remaining))
 	delta -= concealed_time
 	var rushing := minf(delta, maxf(0.0, unit.rush_remaining - concealed_time))
+	# The ordinary case has no spatial crossings. Integrate the boost's expiry
+	# directly, avoiding two field-segment walks for every soldier each tick.
+	if slow_zones.is_empty() and not haste_zones.has(unit.order.faction):
+		return base_speed(unit.order.faction) * (delta + rushing * (RULES.RABBIT_RUSH_MULTIPLIER - 1.0))
 	var zone_time := 0.0
 	if haste_zones.has(unit.order.faction):
 		zone_time = maxf(0.0, haste_zones[unit.order.faction].remaining - concealed_time)
@@ -776,7 +798,7 @@ func _render() -> void:
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)
 		var mesh := _cloaked_mesh if unit.cloaked else _multimesh
 		var index := cloaked_slot if unit.cloaked else slot
-		mesh.set_instance_transform(index, Transform3D(basis, unit.position + Vector3(0, 0.035, 0)))
+		mesh.set_instance_transform(index, Transform3D(basis, unit.position + unit.presentation_offset + Vector3(0, 0.035, 0)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		color.a = -(unit.gait + 1.0) if unit.rush_remaining > 0.0 else unit.gait
 		mesh.set_instance_custom_data(index, color)

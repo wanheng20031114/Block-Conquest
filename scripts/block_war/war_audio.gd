@@ -35,12 +35,15 @@ func tick_marches(delta: float, marches: WarMarches) -> void:
 	# A stalled frame emits one group, never a backlog of individual footsteps.
 	_march_elapsed = fmod(_march_elapsed, MARCH_INTERVAL)
 	var groups: Dictionary = {}
-	for unit: Dictionary in marches.get_units():
+	# Read native march records; producing a temporary dictionary for every
+	# soldier caused an audible-frame CPU spike in large multiplayer armies.
+	for unit: WarMarches.MarchUnit in marches._units:
+		if not unit.is_exposed(): continue
 		var at: Vector3 = unit.position
 		var distance_squared := _listener.global_position.distance_squared_to(at)
 		if distance_squared > 72.0 * 72.0 or not _camera.is_position_in_frustum(at):
 			continue
-		var key := Vector3i(unit.source_id, unit.target_id, unit.faction)
+		var key := Vector3i(unit.order.source_id, unit.order.target_id, unit.order.faction)
 		if not groups.has(key) or distance_squared < float(groups[key].distance_squared):
 			groups[key] = {"position": at, "distance_squared": distance_squared}
 	if groups.is_empty():

@@ -147,6 +147,7 @@ func fire_orb(game: Node3D, building: WarBuilding) -> void:
 	var origin := building.global_position + Vector3(0, 6.1, 0)
 	shots.append({"target": target, "origin": origin, "position": origin, "previous": origin,
 		"to": target.position + Vector3.UP * 0.65, "age": 0.0, "duration": clampf(origin.distance_to(target.position) / 38.0, 0.09, 0.42)})
+	game.presentation_event.emit("bear_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": game._vector_values(origin), "to": game._vector_values(target.position + Vector3.UP * 0.65), "duration": shots[-1].duration})
 	wards[building.building_id].pulse = 1.0
 
 func tick_projectiles(game: Node3D, delta: float) -> void:

@@ -112,11 +112,28 @@ func _run() -> void:
 	_check(_arrived.size() == 4200 and marches.total_for(0) == 0, "Expanded capacity preserves all 4200 independent arrivals")
 	marches.clear()
 	_arrived.clear()
-	# Shore turns sit 2.2m from the ravine edges: the map requires 2.1m for
-	# a 1.40m outer lane plus the rotated enlarged militia mesh (about 0.63m).
-	# This deliberately includes right-angle approach/departure turns at both bridges.
+	# Derive both bridge centers and shore turns from the current authored terrain.
+	# The inner bays extend beyond the main rivers, so their banks also need the
+	# full 2.1m allowance for the 1.40m outer lane and rotated enlarged militia.
+	# Keep right-angle approach/departure turns at both bridges to stress the mesh.
+	var definition := preload("res://data/block_war/maps/rift.tres")
+	var left_bridge: Rect2 = definition.bridges.filter(func(bridge: Rect2) -> bool: return bridge.get_center().x < 0.0 and bridge.get_center().y > 0.0)[0]
+	var right_bridge: Rect2 = definition.bridges.filter(func(bridge: Rect2) -> bool: return bridge.get_center().x > 0.0 and bridge.get_center().y < 0.0)[0]
+	var left_inner := left_bridge.end.x
+	var right_inner := right_bridge.position.x
+	for water: Rect2 in definition.water_regions:
+		if water.get_center().x < 0.0:
+			left_inner = maxf(left_inner, water.end.x)
+		elif water.get_center().x > 0.0:
+			right_inner = minf(right_inner, water.position.x)
 	var shore_margin := MAP_RULES.FORMATION_CLEARANCE + 0.1
-	var bridge_route := PackedVector3Array([Vector3(-25, 0, 5), Vector3(-15 - shore_margin, 0, 5), Vector3(-15 - shore_margin, 0, 14), Vector3(-9 + shore_margin, 0, 14), Vector3(-9 + shore_margin, 0, 3), Vector3(9 - shore_margin, 0, 3), Vector3(9 - shore_margin, 0, -14), Vector3(15 + shore_margin, 0, -14), Vector3(25, 0, -14)])
+	var left_outer := left_bridge.position.x - shore_margin
+	var right_outer := right_bridge.end.x + shore_margin
+	left_inner += shore_margin
+	right_inner -= shore_margin
+	var left_z := left_bridge.get_center().y
+	var right_z := right_bridge.get_center().y
+	var bridge_route := PackedVector3Array([Vector3(-25, 0, 5), Vector3(left_outer, 0, 5), Vector3(left_outer, 0, left_z), Vector3(left_inner, 0, left_z), Vector3(left_inner, 0, 3), Vector3(right_inner, 0, 3), Vector3(right_inner, 0, right_z), Vector3(right_outer, 0, right_z), Vector3(25, 0, right_z)])
 	marches.send(0, 1, 0, 84, bridge_route)
 	var left_road := false
 	var bad_width := false
@@ -152,13 +169,13 @@ func _run() -> void:
 			slot += 1
 			for point: Vector3 in footprint:
 				var p := pose * point
-				if p.x > -15.0 and p.x < -9.0:
+				var ground := Vector2(p.x, p.z)
+				left_road = left_road or not definition.is_walkable(ground)
+				if left_bridge.has_point(ground):
 					bridges_seen[0] = true
-					left_road = left_road or not preload("res://data/block_war/maps/rift.tres").is_walkable(Vector2(p.x, p.z))
-				if p.x > 9.0 and p.x < 15.0:
+				if right_bridge.has_point(ground):
 					bridges_seen[1] = true
-					left_road = left_road or not preload("res://data/block_war/maps/rift.tres").is_walkable(Vector2(p.x, p.z))
-	_check(not left_road, "Entire outer files stay on the bridges instead of cutting ravine corners")
+	_check(not left_road, "Entire outer files stay on walkable terrain through bridges, shore turns and inner bays")
 	_check(not bad_width, "Formation never exceeds the map's clearance budget")
 	_check(bridges_seen[0] and bridges_seen[1] and _arrived.size() == 84, "All 84 soldiers traverse both bridges and are independently absorbed")
 	marches.clear()

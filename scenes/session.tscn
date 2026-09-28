@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/session.gd" id="session"]
 [ext_resource type="PackedScene" path="res://scenes/settings_menu.tscn" id="settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ui_transition.tscn" id="transition"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ui_feedback.tscn" id="feedback"]
+[ext_resource type="Script" path="res://scripts/network/war_online.gd" id="online"]
 
 [node name="Session" type="Node"]
 process_mode = 3
@@ -14,3 +15,6 @@ script = ExtResource("session")
 [node name="Transition" parent="." instance=ExtResource("transition")]
 
 [node name="UIFeedback" parent="." instance=ExtResource("feedback")]
+
+[node name="Online" type="Node" parent="."]
+script = ExtResource("online")

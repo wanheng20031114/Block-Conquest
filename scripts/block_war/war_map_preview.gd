@@ -10,6 +10,8 @@ const PAPER := Color("eee8cf")
 const DEFAULT_HINT := "悬停据点查看归属与类型 · 带编号的据点为各玩家出生点"
 var definition: Resource
 var hovered_building := -1
+var local_faction := 0
+var seat_names: Dictionary = {}
 var _paper := StyleBoxFlat.new()
 var _shadow := StyleBoxFlat.new()
 
@@ -57,7 +59,7 @@ func _gui_input(event: InputEvent) -> void:
 		inspected.emit(DEFAULT_HINT)
 	else:
 		var faction: int = definition.building_factions[closest]
-		var owner_name: String = "中立" if faction < 0 else FACTIONS.NAMES[faction]
+		var owner_name: String = "中立" if faction < 0 else str(seat_names.get(faction, FACTIONS.NAMES[faction]))
 		inspected.emit("%s · %s%s" % [owner_name, KIND_NAMES[definition.building_kinds[closest]], " · 出生据点" if faction >= 0 else " · 可争夺"])
 	queue_redraw()
 
@@ -197,7 +199,7 @@ func _draw_building(index: int) -> void:
 		var number := str(faction + 1)
 		var text_width := font.get_string_size(number, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 		draw_string(font, at + Vector2(-text_width / 2.0, 5), number, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, INK)
-		if faction == 0:
+		if faction == local_faction:
 			draw_arc(at, radius + 6, 0, TAU, 40, Color("fff0ac"), 2, true)
 		return
 	var kind: int = definition.building_kinds[index]

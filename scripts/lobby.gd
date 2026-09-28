@@ -12,6 +12,7 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = true
 	%Version.text = "v%s" % ProjectSettings.get_setting("application/config/version")
 	%BlockWarMode.pressed.connect(_start)
+	%OnlineMode.pressed.connect(_start_online)
 	%Codex.pressed.connect(_open_codex)
 	%Settings.pressed.connect(session.settings.open_menu)
 	%Quit.pressed.connect(_quit)
@@ -48,6 +49,14 @@ func _open_codex() -> void:
 	if session.change_scene("res://scenes/codex/codex.tscn") != OK:
 		_set_presentation_active(true)
 		_show_error("图鉴暂时无法打开，请检查游戏文件后重试。")
+
+func _start_online() -> void:
+	if session.settings.is_open() or session.transition.busy:
+		return
+	_set_presentation_active(false)
+	if session.start_online() != OK:
+		_set_presentation_active(true)
+		_show_error("联机大厅暂时无法打开，请检查游戏文件后重试。")
 
 func _set_presentation_active(value: bool) -> void:
 	_presentation_active = value

@@ -1,0 +1,12 @@
+config_version=5
+
+[application]
+config/name="积木战争中继"
+config/version="1.1.0"
+run/main_scene="res://server/relay.tscn"
+config/features=PackedStringArray("4.6")
+run/max_fps=120
+run/flush_stdout_on_print=true
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

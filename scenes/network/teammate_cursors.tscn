@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/network/war_teammate_cursors.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/network/remote_pointer.tscn" id="pointer"]
+
+[node name="TeammateCursors" type="CanvasLayer"]
+layer = 19
+script = ExtResource("script")
+
+[node name="Pointers" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Seat0" parent="Pointers" instance=ExtResource("pointer")]
+
+[node name="Seat1" parent="Pointers" instance=ExtResource("pointer")]
+
+[node name="Seat2" parent="Pointers" instance=ExtResource("pointer")]
+
+[node name="Seat3" parent="Pointers" instance=ExtResource("pointer")]
+
+[node name="Seat4" parent="Pointers" instance=ExtResource("pointer")]
+
+[node name="Seat5" parent="Pointers" instance=ExtResource("pointer")]

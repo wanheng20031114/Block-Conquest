@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/block_war/hud.tscn" id="hud"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/audio.tscn" id="audio"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/war_effects.tscn" id="effects"]
+[ext_resource type="PackedScene" path="res://scenes/network/teammate_cursors.tscn" id="teammate_cursors"]
 
 [ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="woodland_daylight"]
 
@@ -42,6 +43,8 @@ light_angular_distance = 0.65
 [node name="Marches" parent="." instance=ExtResource("marches")]
 
 [node name="Effects" parent="." instance=ExtResource("effects")]
+
+[node name="TeammateCursors" parent="." instance=ExtResource("teammate_cursors")]
 
 [node name="CameraRig" type="Node3D" parent="."]
 position = Vector3(0, 0, 2)

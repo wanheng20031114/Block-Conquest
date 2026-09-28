@@ -11,8 +11,8 @@ def main():
     war = 'config/name="积木战争"' in config
     expected = "积木战争" if war else "Block-RTS"
     assert f'config/name="{expected}"' in config, "Unknown product identity"
-    forbidden = (["scripts/network", "scripts/rogue", "scripts/moba", "scripts/sandbox",
-                  "scenes/main.tscn", "scenes/rogue", "scenes/moba", "data/units", "server"]
+    forbidden = (["scripts/rogue", "scripts/moba", "scripts/sandbox",
+                  "scenes/main.tscn", "scenes/rogue", "scenes/moba", "data/units"]
                  if war else ["scripts/block_war", "scenes/block_war", "data/block_war",
                               "assets/block_war", "assets/models/block_war", "assets/ui/block_war",
                               "assets/audio/block_war"])

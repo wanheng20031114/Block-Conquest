@@ -1,0 +1,457 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/network/war_room.gd" id="script"]
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
+[ext_resource type="Shader" path="res://assets/ui/block_war/menu_backdrop.gdshader" id="backdrop"]
+[ext_resource type="Script" path="res://scripts/block_war/war_map_preview.gd" id="preview"]
+[ext_resource type="PackedScene" path="res://scenes/network/war_room_slot.tscn" id="seat"]
+[ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
+
+[sub_resource type="ShaderMaterial" id="Background"]
+shader = ExtResource("backdrop")
+
+[sub_resource type="StyleBoxFlat" id="Board"]
+bg_color = Color(0.18, 0.255, 0.224, 1)
+content_margin_left = 22.0
+content_margin_right = 22.0
+content_margin_top = 22.0
+content_margin_bottom = 22.0
+corner_radius_top_left = 24
+corner_radius_top_right = 28
+corner_radius_bottom_left = 28
+corner_radius_bottom_right = 24
+
+[sub_resource type="StyleBoxFlat" id="Entry"]
+bg_color = Color(0.972549, 0.964706, 0.921569, 1)
+content_margin_left = 36.0
+content_margin_right = 36.0
+content_margin_top = 28.0
+content_margin_bottom = 28.0
+corner_radius_top_left = 28
+corner_radius_top_right = 34
+corner_radius_bottom_left = 32
+corner_radius_bottom_right = 28
+
+[sub_resource type="StyleBoxFlat" id="Input"]
+bg_color = Color(1, 0.992157, 0.960784, 1)
+content_margin_left = 18.0
+content_margin_right = 18.0
+content_margin_top = 12.0
+content_margin_bottom = 12.0
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.66, 0.74, 0.69, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+
+[sub_resource type="StyleBoxFlat" id="InputFocus"]
+draw_center = false
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.46, 0.34, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+
+[node name="WarRoom" type="Control" groups=["animated_menu"]]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("theme")
+script = ExtResource("script")
+
+[node name="MenuEntrance" type="Node" parent="."]
+script = ExtResource("entrance")
+sections = Array[NodePath]([NodePath("Margin/Column/Header"), NodePath("Margin/Column/Body"), NodePath("Margin/Column/Footer")])
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+material = SubResource("Background")
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="VBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="Eyebrow" type="Label" parent="Margin/Column/Header/Heading"]
+layout_mode = 2
+text = "积木战争   /   多人联机"
+theme_type_variation = &"MenuMuted"
+theme_override_font_sizes/font_size = 16
+
+[node name="RoomHeading" type="Label" parent="Margin/Column/Header/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "与伙伴并肩，或一决高下。"
+theme_type_variation = &"MenuTitle"
+theme_override_font_sizes/font_size = 36
+
+[node name="Connection" type="Label" parent="Margin/Column/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "尚未连接"
+theme_type_variation = &"MenuMuted"
+vertical_alignment = 1
+
+[node name="Settings" type="Button" parent="Margin/Column/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(90, 44)
+size_flags_vertical = 4
+text = "设置"
+mouse_default_cursor_shape = 2
+
+[node name="Back" type="Button" parent="Margin/Column/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(90, 44)
+size_flags_vertical = 4
+text = "主菜单"
+theme_type_variation = &"MenuBack"
+mouse_default_cursor_shape = 2
+metadata/ui_sound = &"cancel"
+
+[node name="RoomBar" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RoomLabel" type="Label" parent="Margin/Column/RoomBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "创建房间，或输入朋友分享的房间码。"
+theme_override_font_sizes/font_size = 20
+
+[node name="Copy" type="Button" parent="Margin/Column/RoomBar"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "复制房间码"
+theme_override_font_sizes/font_size = 16
+mouse_default_cursor_shape = 2
+
+[node name="Leave" type="Button" parent="Margin/Column/RoomBar"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "离开房间"
+theme_override_font_sizes/font_size = 16
+mouse_default_cursor_shape = 2
+metadata/ui_sound = &"cancel"
+
+[node name="Body" type="ScrollContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Pages" type="VBoxContainer" parent="Margin/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Entry" type="CenterContainer" parent="Margin/Column/Body/Pages"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Paper" type="PanelContainer" parent="Margin/Column/Body/Pages/Entry"]
+layout_mode = 2
+custom_minimum_size = Vector2(700, 0)
+theme_override_styles/panel = SubResource("Entry")
+
+[node name="Form" type="VBoxContainer" parent="Margin/Column/Body/Pages/Entry/Paper"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+layout_mode = 2
+text = "集结你的指挥官"
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 28
+
+[node name="NameLabel" type="Label" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+layout_mode = 2
+text = "昵称"
+theme_type_variation = &"MenuMuted"
+
+[node name="Nickname" type="LineEdit" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+max_length = 16
+placeholder_text = "你的名字"
+theme_override_styles/normal = SubResource("Input")
+theme_override_styles/read_only = SubResource("Input")
+theme_override_styles/focus = SubResource("InputFocus")
+theme_override_colors/font_color = Color(0.21, 0.26, 0.22, 1)
+theme_override_colors/font_uneditable_color = Color(0.42, 0.48, 0.42, 1)
+theme_override_colors/font_placeholder_color = Color(0.48, 0.52, 0.46, 1)
+theme_override_colors/caret_color = Color(0.21, 0.36, 0.28, 1)
+theme_override_colors/selection_color = Color(0.74, 0.85, 0.68, 1)
+
+[node name="Create" type="Button" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
+text = "创建房间    →"
+theme_type_variation = &"MenuPrimary"
+mouse_default_cursor_shape = 2
+metadata/ui_sound = &"order"
+
+[node name="Divider" type="HSeparator" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+layout_mode = 2
+
+[node name="JoinLabel" type="Label" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+layout_mode = 2
+text = "已有房间？输入 6 位房间码"
+theme_type_variation = &"MenuMuted"
+
+[node name="JoinRow" type="HBoxContainer" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RoomCode" type="LineEdit" parent="Margin/Column/Body/Pages/Entry/Paper/Form/JoinRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+size_flags_horizontal = 3
+max_length = 6
+placeholder_text = "房间码"
+theme_override_styles/normal = SubResource("Input")
+theme_override_styles/read_only = SubResource("Input")
+theme_override_styles/focus = SubResource("InputFocus")
+theme_override_colors/font_color = Color(0.21, 0.26, 0.22, 1)
+theme_override_colors/font_uneditable_color = Color(0.42, 0.48, 0.42, 1)
+theme_override_colors/font_placeholder_color = Color(0.48, 0.52, 0.46, 1)
+theme_override_colors/caret_color = Color(0.21, 0.36, 0.28, 1)
+theme_override_colors/selection_color = Color(0.74, 0.85, 0.68, 1)
+
+[node name="Join" type="Button" parent="Margin/Column/Body/Pages/Entry/Paper/Form/JoinRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(160, 52)
+text = "加入房间"
+mouse_default_cursor_shape = 2
+metadata/ui_sound = &"order"
+
+[node name="Hint" type="Label" parent="Margin/Column/Body/Pages/Entry/Paper/Form"]
+layout_mode = 2
+text = "支持 1v1、2v2、3v3 · 电脑可填入任意空位\n队友可看见彼此在战场上的鼠标。"
+theme_type_variation = &"MenuMuted"
+theme_override_font_sizes/font_size = 16
+
+[node name="Room" type="HBoxContainer" parent="Margin/Column/Body/Pages"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="MapBoard" type="PanelContainer" parent="Margin/Column/Body/Pages/Room"]
+layout_mode = 2
+custom_minimum_size = Vector2(460, 0)
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.85
+theme_override_styles/panel = SubResource("Board")
+
+[node name="MapColumn" type="VBoxContainer" parent="Margin/Column/Body/Pages/Room/MapBoard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MapCaption" type="Label" parent="Margin/Column/Body/Pages/Room/MapBoard/MapColumn"]
+layout_mode = 2
+text = "选择战场"
+theme_type_variation = &"MenuHeading"
+theme_override_colors/font_color = Color(0.97, 0.945, 0.81, 1)
+theme_override_font_sizes/font_size = 25
+
+[node name="MapChoice" type="OptionButton" parent="Margin/Column/Body/Pages/Room/MapBoard/MapColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+theme_override_font_sizes/font_size = 18
+mouse_default_cursor_shape = 2
+fit_to_longest_item = false
+
+[node name="MapFacts" type="Label" parent="Margin/Column/Body/Pages/Room/MapBoard/MapColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "1v1  ·  13 座据点"
+theme_override_colors/font_color = Color(0.74, 0.80, 0.68, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="Preview" type="Control" parent="Margin/Column/Body/Pages/Room/MapBoard/MapColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 260)
+size_flags_vertical = 3
+script = ExtResource("preview")
+
+[node name="Inspection" type="Label" parent="Margin/Column/Body/Pages/Room/MapBoard/MapColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "悬停据点查看归属与类型"
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.85, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="MapDescription" type="Label" parent="Margin/Column/Body/Pages/Room/MapBoard/MapColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "地形说明"
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.90, 0.90, 0.78, 1)
+theme_override_font_sizes/font_size = 17
+
+[node name="Teams" type="HBoxContainer" parent="Margin/Column/Body/Pages/Room"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.55
+theme_override_constants/separation = 16
+
+[node name="TeamA" type="VBoxContainer" parent="Margin/Column/Body/Pages/Room/Teams"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Margin/Column/Body/Pages/Room/Teams/TeamA"]
+layout_mode = 2
+text = "金叶队   /   01 · 03 · 05"
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 21
+
+[node name="Seat0" parent="Margin/Column/Body/Pages/Room/Teams/TeamA" instance=ExtResource("seat")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Seat2" parent="Margin/Column/Body/Pages/Room/Teams/TeamA" instance=ExtResource("seat")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Seat4" parent="Margin/Column/Body/Pages/Room/Teams/TeamA" instance=ExtResource("seat")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TeamB" type="VBoxContainer" parent="Margin/Column/Body/Pages/Room/Teams"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Margin/Column/Body/Pages/Room/Teams/TeamB"]
+layout_mode = 2
+text = "青溪队   /   02 · 04 · 06"
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 21
+
+[node name="Seat1" parent="Margin/Column/Body/Pages/Room/Teams/TeamB" instance=ExtResource("seat")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Seat3" parent="Margin/Column/Body/Pages/Room/Teams/TeamB" instance=ExtResource("seat")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Seat5" parent="Margin/Column/Body/Pages/Room/Teams/TeamB" instance=ExtResource("seat")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="RoomFooter" type="VBoxContainer" parent="Margin/Column"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoomHint" type="Label" parent="Margin/Column/RoomFooter"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "邀请朋友，或由房主补入电脑。"
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="Margin/Column/RoomFooter"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Fill" type="Button" parent="Margin/Column/RoomFooter/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(180, 52)
+text = "空位补电脑"
+mouse_default_cursor_shape = 2
+
+[node name="Spacer" type="Control" parent="Margin/Column/RoomFooter/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Ready" type="Button" parent="Margin/Column/RoomFooter/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(210, 52)
+text = "准备就绪"
+theme_type_variation = &"MenuPrimary"
+mouse_default_cursor_shape = 2
+
+[node name="Start" type="Button" parent="Margin/Column/RoomFooter/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(240, 52)
+text = "开始战争    →"
+theme_type_variation = &"MenuPrimary"
+mouse_default_cursor_shape = 2
+metadata/ui_sound = &"order"
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+
+[node name="Message" type="Label" parent="Margin/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 24)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.55, 0.31, 0.21, 1)
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 2
+
+[node name="Privacy" type="Label" parent="Margin/Column/Footer"]
+layout_mode = 2
+text = "鼠标仅队友可见"
+theme_type_variation = &"MenuMuted"
+theme_override_font_sizes/font_size = 15

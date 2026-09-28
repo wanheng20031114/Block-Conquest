@@ -1,0 +1,355 @@
+extends SceneTree
+## Pure relay model checks: authorization, fixed seats, barrier, expiry and privacy.
+
+const P := preload("res://scripts/network/war_protocol.gd")
+const Rooms := preload("res://server/war_relay_rooms.gd")
+var relay: RefCounted
+var output: Array[Dictionary] = []
+var closed: Array[int] = []
+var checks := 0
+var failures: Array[String] = []
+var clock := 1000
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+func check(condition: bool, description: String) -> void:
+	checks += 1
+	if not condition:
+		failures.append(description)
+		push_error(description)
+
+func reset() -> void:
+	relay = Rooms.new()
+	relay.content_hash = "test-content"
+	relay.outgoing.connect(func(peer: int, message: Dictionary, channel: int, reliable: bool): output.append({"peer": peer, "message": message.duplicate(true), "channel": channel, "reliable": reliable}))
+	relay.disconnect_peer.connect(func(peer: int): closed.append(peer))
+	output.clear()
+	closed.clear()
+	clock = 1000
+
+func connect_peer(peer: int, token: String = "", acknowledge: bool = true) -> void:
+	relay.connected(peer, clock)
+	request(peer, {"op": "hello", "version": P.VERSION, "content_hash": "test-content", "token": token})
+	if acknowledge and relay.connections.has(peer) and int(relay.connections[peer].player) > 0:
+		request(peer, {"op": "member_ack", "token": relay.players[int(relay.connections[peer].player)].token})
+
+func request(peer: int, message: Dictionary, channel: int = 0) -> void:
+	relay.receive(peer, message, channel, P.encode(message).size(), clock)
+
+func advance(milliseconds: int) -> void:
+	clock += milliseconds
+	for peer: int in relay.connections:
+		relay.connections[peer].last = clock
+	relay.tick(clock)
+
+func make_room(map_id: String = "rivers", peers: Array[int] = [11, 22, 33]) -> Dictionary:
+	connect_peer(peers[0])
+	request(peers[0], {"op": "create", "map_id": map_id, "name": "房主"})
+	var room: Dictionary = relay.rooms.values()[0]
+	for index: int in range(1, peers.size()):
+		connect_peer(peers[index])
+		request(peers[index], {"op": "join", "code": room.code, "name": "玩家%d" % index})
+	return room
+
+func start(room: Dictionary) -> void:
+	var host := int(relay.players[int(room.host_player_id)].peer)
+	for slot: Dictionary in room.slots:
+		if slot.kind == "open": request(host, {"op": "slot", "slot": slot.slot_id, "kind": "bot", "commander": "bear"})
+	for slot: Dictionary in room.slots:
+		if slot.kind == "human": request(int(relay.players[int(slot.player_id)].peer), {"op": "ready", "ready": true})
+	request(host, {"op": "start"})
+	for slot: Dictionary in room.slots:
+		if slot.kind == "human": request(int(relay.players[int(slot.player_id)].peer), {"op": "loaded", "match_id": room.match_id, "content_hash": "test-content"})
+	check(room.phase == "match", "fixture completes all-human load barrier")
+
+func messages(op: String, peer: int = -1) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for sent: Dictionary in output:
+		if sent.message.get("op") == op and (peer < 0 or sent.peer == peer): result.append(sent)
+	return result
+
+func _run() -> void:
+	_codec()
+	_rooms()
+	_barriers()
+	_routing()
+	_recovery()
+	_lifetime()
+	print("BLOCK_WAR_RELAY checks=%d failures=%d" % [checks, failures.size()])
+	quit(0 if failures.is_empty() else 1)
+
+func _codec() -> void:
+	var sample := {"op": "hello", "fraction": 0.125, "name": "中文", "data": [true, false, null, 12345]}
+	var decoded := P.decode(P.encode(sample))
+	check(decoded.op == sample.op and decoded.name == sample.name and decoded.fraction == 0.125 and decoded.data[0] == true and decoded.data[1] == false and decoded.data[2] == null and int(decoded.data[3]) == 12345, "primitive JSON roundtrip preserves Chinese, fractions and booleans")
+	check(P.encode({"object": Vector3.ZERO}).is_empty(), "Godot object/Vector values cannot enter wire protocol")
+	check(P.encode({"invalid": NAN}).is_empty() and P.encode({"invalid": INF}).is_empty(), "nonfinite numeric values rejected")
+	check(P.decode("[]".to_utf8_buffer()).is_empty(), "top-level packet must be object")
+	check(P.decode("{broken".to_utf8_buffer()).is_empty(), "malformed JSON rejected")
+	check(P.encode({"payload": "a".repeat(P.MAX_PACKET_BYTES)}).is_empty(), "encoded envelope enforces total byte limit")
+	var nested: Dictionary = {}
+	var head: Dictionary = nested
+	for _i: int in 20:
+		head["child"] = {}
+		head = head.child
+	check(P.encode(nested).is_empty(), "nesting budget rejects recursive resource exhaustion")
+	for value: Variant in [null, true, false, "1", NAN, INF, 1.1, -1]:
+		check(not P.integer(value, 0, 10), "integer guard rejects invalid type/fraction/nonfinite/boundary")
+	check(P.integer(1.0) and P.integer(2147483647) and not P.integer(2147483648), "JSON numeric IDs bounded and integral")
+	check(P.nickname("\n\t熊盾\u202e\u2066\r") == "熊盾", "nicknames strip controls and bidi overrides")
+	check(P.nickname(" ") == "指挥官" and P.nickname("熊".repeat(30)).length() == 20, "nickname fallback and length are bounded")
+	check(P.valid_code("ABC234") and not P.valid_code("ABC01I") and not P.valid_code("ABC23"), "room code alphabet and size validated")
+	check(P.MAP_SEATS == {"rift": 2, "lake": 2, "rivers": 4, "ridges": 4, "islands": 6, "highland": 6}, "all six authored maps keep fixed seat counts")
+	check(P.valid_match_channel("anchors", 4, false) and not P.valid_match_channel("anchors", 2, true), "anchors require unsequenced correction channel")
+	check(P.valid_match_channel("snapshot_chunk", 5, true) and P.valid_match_channel("command_result", 1, true), "snapshot and control channels are distinct")
+	var precise := {"state": [0.3333333333333333, 13.1234567891011, 0.000000000123456789, 4096.0, 1.0]}
+	check(JSON.stringify(precise, "", true, true) == JSON.stringify(P.decode(P.encode(precise)), "", true, true), "wire roundtrip preserves exact canonical floating-point digest")
+	check(P.decode(P.encode({"id": 4096})).id is float, "JSON integers decode as numeric floats; state digest must normalize numeric types")
+
+func _rooms() -> void:
+	reset()
+	var room := make_room("islands", [11, 22])
+	var host := int(room.host_player_id)
+	check(room.slots.size() == 6 and P.valid_code(room.code), "six-seat room and cryptographic code created")
+	request(11, {"op": "slot", "slot": 5, "kind": "bot", "commander": "frog"})
+	request(11, {"op": "move", "slot": 5})
+	check(room.host_player_id == host and room.slots[5].player_id == host and room.slots[5].faction_id == 5 and room.slots[5].team_id == 1, "host identity survives movement to nonzero enemy-team seat")
+	check(room.slots[0].kind == "bot" and room.slots[0].commander == "frog", "swapping host and bot retains bot role at seat zero")
+	request(22, {"op": "move", "slot": 4})
+	check(room.slots[4].kind == "human" and room.slots[1].kind == "open", "nonhost can move to an open fixed seat")
+	request(11, {"op": "slot", "slot": 4, "kind": "bot", "commander": "bear"})
+	check(room.slots[4].kind == "human", "host cannot overwrite occupied human seat")
+	request(11, {"op": "map", "map_id": "rift"})
+	check(room.map_id == "islands" and room.slots.size() == 6, "map shrink atomically rejected when humans would be displaced")
+	request(22, {"op": "ready", "ready": true})
+	request(11, {"op": "ready", "ready": true})
+	request(11, {"op": "commander", "commander": "bear"})
+	check(not room.slots[4].ready and not room.slots[5].ready and room.slots[5].commander == "bear", "commander mutation clears all-human readiness")
+	request(22, {"op": "slot", "slot": 2, "kind": "bot", "commander": "frog"})
+	check(room.slots[2].kind == "open", "nonhost cannot change bot roster")
+	request(22, {"op": "map", "map_id": "highland"})
+	check(room.map_id == "islands", "nonhost cannot select map")
+	request(22, {"op": "move", "slot": 5})
+	check(room.slots[5].player_id == host, "seat race cannot replace another human")
+	request(11, {"op": "move", "slot": 1})
+	request(22, {"op": "move", "slot": 0})
+	request(11, {"op": "map", "map_id": "lake"})
+	check(room.slots.size() == 2 and room.host_player_id == host and room.slots[1].player_id == host, "legal map shrink retains fixed human identities")
+	connect_peer(44)
+	request(44, {"op": "join", "code": room.code, "name": "溢出"})
+	check(relay.connections[44].player == -1, "full room does not allocate phantom identity")
+	for sent: Dictionary in messages("room"):
+		check(not str(sent.message).contains("token") and not sent.message.room.has("loaded"), "public room never exposes reconnect token or private bookkeeping")
+
+func _barriers() -> void:
+	reset()
+	var room := make_room("rift", [11, 22])
+	request(11, {"op": "ready", "ready": true})
+	request(11, {"op": "start"})
+	check(room.phase == "room", "unready human blocks start")
+	request(22, {"op": "ready", "ready": true})
+	request(11, {"op": "start"})
+	var match_id: String = room.match_id
+	check(room.phase == "loading" and match_id.length() == 32, "ready roster produces unique locked manifest")
+	request(22, {"op": "move", "slot": 0})
+	check(room.slots[1].kind == "human", "roster is immutable while loading")
+	request(11, {"op": "loaded", "match_id": "stale", "content_hash": "test-content"})
+	request(22, {"op": "loaded", "match_id": match_id, "content_hash": "wrong"})
+	check(room.loaded.is_empty(), "stale match and wrong content cannot satisfy load barrier")
+	request(22, {"op": "loaded", "match_id": match_id, "content_hash": "test-content"})
+	check(room.phase == "loading", "one loaded human cannot start ahead of host")
+	request(11, {"op": "loaded", "match_id": match_id, "content_hash": "test-content"})
+	check(room.phase == "match" and messages("started").size() == 2, "exactly all humans loaded releases whole room")
+	connect_peer(44)
+	request(44, {"op": "join", "code": room.code, "name": "陌生玩家"})
+	check(relay.connections[44].player == -1, "strangers cannot replace bots or join in-progress match")
+	request(22, {"op": "return"})
+	check(room.phase == "match", "nonhost cannot reset whole match")
+	request(11, {"op": "return"})
+	check(room.phase == "room" and room.match_id.is_empty() and not room.slots[0].ready, "host returns roster to fresh readiness without closing room")
+	start(room)
+	check(room.match_id != match_id, "rematch uses a distinct identity")
+	reset()
+	room = make_room("rift", [11, 22])
+	for peer: int in [11, 22]: request(peer, {"op": "ready", "ready": true})
+	request(11, {"op": "start"})
+	request(22, {"op": "leave"})
+	check(room.phase == "loading" and not room.loaded.has(room.host_player_id), "departing loader must not implicitly mark host loaded")
+	advance(Rooms.LOAD_GRACE_MS)
+	check(room.phase == "room" and room.match_id.is_empty(), "load timeout restores lobby without a partial match")
+	reset()
+	room = make_room("rift", [11, 22])
+	for peer: int in [11, 22]: request(peer, {"op": "ready", "ready": true})
+	request(11, {"op": "start"})
+	var player := int(room.slots[1].player_id)
+	var token: String = relay.players[player].token
+	request(22, {"op": "loaded", "match_id": room.match_id, "content_hash": "test-content"})
+	relay.disconnected(22, clock)
+	request(11, {"op": "loaded", "match_id": room.match_id, "content_hash": "test-content"})
+	check(room.phase == "loading", "last loaded player cannot start while another loaded human is offline")
+	connect_peer(33, token)
+	check(room.phase == "match" and room.slots[1].controller == "human", "loading reconnect releases a satisfied barrier and starts with human control")
+
+func _routing() -> void:
+	reset()
+	var room := make_room()
+	start(room)
+	var player := int(room.slots[2].player_id)
+	output.clear()
+	request(33, {"op": "command", "match_id": room.match_id, "sender": room.host_player_id, "faction": 0, "payload": {"type": "upgrade", "building": 1}}, 1)
+	var routed := messages("match")
+	check(routed.size() == 1 and routed[0].peer == 11 and routed[0].message.sender == player, "relay binds command sender to real connection and sends only to Host")
+	output.clear()
+	request(22, {"op": "match", "match_id": room.match_id, "kind": "events", "to": -1, "payload": {}, "reliable": true}, 2)
+	check(messages("match").is_empty(), "nonhost cannot inject state even when claiming host fields")
+	request(11, {"op": "match", "match_id": room.match_id, "kind": "events", "to": -1, "payload": {"seq": 1}, "reliable": true}, 2)
+	routed = messages("match")
+	check(routed.size() == 2 and routed[0].peer != 11 and routed[1].peer != 11, "host broadcasts public facts once to every other human")
+	output.clear()
+	request(11, {"op": "match", "match_id": room.match_id, "kind": "command_result", "to": player, "payload": {}, "reliable": true}, 1)
+	check(messages("match").size() == 1 and messages("match")[0].peer == 33, "private command reply reaches only selected identity")
+	output.clear()
+	request(11, {"op": "match", "match_id": "old", "kind": "events", "to": -1, "payload": {}, "reliable": true}, 2)
+	request(11, {"op": "match", "match_id": room.match_id, "kind": "anchors", "to": -1, "payload": {}, "reliable": true}, 2)
+	check(messages("match").is_empty(), "old match and wrong channel/mode cannot enter replication stream")
+	var cursor := {"cursor_seq": 1, "presence_epoch": 1, "world_x": 14.5, "world_z": -22.0, "visible": true, "pressed": true}
+	output.clear()
+	request(33, {"op": "presence", "match_id": room.match_id, "room_revision": room.revision, "payload": cursor}, 0)
+	check(messages("cursor", 11).size() == 1 and messages("cursor", 22).is_empty(), "teammate cursor reaches ally Host but never enemy")
+	check(messages("cursor")[0].reliable and messages("cursor")[0].channel == 0, "presence transitions use reliable room channel")
+	output.clear()
+	cursor.cursor_seq = 2
+	request(33, {"op": "cursor", "match_id": room.match_id, "room_revision": room.revision, "payload": cursor}, 3)
+	check(messages("cursor").size() == 1 and not messages("cursor")[0].reliable and messages("cursor")[0].channel == 3, "moving cursor uses unsequenced channel with own player sequence")
+	output.clear()
+	cursor.cursor_seq = 1
+	request(33, {"op": "cursor", "match_id": room.match_id, "room_revision": room.revision, "payload": cursor}, 3)
+	check(messages("cursor").is_empty(), "out-of-order cursor does not move pointer backward")
+	cursor.cursor_seq = 3
+	cursor.presence_epoch = 2
+	cursor.visible = false
+	request(33, {"op": "presence", "match_id": room.match_id, "room_revision": room.revision, "payload": cursor})
+	output.clear()
+	cursor.cursor_seq = 4
+	cursor.presence_epoch = 1
+	cursor.visible = true
+	request(33, {"op": "cursor", "match_id": room.match_id, "room_revision": room.revision, "payload": cursor}, 3)
+	check(messages("cursor").is_empty(), "late movement cannot resurrect hidden pointer")
+	cursor.presence_epoch = 3
+	request(33, {"op": "cursor", "match_id": room.match_id, "room_revision": room.revision - 1, "payload": cursor}, 3)
+	check(messages("cursor").is_empty(), "old room revision cannot leak a cursor after roster changes")
+	reset()
+	room = make_room("rivers", [11, 22, 33, 44])
+	request(11, {"op": "move", "slot": 0})
+	start(room)
+	output.clear()
+	request(22, {"op": "presence", "match_id": room.match_id, "room_revision": room.revision, "payload": {"cursor_seq": 1, "presence_epoch": 1, "world_x": 3, "world_z": 2, "visible": true, "pressed": false}})
+	check(messages("cursor", 44).size() == 1 and messages("cursor", 11).is_empty() and messages("cursor", 33).is_empty(), "enemy Host receives no opposing team's cursor coordinates")
+	request(22, {"op": "presence", "match_id": room.match_id, "room_revision": room.revision, "payload": {"cursor_seq": 500, "presence_epoch": 40, "world_x": 3, "world_z": 2, "visible": false, "pressed": false}})
+	request(11, {"op": "return"})
+	start(room)
+	output.clear()
+	request(22, {"op": "presence", "match_id": room.match_id, "room_revision": room.revision, "payload": {"cursor_seq": 1, "presence_epoch": 1, "world_x": 3, "world_z": 2, "visible": true, "pressed": false}})
+	check(messages("cursor", 44).size() == 1, "new match resets cursor ordering so old epochs cannot hide pointers in rematch")
+
+func _recovery() -> void:
+	reset()
+	var room := make_room()
+	start(room)
+	var player := int(room.slots[2].player_id)
+	var token: String = relay.players[player].token
+	var epoch := int(room.slots[2].control_epoch)
+	relay.disconnected(33, clock)
+	check(not room.slots[2].connected and room.slots[2].controller == "reconnecting" and room.slots[2].control_epoch > epoch, "disconnect revokes old human control immediately")
+	advance(Rooms.BOT_GRACE_MS - 1)
+	check(room.slots[2].controller == "reconnecting", "AI does not start before ten-second grace")
+	advance(1)
+	check(room.slots[2].controller == "bot" and room.slots[2].kind == "human", "AI takes over but reconnectable human identity remains")
+	output.clear()
+	connect_peer(55, token)
+	check(relay.players[player].peer == 55 and room.slots[2].controller == "reconnecting", "token recovers the same fixed faction without restoring input too soon")
+	check(relay.players[player].token != token and not relay._tokens.has(token), "successful reconnect rotates bearer credential")
+	check(messages("recovery", 11).size() == 1, "Host receives explicit baseline recovery request")
+	output.clear()
+	request(55, {"op": "command", "match_id": room.match_id, "payload": {}}, 1)
+	check(messages("match").is_empty(), "human cannot send commands during snapshot catch-up")
+	request(55, {"op": "match", "match_id": room.match_id, "kind": "ack", "to": -1, "payload": {"op": "recovered"}, "reliable": true}, 1)
+	check(messages("match", 11).size() == 1, "catch-up ACK can reach Host before human control returns")
+	request(22, {"op": "recovered", "match_id": room.match_id, "player_id": player})
+	check(room.slots[2].controller == "reconnecting", "another client cannot grant player control")
+	request(11, {"op": "recovered", "match_id": room.match_id, "player_id": player})
+	check(room.slots[2].controller == "human" and room.slots[2].control_epoch > epoch + 2, "only Host installs a new human control epoch after recovery")
+	var renewed: String = relay.players[player].token
+	connect_peer(66, renewed)
+	check(55 in closed and relay.players[player].peer == 66, "authenticated replacement revokes prior transport")
+	relay.disconnected(55, clock)
+	check(room.slots[2].connected and relay.players[player].peer == 66, "late disconnect event from old connection cannot revoke new transport")
+	var host := int(room.host_player_id)
+	var host_token: String = relay.players[host].token
+	relay.disconnected(11, clock)
+	check(room.phase == "host_lost", "Host disconnect globally pauses room")
+	output.clear()
+	request(22, {"op": "command", "match_id": room.match_id, "payload": {}}, 1)
+	check(messages("match").is_empty(), "commands are blocked while Host authority is unavailable")
+	advance(15000)
+	connect_peer(77, host_token)
+	check(room.phase == "match" and room.host_player_id == host, "same Host instance may resume within thirty seconds")
+	check(messages("recovery", 77).size() == 2 and room.slots[1].controller == "reconnecting", "Host resume requires fresh baselines for all remote humans")
+	reset()
+	room = make_room()
+	start(room)
+	player = int(room.slots[2].player_id)
+	token = relay.players[player].token
+	relay.disconnected(33, clock)
+	connect_peer(55, token, false)
+	check(relay._tokens.has(token), "presented token remains valid until replacement receipt is acknowledged")
+	relay.disconnected(55, clock)
+	connect_peer(66, token)
+	check(relay.players[player].peer == 66 and not relay._tokens.has(token), "lost replacement response can reconnect again and revokes prior token only after ACK")
+	reset()
+	room = make_room()
+	start(room)
+	host_token = relay.players[int(room.host_player_id)].token
+	epoch = int(room.slots[1].control_epoch)
+	connect_peer(77, host_token)
+	check(room.phase == "match" and room.slots[1].controller == "reconnecting" and room.slots[1].control_epoch > epoch, "fast Host replacement before disconnect timeout still revokes every remote control epoch")
+
+func _lifetime() -> void:
+	reset()
+	var room := make_room()
+	start(room)
+	var code: String = room.code
+	var player := int(room.slots[2].player_id)
+	var token: String = relay.players[player].token
+	relay.disconnected(33, clock)
+	advance(Rooms.REJOIN_GRACE_MS)
+	check(room.slots[2].kind == "bot" and room.slots[2].player_id == -1 and not relay._tokens.has(token), "120-second expiry permanently frees credential and retains AI army seat")
+	var host_token: String = relay.players[int(room.host_player_id)].token
+	relay.disconnected(11, clock)
+	advance(Rooms.HOST_GRACE_MS)
+	check(not relay.rooms.has(code) and relay.players.is_empty() and not relay._tokens.has(host_token), "Host timeout closes whole room and all credentials")
+	reset()
+	room = make_room()
+	start(room)
+	request(33, {"op": "leave"})
+	check(room.slots[2].kind == "bot" and room.slots[2].controller == "bot", "explicit nonhost leave immediately assigns bot without ten-second limbo")
+	request(11, {"op": "leave"})
+	check(relay.rooms.is_empty() and messages("closed", 22).size() == 1, "explicit Host leave closes room with clear reason")
+	reset()
+	connect_peer(11)
+	request(11, {"op": "create", "map_id": "rift", "name": "Host"})
+	relay.max_rooms = 1
+	connect_peer(22)
+	request(22, {"op": "create", "map_id": "rift", "name": "Host2"})
+	check(relay.rooms.size() == 1 and relay.connections[22].player == -1, "room capacity cannot be bypassed through additional connections")
+	relay.connected(99, clock)
+	relay.tick(clock + Rooms.HANDSHAKE_MS)
+	check(99 in closed, "unauthenticated connection cannot hold capacity indefinitely")
+	reset()
+	relay.connected(11, clock)
+	request(11, {"op": "hello", "version": P.VERSION + 1, "content_hash": "test-content"})
+	check(11 in closed and relay.players.is_empty(), "protocol mismatch fails closed before membership")
+	reset()
+	connect_peer(11, "unknown-secret")
+	check(11 in closed and relay.players.is_empty(), "unrecognized reconnect token cannot claim identity")

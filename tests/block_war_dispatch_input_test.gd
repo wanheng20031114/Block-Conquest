@@ -5,6 +5,8 @@ var game: Node3D
 var failures: Array[String] = []
 var checks := 0
 var previous_time_scale := 1.0
+var virtual_pointer := false
+var pointer_position := Vector2.ZERO
 
 
 func _initialize() -> void:
@@ -21,9 +23,15 @@ func check(condition: bool, message: String) -> void:
 func frames(count: int = 2) -> void:
 	for frame: int in count:
 		await process_frame
+	# A private Windows desktop cannot query the active desktop's OS cursor.
+	# Explicit test mode supplies the injected coordinate only to the polled
+	# preview; presses, drags, releases and native picking still use InputEvents.
+	if virtual_pointer and game != null and game.drag_source != null:
+		game._update_drag(pointer_position)
 
 
 func motion(at: Vector2, held: bool = false) -> void:
+	pointer_position = at
 	var event := InputEventMouseMotion.new()
 	event.window_id = root.get_window_id()
 	event.position = at
@@ -35,6 +43,7 @@ func motion(at: Vector2, held: bool = false) -> void:
 
 
 func button(at: Vector2, down: bool, which: int = MOUSE_BUTTON_LEFT) -> void:
+	pointer_position = at
 	var event := InputEventMouseButton.new()
 	event.window_id = root.get_window_id()
 	event.position = at
@@ -94,6 +103,9 @@ func drag_case(source: Node3D, target: Node3D, badge: bool, target_badge: bool =
 
 
 func _run() -> void:
+	virtual_pointer = "--virtual-pointer" in OS.get_cmdline_user_args()
+	if virtual_pointer:
+		print("DISPATCH_POINTER_MODE virtual: injected coordinates drive polled previews; native InputEvents drive all actions")
 	previous_time_scale = Engine.time_scale
 	create_timer(45.0, true, false, true).timeout.connect(func() -> void:
 		Engine.time_scale = previous_time_scale

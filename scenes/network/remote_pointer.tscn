@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/network/war_remote_pointer.gd" id="script"]
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
+
+[node name="Pointer" type="Control"]
+visible = false
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.92)
+theme = ExtResource("theme")
+script = ExtResource("script")
+
+[node name="Name" type="Label" parent="."]
+offset_left = 19.0
+offset_top = 15.0
+offset_right = 189.0
+offset_bottom = 43.0
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.20, 0.26, 0.22, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.92)
+theme_override_constants/outline_size = 4
+text = "队友"
+text_overrun_behavior = 3
+mouse_filter = 2
