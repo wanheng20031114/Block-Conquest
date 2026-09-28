@@ -110,7 +110,8 @@ func _render_demo() -> void:
 	_place(home_count, _left + Vector2(0, 33), Vector2(96, 22))
 	_place(away_count, _right + Vector2(0, 33), Vector2(96, 22))
 	home_count.text = "己方 · 20"
-	away_count.text = "敌方 · ?"
+	away_count.hide()
+	away_count.text = ""
 	$Legend.text = "绿 · 己方   橙 · 敌方"
 	route.points = PackedVector2Array([_left + Vector2(0, 16), _right + Vector2(0, 16)])
 	_place(range_ring, _middle, Vector2((_travel_right - _travel_left) / 3.0 + 28.0, 91.0))
@@ -216,6 +217,7 @@ func _rabbit() -> void:
 			away.texture = TOWER
 			_place(skill_icon, _right - Vector2(0, 45), Vector2(42, 42))
 			away.modulate = FOE.lerp(Color("ada18c"), _phase(0.15, 0.3))
+			away_count.show()
 			away_count.text = "敌方 · 停工" if progress > 0.24 else "敌方 · 炮塔"
 			projectile.visible = progress < 0.2
 			projectile.points = PackedVector2Array([_right - Vector2(0, 18), _middle])
@@ -279,6 +281,7 @@ func _bear() -> void:
 		2:
 			away.modulate = FRIEND
 			home_count.text = "受护 · %d" % (35 if progress > 0.54 else 40)
+			away_count.show()
 			away_count.text = "支援 · %d" % (25 if progress > 0.54 else 30)
 			tunnel.visible = progress > 0.18
 			tunnel.points = PackedVector2Array([_left + Vector2(28, 9), _right - Vector2(28, -9)])
@@ -346,6 +349,7 @@ func _frog() -> void:
 			var struck := progress > 0.43
 			$Legend.text = "绿 · 己方   灰 · 中立"
 			_place(skill_icon, _right - Vector2(0, 58.0 - sin(_phase(0.25, 0.45) * PI) * 10.0), Vector2(40, 40))
+			away_count.show()
 			away_count.text = "中立 · %d" % (10 if struck else 50)
 			away.modulate = Color("b5aa87").lerp(Color.WHITE, sin(_phase(0.4, 0.53) * PI) * 0.65)
 			_label("3 级 → 1 级" if struck else "选择中立建筑")

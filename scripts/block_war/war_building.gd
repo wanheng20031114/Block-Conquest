@@ -299,7 +299,11 @@ func refresh_visual() -> void:
 		_last_level = level
 	var displayed_population := maxi(0, floori(population)) if is_population_visible() else -1
 	if displayed_population != _last_population:
-		_population_label.text = str(displayed_population) if displayed_population >= 0 else "?"
+		var population_visible := displayed_population >= 0
+		_population_label.visible = population_visible
+		$PopulationBadge.visible = population_visible
+		$PickArea/BadgeCollisionShape3D.set_deferred("disabled", not population_visible)
+		_population_label.text = str(displayed_population) if population_visible else ""
 		# Keep ordinary totals prominent; three digits share the same white badge.
 		_population_label.font_size = 54 if displayed_population >= 100 else 64
 		var text_width := _population_label.font.get_string_size(_population_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, _population_label.font_size).x

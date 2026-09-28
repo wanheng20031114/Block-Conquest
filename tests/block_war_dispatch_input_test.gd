@@ -135,7 +135,7 @@ func _run() -> void:
 		for target: Node3D in [enemy, neutral]:
 			for badge: bool in [false, true]:
 				await drag_case(source, target, badge)
-	await drag_case(home, enemy, false, true)
+	await drag_case(home, neutral, false, true)
 	# No player command can spend an enemy or neutral garrison.
 	for hostile: Node3D in [enemy, neutral]:
 		var initial: float = hostile.population

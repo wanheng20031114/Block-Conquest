@@ -323,7 +323,7 @@ func _run() -> void:
 	game.camera_rig.focus_at(target.global_position, true)
 	await process_frame
 	await physics_frame
-	drag(3, game.camera.unproject_position(target.get_node("PopulationBadge").global_position))
+	drag(3, game.camera.unproject_position(target.global_position + Vector3(0, 1.5, 0)))
 	check(target.level == 1 and game.cooldowns[3] > 0, "native R release selects actual building")
 	check(game.armed_skill == -1 and not game.hud.get_node("%SkillDrag").visible, "release clears drag state")
 	await game.prepare_shutdown()

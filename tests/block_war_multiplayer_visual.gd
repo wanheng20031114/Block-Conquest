@@ -360,7 +360,8 @@ func _guest_review() -> void:
 func _check_garrison_visibility(stage: String) -> void:
 	var local_viewer := true
 	var badges_correct := true
-	var hidden_geometry := true
+	var badge_picking_correct := true
+	var enemy_bodies_pickable := true
 	var categories := {"own":0, "ally":0, "enemy":0, "neutral":0}
 	for building: Node3D in game.buildings:
 		var owner: int = building.faction
@@ -368,13 +369,20 @@ func _check_garrison_visibility(stage: String) -> void:
 		var category := "neutral" if owner < 0 else ("own" if owner == game.local_faction else ("ally" if known else "enemy"))
 		categories[category] += 1
 		local_viewer = local_viewer and building.viewer_faction == game.local_faction
-		var expected := str(maxi(0, floori(building.population))) if known else "?"
-		badges_correct = badges_correct and building.is_population_visible() == known and building.get_node("PopulationLabel").text == expected
+		var label: Label3D = building.get_node("PopulationLabel")
+		var badge: MeshInstance3D = building.get_node("PopulationBadge")
+		var badge_collision: CollisionShape3D = building.get_node("PickArea/BadgeCollisionShape3D")
+		var expected := str(maxi(0, floori(building.population))) if known else ""
+		badges_correct = badges_correct and building.is_population_visible() == known and label.text == expected and label.visible == known and badge.visible == known
+		badge_picking_correct = badge_picking_correct and badge_collision.disabled == (not known)
 		if not known:
-			hidden_geometry = hidden_geometry and building.get_node("PopulationBadge").scale == Vector3.ONE and building.get_node("PickArea/BadgeCollisionShape3D").scale == Vector3.ONE and building.get_node("PopulationLabel").font_size == 64
+			var body_collision: CollisionShape3D = building.get_node("PickArea/CollisionShape3D")
+			var body_screen: Vector2 = game.camera.unproject_position(body_collision.global_position)
+			enemy_bodies_pickable = enemy_bodies_pickable and not body_collision.disabled and game.pick_building(body_screen) == building
 	check(local_viewer, stage + " all buildings retain this client's nonzero viewer faction")
-	check(badges_correct, stage + " own ally neutral show counts while enemy badges conceal counts")
-	check(hidden_geometry, stage + " enemy badge and pick geometry reveal no garrison magnitude")
+	check(badges_correct, stage + " own ally neutral show counts while enemy labels are empty and both population visuals are hidden")
+	check(badge_picking_correct, stage + " only visible population badges retain their pick collision")
+	check(enemy_bodies_pickable, stage + " enemy building bodies remain natively pickable without population badges")
 	check(categories.values().all(func(amount: int): return amount > 0), stage + " real match covers own allied enemy and neutral buildings")
 	print("GARRISON_VISIBILITY ", JSON.stringify({"role":role,"stage":stage,"viewer":game.local_faction,"categories":categories}))
 
