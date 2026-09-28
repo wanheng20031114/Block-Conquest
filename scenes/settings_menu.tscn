@@ -304,6 +304,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(270,40)
 toggle_mode = true
 text = "开启"
+theme_type_variation = &"MenuToggle"
 
 [node name="FrameLimitRow" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Graphics"]
 layout_mode = 2
@@ -379,7 +380,9 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(270,40)
 toggle_mode = true
-text = "声音开启"
+button_pressed = true
+text = "开启"
+theme_type_variation = &"MenuToggle"
 
 [node name="MusicEnabledRow" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
 layout_mode = 2
@@ -400,6 +403,7 @@ custom_minimum_size = Vector2(270,40)
 toggle_mode = true
 button_pressed = true
 text = "开启"
+theme_type_variation = &"MenuToggle"
 
 [node name="MusicVolumeRow" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Audio"]
 layout_mode = 2
@@ -519,6 +523,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(270,40)
 toggle_mode = true
 text = "开启"
+theme_type_variation = &"MenuToggle"
 
 [node name="Tip" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Controls"]
 layout_mode = 2

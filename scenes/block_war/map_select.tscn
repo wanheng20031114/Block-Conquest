@@ -28,7 +28,7 @@ shadow_size = 8
 shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="Details"]
-bg_color = Color(0.967, 0.956, 0.873, 0.92)
+bg_color = Color(0.972549, 0.964706, 0.921569, 1)
 content_margin_left = 24.0
 content_margin_right = 24.0
 content_margin_top = 22.0
@@ -39,7 +39,7 @@ corner_radius_bottom_left = 24
 corner_radius_bottom_right = 24
 
 [sub_resource type="StyleBoxFlat" id="SmallNormal"]
-bg_color = Color(0.895, 0.897, 0.786, 1)
+bg_color = Color(1.000000, 0.992157, 0.960784, 1)
 content_margin_left = 14.0
 content_margin_right = 14.0
 content_margin_top = 8.0
@@ -48,9 +48,14 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_left = 12
 corner_radius_bottom_right = 12
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.666667, 0.737255, 0.690196, 1)
 
 [sub_resource type="StyleBoxFlat" id="SmallSelected"]
-bg_color = Color(0.94, 0.775, 0.369, 1)
+bg_color = Color(0.952941, 0.796078, 0.447059, 1)
 content_margin_left = 14.0
 content_margin_right = 14.0
 content_margin_top = 8.0
@@ -63,10 +68,10 @@ border_width_left = 2
 border_width_right = 2
 border_width_top = 2
 border_width_bottom = 2
-border_color = Color(0.62, 0.46, 0.21, 0.5)
+border_color = Color(0.658824, 0.458824, 0.180392, 1)
 
 [sub_resource type="StyleBoxFlat" id="SmallHover"]
-bg_color = Color(0.956, 0.928, 0.743, 1)
+bg_color = Color(0.894118, 0.945098, 0.898039, 1)
 content_margin_left = 14.0
 content_margin_right = 14.0
 content_margin_top = 8.0
@@ -75,6 +80,27 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_left = 12
 corner_radius_bottom_right = 12
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.427451, 0.580392, 0.470588, 1)
+
+[sub_resource type="StyleBoxFlat" id="SmallSelectedHover"]
+bg_color = Color(0.972549, 0.835294, 0.541176, 1)
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_width_bottom = 2
+border_color = Color(0.658824, 0.458824, 0.180392, 1)
 
 [node name="MapSelect" type="Control" groups=["animated_menu"]]
 layout_mode = 3
@@ -270,7 +296,7 @@ theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="Size1" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Sizes"]
@@ -285,7 +311,7 @@ theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="Size2" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Sizes"]
@@ -300,7 +326,7 @@ theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="Maps" type="VBoxContainer" parent="Margin/Column/Content/Details/DetailsColumn"]
@@ -319,7 +345,7 @@ theme_override_font_sizes/font_size = 21
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="Map1" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
@@ -334,7 +360,7 @@ theme_override_font_sizes/font_size = 21
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="TerrainInfo" type="Label" parent="Margin/Column/Content/Details/DetailsColumn"]
@@ -388,7 +414,7 @@ theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="OpponentCommander1" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Opponents"]
@@ -410,7 +436,7 @@ theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="OpponentCommander2" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Opponents"]
@@ -432,7 +458,7 @@ theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="OpponentCommander3" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Opponents"]
@@ -454,7 +480,7 @@ theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
-theme_override_styles/hover_pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
 [node name="Teams" type="Label" parent="Margin/Column/Content/Details/DetailsColumn"]

@@ -11,7 +11,7 @@ var _resolutions: Array[Vector2i] = []
 @onready var pages: Control = %Pages
 
 func _ready() -> void:
-	UIMotion.bind_buttons(self)
+	UIMotion.bind_buttons(self, true)
 	get_node("/root/Session/UIFeedback").bind_buttons(self)
 	%WindowMode.add_item("窗口", 0)
 	%WindowMode.add_item("无边框全屏", 1)
@@ -24,7 +24,7 @@ func _ready() -> void:
 	%Resolution.item_selected.connect(_resolution_changed)
 	%FrameLimit.item_selected.connect(_fps_changed)
 	%Vsync.toggled.connect(_toggle_changed.bind("vsync"))
-	%Mute.toggled.connect(_toggle_changed.bind("muted"))
+	%Mute.toggled.connect(_sound_enabled_changed)
 	%MusicEnabled.toggled.connect(_toggle_changed.bind("music_enabled"))
 	%EdgeScroll.toggled.connect(_toggle_changed.bind("edge_scroll_enabled"))
 	%Volume.value_changed.connect(_slider_changed.bind("volume_percent"))
@@ -62,7 +62,7 @@ func refresh(values: Dictionary) -> void:
 	%Resolution.select(_resolutions.find(draft.resolution))
 	%FrameLimit.select(GameSettings.FPS_OPTIONS.find(int(draft.fps_limit)))
 	%Vsync.set_pressed_no_signal(draft.vsync)
-	%Mute.set_pressed_no_signal(draft.muted)
+	%Mute.set_pressed_no_signal(not draft.muted)
 	%MusicEnabled.set_pressed_no_signal(draft.music_enabled)
 	%EdgeScroll.set_pressed_no_signal(draft.edge_scroll_enabled)
 	%Volume.set_value_no_signal(draft.volume_percent)
@@ -112,7 +112,7 @@ func open_motion() -> void:
 
 func _update_labels() -> void:
 	%Vsync.text = "开启" if draft.vsync else "关闭"
-	%Mute.text = "静音" if draft.muted else "声音开启"
+	%Mute.text = "关闭" if draft.muted else "开启"
 	%MusicEnabled.text = "开启" if draft.music_enabled else "关闭"
 	%EdgeScroll.text = "开启" if draft.edge_scroll_enabled else "关闭"
 	%VolumeValue.text = "%d%%" % int(draft.volume_percent)
@@ -134,6 +134,10 @@ func _toggle_changed(value: bool, key: String) -> void:
 	if _refreshing: return
 	draft[key] = value
 	_update_labels()
+
+func _sound_enabled_changed(enabled: bool) -> void:
+	# The visible switch describes sound being on; persistence stores mute.
+	_toggle_changed(not enabled, "muted")
 
 func _slider_changed(value: float, key: String) -> void:
 	if _refreshing: return

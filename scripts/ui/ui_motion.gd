@@ -8,25 +8,25 @@ const PANEL_META: StringName = &"ui_motion_panel"
 const BUTTON_DURATION: float = 0.12
 const REVEAL_DURATION: float = 0.18
 
-static func bind_buttons(root: Node) -> void:
-	_bind_buttons(root, false)
+static func bind_buttons(root: Node, theme_colors: bool = false) -> void:
+	_bind_buttons(root, false, theme_colors)
 
 ## Opt-in menu profile; battle controls retain bind_buttons() unchanged.
 static func bind_menu_buttons(root: Node) -> void:
-	_bind_buttons(root, true)
+	_bind_buttons(root, true, true)
 
-static func _bind_buttons(root: Node, menu: bool) -> void:
+static func _bind_buttons(root: Node, menu: bool, theme_colors: bool) -> void:
 	if root is BaseButton:
-		_bind_button(root as BaseButton, menu)
+		_bind_button(root as BaseButton, menu, theme_colors)
 	for child: Node in root.get_children():
-		_bind_buttons(child, menu)
+		_bind_buttons(child, menu, theme_colors)
 
-static func _bind_button(button: BaseButton, menu: bool = false) -> void:
+static func _bind_button(button: BaseButton, menu: bool = false, theme_colors: bool = false) -> void:
 	if button.has_meta(BUTTON_META):
 		return
 	var state: Dictionary = {"scale": button.scale, "color": button.self_modulate,
 		"hover": false, "focus": button.has_focus(true), "down": false,
-		"disabled": button.disabled, "tween": null, "menu": menu,
+		"disabled": button.disabled, "tween": null, "menu": menu, "theme_colors": theme_colors,
 		"hover_scale": float(button.get_meta(&"ui_motion_hover_scale", 1.025 if menu else 1.02))}
 	button.set_meta(BUTTON_META, state)
 	button.pivot_offset = button.size * 0.5
@@ -59,6 +59,10 @@ static func _button_state(button: BaseButton, key: String, value: bool) -> void:
 	# highlighting the button. Only visible keyboard focus adds material feedback.
 	var strength: float = (0.96 if state.menu else 0.98) if state.down else (float(state.hover_scale) if state.hover else 1.0)
 	var light: float = 0.91 if state.down else (1.10 if state.hover or state.focus else 1.0)
+	# Menu themes own their state palette; RGB multiplication washes out pastels.
+	# Battle buttons retain the original light response.
+	if state.theme_colors:
+		light = 1.0
 	var color: Color = state.color
 	color = Color(color.r * light, color.g * light, color.b * light, color.a)
 	var tween: Tween = _tween(button).set_parallel(true)
