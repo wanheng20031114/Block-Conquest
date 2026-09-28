@@ -1,0 +1,325 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/codex/skill_demo.gd" id="1_demo"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_house.svg" id="2_house"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_population.svg" id="3_soldier"]
+
+[sub_resource type="StyleBoxFlat" id="Style_stage"]
+bg_color = Color(0.875, 0.914, 0.835, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.735, 0.79, 0.67, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+
+[sub_resource type="StyleBoxFlat" id="Style_range"]
+bg_color = Color(0.937, 0.776, 0.427, 0.2)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.648, 0.29, 0.8)
+corner_radius_top_left = 80
+corner_radius_top_right = 80
+corner_radius_bottom_left = 80
+corner_radius_bottom_right = 80
+
+[sub_resource type="StyleBoxFlat" id="Style_shield"]
+bg_color = Color(0.48, 0.68, 0.8, 0.14)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.37, 0.61, 0.76, 0.9)
+corner_radius_top_left = 60
+corner_radius_top_right = 60
+corner_radius_bottom_left = 60
+corner_radius_bottom_right = 60
+
+[sub_resource type="StyleBoxFlat" id="Style_portal"]
+bg_color = Color(0.4, 0.33, 0.24, 0.85)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.937, 0.776, 0.427, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 24
+
+[sub_resource type="StyleBoxFlat" id="Style_track"]
+bg_color = Color(0.72, 0.76, 0.63, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="Style_fill"]
+bg_color = Color(0.48, 0.68, 0.55, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="Animation" id="Animation_cycle"]
+resource_name = "cycle"
+length = 6.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 6.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="Library_demo"]
+_data = {
+&"cycle": SubResource("Animation_cycle")
+}
+
+[sub_resource type="StyleBoxFlat" id="Style_caption"]
+bg_color = Color(0.969, 0.941, 0.851, 0.78)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[node name="SkillDemo" type="Control"]
+custom_minimum_size = Vector2(340, 210)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+clip_contents = true
+script = ExtResource("1_demo")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_stage")
+
+[node name="Kicker" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 12.0
+offset_right = 180.0
+offset_bottom = 33.0
+theme_override_colors/font_color = Color(0.42, 0.46, 0.34, 1)
+theme_override_font_sizes/font_size = 14
+text = "技能演示 · 示意"
+mouse_filter = 2
+
+[node name="Legend" type="Label" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
+offset_top = 12.0
+offset_right = -18.0
+offset_bottom = 33.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.42, 0.46, 0.34, 1)
+theme_override_font_sizes/font_size = 13
+text = "绿 · 己方   橙 · 敌方"
+horizontal_alignment = 2
+mouse_filter = 2
+
+[node name="Route" type="Line2D" parent="."]
+unique_name_in_owner = true
+width = 3.0
+default_color = Color(0.74, 0.78, 0.65, 0.75)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Range" type="Panel" parent="."]
+unique_name_in_owner = true
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_range")
+
+[node name="Shield" type="Panel" parent="."]
+unique_name_in_owner = true
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_shield")
+
+[node name="Tunnel" type="Line2D" parent="."]
+unique_name_in_owner = true
+width = 5.0
+default_color = Color(0.61, 0.48, 0.32, 0.65)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="PortalA" type="Panel" parent="."]
+unique_name_in_owner = true
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_portal")
+
+[node name="PortalB" type="Panel" parent="."]
+unique_name_in_owner = true
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_portal")
+
+[node name="Home" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("2_house")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Away" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("2_house")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="AllyA" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("3_soldier")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="AllyB" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("3_soldier")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="AllyC" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("3_soldier")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="EnemyA" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("3_soldier")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="EnemyB" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("3_soldier")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="EnemyC" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("3_soldier")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Projectile" type="Line2D" parent="."]
+unique_name_in_owner = true
+width = 3.0
+default_color = Color(0.88, 0.66, 0.25, 0.9)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="SkillIcon" type="TextureRect" parent="."]
+unique_name_in_owner = true
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Direction" type="Label" parent="."]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.39, 0.5, 0.35, 1)
+theme_override_font_sizes/font_size = 25
+horizontal_alignment = 1
+text = "→"
+mouse_filter = 2
+
+[node name="HomeCount" type="Label" parent="."]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.329, 0.286, 0.22, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "己方 · 20"
+mouse_filter = 2
+
+[node name="AwayCount" type="Label" parent="."]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.329, 0.286, 0.22, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "敌方 · 50"
+mouse_filter = 2
+
+[node name="EffectLabel" type="Label" parent="."]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.42, 0.33, 0.2, 1)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Construction" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+theme_override_styles/background = SubResource("Style_track")
+theme_override_styles/fill = SubResource("Style_fill")
+show_percentage = false
+mouse_filter = 2
+
+[node name="CaptionBackground" type="Panel" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -40.0
+offset_right = -12.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_caption")
+
+[node name="Caption" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -40.0
+offset_right = -16.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.329, 0.286, 0.22, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+unique_name_in_owner = true
+libraries = {
+&"": SubResource("Library_demo")
+}

@@ -1,0 +1,139 @@
+[gd_resource type="Resource" format=3]
+
+[sub_resource type="DPITexture" id="DPITexture_u3sfo"]
+resource_name = "action_upgrade.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <g fill=\"#fff5cf\" stroke=\"#303b25\" stroke-width=\"3\" stroke-linejoin=\"round\">
+    <path d=\"M7 19 24 4l17 15v10L24 14 7 29Z\"/>
+    <path d=\"m7 35 17-15 17 15v10L24 30 7 45Z\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_42n4b"]
+resource_name = "drum.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">
+  <g stroke=\"#384032\" stroke-linecap=\"round\" stroke-linejoin=\"round\">
+    <path d=\"m13 10 31 17M51 9 24 27\" fill=\"none\" stroke-width=\"4\"/>
+    <ellipse cx=\"12\" cy=\"10\" rx=\"5\" ry=\"3.5\" fill=\"#384032\" transform=\"rotate(26 12 10)\"/>
+    <ellipse cx=\"51\" cy=\"9\" rx=\"5\" ry=\"3.5\" fill=\"#384032\" transform=\"rotate(-27 51 9)\"/>
+    <path d=\"M11 32v18c0 10 42 10 42 0V32\" fill=\"#384032\" stroke-width=\"3\"/>
+    <ellipse cx=\"32\" cy=\"31\" rx=\"22\" ry=\"9\" fill=\"#384032\" stroke-width=\"3\"/>
+    <ellipse cx=\"32\" cy=\"29\" rx=\"15\" ry=\"4\" fill=\"#eee9cf\" stroke=\"none\"/>
+    <path d=\"m16 38 7 14 9-11 9 11 7-14M12 49c10 7 30 7 40 0\" fill=\"none\" stroke=\"#eee9cf\" stroke-width=\"2\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_4evta"]
+resource_name = "action_population.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"40\" viewBox=\"0 0 32 40\">
+  <g fill=\"#fff5cf\" stroke=\"#303b25\" stroke-width=\"3\" stroke-linejoin=\"round\">
+    <circle cx=\"16\" cy=\"10\" r=\"7\"/>
+    <path d=\"M4 35v-5a12 12 0 0 1 24 0v5c-6 3-18 3-24 0Z\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_wv80b"]
+resource_name = "morale_star.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 32 32\">
+  <path d=\"M16 1.5 20.45 10.6 30.5 12 23.25 19.1 25 29.2 16 24.4 7 29.2 8.75 19.1 1.5 12 11.55 10.6Z\" fill=\"#f5d875\" stroke=\"#fff0b9\" stroke-width=\".8\" stroke-linejoin=\"round\"/>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_1f0p8"]
+resource_name = "action_house.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <g fill=\"#fff5cf\" stroke=\"#303b25\" stroke-width=\"3\" stroke-linejoin=\"round\">
+    <path d=\"M9 22v21h30V22L24 9Z\"/>
+    <path d=\"M3 22 24 4l21 18-5 5L24 13 8 27Z\"/>
+    <path d=\"M20 43V30h8v13\" fill=\"#303b25\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_c0cgw"]
+resource_name = "skill_muster.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <g fill=\"none\" stroke=\"#4c5150\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\">
+    <path d=\"M18 19v-4a6 6 0 0 1 12 0v4M17 19h14M19 23a5 5 0 0 0 10 0M16 38v-5a8 8 0 0 1 16 0v5M22 34v7M27 34v7\"/>
+    <path d=\"M11 17a4 4 0 0 0-1 8M8 29a6 6 0 0 0-3 6v2M37 17a4 4 0 0 1 1 8M40 29a6 6 0 0 1 3 6v2\"/>
+    <path d=\"M24 6v5\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_jwsmi"]
+resource_name = "action_forge.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <path d=\"M4 12h17V8h23v9l-10 7c-5 4-6 9-2 13l7 3v4H13v-4l7-3c3-4 2-8-2-11L8 22 4 17Z\" fill=\"#fff5cf\" stroke=\"#303b25\" stroke-width=\"3\" stroke-linejoin=\"round\"/>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_p81b2"]
+resource_name = "skill_bear_link.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <g fill=\"none\" stroke=\"#4c5150\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\">
+    <path d=\"m3 16 9-8 9 8M6 15v12h7M42 33V21l-9-8-8 7m3 18h14M10 21h4m18 1h4\"/>
+    <path d=\"m20 30 8-8c5-5 12 2 7 7l-5 5m-2-5-8 8c-5 5-12-2-7-7l5-5M20 29l7-7M21 30l6-6\"/>
+    <path d=\"M6 34v5m-2-2h4\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_lkppl"]
+resource_name = "skill_haste.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <g fill=\"none\" stroke=\"#4c5150\" stroke-width=\"2.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\">
+    <path d=\"m24 8 9 3-5 13 9 6c4 3 4 8-1 8H18c-4 0-5-4-3-7l8-15M19 38v3h20M23 26l5 2M21 30l5 2\"/>
+    <path d=\"M17 13H6m9 7H4m8 7H6\"/>
+    <path d=\"m37 9 6 5-6 5\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_ippou"]
+resource_name = "action_tower.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 48 48\">
+  <g fill=\"#fff5cf\" stroke=\"#303b25\" stroke-width=\"3\" stroke-linejoin=\"round\">
+    <path d=\"M7 5h8v7h5V5h8v7h5V5h8v15l-7 7v13l4 4H10l4-4V27l-7-7Z\"/>
+    <path d=\"M23 28h2v8h-2Z\" fill=\"#303b25\" stroke=\"none\"/>
+  </g>
+</svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_lwbyq"]
+resource_name = "bulwark.svg"
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">
+  <path d=\"M10 17 32 8l22 9v18c-1 12-10 21-22 26C20 56 11 47 10 35Z\" fill=\"#384032\"/>
+  <path d=\"M15 20 32 13l17 7v15c-1 9-7 16-17 21-10-5-16-12-17-21Z\" fill=\"none\" stroke=\"#eee9cf\" stroke-width=\"2\"/>
+  <path d=\"M21 23h5v5h4v-9h4v9h4v-5h5v21H21Z\" fill=\"#eee9cf\"/>
+  <path d=\"M29 44V35a3 3 0 0 1 6 0v9\" fill=\"#384032\"/>
+  <path d=\"M25 33v3m14-3v3\" stroke=\"#384032\" stroke-width=\"2\"/>
+</svg>
+"
+base_scale = 4.0
+
+[resource]
+metadata/dispatch = SubResource("DPITexture_4evta")
+metadata/victory = SubResource("DPITexture_lwbyq")
+metadata/residence = SubResource("DPITexture_1f0p8")
+metadata/tower = SubResource("DPITexture_ippou")
+metadata/smithy = SubResource("DPITexture_jwsmi")
+metadata/construction = SubResource("DPITexture_u3sfo")
+metadata/terrain = SubResource("DPITexture_lkppl")
+metadata/morale = SubResource("DPITexture_wv80b")
+metadata/skills = SubResource("DPITexture_c0cgw")
+metadata/teams = SubResource("DPITexture_p81b2")
+metadata/controls = SubResource("DPITexture_42n4b")

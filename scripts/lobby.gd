@@ -12,6 +12,7 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = true
 	%Version.text = "v%s" % ProjectSettings.get_setting("application/config/version")
 	%BlockWarMode.pressed.connect(_start)
+	%Codex.pressed.connect(_open_codex)
 	%Settings.pressed.connect(session.settings.open_menu)
 	%Quit.pressed.connect(_quit)
 	session.load_failed.connect(_show_error)
@@ -21,6 +22,9 @@ func _ready() -> void:
 	UIMotion.bind_menu_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 	%BlockWarMode.grab_focus(true)
+	if session.get_meta("codex_return_focus", false):
+		session.remove_meta("codex_return_focus")
+		%Codex.grab_focus(true)
 	if OS.get_cmdline_user_args().has("--block-war") and not session.get_meta("block_war_cli_consumed", false):
 		session.set_meta("block_war_cli_consumed", true)
 		_start.call_deferred(true)
@@ -36,6 +40,14 @@ func _start(direct_launch: bool = false) -> void:
 func _settings_closed() -> void:
 	_set_presentation_active(true)
 	%Settings.grab_focus(true)
+
+func _open_codex() -> void:
+	if session.settings.is_open() or session.transition.busy:
+		return
+	_set_presentation_active(false)
+	if session.change_scene("res://scenes/codex/codex.tscn") != OK:
+		_set_presentation_active(true)
+		_show_error("图鉴暂时无法打开，请检查游戏文件后重试。")
 
 func _set_presentation_active(value: bool) -> void:
 	_presentation_active = value

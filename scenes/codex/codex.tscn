@@ -1,0 +1,689 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/codex/codex.gd" id="script"]
+
+[ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
+
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
+
+[ext_resource type="PackedScene" path="res://scenes/codex/skill_demo.tscn" id="demo"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/squirrel.png" id="portrait"]
+
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/action_house.svg" id="house"]
+
+[sub_resource type="StyleBoxFlat" id="Paper"]
+bg_color = Color(0.981, 0.961, 0.892, 1)
+content_margin_left = 28.0
+content_margin_top = 28.0
+content_margin_right = 28.0
+content_margin_bottom = 28.0
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_left = 32
+corner_radius_bottom_right = 32
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="Sidebar"]
+bg_color = Color(0.865, 0.901, 0.807, 1)
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_left = 28
+corner_radius_bottom_right = 28
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="PortraitStage"]
+bg_color = Color(0.906, 0.915, 0.807, 1)
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_left = 100
+corner_radius_bottom_right = 100
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="Note"]
+bg_color = Color(0.937, 0.898, 0.754, 1)
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="Clear"]
+bg_color = Color(0, 0, 0, 0)
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="Selected"]
+bg_color = Color(0.941, 0.773, 0.412, 1)
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="Hover"]
+bg_color = Color(0.96, 0.954, 0.842, 0.85)
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0, 0, 0, 0)
+content_margin_left = 6.0
+border_width_left = 2
+content_margin_top = 6.0
+border_width_top = 2
+content_margin_right = 6.0
+border_width_right = 2
+content_margin_bottom = 6.0
+border_width_bottom = 2
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+corner_detail = 16
+border_color = Color(0.4, 0.52, 0.35, 1)
+
+[sub_resource type="StyleBoxFlat" id="LineEdit"]
+bg_color = Color(0.98, 0.973, 0.908, 1)
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+corner_detail = 16
+
+[node name="Codex" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("theme")
+script = ExtResource("script")
+
+[node name="MenuEntrance" type="Node" parent="."]
+script = ExtResource("entrance")
+sections = Array[NodePath]([NodePath("Margin/Column/Header"), NodePath("Margin/Column/Body/Sidebar"), NodePath("Margin/Column/Body/Book"), NodePath("Margin/Column/Footer")])
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.79, 0.841, 0.749, 1)
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_top = 26
+theme_override_constants/margin_bottom = 22
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+
+[node name="Titles" type="VBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+theme_override_constants/separation = 1
+size_flags_horizontal = 3
+
+[node name="Eyebrow" type="Label" parent="Margin/Column/Header/Titles"]
+layout_mode = 2
+text = "积 木 战 争   /   FIELD GUIDE"
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.32, 0.4, 0.28, 1)
+
+[node name="Title" type="Label" parent="Margin/Column/Header/Titles"]
+layout_mode = 2
+text = "战地手册"
+theme_override_font_sizes/font_size = 36
+theme_type_variation = &"MenuHeading"
+
+[node name="Tabs" type="HBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+theme_override_constants/separation = 10
+size_flags_vertical = 4
+
+[node name="Heroes" type="Button" parent="Margin/Column/Header/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "英雄图鉴"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+custom_minimum_size = Vector2(168, 56)
+toggle_mode = true
+
+[node name="Guides" type="Button" parent="Margin/Column/Header/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "战场指南"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+custom_minimum_size = Vector2(168, 56)
+toggle_mode = true
+
+[node name="Back" type="Button" parent="Margin/Column/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "返回主菜单  ×"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+custom_minimum_size = Vector2(206, 56)
+size_flags_vertical = 4
+metadata/ui_sound = &"cancel"
+
+[node name="Body" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 22
+size_flags_vertical = 3
+
+[node name="Sidebar" type="PanelContainer" parent="Margin/Column/Body"]
+layout_mode = 2
+custom_minimum_size = Vector2(286, 0)
+theme_override_styles/panel = SubResource("Sidebar")
+
+[node name="Navigation" type="VBoxContainer" parent="Margin/Column/Body/Sidebar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="IndexTitle" type="Label" parent="Margin/Column/Body/Sidebar/Navigation"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "指挥官名录"
+theme_override_font_sizes/font_size = 25
+
+
+[node name="IndexNote" type="Label" parent="Margin/Column/Body/Sidebar/Navigation"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "4 位英雄 · 16 项技能"
+theme_override_font_sizes/font_size = 17
+theme_type_variation = &"MenuMuted"
+
+[node name="Search" type="LineEdit" parent="Margin/Column/Body/Sidebar/Navigation"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+placeholder_text = "查找条目…"
+clear_button_enabled = true
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.3, 0.31, 0.24, 1)
+theme_override_colors/font_placeholder_color = Color(0.43, 0.47, 0.37, 1)
+theme_override_styles/normal = SubResource("LineEdit")
+theme_override_styles/focus = SubResource("Focus")
+
+[node name="Entries" type="ItemList" parent="Margin/Column/Body/Sidebar/Navigation"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+texture_filter = 1
+fixed_icon_size = Vector2i(58, 58)
+icon_mode = 1
+allow_reselect = true
+theme_override_font_sizes/font_size = 22
+theme_override_constants/v_separation = 16
+theme_override_constants/h_separation = 12
+theme_override_constants/icon_margin = 14
+theme_override_colors/font_color = Color(0.31, 0.3, 0.23, 1)
+theme_override_colors/font_selected_color = Color(0.26, 0.25, 0.17, 1)
+theme_override_styles/panel = SubResource("Clear")
+theme_override_styles/selected = SubResource("Selected")
+theme_override_styles/selected_focus = SubResource("Selected")
+theme_override_styles/hovered = SubResource("Hover")
+theme_override_styles/hovered_selected = SubResource("Selected")
+theme_override_styles/hovered_selected_focus = SubResource("Selected")
+theme_override_styles/focus = SubResource("Focus")
+
+[node name="NavDivider" type="HSeparator" parent="Margin/Column/Body/Sidebar/Navigation"]
+layout_mode = 2
+
+
+[node name="OpenNote" type="Label" parent="Margin/Column/Body/Sidebar/Navigation"]
+layout_mode = 2
+text = "全部开放，自由查阅"
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.36, 0.42, 0.29, 1)
+
+[node name="Book" type="PanelContainer" parent="Margin/Column/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("Paper")
+
+[node name="Empty" type="Label" parent="Margin/Column/Body/Book"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "未找到相关条目
+请尝试其他关键词。"
+theme_override_font_sizes/font_size = 25
+visible = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PageContent" type="VBoxContainer" parent="Margin/Column/Body/Book"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="DetailTag" type="Label" parent="Margin/Column/Body/Book/PageContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "英雄图鉴"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.43, 0.47, 0.34, 1)
+
+[node name="DetailTitle" type="Label" parent="Margin/Column/Body/Book/PageContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "松鼠"
+theme_override_font_sizes/font_size = 42
+theme_type_variation = &"MenuHeading"
+
+[node name="DetailSummary" type="Label" parent="Margin/Column/Body/Book/PageContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 21
+autowrap_mode = 2
+
+[node name="Divider" type="HSeparator" parent="Margin/Column/Body/Book/PageContent"]
+layout_mode = 2
+
+
+[node name="HeroPage" type="HBoxContainer" parent="Margin/Column/Body/Book/PageContent"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_constants/separation = 28
+size_flags_vertical = 3
+
+[node name="PortraitColumn" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage"]
+layout_mode = 2
+theme_override_constants/separation = 15
+custom_minimum_size = Vector2(242, 0)
+
+[node name="PortraitStage" type="PanelContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(242, 282)
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("PortraitStage")
+
+[node name="Portrait" type="TextureRect" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/PortraitStage"]
+unique_name_in_owner = true
+layout_mode = 2
+texture = ExtResource("portrait")
+custom_minimum_size = Vector2(218, 230)
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+texture_filter = 1
+
+[node name="HeroRole" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 21
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Note" type="PanelContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("Note")
+
+[node name="HeroNote" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/Note"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 2
+custom_minimum_size = Vector2(206, 0)
+
+[node name="Skills" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage"]
+layout_mode = 2
+theme_override_constants/separation = 10
+size_flags_horizontal = 3
+
+[node name="SkillTabs" type="GridContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+
+[node name="Skill0" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "技能"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(200, 46)
+toggle_mode = true
+expand_icon = true
+theme_override_constants/icon_max_width = 26
+theme_override_constants/h_separation = 10
+theme_override_font_sizes/font_size = 20
+metadata/ui_motion_hover_scale = 1.012
+
+[node name="Skill1" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "技能"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(200, 46)
+toggle_mode = true
+expand_icon = true
+theme_override_constants/icon_max_width = 26
+theme_override_constants/h_separation = 10
+theme_override_font_sizes/font_size = 20
+metadata/ui_motion_hover_scale = 1.012
+
+[node name="Skill2" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "技能"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(200, 46)
+toggle_mode = true
+expand_icon = true
+theme_override_constants/icon_max_width = 26
+theme_override_constants/h_separation = 10
+theme_override_font_sizes/font_size = 20
+metadata/ui_motion_hover_scale = 1.012
+
+[node name="Skill3" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "技能"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(200, 46)
+toggle_mode = true
+expand_icon = true
+theme_override_constants/icon_max_width = 26
+theme_override_constants/h_separation = 10
+theme_override_font_sizes/font_size = 20
+metadata/ui_motion_hover_scale = 1.012
+
+[node name="SkillInfo" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 5
+custom_minimum_size = Vector2(0, 150)
+
+[node name="SkillHeading" type="HBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillInfo"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+
+[node name="SkillTitle" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillInfo/SkillHeading"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 26
+size_flags_horizontal = 3
+
+[node name="SkillStats" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillInfo/SkillHeading"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.48, 0.42, 0.28, 1)
+size_flags_vertical = 4
+
+[node name="SkillTarget" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.38, 0.48, 0.33, 1)
+
+[node name="SkillDescription" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 20
+autowrap_mode = 2
+
+[node name="Demo" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills" instance=ExtResource("demo")]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 210)
+size_flags_vertical = 3
+
+[node name="Playback" type="HBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="DemoNote" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/Playback"]
+layout_mode = 2
+text = "技能示意 · 时长与比例经简化"
+theme_override_font_sizes/font_size = 15
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.48, 0.5, 0.4, 1)
+
+[node name="Pause" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/Playback"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "暂停演示"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+custom_minimum_size = Vector2(108, 38)
+theme_override_font_sizes/font_size = 16
+
+[node name="Replay" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/Playback"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "重新播放"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"MenuChoice"
+custom_minimum_size = Vector2(108, 38)
+theme_override_font_sizes/font_size = 16
+
+[node name="GuidePage" type="HBoxContainer" parent="Margin/Column/Body/Book/PageContent"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_constants/separation = 28
+visible = false
+size_flags_vertical = 3
+
+[node name="Illustration" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage"]
+layout_mode = 2
+theme_override_constants/separation = 20
+custom_minimum_size = Vector2(242, 0)
+
+[node name="GuideStage" type="PanelContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/Illustration"]
+layout_mode = 2
+custom_minimum_size = Vector2(242, 230)
+theme_override_styles/panel = SubResource("PortraitStage")
+
+[node name="GuideIcon" type="TextureRect" parent="Margin/Column/Body/Book/PageContent/GuidePage/Illustration/GuideStage"]
+unique_name_in_owner = true
+layout_mode = 2
+texture = ExtResource("house")
+custom_minimum_size = Vector2(150, 180)
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+self_modulate = Color(0.42, 0.49, 0.32, 1)
+
+[node name="GuideTag" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/Illustration"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 23
+horizontal_alignment = 1
+
+[node name="Tip" type="PanelContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/Illustration"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("Note")
+
+[node name="GuideTip" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/Illustration/Tip"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 19
+custom_minimum_size = Vector2(206, 0)
+autowrap_mode = 2
+
+[node name="GuideScroll" type="ScrollContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Sections" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll"]
+layout_mode = 2
+theme_override_constants/separation = 24
+size_flags_horizontal = 3
+
+[node name="Section0" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+
+[node name="SectionTitle0" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section0"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 27
+
+
+[node name="SectionBody0" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section0"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 22
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.38, 0.37, 0.29, 1)
+
+[node name="Rule0" type="HSeparator" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section0"]
+layout_mode = 2
+
+
+[node name="Section1" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+
+[node name="SectionTitle1" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section1"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 27
+
+
+[node name="SectionBody1" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section1"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 22
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.38, 0.37, 0.29, 1)
+
+[node name="Rule1" type="HSeparator" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section1"]
+layout_mode = 2
+
+
+[node name="Section2" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+
+[node name="SectionTitle2" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 27
+
+
+[node name="SectionBody2" type="Label" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 22
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.38, 0.37, 0.29, 1)
+
+[node name="Rule2" type="HSeparator" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/Section2"]
+layout_mode = 2
+
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+
+[node name="Hint" type="Label" parent="Margin/Column/Footer"]
+layout_mode = 2
+text = "方向键选择条目  ·  Tab 切换焦点  ·  Esc 返回"
+theme_override_font_sizes/font_size = 16
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.35, 0.42, 0.3, 1)
+
+[node name="PageNumber" type="Label" parent="Margin/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "01 / 04"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.35, 0.42, 0.3, 1)
