@@ -2,7 +2,7 @@ extends RefCounted
 ## Wire data is bounded JSON, never Variant object deserialization or remote RPC.
 
 const VERSION := 1
-const RELEASE := "1.1.0"
+const RELEASE := "1.2.0"
 const PORT := 42300
 const TLS_NAME := "block-conquest-relay"
 const CHANNEL_COUNT := 6

@@ -106,7 +106,7 @@ func _run() -> void:
 	await settle(1.4)
 	check(toy.ripple_age > 1.3, "water ring fades rather than loops")
 	check(title.global_position.is_equal_approx(title_position) and version.global_position.is_equal_approx(version_position), "idle motion leaves text anchored")
-	check(version.text == "v1.0.1", "current version remains visible")
+	check(version.text == "v" + str(ProjectSettings.get_setting("application/config/version")), "current configured release version remains visible")
 	click(lobby.get_node("%Settings").get_global_rect().get_center())
 	await settle()
 	check(session.settings.is_open() and not toy.interactive, "settings disables miniature input")

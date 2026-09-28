@@ -19,6 +19,7 @@ one_shot = true
 ignore_time_scale = true
 
 [node name="Menu" type="Control" parent="."]
+top_level = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -75,6 +76,7 @@ theme_override_constants/shadow_offset_y = 0
 theme_override_fonts/font = ExtResource("med_title")
 
 [node name="Close" type="Button" parent="Menu/Center/Panel/Layout/Heading"]
+focus_previous = NodePath("../../Actions/Done")
 metadata/ui_sound = &"cancel"
 unique_name_in_owner = true
 layout_mode = 2
@@ -498,6 +500,7 @@ text = "应用"
 theme_type_variation = &"MedievalCompact"
 
 [node name="Done" type="Button" parent="Menu/Center/Panel/Layout/Actions"]
+focus_next = NodePath("../../Heading/Close")
 metadata/ui_sound = &"order"
 unique_name_in_owner = true
 layout_mode = 2
@@ -506,6 +509,7 @@ text = "完成"
 theme_type_variation = &"MedievalPrimary"
 
 [node name="DisplayConfirm" type="Control" parent="Menu"]
+top_level = true
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -558,12 +562,16 @@ theme_override_fonts/font = ExtResource("med_title")
 layout_mode = 2
 
 [node name="RevertDisplay" type="Button" parent="Menu/DisplayConfirm/Center/Panel/Content/Actions"]
+focus_next = NodePath("../KeepDisplay")
+focus_previous = NodePath("../KeepDisplay")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "恢复原设置"
 
 [node name="KeepDisplay" type="Button" parent="Menu/DisplayConfirm/Center/Panel/Content/Actions"]
+focus_next = NodePath("../RevertDisplay")
+focus_previous = NodePath("../RevertDisplay")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

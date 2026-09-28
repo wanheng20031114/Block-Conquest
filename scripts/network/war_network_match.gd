@@ -17,6 +17,7 @@ var _tick := 0
 var _seq := 0
 var _command_seq := 0
 var _commands: Array[Dictionary] = []
+var _forfeit_factions: Dictionary = {}
 var _command_results: Dictionary = {}
 var _last_commands: Dictionary = {}
 var _previous: Dictionary = {}
@@ -32,6 +33,7 @@ var _host_tick := -1
 var _snapshot_tick := -1
 var _snapshot_sent_at: Dictionary = {}
 var _recovery_baselines: Dictionary = {}
+var _surrender_announced: Dictionary = {}
 var _account_sent: Dictionary = {}
 var _account: Array = []
 var _account_tick := -1
@@ -44,6 +46,7 @@ var _bulk_tokens := 32768.0
 var _snapshot_transfers: Dictionary = {}
 var _recovery_waiting := false
 var _recovery_target := 0
+var _recovery_epoch := -1
 var _aborted := false
 var _anchor_outbox: Array[Dictionary] = []
 var _anchor_tokens := 16.0
@@ -98,6 +101,7 @@ func _on_started(config: Dictionary) -> void:
 	if online.is_host: game.hud.set_network_status("")
 
 func _on_connection(state: String) -> void:
+	if game._closing: return
 	if state in ["connecting", "reconnecting", "disconnected", "host_lost"]:
 		if online.is_host:
 			# Native transport teardown loses its unsent reliable stream. Fresh
@@ -105,27 +109,47 @@ func _on_connection(state: String) -> void:
 			_outbox.clear(); _outbox_bytes = 0
 			_snapshot_transfers.clear(); _snapshot_sent_at.clear()
 			_recovery_baselines.clear(); _anchor_outbox.clear()
-		game.simulation_paused = true
-		game.world_effects.set_running(false)
-		for building: WarBuilding in game.buildings: building.set_visual_paused(true)
+			_surrender_announced.clear()
+		_set_transport_paused(true)
 		game.hud.set_network_status("连接中断，正在恢复", "战场已暂停显示 · 请稍候")
 	elif state == "match" and _started:
-		game.world_effects.set_running(true)
-		for building: WarBuilding in game.buildings: building.set_visual_paused(false)
+		_set_transport_paused(_snapshot_loading or _recovery_waiting)
+		_sync_surrenders()
 		if not online.is_host: _request_resync()
 
+func _set_transport_paused(value: bool) -> void:
+	if game.simulation_paused == value: return
+	game.simulation_paused = value
+	game.sync_match_control_presentation()
+
+func _sync_surrenders() -> void:
+	if not online.is_host or online.connection_state not in ["match", "finished"]: return
+	for slot: Dictionary in online.room.get("slots", []):
+		if slot.kind != "human": continue
+		# Simultaneous departures can end the match on the first surrender. The
+		# other authenticated departures still need their detached identities retired.
+		if int(slot.faction_id) not in game.surrendered_factions and not (game.finished and slot.get("forfeit_requested", false)): continue
+		var player := int(slot.player_id)
+		if slot.get("surrendered", false) or _surrender_announced.has(player): continue
+		_surrender_announced[player] = true
+		online.confirm_surrender(player)
+
 func _on_room(room: Dictionary) -> void:
-	if not is_instance_valid(game) or room.is_empty(): return
+	if not is_instance_valid(game) or game._closing or room.is_empty(): return
 	game.configure_controllers(room.slots)
+	if online.is_host:
+		for slot: Dictionary in room.slots:
+			if slot.get("forfeit_requested", false): _forfeit_factions[int(slot.faction_id)] = true
+	_try_recovery_ack()
+	_sync_surrenders()
 	var phase: String = room.get("phase", "room")
 	if phase == "host_lost":
-		game.simulation_paused = true
-		game.world_effects.set_running(false)
+		_set_transport_paused(true)
 		game.hud.notify("房主连接中断 · 等待恢复，战局已暂停")
 		game.hud.set_network_status("等待房主恢复连接", "对局已暂停 · 30 秒内可恢复")
 	elif phase == "match" and _started:
-		game.simulation_paused = false
-		game.world_effects.set_running(true)
+		_set_transport_paused(_snapshot_loading or _recovery_waiting)
+		_sync_surrenders()
 		if online.is_host: game.hud.set_network_status("")
 		elif _local_slot().get("controller") == "reconnecting": _request_resync()
 
@@ -137,18 +161,34 @@ func process(delta: float) -> void:
 	_expire_blobs()
 	if not _started or _aborted: return
 	if online.room.get("phase") == "host_lost" or online.connection_state in ["connecting", "reconnecting", "disconnected"]:
-		game.simulation_paused = true
+		_set_transport_paused(true)
 		return
 	if game.finished: return
 	if online.is_host:
-		game.simulation_paused = false
-		_accumulator += delta
-		var count := 0
-		while _accumulator + 0.0000001 >= STEP and count < 8 and not game.finished and not _aborted:
-			_accumulator -= STEP; count += 1; _tick += 1
-			_drain_commands()
-			game.simulate(STEP)
-			_publish_step(STEP)
+		_set_transport_paused(false)
+		if game.match_paused:
+			# Control requests still run while paused; simulation, AI, cooldowns
+			# and delayed departures do not accrue wall-clock debt.
+			_accumulator = 0.0
+			if not _commands.is_empty() or not _forfeit_factions.is_empty():
+				_drain_commands()
+				_publish_step(0.0)
+		else:
+			_accumulator += delta
+			var count := 0
+			while _accumulator + 0.0000001 >= STEP and count < 8 and not game.finished and not _aborted:
+				_accumulator -= STEP; count += 1; _tick += 1
+				_drain_commands()
+				if game.match_paused or game.finished:
+					_accumulator = 0.0
+					_publish_step(0.0)
+					break
+				game.simulate(STEP)
+				_publish_step(STEP)
+		_since_time += delta
+		if _since_time >= ANCHOR_INTERVAL:
+			_since_time = 0.0
+			online.send_match("time", {"time": game.elapsed, "tick": _tick, "seq": _seq})
 		if game.finished and not _result_sent:
 			_result_sent = true
 			online.send_match("finished", {"winner": game.winner_team, "tick": _tick, "seq": _seq})
@@ -167,16 +207,16 @@ func process(delta: float) -> void:
 			if _gap_age > 2.0: _request_resync("event_gap")
 		else: _gap_age = 0.0
 		if _silence > 2.0:
-			game.simulation_paused = true
+			_set_transport_paused(true)
 			_request_resync("authority_silence")
 			return
 		if not _snapshot_loading and not _mirror.is_empty():
-			game.simulation_paused = _recovery_waiting
+			_set_transport_paused(_recovery_waiting)
 			game.hud.set_network_status("正在追上战况" if _recovery_waiting else "", "等待后续战斗事件确认" if _recovery_waiting else "")
 			_apply_view()
 			# Follow the Host clock with a small display delay. Pauses never accrue
 			# simulation debt, and absent packets can predict at most half a second.
-			var ahead := minf(0.5, maxf(0.0, float(Time.get_ticks_msec() - _host_received_ms) / 1000.0))
+			var ahead := 0.0 if game.is_rule_paused() else minf(0.5, maxf(0.0, float(Time.get_ticks_msec() - _host_received_ms) / 1000.0))
 			var target := _host_time + ahead + rtt_ms / 2000.0 - 0.1
 			var step := clampf(target - game.elapsed, 0.0, delta * 1.15)
 			codec.present(game, _view, step)
@@ -189,6 +229,8 @@ func submit(command: Dictionary) -> Dictionary:
 	var slot: Dictionary = _local_slot()
 	if slot.is_empty() or slot.get("controller") != "human" or not slot.get("connected", false):
 		return {"accepted": false, "reason": "尚未恢复控制权"}
+	if game.local_faction in game.surrendered_factions:
+		return {"accepted": false, "reason": "你已投降，正在观战"}
 	_command_seq += 1
 	var envelope := {"seq": _command_seq, "epoch": int(slot.control_epoch), "command": command}
 	if online.is_host: _receive_command(online.player_id, envelope)
@@ -222,12 +264,20 @@ func _receive_command(player: int, payload: Dictionary) -> void:
 	_commands.append({"player": player, "faction": int(slot.faction_id), "epoch": int(payload.epoch), "seq": int(payload.seq), "key": key, "command": payload.command})
 
 func _drain_commands() -> void:
+	# A voluntary leave is authenticated and retained by Relay until the Host
+	# commits its normal surrender transaction, even if the Host was absent.
+	for faction: int in _forfeit_factions.keys():
+		_forfeit_factions.erase(faction)
+		for slot: Dictionary in online.room.get("slots", []):
+			if int(slot.faction_id) == faction and slot.kind == "human" and slot.get("forfeit_requested", false):
+				if not game.has_surrendered(faction): game.surrender_faction(faction)
+				break
 	var queue := _commands
 	_commands = []
 	for entry: Dictionary in queue:
 		var slot := _slot_for(entry.player)
 		var result := {"accepted": false, "reason": "控制权已改变"}
-		if not slot.is_empty() and slot.get("controller") == "human" and int(slot.control_epoch) == entry.epoch:
+		if not slot.is_empty() and slot.get("controller") == "human" and slot.get("connected", false) and int(slot.control_epoch) == entry.epoch:
 			result = game.execute_network_command(entry.faction, entry.command)
 		result["command_seq"] = entry.seq; result["epoch"] = entry.epoch; result["tick"] = _tick
 		_command_results[entry.key] = result
@@ -249,18 +299,17 @@ func _publish_step(delta: float) -> void:
 	# repairs continuous values; motion anchors are independent replaceable data.
 	var patch := Snapshot.diff(_previous, current)
 	_previous = current
-	if not patch.set.is_empty() or not patch.remove.is_empty() or not _presentation.is_empty() or current.finished != _published.finished:
+	if not patch.set.is_empty() or not patch.remove.is_empty() or not _presentation.is_empty() or current.finished != _published.finished or current.match_control != _published.match_control:
 		_seq += 1
 		patch["seq"] = _seq
 		patch["visuals"] = _presentation
 		_presentation = []
 		Snapshot.apply_delta(_published, patch)
 		_send_payload("events", patch)
+	_sync_surrenders()
 	if anchor:
 		_send_anchors(current)
 		_send_accounts(complete)
-		# A reliable compact clock is independent of optional movement packets.
-		online.send_match("time", {"time": game.elapsed, "tick": _tick, "seq": _seq})
 	else:
 		_send_accounts(complete, true)
 	if _since_digest >= 2.0:
@@ -303,13 +352,14 @@ func _flush_anchors(delta: float) -> void:
 		online.send_match("anchors", _anchor_outbox.pop_front(), -1, 4, false)
 
 func _on_message(sender: int, kind: String, payload: Dictionary) -> void:
+	if game._closing: return
 	if online.is_host:
 		match kind:
 			"command": _receive_command(sender, payload)
 			"resync": _send_snapshot(sender)
 			"ack":
-				if payload.get("op") == "recovered" and _recovery_baselines.has(sender) and Snapshot._integer(payload.get("seq"), int(_recovery_baselines[sender]), _seq):
-					online.complete_recovery(sender)
+				if payload.get("op") == "recovered" and _recovery_baselines.has(sender) and Snapshot._integer(payload.get("seq"), int(_recovery_baselines[sender].seq), _seq) and Snapshot._integer(payload.get("epoch"), 0, 2147483647) and payload.epoch == _recovery_baselines[sender].epoch and _slot_for(sender).get("control_epoch") == _recovery_baselines[sender].epoch:
+					online.complete_recovery(sender, int(_recovery_baselines[sender].epoch))
 					_recovery_baselines.erase(sender)
 				elif payload.get("op") == "time" and Snapshot._integer(payload.get("stamp"), 0, 9007199254740991):
 					online.send_match("time", {"stamp": payload.stamp, "time": game.elapsed, "tick": _tick, "seq": _seq}, sender, 2, true)
@@ -320,7 +370,7 @@ func _on_message(sender: int, kind: String, payload: Dictionary) -> void:
 		"snapshot_begin", "snapshot_chunk", "snapshot_end": _receive_blob(kind, payload)
 		"events":
 			if payload.has("account"):
-				if payload.get("faction") == game.local_faction and Snapshot.valid_account(payload.account, game) and Snapshot._integer(payload.get("tick"), 0, 2147483647) and Snapshot._integer(payload.get("base"), 0, 2147483647) and int(payload.tick) > _account_tick:
+				if payload.get("faction") == game.local_faction and Snapshot.valid_account(payload.account, game) and Snapshot._integer(payload.get("tick"), 0, 2147483647) and Snapshot._integer(payload.get("base"), 0, 2147483647) and (int(payload.tick) > _account_tick or (int(payload.tick) == _account_tick and int(payload.base) > _account_base)):
 					_account = payload.account; _account_tick = int(payload.tick); _account_base = int(payload.base)
 					_apply_account()
 			else: _receive_events(payload)
@@ -372,6 +422,9 @@ func _drain_events() -> void:
 
 func _valid_patch(payload: Dictionary) -> bool:
 	if not payload.get("set") is Dictionary or not payload.get("remove") is Dictionary or not Snapshot._number(payload.get("time")) or not Snapshot._integer(payload.get("tick"), 0, 2147483647) or not payload.get("finished") is bool or not Snapshot._integer(payload.get("winner"), -2, 1) or not Snapshot._row(payload.get("counters"), 4): return false
+	if not Snapshot.valid_match_control(payload.get("match_control"), game): return false
+	for faction: int in _mirror.match_control.surrendered:
+		if not payload.match_control.surrendered.any(func(value: Variant): return int(value) == faction): return false
 	if float(payload.time) < float(_mirror.time) or int(payload.tick) < int(_mirror.tick): return false
 	if payload.has("visuals") and not payload.visuals is Array: return false
 	for group: Variant in payload.set:
@@ -424,7 +477,7 @@ func _apply_view() -> void:
 				records.erase(key)
 				_anchor_versions.erase(name + ":" + key)
 			else: _view[name][key] = records[key]
-	codec.install(game, _view, maxf(game.elapsed, float(_mirror.time)))
+	codec.install(game, _view, float(_mirror.time) if _mirror.match_control.paused else maxf(game.elapsed, float(_mirror.time)))
 	_view_dirty = false
 	_apply_account()
 	for event: Dictionary in _queued_visuals: _play_presentation(event)
@@ -470,8 +523,9 @@ func _send_snapshot(player: int) -> void:
 	# travel as a separate display baseline so they cannot cause resync loops.
 	var view := Snapshot.for_player(complete, -1)
 	var account: Array = complete.factions[str(int(_slot_for(player).faction_id))]
-	_recovery_baselines[player] = _seq
-	_send_blob("snapshot", {"state": _published, "view": view, "seq": _seq, "account": account, "winner": game.winner_team}, player)
+	var epoch := int(_slot_for(player).control_epoch)
+	_recovery_baselines[player] = {"seq": _seq, "epoch": epoch}
+	_send_blob("snapshot", {"state": _published, "view": view, "seq": _seq, "epoch": epoch, "account": account, "winner": game.winner_team}, player)
 
 func _on_recovery(player: int) -> void:
 	if not _started or not online.is_host: return
@@ -479,6 +533,8 @@ func _on_recovery(player: int) -> void:
 	# sent to the previous native peer. Ordinary resync requests do not cancel it.
 	_cancel_snapshot(player)
 	_snapshot_sent_at.erase(player)
+	_surrender_announced.erase(player)
+	_sync_surrenders()
 	_send_snapshot(player)
 
 func _cancel_snapshot(player: int) -> void:
@@ -529,7 +585,7 @@ func _flush_outbox(delta: float = 0.0) -> void:
 		elif entry.kind == "snapshot_end" and entry.payload.purpose == "snapshot":
 			# A recovery must catch all facts created while its baseline travelled.
 			entry.payload.through = _seq
-			_recovery_baselines[entry.target] = _seq
+			_recovery_baselines[entry.target].seq = _seq
 			_snapshot_transfers.erase(entry.target)
 		# Manifest/chunks/end share the same reliable native stream; battle events
 		# can arrive meanwhile and are protected by their explicit baseline.
@@ -579,7 +635,10 @@ func _install_snapshot(payload: Dictionary) -> void:
 	if not payload.get("state") is Dictionary or not Snapshot._integer(payload.get("seq"), 0, 2147483647) or not Snapshot.valid(payload.state, game): _request_resync(); return
 	if not payload.get("view") is Dictionary or not Snapshot.valid(payload.view, game) or not Snapshot.valid_account(payload.get("account"), game): _request_resync(); return
 	if not Snapshot._integer(payload.get("through"), int(payload.seq), 2147483647): _request_resync(); return
+	if not Snapshot._integer(payload.get("epoch"), 0, 2147483647): _request_resync(); return
+	if int(payload.epoch) < int(_local_slot().get("control_epoch", -1)): _request_resync("stale_recovery_epoch"); return
 	if int(payload.seq) < _applied or int(payload.view.tick) < _snapshot_tick: return
+	if not Snapshot.same_match_control(payload.state.match_control, payload.view.match_control): _request_resync(); return
 	# The display baseline must contain exactly the same live entities/facts.
 	for group: String in Snapshot.GROUPS:
 		if payload.state[group].size() != payload.view[group].size(): _request_resync(); return
@@ -590,6 +649,7 @@ func _install_snapshot(payload: Dictionary) -> void:
 	_applied = int(payload.seq)
 	_recovery_waiting = true
 	_recovery_target = int(payload.through)
+	_recovery_epoch = int(payload.epoch)
 	_snapshot_tick = int(payload.view.tick)
 	codec = Snapshot.new()
 	_anchor_state.clear(); _anchor_versions.clear()
@@ -598,7 +658,9 @@ func _install_snapshot(payload: Dictionary) -> void:
 		for key: String in _anchor_state[group]: _anchor_versions[group + ":" + key] = _snapshot_tick
 	_view_dirty = true
 	game.elapsed = float(payload.view.time)
-	if _snapshot_tick >= _account_tick:
+	# Multiple control transactions can change energy income at one paused tick.
+	# A recovery baseline must not replace a newer private account from that tick.
+	if _snapshot_tick > _account_tick or (_snapshot_tick == _account_tick and _applied >= _account_base):
 		_account = payload.account; _account_tick = _snapshot_tick; _account_base = _applied
 	_set_clock(float(payload.view.time), _snapshot_tick)
 	_snapshot_loading = false; _gap_age = 0.0
@@ -613,8 +675,15 @@ func _install_snapshot(payload: Dictionary) -> void:
 
 func _try_recovery_ack() -> void:
 	if not _recovery_waiting or _snapshot_loading or _applied < _recovery_target: return
+	var epoch := int(_local_slot().get("control_epoch", -1))
+	if _recovery_epoch < epoch:
+		_request_resync("stale_recovery_epoch")
+		return
+	# The room channel can arrive after the bulk channel. Only acknowledge the
+	# exact connection generation represented by this fully installed baseline.
+	if _recovery_epoch != epoch: return
 	_recovery_waiting = false
-	online.send_match("ack", {"op": "recovered", "seq": _applied}, -1, 1, true)
+	online.send_match("ack", {"op": "recovered", "seq": _applied, "epoch": _recovery_epoch}, -1, 1, true)
 	game.hud.notify("战场同步完成")
 
 func _request_resync(reason: String = "recovery") -> void:

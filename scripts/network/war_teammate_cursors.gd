@@ -40,7 +40,7 @@ func _refresh(room: Dictionary) -> void:
 		return
 	for slot: Dictionary in room.slots:
 		var player := int(slot.player_id)
-		if str(slot.kind) != "human" or player == online.player_id or int(slot.team_id) != int(own.team_id) or not bool(slot.connected) or str(slot.controller) != "human":
+		if str(slot.kind) != "human" or player == online.player_id or int(slot.team_id) != int(own.team_id) or not bool(slot.connected) or str(slot.controller) != "human" or int(slot.faction_id) in game.surrendered_factions:
 			continue
 		active.append(player)
 		var pointer: Control = $Pointers.get_child(int(slot.slot_id))
@@ -48,6 +48,7 @@ func _refresh(room: Dictionary) -> void:
 		if not _peers.has(player):
 			_peers[player] = {"seq": -1, "epoch": -1, "received": -EXPIRY, "point": Vector3.ZERO, "target": Vector3.ZERO, "visible": false, "pressed": false}
 		_peers[player].pointer = pointer
+		_peers[player].faction = int(slot.faction_id)
 	for player: int in _peers.keys():
 		if player not in active:
 			_peers.erase(player)
@@ -81,10 +82,12 @@ func tick(delta: float) -> void:
 	_idle_clock += delta
 	var active: bool = online.connection_state == "match" and not game.finished
 	var own := _local_slot(online.room)
-	var can_share: bool = not own.is_empty() and bool(own.connected) and str(own.controller) == "human"
+	var can_share: bool = not own.is_empty() and bool(own.connected) and str(own.controller) == "human" and int(own.faction_id) not in game.surrendered_factions
 	var view_size := get_viewport().get_visible_rect().size
 	for peer: Dictionary in _peers.values():
 		var pointer: Control = peer.pointer
+		if int(peer.faction) in game.surrendered_factions:
+			peer.visible = false
 		if not active or not bool(peer.visible) or _clock - float(peer.received) > EXPIRY or game._local_menu:
 			pointer.hide()
 			continue
@@ -118,6 +121,10 @@ func tick(delta: float) -> void:
 		_publish(point, present, down)
 
 func _publish(point: Vector2, present: bool, down: bool) -> void:
+	var own := _local_slot(online.room)
+	if not own.is_empty() and int(own.faction_id) in game.surrendered_factions:
+		present = false
+		down = false
 	_sequence += 1
 	if present != _last_visible:
 		_presence_epoch += 1
@@ -135,6 +142,8 @@ func _receive(sender: int, payload: Dictionary) -> void:
 	var seq := int(payload.cursor_seq)
 	var epoch := int(payload.presence_epoch)
 	var peer: Dictionary = _peers[sender]
+	if int(peer.faction) in game.surrendered_factions:
+		return
 	if seq <= int(peer.seq) or epoch < int(peer.epoch):
 		return
 	var point := Vector3(float(payload.world_x), 0.0, float(payload.world_z))

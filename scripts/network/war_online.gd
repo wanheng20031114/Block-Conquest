@@ -143,7 +143,7 @@ func return_to_room() -> void:
 func send_command(payload: Dictionary) -> void:
 	if connection_state != "match" or match_config.is_empty(): return
 	var slot := P.slot_for_player(room, player_id)
-	if slot.is_empty() or slot.controller != "human": return
+	if slot.is_empty() or slot.controller != "human" or slot.surrendered: return
 	_send({"op": "command", "match_id": match_config.match_id, "payload": payload}, P.COMMAND_CHANNEL)
 
 func send_match(kind: String, payload: Dictionary, to_player: int = -1, channel: int = P.EVENT_CHANNEL, reliable: bool = true) -> void:
@@ -159,13 +159,19 @@ func send_match(kind: String, payload: Dictionary, to_player: int = -1, channel:
 
 func send_cursor(payload: Dictionary) -> void:
 	if connection_state != "match" or match_config.is_empty() or not P.valid_cursor(payload): return
+	var slot := P.slot_for_player(room, player_id)
+	if slot.is_empty() or slot.controller != "human" or slot.surrendered: return
 	var changed := int(payload.presence_epoch) != _last_presence
 	_last_presence = int(payload.presence_epoch)
 	_send({"op": "presence" if changed else "cursor", "match_id": match_config.match_id, "room_revision": room.revision, "payload": payload}, P.ROOM_CHANNEL if changed else P.CURSOR_CHANNEL, changed)
 
-func complete_recovery(player: int) -> void:
+func complete_recovery(player: int, recovery_epoch: int) -> void:
 	if not is_host or match_config.is_empty(): return
-	_send({"op": "recovered", "match_id": match_config.match_id, "player_id": player})
+	_send({"op": "recovered", "match_id": match_config.match_id, "player_id": player, "epoch": recovery_epoch})
+
+func confirm_surrender(player: int) -> void:
+	if not is_host or match_config.is_empty(): return
+	_send({"op": "surrendered", "match_id": match_config.match_id, "player_id": player})
 
 func disconnect_relay() -> void:
 	if _peer != null and _hello:
@@ -296,7 +302,7 @@ func _receive(message: Dictionary, channel: int, now: int) -> void:
 			var sender := int(message.get("sender", -1))
 			var other := P.slot_for_player(room, sender)
 			var own := P.slot_for_player(room, player_id)
-			if other.is_empty() or own.is_empty() or other.team_id != own.team_id or sender == player_id or not other.connected or not P.valid_cursor(message.get("payload")): return
+			if other.is_empty() or own.is_empty() or other.team_id != own.team_id or sender == player_id or not other.connected or other.controller != "human" or other.surrendered or not P.valid_cursor(message.get("payload")): return
 			var payload: Dictionary = message.payload.duplicate()
 			payload.room_revision = room.revision
 			cursor_received.emit(sender, payload)

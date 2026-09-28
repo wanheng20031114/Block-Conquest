@@ -79,9 +79,7 @@ func _draw() -> void:
 		_ring(game.selected.global_position, game.tower_range(game.selected), Color(1.0, 0.81, 0.43, 0.35), 1.5)
 	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:
 		var points := PackedVector2Array()
-		var color := Color(1.0, 0.81, 0.32, 0.9)
-		if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, 0):
-			color = Color(0.55, 0.93, 0.7, 0.9)
+		var color := dispatch_route_color()
 		if game.order_route.size() >= 2:
 			for point: Vector3 in game.order_route:
 				points.append(camera.unproject_position(point + Vector3(0, 0.4, 0)))
@@ -114,6 +112,9 @@ func _draw() -> void:
 		color.a = 1.0 - progress
 		var radius: float = lerpf(0.5, effect.radius if effect.kind != "hit" else 0.85, progress)
 		_ring(effect.at, radius, color, 2.5)
+
+func dispatch_route_color() -> Color:
+	return Color(0.55, 0.93, 0.7, 0.9) if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, game.drag_source.faction) else Color(1.0, 0.81, 0.32, 0.9)
 
 func _update_dispatch_hint() -> void:
 	var count: int = game.dispatch_count(game.drag_source, game.percentage)

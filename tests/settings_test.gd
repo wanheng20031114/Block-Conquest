@@ -12,6 +12,15 @@ func check(value: bool, label: String) -> void:
 		failures.append(label)
 		printerr("FAIL ", label)
 
+func key(code: int, shift: bool = false) -> void:
+	for down: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = code
+		event.physical_keycode = code
+		event.pressed = down
+		event.shift_pressed = shift
+		root.push_input(event, true)
+
 func _run() -> void:
 	create_timer(25.0, true, false, true).timeout.connect(func(): quit(3))
 	var settings: GameSettings = root.get_node("Session/Settings")
@@ -65,13 +74,21 @@ func _run() -> void:
 	candidate.volume_percent = 10.0
 	candidate.music_enabled = true
 	candidate.music_volume_percent = 75.0
+	settings.menu.get_node("%Apply").grab_focus()
 	settings.apply_preferences(candidate)
 	check(not settings.display_timer.is_stopped() and settings.display_timer.wait_time == 15, "display changes start a 15-second confirmation")
 	check(settings.menu.get_node("%DisplayConfirm").visible, "display confirmation owns the modal")
+	for reverse: bool in [false, true]:
+		var confined := true
+		for _step: int in 8:
+			key(KEY_TAB, reverse)
+			confined = confined and root.gui_get_focus_owner() in [settings.menu.get_node("%KeepDisplay"), settings.menu.get_node("%RevertDisplay")]
+		check(confined, "display confirmation traps native " + ("Shift Tab" if reverse else "Tab"))
 	paused = true
 	settings.display_timer.start(0.05)
 	await create_timer(0.12, true, false, true).timeout
 	check(settings.snapshot() == before, "timeout restores all previous preference values together")
+	check(root.gui_get_focus_owner() == settings.menu.get_node("%Apply"), "display rollback restores focus to the original settings action")
 	check(AudioServer.is_bus_mute(bgm_bus) and paused, "rollback preserves the old mixer and gameplay pause")
 	paused = false
 	settings.apply_preferences(candidate)

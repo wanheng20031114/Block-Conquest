@@ -1,6 +1,6 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 2
+const SCHEMA := 3
 const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "fires"]
 const UNIT_SIZE := 14
 const MAX_ID := 2147483647
@@ -34,7 +34,8 @@ static func remaining(end: float, now: float) -> float:
 
 func capture(game: Node, tick: int) -> Dictionary:
 	var now: float = game.elapsed
-	var state := {"schema": SCHEMA, "tick": tick, "time": now, "finished": game.finished, "winner": game.winner_team}
+	var state := {"schema": SCHEMA, "tick": tick, "time": now, "finished": game.finished, "winner": game.winner_team,
+		"match_control": {"paused": game.match_paused, "by": game.pause_faction, "surrendered": game.surrendered_factions.duplicate()}}
 	for group: String in GROUPS:
 		state[group] = {}
 	for b: WarBuilding in game.buildings:
@@ -168,8 +169,13 @@ static func diff(previous: Dictionary, current: Dictionary, force: bool = false)
 			speed_changed = true
 	if speed_changed:
 		changes["units"] = current.units.duplicate(false)
+	if previous.match_control.paused != current.match_control.paused:
+		# The pause boundary fixes every continuous display at the same exact
+		# authority time, including armies whose optional anchor sweep is pending.
+		for group: String in ["buildings", "factions", "units"]:
+			changes[group] = current[group].duplicate(false)
 	return {"tick": current.tick, "time": current.time, "finished": current.finished, "winner": current.winner,
-		"set": changes, "remove": removed, "counters": current.counters}
+		"set": changes, "remove": removed, "counters": current.counters, "match_control": current.match_control}
 
 static func _discrete_changed(group: String, old: Variant, next: Variant) -> bool:
 	if group == "units":
@@ -228,11 +234,13 @@ static func apply_delta(state: Dictionary, delta: Dictionary) -> void:
 	state.finished = delta.finished
 	state.winner = delta.winner
 	state.counters = delta.counters
+	state.match_control = delta.match_control
 
 static func valid(state: Dictionary, game: Node) -> bool:
 	if state.get("schema") != SCHEMA or not _integer(state.get("tick"), 0, MAX_ID) or not _nonnegative(state.get("time")) or not state.get("finished") is bool or not _integer(state.get("winner"), -2, 1):
 		return false
 	if bool(state.finished) != (int(state.winner) != -2): return false
+	if not valid_match_control(state.get("match_control"), game): return false
 	for group: String in GROUPS:
 		if not state.get(group) is Dictionary or state[group].size() > MAX_RECORDS: return false
 	if state.buildings.size() != game.buildings.size() or state.factions.size() != game.faction_count:
@@ -267,6 +275,23 @@ static func valid(state: Dictionary, game: Node) -> bool:
 			reservations[source] = int(reservations.get(source, 0)) + 1
 	for key: String in state.buildings:
 		if int(state.buildings[key][4]) != int(reservations.get(key, 0)): return false
+	return true
+
+static func valid_match_control(value: Variant, game: Node) -> bool:
+	if not value is Dictionary or not value.get("paused") is bool or not _integer(value.get("by"), -1, game.faction_count - 1) or not value.get("surrendered") is Array: return false
+	if value.surrendered.size() > game.initial_human_factions.size(): return false
+	if value.paused and int(value.by) not in game.initial_human_factions: return false
+	if not value.paused and int(value.by) != -1: return false
+	var previous := -1
+	for faction: Variant in value.surrendered:
+		if not _integer(faction, 0, game.faction_count - 1) or int(faction) not in game.initial_human_factions or int(faction) <= previous: return false
+		previous = int(faction)
+	return true
+
+static func same_match_control(first: Dictionary, second: Dictionary) -> bool:
+	if first.paused != second.paused or int(first.by) != int(second.by) or first.surrendered.size() != second.surrendered.size(): return false
+	for index: int in first.surrendered.size():
+		if int(first.surrendered[index]) != int(second.surrendered[index]): return false
 	return true
 
 static func valid_record(group: String, row: Variant, game: Node) -> bool:
@@ -410,6 +435,12 @@ static func same_structure(group: String, first: Array, second: Array) -> bool:
 func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 	# Caller validates once before an atomic install. No gameplay signal is emitted.
 	var now: float = float(state.time) if at_time < 0.0 else at_time
+	var surrendered: Array[int] = []
+	surrendered.assign(state.match_control.surrendered)
+	var control_changed: bool = game.match_paused != state.match_control.paused or game.pause_faction != int(state.match_control.by) or game.surrendered_factions != surrendered
+	game.match_paused = state.match_control.paused
+	game.pause_faction = int(state.match_control.by)
+	game.surrendered_factions.assign(surrendered)
 	game.elapsed = now
 	_last_state = state
 	_present_buildings(game, state, now)
@@ -464,7 +495,9 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 			unit = WarMarches.MarchUnit.new(); unit.unit_id = int(key)
 			_objects[key] = unit
 		var installed: Variant = _installed_unit_rows.get(key)
-		if (is_same(installed, row) or installed == row) and (not orders_changed or unit.order == _orders[str(int(row[0]))]):
+		# A pause can commit at the same rule time as the previous row while this
+		# replica has already extrapolated. Reinstall at the exact control boundary.
+		if not control_changed and (is_same(installed, row) or installed == row) and (not orders_changed or unit.order == _orders[str(int(row[0]))]):
 			units.append(unit)
 			continue
 		units_changed = true
@@ -483,7 +516,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		unit.levitation_remaining = remaining(row[7], now)
 		game.marches._update_pose(unit)
 		var offset := previous - unit.position
-		unit.presentation_offset = offset if was_exposed and unit.is_exposed() and offset.length_squared() <= 16.0 else Vector3.ZERO
+		unit.presentation_offset = offset if not game.match_paused and was_exposed and unit.is_exposed() and offset.length_squared() <= 16.0 else Vector3.ZERO
 		_installed_unit_rows[key] = row
 		units.append(unit)
 	_set_field_clock(game, state, now, true)
@@ -511,6 +544,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 	game.world_effects.update_skills(0.0, game.faction_skills, game.shields, game.by_id, game.marches)
 	game.world_effects.get_node("Bear").sync(game.bear, game.marches, game.by_id, 0.0)
 	game.world_effects.get_node("Frog").sync(game.marches, 0.0)
+	if control_changed: game.sync_match_control_presentation()
 	game.update_hud()
 
 func _present_buildings(game: Node, state: Dictionary, now: float) -> void:
@@ -608,7 +642,7 @@ func _install_fire(game: Node, state: Dictionary, now: float) -> void:
 
 func present(game: Node, _state: Dictionary, delta: float) -> void:
 	# No departure, hit, capture, production event, AI, or morale settlement.
-	if delta <= 0.0 or _last_state.is_empty(): return
+	if delta <= 0.0 or _last_state.is_empty() or game.is_rule_paused(): return
 	var before: float = game.elapsed
 	game.elapsed += delta
 	var marches: WarMarches = game.marches

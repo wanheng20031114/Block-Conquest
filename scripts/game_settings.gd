@@ -25,6 +25,7 @@ var fps_limit := 120
 var _display_previous: Dictionary = {}
 var _previous_window: Dictionary = {}
 var _close_after_confirm := false
+var _previous_focus: WeakRef
 @onready var menu: Control = $Menu
 @onready var display_timer: Timer = $DisplayRevertTimer
 
@@ -122,9 +123,12 @@ func _apply_display() -> void:
 func open_menu() -> void:
 	if is_open():
 		return
+	var focused := get_viewport().gui_get_focus_owner()
+	_previous_focus = weakref(focused) if focused != null else null
 	menu.refresh(snapshot())
 	menu.show()
 	menu.open_motion()
+	menu.get_node("%Close").grab_focus(true)
 	opened.emit()
 
 func close_menu() -> void:
@@ -132,6 +136,12 @@ func close_menu() -> void:
 	if not _display_previous.is_empty(): revert_display()
 	menu.hide()
 	closed.emit()
+	# The caller may have left its scene while the shared settings layer was up.
+	var previous: Control = _previous_focus.get_ref() if _previous_focus != null else null
+	_previous_focus = null
+	if is_instance_valid(previous) and previous.is_visible_in_tree() and previous.get_focus_mode_with_override() != Control.FOCUS_NONE:
+		if not previous is BaseButton or not previous.disabled:
+			previous.grab_focus(true)
 
 func is_open() -> bool:
 	return menu.visible

@@ -27,11 +27,13 @@ class FakeOnline extends Node:
 	var connection_state := "match"
 	var sent: Array[Dictionary] = []
 	var recovered: Array[int] = []
+	var surrender_confirmations: Array[int] = []
 	var invalid_packets := 0
 	func abort_connection(_reason: String) -> void: connection_state = "disconnected"
 	func loaded() -> void: pass
 	func send_cursor(_payload: Dictionary) -> void: pass
-	func complete_recovery(player: int) -> void: recovered.append(player)
+	func complete_recovery(player: int, _epoch: int) -> void: recovered.append(player)
+	func confirm_surrender(player: int) -> void: surrender_confirmations.append(player)
 	func send_command(payload: Dictionary) -> void:
 		send_match("command", payload, -1, 1, true)
 	func send_match(kind: String, payload: Dictionary, target: int = -1, channel: int = 2, reliable: bool = true) -> void:
@@ -49,7 +51,7 @@ func configuration() -> Dictionary:
 	var value := {"map_id": "highland", "host_player_id": 105, "match_id": "replication-test", "code": "TESTAB", "revision": 1, "phase": "match", "slots": []}
 	for f: int in 6:
 		var human := f in [2, 5]
-		value.slots.append({"slot_id": f, "faction_id": f, "team_id": f % 2, "kind": "human" if human else "bot", "commander": ["squirrel", "rabbit", "rabbit", "frog", "bear", "bear"][f], "player_id": 100 + f if human else -1, "name": "Player %d" % f, "ready": true, "connected": true, "controller": "human" if human else "bot", "control_epoch": 1})
+		value.slots.append({"slot_id": f, "faction_id": f, "team_id": f % 2, "kind": "human" if human else "bot", "commander": ["squirrel", "rabbit", "rabbit", "frog", "bear", "bear"][f], "player_id": 100 + f if human else -1, "name": "Player %d" % f, "ready": true, "connected": true, "controller": "human" if human else "bot", "control_epoch": 1, "surrendered": false})
 	return value
 
 func make_game(player: int) -> Node3D:
@@ -174,7 +176,7 @@ func _run() -> void:
 	flush()
 	check(Codec.digest(client._mirror) == Codec.digest(authority._published), "fresh view and stale committed anchors have one consistent snapshot hash")
 	var recovery_applied: int = client._applied
-	var stale := {"state": client._mirror.duplicate(true), "view": client._view.duplicate(true), "seq": maxi(0, recovery_applied - 1), "through": recovery_applied, "account": client._account, "winner": -2}
+	var stale := {"state": client._mirror.duplicate(true), "view": client._view.duplicate(true), "seq": maxi(0, recovery_applied - 1), "through": recovery_applied, "epoch": 1, "account": client._account, "winner": -2}
 	client._install_snapshot(stale)
 	check(client._applied == recovery_applied, "old snapshot cannot rewind reliable state")
 
@@ -182,7 +184,7 @@ func _run() -> void:
 	# control early, and pre-recovery presentation is deliberately discarded.
 	client_wire.sent.clear()
 	client._queued_visuals.append({"kind": "dispatch", "payload": {"faction": 2}})
-	var catching_up := {"state": client._mirror.duplicate(true), "view": Codec.for_player(authority.codec.capture(host, authority._tick), -1), "seq": client._applied, "through": client._applied + 1, "account": client._account, "winner": -2}
+	var catching_up := {"state": client._mirror.duplicate(true), "view": Codec.for_player(authority.codec.capture(host, authority._tick), -1), "seq": client._applied, "through": client._applied + 1, "epoch": 1, "account": client._account, "winner": -2}
 	client._install_snapshot(catching_up)
 	check(client._recovery_waiting and client._queued_visuals.is_empty(), "recovery discards old visuals and waits for its through boundary")
 	check(not client_wire.sent.any(func(packet: Dictionary): return packet.kind == "ack"), "no recovered acknowledgement before later facts arrive")

@@ -3,6 +3,7 @@ extends Control
 var draft: Dictionary = {}
 var _refreshing := false
 var _resolutions: Array[Vector2i] = []
+var _display_previous_focus: Control
 @onready var settings: GameSettings = get_parent()
 @onready var pages: Control = %Pages
 
@@ -149,6 +150,7 @@ func set_status(message: String) -> void:
 	%Status.text = message
 
 func show_display_confirmation() -> void:
+	_display_previous_focus = get_viewport().gui_get_focus_owner()
 	%DisplayConfirm.show()
 	if _uses_menu_motion():
 		UIMotion.reveal_menu(%DisplayConfirm.get_node("Center/Panel"))
@@ -156,6 +158,9 @@ func show_display_confirmation() -> void:
 
 func hide_display_confirmation() -> void:
 	%DisplayConfirm.hide()
+	if is_instance_valid(_display_previous_focus) and _display_previous_focus.is_visible_in_tree():
+		_display_previous_focus.grab_focus(true)
+	_display_previous_focus = null
 
 func _process(_delta: float) -> void:
 	if %DisplayConfirm.visible:

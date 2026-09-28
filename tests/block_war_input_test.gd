@@ -35,14 +35,66 @@ func mouse(at: Vector2, button: int, down: bool) -> void:
 	event.pressed = down
 	root.push_input(event, true)
 
-func key(code: int) -> void:
+func key(code: int, shift: bool = false) -> void:
 	var event := InputEventKey.new()
 	event.keycode = code
 	event.physical_keycode = code
 	event.pressed = true
+	event.shift_pressed = shift
 	root.push_input(event, true)
 	event.pressed = false
 	root.push_input(event, true)
+
+func _settings_focus_checks(origin: Button, context: String) -> void:
+	var settings: GameSettings = root.get_node("Session/Settings")
+	var original_scene := current_scene.get_instance_id()
+	origin.grab_focus()
+	key(KEY_ENTER)
+	check(settings.is_open() and settings.menu.is_ancestor_of(root.gui_get_focus_owner()), context + " Enter opens settings and transfers native focus")
+	key(KEY_TAB)
+	key(KEY_ENTER)
+	await frames()
+	check(settings.is_open() and current_scene.get_instance_id() == original_scene, context + " opening then Tab Enter cannot activate a background restart or Back")
+	for page: String in ["Graphics", "Audio", "Controls", "Hotkeys"]:
+		settings.menu.get_node("%Categories/" + page).grab_focus()
+		key(KEY_ENTER)
+		check(settings.menu.get_node("%Pages/" + page).visible, context + " keyboard opens settings page " + page)
+		for reverse: bool in [false, true]:
+			var confined := true
+			for _step: int in 32:
+				key(KEY_TAB, reverse)
+				var focus := root.gui_get_focus_owner()
+				confined = confined and focus != null and settings.menu.is_ancestor_of(focus)
+			check(confined, context + " native " + ("Shift Tab" if reverse else "Tab") + " remains inside " + page)
+	settings.menu.get_node("%Done").grab_focus()
+	var arrows_confined := true
+	for arrow: int in [KEY_DOWN, KEY_RIGHT, KEY_UP, KEY_LEFT]:
+		key(arrow)
+		arrows_confined = arrows_confined and settings.menu.is_ancestor_of(root.gui_get_focus_owner())
+	check(arrows_confined, context + " directional focus also remains inside native scope")
+	key(KEY_ESCAPE)
+	check(not settings.is_open() and root.gui_get_focus_owner() == origin, context + " closing settings restores its original trigger focus")
+	check(current_scene.get_instance_id() == original_scene, context + " keyboard settings navigation preserves the original scene")
+
+func _route_color_checks(source: Node3D, target: Node3D) -> void:
+	var original := [source.faction, target.faction, game.local_faction]
+	var teams: Array[Array] = [[0, 2, 4], [1, 3, 5]]
+	game.drag_source = source
+	game.hovered = target
+	for faction: int in 6:
+		game.local_faction = faction
+		source.faction = faction
+		for owner: int in range(-1, 6):
+			target.faction = owner
+			var friendly: bool = owner in teams[0 if faction in teams[0] else 1]
+			var expected := Color(0.55, 0.93, 0.7, 0.9) if friendly else Color(1.0, 0.81, 0.32, 0.9)
+			check(game.overlay.dispatch_route_color().is_equal_approx(expected), "seat %d route toward faction %d uses the correct own ally enemy or neutral color" % [faction, owner])
+	game.hovered = null
+	check(game.overlay.dispatch_route_color().is_equal_approx(Color(1.0, 0.81, 0.32, 0.9)), "dragging over open terrain keeps the pending attack color")
+	game.drag_source = null
+	source.faction = original[0]
+	target.faction = original[1]
+	game.local_faction = original[2]
 
 func run() -> void:
 	var initial_taa: bool = root.use_taa
@@ -59,6 +111,7 @@ func run() -> void:
 	check(current_scene.scene_file_path == "res://scenes/block_war/commander_select.tscn", "native lobby click opens the animal picker")
 	while root.get_node("Session").transition.busy:
 		await process_frame
+	await _settings_focus_checks(current_scene.get_node("%Settings"), "commander selection")
 	at = current_scene.get_node("%Next").get_global_rect().get_center()
 	mouse(at, MOUSE_BUTTON_LEFT, true)
 	mouse(at, MOUSE_BUTTON_LEFT, false)
@@ -85,6 +138,7 @@ func run() -> void:
 	await frames()
 	var home: Node3D = game.by_id[0]
 	var target: Node3D = game.by_id[2]
+	_route_color_checks(home, target)
 	var source_screen: Vector2 = game.camera.unproject_position(home.global_position + Vector3(0, 1.5, 0))
 	var target_screen: Vector2 = game.camera.unproject_position(target.global_position + Vector3(0, 1.5, 0))
 	check(game.pick_building(source_screen) == home and game.pick_building(target_screen) == target, "native 3D ray picks authored building areas")
@@ -132,8 +186,14 @@ func run() -> void:
 	check(game.camera_rig.destination.distance_to(previous) > 0.1 and not game.camera_rig.dragging, "native middle-button input pans camera and releases")
 	key(KEY_ESCAPE)
 	check(game._local_menu and game.hud.get_node("%PauseOverlay").visible, "escape opens pause")
+	await _settings_focus_checks(game.hud.get_node("%PauseSettings"), "paused battle")
+	check(not game._closing and game._local_menu, "settings keyboard cannot trigger restart or dismiss local battle menu")
 	key(KEY_ESCAPE)
 	check(not game._local_menu, "escape resumes")
+	key(KEY_F3)
+	check(game._local_menu and game.is_rule_paused() and not game.match_paused, "offline F3 opens the existing local pause without creating multiplayer state")
+	key(KEY_F3)
+	check(not game._local_menu and not game.is_rule_paused(), "offline F3 resumes through the same native pause action")
 	key(KEY_F1)
 	check(game._local_menu and game.hud.help_visible(), "F1 opens instructions and pauses simulation")
 	key(KEY_F1)

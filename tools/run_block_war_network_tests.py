@@ -38,16 +38,12 @@ class ImpairedUDP:
         self.sockets = []
         for _index in range(clients):
             downstream = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            upstream = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             downstream.bind(("127.0.0.1", 0))
-            upstream.bind(("127.0.0.1", 0))
             downstream.setblocking(False)
-            upstream.setblocking(False)
-            state = {"downstream": downstream, "upstream": upstream, "client": None}
+            state = {"downstream": downstream, "sessions": {}}
             self.selector.register(downstream, selectors.EVENT_READ, (state, True))
-            self.selector.register(upstream, selectors.EVENT_READ, (state, False))
             self.ports.append(downstream.getsockname()[1])
-            self.sockets.extend((downstream, upstream))
+            self.sockets.append(downstream)
         self.thread = threading.Thread(target=self.run, name="block-conquest-udp-test", daemon=True)
         self.thread.start()
 
@@ -66,12 +62,21 @@ class ImpairedUDP:
                     continue
                 self.received += 1
                 if client_side:
-                    state["client"] = source
-                    endpoint, recipient = state["upstream"], self.target
+                    # Every recreated ENet host has its own source endpoint.
+                    # Preserve that identity at the relay and retain old return
+                    # paths; rewriting old DTLS datagrams into a new connection
+                    # would test broken NAT remapping instead of packet loss.
+                    if source not in state["sessions"]:
+                        upstream = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        upstream.bind(("127.0.0.1", 0))
+                        upstream.setblocking(False)
+                        session = {"downstream": state["downstream"], "upstream": upstream, "client": source}
+                        state["sessions"][source] = session
+                        self.selector.register(upstream, selectors.EVENT_READ, (session, False))
+                        self.sockets.append(upstream)
+                    endpoint, recipient = state["sessions"][source]["upstream"], self.target
                 else:
                     endpoint, recipient = state["downstream"], state["client"]
-                    if recipient is None:
-                        continue
                 if self.random.random() < self.loss:
                     self.dropped += 1
                     continue

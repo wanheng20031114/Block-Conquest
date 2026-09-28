@@ -245,6 +245,23 @@ func return_order(outbound: MarchOrder) -> MarchOrder:
 	order.returning = true
 	return order
 
+func transfer_order(original: MarchOrder, faction: int) -> MarchOrder:
+	# Changed ownership gets a new snapshot identity; the shared curve and
+	# soldiers remain intact. Field interval caches rebuild for the new faction.
+	var order := MarchOrder.new()
+	order.order_id = _next_order_id
+	_next_order_id += 1
+	order.source_id = original.source_id
+	order.target_id = original.target_id
+	order.faction = faction
+	order.strength = original.strength
+	order.energy_origin = original.energy_origin
+	order.curve = original.curve
+	order.length = original.length
+	order.returning = original.returning
+	order.departure_distance = original.departure_distance
+	return order
+
 func redirect(unit: MarchUnit, order: MarchOrder) -> void:
 	assert(unit.is_exposed())
 	assert(order.returning and order.curve == unit.order.curve)

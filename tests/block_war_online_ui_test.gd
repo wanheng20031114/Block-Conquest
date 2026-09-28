@@ -51,6 +51,8 @@ class FakeBattle extends Node3D:
 	var map: FakeMap
 	var finished := false
 	var _local_menu := false
+	var match_paused := false
+	var surrendered_factions: Array[int] = []
 	var shutdown_count := 0
 	func prepare_shutdown() -> void:
 		shutdown_count += 1
@@ -84,6 +86,7 @@ func make_room() -> Dictionary:
 
 func capture(name: String) -> void:
 	if output.is_empty(): return
+	await create_timer(0.35, true, false, true).timeout
 	for index: int in 3:
 		await process_frame
 	await RenderingServer.frame_post_draw
@@ -238,6 +241,25 @@ func _run() -> void:
 	cursors._receive(15, payload)
 	cursors.tick(0.01)
 	check(pointer.visible, "fresh sample restores expired pointer")
+	battle.match_paused = true
+	cursors.tick(0.01)
+	check(pointer.visible, "manual global pause preserves allied pointers for discussion")
+	battle.surrendered_factions.append(5)
+	cursors.tick(0.01)
+	check(not pointer.visible, "surrender fact immediately hides the sender without waiting for a room revision")
+	payload.cursor_seq = 6
+	cursors._receive(15, payload)
+	check(not cursors._peers[15].visible, "late packet cannot resurrect surrendered teammate pointer")
+	battle.surrendered_factions.assign([3])
+	cursors._refresh(value)
+	payload.cursor_seq = 7
+	cursors._receive(15, payload)
+	cursors.tick(0.01)
+	check(pointer.visible, "surrendered spectator still sees active teammate pointers")
+	cursors._publish(Vector2(2, 3), true, true)
+	check(not online.operations[-1].visible and not online.operations[-1].pressed, "surrendered local player cannot publish a visible or pressed pointer")
+	battle.surrendered_factions.clear()
+	battle.match_paused = false
 	value.slots[5].connected = false
 	online.install(value)
 	check(cursors._peers.is_empty() and not pointer.visible, "disconnected teammate is removed immediately")
@@ -265,6 +287,7 @@ func _menu_checks(original: Node, online: Node) -> void:
 	await process_frame
 	check(hud.get_node("%PauseRestart").disabled and hud.get_node("%ResultRestart").disabled, "guest battle menu cannot return whole room")
 	check(hud.get_node("%PauseCard").get_node("Title").text == "战斗仍在继续", "online menu explains no global pause")
+	await _match_menu_checks(hud, original)
 	hud.set_network_status("正在同步战场", "请稍候…")
 	check(hud.get_node("%OnlineStatus").visible, "network wait status remains until explicit recovery")
 	await create_timer(0.4).timeout
@@ -280,20 +303,158 @@ func _menu_checks(original: Node, online: Node) -> void:
 	await capture("online_pause_guest")
 	hud._request_exit()
 	check(hud.get_node("%OnlineConfirm").visible, "leaving online battle requires concrete confirmation")
+	var leave_detail: Label = hud.get_node("%OnlineConfirm").get_node("Center/Card/Column/Detail")
+	check(leave_detail.text.contains("投降") and leave_detail.text.contains("40%") and leave_detail.text.contains("真人队友") and not leave_detail.text.contains("电脑接管"), "voluntary guest leave explains surrender and asset loss")
+	_modal_focus_checks(hud, "voluntary leave")
 	await create_timer(0.4).timeout
 	await capture("online_exit_guest")
-	hud._cancel_online_action()
+	_native_key(KEY_ENTER)
 	check(not hud.get_node("%OnlineConfirm").visible, "cancel keeps player in match")
 	original.is_host = true
 	hud._configure_online_menu(original)
+	hud._request_exit()
+	check(leave_detail.text.contains("关闭房间") and leave_detail.text.contains("观战") and leave_detail.text.contains("托管"), "Host leave explains room closure and the option to retain hosting while spectating")
+	hud._cancel_online_action()
 	hud._request_restart()
 	check(hud.get_node("%OnlineConfirm").visible and hud._online_action == "room", "host return confirms full-room consequence")
+	_modal_focus_checks(hud, "Host room return")
 	hud.show_result(true)
 	check(not hud.get_node("%OnlineConfirm").visible, "match result dismisses stale confirmation")
 	hud.queue_free()
 	await process_frame
 	original.match_config = {}
 	original.is_host = false
+
+func _native_key(code: int, echo := false, shift := false) -> void:
+	for down: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = code
+		event.physical_keycode = code
+		event.pressed = down
+		event.echo = echo and down
+		event.shift_pressed = shift
+		root.push_input(event, true)
+
+func _modal_focus_checks(hud: CanvasLayer, context: String) -> void:
+	var modal: Control = hud.get_node("%OnlineConfirm")
+	var cancel: Button = modal.get_node("Center/Card/Column/Actions/Cancel")
+	var confirm: Button = modal.get_node("Center/Card/Column/Actions/Confirm")
+	var action: String = hud._online_action
+	for reverse: bool in [false, true]:
+		var confined := true
+		for _step: int in 12:
+			_native_key(KEY_TAB, false, reverse)
+			confined = confined and root.gui_get_focus_owner() in [cancel, confirm]
+		check(confined, context + " native " + ("Shift Tab" if reverse else "Tab") + " remains in the confirmation")
+	var arrows_confined := true
+	for arrow: int in [KEY_DOWN, KEY_RIGHT, KEY_UP, KEY_LEFT]:
+		_native_key(arrow)
+		arrows_confined = arrows_confined and root.gui_get_focus_owner() in [cancel, confirm]
+	check(arrows_confined and modal.visible and hud._online_action == action, context + " directional navigation cannot focus or activate background actions")
+	cancel.grab_focus()
+
+func _match_menu_checks(hud: CanvasLayer, online: Node) -> void:
+	var match_requests: Array[bool] = []
+	var surrender_requests: Array[int] = []
+	var skill_requests: Array[int] = []
+	var ratio_requests: Array[int] = []
+	var local_requests: Array[bool] = []
+	hud.match_pause_requested.connect(func(value: bool): match_requests.append(value))
+	hud.surrender_requested.connect(func(): surrender_requests.append(1))
+	hud.skill_requested.connect(func(index: int, _keyboard: bool): skill_requests.append(index))
+	hud.percentage_changed.connect(func(value: int): ratio_requests.append(value))
+	hud.pause_requested.connect(func(): local_requests.append(true))
+	hud.resume_requested.connect(func(): local_requests.append(false))
+	var state := {"global_paused": false, "local_surrendered": false, "can_match_pause": true, "can_surrender": true, "pause_actor_name": ""}
+	hud._update_match_controls(state)
+	check(InputMap.has_action("pause") and InputMap.action_get_events("pause").any(func(event: InputEvent): return event is InputEventKey and event.physical_keycode == KEY_F3), "pause is a native project input action bound to F3")
+	_native_key(KEY_F3)
+	check(match_requests == [true] and local_requests.is_empty(), "native F3 requests global pause without opening local menu")
+	check(not hud._global_paused and not hud.get_node("%MatchStatus").visible, "request does not optimistically change authoritative pause state")
+	_native_key(KEY_F3, true)
+	check(match_requests.size() == 1, "held pause key cannot flood toggles through echo events")
+	state.global_paused = true
+	state.pause_actor_name = "晨风"
+	hud._update_match_controls(state)
+	check(hud.get_node("%MatchStatus").visible and hud.get_node("%MatchStatusDetail").text.contains("晨风"), "authoritative global pause names its actor in a persistent banner")
+	await capture("online_match_paused")
+	_native_key(KEY_F3)
+	check(match_requests == [true, false], "any active guest can request resume from global pause")
+	_native_key(KEY_ESCAPE)
+	check(local_requests == [true] and match_requests.size() == 2, "Esc during global pause only requests the local menu")
+	hud.set_paused(true)
+	check(not hud.get_node("%MatchStatus").visible and hud.get_node("%MatchPause").text.begins_with("继续对局"), "local menu represents an existing global pause without duplicate banner")
+	await capture("online_paused_menu")
+	check(hud.get_node("%PauseMenuActions").get_global_rect().end.y <= hud.get_node("%PauseCard").get_global_rect().end.y - 12, "all seven native menu actions fit inside 720p card")
+	hud._request_surrender()
+	check(hud._online_action == "surrender" and surrender_requests.is_empty(), "surrender needs confirmation and sends no premature command")
+	var detail: Label = hud.get_node("%OnlineConfirm").get_node("Center/Card/Column/Detail")
+	check(detail.text.contains("随机") and detail.text.contains("真人队友") and detail.text.contains("40%") and detail.text.contains("所有真人") and detail.text.contains("观战"), "confirmation explains transfers garrison loss team defeat and spectator outcome")
+	_modal_focus_checks(hud, "surrender")
+	await capture("online_surrender_confirm")
+	_native_key(KEY_F3)
+	check(match_requests.size() == 2, "confirmation owns F3 and prevents an unintended global action")
+	_native_key(KEY_ESCAPE)
+	check(not hud.get_node("%OnlineConfirm").visible and surrender_requests.is_empty(), "Esc safely cancels surrender")
+	hud._request_surrender()
+	state.can_surrender = false
+	hud._update_match_controls(state)
+	check(not hud.get_node("%OnlineConfirm").visible and hud._online_action.is_empty(), "authority removing surrender permission dismisses a stale confirmation")
+	state.can_surrender = true
+	hud._update_match_controls(state)
+	hud._request_surrender()
+	hud._confirm_online_action()
+	check(surrender_requests.size() == 1 and not hud._local_surrendered, "confirmation sends one request and waits for authority to enter spectating")
+	state.can_surrender = false
+	state.can_match_pause = false
+	state.local_surrendered = true
+	state.global_paused = false
+	hud._update_match_controls(state)
+	check(hud.get_node("%Surrender").disabled and hud.get_node("%MatchPause").disabled, "spectator cannot surrender twice or control pause")
+	_native_key(KEY_F3)
+	hud._request_skill(0, true)
+	hud._select_percentage(100)
+	hud._request_surrender()
+	check(match_requests.size() == 2 and surrender_requests.size() == 1 and skill_requests.is_empty() and ratio_requests.is_empty(), "spectator shortcuts and direct UI callbacks cannot issue gameplay commands")
+	hud._request_exit()
+	check(detail.text.contains("已完成交接") and not detail.text.contains("40%"), "spectator leaving does not imply another asset transfer or garrison loss")
+	hud._cancel_online_action()
+	online.is_host = true
+	hud._configure_online_menu(online)
+	check(hud.get_node("%PauseCard").get_node("CompanionNote").text.contains("托管"), "surrendered Host is told to keep hosting")
+	await capture("online_spectating_host")
+	hud.set_paused(false)
+	check(hud.get_node("%MatchStatusTitle").text.contains("观战"), "spectator sees persistent status after closing local menu")
+	hud.set_network_status("正在同步战场", "请稍候")
+	check(not hud.get_node("%MatchStatus").visible, "network recovery has visual priority over spectator status")
+	hud.set_network_status("")
+	check(hud.get_node("%MatchStatus").visible, "recovery completion restores persistent spectator status")
+	# Remapping the action must also change which physical key the HUD accepts.
+	var original_events := InputMap.action_get_events("pause")
+	InputMap.action_erase_events("pause")
+	var alternate := InputEventKey.new()
+	alternate.physical_keycode = KEY_F8
+	InputMap.action_add_event("pause", alternate)
+	state.local_surrendered = false
+	state.can_surrender = true
+	state.can_match_pause = true
+	hud._update_match_controls(state)
+	_native_key(KEY_F3)
+	check(match_requests.size() == 2, "unbound F3 no longer requests pause")
+	_native_key(KEY_F8)
+	check(match_requests == [true, false, true] and hud.get_node("%MatchPause").text.ends_with("F8"), "remapped action drives input and displayed shortcut")
+	InputMap.action_erase_events("pause")
+	for event: InputEvent in original_events: InputMap.action_add_event("pause", event)
+	hud._request_surrender()
+	check(detail.text.contains("房主") and detail.text.contains("继续托管"), "Host confirmation explains that surrender retains hosting responsibility")
+	hud._cancel_online_action()
+	hud._open_settings()
+	_native_key(KEY_F3)
+	check(match_requests.size() == 3, "settings keeps its keyboard focus without triggering global pause")
+	root.get_node("Session/Settings").close_menu()
+	online.is_host = false
+	hud._configure_online_menu(online)
+	hud._update_match_controls(state)
 
 func _lifecycle_checks(session: Node, online: Node, battle: Node) -> void:
 	var actual_transition: UITransition = session.transition

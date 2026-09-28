@@ -80,7 +80,12 @@ def runtime(platform: str) -> Path:
             executable.write_bytes(data)
         console = name.replace(".exe", "_console.exe")
         if platform == "win64.exe" and console in package.namelist():
-            (folder / console).write_bytes(package.read(console))
+            console_path = folder / console
+            console_data = package.read(console)
+            # Validation and export may use the verified console binary while
+            # another release job prepares its runtime. Do not rewrite it intact.
+            if not console_path.exists() or digest(console_path.read_bytes()) != digest(console_data):
+                console_path.write_bytes(console_data)
     if platform == "win64.exe":
         # Portable editor settings and doc caches must stay in this workspace.
         (folder / "_sc_").touch()

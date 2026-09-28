@@ -6,6 +6,8 @@ signal percentage_changed(value: int)
 signal skill_requested(index: int, from_keyboard: bool)
 signal pause_requested()
 signal resume_requested()
+signal match_pause_requested(paused: bool)
+signal surrender_requested()
 signal restart_requested()
 signal exit_requested()
 signal upgrade_requested()
@@ -34,6 +36,12 @@ var _commander: StringName = &""
 var _enemy_commander: StringName = &""
 var _online_menu := false
 var _online_action := ""
+var _global_paused := false
+var _local_surrendered := false
+var _can_match_pause := false
+var _can_surrender := false
+var _pause_actor_name := ""
+var _hosting := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -48,6 +56,8 @@ func _ready() -> void:
 	%Help.pressed.connect(_open_help)
 	%Exit.pressed.connect(_open_exit)
 	%Resume.pressed.connect(func(): resume_requested.emit())
+	%MatchPause.pressed.connect(_request_match_pause)
+	%Surrender.pressed.connect(_request_surrender)
 	%PauseHelp.pressed.connect(_open_help)
 	%PauseSettings.pressed.connect(_open_settings)
 	get_node("/root/Session/Settings").closed.connect(_settings_closed)
@@ -88,6 +98,7 @@ func _ready() -> void:
 		)
 
 func update_state(state: Dictionary) -> void:
+	_update_match_controls(state)
 	var commander: StringName = state.commander
 	var local_faction := int(state.get("local_faction", 0))
 	var skill_names := SKILL_RULES.names_for(commander)
@@ -117,6 +128,7 @@ func update_state(state: Dictionary) -> void:
 	%Balance.update_factions(state.faction_totals, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
+		_percentage_buttons[index].disabled = _global_paused or _local_surrendered or _finished
 	var permanent_attack_bonus: float = ((1.0 + int(state.forges) * 0.1) * (1.0 + floori(float(state.morale_stars[local_faction])) * 0.05) - 1.0) * 100.0
 	var attack_text: String = ("%.1f" % permanent_attack_bonus).trim_suffix(".0")
 	%ForgeBonus.text = ("你的攻击  +%s%%" if state.team_size > 1 else "攻击加成  +%s%%") % attack_text
@@ -145,7 +157,7 @@ func update_state(state: Dictionary) -> void:
 		var cost: int = int(state.energy_costs[index])
 		var cooling: bool = cooldown > 0.0
 		var affordable: bool = energy >= cost
-		var ready: bool = not cooling and affordable and not _paused and not _finished
+		var ready: bool = not cooling and affordable and not _paused and not _finished and not _global_paused and not _local_surrendered
 		button.disabled = not ready
 		button.set_pressed_no_signal(armed == index)
 		button.get_node("Cooldown").value = cooldown / skill_cooldowns[index] * 100.0
@@ -174,6 +186,7 @@ func update_state(state: Dictionary) -> void:
 
 func show_result(won: bool) -> void:
 	_finished = true
+	%MatchStatus.hide()
 	%OnlineConfirm.hide()
 	_online_action = ""
 	%PauseOverlay.hide()
@@ -186,6 +199,7 @@ func show_result(won: bool) -> void:
 
 func show_draw() -> void:
 	_finished = true
+	%MatchStatus.hide()
 	%OnlineConfirm.hide()
 	_online_action = ""
 	%PauseOverlay.hide()
@@ -211,7 +225,7 @@ func set_skill_drag_target(valid: bool, screen: Vector2) -> void:
 	%SkillDrag.get_node("Icon").modulate = Color("536541") if valid else Color("965342")
 
 func _update_building_actions(state: Dictionary) -> void:
-	_actions_visible = bool(state.selected_owned) and int(state.armed_skill) < 0
+	_actions_visible = bool(state.selected_owned) and int(state.armed_skill) < 0 and not _global_paused and not _local_surrendered
 	var level := int(state.selected_level)
 	var population := int(state.selected_available_population)
 	var cost := int(state.upgrade_cost)
@@ -265,7 +279,7 @@ func _update_building_actions(state: Dictionary) -> void:
 	_position_selection()
 
 func _update_action(button: Button, available: bool, cost: String, hint: String, shortfall: bool) -> void:
-	button.disabled = not available or _paused or _finished
+	button.disabled = not available or _paused or _finished or _global_paused or _local_surrendered
 	button.tooltip_text = hint
 	button.get_node("Icon").modulate.a = 0.45 if button.disabled else 1.0
 	var amount: Label = button.get_node("Cost/Amount")
@@ -352,6 +366,7 @@ func set_paused(value: bool) -> void:
 	else:
 		%PauseOverlay.hide()
 		%HelpOverlay.hide()
+	_refresh_match_status()
 
 func notify(message: String) -> void:
 	if _toast_tween != null and _toast_tween.is_valid():
@@ -366,12 +381,14 @@ func set_network_status(message: String, detail: String = "") -> void:
 	# Waiting/recovery lasts until authority confirms it, not a toast duration.
 	if message.is_empty():
 		%OnlineStatus.hide()
+		_refresh_match_status()
 		return
 	var changed: bool = %OnlineStatusTitle.text != message
 	%OnlineStatusTitle.text = message
 	%OnlineStatusDetail.text = detail
 	%OnlineStatusDetail.visible = not detail.is_empty()
 	%OnlineStatus.show()
+	_refresh_match_status()
 	if changed:
 		UIMotion.reveal(%OnlineStatus, Vector2(0, -8))
 
@@ -390,7 +407,7 @@ func is_pointer_over_hud(screen: Vector2) -> bool:
 	# still permit ordinary battlefield input according to is_pointer_blocked.
 	if is_pointer_blocked(screen):
 		return true
-	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %QuickHint, %Toast, %OnlineStatus]:
+	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %QuickHint, %Toast, %OnlineStatus, %MatchStatus]:
 		if control.is_visible_in_tree():
 			var local := control.get_global_transform_with_canvas().affine_inverse() * screen
 			if Rect2(Vector2.ZERO, control.size).has_point(local):
@@ -401,7 +418,7 @@ func help_visible() -> bool:
 	return %HelpOverlay.visible
 
 func _select_percentage(value: int) -> void:
-	if not _paused and not _finished:
+	if not _paused and not _finished and not _global_paused and not _local_surrendered:
 		percentage_changed.emit(value)
 
 func _skill_gui_input(event: InputEvent, index: int) -> void:
@@ -412,7 +429,7 @@ func _skill_gui_input(event: InputEvent, index: int) -> void:
 func _request_skill(index: int, from_keyboard: bool) -> void:
 	# Keyboard requests reach the controller even while a card is unavailable,
 	# so its actual cooldown or energy shortfall produces the same clear feedback.
-	if not _paused and not _finished:
+	if not _paused and not _finished and not _global_paused and not _local_surrendered:
 		skill_requested.emit(index, from_keyboard)
 
 func _open_help() -> void:
@@ -441,12 +458,15 @@ func _open_exit() -> void:
 	%PauseExit.grab_focus()
 
 func _configure_online_menu(online: Node) -> void:
+	_hosting = online.is_host
 	%Pause.text = "菜单"
 	%Pause.tooltip_text = "打开菜单 · 对局继续进行 · Esc"
-	%PauseCard.get_node("Title").text = "战斗仍在继续"
-	%PauseCard.get_node("Sub").text = "联机对局不会因打开菜单而暂停。"
-	%PauseCard.get_node("CompanionNote").text = "你的军团仍在战场。"
 	%PauseCard.get_node("Eyebrow").text = "积木战争  /  联机对局"
+	%PauseMenuActions.add_theme_constant_override("separation", 8)
+	for button: Button in %PauseMenuActions.get_children():
+		button.custom_minimum_size.y = 52 if button == %Resume else 44
+	%MatchPause.show()
+	%Surrender.show()
 	%PauseRestart.text = "全员返回房间" if online.is_host else "等待房主返回房间"
 	%ResultRestart.text = "返回房间" if online.is_host else "等待房主返回房间"
 	%PauseRestart.disabled = not online.is_host
@@ -454,6 +474,67 @@ func _configure_online_menu(online: Node) -> void:
 	%PauseExit.text = "离开对局"
 	%ResultExit.text = "离开房间"
 	%Exit.tooltip_text = "联机对局菜单"
+	%HelpCard.get_node("Detail4").text = "屏幕边缘或中键拖动来移动镜头；滚轮缩放。\nEsc 只打开本地菜单；%s 暂停或继续整场对局。\n仍参战的真人均可暂停或继续；投降后可留场观战。" % _pause_shortcut()
+	_refresh_match_menu()
+
+func _pause_shortcut() -> String:
+	for event: InputEvent in InputMap.action_get_events("pause"):
+		if event is InputEventKey:
+			return OS.get_keycode_string(event.physical_keycode if event.physical_keycode != 0 else event.keycode)
+	return "暂停快捷键"
+
+func _update_match_controls(state: Dictionary) -> void:
+	_global_paused = bool(state.get("global_paused", false))
+	_local_surrendered = bool(state.get("local_surrendered", false))
+	_can_match_pause = _online_menu and bool(state.get("can_match_pause", false)) and not _finished
+	_can_surrender = _online_menu and bool(state.get("can_surrender", false)) and not _finished
+	_pause_actor_name = str(state.get("pause_actor_name", ""))
+	if _online_action == "surrender" and not _can_surrender:
+		_cancel_online_action()
+	_refresh_match_menu()
+	_refresh_match_status()
+
+func _refresh_match_menu() -> void:
+	if not _online_menu:
+		return
+	%Resume.text = "返回观战   Esc" if _local_surrendered else "返回战场   Esc"
+	%MatchPause.text = ("继续对局   " if _global_paused else "暂停对局   ") + _pause_shortcut()
+	%MatchPause.disabled = not _can_match_pause
+	%MatchPause.tooltip_text = "仍参战的真人可暂停或继续整场对局。" if not _local_surrendered else "你已投降，观战时不能暂停或继续对局。"
+	%Surrender.text = "已投降 · 观战中" if _local_surrendered else "投降并观战"
+	%Surrender.disabled = not _can_surrender
+	%PauseCard.get_node("Title").text = "对局已暂停" if _global_paused else ("正在观战" if _local_surrendered else "战斗仍在继续")
+	%PauseCard.get_node("Sub").text = "仍参战的真人均可恢复对局。" if _global_paused else ("你已交出军团，可继续观看战局。" if _local_surrendered else "Esc 只打开菜单，暂停请按 %s。" % _pause_shortcut())
+	%PauseCard.get_node("CompanionNote").text = ("房主仍在托管，请留在房间。" if _hosting else "等待伙伴完成这场战斗。") if _local_surrendered else "你的军团仍在战场。"
+
+func _refresh_match_status() -> void:
+	%MatchStatus.visible = _online_menu and (_global_paused or _local_surrendered) and not _paused and not _finished and not %OnlineStatus.visible
+	if not %MatchStatus.visible:
+		return
+	if _global_paused:
+		%MatchStatusTitle.text = "对局已暂停"
+		var actor := "%s 暂停了对局。" % _pause_actor_name if not _pause_actor_name.is_empty() else "所有玩家的战场均已暂停。"
+		%MatchStatusDetail.text = actor + ("按 %s 继续。" % _pause_shortcut() if _can_match_pause else "等待参战指挥官继续。")
+	else:
+		%MatchStatusTitle.text = "已投降 · 观战中"
+		%MatchStatusDetail.text = "房主仍在托管 · 留在房间即可继续观战" if _hosting else "军团已交接 · 你可以继续观看队友的战斗"
+
+func _request_match_pause() -> void:
+	if _finished:
+		return
+	if not _online_menu:
+		if _paused: resume_requested.emit()
+		else: pause_requested.emit()
+	elif _can_match_pause:
+		match_pause_requested.emit(not _global_paused)
+
+func _request_surrender() -> void:
+	if not _can_surrender or _finished:
+		return
+	var detail := "投降后，你将转为观战。建筑和行军部队随机交给尚存的真人队友，建筑驻军减少 40%。\n\n若本方所有真人均已投降，本方立即判负。"
+	if _hosting:
+		detail += "\n\n你仍是房主，需要留在房间继续托管对局。"
+	_show_online_confirm("surrender", "确认投降？", detail, "确认投降并观战")
 
 func _request_restart() -> void:
 	if not _online_menu:
@@ -468,7 +549,11 @@ func _request_exit() -> void:
 		exit_requested.emit()
 		return
 	var host: bool = get_node("/root/Session/Online").is_host
-	var detail := "你是房主，离开将结束当前房间和所有玩家的对局。" if host else "离开后将由电脑接管你的军团，其他玩家继续战斗。"
+	var detail := "离开即视为投降。建筑和行军部队随机交给尚存的真人队友，建筑驻军减少 40%。\n\n本方所有真人均已投降时，本方立即判负。也可以返回菜单，选择投降并留在房间观战。"
+	if host:
+		detail = "你是房主，离开将关闭房间，结束所有玩家的对局。\n\n投降后留在房间观战，仍可继续托管，让其他玩家完成战斗。"
+	elif _local_surrendered:
+		detail = "你已投降，军团已完成交接。离开观战并返回主菜单，其他玩家继续战斗。"
 	if _finished:
 		detail = "你是房主，离开会关闭这个房间。" if host else "返回主菜单，离开这个房间。"
 	_show_online_confirm("leave", "离开房间？", detail, "确认离开")
@@ -479,7 +564,7 @@ func _show_online_confirm(action: String, title: String, detail: String, confirm
 	column.get_node("Title").text = title
 	column.get_node("Detail").text = detail
 	column.get_node("Actions/Confirm").text = confirm
-	column.get_node("Actions/Cancel").text = "留下来" if _finished else "继续战斗"
+	column.get_node("Actions/Cancel").text = "取消投降" if action == "surrender" else ("留下来" if _finished else "返回菜单")
 	%OnlineConfirm.show()
 	column.get_node("Actions/Cancel").grab_focus(true)
 	UIMotion.reveal(%OnlineConfirm.get_node("Center/Card"), Vector2(0, 12))
@@ -500,6 +585,8 @@ func _confirm_online_action() -> void:
 		restart_requested.emit()
 	elif action == "leave":
 		exit_requested.emit()
+	elif action == "surrender" and _can_surrender and not _finished:
+		surrender_requested.emit()
 
 func _open_settings() -> void:
 	ui_sound_requested.emit(&"war_select")
@@ -516,6 +603,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if get_node("/root/Session/Settings").is_open():
+		return
+	if event.is_action_pressed("pause"):
+		_request_match_pause()
+		get_viewport().set_input_as_handled()
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -538,7 +629,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			pause_requested.emit()
 		get_viewport().set_input_as_handled()
 		return
-	if _paused or _finished:
+	if _paused or _finished or _global_paused or _local_surrendered:
 		return
 	var skill_keys: Array[int] = [KEY_Q, KEY_W, KEY_E, KEY_R]
 	var index: int = skill_keys.find(code)

@@ -22,6 +22,9 @@ var _last_capture := ""
 var _finishing := false
 var _public_mode := false
 var _skip_captures := false
+var _controls_mode := false
+var _leave_controls := false
+var _left_battle := false
 var _pack_path := ""
 var _external_script := ""
 var _empty_project := ""
@@ -73,6 +76,10 @@ func _run() -> void:
 			_forward_options.append(argument)
 			if argument == "--public": _public_mode = true
 			elif argument == "--skip-captures": _skip_captures = true
+			elif argument == "--controls": _controls_mode = true
+			elif argument == "--leave-controls":
+				_controls_mode = true
+				_leave_controls = true
 			elif argument.begins_with("--pack="): _pack_path = argument.trim_prefix("--pack=")
 			elif argument.begins_with("--external-script="): _external_script = argument.trim_prefix("--external-script=")
 			elif argument.begins_with("--empty-project="): _empty_project = argument.trim_prefix("--empty-project=")
@@ -263,6 +270,8 @@ func _host_review() -> void:
 	check(not observed_cursors.has(int(online.room.slots[2].player_id)), "host never receives enemy cursor")
 	await _host_recovery()
 	_check_garrison_visibility("recovered")
+	if _controls_mode:
+		await _host_match_controls()
 	# Stop only authority processing; clients continue draining in-flight reliable facts.
 	game.set_process(false)
 	var flush_started := Time.get_ticks_msec()
@@ -274,7 +283,7 @@ func _host_review() -> void:
 		last_flush = now
 	check(game.network_match._outbox.is_empty(), "final throttled state transfer queue drains")
 	write_json("expected", {"seq": game.network_match._seq, "digest": SNAPSHOT.digest(game.network_match._published)})
-	await until(func(): return read_json("ally_done").has("failures") and read_json("enemy_done").has("failures"), "both clients verify final committed state", 15)
+	await until(func(): return read_json("ally_done").has("failures") and read_json("enemy_done").has("failures"), "departed ally reaches lobby and remaining peer verifies committed state" if _leave_controls else "both clients verify final committed state", 15)
 	for peer: String in ["ally", "enemy"]:
 		var result := read_json(peer + "_done")
 		check(int(result.get("failures", 1)) == 0, peer + " visual/state checks pass")
@@ -309,6 +318,84 @@ func _host_recovery() -> void:
 	var wall_seconds := float(Time.get_ticks_msec() - resumed_at) / 1000.0
 	check(game.elapsed > resumed and game.elapsed - resumed <= wall_seconds + 0.15, "recovered Host advances in real time without catch-up debt")
 
+func _tap_key(code: int) -> void:
+	for down: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.physical_keycode = code
+		event.keycode = code
+		event.pressed = down
+		root.push_input(event, true)
+
+func _rule_sample() -> String:
+	return SNAPSHOT.digest(SNAPSHOT.new().capture(game, 0))
+
+func _confirm_surrender() -> void:
+	if not game._local_menu: _tap_key(KEY_ESCAPE)
+	game.hud.get_node("%Surrender").pressed.emit()
+	check(game.hud.get_node("%OnlineConfirm").visible, "native menu opens surrender confirmation")
+	game.hud.get_node("%OnlineConfirm").get_node("Center/Card/Column/Actions/Confirm").pressed.emit()
+
+func _host_match_controls() -> void:
+	var running_before: float = game.elapsed
+	_tap_key(KEY_ESCAPE)
+	await pause(0.35)
+	check(game._local_menu and not game.match_paused and game.elapsed > running_before, "Esc leaves authority simulation running behind local menu")
+	_tap_key(KEY_ESCAPE)
+	var source := _source(5)
+	check(game.network_match.submit({"type":"dispatch", "source":source.building_id, "target":0, "percent":25}).accepted, "Host launches live soldiers for surrender transfer")
+	await pause(0.3)
+	_phase("manual_pause", {})
+	if not await until(func(): return game.match_paused, "ally native F3 pauses authoritative battle", 10): return
+	if not await until(func(): return read_json("ally_manual_paused").has("ready") and read_json("enemy_manual_paused").has("ready"), "both clients freeze rules during global pause", 10): return
+	check(game.pause_faction == 3, "pause identifies requesting non-Host faction")
+	var frozen := _rule_sample()
+	_phase("paused_reconnect", {})
+	if not await until(func(): return read_json("ally_paused_recovered").has("ready"), "guest reconnects while manual pause remains active", 18): return
+	check(game.match_paused and _rule_sample() == frozen, "recovery never resumes or advances globally paused rules")
+	await _take("global_pause")
+	_phase("manual_resume", {})
+	if not await until(func(): return not game.match_paused, "opposing active human resumes through native F3", 10): return
+	running_before = game.elapsed
+	await pause(0.4)
+	check(game.elapsed > running_before, "global resume advances authority normally")
+	_tap_key(KEY_F3)
+	if not await until(func(): return game.match_paused, "Host pauses before deterministic asset handover", 10): return
+	var garrisons := {}
+	for building: Node3D in game.buildings:
+		if building.faction == 5: garrisons[building.building_id] = building.population
+	var soldiers: Array[int] = []
+	for unit in game.marches._units:
+		if unit.order.faction == 5 and unit.is_exposed(): soldiers.append(unit.unit_id)
+	check(not garrisons.is_empty() and not soldiers.is_empty(), "surrender fixture contains real buildings and departed soldiers")
+	_confirm_surrender()
+	if not await until(func(): return 5 in game.surrendered_factions, "Host surrender commits through ordinary command path", 10): return
+	var handover := true
+	for id: int in garrisons:
+		handover = handover and game.by_id[id].faction == 3 and is_equal_approx(game.by_id[id].population, float(garrisons[id]) * 0.6)
+	check(handover, "all Host buildings transfer to surviving human ally with exact forty percent garrison loss")
+	var retained := 0
+	for unit in game.marches._units:
+		if unit.unit_id in soldiers and unit.order.faction == 3: retained += 1
+	check(retained == soldiers.size(), "departed soldiers transfer intact without recreation or loss")
+	check(online.is_host and game.is_authority() and not game.finished and game.match_paused, "surrendered Host keeps authority and existing manual pause")
+	check(game.hud.get_node("%Surrender").disabled and game.hud.get_node("%MatchPause").disabled, "Host becomes spectator with match controls disabled")
+	check(not game.network_match.submit({"type":"pause", "paused":false}).accepted, "spectator Host cannot bypass UI to resume")
+	if game._local_menu: _tap_key(KEY_ESCAPE)
+	_phase("spectator_resume", {})
+	if not await until(func(): return not game.match_paused and read_json("ally_host_spectating").has("ready"), "surviving ally resumes while Host observes", 10): return
+	running_before = game.elapsed
+	await pause(0.4)
+	check(game.elapsed > running_before, "surrendered Host continues simulating other players")
+	await _take("host_spectating")
+	_phase("team_leave" if _leave_controls else "team_surrender", {})
+	if not await until(func(): return game.finished, "last allied human voluntary leave resolves team defeat while paused" if _leave_controls else "last allied human surrender resolves team defeat", 12): return
+	check(game.winner_team == 0 and 3 in game.surrendered_factions and 5 in game.surrendered_factions, "remaining allied bots cannot prolong a fully surrendered human team")
+	check(not game.hud.get_node("%MatchStatus").visible and not game.hud.get_node("%OnlineConfirm").visible, "match result clears spectator banner and confirmation")
+	if _leave_controls:
+		check(game.match_paused and game.pause_faction == 3, "reliable voluntary leave is processed even while global simulation is paused")
+		await until(func(): return online.room.slots[3].surrendered and not online.room.slots[3].forfeit_requested and online.room.slots[3].player_id == -1, "Relay retains forfeit until Host commits surrender then releases departed identity", 8)
+		check(online.room.slots[3].controller == "spectator" and 3 not in game._bot_factions, "voluntary departure cannot resurrect surrendered army under bot control")
+
 func _phase(name: String, extra: Dictionary) -> void:
 	var previous := read_json("phase")
 	previous.merge(extra, true)
@@ -331,6 +418,7 @@ func _guest_review() -> void:
 		if not phase.is_empty() and str(phase.phase) != _last_phase:
 			_last_phase = str(phase.phase)
 			await _guest_phase(phase)
+			if _left_battle: return
 		var request := read_json("capture")
 		if not request.is_empty() and str(request.name) != _last_capture:
 			_last_capture = str(request.name)
@@ -345,17 +433,43 @@ func _guest_review() -> void:
 	var expected := read_json("expected")
 	await until(func(): return game.network_match._applied == int(expected.seq), "client receives final event sequence", 10)
 	check(SNAPSHOT.digest(game.network_match._mirror) == str(expected.digest), "independent peer committed-state digest agrees")
-	_check_garrison_visibility("recovered")
+	if _controls_mode:
+		check(game.finished and game.winner_team == 0, "final surrender result is identical on this peer")
+		check(not game.hud.get_node("%OnlineConfirm").visible, "final result dismisses any local surrender confirmation")
 	if role == "ally":
 		check(observed_visuals.has("skill"), "client receives replicated skill presentation events")
 	else:
 		check(observed_cursors.is_empty(), "enemy transport receives zero allied cursor packets")
-	var metrics := {"checks": checks, "failures": failures.size(), "messages": failures,
-		"resyncs": game.network_match.resync_count, "resync_reasons": game.network_match.resync_reasons,
+	_write_peer_metrics(_peer_metrics())
+
+func _peer_metrics() -> Dictionary:
+	return {"resyncs": game.network_match.resync_count, "resync_reasons": game.network_match.resync_reasons,
 		"received_rule_bytes": game.network_match.received_rule_bytes, "sent_rule_bytes": game.network_match.sent_rule_bytes,
 		"received_transport_bytes": online.received_bytes, "sent_transport_bytes": online.sent_bytes, "visual_events": observed_visuals.size()}
+
+func _write_peer_metrics(metrics: Dictionary) -> void:
+	metrics.merge({"checks": checks, "failures": failures.size(), "messages": failures})
 	print("PEER_METRICS ", JSON.stringify(metrics))
 	write_json(role + "_done", metrics)
+
+func _guest_voluntary_leave() -> void:
+	_tap_key(KEY_F3)
+	if not await until(func(): return game.match_paused, "last active ally pauses before voluntary leave", 10): return
+	if not game._local_menu: _tap_key(KEY_ESCAPE)
+	game.hud.get_node("%PauseExit").pressed.emit()
+	var confirmation: Control = game.hud.get_node("%OnlineConfirm")
+	check(confirmation.visible and confirmation.get_node("Center/Card/Column/Detail").text.contains("离开即视为投降"), "native leave confirmation explains voluntary forfeit")
+	await pause(0.35)
+	await capture("leave_confirm")
+	var metrics := _peer_metrics()
+	var old_battle: WeakRef = weakref(game)
+	confirmation.get_node("Center/Card/Column/Actions/Confirm").pressed.emit()
+	await until(func(): return current_scene != null and current_scene.scene_file_path == session.LOBBY_SCENE and not session.transition.busy, "confirmed guest leave returns through native Session to main menu", 10)
+	check(old_battle.get_ref() == null and online.room.is_empty() and online.match_config.is_empty(), "leaving releases old battle and clears local match identity")
+	await until(func(): return online._closing.is_empty(), "native reliable LEAVE transport drains before leaving client shuts down", 5)
+	check(observed_visuals.has("skill"), "departed client had received replicated skill presentation events")
+	_left_battle = true
+	_write_peer_metrics(metrics)
 
 func _check_garrison_visibility(stage: String) -> void:
 	var local_viewer := true
@@ -394,7 +508,34 @@ func _guest_phase(phase: Dictionary) -> void:
 		check(is_equal_approx(game.elapsed, paused_at) and game.simulation_paused, "guest display clock stays frozen while Host is absent")
 		write_json(role + "_host_paused", {"ready": true})
 		if not await until(func(): return _human_restored(), "guest installs full snapshot after Host returns", 18): return
+		_check_garrison_visibility("recovered")
 		write_json(role + "_host_recovered", {"ready": true})
+	elif _last_phase == "manual_pause":
+		if role == "ally": _tap_key(KEY_F3)
+		if not await until(func(): return game.match_paused, "peer receives global pause from ally F3", 10): return
+		await pause(0.3)
+		var frozen := _rule_sample()
+		await pause(0.55)
+		check(_rule_sample() == frozen, "global pause freezes complete replicated rule state")
+		check(game.hud.get_node("%MatchStatus").visible and game.hud.get_node("%MatchPause").text.begins_with("继续对局"), "peer HUD reflects global pause with resume action")
+		write_json(role + "_manual_paused", {"ready": true})
+	elif _last_phase == "paused_reconnect" and role == "ally":
+		await _guest_recovery(false)
+		check(game.match_paused, "snapshot recovery retains manually paused battle")
+		write_json("ally_paused_recovered", {"ready": true})
+	elif _last_phase == "manual_resume" and role == "enemy":
+		_tap_key(KEY_F3)
+	elif _last_phase == "spectator_resume" and role == "ally":
+		if not await until(func(): return 5 in game.surrendered_factions and game.match_paused, "ally receives Host surrender while paused", 10): return
+		_tap_key(KEY_F3)
+		if not await until(func(): return not game.match_paused, "active ally resumes surrendered Host's paused match", 10): return
+		check(game.get_node("TeammateCursors")._peers.values().all(func(peer: Dictionary): return int(peer.faction) != 5 or not peer.visible), "surrendered Host no longer presents a teammate cursor")
+		write_json("ally_host_spectating", {"ready": true})
+	elif _last_phase == "team_surrender" and role == "ally":
+		_confirm_surrender()
+		await until(func(): return game.finished, "last human surrender receives finished battle", 10)
+	elif _last_phase == "team_leave" and role == "ally":
+		await _guest_voluntary_leave()
 	elif role == "ally" and _last_phase in ["guest_short_recovery", "guest_long_recovery"]:
 		await _guest_recovery(_last_phase == "guest_long_recovery")
 	elif _last_phase == "march":
@@ -415,7 +556,7 @@ func _guest_phase(phase: Dictionary) -> void:
 				game.network_match.submit({"type": "dispatch", "source": source, "target": 0, "percent": 100})
 
 func _human_restored() -> bool:
-	return online.connection_state == "match" and not game.network_match._snapshot_loading and not game.network_match._recovery_waiting and not game.simulation_paused and online.room.slots[online.local_faction].controller == "human"
+	return online.connection_state == "match" and not game.network_match._snapshot_loading and not game.network_match._recovery_waiting and (not game.simulation_paused or game.match_paused) and online.room.slots[online.local_faction].controller == "human"
 
 func _guest_recovery(long_outage: bool) -> void:
 	var original_scene := game.get_instance_id()
@@ -442,7 +583,7 @@ func _message(_sender: int, kind: String, payload: Dictionary) -> void:
 func _finish() -> void:
 	if _finishing: return
 	_finishing = true
-	if game != null:
+	if is_instance_valid(game):
 		await game.prepare_shutdown()
 	online.disconnect_relay()
 	if _public_mode:

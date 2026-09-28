@@ -90,6 +90,9 @@ func receive(peer: int, message: Dictionary, channel: int, size: int, now: int) 
 	if op == "recovered":
 		_recovered(peer, message, room, now)
 		return
+	if op == "surrendered":
+		_surrendered(peer, message, room, now)
+		return
 	if op in ["command", "match", "cursor", "presence"]:
 		_route(peer, player, message, channel, room, now)
 		return
@@ -153,8 +156,9 @@ func _hello(peer: int, message: Dictionary, now: int) -> void:
 	var slot := P.slot_for_player(room, player)
 	slot.connected = true
 	slot.control_epoch += 1
-	var before_battle: bool = room.phase in ["room", "loading"] or (room.phase == "host_lost" and room.resume_phase in ["room", "loading"])
+	var before_battle: bool = _effective_phase(room) in ["room", "loading"]
 	slot.controller = "human" if before_battle or host else "reconnecting"
+	if host and slot.surrendered: slot.controller = "spectator"
 	if host and room.phase == "host_lost":
 		room.phase = room.resume_phase
 		if room.phase == "loading": room.load_deadline = now + LOAD_GRACE_MS
@@ -291,6 +295,8 @@ func _start(peer: int, room: Dictionary, now: int) -> void:
 	room.load_deadline = now + LOAD_GRACE_MS
 	for slot: Dictionary in room.slots:
 		slot.control_epoch += 1
+		slot.surrendered = false
+		slot.forfeit_requested = false
 		if slot.kind == "human":
 			slot.controller = "human"
 			var session: Dictionary = players[int(slot.player_id)]
@@ -301,9 +307,11 @@ func _start(peer: int, room: Dictionary, now: int) -> void:
 	_broadcast(room, {"op": "preparing", "config": _config(room)})
 
 func _loaded(peer: int, message: Dictionary, room: Dictionary, session: Dictionary, now: int) -> void:
-	if room.phase != "loading" or message.get("match_id") != room.match_id or message.get("content_hash") != content_hash: return
+	if _effective_phase(room) != "loading" or message.get("match_id") != room.match_id or message.get("content_hash") != content_hash: return
 	room.loaded[session.player_id] = true
-	_check_loaded(room, now)
+	# A client may finish loading while Host is offline. Persist that one-shot
+	# acknowledgement, but only the Host's return may release the barrier.
+	if room.phase == "loading": _check_loaded(room, now)
 
 func _check_loaded(room: Dictionary, now: int) -> void:
 	for slot: Dictionary in room.slots:
@@ -314,11 +322,30 @@ func _check_loaded(room: Dictionary, now: int) -> void:
 
 func _recovered(peer: int, message: Dictionary, room: Dictionary, now: int) -> void:
 	if not _host_only(peer, room) or room.phase not in ["match", "finished"] or message.get("match_id") != room.match_id: return
+	if not P.integer(message.get("player_id"), 1) or not P.integer(message.get("epoch"), 0): return
+	var slot := P.slot_for_player(room, int(message.player_id))
+	if slot.is_empty() or not slot.connected or slot.controller != "reconnecting" or message.epoch != slot.control_epoch: return
+	slot.controller = "spectator" if slot.surrendered else "human"
+	slot.control_epoch += 1
+	_changed(room, now)
+
+func _surrendered(peer: int, message: Dictionary, room: Dictionary, now: int) -> void:
+	# Host commits the game rule first. Relay only persists the resulting loss of
+	# input permission; it never decides transfers, penalties or victory.
+	if not _host_only(peer, room) or room.phase not in ["match", "finished"] or message.get("match_id") != room.match_id: return
 	if not P.integer(message.get("player_id"), 1): return
 	var slot := P.slot_for_player(room, int(message.player_id))
-	if slot.is_empty() or not slot.connected or slot.controller != "reconnecting": return
-	slot.controller = "human"
-	slot.control_epoch += 1
+	if slot.is_empty() or slot.surrendered: return
+	slot.surrendered = true
+	players[int(slot.player_id)].cursor_visible = false
+	# A recovering peer already has no control. Preserve its baseline epoch so
+	# restoring this permission flag cannot invalidate an in-flight snapshot.
+	if slot.controller != "reconnecting":
+		slot.controller = "spectator"
+		slot.control_epoch += 1
+	if slot.forfeit_requested:
+		_remove_player(int(slot.player_id))
+		_replace_departed(slot, true)
 	_changed(room, now)
 
 func _route(peer: int, player: int, message: Dictionary, channel: int, room: Dictionary, now: int) -> void:
@@ -333,7 +360,7 @@ func _route(peer: int, player: int, message: Dictionary, channel: int, room: Dic
 		if channel != P.COMMAND_CHANNEL or not message.get("payload") is Dictionary:
 			_reject(peer, "指令通道或内容无效")
 			return
-		if slot.controller != "human" or room.phase != "match": return
+		if slot.controller != "human" or slot.surrendered or room.phase != "match": return
 		if not _budget(connections[peer], "command", 1, 40.0, 4.0, now):
 			_notice(peer, "操作过于频繁，请稍后重试")
 			return
@@ -370,7 +397,7 @@ func _cursor(peer: int, player: int, message: Dictionary, channel: int, room: Di
 	if channel != (P.ROOM_CHANNEL if presence else P.CURSOR_CHANNEL) or not P.valid_cursor(message.get("payload")):
 		_reject(peer, "鼠标消息无效")
 		return
-	if message.get("room_revision") != room.revision or slot.controller != "human": return
+	if room.phase != "match" or message.get("room_revision") != room.revision or slot.controller != "human" or slot.surrendered: return
 	if not _budget(connections[peer], "cursor", 1, 40.0, 3.0, now): return
 	var payload: Dictionary = message.payload
 	var session: Dictionary = players[player]
@@ -427,13 +454,16 @@ func tick(now: int) -> void:
 			_back_to_lobby(room, now)
 		for slot: Dictionary in room.slots:
 			if slot.kind != "human" or slot.connected or int(slot.player_id) == int(room.host_player_id): continue
+			# LEAVE is a durable Host-side forfeit, not a disconnected participant.
+			# Its identity survives until the authority commits that game rule.
+			if slot.forfeit_requested: continue
 			var session: Dictionary = players[int(slot.player_id)]
 			var age := now - int(session.disconnected_at)
 			if age >= REJOIN_GRACE_MS:
 				_remove_player(int(slot.player_id))
-				_replace_departed(slot, room.phase != "room")
+				_replace_departed(slot, _effective_phase(room) != "room")
 				_changed(room, now)
-			elif age >= BOT_GRACE_MS and slot.controller != "bot" and room.phase in ["match", "host_lost"]:
+			elif age >= BOT_GRACE_MS and not slot.surrendered and slot.controller != "bot" and _effective_phase(room) == "match":
 				slot.controller = "bot"
 				slot.control_epoch += 1
 				_changed(room, now)
@@ -446,8 +476,21 @@ func _leave(player: int, now: int) -> void:
 		return
 	var peer := int(session.peer)
 	var slot := P.slot_for_player(room, player)
+	var active_battle := _effective_phase(room) == "match"
+	if active_battle and not slot.surrendered:
+		# A player can close this transport or enter another room immediately,
+		# while the old match retains a durable request for its authority.
+		_detach_player(session)
+		slot.forfeit_requested = true
+		slot.connected = false
+		slot.ready = false
+		slot.controller = "spectator"
+		slot.control_epoch += 1
+		_changed(room, now)
+		_send(peer, {"op": "left"})
+		return
 	_remove_player(player)
-	_replace_departed(slot, room.phase != "room")
+	_replace_departed(slot, _effective_phase(room) != "room")
 	_reset_ready(room)
 	_changed(room, now)
 	_send(peer, {"op": "left"})
@@ -460,10 +503,23 @@ func _back_to_lobby(room: Dictionary, now: int) -> void:
 	room.match_id = ""
 	room.loaded = {}
 	for slot: Dictionary in room.slots:
+		if slot.forfeit_requested:
+			_remove_player(int(slot.player_id))
+			_replace_departed(slot, true)
 		slot.control_epoch += 1
+		slot.surrendered = false
+		slot.forfeit_requested = false
 		if slot.kind == "human": slot.controller = "human" if slot.connected else "reconnecting"
+		else:
+			slot.controller = slot.kind
+			slot.name = "电脑" if slot.kind == "bot" else "空位"
 	_reset_ready(room)
 	_changed(room, now)
+
+func _effective_phase(room: Dictionary) -> String:
+	# Host loss wraps lobby, loading, battle and results alike. Lifecycle rules
+	# must use the suspended phase rather than treating every wrapper as battle.
+	return room.resume_phase if room.phase == "host_lost" else room.phase
 
 func _close_room(room: Dictionary, reason: String) -> void:
 	_broadcast(room, {"op": "closed", "message": reason})
@@ -481,16 +537,24 @@ func _new_player(peer: int, code: String, name: Variant) -> Dictionary:
 
 func _remove_player(player: int) -> void:
 	var session: Dictionary = players[player]
+	_detach_player(session)
+	players.erase(player)
+
+func _detach_player(session: Dictionary) -> void:
 	if connections.has(int(session.peer)): connections[int(session.peer)].player = -1
 	_tokens.erase(session.token)
 	if not str(session.previous_token).is_empty(): _tokens.erase(session.previous_token)
-	players.erase(player)
+	session.peer = 0
+	session.token = ""
+	session.previous_token = ""
+	session.disconnected_at = -1
+	session.cursor_visible = false
 
 func _member(peer: int, session: Dictionary, room: Dictionary, resumed: bool) -> void:
 	_send(peer, {"op": "member", "player_id": session.player_id, "token": session.token, "room": _public_room(room), "config": _config(room) if not room.match_id.is_empty() else {}, "resumed": resumed})
 
 func _empty_slot(index: int) -> Dictionary:
-	return {"slot_id": index, "faction_id": index, "team_id": index % 2, "player_id": -1, "kind": "open", "commander": "squirrel", "name": "空位", "ready": false, "connected": false, "controller": "open", "control_epoch": 0}
+	return {"slot_id": index, "faction_id": index, "team_id": index % 2, "player_id": -1, "kind": "open", "commander": "squirrel", "name": "空位", "ready": false, "connected": false, "controller": "open", "control_epoch": 0, "surrendered": false, "forfeit_requested": false}
 
 func _seat(slot: Dictionary, index: int) -> void:
 	slot.slot_id = index
@@ -504,12 +568,17 @@ func _fill_human(slot: Dictionary, session: Dictionary) -> void:
 	slot.name = session.name
 	slot.connected = true
 	slot.controller = "human"
+	slot.surrendered = false
+	slot.forfeit_requested = false
 	slot.control_epoch += 1
 
 func _replace_departed(slot: Dictionary, bot: bool) -> void:
 	slot.kind = "bot" if bot else "open"
-	slot.controller = slot.kind
-	slot.name = "电脑" if bot else "空位"
+	# Expiry/LEAVE releases the identity, never resurrecting a surrendered army.
+	slot.surrendered = slot.surrendered and bot
+	slot.forfeit_requested = false
+	slot.controller = "spectator" if slot.surrendered else slot.kind
+	slot.name = "已投降" if slot.surrendered else ("电脑" if bot else "空位")
 	slot.player_id = -1
 	slot.connected = false
 	slot.ready = bot

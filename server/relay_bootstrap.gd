@@ -18,4 +18,4 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	print("BLOCK_CONQUEST_RELAY_RUNTIME version=%s editor=%s debug=%s dedicated_server=%s" % [Engine.get_version_info().string, OS.has_feature("editor"), OS.is_debug_build(), OS.has_feature("dedicated_server")])
-	print("BLOCK_CONQUEST_RELAY_READY protocol=1 version=1.1.0 port=%d rooms=%d" % [relay.connection.get_local_port(), relay.model.max_rooms])
+	print("BLOCK_CONQUEST_RELAY_READY protocol=%d version=%s port=%d rooms=%d" % [relay.P.VERSION, relay.P.RELEASE, relay.connection.get_local_port(), relay.model.max_rooms])

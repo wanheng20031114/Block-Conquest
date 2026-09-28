@@ -1825,58 +1825,70 @@ offset_right = 1000.0
 offset_bottom = 202.0
 mouse_filter = 2
 
-[node name="Resume" type="Button" parent="UI/PauseOverlay/PauseCard"]
+[node name="PauseMenuActions" type="VBoxContainer" parent="UI/PauseOverlay/PauseCard"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 568.0
 offset_top = 221.0
 offset_right = 1000.0
-offset_bottom = 277.0
+offset_bottom = 557.0
+theme_override_constants/separation = 14
+
+[node name="Resume" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
 text = "继续战斗   Esc"
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.01
 theme_type_variation = &"MenuPrimary"
 
-[node name="PauseHelp" type="Button" parent="UI/PauseOverlay/PauseCard"]
+[node name="MatchPause" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 568.0
-offset_top = 291.0
-offset_right = 1000.0
-offset_bottom = 347.0
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+text = "暂停对局   F3"
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="Surrender" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+text = "投降并观战"
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="PauseHelp" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
 text = "查看玩法"
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.01
 
-[node name="PauseSettings" type="Button" parent="UI/PauseOverlay/PauseCard"]
+[node name="PauseSettings" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 568.0
-offset_top = 361.0
-offset_right = 1000.0
-offset_bottom = 417.0
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
 text = "设置"
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.01
 
-[node name="PauseRestart" type="Button" parent="UI/PauseOverlay/PauseCard"]
+[node name="PauseRestart" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 568.0
-offset_top = 431.0
-offset_right = 1000.0
-offset_bottom = 487.0
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
 text = "重新开战"
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.01
 
-[node name="PauseExit" type="Button" parent="UI/PauseOverlay/PauseCard"]
+[node name="PauseExit" type="Button" parent="UI/PauseOverlay/PauseCard/PauseMenuActions"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 568.0
-offset_top = 501.0
-offset_right = 1000.0
-offset_bottom = 557.0
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
 text = "返回大厅"
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.01
@@ -2252,6 +2264,43 @@ mouse_filter = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = "所有玩家准备完成后，战场将同时开始。"
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+autowrap_mode = 2
+mouse_filter = 2
+
+[node name="MatchStatus" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -270.0
+offset_right = 270.0
+offset_top = 104.0
+offset_bottom = 192.0
+theme = ExtResource("campaign_theme")
+theme_type_variation = &"MenuRow"
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="UI/MatchStatus"]
+layout_mode = 2
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="MatchStatusTitle" type="Label" parent="UI/MatchStatus/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "对局已暂停"
+theme_type_variation = &"MenuHeading"
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="MatchStatusDetail" type="Label" parent="UI/MatchStatus/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "参战指挥官可恢复对局。"
 theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 autowrap_mode = 2

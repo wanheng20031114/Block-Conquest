@@ -42,9 +42,11 @@ func _run() -> void:
 		var lobby: Control = current_scene
 		check(lobby.get_node("%Title").text == "积木战争", "standalone product title is correct")
 		var menu: VBoxContainer = lobby.get_node("Margin/Column/Body/Welcome/Menu")
-		check(menu.get_child_count() == 3, "home offers only start, settings and quit")
-		for name: String in ["BlockWarMode", "Settings", "Quit"]:
+		var entries: Array[String] = ["BlockWarMode", "OnlineMode", "Codex", "Settings", "Quit"]
+		check(menu.get_children().map(func(child: Node): return String(child.name)) == entries, "home offers the current standalone multiplayer codex settings and quit entries")
+		for name: String in entries:
 			var button: Button = lobby.get_node("%" + name)
+			check(not button.pressed.get_connections().is_empty(), "%s has an active navigation action" % name)
 			check(lobby.get_global_rect().encloses(button.get_global_rect()), "%s fits at %s" % [name, resolution])
 			check(is_equal_approx(button.modulate.a, 1.0), "%s finishes its entrance" % name)
 		click(lobby.get_node("%Settings"))

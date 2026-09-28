@@ -280,7 +280,7 @@ func _energy_towers() -> void:
 	host.marches.send(0, 1, 0, 1, route, 1.0, true)
 	var soldier: WarMarches.MarchUnit = host.marches._units[0]
 	var state := writer.capture(host, 1500)
-	check(state.schema == 2 and Snapshot.valid(state, host), "schema two validates energy towers and smithy-to-energy construction")
+	check(state.schema == Snapshot.SCHEMA and Snapshot.valid(state, host), "current schema validates energy towers and smithy-to-energy construction")
 	near(state.factions["0"][9], 2.5, "own energy tower rate is captured without the allied faction's tower")
 	near(state.factions["1"][9], 2.0, "enemy faction without a tower retains its own baseline rate")
 	var decoded: Dictionary = JSON.parse_string(JSON.stringify(state, "", true, true))

@@ -25,6 +25,7 @@ const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
 const FROG_SKILLS := preload("res://scripts/block_war/war_frog_skills.gd")
 const FIRE_STATE := preload("res://scripts/block_war/war_fire_state.gd")
+const SURRENDER := preload("res://scripts/block_war/war_surrender.gd")
 var bear := BEAR_SKILLS.new()
 
 class SkillState extends RefCounted:
@@ -47,6 +48,10 @@ var online_host := false
 var match_config: Dictionary = {}
 var network_match: RefCounted
 var simulation_paused := false
+var match_paused := false
+var pause_faction := -1
+var surrendered_factions: Array[int] = []
+var initial_human_factions: Array[int] = []
 var winner_team := -2
 var _ai_by_faction: Dictionary[int, RefCounted] = {}
 var _bot_factions: Array[int] = []
@@ -146,6 +151,8 @@ func configure_match(config: Dictionary, player_id: int) -> void:
 		var faction := int(slot.faction_id)
 		assert(faction >= 0 and faction < faction_count and int(slot.team_id) == faction % 2)
 		faction_skills[faction].commander = StringName(slot.commander)
+		if slot.kind == "human" and faction not in initial_human_factions:
+			initial_human_factions.append(faction)
 		if int(slot.player_id) == player_id and slot.kind == "human":
 			local_faction = faction
 			found = true
@@ -155,16 +162,64 @@ func configure_match(config: Dictionary, player_id: int) -> void:
 func configure_controllers(slots: Array) -> void:
 	_bot_factions.clear()
 	for slot: Dictionary in slots:
-		if slot.controller == "bot":
+		if slot.controller == "bot" and int(slot.faction_id) not in surrendered_factions:
 			_bot_factions.append(int(slot.faction_id))
 	if not match_config.is_empty():
 		match_config.slots = slots.duplicate(true)
 
 func is_rule_paused() -> bool:
-	return simulation_paused or (match_config.is_empty() and _local_menu)
+	return simulation_paused or match_paused or (match_config.is_empty() and _local_menu)
 
 func is_authority() -> bool:
 	return match_config.is_empty() or online_host
+
+func has_surrendered(faction: int) -> bool:
+	return faction in surrendered_factions
+
+func can_request_match_control(faction: int) -> bool:
+	return not match_config.is_empty() and not simulation_paused and not finished and not _closing and faction in initial_human_factions and not has_surrendered(faction)
+
+func set_match_paused(value: bool, requester_faction: int) -> Dictionary:
+	if not is_authority() or not can_request_match_control(requester_faction):
+		return {"accepted": false, "reason": "当前身份不能暂停对局"}
+	if match_paused == value:
+		return {"accepted": true, "reason": "", "changed": false}
+	match_paused = value
+	pause_faction = requester_faction if value else -1
+	sync_match_control_presentation()
+	return {"accepted": true, "reason": "", "changed": true}
+
+func surrender_faction(faction: int) -> Dictionary:
+	if not is_authority() or not can_request_match_control(faction):
+		return {"accepted": false, "reason": "当前身份不能投降"}
+	surrendered_factions.append(faction)
+	surrendered_factions.sort()
+	_bot_factions.erase(faction)
+	var recipients: Array[int] = []
+	for slot: Dictionary in match_config.slots:
+		var other := int(slot.faction_id)
+		# A temporary AI takeover preserves a human seat; expired identities do not.
+		if slot.kind == "human" and not slot.get("forfeit_requested", false) and other in initial_human_factions and FACTIONS.allied(faction, other) and not has_surrendered(other):
+			recipients.append(other)
+	if recipients.is_empty():
+		_finish_match(1 - faction % 2)
+		return {"accepted": true, "reason": "", "defeated": true}
+	var transfer: Dictionary = SURRENDER.transfer(self, faction, recipients)
+	sync_match_control_presentation()
+	return {"accepted": true, "reason": "", "defeated": false, "transfer": transfer}
+
+func sync_match_control_presentation() -> void:
+	# Transport signals can arrive while the native audio teardown is awaiting release.
+	if _closing: return
+	_cancel_drag()
+	_cancel_skill_drag()
+	camera_rig.dragging = false
+	var paused := is_rule_paused() or finished
+	audio.set_world_paused(paused)
+	world_effects.set_running(not paused)
+	map.set_visual_paused(paused)
+	for building: WarBuilding in buildings: building.set_visual_paused(paused)
+	update_hud()
 
 func opponent_faction() -> int:
 	return 1 - local_team
@@ -217,6 +272,8 @@ func _ready() -> void:
 	hud.percentage_changed.connect(set_percentage)
 	hud.skill_requested.connect(request_skill)
 	hud.pause_requested.connect(set_paused.bind(true))
+	hud.match_pause_requested.connect(func(value: bool): submit_player_command({"type": "pause", "paused": value}))
+	hud.surrender_requested.connect(func(): submit_player_command({"type": "surrender"}))
 	hud.resume_requested.connect(set_paused.bind(false))
 	hud.restart_requested.connect(restart)
 	hud.exit_requested.connect(exit_to_lobby)
@@ -277,6 +334,8 @@ func simulate(delta: float) -> void:
 		step = minf(step, morale.step_limit())
 		step = minf(step, world_effects.fire_step_limit())
 		step = minf(step, bear.step_limit())
+		for shield_remaining: float in shields.values():
+			step = minf(step, shield_remaining)
 		for building: WarBuilding in buildings:
 			if building.is_constructing:
 				step = minf(step, building.construction_remaining)
@@ -295,10 +354,6 @@ func _simulate_step(delta: float) -> void:
 		for index: int in 4:
 			state.cooldowns[index] = maxf(0.0, state.cooldowns[index] - delta)
 			state.durations[index] = maxf(0.0, state.durations[index] - delta)
-	for id: int in shields.keys():
-		shields[id] = maxf(0.0, float(shields[id]) - delta)
-		if shields[id] <= 0.0:
-			shields.erase(id)
 	for building: Node3D in buildings:
 		# Reinforcement can exceed the soft cap. Only automatic growth stops there.
 		if building.faction >= 0 and building.kind == 0 and building.population < building.capacity and not recruiting.has(building.building_id) and building.disruption_remaining <= 0.0:
@@ -314,8 +369,14 @@ func _simulate_step(delta: float) -> void:
 	audio.tick_marches(delta, marches)
 	_advance_fire_states(delta)
 	world_effects.tick(delta)
-	world_effects.update_skills(delta, faction_skills, shields, by_id, marches)
 	_tick_fire_buildings()
+	# Damage in this interval still belongs to the shield's last active span.
+	# The next substep starts after its expiry, with protection already removed.
+	for id: int in shields.keys():
+		shields[id] = maxf(0.0, float(shields[id]) - delta)
+		if shields[id] <= 0.0:
+			shields.erase(id)
+	world_effects.update_skills(delta, faction_skills, shields, by_id, marches)
 	morale.end_step(delta)
 	for index: int in range(effects.size() - 1, -1, -1):
 		effects[index].life -= delta
@@ -407,7 +468,7 @@ func dispatch_count(source: WarBuilding, amount_percent: int) -> int:
 
 func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = -2) -> int:
 	faction = local_faction if faction == -2 else faction
-	if not is_authority() or finished or is_rule_paused() or source == null or target == null or source == target:
+	if not is_authority() or has_surrendered(faction) or finished or is_rule_paused() or source == null or target == null or source == target:
 		return 0
 	if source.faction != faction or amount_percent not in [25, 50, 75, 100]:
 		return 0
@@ -746,13 +807,13 @@ func _clear_building_burrow(building: WarBuilding) -> void:
 
 func can_cast_skill(index: int, faction: int = -2) -> bool:
 	faction = local_faction if faction == -2 else faction
-	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and not is_rule_paused() and not finished and faction_skills[faction].cooldowns[index] <= 0.0 and faction_skills[faction].energy >= SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
+	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and not has_surrendered(faction) and not is_rule_paused() and not finished and faction_skills[faction].cooldowns[index] <= 0.0 and faction_skills[faction].energy >= SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
 
 func _skill_available(index: int, faction: int = -2) -> bool:
 	faction = local_faction if faction == -2 else faction
 	if faction != local_faction:
 		return can_cast_skill(index, faction)
-	if index < 0 or index >= 4 or is_rule_paused() or finished:
+	if index < 0 or index >= 4 or is_rule_paused() or finished or has_surrendered(faction):
 		return false
 	if cooldowns[index] > 0.0:
 		hud.notify("技能冷却中 · 还需 %d 秒" % ceili(cooldowns[index]))
@@ -950,7 +1011,7 @@ func convert_selected(kind: int) -> void:
 	submit_player_command({"type": "convert", "building": selected.building_id, "kind": kind})
 
 func begin_building_construction(building: WarBuilding, kind: int, faction: int) -> bool:
-	if not is_authority() or finished or is_rule_paused() or building == null or building.faction != faction or building.is_constructing:
+	if not is_authority() or has_surrendered(faction) or finished or is_rule_paused() or building == null or building.faction != faction or building.is_constructing:
 		return false
 	if kind == -1:
 		if building.level >= building.max_level:
@@ -974,7 +1035,8 @@ func begin_building_construction(building: WarBuilding, kind: int, faction: int)
 	return true
 
 func submit_player_command(command: Dictionary) -> Dictionary:
-	if _local_menu or finished or _closing:
+	var control: bool = command.get("type") in ["pause", "surrender"]
+	if (_local_menu and not control) or finished or _closing or has_surrendered(local_faction):
 		return {"accepted": false, "reason": "input_blocked"}
 	if network_match != null:
 		return network_match.submit(command)
@@ -995,10 +1057,16 @@ static func _integer_fields(command: Dictionary, fields: Array) -> bool:
 func execute_network_command(faction: int, command: Dictionary) -> Dictionary:
 	if not is_authority():
 		return {"accepted": false, "reason": "not_authority"}
-	if finished or is_rule_paused() or _closing:
+	if finished or _closing:
 		return {"accepted": false, "reason": "match_not_running"}
 	if faction < 0 or faction >= faction_count:
 		return {"accepted": false, "reason": "invalid_faction"}
+	if command.get("type") == "pause":
+		if not command.get("paused") is bool: return {"accepted": false, "reason": "invalid_command"}
+		return set_match_paused(command.paused, faction)
+	if command.get("type") == "surrender": return surrender_faction(faction)
+	if is_rule_paused() or has_surrendered(faction):
+		return {"accepted": false, "reason": "match_not_running"}
 	var accepted := false
 	var count := 0
 	match command.get("type", ""):
@@ -1035,7 +1103,7 @@ func _ai_turn() -> void:
 			strategy.take_turn(self)
 		return
 	for faction: int in _bot_factions:
-		_ai_by_faction[faction].take_turn(self)
+		if not has_surrendered(faction): _ai_by_faction[faction].take_turn(self)
 
 func team_total_for(faction: int) -> int:
 	var count: float = marches.team_total_for(faction)
@@ -1061,6 +1129,16 @@ func total_for(faction: int) -> int:
 			count += building.available_population
 	return floori(count)
 
+func _toolbox_can_restore_population(building: WarBuilding) -> bool:
+	if not building.is_constructing or has_surrendered(building.faction): return false
+	var state := faction_skills[building.faction]
+	if state.commander != SKILL_RULES.BEAR or building.construction_cost <= 0: return false
+	if building.population + floori(float(building.construction_cost) / 2.0) < 1.0: return false
+	# Waiting for energy/cooldown is a real recovery path only while the paid
+	# receipt still exists. Natural completion consumes it before a new command.
+	var energy_wait := maxf(0.0, (SKILL_RULES.BEAR_COSTS[0] - state.energy) / energy_regen_for(building.faction))
+	return maxf(state.cooldowns[0], energy_wait) < building.construction_remaining
+
 func _check_victory() -> void:
 	if finished:
 		return
@@ -1073,6 +1151,8 @@ func _check_victory() -> void:
 		# Fractions in separate garrisons cannot be combined without a full soldier
 		# leaving one doorway. An existing or unfinished residence can still grow it.
 		if building.kind == 0 or building.conversion_target == 0 or floori(building.population) >= 1:
+			can_make_progress = true
+		elif not can_make_progress and _toolbox_can_restore_population(building):
 			can_make_progress = true
 	# Living productive buildings already prove that ordinary battles continue.
 	# Only inspect marching armies when elimination/stalemate is possible.
@@ -1157,6 +1237,9 @@ func update_hud() -> void:
 	hud.update_state({"player_total": floori(team_populations[local_team]), "enemy_total": floori(team_populations[1 - local_team]), "time": elapsed,
 		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
 		"online": not match_config.is_empty(), "enemy_role": _enemy_role(),
+		"global_paused": match_paused, "local_surrendered": has_surrendered(local_faction),
+		"can_match_pause": can_request_match_control(local_faction), "can_surrender": can_request_match_control(local_faction),
+		"pause_actor_name": faction_name(pause_faction) if pause_faction >= 0 else "",
 		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
 		"send_count": dispatch_count(selected, percentage) if selected != null and selected.faction == local_faction else 0,
