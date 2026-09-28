@@ -1,0 +1,702 @@
+{
+  "baseline": "3a0eecccd644e7f7951dccec7bd23950a5f27787",
+  "review_date": "2026-09-29",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "counts": {
+    "passed": 61,
+    "assertions_passed_with_script_errors": 1,
+    "failed": 4,
+    "not_run": 1
+  },
+  "additional_checks": {
+    "python_unittest": {
+      "tests": 13,
+      "failures": 0
+    },
+    "product_validation": {
+      "runtime_sources": 197,
+      "failures": 0
+    },
+    "network_manifest": {
+      "files": 92,
+      "consistent": true
+    }
+  },
+  "functional_findings": 5,
+  "initial_execution_notes": [
+    "Concurrent edits in the primary checkout prompted all accepted results to be rerun against the fixed baseline.",
+    "Native GPU tests were rerun with their required output arguments.",
+    "Initial network security/load attempts lacked the ignored test key; successful retries used self-generated test certificates.",
+    "The initial 200-second campaign runner limit was increased to 420 seconds for a standalone rerun."
+  ],
+  "tests": [
+    {
+      "test": "block_war_ai_skills_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_AI_SKILLS checks=178 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_ai_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_AI checks=44 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_audio_feedback_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_AUDIO_FEEDBACK checks=39 failures=0 scope=full"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_audio_mix_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_AUDIO_MIX 88 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_bear_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "Bear checks: 131, failures: 0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_building_levels_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_BUILDING_LEVELS checks=463 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_campaign_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "CAMPAIGN_RESULT time=427.300000000058 finished=true player=0 enemy=473 ownership=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]",
+        "BLOCK_WAR_CAMPAIGN checks=28 failures=0 audit_findings=[]"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_commander_audio_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "COMMANDER_AUDIO checks=123 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_construction_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_CONSTRUCTION checks=210 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_departure_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_DEPARTURE checks=91 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_dispatch_input_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_DISPATCH_INPUT_TEST checks=163 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_energy_tower_hud_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "ENERGY_TOWER_HUD {\"checks\": 67, \"failures\": []}"
+      ]
+    },
+    {
+      "test": "block_war_energy_tower_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "ENERGY_TOWER 153 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_exchange_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_EXCHANGE checks=194 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_fire_state_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_FIRE_STATE checks=14 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_fire_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_FIRE checks=60 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_fixed_clock_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "FIXED_CLOCK checks=181 failures=0 factions=6 bots=5 target_tick=600 frame_rates=[10,30,120]"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_frog_persistence_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "FROG_PERSISTENCE checks=65 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_frog_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "FROG checks=109 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_garrison_visibility_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "GARRISON_VISIBILITY {\"checks\": 584, \"failures\": []}"
+      ]
+    },
+    {
+      "test": "block_war_haste_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_HASTE checks=43 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_input_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_INPUT_TEST checks=26 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_map_preview_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MAP_PREVIEW checks=522 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_map_select_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MAP_SELECT checks=54 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_maps_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MAPS checks=5205 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_marches_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MARCHES 40 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_menu_flow_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MENU_FLOW checks=51 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_morale_ai_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MORALE_AI 150 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_morale_hud_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "MORALE_HUD_RESULTS {\"checks\": 654, \"failures\": []}"
+      ]
+    },
+    {
+      "test": "block_war_morale_rules_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MORALE_RULES_RESULTS {\"checks\": 395, \"failures\": []}"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_morale_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MORALE 315 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_multiplayer_core_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MULTIPLAYER_CORE checks=70 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_music_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_MUSIC 24 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_native_network_test.gd",
+      "mode": "headless_local_dtls",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_NATIVE_NETWORK checks=41 failures=0"
+      ],
+      "note": "Original test; self-generated test certificate; localhost only."
+    },
+    {
+      "test": "block_war_network_load_test.gd",
+      "mode": "headless_local_dtls",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_NETWORK_LOAD checks=31 failures=0"
+      ],
+      "note": "Temporary test copy changes only test certificate paths; localhost only."
+    },
+    {
+      "test": "block_war_network_security_test.gd",
+      "mode": "headless_local_dtls",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_NETWORK_SECURITY checks=6 failures=0 expected_native_tls_rejections=2"
+      ],
+      "note": "Temporary test copy changes only test certificate paths. Two native TLS rejection error categories are expected."
+    },
+    {
+      "test": "block_war_online_ui_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "ONLINE_UI_TEST checks=63 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_percentage_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_PERCENTAGE_TEST checks=89 failures=0"
+      ]
+    },
+    {
+      "test": "block_war_rabbit_integration_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "assertions_passed_with_script_errors",
+      "summary": [
+        "BLOCK_WAR_RABBIT_INTEGRATION checks=100 failures=0 scope=full"
+      ],
+      "script_errors": [
+        "SCRIPT ERROR: Invalid access to property or key 'busy' on a base object of type 'null instance'.",
+        "SCRIPT ERROR: Invalid access to property or key 'busy' on a base object of type 'null instance'."
+      ],
+      "note": "Direct test scene switching detaches an old menu before its pending callback. Actual navigation stress test: 66 checks passed, no script errors."
+    },
+    {
+      "test": "block_war_rabbit_rush_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_RABBIT_RUSH checks=73 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_rabbit_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_RABBIT checks=192 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_recall_formation_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_RECALL_FORMATION checks=4410 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_recall_routes_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_RECALL_ROUTES checks=1440 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_relay_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_RELAY checks=120 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_replication_load_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "REPLICATION_LOAD checks=10 failures=0 soldiers=4096 recovery_ms=226.889 pair_cpu_mean_ms=54.3170666666667 pair_cpu_max_ms=78.834 anchor_bytes_per_second=207184 anchor_packets_per_second=300 largest_datagram=759"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_replication_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "REPLICATION checks=45 failures=0 reliable_bytes=13042 resyncs=1"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_residence_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_RESIDENCE checks=132 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_routes_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_ROUTES checks=21 failures=0 routes=156 samples=430860 off_ground=0 wall_collisions=0 max_turn_degrees=9.24140474892545 detour_ratio=1.00779756093768 first="
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_selection_motion_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_SELECTION_MOTION checks=64 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_shores_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_SHORES checks=888 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_skill_energy_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_SKILL_ENERGY 295 checks; 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_snapshot_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_SNAPSHOT checks=1263 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_team_campaign_test.gd",
+      "mode": "headless",
+      "exit_code": 1,
+      "status": "failed",
+      "summary": [
+        "TEAM_CAMPAIGN_RESULT map=rivers time=317.650000000026 finished=true max_tick_ms=23.595",
+        "TEAM_CAMPAIGN_RESULT map=islands time=1799.99999999948 finished=false max_tick_ms=117.211",
+        "BLOCK_WAR_TEAM_CAMPAIGN checks=84 failures=1"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_teams_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_TEAMS checks=28 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_TEST checks=43 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_tower_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_TOWER checks=131 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_ui_stability_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_UI_STABILITY checks=29 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "block_war_upgrade_input_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "BLOCK_WAR_UPGRADE_INPUT checks=85 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "codex_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 1,
+      "status": "failed",
+      "summary": [
+        "CODEX_TEST {\"captures\": 31, \"checks\": 1181, \"failures\": [\"mechanic is searchable: 铁匠铺\"]}"
+      ],
+      "note": "Failure reproduced with native renderer; stale expectations documented in the review."
+    },
+    {
+      "test": "lobby_diorama_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 1,
+      "status": "failed",
+      "summary": [
+        "LOBBY_DIORAMA_RESULT {\"checks\": 41, \"failures\": [\"current version remains visible\"]}"
+      ],
+      "note": "Failure reproduced with native renderer; stale expectations documented in the review."
+    },
+    {
+      "test": "lobby_ui_test.gd",
+      "mode": "native_gpu_private_desktop",
+      "exit_code": 1,
+      "status": "failed",
+      "summary": [
+        "LOBBY_UI_RESULT {\"checks\": 34, \"failures\": [\"home offers only start, settings and quit\", \"home offers only start, settings and quit\"]}"
+      ],
+      "note": "Failure reproduced with native renderer; stale expectations documented in the review."
+    },
+    {
+      "test": "menu_motion_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "MENU_MOTION_TEST checks=200 failures=0"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "product_release_test.gd",
+      "status": "not_run",
+      "note": "Requires a newly exported baseline PCK. No new Windows export was performed during this review."
+    },
+    {
+      "test": "settings_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "SETTINGS_RESULT 37 checks / 0 failures"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "ui_motion_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "UI_MOTION_TEST {\"checks\": 36, \"failures\": []}"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "ui_transition_reveal_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "UI_TRANSITION_REVEAL {\"checks\": 14, \"failures\": []}"
+      ],
+      "script_errors": []
+    },
+    {
+      "test": "user_data_migration_test.gd",
+      "mode": "headless",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": [
+        "USER_DATA_MIGRATION_RESULT {\"checks\": 19, \"failures\": []}"
+      ],
+      "script_errors": []
+    }
+  ]
+}
