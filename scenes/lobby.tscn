@@ -75,24 +75,12 @@ theme_override_constants/separation = 34
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Eyebrow" type="Label" parent="Margin/Column/Body/Welcome/Brand"]
-layout_mode = 2
-text = "小小据点，大大谋略。"
-theme_type_variation = &"MenuMuted"
-theme_override_font_sizes/font_size = 22
-
 [node name="Title" type="Label" parent="Margin/Column/Body/Welcome/Brand"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "积木战争"
 theme_type_variation = &"MenuTitle"
 theme_override_font_sizes/font_size = 94
-
-[node name="Subtitle" type="Label" parent="Margin/Column/Body/Welcome/Brand"]
-layout_mode = 2
-text = "和森林伙伴一起，赢下每一条前线。"
-theme_type_variation = &"MenuMuted"
-theme_override_font_sizes/font_size = 21
 
 [node name="Menu" type="VBoxContainer" parent="Margin/Column/Body/Welcome"]
 layout_mode = 2
@@ -197,14 +185,10 @@ mouse_filter = 2
 [node name="Footer" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
 theme_override_constants/separation = 24
+alignment = 2
 
-[node name="Rule" type="Label" parent="Margin/Column/Footer"]
+[node name="Version" type="Label" parent="Margin/Column/Footer"]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-text = "挑选伙伴  ·  争夺据点  ·  合力前行"
-theme_type_variation = &"MenuMuted"
-
-[node name="Modes" type="Label" parent="Margin/Column/Footer"]
-layout_mode = 2
-text = "1v1  /  2v2  /  3v3"
+text = "v1.0.1"
 theme_type_variation = &"MenuMuted"

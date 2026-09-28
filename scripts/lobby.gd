@@ -4,6 +4,7 @@ extends Control
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = true
+	%Version.text = "v%s" % ProjectSettings.get_setting("application/config/version")
 	%BlockWarMode.pressed.connect(_start)
 	%Settings.pressed.connect(session.settings.open_menu)
 	%Quit.pressed.connect(_quit)
