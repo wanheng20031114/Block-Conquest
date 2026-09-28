@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://assets/models/block_war/nature/daisies.tscn" id="flowers"]
 [ext_resource type="PackedScene" path="res://scenes/ui/lobby_windmill.tscn" id="windmill"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/lobby_cloud.png" id="cloud"]
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/water_noise.tres" id="water_noise"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 0
@@ -56,7 +57,10 @@ roughness = 1.0
 
 [sub_resource type="ShaderMaterial" id="Water"]
 resource_local_to_scene = true
+render_priority = -10
 shader = ExtResource("water")
+shader_parameter/surface_noise = ExtResource("water_noise")
+shader_parameter/shore_rects = PackedVector4Array(-2.85, 0, 1.9, 3.8, -5.7, 0.95, 0.95, 2.85, 2.95, -0.95, 1.9, 2.85, 5.8, -1.9, 0.95, 1.9)
 
 [sub_resource type="BoxMesh" id="Block"]
 size = Vector3(1, 1, 1)
