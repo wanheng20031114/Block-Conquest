@@ -10,6 +10,7 @@
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/wind_pine_foliage.res" id="pine_leaves"]
 [ext_resource type="PackedScene" path="res://assets/models/block_war/nature/daisies.tscn" id="flowers"]
 [ext_resource type="PackedScene" path="res://scenes/ui/lobby_windmill.tscn" id="windmill"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/lobby_cloud.png" id="cloud"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode = 0
@@ -53,10 +54,6 @@ roughness = 0.93
 albedo_color = Color(0.84, 0.77, 0.55, 1)
 roughness = 1.0
 
-[sub_resource type="StandardMaterial3D" id="Cloud"]
-albedo_color = Color(0.94, 0.95, 0.87, 1)
-roughness = 1.0
-
 [sub_resource type="ShaderMaterial" id="Water"]
 resource_local_to_scene = true
 shader = ExtResource("water")
@@ -71,12 +68,6 @@ subdivide_depth = 20
 
 [sub_resource type="BoxShape3D" id="WaterShape"]
 size = Vector3(15.5, 0.06, 10.0)
-
-[sub_resource type="SphereMesh" id="CloudMesh"]
-radius = 1.0
-height = 2.0
-radial_segments = 12
-rings = 6
 
 [sub_resource type="Animation" id="Drift"]
 resource_name = "drift"
@@ -648,25 +639,10 @@ material_override = SubResource("Sand")
 [node name="Far" type="Node3D" parent="World/Stage/Island/Clouds"]
 position = Vector3(-2.7, 3.6, -4.7)
 
-[node name="Puff0" type="MeshInstance3D" parent="World/Stage/Island/Clouds/Far"]
-position = Vector3(-0.72, 0, 0)
-scale = Vector3(1.13, 0.53, 0.75)
-mesh = SubResource("CloudMesh")
-material_override = SubResource("Cloud")
-cast_shadow = 0
-
-[node name="Puff1" type="MeshInstance3D" parent="World/Stage/Island/Clouds/Far"]
-position = Vector3(0, 0.22, 0)
-scale = Vector3(1.05, 0.68, 0.8)
-mesh = SubResource("CloudMesh")
-material_override = SubResource("Cloud")
-cast_shadow = 0
-
-[node name="Puff2" type="MeshInstance3D" parent="World/Stage/Island/Clouds/Far"]
-position = Vector3(0.84, -0.06, 0)
-scale = Vector3(0.92, 0.42, 0.63)
-mesh = SubResource("CloudMesh")
-material_override = SubResource("Cloud")
+[node name="Cloud" type="Sprite3D" parent="World/Stage/Island/Clouds/Far"]
+texture = ExtResource("cloud")
+pixel_size = 0.0019
+billboard = 1
 cast_shadow = 0
 
 [node name="Drift" type="AnimationPlayer" parent="World/Stage/Island"]
