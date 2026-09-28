@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+[ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="environment"]
+
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.19, 0.27, 0.21, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+size = Vector2(200, 200)
+material = SubResource("GroundMaterial")
+
+[sub_resource type="StandardMaterial3D" id="RimMaterial"]
+albedo_color = Color(0.38, 0.40, 0.31, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Rim"]
+top_radius = 2.65
+bottom_radius = 2.75
+height = 0.20
+radial_segments = 48
+material = SubResource("RimMaterial")
+
+[sub_resource type="StandardMaterial3D" id="GrassMaterial"]
+albedo_color = Color(0.29, 0.39, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Grass"]
+top_radius = 2.59
+bottom_radius = 2.65
+height = 0.10
+radial_segments = 48
+material = SubResource("GrassMaterial")
+
+[node name="Stage" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = ExtResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-49, -38, 0)
+light_color = Color(1, 0.965, 0.88, 1)
+light_energy = 0.92
+light_specular = 0.6
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+shadow_bias = 0.035
+shadow_normal_bias = 0.65
+shadow_blur = 1.3
+directional_shadow_mode = 0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.28, 0)
+mesh = SubResource("GroundMesh")
+
+[node name="Rim" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.14, 0)
+mesh = SubResource("Rim")
+
+[node name="Grass" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.01, 0)
+mesh = SubResource("Grass")
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(8, 10, 14)
+projection = 1
+size = 7.2
+current = true

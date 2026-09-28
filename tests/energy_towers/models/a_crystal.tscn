@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://assets/models/block_war/architecture/surface.gdshader" id="surface"]
+[ext_resource type="ArrayMesh" path="res://tests/energy_towers/models/a_crystal_stone.res" id="Stone"]
+[ext_resource type="ArrayMesh" path="res://tests/energy_towers/models/a_crystal_metal.res" id="Metal"]
+[ext_resource type="ArrayMesh" path="res://tests/energy_towers/models/a_crystal_timber.res" id="Timber"]
+[ext_resource type="ArrayMesh" path="res://tests/energy_towers/models/a_crystal_glow.res" id="Glow"]
+
+[sub_resource type="ShaderMaterial" id="StoneMaterial"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.9
+
+[sub_resource type="ShaderMaterial" id="MetalMaterial"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.6
+shader_parameter/metalness = 0.28
+
+[sub_resource type="ShaderMaterial" id="TimberMaterial"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="GlowMaterial"]
+vertex_color_use_as_albedo = true
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.19, 0.63, 0.43, 1)
+emission_energy_multiplier = 0.65
+
+[node name="a_crystal" type="Node3D"]
+
+[node name="Stone" type="MeshInstance3D" parent="."]
+mesh = ExtResource("Stone")
+material_override = SubResource("StoneMaterial")
+
+[node name="Metal" type="MeshInstance3D" parent="."]
+mesh = ExtResource("Metal")
+material_override = SubResource("MetalMaterial")
+
+[node name="Timber" type="MeshInstance3D" parent="."]
+mesh = ExtResource("Timber")
+material_override = SubResource("TimberMaterial")
+
+[node name="Glow" type="MeshInstance3D" parent="."]
+mesh = ExtResource("Glow")
+material_override = SubResource("GlowMaterial")

@@ -1,0 +1,244 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="font"]
+[ext_resource type="PackedScene" path="res://tests/energy_towers/stage.tscn" id="stage"]
+[ext_resource type="PackedScene" path="res://tests/energy_towers/models/a_crystal.tscn" id="a_crystal"]
+[ext_resource type="PackedScene" path="res://tests/energy_towers/models/b_armillary.tscn" id="b_armillary"]
+[ext_resource type="PackedScene" path="res://tests/energy_towers/models/c_coil.tscn" id="c_coil"]
+[ext_resource type="PackedScene" path="res://tests/energy_towers/models/d_lantern.tscn" id="d_lantern"]
+
+[sub_resource type="Theme" id="Theme"]
+default_font = ExtResource("font")
+default_font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="Card"]
+bg_color = Color(0.13, 0.20, 0.16, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.43, 0.49, 0.36, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[node name="EnergyTowerReview" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1280.0
+color = Color(0.075, 0.12, 0.10, 1)
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+offset_left = 48.0
+offset_top = 23.0
+offset_right = 1800.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.94, 0.91, 0.79, 1)
+theme_override_font_sizes/font_size = 40
+text = "能源塔 · 四种造型方案"
+
+[node name="Subtitle" type="Label" parent="."]
+offset_left = 51.0
+offset_top = 85.0
+offset_right = 1860.0
+offset_bottom = 116.0
+theme_override_colors/font_color = Color(0.69, 0.77, 0.65, 1)
+theme_override_font_sizes/font_size = 20
+text = "同一建筑的四种外观 · 仅由铁匠铺改造 · 不可升级"
+
+[node name="Footer" type="Label" parent="."]
+offset_left = 48.0
+offset_top = 1227.0
+offset_right = 1872.0
+offset_bottom = 1270.0
+theme_override_colors/font_color = Color(0.72, 0.77, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+text = "统一比例、视角与光照  /  Godot 实机模型截图"
+horizontal_alignment = 2
+
+[node name="A" type="Panel" parent="."]
+offset_left = 48.0
+offset_top = 142.0
+offset_right = 948.0
+offset_bottom = 662.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="A"]
+offset_left = 22.0
+offset_top = 12.0
+offset_right = 475.0
+offset_bottom = 51.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 26
+text = "A  晶簇炉塔"
+
+[node name="Detail" type="Label" parent="A"]
+offset_left = 480.0
+offset_top = 18.0
+offset_right = 876.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.71, 0.79, 0.66, 1)
+theme_override_font_sizes/font_size = 18
+text = "高低晶簇 · 铜爪锻炉"
+horizontal_alignment = 2
+
+[node name="View" type="SubViewportContainer" parent="A"]
+offset_left = 10.0
+offset_top = 66.0
+offset_right = 890.0
+offset_bottom = 510.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="A/View"]
+size = Vector2i(880, 444)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="A/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Model" parent="A/View/Viewport" instance=ExtResource("a_crystal")]
+
+[node name="B" type="Panel" parent="."]
+offset_left = 972.0
+offset_top = 142.0
+offset_right = 1872.0
+offset_bottom = 662.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="B"]
+offset_left = 22.0
+offset_top = 12.0
+offset_right = 475.0
+offset_bottom = 51.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 26
+text = "B  星环聚能塔"
+
+[node name="Detail" type="Label" parent="B"]
+offset_left = 480.0
+offset_top = 18.0
+offset_right = 876.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.71, 0.79, 0.66, 1)
+theme_override_font_sizes/font_size = 18
+text = "交错铜环 · 悬浮能量核"
+horizontal_alignment = 2
+
+[node name="View" type="SubViewportContainer" parent="B"]
+offset_left = 10.0
+offset_top = 66.0
+offset_right = 890.0
+offset_bottom = 510.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="B/View"]
+size = Vector2i(880, 444)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="B/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Model" parent="B/View/Viewport" instance=ExtResource("b_armillary")]
+
+[node name="C" type="Panel" parent="."]
+offset_left = 48.0
+offset_top = 682.0
+offset_right = 948.0
+offset_bottom = 1202.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="C"]
+offset_left = 22.0
+offset_top = 12.0
+offset_right = 475.0
+offset_bottom = 51.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 26
+text = "C  线圈充能塔"
+
+[node name="Detail" type="Label" parent="C"]
+offset_left = 480.0
+offset_top = 18.0
+offset_right = 876.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.71, 0.79, 0.66, 1)
+theme_override_font_sizes/font_size = 18
+text = "双柱线圈 · 石木工坊"
+horizontal_alignment = 2
+
+[node name="View" type="SubViewportContainer" parent="C"]
+offset_left = 10.0
+offset_top = 66.0
+offset_right = 890.0
+offset_bottom = 510.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="C/View"]
+size = Vector2i(880, 444)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="C/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Model" parent="C/View/Viewport" instance=ExtResource("c_coil")]
+
+[node name="D" type="Panel" parent="."]
+offset_left = 972.0
+offset_top = 682.0
+offset_right = 1872.0
+offset_bottom = 1202.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="D"]
+offset_left = 22.0
+offset_top = 12.0
+offset_right = 475.0
+offset_bottom = 51.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 26
+text = "D  符文灯塔"
+
+[node name="Detail" type="Label" parent="D"]
+offset_left = 480.0
+offset_top = 18.0
+offset_right = 876.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.71, 0.79, 0.66, 1)
+theme_override_font_sizes/font_size = 18
+text = "四面灯室 · 青瓦尖顶"
+horizontal_alignment = 2
+
+[node name="View" type="SubViewportContainer" parent="D"]
+offset_left = 10.0
+offset_top = 66.0
+offset_right = 890.0
+offset_bottom = 510.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="D/View"]
+size = Vector2i(880, 444)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="D/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Model" parent="D/View/Viewport" instance=ExtResource("d_lantern")]
