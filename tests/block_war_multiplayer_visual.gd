@@ -126,6 +126,7 @@ func _run() -> void:
 		return
 	while session.transition.busy: await process_frame
 	check(game.local_faction == {"host": 5, "ally": 3, "enemy": 2}[role], "local faction matches nonzero authored seat")
+	_check_garrison_visibility("baseline")
 	if role == "host":
 		await _host_review()
 	else:
@@ -261,6 +262,7 @@ func _host_review() -> void:
 	check(observed_cursors.any(func(sender: int): return sender == int(online.room.slots[3].player_id)), "host receives ally cursor through relay")
 	check(not observed_cursors.has(int(online.room.slots[2].player_id)), "host never receives enemy cursor")
 	await _host_recovery()
+	_check_garrison_visibility("recovered")
 	# Stop only authority processing; clients continue draining in-flight reliable facts.
 	game.set_process(false)
 	var flush_started := Time.get_ticks_msec()
@@ -343,6 +345,7 @@ func _guest_review() -> void:
 	var expected := read_json("expected")
 	await until(func(): return game.network_match._applied == int(expected.seq), "client receives final event sequence", 10)
 	check(SNAPSHOT.digest(game.network_match._mirror) == str(expected.digest), "independent peer committed-state digest agrees")
+	_check_garrison_visibility("recovered")
 	if role == "ally":
 		check(observed_visuals.has("skill"), "client receives replicated skill presentation events")
 	else:
@@ -353,6 +356,27 @@ func _guest_review() -> void:
 		"received_transport_bytes": online.received_bytes, "sent_transport_bytes": online.sent_bytes, "visual_events": observed_visuals.size()}
 	print("PEER_METRICS ", JSON.stringify(metrics))
 	write_json(role + "_done", metrics)
+
+func _check_garrison_visibility(stage: String) -> void:
+	var local_viewer := true
+	var badges_correct := true
+	var hidden_geometry := true
+	var categories := {"own":0, "ally":0, "enemy":0, "neutral":0}
+	for building: Node3D in game.buildings:
+		var owner: int = building.faction
+		var known: bool = owner < 0 or owner % 2 == game.local_faction % 2
+		var category := "neutral" if owner < 0 else ("own" if owner == game.local_faction else ("ally" if known else "enemy"))
+		categories[category] += 1
+		local_viewer = local_viewer and building.viewer_faction == game.local_faction
+		var expected := str(maxi(0, floori(building.population))) if known else "?"
+		badges_correct = badges_correct and building.is_population_visible() == known and building.get_node("PopulationLabel").text == expected
+		if not known:
+			hidden_geometry = hidden_geometry and building.get_node("PopulationBadge").scale == Vector3.ONE and building.get_node("PickArea/BadgeCollisionShape3D").scale == Vector3.ONE and building.get_node("PopulationLabel").font_size == 64
+	check(local_viewer, stage + " all buildings retain this client's nonzero viewer faction")
+	check(badges_correct, stage + " own ally neutral show counts while enemy badges conceal counts")
+	check(hidden_geometry, stage + " enemy badge and pick geometry reveal no garrison magnitude")
+	check(categories.values().all(func(amount: int): return amount > 0), stage + " real match covers own allied enemy and neutral buildings")
+	print("GARRISON_VISIBILITY ", JSON.stringify({"role":role,"stage":stage,"viewer":game.local_faction,"categories":categories}))
 
 func _guest_phase(phase: Dictionary) -> void:
 	if _last_phase == "host_recovery":
