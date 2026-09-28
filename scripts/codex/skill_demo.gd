@@ -110,7 +110,8 @@ func _render_demo() -> void:
 	_place(home_count, _left + Vector2(0, 33), Vector2(96, 22))
 	_place(away_count, _right + Vector2(0, 33), Vector2(96, 22))
 	home_count.text = "己方 · 20"
-	away_count.text = "敌方 · 50"
+	away_count.text = "敌方 · ?"
+	$Legend.text = "绿 · 己方   橙 · 敌方"
 	route.points = PackedVector2Array([_left + Vector2(0, 16), _right + Vector2(0, 16)])
 	_place(range_ring, _middle, Vector2((_travel_right - _travel_left) / 3.0 + 28.0, 91.0))
 	_place(shield, _left - Vector2(0, 10), Vector2(85, 91))
@@ -343,8 +344,9 @@ func _frog() -> void:
 			caption.text = "隐身部队继续移动，免受炮塔攻击，直至入城"
 		3:
 			var struck := progress > 0.43
+			$Legend.text = "绿 · 己方   灰 · 中立"
 			_place(skill_icon, _right - Vector2(0, 58.0 - sin(_phase(0.25, 0.45) * PI) * 10.0), Vector2(40, 40))
-			away_count.text = "敌方 · %d" % (10 if struck else 50)
-			away.modulate = FOE.lerp(Color.WHITE, sin(_phase(0.4, 0.53) * PI) * 0.65)
-			_label("3 级 → 1 级" if struck else "选择敌方建筑")
+			away_count.text = "中立 · %d" % (10 if struck else 50)
+			away.modulate = Color("b5aa87").lerp(Color.WHITE, sin(_phase(0.4, 0.53) * PI) * 0.65)
+			_label("3 级 → 1 级" if struck else "选择中立建筑")
 			caption.text = "削减 80% 当前驻军并降至 1 级，不直接占领"

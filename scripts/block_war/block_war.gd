@@ -35,7 +35,11 @@ class SkillState extends RefCounted:
 	var recruit_target_id := -1
 
 var faction_skills: Array[SkillState] = []
-var local_faction := 0
+var local_faction := 0:
+	set(value):
+		local_faction = value
+		for building: WarBuilding in buildings:
+			building.viewer_faction = value
 var local_team: int:
 	get: return local_faction % 2
 var local_player_id := -1
@@ -196,6 +200,7 @@ func _ready() -> void:
 	_previous_auto_quit = get_tree().auto_accept_quit
 	get_tree().auto_accept_quit = false
 	for building: Node3D in $Map/Buildings.get_children():
+		building.viewer_faction = local_faction
 		buildings.append(building)
 		by_id[building.building_id] = building
 		tower_clocks[building.building_id] = 0.0
@@ -1120,20 +1125,21 @@ func update_hud() -> void:
 			detail += " · 停工 %ds" % ceili(selected.disruption_remaining)
 		if selected.burrow_remaining > 0.0:
 			detail += " · 兔洞待命 %ds · 下次最多 50 人" % ceili(selected.burrow_remaining)
-		if selected.queued_population > 0:
+		if selected.is_population_visible() and selected.queued_population > 0:
 			detail += " · 待出发 %d · 可用 %d" % [selected.queued_population, floori(selected.available_population)]
 		if selected.faction >= 0 and faction_count > 2:
 			detail = "%s · %s" % [faction_name(selected.faction), detail]
 			if FACTIONS.allied(selected.faction, local_faction) and selected.faction != local_faction:
 				detail += " · 增援抵达后归队友指挥"
+	var selected_population_known: bool = selected != null and selected.is_population_visible()
 	hud.update_state({"player_total": floori(team_populations[local_team]), "enemy_total": floori(team_populations[1 - local_team]), "time": elapsed,
 		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
 		"online": not match_config.is_empty(), "enemy_role": _enemy_role(),
 		"map_title": map.definition.title, "map_mode": map.definition.mode_label(), "team_size": faction_count / 2,
 		"percentage": percentage, "selected_name": KIND_NAMES[selected.kind] if selected != null else "",
-		"send_count": dispatch_count(selected, percentage) if selected != null else 0,
-		"selected_population": floori(selected.population) if selected != null else 0, "selected_detail": detail,
-		"selected_available_population": floori(selected.available_population) if selected != null else 0,
+		"send_count": dispatch_count(selected, percentage) if selected != null and selected.faction == local_faction else 0,
+		"selected_population": floori(selected.population) if selected_population_known else -1, "selected_detail": detail,
+		"selected_available_population": floori(selected.available_population) if selected_population_known else -1,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_RULES.costs_for(faction_skills[local_faction].commander),
 		"commander": faction_skills[local_faction].commander, "enemy_commander": faction_skills[opponent_faction()].commander,

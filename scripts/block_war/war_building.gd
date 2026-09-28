@@ -10,6 +10,13 @@ signal construction_completed(kind: int, completed_level: int, converted: bool)
 @export var population: float = 20.0
 @export var level: int = 1
 
+# Presentation belongs to the local viewer; simulation keeps the real garrison.
+var viewer_faction := 0:
+	set(value):
+		viewer_faction = value
+		if is_node_ready():
+			refresh_visual()
+
 # Queued soldiers still defend this building until they cross its doorway.
 var queued_population := 0
 var available_population: float:
@@ -45,7 +52,8 @@ var upgrade_cost: int:
 	get:
 		return level * (10 if kind == 0 else 30) if level < max_level else 0
 
-const FACTION_COLORS: Array[Color] = preload("res://scripts/block_war/war_factions.gd").COLORS
+const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+const FACTION_COLORS: Array[Color] = FACTIONS.COLORS
 const NEUTRAL_COLOR := Color("b5aa87")
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
 # One shared ground perimeter survives building conversions and leaves enough
@@ -89,7 +97,7 @@ var _capture_tween: Tween
 var _is_selected := false
 var _last_faction := -999
 var _last_kind := -1
-var _last_population := -1
+var _last_population := -2
 var _last_level := -1
 var _visual_time := 0.0
 var _visual_paused := false
@@ -261,6 +269,10 @@ func muzzle_position() -> Vector3:
 	return $Visual/Tower/Gun/Barrel/Muzzle.global_position
 
 
+func is_population_visible() -> bool:
+	return faction < 0 or FACTIONS.allied(faction, viewer_faction)
+
+
 func refresh_visual() -> void:
 	if level != _last_level or kind != _last_kind:
 		_apply_level_visuals()
@@ -285,9 +297,9 @@ func refresh_visual() -> void:
 		_kind_label.text = KIND_NAMES[kind] if level == 1 else "%s · %d" % [KIND_NAMES[kind], level]
 		_last_kind = kind
 		_last_level = level
-	var displayed_population := maxi(0, int(floor(population)))
+	var displayed_population := maxi(0, floori(population)) if is_population_visible() else -1
 	if displayed_population != _last_population:
-		_population_label.text = str(displayed_population)
+		_population_label.text = str(displayed_population) if displayed_population >= 0 else "?"
 		# Keep ordinary totals prominent; three digits share the same white badge.
 		_population_label.font_size = 54 if displayed_population >= 100 else 64
 		var text_width := _population_label.font.get_string_size(_population_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, _population_label.font_size).x

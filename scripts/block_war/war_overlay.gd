@@ -62,7 +62,7 @@ func _draw() -> void:
 		draw_arc(mouse, 13.0, 0, TAU, 32, reticle_color, 1.5, true)
 		if valid and game.hovered != null:
 			_ring(game.hovered.global_position, 3.4, reticle_color, 2.0)
-			if game.faction_skills[game.local_faction].commander == game.SKILL_RULES.FROG:
+			if game.faction_skills[game.local_faction].commander == game.SKILL_RULES.FROG and game.hovered.is_population_visible():
 				_draw_skill_number(game.FROG_SKILLS.strike_loss(game.hovered), camera.unproject_position(game.hovered.global_position + Vector3(3, 2, 0)))
 			if game.faction_skills[game.local_faction].commander == game.SKILL_RULES.BEAR:
 				if game.armed_skill == 2:

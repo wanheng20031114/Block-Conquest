@@ -103,7 +103,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "胜利条件", "body": "敌方队伍失去全部建筑与行军部队后，我方获胜。敌方仍有行军部队时，对局继续。"},
 				{"title": "僵局", "body": "若双方均只剩无法产兵且不足 1 人的据点，也没有行军部队，对局以平局结束。"},
 			],
-			"tip": "技能削减驻军不会直接改变建筑归属。",
+			"tip": "敌方建筑的驻军数量隐藏；己方、盟友和中立建筑仍可查看。",
 			"icon": preload("res://assets/ui/block_war/bulwark.svg"),
 		},
 		{
