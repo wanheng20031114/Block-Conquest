@@ -132,8 +132,8 @@ func _run() -> void:
 	root.push_input(shortcut, true)
 	check(current_scene.key_presses == 0, "scene _input callbacks cannot run before the closing sheet consumes a shortcut")
 	check(session.change_scene(FIXTURE) == ERR_BUSY, "double transition is rejected")
-	var previous_config: Dictionary = session.config.duplicate(true)
-	check(session.start_offline("1v1") == ERR_BUSY and session.config == previous_config, "repeated launch does not mutate the accepted match configuration")
+	var selected_map: String = session.block_war_map_id
+	check(session.start_war() == ERR_BUSY and session.block_war_map_id == selected_map, "repeated launch preserves the accepted battlefield choice")
 	await scene_changed
 	check(current_scene.scene_file_path == FIXTURE and transition.busy, "native scene_changed remains the loading boundary")
 	root.push_input(shortcut, true)

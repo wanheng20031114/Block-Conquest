@@ -120,11 +120,11 @@ func run() -> void:
 	game.simulate(10.0)
 	check(home.kind == 0 and home.population == 50.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
 	game.camera_rig.focus_at(Vector3(999, 0, -999), true)
-	check(game.camera_rig.position == Vector3(34, 0, -23), "camera panning stays inside battlefield bounds")
+	check(game.camera_rig.position == Vector3(30, 0, -21), "camera panning stays inside the compact rift battlefield bounds")
 	game.camera_rig.zoom_by(999)
 	check(game.camera_rig.zoom_target == 95.0, "zoom upper bound")
 	game.camera_rig.drag_by(Vector2(200, 50))
-	check(game.camera_rig.destination.x < 34.0, "middle mouse camera movement uses native camera projection")
+	check(game.camera_rig.destination.x < 30.0, "middle mouse camera movement uses native camera projection")
 	await reset_match()
 	game.ai_enabled = true
 	game.ai_clock = 0.0

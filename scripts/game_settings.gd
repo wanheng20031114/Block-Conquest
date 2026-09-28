@@ -1,40 +1,15 @@
 class_name GameSettings
 extends CanvasLayer
-## Native preferences shared by the lobby and battle. Opening this layer never pauses a match.
+## Independent display, sound and camera preferences for 积木战争.
 signal changed
 signal opened
 signal closed
-signal pause_requested
 
 const FPS_OPTIONS: Array[int] = [30, 60, 90, 120, 144, 165, 240, 0]
 const DEFAULT_VOLUME_PERCENT := 50.0
 const DEFAULT_MUSIC_VOLUME_PERCENT := 50.0
-# CS2's default m_yaw / m_pitch: degrees per raw mouse count at sensitivity 1.
-const FP_MOUSE_RADIANS_PER_COUNT := deg_to_rad(0.022)
-const FP_SENSITIVITY_MIN := 0.05
-const FP_SENSITIVITY_MAX := 20.0
-const ACTIONS := {
-	"rts_attack_move": ["攻击前进", KEY_A, [KEY_A]], "rts_stop": ["停止", KEY_S, [KEY_S]],
-	"rts_hold": ["坚守", KEY_H, [KEY_H]], "rts_select_base": ["选择大本营", KEY_B, [KEY_B, KEY_HOME]],
-	"rts_select_army": ["选择全部战斗单位", KEY_F2, [KEY_F2, KEY_G]], "rts_focus": ["聚焦所选对象", KEY_SPACE, [KEY_SPACE]],
-	"rts_slot_1": ["第一项生产 / 建造 / 研究", KEY_Q, [KEY_Q]], "rts_slot_2": ["第二项生产 / 建造 / 研究", KEY_W, [KEY_W]],
-	"rts_slot_3": ["第三项生产 / 建造 / 研究", KEY_E, [KEY_E]], "rts_slot_4": ["第四项生产 / 建造 / 研究", KEY_R, [KEY_R]],
-	"rts_slot_5": ["第五项生产 / 建造 / 研究", KEY_T, [KEY_T]], "rts_slot_6": ["第六项生产 / 建造 / 研究", KEY_Y, [KEY_Y]],
-	"rts_build_tower": ["放置箭塔", KEY_V, [KEY_V]], "rts_destroy": ["删除所选己方资产", KEY_DELETE, [KEY_DELETE]],
-	"rts_cancel": ["取消指派 / 队尾生产或研究", KEY_ESCAPE, [KEY_ESCAPE]],
-	"rts_pause": ["暂停 / 战场菜单 / 继续", KEY_F5, [KEY_F5]], "rts_help": ["操作帮助", KEY_F1, [KEY_F1]],
-	"rts_photo": ["隐藏 / 显示界面", KEY_F10, [KEY_F10]], "rts_fullscreen": ["切换全屏", KEY_F11, [KEY_F11]],
-	"rts_mute": ["静音", KEY_M, [KEY_M]], "rts_idle_worker": ["选择空闲农民", KEY_PERIOD, [KEY_PERIOD]],
-	"rts_cycle_buildings": ["切换所选兵种 / 建筑", KEY_TAB, [KEY_TAB]],
-	"rts_group1": ["编队 1", KEY_1, [KEY_1]], "rts_group2": ["编队 2", KEY_2, [KEY_2]],
-	"rts_group3": ["编队 3", KEY_3, [KEY_3]], "rts_group4": ["编队 4", KEY_4, [KEY_4]],
-	"rts_group5": ["编队 5", KEY_5, [KEY_5]], "rts_group6": ["编队 6", KEY_6, [KEY_6]],
-	"rts_group7": ["编队 7", KEY_7, [KEY_7]], "rts_group8": ["编队 8", KEY_8, [KEY_8]],
-	"rts_group9": ["编队 9", KEY_9, [KEY_9]],
-	"rts_pan_left": ["镜头向左", KEY_LEFT, [KEY_LEFT]], "rts_pan_right": ["镜头向右", KEY_RIGHT, [KEY_RIGHT]],
-	"rts_pan_up": ["镜头向前", KEY_UP, [KEY_UP]], "rts_pan_down": ["镜头向后", KEY_DOWN, [KEY_DOWN]],
-}
-
+const PAN_ACTIONS := {"war_pan_left": KEY_LEFT, "war_pan_right": KEY_RIGHT,
+	"war_pan_up": KEY_UP, "war_pan_down": KEY_DOWN}
 var settings_path := "user://settings.cfg"
 var edge_scroll_enabled := true
 var camera_speed := 1.0
@@ -47,24 +22,20 @@ var window_mode := 0
 var resolution := Vector2i(1600, 900)
 var vsync := true
 var fps_limit := 120
-var bindings: Dictionary = {}
-var fp_fov := 90.0
-var fp_sensitivity := 1.0
-var fp_invert_y := false
-var fp_head_bob := false
 var _display_previous: Dictionary = {}
 var _previous_window: Dictionary = {}
 var _close_after_confirm := false
-
 @onready var menu: Control = $Menu
 @onready var display_timer: Timer = $DisplayRevertTimer
 
 func _enter_tree() -> void:
+	if settings_path != "user://settings.cfg":
+		return
 	var current_directory := OS.get_user_data_dir()
 	var previous_directory := current_directory.get_base_dir().path_join(UserDataMigration.PREVIOUS_PROJECT_DIRECTORY)
 	var error := UserDataMigration.migrate(previous_directory, current_directory)
 	if error != OK:
-		push_warning("积木争霸：旧版偏好设置迁移失败，错误码 %d" % error)
+		push_warning("积木战争：旧版通用设置迁移失败，错误码 %d" % error)
 
 func _ready() -> void:
 	menu.hide()
@@ -72,92 +43,57 @@ func _ready() -> void:
 	var config := ConfigFile.new()
 	if config.load(settings_path) == OK:
 		for key: String in values:
-			if key != "bindings": values[key] = config.get_value("settings", key, values[key])
-		# Old files stored a multiplier of 0.002 radians/count. Convert only
-		# saved legacy values; new installs keep the CS2-scale default of 1.
-		if config.has_section_key("settings", "fp_sensitivity") and config.get_value("meta", "fp_sensitivity_scale", "legacy") == "legacy":
-			var old_sensitivity: Variant = values.fp_sensitivity
-			if (old_sensitivity is float or old_sensitivity is int) and is_finite(float(old_sensitivity)):
-				values.fp_sensitivity = clampf(float(old_sensitivity), 0.25, 3.0) * 0.002 / FP_MOUSE_RADIANS_PER_COUNT
-		for action: String in ACTIONS:
-			values.bindings[action] = config.get_value("hotkeys", action, values.bindings[action])
-		# Migrate only the previous default alias pair; keep deliberate custom bindings.
-		if values.bindings.rts_pause == [KEY_F5, KEY_P]:
-			values.bindings.rts_pause = [KEY_F5]
+			values[key] = config.get_value("settings", key, values[key])
+	for action: String in PAN_ACTIONS:
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+		InputMap.action_erase_events(action)
+		var event := InputEventKey.new()
+		event.physical_keycode = PAN_ACTIONS[action]
+		InputMap.action_add_event(action, event)
 	_apply_values(_sanitize(values), false)
-	# Test/export automation owns its window. Real launches restore the user's display choice.
 	if DisplayServer.get_name() != "headless" and not _automated_launch():
 		_apply_display()
 	display_timer.timeout.connect(revert_display)
 
 func _automated_launch() -> bool:
 	var args := OS.get_cmdline_args() + OS.get_cmdline_user_args()
-	return args.has("--script") or args.has("--position") or args.has("--editor") or args.has("--capture") or args.has("--lobby-capture") or args.has("--network-smoke") or args.has("--match-smoke")
+	return args.has("--script") or args.has("--position") or args.has("--editor") or args.has("--capture")
 
 func defaults() -> Dictionary:
-	var keys := {}
-	for action: String in ACTIONS: keys[action] = ACTIONS[action][2].duplicate()
 	return {"edge_scroll_enabled": true, "camera_speed": 1.0, "zoom_speed": 1.0,
 		"volume_percent": DEFAULT_VOLUME_PERCENT, "muted": false, "window_mode": 0,
 		"music_enabled": true, "music_volume_percent": DEFAULT_MUSIC_VOLUME_PERCENT,
-		"resolution": Vector2i(1600, 900), "vsync": true, "fps_limit": 120, "bindings": keys,
-		"fp_fov":90.0,"fp_sensitivity":1.0,"fp_invert_y":false,"fp_head_bob":false}
+		"resolution": Vector2i(1600, 900), "vsync": true, "fps_limit": 120}
 
 func snapshot() -> Dictionary:
 	return {"edge_scroll_enabled": edge_scroll_enabled, "camera_speed": camera_speed, "zoom_speed": zoom_speed,
 		"volume_percent": volume_percent, "muted": muted, "window_mode": window_mode,
 		"music_enabled": music_enabled, "music_volume_percent": music_volume_percent,
-		"resolution": resolution, "vsync": vsync, "fps_limit": fps_limit, "bindings": bindings.duplicate(true),
-		"fp_fov":fp_fov,"fp_sensitivity":fp_sensitivity,"fp_invert_y":fp_invert_y,"fp_head_bob":fp_head_bob}
+		"resolution": resolution, "vsync": vsync, "fps_limit": fps_limit}
 
 func _sanitize(values: Dictionary) -> Dictionary:
 	var result := defaults()
-	for key: String in ["edge_scroll_enabled", "muted", "music_enabled", "vsync", "fp_invert_y", "fp_head_bob"]:
-		if values.get(key) is bool: result[key] = values[key]
-	for key: String in ["camera_speed", "zoom_speed"]:
+	for key: String in ["edge_scroll_enabled", "muted", "music_enabled", "vsync"]:
+		if values.get(key) is bool:
+			result[key] = values[key]
+	for key: String in ["camera_speed", "zoom_speed", "volume_percent", "music_volume_percent"]:
 		var value: Variant = values.get(key)
 		if (value is float or value is int) and is_finite(float(value)):
-			result[key] = clampf(float(value), 0.25, 3.0)
-	for key: String in ["volume_percent", "music_volume_percent"]:
-		var value: Variant = values.get(key)
-		if (value is float or value is int) and is_finite(float(value)):
-			result[key] = clampf(float(value), 0.0, 100.0)
-	for key: String in ["fp_fov","fp_sensitivity"]:
-		var value: Variant = values.get(key)
-		if (value is float or value is int) and is_finite(float(value)):
-			result[key] = clampf(float(value),70.0 if key=="fp_fov" else FP_SENSITIVITY_MIN,110.0 if key=="fp_fov" else FP_SENSITIVITY_MAX)
-	if values.get("window_mode") is int and values.window_mode in [0, 1, 2]: result.window_mode = values.window_mode
-	if values.get("fps_limit") is int and values.fps_limit in FPS_OPTIONS: result.fps_limit = values.fps_limit
+			result[key] = clampf(float(value), 0.25, 3.0) if key.ends_with("speed") else clampf(float(value), 0.0, 100.0)
+	if values.get("window_mode") is int and values.window_mode in [0, 1, 2]:
+		result.window_mode = values.window_mode
+	if values.get("fps_limit") is int and values.fps_limit in FPS_OPTIONS:
+		result.fps_limit = values.fps_limit
 	if values.get("resolution") is Vector2i:
 		var requested: Vector2i = values.resolution
 		if requested.x >= 960 and requested.y >= 540 and requested.x <= 7680 and requested.y <= 4320:
 			result.resolution = requested
-	# Accept a complete conflict-free key map. A corrupt preferences file uses known defaults.
-	if values.get("bindings") is Dictionary:
-		var candidate: Dictionary = values.bindings
-		var used: Array[int] = []
-		var valid := candidate.size() == ACTIONS.size()
-		for action: String in ACTIONS:
-			if not candidate.get(action) is Array or candidate[action].is_empty() or candidate[action].size() > 2:
-				valid = false
-				break
-			for key: Variant in candidate[action]:
-				if not key is int or key <= 0 or key in [KEY_F12, KEY_CTRL, KEY_SHIFT, KEY_ALT, KEY_META] or (key == KEY_ESCAPE and action != "rts_cancel") or key in used:
-					valid = false
-					break
-				used.append(key)
-		if valid: result.bindings = candidate.duplicate(true)
 	return result
 
 func _apply_values(values: Dictionary, display: bool) -> void:
-	for key: String in values: set(key, values[key])
-	for action: String in ACTIONS:
-		if not InputMap.has_action(action): InputMap.add_action(action)
-		InputMap.action_erase_events(action)
-		for key: int in bindings[action]:
-			var event := InputEventKey.new()
-			event.physical_keycode = key as Key
-			InputMap.action_add_event(action, event)
+	for key: String in values:
+		set(key, values[key])
 	Engine.max_fps = fps_limit
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(volume_percent / 100.0, 0.0001)))
 	AudioServer.set_bus_mute(0, muted)
@@ -166,7 +102,8 @@ func _apply_values(values: Dictionary, display: bool) -> void:
 	AudioServer.set_bus_mute(music_bus, not music_enabled or music_volume_percent <= 0.0)
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
-		if display: _apply_display()
+		if display:
+			_apply_display()
 	changed.emit()
 
 func _apply_display() -> void:
@@ -182,39 +119,9 @@ func _apply_display() -> void:
 	var actual := DisplayServer.window_get_size()
 	get_tree().root.scaling_3d_scale = minf(float(resolution.x) / maxf(actual.x, 1), float(resolution.y) / maxf(actual.y, 1)) if window_mode != 0 else 1.0
 
-func resolve_key(event: InputEventKey) -> Key:
-	var plain: InputEventKey = event.duplicate()
-	if plain.physical_keycode == KEY_NONE: plain.physical_keycode = plain.keycode
-	plain.ctrl_pressed = false
-	plain.shift_pressed = false
-	plain.alt_pressed = false
-	plain.meta_pressed = false
-	for action: String in ACTIONS:
-		if InputMap.event_is_action(plain, action): return ACTIONS[action][1] as Key
-	return KEY_NONE
-
-func hotkey_text(action: String) -> String:
-	var result := PackedStringArray()
-	for key: int in bindings[action]: result.append("Esc" if key == KEY_ESCAPE else OS.get_keycode_string(key))
-	return " / ".join(result)
-
-func key_label(canonical: Key) -> String:
-	for action: String in ACTIONS:
-		if ACTIONS[action][1] == canonical: return hotkey_text(action)
-	return OS.get_keycode_string(canonical)
-
-func binding_error(action: String, key: Key, keys: Dictionary) -> String:
-	if key == KEY_F12: return "F12 保留用于单机金币调试。"
-	if key == KEY_ESCAPE and action != "rts_cancel": return "Esc 仅可用于取消指派 / 队列，菜单中用于返回。"
-	if key in [KEY_NONE, KEY_CTRL, KEY_SHIFT, KEY_ALT, KEY_META]: return "请选择一个按键；Ctrl、Shift 保留用于组合指令。"
-	for other: String in ACTIONS:
-		if other != action and key in keys[other]: return "已用于「%s」，请先修改该操作的按键。" % ACTIONS[other][0]
-	return ""
-
 func open_menu() -> void:
-	if is_open(): return
-	var scene := get_tree().current_scene
-	menu.set_campaign_style(scene != null and scene.scene_file_path.begins_with("res://scenes/block_war/"))
+	if is_open():
+		return
 	menu.refresh(snapshot())
 	menu.show()
 	menu.open_motion()
@@ -274,13 +181,11 @@ func revert_display() -> void:
 
 func _save() -> Error:
 	var config := ConfigFile.new()
-	config.set_value("meta", "fp_sensitivity_scale", "cs2")
-	var values := snapshot()
-	for key: String in values:
-		if key != "bindings": config.set_value("settings", key, values[key])
-	for action: String in bindings: config.set_value("hotkeys", action, bindings[action])
+	for key: String in snapshot():
+		config.set_value("settings", key, get(key))
 	var error := config.save(settings_path)
-	if error != OK: menu.set_status("设置保存失败，请检查目录写入权限。")
+	if error != OK:
+		menu.set_status("设置保存失败，请检查目录写入权限。")
 	return error
 
 func set_volume_percent(value: float) -> void:

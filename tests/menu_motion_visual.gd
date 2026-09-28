@@ -129,7 +129,7 @@ func _run() -> void:
 			_finish()
 			return
 	_check(session.settings.snapshot() == original_preferences, "settings preferences remain unchanged")
-	_check(not session.online and session.relay.connection_state == "disconnected", "demo stays offline")
+	_check(not session.has_node("RelayClient") and not session.has_node("Rogue"), "standalone menus contain no other product services")
 	_finish()
 
 func _finish() -> void:

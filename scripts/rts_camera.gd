@@ -20,8 +20,8 @@ func _process(delta: float) -> void:
 		return
 	var direction := Vector3.ZERO
 	if keyboard_pan:
-		direction.x = Input.get_axis("rts_pan_left", "rts_pan_right")
-		direction.z = Input.get_axis("rts_pan_up", "rts_pan_down")
+		direction.x = Input.get_axis("war_pan_left", "war_pan_right")
+		direction.z = Input.get_axis("war_pan_up", "war_pan_down")
 	if edge_scroll and settings.edge_scroll_enabled and not dragging and DisplayServer.window_is_focused():
 		# Native window pixels include letterbox margins; viewport coordinates do not.
 		var local_mouse := Vector2(DisplayServer.mouse_get_position() - DisplayServer.window_get_position())

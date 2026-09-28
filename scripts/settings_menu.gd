@@ -1,10 +1,6 @@
 extends Control
 ## Saved native controls edit a draft. Apply is atomic; display changes require an in-game countdown.
-const LOBBY_THEME := preload("res://assets/ui/medieval/theme.tres")
-const CAMPAIGN_THEME := preload("res://assets/ui/block_war/menu_theme.tres")
-var campaign := false
 var draft: Dictionary = {}
-var rebinding_action := ""
 var _refreshing := false
 var _resolutions: Array[Vector2i] = []
 @onready var settings: GameSettings = get_parent()
@@ -31,13 +27,6 @@ func _ready() -> void:
 	%MusicVolume.value_changed.connect(_slider_changed.bind("music_volume_percent"))
 	%CameraSpeed.value_changed.connect(_slider_changed.bind("camera_speed"))
 	%ZoomSpeed.value_changed.connect(_slider_changed.bind("zoom_speed"))
-	%FPFov.value_changed.connect(_slider_changed.bind("fp_fov"))
-	%FPSensitivity.share(%FPSensitivityValue)
-	%FPSensitivity.value_changed.connect(_slider_changed.bind("fp_sensitivity"))
-	%FPInvert.toggled.connect(_toggle_changed.bind("fp_invert_y"))
-	%FPHeadBob.toggled.connect(_toggle_changed.bind("fp_head_bob"))
-	for row: HBoxContainer in %HotkeyRows.get_children():
-		row.get_node("Bind").pressed.connect(begin_rebind.bind(String(row.get_meta("action"))))
 	%RestoreDefaults.pressed.connect(_restore_defaults)
 	%Cancel.pressed.connect(settings.close_menu)
 	%Close.pressed.connect(settings.close_menu)
@@ -50,7 +39,6 @@ func _ready() -> void:
 func refresh(values: Dictionary) -> void:
 	_refreshing = true
 	draft = values.duplicate(true)
-	rebinding_action = ""
 	%WindowMode.select(int(draft.window_mode))
 	_resolutions = [Vector2i(1280,720), Vector2i(1600,900), Vector2i(1920,1080), Vector2i(2560,1440)]
 	var current := DisplayServer.window_get_size()
@@ -69,30 +57,9 @@ func refresh(values: Dictionary) -> void:
 	%MusicVolume.set_value_no_signal(draft.music_volume_percent)
 	%CameraSpeed.set_value_no_signal(draft.camera_speed)
 	%ZoomSpeed.set_value_no_signal(draft.zoom_speed)
-	%FPFov.set_value_no_signal(draft.fp_fov)
-	%FPSensitivity.set_value_no_signal(draft.fp_sensitivity)
-	%FPInvert.set_pressed_no_signal(draft.fp_invert_y)
-	%FPHeadBob.set_pressed_no_signal(draft.fp_head_bob)
 	_update_labels()
-	_update_hotkeys()
 	%Status.text = "Esc 返回上层 · 点击「应用」保存设置"
 	_refreshing = false
-
-func set_campaign_style(value: bool) -> void:
-	if campaign == value:
-		return
-	campaign = value
-	theme = CAMPAIGN_THEME if campaign else LOBBY_THEME
-	$Shade.color = Color(0.79, 0.86, 0.79, 0.97) if campaign else Color(0.025, 0.023, 0.017, 0.80)
-	$DisplayConfirm/Shade.color = Color(0.79, 0.86, 0.79, 0.96) if campaign else Color(0.025, 0.023, 0.017, 0.86)
-	$Center/Panel.custom_minimum_size = Vector2(1200, 736) if campaign else Vector2(980, 650)
-	$Center/Panel/Layout/Heading/Brand.text = "积木战争  /  设置" if campaign else "积木争霸  /  设置"
-	%Categories.get_node("FirstPerson").visible = not campaign
-	var active := "Graphics"
-	for category: Button in %Categories.get_children():
-		if category.button_pressed and category.visible:
-			active = category.name
-	show_page(active)
 
 func _uses_menu_motion() -> bool:
 	var scene: Node = get_tree().current_scene
@@ -119,7 +86,6 @@ func _update_labels() -> void:
 	%MusicVolumeValue.text = "%d%%" % int(draft.music_volume_percent)
 	%CameraValue.text = "%.2f ×" % float(draft.camera_speed)
 	%ZoomValue.text = "%.2f ×" % float(draft.zoom_speed)
-	%FPFovLabel.text = "水平视野角   %d°" % int(draft.fp_fov)
 
 func _option_changed(index: int, key: String) -> void:
 	if not _refreshing: draft[key] = index
@@ -146,78 +112,37 @@ func _slider_changed(value: float, key: String) -> void:
 	_update_labels()
 
 func show_page(page: String) -> void:
-	rebinding_action = ""
-	var content_page := "WarHotkeys" if campaign and page == "Hotkeys" else page
-	for child: Control in pages.get_children(): child.visible = String(child.name) == content_page
-	for category: Button in %Categories.get_children(): category.set_pressed_no_signal(String(category.name) == page)
-	if _uses_menu_motion():
-		if visible:
+	var changed_page: bool = not pages.get_node(page).visible
+	for child: Control in pages.get_children():
+		child.visible = String(child.name) == page
+	for category: Button in %Categories.get_children():
+		category.set_pressed_no_signal(String(category.name) == page)
+	if visible and changed_page:
+		if _uses_menu_motion():
 			UIMotion.reveal_menu(%SectionTitle)
 			UIMotion.reveal_menu(%SectionHint, Vector2.ZERO, 0.025)
-			UIMotion.reveal_menu(pages.get_node(content_page), Vector2(0, 8), 0.05)
-	else:
-		UIMotion.reveal(pages.get_node(content_page), Vector2(0, 8))
-	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头与操作", "Hotkeys":"热键", "FirstPerson":"第一人称"}[page]
-	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"总音量控制所有声音；背景音乐可独立调节。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。", "FirstPerson":"沙盒英雄的视野角、鼠标与舒适性。"}[page]
-	if campaign and page == "Hotkeys":
-		%SectionHint.text = "积木战争的操作速查。"
-	if not draft.is_empty(): _update_hotkeys()
-
-func begin_rebind(action: String) -> void:
-	rebinding_action = action
-	_update_hotkeys()
-	set_status("请按下「%s」的新按键；%s" % [GameSettings.ACTIONS[action][0], "Esc 可绑定取消，点击分类可退出捕获。" if action == "rts_cancel" else "Esc 取消绑定。"])
+			UIMotion.reveal_menu(pages.get_node(page), Vector2(0, 8), 0.05)
+		else:
+			UIMotion.reveal(pages.get_node(page), Vector2(0, 8))
+	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头", "Hotkeys":"操作速查"}[page]
+	%SectionHint.text = {"Graphics":"显示变更需确认，15 秒后可自动恢复。", "Audio":"总音量与背景音乐可独立调节。", "Controls":"调整镜头的移动、缩放与边缘滚动。", "Hotkeys":"积木战争的键盘与鼠标操作。"}[page]
 
 func _input(event: InputEvent) -> void:
-	if not visible: return
-	if event is InputEventKey and event.pressed and not event.echo:
-		var pressed_key: Key = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
-		if rebinding_action.is_empty() and settings.resolve_key(event) == KEY_F5:
-			settings.close_menu()
-			get_viewport().set_input_as_handled()
-			settings.pause_requested.emit()
-			return
+	if not visible or not event is InputEventKey or not event.pressed or event.echo:
+		return
+	var code: Key = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
+	if code == KEY_ESCAPE:
 		if %DisplayConfirm.visible:
-			if pressed_key == KEY_ESCAPE:
-				settings.revert_display()
-				get_viewport().set_input_as_handled()
-			return
-		if not rebinding_action.is_empty():
-			if pressed_key == KEY_ESCAPE and rebinding_action != "rts_cancel":
-				rebinding_action = ""
-				set_status("已取消按键绑定。")
-			else:
-				var key: Key = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
-				var error := settings.binding_error(rebinding_action, key, draft.bindings)
-				if event.ctrl_pressed or event.shift_pressed or event.alt_pressed or event.meta_pressed:
-					error = "请使用单个按键，Ctrl / Shift 留作编队与连续指令。"
-				if error.is_empty():
-					draft.bindings[rebinding_action] = [int(key)]
-					rebinding_action = ""
-					set_status("按键已修改，应用后生效。")
-				else: set_status(error)
-			_update_hotkeys()
-			get_viewport().set_input_as_handled()
-			return
-		if pressed_key == KEY_ESCAPE:
+			settings.revert_display()
+		else:
 			settings.close_menu()
-			get_viewport().set_input_as_handled()
-
-func _update_hotkeys() -> void:
-	for row: HBoxContainer in %HotkeyRows.get_children():
-		var action: String = row.get_meta("action")
-		var keys := PackedStringArray()
-		for key: int in draft.bindings[action]: keys.append(OS.get_keycode_string(key))
-		row.get_node("Bind").text = "等待按键…" if rebinding_action == action else " / ".join(keys)
+		get_viewport().set_input_as_handled()
 
 func _restore_defaults() -> void:
 	refresh(settings.defaults())
 	set_status("默认设置已填入，应用后生效。")
 
 func _apply(close_after: bool) -> void:
-	rebinding_action = ""
-	%FPSensitivityValue.apply()
-	draft.fp_sensitivity = %FPSensitivityValue.value
 	settings.apply_preferences(draft, close_after)
 
 func set_status(message: String) -> void:

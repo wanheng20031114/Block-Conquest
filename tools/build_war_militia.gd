@@ -1,5 +1,5 @@
 extends SceneTree
-## Development-only mesh bake. Reuses the project's spearman parts unchanged.
+## Development-only mesh bake. Uses this product's saved militia source parts.
 ## Run: Godot --headless --path . --script tools/build_war_militia.gd
 
 func _initialize() -> void:
@@ -16,7 +16,7 @@ func _initialize() -> void:
 		["Spear", Vector3(0.59, 0.835, -0.45), 0.0],
 	]
 	for part: Array in parts:
-		var mesh: ArrayMesh = load("res://assets/models/units/spearman/%s.res" % part[0])
+		var mesh: ArrayMesh = load("res://assets/models/block_war/militia_parts/%s.res" % part[0])
 		for index: int in mesh.get_surface_count():
 			var arrays := mesh.surface_get_arrays(index)
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]

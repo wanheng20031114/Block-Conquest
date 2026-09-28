@@ -4,66 +4,48 @@
     [switch]$PackOnly,
     [ValidatePattern('^$|^[0-9]+\.[0-9]+\.[0-9]+$')][string]$VersionedOutput = ''
 )
-
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $buildRoot = Join-Path $projectRoot ('builds/windows' + $(if ($VersionedOutput) { '-' + $VersionedOutput } else { '' }))
-$executable = Join-Path $buildRoot '积木争霸.exe'
-$archive = Join-Path $projectRoot ('builds/积木争霸-' + $(if ($VersionedOutput) { $VersionedOutput + '-' } else { '' }) + 'Windows-x64.zip')
-if ($VersionedOutput) {
-    $presetText = Get-Content -LiteralPath (Join-Path $projectRoot 'export_presets.cfg') -Raw -Encoding UTF8
-    $presetVersion = [regex]::Match($presetText, '(?m)^application/file_version="([^"]+)"').Groups[1].Value
-    if ($presetVersion -ne ($VersionedOutput + '.0')) { throw 'Versioned output must match the configured Windows release version.' }
+$presetText = Get-Content -LiteralPath (Join-Path $projectRoot 'export_presets.cfg') -Raw -Encoding UTF8
+if ($VersionedOutput -and [regex]::Match($presetText, '(?m)^application/file_version="([^"]+)"').Groups[1].Value -ne ($VersionedOutput + '.0')) {
+    throw 'Versioned output must match the Windows preset.'
 }
-
+& $PythonPath (Join-Path $PSScriptRoot 'validate_product.py')
+if ($LASTEXITCODE -ne 0) { throw 'Product dependency validation failed.' }
 New-Item -ItemType Directory -Path $buildRoot -Force | Out-Null
-$exportLog = Join-Path $projectRoot '.local/windows-export.engine.log'
-New-Item -ItemType Directory -Path (Split-Path -Parent $exportLog) -Force | Out-Null
-# Generate from the exact files being exported, including saved local map edits.
-& $PythonPath (Join-Path $PSScriptRoot 'build_content_manifest.py')
-if ($LASTEXITCODE -ne 0) { throw 'Content manifest generation failed.' }
+$logRoot = Join-Path $projectRoot '.local'
+New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
+$executable = Join-Path $buildRoot '积木战争.exe'
+$exportMode = '--export-release'
+$exportTarget = $executable
 if ($PackOnly) {
-    # Reuse the current version's launcher when only project resources changed.
-    # This also avoids replacing an identical EXE while the user is playing it.
-    if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw 'Pack-only export requires an existing Windows launcher from this version.' }
-    $releaseVersionMatch = [regex]::Match((Get-Content -LiteralPath (Join-Path $projectRoot 'export_presets.cfg') -Raw -Encoding UTF8), '(?m)^application/file_version="([^"]+)"')
-    $launcherVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($executable).FileVersion
-    if (-not $releaseVersionMatch.Success -or $launcherVersion -ne $releaseVersionMatch.Groups[1].Value) { throw 'Launcher version differs from the export preset; run a full export first.' }
+    if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw 'Pack-only export requires an existing launcher.' }
+    $version = [regex]::Match($presetText, '(?m)^application/file_version="([^"]+)"').Groups[1].Value
+    if ([System.Diagnostics.FileVersionInfo]::GetVersionInfo($executable).FileVersion -ne $version) { throw 'Launcher version differs; run a full export.' }
     $exportMode = '--export-pack'
-    $exportTarget = Join-Path $buildRoot '积木争霸.pck'
-} else {
-    $exportMode = '--export-release'
-    $exportTarget = $executable
+    $exportTarget = Join-Path $buildRoot '积木战争.pck'
 }
-# The GUI engine executable returns immediately under PowerShell's call operator.
-# Wait for the owned process before inspecting or launching its output package.
-$nativeArguments = @('--headless', '--path', ('"' + $projectRoot + '"'), '--log-file', ('"' + $exportLog + '"'), $exportMode, '"Windows Desktop"', ('"' + $exportTarget + '"'))
-$exportProcess = Start-Process -FilePath $GodotPath -ArgumentList $nativeArguments -WindowStyle Hidden -PassThru -Wait
-if ($exportProcess.ExitCode -ne 0) { throw 'Godot Windows export failed.' }
-& $PythonPath (Join-Path $PSScriptRoot 'build_content_manifest.py') --check
-if ($LASTEXITCODE -ne 0) { throw 'Content changed during export; export the snapshot again.' }
-& $PythonPath (Join-Path $projectRoot 'tests/network_release_runner.py') $executable --catalogue-only
-if ($LASTEXITCODE -ne 0) { throw 'Packaged content validation failed; no ZIP published.' }
+function Invoke-OwnedGodot([string[]]$EngineArgs, [int]$TimeoutSeconds = 300) {
+    $owned = Start-Process -FilePath $GodotPath -ArgumentList $EngineArgs -WindowStyle Hidden -PassThru
+    try {
+        if (-not $owned.WaitForExit($TimeoutSeconds * 1000)) { throw 'Godot validation timed out.' }
+        if ($owned.ExitCode -ne 0) { throw "Godot failed with exit code $($owned.ExitCode)." }
+    } finally {
+        if (-not $owned.HasExited) { Stop-Process -Id $owned.Id -Force }
+        $owned.Dispose()
+    }
+}
+$exportLog = Join-Path $logRoot 'windows-export.engine.log'
+Invoke-OwnedGodot @('--headless', '--path', ('"' + $projectRoot + '"'), '--log-file', ('"' + $exportLog + '"'), $exportMode, '"Windows Desktop"', ('"' + $exportTarget + '"'))
+if (Select-String -LiteralPath $exportLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Export log contains errors.' }
+# Run all six maps from the exported PCK, then release audio and return home.
+$smokeLog = Join-Path $logRoot 'windows-package.engine.log'
+Invoke-OwnedGodot @('--headless', '--main-pack', ('"' + (Join-Path $buildRoot '积木战争.pck') + '"'), '--log-file', ('"' + $smokeLog + '"'), '--script', ('"' + (Join-Path $projectRoot 'tests/product_release_test.gd') + '"')) 120
+if (Select-String -LiteralPath $smokeLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Packaged startup failed.' }
 Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/windows-readme.txt') -Destination (Join-Path $buildRoot 'START_HERE.txt') -Force
 Copy-Item -LiteralPath (Join-Path $projectRoot 'assets/ui/medieval/fonts/OFL.txt') -Destination (Join-Path $buildRoot 'FONT_LICENSE.txt') -Force
-foreach ($supportFile in @('collect_diagnostics.ps1', 'COLLECT_DIAGNOSTICS.cmd')) {
-    Copy-Item -LiteralPath (Join-Path $PSScriptRoot $supportFile) -Destination (Join-Path $buildRoot $supportFile) -Force
-}
-# Godot or Windows may retain a replaced executable as an .exe~*.TMP file.
-# Publish only the six deliverables while preserving the windows/ directory.
-Add-Type -AssemblyName System.IO.Compression
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-$packageStream = [System.IO.File]::Open($archive, [System.IO.FileMode]::Create)
-try {
-    $packageZip = [System.IO.Compression.ZipArchive]::new($packageStream, [System.IO.Compression.ZipArchiveMode]::Create, $true)
-    try {
-        foreach ($packageName in @('积木争霸.exe', '积木争霸.pck', 'START_HERE.txt', 'FONT_LICENSE.txt', 'collect_diagnostics.ps1', 'COLLECT_DIAGNOSTICS.cmd')) {
-            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($packageZip, (Join-Path $buildRoot $packageName), ('windows/' + $packageName), [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
-        }
-    } finally {
-        $packageZip.Dispose()
-    }
-} finally {
-    $packageStream.Dispose()
-}
+$archive = Join-Path $projectRoot ('builds/积木战争-' + $(if ($VersionedOutput) { $VersionedOutput + '-' } else { '' }) + 'Windows-x64.zip')
+$deliverables = @('积木战争.exe', '积木战争.pck', 'START_HERE.txt', 'FONT_LICENSE.txt') | ForEach-Object { Join-Path $buildRoot $_ }
+Compress-Archive -LiteralPath $deliverables -DestinationPath $archive -Force
 Get-Item -LiteralPath $executable, $archive | Select-Object FullName, Length

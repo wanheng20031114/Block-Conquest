@@ -1,8 +1,0 @@
-[gd_resource type="StandardMaterial3D" format=3]
-
-[resource]
-resource_name = "柔和倒角铺路石"
-vertex_color_use_as_albedo = true
-vertex_color_is_srgb = true
-roughness = 0.96
-metallic_specular = 0.1

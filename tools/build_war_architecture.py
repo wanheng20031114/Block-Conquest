@@ -8,7 +8,7 @@ import argparse
 import math
 import numpy as np
 import trimesh as tm
-import build_environment as env
+import war_geometry as env
 
 ROOT = Path(__file__).resolve().parents[1]
 env.OUT = ROOT / "assets/models/block_war/architecture"

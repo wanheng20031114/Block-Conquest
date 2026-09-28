@@ -1,9 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/session.gd" id="session"]
-[ext_resource type="Script" path="res://scripts/network/relay_client.gd" id="relay"]
 [ext_resource type="PackedScene" path="res://scenes/settings_menu.tscn" id="settings"]
-[ext_resource type="Script" path="res://scripts/rogue/rogue_session.gd" id="rogue"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ui_transition.tscn" id="transition"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ui_feedback.tscn" id="feedback"]
 
@@ -11,21 +9,8 @@
 process_mode = 3
 script = ExtResource("session")
 
-[node name="RelayClient" type="Node" parent="."]
-script = ExtResource("relay")
-
 [node name="Settings" parent="." instance=ExtResource("settings")]
-
-[node name="Rogue" type="Node" parent="."]
-script = ExtResource("rogue")
 
 [node name="Transition" parent="." instance=ExtResource("transition")]
 
 [node name="UIFeedback" parent="." instance=ExtResource("feedback")]
-
-[node name="DiagnosticHeartbeat" type="Timer" parent="."]
-wait_time = 15.0
-autostart = true
-ignore_time_scale = true
-
-[connection signal="timeout" from="DiagnosticHeartbeat" to="." method="_record_health"]
