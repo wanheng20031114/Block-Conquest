@@ -1,0 +1,663 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/lobby_diorama.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/lobby_outpost.tscn" id="outpost"]
+[ext_resource type="Shader" path="res://assets/ui/block_war/lobby_water.gdshader" id="water"]
+[ext_resource type="Shader" path="res://assets/block_war/environment/nature_surface.gdshader" id="nature"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/canopy_oak_wood.res" id="oak_wood"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/canopy_oak_foliage.res" id="oak_leaves"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/wind_pine_wood.res" id="pine_wood"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/wind_pine_foliage.res" id="pine_leaves"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/daisies.tscn" id="flowers"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 0
+ambient_light_source = 2
+ambient_light_color = Color(0.88, 0.93, 0.88, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 0
+
+[sub_resource type="ShaderMaterial" id="Leaves"]
+resource_local_to_scene = true
+shader = ExtResource("nature")
+shader_parameter/wind_amount = 0.15
+shader_parameter/wind_start = 0.6
+shader_parameter/wind_full = 5.0
+
+[sub_resource type="StandardMaterial3D" id="Bark"]
+vertex_color_use_as_albedo = true
+roughness = 0.97
+
+[sub_resource type="StandardMaterial3D" id="Grass"]
+albedo_color = Color(0.55, 0.66, 0.38, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="GrassLight"]
+albedo_color = Color(0.65, 0.73, 0.45, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Earth"]
+albedo_color = Color(0.57, 0.48, 0.32, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="EarthLight"]
+albedo_color = Color(0.68, 0.60, 0.43, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Wood"]
+albedo_color = Color(0.69, 0.48, 0.26, 1)
+roughness = 0.93
+
+[sub_resource type="StandardMaterial3D" id="Sand"]
+albedo_color = Color(0.84, 0.77, 0.55, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Cloud"]
+albedo_color = Color(0.94, 0.95, 0.87, 1)
+roughness = 1.0
+
+[sub_resource type="ShaderMaterial" id="Water"]
+resource_local_to_scene = true
+shader = ExtResource("water")
+
+[sub_resource type="BoxMesh" id="Block"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="PlaneMesh" id="WaterPlane"]
+size = Vector2(15.5, 10.0)
+subdivide_width = 24
+subdivide_depth = 20
+
+[sub_resource type="BoxShape3D" id="WaterShape"]
+size = Vector3(15.5, 0.06, 10.0)
+
+[sub_resource type="SphereMesh" id="CloudMesh"]
+radius = 1.0
+height = 2.0
+radial_segments = 12
+rings = 6
+
+[sub_resource type="Animation" id="Drift"]
+resource_name = "drift"
+length = 16.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Clouds/Far:position")
+tracks/0/interp = 2
+tracks/0/keys = {"times": PackedFloat32Array(0, 4, 8, 12, 16), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector3(-4, 4.0, -5.5), Vector3(-2.8, 4.15, -5.7), Vector3(-1.6, 4.0, -5.5), Vector3(-2.8, 3.9, -5.3), Vector3(-4, 4.0, -5.5)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Raft:position")
+tracks/1/interp = 2
+tracks/1/keys = {"times": PackedFloat32Array(0, 4, 8, 12, 16), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector3(0.45, -0.42, 2.5), Vector3(0.65, -0.35, 3.0), Vector3(0.9, -0.42, 3.5), Vector3(0.65, -0.48, 3.0), Vector3(0.45, -0.42, 2.5)]}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Raft:rotation:z")
+tracks/2/interp = 2
+tracks/2/keys = {"times": PackedFloat32Array(0, 4, 8, 12, 16), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [-0.025, 0.0, 0.025, 0.0, -0.025]}
+
+[sub_resource type="AnimationLibrary" id="DriftLibrary"]
+_data = {&"drift": SubResource("Drift")}
+
+[node name="Diorama" type="SubViewportContainer"]
+custom_minimum_size = Vector2(440, 0)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+script = ExtResource("script")
+
+[node name="World" type="SubViewport" parent="."]
+transparent_bg = true
+own_world_3d = true
+handle_input_locally = false
+size = Vector2i(840, 700)
+msaa_3d = 2
+physics_object_picking = true
+render_target_update_mode = 2
+
+[node name="Stage" type="Node3D" parent="World"]
+
+[node name="Environment" type="WorldEnvironment" parent="World/Stage"]
+environment = SubResource("Environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="World/Stage"]
+rotation_degrees = Vector3(-44, -26, 0)
+light_color = Color(1, 0.94, 0.82, 1)
+light_energy = 1.15
+shadow_enabled = true
+directional_shadow_max_distance = 45.0
+
+[node name="CameraRig" type="Node3D" parent="World/Stage"]
+position = Vector3(0, 1.0, 0)
+rotation_degrees = Vector3(-31, 32, 0)
+
+[node name="Camera3D" type="Camera3D" parent="World/Stage/CameraRig"]
+position = Vector3(0, 0, 26)
+projection = 1
+size = 16.8
+near = 0.1
+far = 60.0
+current = true
+
+[node name="Island" type="Node3D" parent="World/Stage"]
+
+[node name="Water" type="MeshInstance3D" parent="World/Stage/Island"]
+position = Vector3(0, -0.61, 0)
+mesh = SubResource("WaterPlane")
+material_override = SubResource("Water")
+cast_shadow = 0
+
+[node name="WaterPick" type="Area3D" parent="World/Stage/Island"]
+position = Vector3(0, -0.60, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="World/Stage/Island/WaterPick"]
+shape = SubResource("WaterShape")
+
+[node name="Terrain" type="Node3D" parent="World/Stage/Island"]
+
+[node name="WestEarth01" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-5.7, -0.46, -0.95)
+scale = Vector3(1.9, 0.92, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass01" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-5.7, 0.04, -0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth02" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-5.7, -0.54, 0.95)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass02" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-5.7, 0.04, 0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth03" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-5.7, -0.36, 2.85)
+scale = Vector3(1.9, 0.72, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("EarthLight")
+
+[node name="WestGrass03" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-5.7, 0.04, 2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth10" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, -0.46, -2.85)
+scale = Vector3(1.9, 0.92, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass10" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, 0.04, -2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth11" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, -0.54, -0.95)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass11" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, 0.04, -0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth12" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, -0.36, 0.95)
+scale = Vector3(1.9, 0.72, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("EarthLight")
+
+[node name="WestGrass12" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, 0.04, 0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth13" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, -0.46, 2.85)
+scale = Vector3(1.9, 0.92, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass13" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.8, 0.04, 2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("GrassLight")
+
+[node name="WestEarth20" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, -0.54, -2.85)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass20" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, 0.04, -2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth21" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, -0.36, -0.95)
+scale = Vector3(1.9, 0.72, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("EarthLight")
+
+[node name="WestGrass21" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, 0.04, -0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="WestEarth22" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, -0.46, 0.95)
+scale = Vector3(1.9, 0.92, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass22" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, 0.04, 0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("GrassLight")
+
+[node name="WestEarth23" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, -0.54, 2.85)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="WestGrass23" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-1.9, 0.04, 2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth00" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, -0.36, -2.85)
+scale = Vector3(1.9, 0.72, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("EarthLight")
+
+[node name="EastGrass00" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, 0.04, -2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("GrassLight")
+
+[node name="EastEarth01" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, -0.46, -0.95)
+scale = Vector3(1.9, 0.92, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="EastGrass01" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, 0.04, -0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth02" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, -0.54, 0.95)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="EastGrass02" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, 0.04, 0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth10" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.9, -0.46, -2.85)
+scale = Vector3(1.9, 0.92, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="EastGrass10" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.9, 0.04, -2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth11" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.9, -0.54, -0.95)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="EastGrass11" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.9, 0.04, -0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth12" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.9, -0.36, 0.95)
+scale = Vector3(1.9, 0.72, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("EarthLight")
+
+[node name="EastGrass12" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.9, 0.04, 0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth20" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(5.8, -0.54, -2.85)
+scale = Vector3(1.9, 1.08, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Earth")
+
+[node name="EastGrass20" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(5.8, 0.04, -2.85)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="EastEarth21" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(5.8, -0.36, -0.95)
+scale = Vector3(1.9, 0.72, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("EarthLight")
+
+[node name="EastGrass21" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(5.8, 0.04, -0.95)
+scale = Vector3(1.9, 0.13, 1.9)
+mesh = SubResource("Block")
+material_override = SubResource("Grass")
+
+[node name="Path0" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-3.7, 0.12, 0.3)
+scale = Vector3(0.62, 0.08, 0.62)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Path1" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-2.85, 0.12, 0.3)
+scale = Vector3(0.62, 0.08, 0.62)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Path2" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(-2.0, 0.12, 0.3)
+scale = Vector3(0.62, 0.08, 0.62)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Path3" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.0, 0.12, 0.3)
+scale = Vector3(0.62, 0.08, 0.62)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Path4" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(2.85, 0.12, 0.3)
+scale = Vector3(0.62, 0.08, 0.62)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Path5" type="MeshInstance3D" parent="World/Stage/Island/Terrain"]
+position = Vector3(3.7, 0.12, 0.3)
+scale = Vector3(0.62, 0.08, 0.62)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Bridge" type="Node3D" parent="World/Stage/Island"]
+
+[node name="Plank0" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(-1.0, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank1" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(-0.73, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank2" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(-0.46, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank3" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(-0.19, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank4" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.08, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank5" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.35, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank6" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.62, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank7" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.89, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Plank8" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(1.16, 0.11, 0.28)
+scale = Vector3(0.245, 0.17, 1.24)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="BeamNorth" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.08, -0.02, -0.43)
+scale = Vector3(2.8, 0.16, 0.13)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="BeamSouth" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.08, -0.02, 0.99)
+scale = Vector3(2.8, 0.16, 0.13)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Post0" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(-1.1, 0.4, -0.39)
+scale = Vector3(0.1, 0.82, 0.1)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Post1" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(-1.1, 0.4, 0.96)
+scale = Vector3(0.1, 0.82, 0.1)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Post2" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(1.18, 0.4, -0.39)
+scale = Vector3(0.1, 0.82, 0.1)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Post3" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(1.18, 0.4, 0.96)
+scale = Vector3(0.1, 0.82, 0.1)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="RailNorth" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.04, 0.76, -0.39)
+scale = Vector3(2.48, 0.09, 0.09)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="RailSouth" type="MeshInstance3D" parent="World/Stage/Island/Bridge"]
+position = Vector3(0.04, 0.76, 0.96)
+scale = Vector3(2.48, 0.09, 0.09)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Outposts" type="Node3D" parent="World/Stage/Island"]
+
+[node name="Home" parent="World/Stage/Island/Outposts" instance=ExtResource("outpost")]
+position = Vector3(-3.7, 0.12, 0.95)
+scale = Vector3(0.84, 0.84, 0.84)
+accent = Color(0.34, 0.50, 0.39, 1)
+
+[node name="East" parent="World/Stage/Island/Outposts" instance=ExtResource("outpost")]
+position = Vector3(3.95, 0.12, -1.05)
+rotation_degrees = Vector3(0, -24, 0)
+scale = Vector3(0.68, 0.68, 0.68)
+accent = Color(0.68, 0.39, 0.25, 1)
+
+[node name="Trees" type="Node3D" parent="World/Stage/Island"]
+
+[node name="Oak" type="Node3D" parent="World/Stage/Island/Trees"]
+position = Vector3(-5.3, 0.12, -1.9)
+scale = Vector3(0.4, 0.4, 0.4)
+
+[node name="Wood" type="MeshInstance3D" parent="World/Stage/Island/Trees/Oak"]
+mesh = ExtResource("oak_wood")
+material_override = SubResource("Bark")
+
+[node name="Foliage" type="MeshInstance3D" parent="World/Stage/Island/Trees/Oak"]
+mesh = ExtResource("oak_leaves")
+material_override = SubResource("Leaves")
+
+[node name="OakSmall" type="Node3D" parent="World/Stage/Island/Trees"]
+position = Vector3(-5.7, 0.12, 2.85)
+scale = Vector3(0.24, 0.24, 0.24)
+
+[node name="Wood" type="MeshInstance3D" parent="World/Stage/Island/Trees/OakSmall"]
+mesh = ExtResource("oak_wood")
+material_override = SubResource("Bark")
+
+[node name="Foliage" type="MeshInstance3D" parent="World/Stage/Island/Trees/OakSmall"]
+mesh = ExtResource("oak_leaves")
+material_override = SubResource("Leaves")
+
+[node name="Pine" type="Node3D" parent="World/Stage/Island/Trees"]
+position = Vector3(5.5, 0.12, -2.3)
+scale = Vector3(0.47, 0.47, 0.47)
+
+[node name="Wood" type="MeshInstance3D" parent="World/Stage/Island/Trees/Pine"]
+mesh = ExtResource("pine_wood")
+material_override = SubResource("Bark")
+
+[node name="Foliage" type="MeshInstance3D" parent="World/Stage/Island/Trees/Pine"]
+mesh = ExtResource("pine_leaves")
+material_override = SubResource("Leaves")
+
+[node name="PineSmall" type="Node3D" parent="World/Stage/Island/Trees"]
+position = Vector3(2.4, 0.12, -2.9)
+scale = Vector3(0.28, 0.28, 0.28)
+
+[node name="Wood" type="MeshInstance3D" parent="World/Stage/Island/Trees/PineSmall"]
+mesh = ExtResource("pine_wood")
+material_override = SubResource("Bark")
+
+[node name="Foliage" type="MeshInstance3D" parent="World/Stage/Island/Trees/PineSmall"]
+mesh = ExtResource("pine_leaves")
+material_override = SubResource("Leaves")
+
+[node name="Flowers0" parent="World/Stage/Island" instance=ExtResource("flowers")]
+position = Vector3(-2.1, 0.14, 3.2)
+scale = Vector3(0.58, 0.58, 0.58)
+
+[node name="Flowers1" parent="World/Stage/Island" instance=ExtResource("flowers")]
+position = Vector3(-5.5, 0.14, 0.6)
+scale = Vector3(0.58, 0.58, 0.58)
+
+[node name="Flowers2" parent="World/Stage/Island" instance=ExtResource("flowers")]
+position = Vector3(5.2, 0.14, 0.55)
+scale = Vector3(0.58, 0.58, 0.58)
+
+[node name="Raft" type="Node3D" parent="World/Stage/Island"]
+position = Vector3(0.45, -0.42, 2.5)
+rotation_degrees = Vector3(0, -16, 0)
+
+[node name="Log0" type="MeshInstance3D" parent="World/Stage/Island/Raft"]
+position = Vector3(-0.34, 0, 0)
+scale = Vector3(0.21, 0.12, 1.25)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Log1" type="MeshInstance3D" parent="World/Stage/Island/Raft"]
+position = Vector3(-0.11, 0, 0)
+scale = Vector3(0.21, 0.12, 1.25)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Log2" type="MeshInstance3D" parent="World/Stage/Island/Raft"]
+position = Vector3(0.12, 0, 0)
+scale = Vector3(0.21, 0.12, 1.25)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Log3" type="MeshInstance3D" parent="World/Stage/Island/Raft"]
+position = Vector3(0.35, 0, 0)
+scale = Vector3(0.21, 0.12, 1.25)
+mesh = SubResource("Block")
+material_override = SubResource("Wood")
+
+[node name="Cargo" type="MeshInstance3D" parent="World/Stage/Island/Raft"]
+position = Vector3(0, 0.22, -0.12)
+scale = Vector3(0.42, 0.35, 0.45)
+mesh = SubResource("Block")
+material_override = SubResource("Sand")
+
+[node name="Clouds" type="Node3D" parent="World/Stage/Island"]
+
+[node name="Far" type="Node3D" parent="World/Stage/Island/Clouds"]
+position = Vector3(-4, 4.0, -5.5)
+
+[node name="Puff0" type="MeshInstance3D" parent="World/Stage/Island/Clouds/Far"]
+position = Vector3(-0.72, 0, 0)
+scale = Vector3(1.13, 0.53, 0.75)
+mesh = SubResource("CloudMesh")
+material_override = SubResource("Cloud")
+cast_shadow = 0
+
+[node name="Puff1" type="MeshInstance3D" parent="World/Stage/Island/Clouds/Far"]
+position = Vector3(0, 0.22, 0)
+scale = Vector3(1.05, 0.68, 0.8)
+mesh = SubResource("CloudMesh")
+material_override = SubResource("Cloud")
+cast_shadow = 0
+
+[node name="Puff2" type="MeshInstance3D" parent="World/Stage/Island/Clouds/Far"]
+position = Vector3(0.84, -0.06, 0)
+scale = Vector3(0.92, 0.42, 0.63)
+mesh = SubResource("CloudMesh")
+material_override = SubResource("Cloud")
+cast_shadow = 0
+
+[node name="Drift" type="AnimationPlayer" parent="World/Stage/Island"]
+libraries = {&"": SubResource("DriftLibrary")}
+autoplay = &"drift"

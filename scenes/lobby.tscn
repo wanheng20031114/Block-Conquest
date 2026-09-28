@@ -3,22 +3,11 @@
 [ext_resource type="Script" path="res://scripts/lobby.gd" id="script"]
 [ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
-[ext_resource type="Shader" path="res://assets/ui/block_war/menu_backdrop.gdshader" id="backdrop"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/squirrel.png" id="squirrel"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/rabbit.png" id="rabbit"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/bear.png" id="bear"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/frog.png" id="frog"]
+[ext_resource type="Shader" path="res://assets/ui/block_war/lobby_backdrop.gdshader" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/ui/lobby_diorama.tscn" id="diorama"]
 
 [sub_resource type="ShaderMaterial" id="Background"]
 shader = ExtResource("backdrop")
-
-[sub_resource type="StyleBoxFlat" id="Stage"]
-bg_color = Color(0.98, 0.97, 0.86, 0.42)
-corner_radius_top_left = 250
-corner_radius_top_right = 230
-corner_radius_bottom_left = 210
-corner_radius_bottom_right = 260
-corner_detail = 32
 
 [node name="Lobby" type="Control" groups=["animated_menu"]]
 layout_mode = 3
@@ -32,7 +21,7 @@ script = ExtResource("script")
 
 [node name="MenuEntrance" type="Node" parent="."]
 script = ExtResource("entrance")
-sections = Array[NodePath]([NodePath("Margin/Column/Body/Welcome/Brand"), NodePath("Margin/Column/Body/Partners"), NodePath("Margin/Column/Body/Welcome/Menu/BlockWarMode"), NodePath("Margin/Column/Body/Welcome/Menu/Settings"), NodePath("Margin/Column/Body/Welcome/Menu/Quit"), NodePath("Margin/Column/Footer")])
+sections = Array[NodePath]([NodePath("Margin/Column/Body/Welcome/Brand"), NodePath("Margin/Column/Body/Welcome/Menu/BlockWarMode"), NodePath("Margin/Column/Body/Welcome/Menu/Settings"), NodePath("Margin/Column/Body/Welcome/Menu/Quit"), NodePath("Margin/Column/Footer")])
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -97,6 +86,7 @@ text = "开始战争    →"
 theme_type_variation = &"MenuPrimary"
 theme_override_font_sizes/font_size = 28
 metadata/ui_sound = &"order"
+metadata/ui_motion_hover_scale = 1.018
 
 [node name="Settings" type="Button" parent="Margin/Column/Body/Welcome/Menu"]
 unique_name_in_owner = true
@@ -104,6 +94,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(380, 60)
 mouse_default_cursor_shape = 2
 text = "设置"
+metadata/ui_motion_hover_scale = 1.018
 
 [node name="Quit" type="Button" parent="Margin/Column/Body/Welcome/Menu"]
 unique_name_in_owner = true
@@ -113,6 +104,7 @@ mouse_default_cursor_shape = 2
 text = "退出游戏"
 theme_type_variation = &"MenuBack"
 metadata/ui_sound = &"cancel"
+metadata/ui_motion_hover_scale = 1.018
 
 [node name="Message" type="Label" parent="Margin/Column/Body/Welcome"]
 unique_name_in_owner = true
@@ -122,65 +114,9 @@ text = ""
 theme_type_variation = &"MenuMuted"
 autowrap_mode = 2
 
-[node name="Partners" type="Control" parent="Margin/Column/Body"]
+[node name="Diorama" parent="Margin/Column/Body" instance=ExtResource("diorama")]
+unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(550, 530)
-size_flags_horizontal = 3
-size_flags_vertical = 4
-mouse_filter = 2
-
-[node name="Stage" type="Panel" parent="Margin/Column/Body/Partners"]
-layout_mode = 1
-anchor_left = 0.05
-anchor_top = 0.05
-anchor_right = 0.95
-anchor_bottom = 0.92
-mouse_filter = 2
-theme_override_styles/panel = SubResource("Stage")
-
-[node name="Bear" type="TextureRect" parent="Margin/Column/Body/Partners"]
-layout_mode = 1
-anchor_left = 0.42
-anchor_top = 0.0
-anchor_right = 1.0
-anchor_bottom = 0.62
-texture = ExtResource("bear")
-expand_mode = 1
-stretch_mode = 5
-mouse_filter = 2
-
-[node name="Rabbit" type="TextureRect" parent="Margin/Column/Body/Partners"]
-layout_mode = 1
-anchor_left = -0.03
-anchor_top = 0.11
-anchor_right = 0.52
-anchor_bottom = 0.78
-texture = ExtResource("rabbit")
-expand_mode = 1
-stretch_mode = 5
-mouse_filter = 2
-
-[node name="Frog" type="TextureRect" parent="Margin/Column/Body/Partners"]
-layout_mode = 1
-anchor_left = 0.58
-anchor_top = 0.45
-anchor_right = 1.0
-anchor_bottom = 0.96
-texture = ExtResource("frog")
-expand_mode = 1
-stretch_mode = 5
-mouse_filter = 2
-
-[node name="Squirrel" type="TextureRect" parent="Margin/Column/Body/Partners"]
-layout_mode = 1
-anchor_left = 0.13
-anchor_top = 0.35
-anchor_right = 0.73
-anchor_bottom = 1.0
-texture = ExtResource("squirrel")
-expand_mode = 1
-stretch_mode = 5
-mouse_filter = 2
 
 [node name="Footer" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2

@@ -1,6 +1,12 @@
 extends Control
-## The standalone game's home screen; all play begins with its animal roster.
+## The standalone game's home screen and its quiet interactive miniature.
 @onready var session: Node = get_node("/root/Session")
+@onready var backdrop: ShaderMaterial = $Background.material
+var _pointer := Vector2(0.5, 0.5)
+var _pointer_target := Vector2(0.5, 0.5)
+var _pointer_presence := 0.0
+var _mouse_inside := false
+var _presentation_active := true
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = true
@@ -10,6 +16,8 @@ func _ready() -> void:
 	%Quit.pressed.connect(_quit)
 	session.load_failed.connect(_show_error)
 	session.settings.closed.connect(_settings_closed)
+	session.settings.opened.connect(_set_presentation_active.bind(false))
+	get_window().mouse_exited.connect(_leave_mouse)
 	UIMotion.bind_menu_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 	%BlockWarMode.grab_focus(true)
@@ -20,11 +28,36 @@ func _ready() -> void:
 func _start(direct_launch: bool = false) -> void:
 	if session.settings.is_open() or session.transition.busy:
 		return
+	_set_presentation_active(false)
 	if session.start_war(direct_launch) != OK:
+		_set_presentation_active(true)
 		_show_error("战争暂时无法开始，请检查游戏文件后重试。")
 
 func _settings_closed() -> void:
+	_set_presentation_active(true)
 	%Settings.grab_focus(true)
+
+func _set_presentation_active(value: bool) -> void:
+	_presentation_active = value
+	%Diorama.set_interactive(value)
+	if not value:
+		_leave_mouse()
+
+func _leave_mouse() -> void:
+	_mouse_inside = false
+	%Diorama._leave()
+
+func _input(event: InputEvent) -> void:
+	if _presentation_active and event is InputEventMouseMotion:
+		_pointer_target = (event.position / size).clamp(Vector2.ZERO, Vector2.ONE)
+		_mouse_inside = true
+
+func _process(delta: float) -> void:
+	var response := 1.0 - exp(-delta * 4.0)
+	_pointer = _pointer.lerp(_pointer_target, response)
+	_pointer_presence = lerpf(_pointer_presence, 1.0 if _mouse_inside else 0.0, response)
+	backdrop.set_shader_parameter("pointer", _pointer)
+	backdrop.set_shader_parameter("pointer_presence", _pointer_presence)
 
 func _show_error(message: String) -> void:
 	%Message.text = message

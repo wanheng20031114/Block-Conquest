@@ -1,0 +1,92 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/lobby_outpost.gd" id="script"]
+[ext_resource type="Shader" path="res://assets/models/block_war/architecture/surface.gdshader" id="surface"]
+[ext_resource type="Shader" path="res://assets/ui/block_war/lobby_flag.gdshader" id="flag"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/foundation_stone.res" id="foundation"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/foundation_timber.res" id="base_wood"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_stone.res" id="stone"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_timber.res" id="wood"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_roof.res" id="roof"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/house_metal.res" id="metal"]
+
+[sub_resource type="ShaderMaterial" id="Surface"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.93
+
+[sub_resource type="ShaderMaterial" id="Roof"]
+shader = ExtResource("surface")
+shader_parameter/tint_strength = 1.0
+shader_parameter/surface_roughness = 0.92
+
+[sub_resource type="ShaderMaterial" id="FlagMaterial"]
+shader = ExtResource("flag")
+
+[sub_resource type="PlaneMesh" id="FlagMesh"]
+size = Vector2(1.35, 0.8)
+orientation = 2
+center_offset = Vector3(0.675, 0, 0)
+subdivide_width = 12
+subdivide_depth = 6
+
+[sub_resource type="StandardMaterial3D" id="PoleMaterial"]
+albedo_color = Color(0.33, 0.25, 0.15, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderMesh" id="PoleMesh"]
+top_radius = 0.035
+bottom_radius = 0.045
+height = 3.5
+radial_segments = 6
+
+[sub_resource type="BoxShape3D" id="PickShape"]
+size = Vector3(3.3, 3.9, 3.3)
+
+[node name="Outpost" type="Node3D"]
+script = ExtResource("script")
+
+[node name="Lift" type="Node3D" parent="."]
+
+[node name="Model" type="Node3D" parent="Lift"]
+
+[node name="Foundation" type="MeshInstance3D" parent="Lift/Model"]
+mesh = ExtResource("foundation")
+material_override = SubResource("Surface")
+
+[node name="BaseWood" type="MeshInstance3D" parent="Lift/Model"]
+mesh = ExtResource("base_wood")
+material_override = SubResource("Surface")
+
+[node name="Stone" type="MeshInstance3D" parent="Lift/Model"]
+mesh = ExtResource("stone")
+material_override = SubResource("Surface")
+
+[node name="Wood" type="MeshInstance3D" parent="Lift/Model"]
+mesh = ExtResource("wood")
+material_override = SubResource("Surface")
+
+[node name="Metal" type="MeshInstance3D" parent="Lift/Model"]
+mesh = ExtResource("metal")
+material_override = SubResource("Surface")
+
+[node name="Roof" type="MeshInstance3D" parent="Lift/Model"]
+mesh = ExtResource("roof")
+material_override = SubResource("Roof")
+
+[node name="Pole" type="MeshInstance3D" parent="Lift/Model"]
+position = Vector3(1.52, 1.76, 0.4)
+mesh = SubResource("PoleMesh")
+material_override = SubResource("PoleMaterial")
+
+[node name="Flag" type="MeshInstance3D" parent="Lift/Model"]
+position = Vector3(1.52, 3.04, 0.4)
+mesh = SubResource("FlagMesh")
+material_override = SubResource("FlagMaterial")
+
+[node name="Pick" type="Area3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Pick"]
+position = Vector3(0, 1.7, 0)
+shape = SubResource("PickShape")

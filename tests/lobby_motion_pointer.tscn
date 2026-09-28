@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[node name="RecordingPointer" type="CanvasLayer"]
+layer = 128
+
+[node name="Cursor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 3, 23, 9, 17, 15, 28, 20, 25, 14, 15, 23, 14)
+color = Color(1, 0.99, 0.94, 1)
+antialiased = true
+
+[node name="Outline" type="Line2D" parent="Cursor"]
+points = PackedVector2Array(0, 0, 3, 23, 9, 17, 15, 28, 20, 25, 14, 15, 23, 14)
+closed = true
+width = 1.5
+default_color = Color(0.19, 0.25, 0.20, 1)
+antialiased = true
