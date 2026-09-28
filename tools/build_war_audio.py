@@ -15,6 +15,7 @@ import wave
 
 import numpy as np
 from scipy import signal
+from build_ui_click import build_menu_click
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "assets/audio/sources"
@@ -305,15 +306,7 @@ def main():
                 "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
                 "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
                 "events": len(EVENTS), "files": files}
-    # Keep the user's requested arc-nice click byte-for-byte, including its 44.1 kHz format.
-    menu_source = SOURCES / "arc_nice_ui/ui_click.wav"
-    menu_path = ROOT / "assets/audio/ui/arc_nice_click.wav"
-    menu_path.parent.mkdir(parents=True, exist_ok=True)
-    menu_path.write_bytes(menu_source.read_bytes())
-    manifest["menu_click"] = {"file": "../ui/arc_nice_click.wav", "source": "arc_nice_ui/ui_click.wav",
-                              "sha256": hashlib.sha256(menu_source.read_bytes()).hexdigest(),
-                              "processing": "Unmodified copy; native player -8 dB, pitch 0.992..1.008 as in arc-nice",
-                              "license": "LicenseRef-User-Project", "gain_db": -8.0}
+    manifest["menu_click"] = build_menu_click()
     (OUT / "audio_manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
     print(f"Built {len(EVENTS)} events / {len(files)} WAV files / {sum(f['bytes'] for f in files):,} bytes")
     print(f"True peaks: {min(f['true_peak_db'] for f in files):.2f} to {max(f['true_peak_db'] for f in files):.2f} dBFS")

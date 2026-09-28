@@ -1,0 +1,32 @@
+{
+  "format": "48 kHz mono PCM16",
+  "duration_ms": 48,
+  "onset_ms": 0.208,
+  "energy_99_percent_ms": 22.75,
+  "source_true_peak_dbtp": -4.5,
+  "source_max_50ms_rms_dbfs": -21.26,
+  "spectral_centroid_hz": 1647,
+  "energy_above_6khz_percent": 0.08,
+  "source_dc_mean": -0.00010909,
+  "reference_old_source_50ms_rms_dbfs": -18.57,
+  "native_capture": {
+    "checks": 11,
+    "clicks": 9,
+    "failures": [],
+    "frames": 122880,
+    "master_db": -6.02059984207153,
+    "mix_rate": 44100.0,
+    "peak_before_master": 0.236869245767593,
+    "player_db": -8.0
+  },
+  "preview": {
+    "file": "preview.wav",
+    "master_percent": 50,
+    "normalization": false,
+    "max_50ms_rms_dbfs": -35.26,
+    "true_peak_dbtp": -18.52,
+    "sequence": "3 spaced clicks, then 6 quick clicks"
+  },
+  "retained_war_files": 44,
+  "builder_is_deterministic": true
+}

@@ -27,7 +27,7 @@ LABELS = {
     "rabbit_dash": "兔子 Q · 蹦蹦小径", "rabbit_seal": "兔子 W · 封条急件",
     "rabbit_recall": "兔子 E · 归巢口哨", "rabbit_burrow": "兔子 R · 兔洞快递",
     "projectile_hit": "炮弹命中", "victory": "胜利", "defeat": "失败",
-    "cannon_shot": "炮台发射", "menu_select": "arc-nice 菜单点击",
+    "cannon_shot": "炮台发射", "menu_select": "菜单轻点击",
 }
 
 
@@ -109,6 +109,9 @@ def main():
 
     # Every game sample is byte-identical; this pass changes playback gains only.
     source_manifest = json.loads((ROOT / "assets/audio/block_war/audio_manifest.json").read_text(encoding="utf-8"))
+    menu_click = source_manifest["menu_click"]
+    menu_path = ROOT / "assets/audio/block_war" / menu_click["file"]
+    check(hashlib.sha256(menu_path.read_bytes()).hexdigest() == menu_click["sha256"], "menu click matches its current manifest")
     for item in source_manifest["files"]:
         relative = "assets/audio/block_war/" + item["file"]
         current = (ROOT / relative).read_bytes()

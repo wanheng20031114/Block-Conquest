@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ui_feedback.gd" id="script"]
-[ext_resource type="AudioStream" path="res://assets/audio/ui/arc_nice_click.wav" id="select1"]
+[ext_resource type="AudioStream" path="res://assets/audio/ui/soft_click.wav" id="select1"]
 [ext_resource type="AudioStream" path="res://assets/audio/block_war/war_order_01.wav" id="order1"]
 [ext_resource type="AudioStream" path="res://assets/audio/block_war/war_order_02.wav" id="order2"]
 [ext_resource type="AudioStream" path="res://assets/audio/block_war/war_cancel_01.wav" id="cancel"]

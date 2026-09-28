@@ -1153,11 +1153,16 @@
     }
   ],
   "menu_click": {
-    "file": "../ui/arc_nice_click.wav",
-    "source": "arc_nice_ui/ui_click.wav",
-    "sha256": "39684b58ef8cf6355b69ad2b994c8620172eb1751487b37785b83cd9d0ecd475",
-    "processing": "Unmodified copy; native player -8 dB, pitch 0.992..1.008 as in arc-nice",
-    "license": "LicenseRef-User-Project",
-    "gain_db": -8.0
+    "file": "../ui/soft_click.wav",
+    "source": "Project-original deterministic contact synthesis; no third-party samples",
+    "generator": "tools/build_ui_click.py",
+    "format": "48 kHz mono PCM16 WAV",
+    "duration_seconds": 0.048,
+    "sha256": "aadf40f7b44d9f56c7552c33a3684d93c5c945f428fba3041a34f23b7f87299f",
+    "processing": "48 ms dry contact, rounded onset, damped low body, 4.2 kHz low-pass, boundary fades; no reverb, sweep or saturation",
+    "license": "LicenseRef-Project-Original",
+    "gain_db": -8.0,
+    "rms_50ms_dbfs": -21.26,
+    "true_peak_dbtp": -4.5
   }
 }

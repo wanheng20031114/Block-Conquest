@@ -54,3 +54,9 @@ Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dr
 建筑选择、技能拖起、派兵确认改为 Kenney Impact Sounds 的单次木材接触，分别为 0.08、0.09、0.16 秒；没有旋律、纸张层或额外叠层，播放器增益分别为 -6、-8、-3 dB。拉动派兵线、经过其他建筑和拖动中调整比例均不请求声音，成功松手才响一次确认。其余 38 个积木战争 WAV 保持原文件哈希。
 
 菜单选择直接复用用户指定的 arc-nice 项目 `resources/audio/ui/ui_click.wav`，原件与运行副本 `ui/arc_nice_click.wav` 字节一致，保留 44.1 kHz 单声道 PCM16、0.115 秒与 -8 dB 播放器增益。来源项目提交及哈希见 [arc-nice 来源记录](sources/arc_nice_ui/SOURCE.md)。本素材按用户指示作为其项目资产复用，记录为 `LicenseRef-User-Project`，不将其标注为 CC0 或 CC BY；上述第三方素材许可不适用于这一文件。
+
+## 2026-09-28：原创菜单轻点击
+
+按用户要求重新制作 `ui/soft_click.wav`，替换普通 UI 点击的 arc-nice 音源。新音效是 48 毫秒的短接触合成：带限噪声、很轻的低频共振、快速衰减与边界淡入淡出，无混响、扫频或饱和。由 `tools/build_ui_click.py` 确定性生成，48 kHz 单声道 PCM16；播放器维持 -8 dB。
+
+这是项目原创合成音效，未混入第三方音频，记录为 `LicenseRef-Project-Original`。参考了 [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds) 的短点击结构、[微软 UI 声音指南](https://learn.microsoft.com/en-us/windows/apps/develop/ui/sound) 的交互语义，以及 [《文明 VII》音频团队访谈](https://www.asoundeffect.com/civilization-vii-game-audio/) 中简短、低复杂度、可重复播放的设计原则；这些是设计参考，不是新 WAV 的采样来源。旧 arc-nice 文件与来源记录保留作历史追溯。制作和实测记录见 [点击音效检查](../../docs/ui_click_review.md)。

@@ -24,7 +24,7 @@ LABELS = {
     "rabbit_dash": "兔子 Q · 蹦蹦小径", "rabbit_seal": "兔子 W · 封条急件",
     "rabbit_recall": "兔子 E · 归巢口哨", "rabbit_burrow": "兔子 R · 兔洞快递",
     "projectile_hit": "炮弹实际命中",
-    "ui_click": "arc-nice 菜单点击",
+    "ui_click": "菜单轻点击",
 }
 
 
@@ -66,24 +66,24 @@ def main():
             metrics.append({"file": path.name, "onset_ms": round(onset * 1000, 2), "true_peak_dbfs": round(20 * np.log10(peak), 2)})
     menu = manifest["menu_click"]
     menu_path = bank.OUT / menu["file"]
-    assert menu_path.read_bytes() == (bank.SOURCES / menu["source"]).read_bytes()
     assert hashlib.sha256(menu_path.read_bytes()).hexdigest() == menu["sha256"]
+    if "ui_click" in args.events:
+        data = pcm(menu_path).astype(float) / 32768.0
+        onset = np.flatnonzero(abs(data) >= abs(data).max() * .02)[0] / bank.SR
+        peak = float(np.max(np.abs(signal.resample_poly(data, 4, 1))))
+        assert onset < .003 and len(data) <= .06 * bank.SR and peak <= 10 ** (-4.4 / 20)
+        metrics.append({"file": menu_path.name, "onset_ms": round(onset * 1000, 2), "true_peak_dbfs": round(20 * np.log10(peak), 2)})
     gains = {event[0]: event[3] for event in bank.EVENTS}
     gains["ui_click"] = menu["gain_db"]
     for key in args.events:
         files = [menu_path] if key == "ui_click" else sorted(bank.OUT.glob(f"war_{key}_[0-9][0-9].wav"))
         assert files, key
-        rate = 44100 if key == "ui_click" else bank.SR
+        rate = bank.SR
         gain = gains[key] if args.playback_gain else 0.0
         pieces, timeline = [], []
         cursor = 0
         for index, path in enumerate(files):
-            if key == "ui_click":
-                with wave.open(str(path), "rb") as reader:
-                    assert (reader.getnchannels(), reader.getsampwidth(), reader.getframerate()) == (1, 2, rate)
-                    data = np.frombuffer(reader.readframes(reader.getnframes()), dtype="<i2")
-            else:
-                data = pcm(path)
+            data = pcm(path)
             data = np.round(data.astype(float) * 10 ** (gain / 20)).astype("<i2")
             timeline.append({"file": path.name, "start_seconds": round(cursor / rate, 3)})
             pieces.append(data)
