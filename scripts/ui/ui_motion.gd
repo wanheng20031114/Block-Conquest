@@ -9,18 +9,25 @@ const BUTTON_DURATION: float = 0.12
 const REVEAL_DURATION: float = 0.18
 
 static func bind_buttons(root: Node) -> void:
-	if root is BaseButton:
-		_bind_button(root as BaseButton)
-	for child: Node in root.get_children():
-		bind_buttons(child)
+	_bind_buttons(root, false)
 
-static func _bind_button(button: BaseButton) -> void:
+## Opt-in menu profile; battle controls retain bind_buttons() unchanged.
+static func bind_menu_buttons(root: Node) -> void:
+	_bind_buttons(root, true)
+
+static func _bind_buttons(root: Node, menu: bool) -> void:
+	if root is BaseButton:
+		_bind_button(root as BaseButton, menu)
+	for child: Node in root.get_children():
+		_bind_buttons(child, menu)
+
+static func _bind_button(button: BaseButton, menu: bool = false) -> void:
 	if button.has_meta(BUTTON_META):
 		return
 	var state: Dictionary = {"scale": button.scale, "color": button.self_modulate,
 		"hover": false, "focus": button.has_focus(true), "down": false,
-		"disabled": button.disabled, "tween": null,
-		"hover_scale": float(button.get_meta(&"ui_motion_hover_scale", 1.02))}
+		"disabled": button.disabled, "tween": null, "menu": menu,
+		"hover_scale": float(button.get_meta(&"ui_motion_hover_scale", 1.025 if menu else 1.02))}
 	button.set_meta(BUTTON_META, state)
 	button.pivot_offset = button.size * 0.5
 	button.mouse_entered.connect(_button_state.bind(button, "hover", true))
@@ -42,19 +49,25 @@ static func _button_state(button: BaseButton, key: String, value: bool) -> void:
 	if not button.is_visible_in_tree() or button.disabled:
 		_button_reset(button)
 		return
+	# A user's interaction takes precedence over a delayed menu entrance.
+	if state.menu and value and button.has_meta(PANEL_META):
+		_panel_cleanup(button)
 	_kill(state)
 	# Queue slots may opt into a fixed hover footprint with scene-authored
 	# metadata/ui_motion_hover_scale = 1.0; their light and press feedback remain.
 	# Native hidden focus remembers a mouse user's keyboard return target without
 	# highlighting the button. Only visible keyboard focus adds material feedback.
-	var strength: float = 0.98 if state.down else (float(state.hover_scale) if state.hover else 1.0)
+	var strength: float = (0.96 if state.menu else 0.98) if state.down else (float(state.hover_scale) if state.hover else 1.0)
 	var light: float = 0.91 if state.down else (1.10 if state.hover or state.focus else 1.0)
 	var color: Color = state.color
 	color = Color(color.r * light, color.g * light, color.b * light, color.a)
 	var tween: Tween = _tween(button).set_parallel(true)
+	if state.menu and not state.down:
+		tween.set_trans(Tween.TRANS_BACK)
 	state.tween = tween
-	tween.tween_property(button, "scale", state.scale * strength, BUTTON_DURATION)
-	tween.tween_property(button, "self_modulate", color, BUTTON_DURATION)
+	var duration: float = 0.18 if state.menu and not state.down else BUTTON_DURATION
+	tween.tween_property(button, "scale", state.scale * strength, duration)
+	tween.tween_property(button, "self_modulate", color, duration)
 
 static func _button_resized(button: BaseButton) -> void:
 	button.pivot_offset = button.size * 0.5
@@ -90,6 +103,13 @@ static func _button_reset(button: BaseButton) -> void:
 ## Call after show() and the panel's content/layout update. Calling repeatedly
 ## interrupts the previous reveal and never compounds position or opacity.
 static func reveal(control: Control, direction: Vector2 = Vector2(0, 12)) -> Tween:
+	return _reveal(control, direction, REVEAL_DURATION, 0.0, 0.985, true, Tween.TRANS_CUBIC, false)
+
+## GodotGameUI-inspired stagger and soft overshoot, enabled only by menus.
+static func reveal_menu(control: Control, direction: Vector2 = Vector2(0, 18), delay: float = 0.0) -> Tween:
+	return _reveal(control, direction, 0.30, delay, 0.96, control is not BaseButton, Tween.TRANS_BACK, true)
+
+static func _reveal(control: Control, direction: Vector2, duration: float, delay: float, start_scale: float, animate_scale: bool, transition: Tween.TransitionType, follow_layout: bool) -> Tween:
 	var state: Dictionary = _panel_state(control)
 	_panel_restore(control, state)
 	control.show()
@@ -98,13 +118,16 @@ static func reveal(control: Control, direction: Vector2 = Vector2(0, 12)) -> Twe
 	state.progress = 0.0
 	state.alpha = control.modulate.a
 	state.scale = control.scale
+	state.start_scale = start_scale
+	state.animate_scale = animate_scale
+	state.follow_layout = follow_layout
 	control.pivot_offset = control.size * 0.5
 	# A Container owns a child's offsets. Its reveal only changes visual scale
 	# and opacity; independent panels may additionally move a few pixels.
 	_panel_step(0.0, control)
-	var tween: Tween = _tween(control)
+	var tween: Tween = _tween(control).set_trans(transition)
 	state.tween = tween
-	tween.tween_method(_panel_step.bind(control), 0.0, 1.0, REVEAL_DURATION)
+	tween.tween_method(_panel_step.bind(control), 0.0, 1.0, duration).set_delay(delay)
 	tween.tween_callback(_panel_finished.bind(control, false))
 	return tween
 
@@ -116,6 +139,9 @@ static func dismiss(control: Control, direction: Vector2 = Vector2(0, 8)) -> Twe
 	state.progress = 1.0
 	state.alpha = control.modulate.a
 	state.scale = control.scale
+	state.start_scale = 0.985
+	state.animate_scale = true
+	state.follow_layout = false
 	var tween: Tween = _tween(control)
 	state.tween = tween
 	tween.tween_method(_panel_step.bind(control), 1.0, 0.0, 0.12)
@@ -126,7 +152,8 @@ static func _panel_state(control: Control) -> Dictionary:
 	if not control.has_meta(PANEL_META):
 		control.set_meta(PANEL_META, {"tween": null, "active": false,
 			"offset": Vector2.ZERO, "alpha": control.modulate.a,
-			"scale": control.scale, "direction": Vector2.ZERO, "progress": 1.0})
+			"scale": control.scale, "direction": Vector2.ZERO, "progress": 1.0,
+			"start_scale": 0.985, "animate_scale": true, "follow_layout": false})
 		control.visibility_changed.connect(_panel_visibility.bind(control))
 		control.tree_exiting.connect(_panel_cleanup.bind(control))
 		control.resized.connect(_panel_resized.bind(control))
@@ -135,8 +162,9 @@ static func _panel_state(control: Control) -> Dictionary:
 static func _panel_step(progress: float, control: Control) -> void:
 	var state: Dictionary = control.get_meta(PANEL_META)
 	state.progress = progress
-	control.modulate.a = float(state.alpha) * progress
-	control.scale = state.scale * lerpf(0.985, 1.0, progress)
+	control.modulate.a = float(state.alpha) * clampf(progress, 0.0, 1.0)
+	if state.animate_scale:
+		control.scale = state.scale * lerpf(float(state.start_scale), 1.0, progress)
 	if state.direction != Vector2.ZERO:
 		# Apply only our visual displacement. Native anchor movement caused by
 		# window resizing remains intact instead of snapping to an old position.
@@ -148,7 +176,8 @@ static func _panel_restore(control: Control, state: Dictionary) -> void:
 	_kill(state)
 	if state.active:
 		control.modulate.a = state.alpha
-		control.scale = state.scale
+		if state.animate_scale:
+			control.scale = state.scale
 		if state.direction != Vector2.ZERO:
 			control.position -= state.offset
 	state.offset = Vector2.ZERO
@@ -170,10 +199,15 @@ static func _panel_cleanup(control: Control) -> void:
 
 static func _panel_resized(control: Control) -> void:
 	control.pivot_offset = control.size * 0.5
-	# A responsive re-layout takes precedence over an entrance animation.
 	var state: Dictionary = control.get_meta(PANEL_META)
 	if state.active:
-		_panel_restore(control, state)
+		# Scale/opacity-only menu reveals can follow a Container's new size.
+		# Cancelling here would skip every newly opened settings page's entrance.
+		if state.follow_layout and state.direction == Vector2.ZERO:
+			_panel_step(float(state.progress), control)
+		else:
+			# Positional reveals and the original combat profile yield to layout.
+			_panel_restore(control, state)
 
 static func _tween(control: Control) -> Tween:
 	return control.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).set_ignore_time_scale(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

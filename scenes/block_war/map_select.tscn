@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_map_select.gd" id="script"]
+[ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="Shader" path="res://assets/ui/block_war/menu_backdrop.gdshader" id="backdrop"]
 [ext_resource type="Script" path="res://scripts/block_war/war_map_preview.gd" id="preview"]
@@ -75,13 +76,17 @@ corner_radius_top_right = 12
 corner_radius_bottom_left = 12
 corner_radius_bottom_right = 12
 
-[node name="MapSelect" type="Control"]
+[node name="MapSelect" type="Control" groups=["animated_menu"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource("theme")
 script = ExtResource("script")
+
+[node name="MenuEntrance" type="Node" parent="."]
+script = ExtResource("entrance")
+sections = Array[NodePath]([NodePath("Margin/Column/Header"), NodePath("Margin/Column/Content/Overview"), NodePath("Margin/Column/Content/Details"), NodePath("Margin/Column/Footer")])
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1

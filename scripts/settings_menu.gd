@@ -94,6 +94,22 @@ func set_campaign_style(value: bool) -> void:
 			active = category.name
 	show_page(active)
 
+func _uses_menu_motion() -> bool:
+	var scene: Node = get_tree().current_scene
+	return scene != null and scene.is_in_group("animated_menu")
+
+func open_motion() -> void:
+	# The persistent settings layer is shared with battles. Only menu scenes
+	# opt into the longer, staggered entrance; battle settings keep their motion.
+	if not _uses_menu_motion():
+		UIMotion.reveal($Center/Panel)
+		return
+	UIMotion.reveal_menu($Center/Panel)
+	UIMotion.reveal_menu($Center/Panel/Layout/Heading, Vector2.ZERO, 0.025)
+	UIMotion.reveal_menu($Center/Panel/Layout/Body/Sidebar, Vector2.ZERO, 0.055)
+	UIMotion.reveal_menu($Center/Panel/Layout/Body/Content, Vector2.ZERO, 0.085)
+	UIMotion.reveal_menu($Center/Panel/Layout/Actions, Vector2.ZERO, 0.115)
+
 func _update_labels() -> void:
 	%Vsync.text = "开启" if draft.vsync else "关闭"
 	%Mute.text = "静音" if draft.muted else "声音开启"
@@ -130,7 +146,13 @@ func show_page(page: String) -> void:
 	var content_page := "WarHotkeys" if campaign and page == "Hotkeys" else page
 	for child: Control in pages.get_children(): child.visible = String(child.name) == content_page
 	for category: Button in %Categories.get_children(): category.set_pressed_no_signal(String(category.name) == page)
-	UIMotion.reveal(pages.get_node(content_page), Vector2(0, 8))
+	if _uses_menu_motion():
+		if visible:
+			UIMotion.reveal_menu(%SectionTitle)
+			UIMotion.reveal_menu(%SectionHint, Vector2.ZERO, 0.025)
+			UIMotion.reveal_menu(pages.get_node(content_page), Vector2(0, 8), 0.05)
+	else:
+		UIMotion.reveal(pages.get_node(content_page), Vector2(0, 8))
 	%SectionTitle.text = {"Graphics":"显示", "Audio":"声音", "Controls":"镜头与操作", "Hotkeys":"热键", "FirstPerson":"第一人称"}[page]
 	%SectionHint.text = {"Graphics":"分辨率用于窗口尺寸或全屏 3D 渲染。", "Audio":"总音量控制所有声音；背景音乐可独立调节。", "Controls":"镜头响应与窗口边缘移动。", "Hotkeys":"点击按键后重新绑定。Ctrl 建组，Shift 追加。", "FirstPerson":"沙盒英雄的视野角、鼠标与舒适性。"}[page]
 	if campaign and page == "Hotkeys":
@@ -199,6 +221,8 @@ func set_status(message: String) -> void:
 
 func show_display_confirmation() -> void:
 	%DisplayConfirm.show()
+	if _uses_menu_motion():
+		UIMotion.reveal_menu(%DisplayConfirm.get_node("Center/Panel"))
 	%KeepDisplay.grab_focus()
 
 func hide_display_confirmation() -> void:

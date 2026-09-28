@@ -11,6 +11,7 @@
 [ext_resource type="Theme" path="res://assets/ui/medieval/theme.tres" id="menu_theme"]
 [ext_resource type="PackedScene" path="res://scenes/maps/amber_crossroads_1v1_nature.tscn" id="nature"]
 [ext_resource type="Script" uid="uid://bln64bm7rb0or" path="res://scripts/lobby.gd" id="script"]
+[ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="menu_entrance"]
 
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/title.tres" id="med_title"]
 
@@ -84,9 +85,13 @@ shader = SubResource("Scrim")
 
 [sub_resource type="ButtonGroup" id="OnlineModes"]
 
-[node name="Lobby" type="Node3D" unique_id=1188566718]
+[node name="Lobby" type="Node3D" unique_id=1188566718 groups=["animated_menu"]]
 physics_interpolation_mode = 2
 script = ExtResource("script")
+
+[node name="MenuEntrance" type="Node" parent="."]
+script = ExtResource("menu_entrance")
+sections = Array[NodePath]([NodePath("CanvasLayer/UI/Brand"), NodePath("CanvasLayer/UI/MainMenu/SoloMenu"), NodePath("CanvasLayer/UI/MainMenu/Multiplayer"), NodePath("CanvasLayer/UI/MainMenu/RogueMode"), NodePath("CanvasLayer/UI/MainMenu/BlockWarMode"), NodePath("CanvasLayer/UI/MainMenu/MobaMode"), NodePath("CanvasLayer/UI/MainMenu/Codex"), NodePath("CanvasLayer/UI/MainMenu/Sandbox"), NodePath("CanvasLayer/UI/MainMenu/UtilityActions"), NodePath("CanvasLayer/UI/Version")])
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1939480643]
 environment = SubResource("World")

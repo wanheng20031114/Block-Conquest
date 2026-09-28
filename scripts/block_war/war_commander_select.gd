@@ -3,7 +3,6 @@ extends Control
 
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const PLAYABLE := {0: &"squirrel", 1: &"rabbit", 2: &"bear", 5: &"frog"}
-var _portrait_tween: Tween
 @onready var session: Node = get_node("/root/Session")
 
 func _ready() -> void:
@@ -14,13 +13,14 @@ func _ready() -> void:
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
 	_select(PLAYABLE.find_key(session.block_war_commander), false)
-	UIMotion.bind_buttons(self)
+	UIMotion.bind_menu_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 
 func _select(index: int, animate: bool = true) -> void:
 	if not PLAYABLE.has(index):
 		return
 	var commander: StringName = PLAYABLE[index]
+	var changed: bool = session.block_war_commander != commander
 	session.block_war_commander = commander
 	for i: int in PLAYABLE:
 		get_node("%%Animal%d" % i).set_pressed_no_signal(i == index)
@@ -50,13 +50,16 @@ func _select(index: int, animate: bool = true) -> void:
 		get_node("%%SkillDetail%d" % i).text = summaries[i]
 		get_node("%%SkillCost%d" % i).text = "%d 技力\n%d 秒冷却" % [RULES.costs_for(commander)[i], RULES.cooldowns_for(commander)[i]]
 		get_node("%%SkillIcon%d" % i).get_parent().get_parent().tooltip_text = RULES.description(i, commander)
-	if animate:
-		if _portrait_tween != null and _portrait_tween.is_valid():
-			_portrait_tween.kill()
-		%Portrait.pivot_offset = %Portrait.size * Vector2(0.5, 0.85)
-		%Portrait.scale = Vector2(0.96, 0.96)
-		_portrait_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_portrait_tween.tween_property(%Portrait, "scale", Vector2.ONE, 0.18)
+	if animate and changed:
+		_animate_selection()
+
+func _animate_selection() -> void:
+	UIMotion.reveal_menu(%Portrait, Vector2(-14, 8))
+	UIMotion.reveal_menu(%AnimalName, Vector2(0, 8), 0.035)
+	UIMotion.reveal_menu(%Personality, Vector2.ZERO, 0.045)
+	UIMotion.reveal_menu(%Role, Vector2.ZERO, 0.065)
+	for index: int in 4:
+		UIMotion.reveal_menu(get_node("Margin/Column/Content/Details/Skill%d" % index), Vector2.ZERO, 0.08 + index * 0.035)
 
 func _next() -> void:
 	if session.transition.busy or session.settings.is_open():

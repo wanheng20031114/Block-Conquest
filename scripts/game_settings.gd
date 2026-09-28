@@ -217,7 +217,7 @@ func open_menu() -> void:
 	menu.set_campaign_style(scene != null and scene.scene_file_path.begins_with("res://scenes/block_war/"))
 	menu.refresh(snapshot())
 	menu.show()
-	UIMotion.reveal(menu.get_node("Center/Panel"))
+	menu.open_motion()
 	opened.emit()
 
 func close_menu() -> void:

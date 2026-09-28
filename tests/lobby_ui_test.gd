@@ -125,6 +125,10 @@ func _run() -> void:
 	fake.settings = original_session.settings
 	fake.relay = FakeRelay.new()
 	fake.add_child(fake.relay)
+	# Keep transport deterministic while exercising the same authored UI
+	# services that the real lobby resolves below its persistent Session.
+	fake.add_child(preload("res://scenes/ui/ui_feedback.tscn").instantiate())
+	fake.add_child(preload("res://scenes/ui/ui_transition.tscn").instantiate())
 	root.add_child(fake)
 	var previous_limit: int = Engine.max_fps
 	lobby = load("res://scenes/lobby.tscn").instantiate()

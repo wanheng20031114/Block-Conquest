@@ -26,7 +26,7 @@ func _ready() -> void:
 	%PlayerName.text = "%s已准备好" % RULES.name_for(session.block_war_commander)
 	selected = CATALOG.find_map(session.block_war_map_id)
 	_select_size(selected.size_class)
-	UIMotion.bind_buttons(self)
+	UIMotion.bind_menu_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 
 func _select_commander(index: int) -> void:
@@ -49,6 +49,7 @@ func _select_size(size_class: int) -> void:
 	_select_map(selected_index)
 
 func _select_map(index: int) -> void:
+	var changed: bool = selected != _maps[index]
 	selected = _maps[index]
 	session.block_war_map_id = selected.map_id
 	for i: int in 2:
@@ -76,6 +77,18 @@ func _select_map(index: int) -> void:
 	%Teams.text = "你对战 1 名电脑" if selected.team_size == 1 else "你 + %d 名电脑盟友，对战 %d 名电脑\n增援抵达队友建筑后，交由队友指挥。" % [selected.team_size - 1, selected.team_size]
 	%Start.text = "开始 %s 对局   →" % selected.mode_label()
 	%Preview.show_map(selected)
+	if changed:
+		_animate_map_change()
+
+func _animate_map_change() -> void:
+	# Keep the selection controls in place while the new terrain and facts appear.
+	UIMotion.reveal_menu(%Preview, Vector2.ZERO)
+	UIMotion.reveal_menu($Margin/Column/Content/Overview/OverviewColumn/MapHeader, Vector2.ZERO)
+	UIMotion.reveal_menu(%MapInfo, Vector2.ZERO, 0.025)
+	UIMotion.reveal_menu(%TerrainInfo, Vector2.ZERO, 0.035)
+	UIMotion.reveal_menu(%Description, Vector2.ZERO, 0.055)
+	UIMotion.reveal_menu(%SpawnLegend, Vector2.ZERO, 0.075)
+	UIMotion.reveal_menu(%Teams, Vector2.ZERO, 0.075)
 
 func _start() -> void:
 	if _launching or session.transition.busy or session.settings.is_open():

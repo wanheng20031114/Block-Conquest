@@ -69,10 +69,8 @@ func _ready() -> void:
 	if not relay.room.is_empty():
 		_on_room_changed(relay.room)
 	_on_connection_state_changed(relay.connection_state)
-	UIMotion.bind_buttons($CanvasLayer/UI)
+	UIMotion.bind_menu_buttons($CanvasLayer/UI)
 	session.get_node("UIFeedback").bind_buttons($CanvasLayer/UI)
-	UIMotion.reveal(%Brand, Vector2(0, -10))
-	UIMotion.reveal(%MainMenu, Vector2(0, 18))
 	%SoloMenu.grab_focus(true)
 	if "--lobby-capture" in arguments:
 		call_deferred("_capture_lobby")
@@ -107,7 +105,12 @@ func set_mode(value: String) -> void:
 
 func _on_mode_selected(value: String) -> void:
 	if not _pending_request and room.is_empty():
+		var changed: bool = mode != value
 		set_mode(value)
+		if changed and %SoloPanel.visible:
+			UIMotion.reveal_menu(%MapTitle)
+			UIMotion.reveal_menu(%MapDetail, Vector2.ZERO, 0.035)
+			UIMotion.reveal_menu(%SoloDescription, Vector2.ZERO, 0.07)
 
 func _on_solo_start() -> void:
 	if _transitioning:
@@ -133,13 +136,21 @@ func _on_load_failed(detail: String) -> void:
 	_set_message(detail, true)
 	_refresh_request_buttons()
 
-func _reveal_panel(panel: Control) -> void:
-	UIMotion.reveal(panel, Vector2(16, 0))
+func _reveal_panel(panel: Control, content: Control) -> void:
+	UIMotion.reveal_menu(panel, Vector2(18, 0))
+	_reveal_sections(content)
+
+func _reveal_sections(content: Control) -> void:
+	var index: int = 0
+	for section: Control in content.get_children():
+		if section.visible and not section is Separator:
+			UIMotion.reveal_menu(section, Vector2(0, 10), minf(index * 0.025, 0.2))
+			index += 1
 
 func _on_open_solo() -> void:
 	if %OnlinePanel.visible:
 		_on_close_multiplayer()
-	_reveal_panel(%SoloPanel)
+	_reveal_panel(%SoloPanel, %SoloPanel.get_node("SoloScroll/Content"))
 	%SoloStart.grab_focus(true)
 
 func _on_close_solo() -> void:
@@ -194,7 +205,7 @@ func _on_close_codex() -> void:
 
 func _on_open_multiplayer() -> void:
 	%SoloPanel.hide()
-	_reveal_panel(%OnlinePanel)
+	_reveal_panel(%OnlinePanel, %OnlinePanel.get_node("PanelScroll/Content"))
 	if room.is_empty():
 		%Nickname.grab_focus()
 
@@ -338,6 +349,7 @@ func _on_relay_event(event: Dictionary) -> void:
 		_set_message(event.get("message", "房间已关闭。"), true)
 
 func _on_room_changed(value: Dictionary) -> void:
+	var opening_room: bool = not %Room.visible
 	room = value.duplicate(true)
 	_pending_request = false
 	%RequestTimeout.stop()
@@ -402,6 +414,10 @@ func _on_room_changed(value: Dictionary) -> void:
 	if _pending_slots.is_empty():
 		%SlotTimeout.stop()
 	_refresh_room_controls()
+	# Only animate the setup-to-room change, never every incoming roster update.
+	if opening_room:
+		UIMotion.reveal_menu(%Room)
+		_reveal_sections(%Room)
 
 func _refresh_room_controls() -> void:
 	var in_lobby: bool = relay.connection_state == "lobby" and room.status == "lobby"
@@ -514,11 +530,15 @@ func _on_leave_room() -> void:
 	_set_message("已离开房间。")
 
 func _show_setup() -> void:
+	var returning_to_setup: bool = %Room.visible
 	_pending_slots.clear()
 	%SlotTimeout.stop()
 	%Room.hide()
 	%Setup.show()
 	_refresh_request_buttons()
+	if returning_to_setup and %OnlinePanel.visible:
+		UIMotion.reveal_menu(%Setup)
+		_reveal_sections(%Setup)
 
 func _on_match_started(config: Dictionary) -> void:
 	if _transitioning:
