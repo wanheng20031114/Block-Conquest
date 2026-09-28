@@ -433,10 +433,10 @@ buffer = PackedFloat32Array(-0.163049, 0.000000, -0.680746, -8.039884, 0.000000,
 
 [sub_resource type="MultiMesh" id="nature_cover_reed_cluster_n1_n1"]
 transform_format = 1
-instance_count = 2
+instance_count = 1
 mesh = ExtResource("nature_reed_cluster_mesh")
 custom_aabb = AABB(-34, -1, -34, 36, 5, 36)
-buffer = PackedFloat32Array(-0.163049, 0.000000, -0.680746, -6.390796, 0.000000, 0.700000, 0.000000, -0.025000, 0.680746, 0.000000, -0.163049, -31.663287, -0.093555, 0.000000, -0.693720, -5.720634, 0.000000, 0.700000, 0.000000, -0.025000, 0.693720, 0.000000, -0.093555, -1.776616)
+buffer = PackedFloat32Array(-0.163049, 0.000000, -0.680746, -6.390796, 0.000000, 0.700000, 0.000000, -0.025000, 0.680746, 0.000000, -0.163049, -31.663287)
 
 [sub_resource type="MultiMesh" id="nature_cover_reed_cluster_n1_0"]
 transform_format = 1
@@ -454,17 +454,17 @@ buffer = PackedFloat32Array(-0.163049, 0.000000, -0.680746, 9.716529, 0.000000, 
 
 [sub_resource type="MultiMesh" id="nature_cover_reed_cluster_0_n1"]
 transform_format = 1
-instance_count = 2
+instance_count = 1
 mesh = ExtResource("nature_reed_cluster_mesh")
 custom_aabb = AABB(-2, -1, -34, 36, 5, 36)
-buffer = PackedFloat32Array(-0.163049, 0.000000, -0.680746, 9.640048, 0.000000, 0.700000, 0.000000, -0.189978, 0.680746, 0.000000, -0.163049, -31.571331, -0.093555, 0.000000, -0.693720, 7.613537, 0.000000, 0.700000, 0.000000, -0.148432, 0.693720, 0.000000, -0.093555, -1.705311)
+buffer = PackedFloat32Array(-0.163049, 0.000000, -0.680746, 9.640048, 0.000000, 0.700000, 0.000000, -0.189978, 0.680746, 0.000000, -0.163049, -31.571331)
 
 [sub_resource type="MultiMesh" id="nature_cover_reed_cluster_0_0"]
 transform_format = 1
-instance_count = 3
+instance_count = 2
 mesh = ExtResource("nature_reed_cluster_mesh")
 custom_aabb = AABB(-2, -1, -2, 36, 5, 36)
-buffer = PackedFloat32Array(-0.374076, 0.000000, 0.591665, 9.749818, 0.000000, 0.700000, 0.000000, -0.147262, -0.591665, 0.000000, -0.374076, 22.621994, -0.374076, 0.000000, 0.591665, 9.582140, 0.000000, 0.700000, 0.000000, -0.154224, -0.591665, 0.000000, -0.374076, 20.765347, -0.093555, 0.000000, -0.693720, 7.772366, 0.000000, 0.700000, 0.000000, -0.168091, 0.693720, 0.000000, -0.093555, 1.020162)
+buffer = PackedFloat32Array(-0.374076, 0.000000, 0.591665, 9.749818, 0.000000, 0.700000, 0.000000, -0.147262, -0.591665, 0.000000, -0.374076, 22.621994, -0.374076, 0.000000, 0.591665, 9.582140, 0.000000, 0.700000, 0.000000, -0.154224, -0.591665, 0.000000, -0.374076, 20.765347)
 
 [node name="WarMap" type="Node3D"]
 script = ExtResource("script")
@@ -1193,970 +1193,952 @@ rotation = Vector3(0, 3.784587, 0)
 scale = Vector3(0.467826, 0.400993, 0.392082)
 metadata/route_radius = 1.076190
 
-[node name="nature_BankStone_0009" parent="Nature" instance=ExtResource("nature_moss_boulder")]
-position = Vector3(6.19396, -0.11025, 1.020162)
-rotation = Vector3(0, 4.578338, 0)
-scale = Vector3(1.169315, 1.00227, 0.979998)
-metadata/route_radius = 1.076190
-
-[node name="nature_BankStone_0010" parent="Nature" instance=ExtResource("nature_moss_boulder")]
-position = Vector3(-6.581749, -0.047407, -1.776616)
-rotation = Vector3(0, -6.228338, 0)
-scale = Vector3(0.502806, 0.430976, 0.421399)
-metadata/route_radius = 1.076190
-
-[node name="nature_BankStone_0011" parent="Nature" instance=ExtResource("nature_moss_boulder")]
-position = Vector3(6.752422, -0.047407, -1.705311)
-rotation = Vector3(0, 6.228338, 0)
-scale = Vector3(0.502806, 0.430976, 0.421399)
-metadata/route_radius = 1.076190
-
-[node name="nature_ClearingTree_0012" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ClearingTree_0009" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-17.805636, 0, -21.381205)
 rotation = Vector3(0, -122.849963, 0)
 scale = Vector3(0.871678, 0.871678, 0.871678)
 metadata/route_radius = 0.720000
 
-[node name="nature_ClearingTree_0013" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ClearingTree_0010" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(17.805636, 0, -21.381205)
 rotation = Vector3(0, 122.849963, 0)
 scale = Vector3(0.871678, 0.871678, 0.871678)
 metadata/route_radius = 0.720000
 
-[node name="nature_ClearingTree_0014" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ClearingTree_0011" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-18.294858, 0, -23.318523)
 rotation = Vector3(0, -130.049852, 0)
 scale = Vector3(0.642443, 0.642443, 0.642443)
 metadata/route_radius = 0.720000
 
-[node name="nature_ClearingTree_0015" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ClearingTree_0012" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(18.294858, 0, -23.318523)
 rotation = Vector3(0, 130.049852, 0)
 scale = Vector3(0.642443, 0.642443, 0.642443)
 metadata/route_radius = 0.720000
 
-[node name="nature_ClearingTree_0016" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ClearingTree_0013" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-15.512361, 0, -20.270953)
 rotation = Vector3(0, -134.849778, 0)
 scale = Vector3(0.71695, 0.71695, 0.71695)
 metadata/route_radius = 0.720000
 
-[node name="nature_ClearingTree_0017" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ClearingTree_0014" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(15.512361, 0, -20.270953)
 rotation = Vector3(0, 134.849778, 0)
 scale = Vector3(0.71695, 0.71695, 0.71695)
 metadata/route_radius = 0.720000
 
-[node name="nature_ForestTree_0018" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0015" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-44.912062, 0, -24.478541)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(0.922826, 0.922826, 0.922826)
 
-[node name="nature_ForestTree_0019" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0016" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(44.912062, 0, -24.478541)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(0.922826, 0.922826, 0.922826)
 
-[node name="nature_ForestTree_0020" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0017" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-46.598219, 0, -22.785088)
 rotation = Vector3(0, -7.199889, 0)
 scale = Vector3(0.984362, 0.984362, 0.984362)
 
-[node name="nature_ForestTree_0021" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0018" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(46.598219, 0, -22.785088)
 rotation = Vector3(0, 7.199889, 0)
 scale = Vector3(0.984362, 0.984362, 0.984362)
 
-[node name="nature_ForestTree_0022" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0019" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-41.760979, 0, -24.907724)
 rotation = Vector3(0, -9.599852, 0)
 scale = Vector3(0.647484, 0.647484, 0.647484)
 
-[node name="nature_ForestTree_0023" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0020" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(41.760979, 0, -24.907724)
 rotation = Vector3(0, 9.599852, 0)
 scale = Vector3(0.647484, 0.647484, 0.647484)
 
-[node name="nature_ForestTree_0024" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0021" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-47.930771, 0, -25.957142)
 rotation = Vector3(0, -11.999815, 0)
 scale = Vector3(0.661879, 0.661879, 0.661879)
 
-[node name="nature_ForestTree_0025" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0022" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(47.930771, 0, -25.957142)
 rotation = Vector3(0, 11.999815, 0)
 scale = Vector3(0.661879, 0.661879, 0.661879)
 
-[node name="nature_ForestTree_0026" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0023" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-43.89463, 0, -21.564233)
 rotation = Vector3(0, -14.399778, 0)
 scale = Vector3(0.706879, 0.706879, 0.706879)
 
-[node name="nature_ForestTree_0027" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0024" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(43.89463, 0, -21.564233)
 rotation = Vector3(0, 14.399778, 0)
 scale = Vector3(0.706879, 0.706879, 0.706879)
 
-[node name="nature_ForestTree_0028" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0025" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-42.960944, 0, -27.371235)
 rotation = Vector3(0, -16.799741, 0)
 scale = Vector3(0.718136, 0.718136, 0.718136)
 
-[node name="nature_ForestTree_0029" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0026" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(42.960944, 0, -27.371235)
 rotation = Vector3(0, 16.799741, 0)
 scale = Vector3(0.718136, 0.718136, 0.718136)
 
-[node name="nature_ForestTree_0030" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0027" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-49.162948, 0, -23.283187)
 rotation = Vector3(0, -19.199704, 0)
 scale = Vector3(0.718727, 0.718727, 0.718727)
 
-[node name="nature_ForestTree_0031" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0028" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(49.162948, 0, -23.283187)
 rotation = Vector3(0, 19.199704, 0)
 scale = Vector3(0.718727, 0.718727, 0.718727)
 
-[node name="nature_ForestTree_0032" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0029" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-5.029204, 0, 34.997386)
 rotation = Vector3(0, -0.73, 0)
 scale = Vector3(0.9862, 0.9862, 0.9862)
 
-[node name="nature_ForestTree_0033" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0030" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(5.029204, 0, 34.997386)
 rotation = Vector3(0, 0.73, 0)
 scale = Vector3(0.9862, 0.9862, 0.9862)
 
-[node name="nature_ForestTree_0034" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0031" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-4.819045, 0, 37.125128)
 rotation = Vector3(0, -7.929889, 0)
 scale = Vector3(0.946784, 0.946784, 0.946784)
 
-[node name="nature_ForestTree_0035" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0032" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(4.819045, 0, 37.125128)
 rotation = Vector3(0, 7.929889, 0)
 scale = Vector3(0.946784, 0.946784, 0.946784)
 
-[node name="nature_ForestTree_0036" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0033" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-3.052797, 0, 33.059522)
 rotation = Vector3(0, -10.329852, 0)
 scale = Vector3(0.570934, 0.570934, 0.570934)
 
-[node name="nature_ForestTree_0037" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0034" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(3.052797, 0, 33.059522)
 rotation = Vector3(0, 10.329852, 0)
 scale = Vector3(0.570934, 0.570934, 0.570934)
 
-[node name="nature_ForestTree_0038" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0035" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-1.747061, 0, 36.646613)
 rotation = Vector3(0, -15.129778, 0)
 scale = Vector3(0.635122, 0.635122, 0.635122)
 
-[node name="nature_ForestTree_0039" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0036" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(1.747061, 0, 36.646613)
 rotation = Vector3(0, 15.129778, 0)
 scale = Vector3(0.635122, 0.635122, 0.635122)
 
-[node name="nature_ForestTree_0040" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0037" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-6.08054, 0, 31.839945)
 rotation = Vector3(0, -17.529741, 0)
 scale = Vector3(0.702479, 0.702479, 0.702479)
 
-[node name="nature_ForestTree_0041" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0038" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(6.08054, 0, 31.839945)
 rotation = Vector3(0, 17.529741, 0)
 scale = Vector3(0.702479, 0.702479, 0.702479)
 
-[node name="nature_ForestTree_0042" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0039" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-7.161602, 0, 38.070919)
 rotation = Vector3(0, -19.929704, 0)
 scale = Vector3(0.57619, 0.57619, 0.57619)
 
-[node name="nature_ForestTree_0043" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0040" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(7.161602, 0, 38.070919)
 rotation = Vector3(0, 19.929704, 0)
 scale = Vector3(0.57619, 0.57619, 0.57619)
 
-[node name="nature_ForestTree_0044" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0041" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-20.664131, 0, 31.342032)
 rotation = Vector3(0, -1.46, 0)
 scale = Vector3(0.994317, 0.994317, 0.994317)
 
-[node name="nature_ForestTree_0045" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0042" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(20.664131, 0, 31.342032)
 rotation = Vector3(0, 1.46, 0)
 scale = Vector3(0.994317, 0.994317, 0.994317)
 
-[node name="nature_ForestTree_0046" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0043" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-22.926261, 0, 31.301511)
 rotation = Vector3(0, -6.259926, 0)
 scale = Vector3(0.875658, 0.875658, 0.875658)
 
-[node name="nature_ForestTree_0047" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0044" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(22.926261, 0, 31.301511)
 rotation = Vector3(0, 6.259926, 0)
 scale = Vector3(0.875658, 0.875658, 0.875658)
 
-[node name="nature_ForestTree_0048" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0045" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-18.664765, 0, 32.819656)
 rotation = Vector3(0, -8.659889, 0)
 scale = Vector3(1.014832, 1.014832, 1.014832)
 
-[node name="nature_ForestTree_0049" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0046" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(18.664765, 0, 32.819656)
 rotation = Vector3(0, 8.659889, 0)
 scale = Vector3(1.014832, 1.014832, 1.014832)
 
-[node name="nature_ForestTree_0050" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0047" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-20.869678, 0, 28.88312)
 rotation = Vector3(0, -11.059852, 0)
 scale = Vector3(0.68497, 0.68497, 0.68497)
 
-[node name="nature_ForestTree_0051" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0048" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(20.869678, 0, 28.88312)
 rotation = Vector3(0, 11.059852, 0)
 scale = Vector3(0.68497, 0.68497, 0.68497)
 
-[node name="nature_ForestTree_0052" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0049" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-22.906395, 0, 33.488697)
 rotation = Vector3(0, -13.459815, 0)
 scale = Vector3(0.629274, 0.629274, 0.629274)
 
-[node name="nature_ForestTree_0053" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0050" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(22.906395, 0, 33.488697)
 rotation = Vector3(0, 13.459815, 0)
 scale = Vector3(0.629274, 0.629274, 0.629274)
 
-[node name="nature_ForestTree_0054" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0051" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-16.790025, 0, 30.885648)
 rotation = Vector3(0, -15.859778, 0)
 scale = Vector3(0.574203, 0.574203, 0.574203)
 
-[node name="nature_ForestTree_0055" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0052" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(16.790025, 0, 30.885648)
 rotation = Vector3(0, 15.859778, 0)
 scale = Vector3(0.574203, 0.574203, 0.574203)
 
-[node name="nature_ForestTree_0056" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0053" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-24.182107, 0, 29.529038)
 rotation = Vector3(0, -18.259741, 0)
 scale = Vector3(0.582232, 0.582232, 0.582232)
 
-[node name="nature_ForestTree_0057" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0054" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(24.182107, 0, 29.529038)
 rotation = Vector3(0, 18.259741, 0)
 scale = Vector3(0.582232, 0.582232, 0.582232)
 
-[node name="nature_ForestTree_0058" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0055" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-19.591262, 0, 34.727314)
 rotation = Vector3(0, -20.659704, 0)
 scale = Vector3(0.713451, 0.713451, 0.713451)
 
-[node name="nature_ForestTree_0059" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0056" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(19.591262, 0, 34.727314)
 rotation = Vector3(0, 20.659704, 0)
 scale = Vector3(0.713451, 0.713451, 0.713451)
 
-[node name="nature_ForestTree_0060" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0057" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-45.785395, 0, 6.314589)
 rotation = Vector3(0, -2.19, 0)
 scale = Vector3(0.94818, 0.94818, 0.94818)
 
-[node name="nature_ForestTree_0061" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0058" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(45.785395, 0, 6.314589)
 rotation = Vector3(0, 2.19, 0)
 scale = Vector3(0.94818, 0.94818, 0.94818)
 
-[node name="nature_ForestTree_0062" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0059" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-47.506171, 0, 7.445974)
 rotation = Vector3(0, -6.989926, 0)
 scale = Vector3(0.990581, 0.990581, 0.990581)
 
-[node name="nature_ForestTree_0063" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0060" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(47.506171, 0, 7.445974)
 rotation = Vector3(0, 6.989926, 0)
 scale = Vector3(0.990581, 0.990581, 0.990581)
 
-[node name="nature_ForestTree_0064" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0061" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-43.015801, 0, 6.389023)
 rotation = Vector3(0, -9.389889, 0)
 scale = Vector3(0.985201, 0.985201, 0.985201)
 
-[node name="nature_ForestTree_0065" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0062" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(43.015801, 0, 6.389023)
 rotation = Vector3(0, 9.389889, 0)
 scale = Vector3(0.985201, 0.985201, 0.985201)
 
-[node name="nature_ForestTree_0066" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0063" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-48.06814, 0, 4.587818)
 rotation = Vector3(0, -11.789852, 0)
 scale = Vector3(0.624102, 0.624102, 0.624102)
 
-[node name="nature_ForestTree_0067" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0064" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(48.06814, 0, 4.587818)
 rotation = Vector3(0, 11.789852, 0)
 scale = Vector3(0.624102, 0.624102, 0.624102)
 
-[node name="nature_ForestTree_0068" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0065" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-45.597123, 0, 9.065608)
 rotation = Vector3(0, -14.189815, 0)
 scale = Vector3(0.601643, 0.601643, 0.601643)
 
-[node name="nature_ForestTree_0069" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0066" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(45.597123, 0, 9.065608)
 rotation = Vector3(0, 14.189815, 0)
 scale = Vector3(0.601643, 0.601643, 0.601643)
 
-[node name="nature_ForestTree_0070" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0067" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-43.293769, 0, 3.98519)
 rotation = Vector3(0, -16.589778, 0)
 scale = Vector3(0.583363, 0.583363, 0.583363)
 
-[node name="nature_ForestTree_0071" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0068" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(43.293769, 0, 3.98519)
 rotation = Vector3(0, 16.589778, 0)
 scale = Vector3(0.583363, 0.583363, 0.583363)
 
-[node name="nature_ForestTree_0072" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0069" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-49.97707, 0, 6.770037)
 rotation = Vector3(0, -18.989741, 0)
 scale = Vector3(0.638984, 0.638984, 0.638984)
 
-[node name="nature_ForestTree_0073" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0070" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(49.97707, 0, 6.770037)
 rotation = Vector3(0, 18.989741, 0)
 scale = Vector3(0.638984, 0.638984, 0.638984)
 
-[node name="nature_ForestTree_0074" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0071" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-42.054048, 0, 8.286307)
 rotation = Vector3(0, -21.389704, 0)
 scale = Vector3(0.640114, 0.640114, 0.640114)
 
-[node name="nature_ForestTree_0075" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0072" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(42.054048, 0, 8.286307)
 rotation = Vector3(0, 21.389704, 0)
 scale = Vector3(0.640114, 0.640114, 0.640114)
 
-[node name="nature_ForestTree_0076" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0073" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-42.171767, 0, -10.465623)
 rotation = Vector3(0, -2.92, 0)
 scale = Vector3(0.89898, 0.89898, 0.89898)
 
-[node name="nature_ForestTree_0077" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0074" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(42.171767, 0, -10.465623)
 rotation = Vector3(0, 2.92, 0)
 scale = Vector3(0.89898, 0.89898, 0.89898)
 
-[node name="nature_ForestTree_0078" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0075" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-40.043471, 0, -11.832315)
 rotation = Vector3(0, -10.119889, 0)
 scale = Vector3(0.964217, 0.964217, 0.964217)
 
-[node name="nature_ForestTree_0079" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0076" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(40.043471, 0, -11.832315)
 rotation = Vector3(0, 10.119889, 0)
 scale = Vector3(0.964217, 0.964217, 0.964217)
 
-[node name="nature_ForestTree_0080" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0077" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-45.368306, 0, -10.580203)
 rotation = Vector3(0, -12.519852, 0)
 scale = Vector3(0.673602, 0.673602, 0.673602)
 
-[node name="nature_ForestTree_0081" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0078" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(45.368306, 0, -10.580203)
 rotation = Vector3(0, 12.519852, 0)
 scale = Vector3(0.673602, 0.673602, 0.673602)
 
-[node name="nature_ForestTree_0082" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0079" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-39.648912, 0, -8.51231)
 rotation = Vector3(0, -14.919815, 0)
 scale = Vector3(0.610383, 0.610383, 0.610383)
 
-[node name="nature_ForestTree_0083" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0080" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(39.648912, 0, -8.51231)
 rotation = Vector3(0, 14.919815, 0)
 scale = Vector3(0.610383, 0.610383, 0.610383)
 
-[node name="nature_ForestTree_0084" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0081" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-42.332481, 0, -13.480856)
 rotation = Vector3(0, -17.319778, 0)
 scale = Vector3(0.712268, 0.712268, 0.712268)
 
-[node name="nature_ForestTree_0085" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0082" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(42.332481, 0, -13.480856)
 rotation = Vector3(0, 17.319778, 0)
 scale = Vector3(0.712268, 0.712268, 0.712268)
 
-[node name="nature_ForestTree_0086" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0083" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-44.900849, 0, -7.973854)
 rotation = Vector3(0, -19.719741, 0)
 scale = Vector3(0.682624, 0.682624, 0.682624)
 
-[node name="nature_ForestTree_0087" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0084" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(44.900849, 0, -7.973854)
 rotation = Vector3(0, 19.719741, 0)
 scale = Vector3(0.682624, 0.682624, 0.682624)
 
-[node name="nature_ForestTree_0088" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0085" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-41.545367, 0, 21.822643)
 rotation = Vector3(0, -3.65, 0)
 scale = Vector3(0.915553, 0.915553, 0.915553)
 
-[node name="nature_ForestTree_0089" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0086" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(41.545367, 0, 21.822643)
 rotation = Vector3(0, 3.65, 0)
 scale = Vector3(0.915553, 0.915553, 0.915553)
 
-[node name="nature_ForestTree_0090" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0087" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-40.275311, 0, 23.264612)
 rotation = Vector3(0, -8.449926, 0)
 scale = Vector3(0.900458, 0.900458, 0.900458)
 
-[node name="nature_ForestTree_0091" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0088" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(40.275311, 0, 23.264612)
 rotation = Vector3(0, 8.449926, 0)
 scale = Vector3(0.900458, 0.900458, 0.900458)
 
-[node name="nature_ForestTree_0092" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0089" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-41.143059, 0, 19.711361)
 rotation = Vector3(0, -10.849889, 0)
 scale = Vector3(0.877543, 0.877543, 0.877543)
 
-[node name="nature_ForestTree_0093" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0090" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(41.143059, 0, 19.711361)
 rotation = Vector3(0, 10.849889, 0)
 scale = Vector3(0.877543, 0.877543, 0.877543)
 
-[node name="nature_ForestTree_0094" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0091" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-44.02658, 0, 23.37865)
 rotation = Vector3(0, -13.249852, 0)
 scale = Vector3(0.675374, 0.675374, 0.675374)
 
-[node name="nature_ForestTree_0095" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0092" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(44.02658, 0, 23.37865)
 rotation = Vector3(0, 13.249852, 0)
 scale = Vector3(0.675374, 0.675374, 0.675374)
 
-[node name="nature_ForestTree_0096" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0093" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-44.276513, 0, 19.658293)
 rotation = Vector3(0, -18.049778, 0)
 scale = Vector3(0.644182, 0.644182, 0.644182)
 
-[node name="nature_ForestTree_0097" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0094" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(44.276513, 0, 19.658293)
 rotation = Vector3(0, 18.049778, 0)
 scale = Vector3(0.644182, 0.644182, 0.644182)
 
-[node name="nature_ForestTree_0098" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0095" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-41.420976, 0, 25.080801)
 rotation = Vector3(0, -20.449741, 0)
 scale = Vector3(0.658918, 0.658918, 0.658918)
 
-[node name="nature_ForestTree_0099" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0096" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(41.420976, 0, 25.080801)
 rotation = Vector3(0, 20.449741, 0)
 scale = Vector3(0.658918, 0.658918, 0.658918)
 
-[node name="nature_ForestTree_0100" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0097" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-38.587821, 0, 19.185135)
 rotation = Vector3(0, -22.849704, 0)
 scale = Vector3(0.581802, 0.581802, 0.581802)
 
-[node name="nature_ForestTree_0101" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0098" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(38.587821, 0, 19.185135)
 rotation = Vector3(0, 22.849704, 0)
 scale = Vector3(0.581802, 0.581802, 0.581802)
 
-[node name="nature_ForestTree_0102" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0099" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-22.131962, 0, -35.624614)
 rotation = Vector3(0, -4.38, 0)
 scale = Vector3(0.943133, 0.943133, 0.943133)
 
-[node name="nature_ForestTree_0103" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0100" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(22.131962, 0, -35.624614)
 rotation = Vector3(0, 4.38, 0)
 scale = Vector3(0.943133, 0.943133, 0.943133)
 
-[node name="nature_ForestTree_0104" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0101" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-19.93671, 0, -35.202256)
 rotation = Vector3(0, -9.179926, 0)
 scale = Vector3(1.060378, 1.060378, 1.060378)
 
-[node name="nature_ForestTree_0105" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0102" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(19.93671, 0, -35.202256)
 rotation = Vector3(0, 9.179926, 0)
 scale = Vector3(1.060378, 1.060378, 1.060378)
 
-[node name="nature_ForestTree_0106" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0103" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-23.660678, 0, -37.404468)
 rotation = Vector3(0, -11.579889, 0)
 scale = Vector3(0.911818, 0.911818, 0.911818)
 
-[node name="nature_ForestTree_0107" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0104" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(23.660678, 0, -37.404468)
 rotation = Vector3(0, 11.579889, 0)
 scale = Vector3(0.911818, 0.911818, 0.911818)
 
-[node name="nature_ForestTree_0108" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0105" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-22.633296, 0, -33.191041)
 rotation = Vector3(0, -13.979852, 0)
 scale = Vector3(0.667508, 0.667508, 0.667508)
 
-[node name="nature_ForestTree_0109" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0106" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(22.633296, 0, -33.191041)
 rotation = Vector3(0, 13.979852, 0)
 scale = Vector3(0.667508, 0.667508, 0.667508)
 
-[node name="nature_ForestTree_0110" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0107" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-19.331795, 0, -37.339324)
 rotation = Vector3(0, -16.379815, 0)
 scale = Vector3(0.575655, 0.575655, 0.575655)
 
-[node name="nature_ForestTree_0111" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0108" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(19.331795, 0, -37.339324)
 rotation = Vector3(0, 16.379815, 0)
 scale = Vector3(0.575655, 0.575655, 0.575655)
 
-[node name="nature_ForestTree_0112" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0109" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-26.041608, 0, -35.835017)
 rotation = Vector3(0, -18.779778, 0)
 scale = Vector3(0.589641, 0.589641, 0.589641)
 
-[node name="nature_ForestTree_0113" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0110" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(26.041608, 0, -35.835017)
 rotation = Vector3(0, 18.779778, 0)
 scale = Vector3(0.589641, 0.589641, 0.589641)
 
-[node name="nature_ForestTree_0114" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0111" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-19.217494, 0, -33.260591)
 rotation = Vector3(0, -21.179741, 0)
 scale = Vector3(0.699185, 0.699185, 0.699185)
 
-[node name="nature_ForestTree_0115" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0112" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(19.217494, 0, -33.260591)
 rotation = Vector3(0, 21.179741, 0)
 scale = Vector3(0.699185, 0.699185, 0.699185)
 
-[node name="nature_ForestTree_0116" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0113" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-22.212326, 0, -39.108687)
 rotation = Vector3(0, -23.579704, 0)
 scale = Vector3(0.717442, 0.717442, 0.717442)
 
-[node name="nature_ForestTree_0117" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0114" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(22.212326, 0, -39.108687)
 rotation = Vector3(0, 23.579704, 0)
 scale = Vector3(0.717442, 0.717442, 0.717442)
 
-[node name="nature_ForestTree_0118" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0115" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-34.753415, 0, 32.132763)
 rotation = Vector3(0, -5.11, 0)
 scale = Vector3(1.05456, 1.05456, 1.05456)
 
-[node name="nature_ForestTree_0119" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0116" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(34.753415, 0, 32.132763)
 rotation = Vector3(0, 5.11, 0)
 scale = Vector3(1.05456, 1.05456, 1.05456)
 
-[node name="nature_ForestTree_0120" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0117" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-32.75178, 0, 31.320255)
 rotation = Vector3(0, -9.909926, 0)
 scale = Vector3(0.872892, 0.872892, 0.872892)
 
-[node name="nature_ForestTree_0121" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0118" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(32.75178, 0, 31.320255)
 rotation = Vector3(0, 9.909926, 0)
 scale = Vector3(0.872892, 0.872892, 0.872892)
 
-[node name="nature_ForestTree_0122" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0119" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-37.434043, 0, 31.591441)
 rotation = Vector3(0, -12.309889, 0)
 scale = Vector3(0.938915, 0.938915, 0.938915)
 
-[node name="nature_ForestTree_0123" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0120" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(37.434043, 0, 31.591441)
 rotation = Vector3(0, 12.309889, 0)
 scale = Vector3(0.938915, 0.938915, 0.938915)
 
-[node name="nature_ForestTree_0124" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0121" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-33.019365, 0, 34.203629)
 rotation = Vector3(0, -14.709852, 0)
 scale = Vector3(0.697528, 0.697528, 0.697528)
 
-[node name="nature_ForestTree_0125" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0122" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(33.019365, 0, 34.203629)
 rotation = Vector3(0, 14.709852, 0)
 scale = Vector3(0.697528, 0.697528, 0.697528)
 
-[node name="nature_ForestTree_0126" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0123" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-34.151851, 0, 29.417149)
 rotation = Vector3(0, -17.109815, 0)
 scale = Vector3(0.70219, 0.70219, 0.70219)
 
-[node name="nature_ForestTree_0127" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0124" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(34.151851, 0, 29.417149)
 rotation = Vector3(0, 17.109815, 0)
 scale = Vector3(0.70219, 0.70219, 0.70219)
 
-[node name="nature_ForestTree_0128" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0125" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-37.849006, 0, 33.983539)
 rotation = Vector3(0, -19.509778, 0)
 scale = Vector3(0.618198, 0.618198, 0.618198)
 
-[node name="nature_ForestTree_0129" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0126" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(37.849006, 0, 33.983539)
 rotation = Vector3(0, 19.509778, 0)
 scale = Vector3(0.618198, 0.618198, 0.618198)
 
-[node name="nature_ForestTree_0130" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0127" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-30.534232, 0, 32.397823)
 rotation = Vector3(0, -21.909741, 0)
 scale = Vector3(0.70816, 0.70816, 0.70816)
 
-[node name="nature_ForestTree_0131" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0128" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(30.534232, 0, 32.397823)
 rotation = Vector3(0, 21.909741, 0)
 scale = Vector3(0.70816, 0.70816, 0.70816)
 
-[node name="nature_ForestTree_0132" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0129" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(-37.830732, 0, 29.577788)
 rotation = Vector3(0, -24.309704, 0)
 scale = Vector3(0.588832, 0.588832, 0.588832)
 
-[node name="nature_ForestTree_0133" parent="Nature" instance=ExtResource("nature_wind_pine")]
+[node name="nature_ForestTree_0130" parent="Nature" instance=ExtResource("nature_wind_pine")]
 position = Vector3(37.830732, 0, 29.577788)
 rotation = Vector3(0, 24.309704, 0)
 scale = Vector3(0.588832, 0.588832, 0.588832)
 
-[node name="nature_ForestTree_0134" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0131" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-37.819716, 0, -31.735477)
 rotation = Vector3(0, -5.84, 0)
 scale = Vector3(0.988765, 0.988765, 0.988765)
 
-[node name="nature_ForestTree_0135" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0132" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(37.819716, 0, -31.735477)
 rotation = Vector3(0, 5.84, 0)
 scale = Vector3(0.988765, 0.988765, 0.988765)
 
-[node name="nature_ForestTree_0136" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0133" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-40.286072, 0, -30.762381)
 rotation = Vector3(0, -13.039889, 0)
 scale = Vector3(0.900512, 0.900512, 0.900512)
 
-[node name="nature_ForestTree_0137" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0134" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(40.286072, 0, -30.762381)
 rotation = Vector3(0, 13.039889, 0)
 scale = Vector3(0.900512, 0.900512, 0.900512)
 
-[node name="nature_ForestTree_0138" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0135" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-34.734043, 0, -31.082737)
 rotation = Vector3(0, -15.439852, 0)
 scale = Vector3(0.60108, 0.60108, 0.60108)
 
-[node name="nature_ForestTree_0139" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0136" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(34.734043, 0, -31.082737)
 rotation = Vector3(0, 15.439852, 0)
 scale = Vector3(0.60108, 0.60108, 0.60108)
 
-[node name="nature_ForestTree_0140" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0137" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-39.723344, 0, -34.06798)
 rotation = Vector3(0, -17.839815, 0)
 scale = Vector3(0.697199, 0.697199, 0.697199)
 
-[node name="nature_ForestTree_0141" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0138" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(39.723344, 0, -34.06798)
 rotation = Vector3(0, 17.839815, 0)
 scale = Vector3(0.697199, 0.697199, 0.697199)
 
-[node name="nature_ForestTree_0142" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0139" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-38.52358, 0, -28.766772)
 rotation = Vector3(0, -20.239778, 0)
 scale = Vector3(0.576181, 0.576181, 0.576181)
 
-[node name="nature_ForestTree_0143" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0140" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(38.52358, 0, -28.766772)
 rotation = Vector3(0, 20.239778, 0)
 scale = Vector3(0.576181, 0.576181, 0.576181)
 
-[node name="nature_ForestTree_0144" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0141" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-34.44613, 0, -33.704467)
 rotation = Vector3(0, -22.639741, 0)
 scale = Vector3(0.574266, 0.574266, 0.574266)
 
-[node name="nature_ForestTree_0145" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0142" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(34.44613, 0, -33.704467)
 rotation = Vector3(0, 22.639741, 0)
 scale = Vector3(0.574266, 0.574266, 0.574266)
 
-[node name="nature_ForestTree_0146" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0143" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(-42.325628, 0, -32.059209)
 rotation = Vector3(0, -25.039704, 0)
 scale = Vector3(0.650841, 0.650841, 0.650841)
 
-[node name="nature_ForestTree_0147" parent="Nature" instance=ExtResource("nature_weeping_willow")]
+[node name="nature_ForestTree_0144" parent="Nature" instance=ExtResource("nature_weeping_willow")]
 position = Vector3(42.325628, 0, -32.059209)
 rotation = Vector3(0, 25.039704, 0)
 scale = Vector3(0.650841, 0.650841, 0.650841)
 
-[node name="nature_ForestTree_0148" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0145" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-4.657102, 0, -35.085782)
 rotation = Vector3(0, -6.57, 0)
 scale = Vector3(1.015386, 1.015386, 1.015386)
 
-[node name="nature_ForestTree_0149" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0146" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(4.657102, 0, -35.085782)
 rotation = Vector3(0, 6.57, 0)
 scale = Vector3(1.015386, 1.015386, 1.015386)
 
-[node name="nature_ForestTree_0150" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0147" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-5.652203, 0, -33.094209)
 rotation = Vector3(0, -13.769889, 0)
 scale = Vector3(0.971281, 0.971281, 0.971281)
 
-[node name="nature_ForestTree_0151" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0148" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(5.652203, 0, -33.094209)
 rotation = Vector3(0, 13.769889, 0)
 scale = Vector3(0.971281, 0.971281, 0.971281)
 
-[node name="nature_ForestTree_0152" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0149" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(-2.610514, 0, -32.512153)
 rotation = Vector3(0, -20.969778, 0)
 scale = Vector3(0.592915, 0.592915, 0.592915)
 
-[node name="nature_ForestTree_0153" parent="Nature" instance=ExtResource("nature_silver_birch")]
+[node name="nature_ForestTree_0150" parent="Nature" instance=ExtResource("nature_silver_birch")]
 position = Vector3(2.610514, 0, -32.512153)
 rotation = Vector3(0, 20.969778, 0)
 scale = Vector3(0.592915, 0.592915, 0.592915)
 
-[node name="nature_ForestTree_0154" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0151" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(-3.848464, 0, -38.285325)
 rotation = Vector3(0, -23.369741, 0)
 scale = Vector3(0.680662, 0.680662, 0.680662)
 
-[node name="nature_ForestTree_0155" parent="Nature" instance=ExtResource("nature_canopy_oak")]
+[node name="nature_ForestTree_0152" parent="Nature" instance=ExtResource("nature_canopy_oak")]
 position = Vector3(3.848464, 0, -38.285325)
 rotation = Vector3(0, 23.369741, 0)
 scale = Vector3(0.680662, 0.680662, 0.680662)
 
-[node name="nature_Understory_0156" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0153" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-19.155636, 0, -20.931205)
 rotation = Vector3(0, -5.550876, 0)
 scale = Vector3(0.56659, 0.56659, 0.56659)
 metadata/route_radius = 0.769231
 
-[node name="nature_Understory_0157" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0154" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(19.155636, 0, -20.931205)
 rotation = Vector3(0, 5.550876, 0)
 scale = Vector3(0.56659, 0.56659, 0.56659)
 metadata/route_radius = 0.769231
 
-[node name="nature_ForestRock_0158" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0155" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(-20.005636, -0.045029, -22.381205)
 rotation = Vector3(0, -5.550876, 0)
 scale = Vector3(0.542521, 0.409357, 0.419221)
 metadata/route_radius = 1.050000
 
-[node name="nature_ForestRock_0159" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0156" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(20.005636, -0.045029, -22.381205)
 rotation = Vector3(0, 5.550876, 0)
 scale = Vector3(0.542521, 0.409357, 0.419221)
 metadata/route_radius = 1.050000
 
-[node name="nature_Understory_0160" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0157" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-47.948219, 0, -22.335088)
 rotation = Vector3(0, -6.044173, 0)
 scale = Vector3(0.639835, 0.639835, 0.639835)
 
-[node name="nature_Understory_0161" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0158" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(47.948219, 0, -22.335088)
 rotation = Vector3(0, 6.044173, 0)
 scale = Vector3(0.639835, 0.639835, 0.639835)
 
-[node name="nature_Understory_0162" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0159" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-44.310944, 0, -26.921235)
 rotation = Vector3(0, -1.588885, 0)
 scale = Vector3(0.466788, 0.466788, 0.466788)
 
-[node name="nature_Understory_0163" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0160" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(44.310944, 0, -26.921235)
 rotation = Vector3(0, 1.588885, 0)
 scale = Vector3(0.466788, 0.466788, 0.466788)
 
-[node name="nature_Understory_0164" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0161" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-4.402797, 0, 33.509522)
 rotation = Vector3(0, -3.006397, 0)
 scale = Vector3(0.371107, 0.371107, 0.371107)
 
-[node name="nature_Understory_0165" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0162" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(4.402797, 0, 33.509522)
 rotation = Vector3(0, 3.006397, 0)
 scale = Vector3(0.371107, 0.371107, 0.371107)
 
-[node name="nature_Understory_0166" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0163" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-22.014131, 0, 31.792032)
 rotation = Vector3(0, -2.914313, 0)
 scale = Vector3(0.646306, 0.646306, 0.646306)
 
-[node name="nature_Understory_0167" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0164" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(22.014131, 0, 31.792032)
 rotation = Vector3(0, 2.914313, 0)
 scale = Vector3(0.646306, 0.646306, 0.646306)
 
-[node name="nature_Understory_0168" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0165" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-24.256395, 0, 33.938697)
 rotation = Vector3(0, -1.773724, 0)
 scale = Vector3(0.409028, 0.409028, 0.409028)
 
-[node name="nature_Understory_0169" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0166" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(24.256395, 0, 33.938697)
 rotation = Vector3(0, 1.773724, 0)
 scale = Vector3(0.409028, 0.409028, 0.409028)
 
-[node name="nature_Understory_0170" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0167" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-47.135395, 0, 6.764589)
 rotation = Vector3(0, -5.975066, 0)
 scale = Vector3(0.616317, 0.616317, 0.616317)
 
-[node name="nature_Understory_0171" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0168" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(47.135395, 0, 6.764589)
 rotation = Vector3(0, 5.975066, 0)
 scale = Vector3(0.616317, 0.616317, 0.616317)
 
-[node name="nature_Understory_0172" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0169" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-46.947123, 0, 9.515608)
 rotation = Vector3(0, -4.01215, 0)
 scale = Vector3(0.391068, 0.391068, 0.391068)
 
-[node name="nature_Understory_0173" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0170" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(46.947123, 0, 9.515608)
 rotation = Vector3(0, 4.01215, 0)
 scale = Vector3(0.391068, 0.391068, 0.391068)
 
-[node name="nature_Understory_0174" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0171" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-43.521767, 0, -10.015623)
 rotation = Vector3(0, -1.556019, 0)
 scale = Vector3(0.584337, 0.584337, 0.584337)
 
-[node name="nature_Understory_0175" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0172" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(43.521767, 0, -10.015623)
 rotation = Vector3(0, 1.556019, 0)
 scale = Vector3(0.584337, 0.584337, 0.584337)
 
-[node name="nature_Understory_0176" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0173" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-43.682481, 0, -13.030856)
 rotation = Vector3(0, -4.327819, 0)
 scale = Vector3(0.462974, 0.462974, 0.462974)
 
-[node name="nature_Understory_0177" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0174" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(43.682481, 0, -13.030856)
 rotation = Vector3(0, 4.327819, 0)
 scale = Vector3(0.462974, 0.462974, 0.462974)
 
-[node name="nature_ForestRock_0178" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0175" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(-44.532481, -0.050221, -14.480856)
 rotation = Vector3(0, -4.327819, 0)
 scale = Vector3(0.60507, 0.456553, 0.467554)
 
-[node name="nature_ForestRock_0179" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0176" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(44.532481, -0.050221, -14.480856)
 rotation = Vector3(0, 4.327819, 0)
 scale = Vector3(0.60507, 0.456553, 0.467554)
 
-[node name="nature_Understory_0180" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0177" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-42.493059, 0, 20.161361)
 rotation = Vector3(0, -4.3124, 0)
 scale = Vector3(0.570403, 0.570403, 0.570403)
 
-[node name="nature_Understory_0181" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0178" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(42.493059, 0, 20.161361)
 rotation = Vector3(0, 4.3124, 0)
 scale = Vector3(0.570403, 0.570403, 0.570403)
 
-[node name="nature_Understory_0182" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0179" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-39.937821, 0, 19.635135)
 rotation = Vector3(0, -3.521666, 0)
 scale = Vector3(0.378171, 0.378171, 0.378171)
 
-[node name="nature_Understory_0183" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0180" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(39.937821, 0, 19.635135)
 rotation = Vector3(0, 3.521666, 0)
 scale = Vector3(0.378171, 0.378171, 0.378171)
 
-[node name="nature_Understory_0184" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0181" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-23.983296, 0, -32.741041)
 rotation = Vector3(0, -2.954112, 0)
 scale = Vector3(0.43388, 0.43388, 0.43388)
 
-[node name="nature_Understory_0185" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0182" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(23.983296, 0, -32.741041)
 rotation = Vector3(0, 2.954112, 0)
 scale = Vector3(0.43388, 0.43388, 0.43388)
 
-[node name="nature_ForestRock_0186" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0183" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(-24.833296, -0.050791, -34.191041)
 rotation = Vector3(0, -2.954112, 0)
 scale = Vector3(0.61194, 0.461737, 0.472863)
 
-[node name="nature_ForestRock_0187" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0184" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(24.833296, -0.050791, -34.191041)
 rotation = Vector3(0, 2.954112, 0)
 scale = Vector3(0.61194, 0.461737, 0.472863)
 
-[node name="nature_Understory_0188" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0185" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-23.562326, 0, -38.658687)
 rotation = Vector3(0, -5.170392, 0)
 scale = Vector3(0.466337, 0.466337, 0.466337)
 
-[node name="nature_Understory_0189" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0186" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(23.562326, 0, -38.658687)
 rotation = Vector3(0, 5.170392, 0)
 scale = Vector3(0.466337, 0.466337, 0.466337)
 
-[node name="nature_Understory_0190" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0187" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-34.369365, 0, 34.653629)
 rotation = Vector3(0, -5.240613, 0)
 scale = Vector3(0.453393, 0.453393, 0.453393)
 
-[node name="nature_Understory_0191" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0188" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(34.369365, 0, 34.653629)
 rotation = Vector3(0, 5.240613, 0)
 scale = Vector3(0.453393, 0.453393, 0.453393)
 
-[node name="nature_Understory_0192" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0189" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-39.180732, 0, 30.027788)
 rotation = Vector3(0, -2.985455, 0)
 scale = Vector3(0.382741, 0.382741, 0.382741)
 
-[node name="nature_Understory_0193" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0190" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(39.180732, 0, 30.027788)
 rotation = Vector3(0, 2.985455, 0)
 scale = Vector3(0.382741, 0.382741, 0.382741)
 
-[node name="nature_ForestRock_0194" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0191" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(-40.030732, -0.045633, 28.577788)
 rotation = Vector3(0, -2.985455, 0)
 scale = Vector3(0.549799, 0.414848, 0.424845)
 
-[node name="nature_ForestRock_0195" parent="Nature" instance=ExtResource("nature_moss_boulder")]
+[node name="nature_ForestRock_0192" parent="Nature" instance=ExtResource("nature_moss_boulder")]
 position = Vector3(40.030732, -0.045633, 28.577788)
 rotation = Vector3(0, 2.985455, 0)
 scale = Vector3(0.549799, 0.414848, 0.424845)
 
-[node name="nature_Understory_0196" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0193" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-41.073344, 0, -33.61798)
 rotation = Vector3(0, -2.932427, 0)
 scale = Vector3(0.453179, 0.453179, 0.453179)
 
-[node name="nature_Understory_0197" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0194" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(41.073344, 0, -33.61798)
 rotation = Vector3(0, 2.932427, 0)
 scale = Vector3(0.453179, 0.453179, 0.453179)
 
-[node name="nature_Understory_0198" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0195" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(-6.007102, 0, -34.635782)
 rotation = Vector3(0, -0.057588, 0)
 scale = Vector3(0.660001, 0.660001, 0.660001)
 
-[node name="nature_Understory_0199" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
+[node name="nature_Understory_0196" parent="Nature" instance=ExtResource("nature_hazel_thicket")]
 position = Vector3(6.007102, 0, -34.635782)
 rotation = Vector3(0, 0.057588, 0)
 scale = Vector3(0.660001, 0.660001, 0.660001)

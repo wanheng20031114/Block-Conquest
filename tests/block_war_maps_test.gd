@@ -47,6 +47,10 @@ func _run() -> void:
 		for count: int in starters:
 			check(count == 1, "each participating commander has exactly one starting home")
 		check(game.team_total_for(0) == game.team_total_for(1), "both alliances have equal initial strength")
+		if definition.map_id == "rift":
+			var central: PackedVector3Array = game.map.get_building_route(game.buildings[10], game.buildings[11])
+			check(central.size() >= 2 and game.map.get_building_distance(game.buildings[10], game.buildings[11]) < 35.0, "baked central route avoids the two-bridge detour")
+			check(not central.is_empty() and Array(central).all(func(point: Vector3): return absf(point.x) < 7.0), "baked central route stays on the central island")
 		game.camera_rig.focus_at(Vector3(1000, 0, -1000), true)
 		check(game.camera_rig.position == Vector3(definition.half_size.x - 6, 0, -definition.half_size.y + 5), "camera bounds follow the map's true size")
 		check(game._valid_ground_skill_target(Vector3(definition.half_size.x - 1, 0, 0)), "skills reach the edges of every map size")

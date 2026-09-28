@@ -55,6 +55,11 @@ def author_nature(layout, paths):
     hx, hz = layout["half"]
     waters, mountains, bridges = layout["water"], layout["mountains"], layout["bridges"]
     buildings = layout["buildings"]
+    obstacle_paths = list(paths)
+    if map_id == "rift":
+        # The central road runs through the tower, but armies pass on either
+        # side. Keep both actual lanes open between the tower and the coves.
+        obstacle_paths.extend((x, -6.0, x, 6.0) for x in (-4.0, 4.0))
     rng = random.Random(925730 + sum((i + 1) * ord(char) for i, char in enumerate(map_id)))
     externals = [f'[ext_resource type="PackedScene" path="{NATURE}{name}.tscn" id="nature_{name}"]' for name in SCENES]
     externals += [f'[ext_resource type="ArrayMesh" path="{NATURE}{name}_combined.res" id="nature_{name}_mesh"]' for name in SMALL if name != "reed_cluster"]
@@ -81,7 +86,7 @@ def author_nature(layout, paths):
             return False
         if any(math.hypot(x - building[0], z - building[1]) < yard + footprint for building in buildings):
             return False
-        return all(_distance_to_path(x, z, segment) >= road_gap + footprint for segment in paths)
+        return all(_distance_to_path(x, z, segment) >= road_gap + footprint for segment in obstacle_paths)
 
     def scene(species, x, z, size, yaw, label, y=0.0, proportions=(1.0, 1.0, 1.0), radius=0.0, tilt=(0.0, 0.0)):
         nonlocal sequence
@@ -153,7 +158,7 @@ def author_nature(layout, paths):
         return (abs(x) < hx + 9 and abs(z) < hz + 9
                 and not any(_inside(rect, x, z, radius + 4.0) for rect in bridges)
                 and all(math.hypot(x - b[0], z - b[1]) > radius + 5 for b in buildings)
-                and all(_distance_to_path(x, z, path) > radius + 2.8 for path in paths)
+                and all(_distance_to_path(x, z, path) > radius + 2.8 for path in obstacle_paths)
                 and all(math.hypot(x - ox, z - oz) > radius + old_radius + .18 for ox, oz, old_radius in rock_sites))
 
     # Three separate rock teeth with clear contact shadows. Their horizontal

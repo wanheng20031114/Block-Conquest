@@ -135,6 +135,12 @@ func _run() -> void:
 	_check(longest_detour < 1.03, "Gentle arcs never add more than three percent to a safe corridor")
 	_check(symmetric and map._route_cache.size() == 78, "Opposite directions share one stable path for every building pair")
 	_check(map._navigation.get_point_count() == graph_points, "Temporary endpoint vertices never remain in the shared navigation graph")
+	var central := map.get_building_route(buildings[10], buildings[11])
+	_check(central.size() >= 2 and _route_length(central) < 35.0, "Central homes connect around the tower without a two-bridge detour")
+	_check(not central.is_empty() and Array(central).all(func(point: Vector3): return absf(point.x) < 7.0), "The central north-south route stays on the central island")
+	for side: float in [-1.0, 1.0]:
+		_check(map._segment_clear(Vector3(side * 4.0, 0, -6), Vector3(side * 4.0, 0, 6)), "Scenery leaves a full formation corridor on each side of the central tower")
+	print("RIFT_CENTRAL_ROUTE length=", _route_length(central))
 	var east := map.get_building_route(buildings[0], buildings[6])
 	var north := map.get_building_route(buildings[0], buildings[2])
 	var south := map.get_building_route(buildings[0], buildings[3])
