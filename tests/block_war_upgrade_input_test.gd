@@ -77,8 +77,9 @@ func _run() -> void:
 		await select_on_map(building)
 		if kind == 2:
 			check(not upgrade.is_visible_in_tree() and upgrade.disabled, "forge hides its upgrade and cannot start construction through that action")
-			check(menu.size.x == 134.0 and game.hud.get_node("%ConvertHouse").is_visible_in_tree() and game.hud.get_node("%ConvertTower").is_visible_in_tree(), "forge menu fits exactly two compact conversion actions")
+			check(menu.size.x == 200.0 and game.hud.get_node("%ConvertHouse").is_visible_in_tree() and game.hud.get_node("%ConvertTower").is_visible_in_tree() and game.hud.get_node("%ConvertEnergy").is_visible_in_tree(), "forge menu fits exactly three legal conversion actions")
 			continue
+		check(not game.hud.get_node("%ConvertEnergy").visible, "residence and tower expose only the two original conversion choices")
 		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
 		var expected_costs := [10, 20, 30] if kind == 0 else [30, 60]
 		var expected_max := 4 if kind == 0 else 3

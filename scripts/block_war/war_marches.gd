@@ -3,7 +3,7 @@ extends Node3D
 ## Every entry is one population point. Marchers never collide or fight in transit.
 ## The controller calls tick from _process; stopping tick also stops the GPU gait.
 
-signal unit_arrived(target_id: int, faction: int, strength: float, attack_bonus: float)
+signal unit_arrived(target_id: int, faction: int, strength: float, attack_bonus: float, energy_origin: bool)
 signal unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool)
 signal combat_death(faction: int, target_id: int, killer_faction: int)
 signal departure_queue_changed(source_id: int, faction: int, change: int)
@@ -25,6 +25,8 @@ class MarchOrder extends RefCounted:
 	var target_id: int
 	var faction: int
 	var strength: float
+	# Issued-order provenance survives conversion, capture, tunnels and recall.
+	var energy_origin := false
 	var curve: Curve3D
 	var length: float
 	var returning := false
@@ -82,7 +84,7 @@ func _ready() -> void:
 	_cloaked_mesh.instance_count = 4096
 	_cloaked_mesh.visible_instance_count = 0
 
-func _make_order(source_id: int, target_id: int, faction: int, route: PackedVector3Array, strength: float = 1.0) -> MarchOrder:
+func _make_order(source_id: int, target_id: int, faction: int, route: PackedVector3Array, strength: float = 1.0, energy_origin: bool = false) -> MarchOrder:
 	assert(route.size() >= 2, "A march needs a source and destination in its route.")
 	assert(faction >= 0 and faction < FACTION_COLORS.size(), "Unknown marching faction.")
 	var order := MarchOrder.new()
@@ -92,6 +94,7 @@ func _make_order(source_id: int, target_id: int, faction: int, route: PackedVect
 	order.target_id = target_id
 	order.faction = faction
 	order.strength = strength
+	order.energy_origin = energy_origin
 	order.curve = Curve3D.new()
 	order.curve.bake_interval = 0.12
 	# The map has already shaped and clearance-checked this guide. Resample only
@@ -109,18 +112,18 @@ func _make_order(source_id: int, target_id: int, faction: int, route: PackedVect
 	assert(order.length > 0.01, "Cannot send soldiers along a zero-length route.")
 	return order
 
-func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0) -> void:
+func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0, energy_origin: bool = false) -> void:
 	# Transport soldiers whose source has already paid for them (including fixtures).
-	_send(source_id, target_id, faction, count, route, strength, false)
+	_send(source_id, target_id, faction, count, route, strength, false, energy_origin)
 
-func queue_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array) -> void:
+func queue_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, energy_origin: bool = false) -> void:
 	# Normal building orders reserve a garrison, then pay one soldier per departure.
-	_send(source_id, target_id, faction, count, route, 1.0, true)
+	_send(source_id, target_id, faction, count, route, 1.0, true, energy_origin)
 
-func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool) -> void:
+func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool, energy_origin: bool) -> void:
 	if count <= 0:
 		return
-	var order := _make_order(source_id, target_id, faction, route, strength)
+	var order := _make_order(source_id, target_id, faction, route, strength, energy_origin)
 	if from_garrison:
 		departure_queue_changed.emit(source_id, faction, count)
 	# All exits of a building share one queue, including orders heading to different sides.
@@ -184,12 +187,12 @@ func departure_step_limit() -> float:
 			limit = minf(limit, maxf(0.000001, unit.spawn_delay + maxf(0.0, -unit.distance / base_speed(unit.order.faction))))
 	return limit
 
-func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float, dig_duration: float) -> void:
+func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float, dig_duration: float, energy_origin: bool = false) -> void:
 	# The digging team prepares the passage while soldiers still defend their home.
 	# Each rank enters the completed tunnel as it emerges at the other end.
 	if count <= 0:
 		return
-	var order := _make_order(source_id, target_id, faction, route)
+	var order := _make_order(source_id, target_id, faction, route, 1.0, energy_origin)
 	# Retain the complete surface guide even when only its final metres are walked.
 	# A recalled tunnel squad can then retrace the safe bridges all the way home.
 	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
@@ -211,8 +214,8 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 	_ensure_capacity(_units.size())
 	_render()
 
-func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float) -> void:
-	var order := _make_order(source_id, target_id, faction, route)
+func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float, energy_origin: bool = false) -> void:
+	var order := _make_order(source_id, target_id, faction, route, 1.0, energy_origin)
 	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
 	for index: int in count:
 		var unit := MarchUnit.new()
@@ -235,6 +238,7 @@ func return_order(outbound: MarchOrder) -> MarchOrder:
 	order.target_id = outbound.source_id
 	order.faction = outbound.faction
 	order.strength = outbound.strength
+	order.energy_origin = outbound.energy_origin
 	order.curve = outbound.curve
 	order.length = outbound.length
 	order.departure_distance = outbound.departure_distance
@@ -338,7 +342,7 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
 	for arrival: Dictionary in arrivals:
 		var order: MarchOrder = arrival.order
-		unit_arrived.emit(order.target_id, order.faction, order.strength, arrival.attack_bonus)
+		unit_arrived.emit(order.target_id, order.faction, order.strength, arrival.attack_bonus, order.energy_origin)
 
 func total_for(faction: int) -> int:
 	var total := 0

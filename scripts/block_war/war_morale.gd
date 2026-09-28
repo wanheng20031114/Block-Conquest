@@ -131,8 +131,8 @@ func _advance(delta: float, skip_active: bool) -> void:
 			changed.emit(faction)
 
 static func capture_reward(kind: int, building_level: int, neutral: bool) -> int:
-	assert(kind in [0, 1, 2])
-	if kind == 2:
+	assert(kind in [0, 1, 2, 3])
+	if kind in [2, 3]:
 		assert(building_level == 1)
 		return 200 if neutral else 300
 	var rewards: Array[int] = (NEUTRAL_HOUSE if neutral else ENEMY_HOUSE) if kind == 0 else (NEUTRAL_TOWER if neutral else ENEMY_TOWER)
@@ -140,8 +140,8 @@ static func capture_reward(kind: int, building_level: int, neutral: bool) -> int
 	return rewards[building_level - 1]
 
 static func loss_penalty(kind: int, building_level: int) -> int:
-	assert(kind in [0, 1, 2])
-	if kind == 2:
+	assert(kind in [0, 1, 2, 3])
+	if kind in [2, 3]:
 		assert(building_level == 1)
 		return 100
 	var penalties: Array[int] = LOST_HOUSE if kind == 0 else LOST_TOWER
@@ -149,9 +149,9 @@ static func loss_penalty(kind: int, building_level: int) -> int:
 	return penalties[building_level - 1]
 
 static func upgrade_reward(kind: int, completed_level: int) -> int:
-	assert(kind in [0, 1, 2])
+	assert(kind in [0, 1, 2, 3])
 	assert(completed_level >= 1)
-	if kind == 2 or completed_level == 1:
+	if kind in [2, 3] or completed_level == 1:
 		return 0
 	# Existing buildings start at level 1: their first completed upgrade to 2
 	# corresponds to the reference's first upgrade, rather than its second.

@@ -6,7 +6,7 @@ signal construction_completed(kind: int, completed_level: int, converted: bool)
 
 @export var building_id: int = 0
 @export var faction: int = -1
-@export_enum("住宅", "炮塔", "铁匠铺") var kind: int = 0
+@export_enum("住宅", "炮塔", "铁匠铺", "能量塔") var kind: int = 0
 @export var population: float = 20.0
 @export var level: int = 1
 
@@ -47,7 +47,7 @@ var production_rate: float:
 		return HOUSE_PRODUCTION_RATES[level - 1] if kind == 0 else 0.0
 var max_level: int:
 	get:
-		return [4, 3, 1][kind]
+		return [4, 3, 1, 1][kind]
 var upgrade_cost: int:
 	get:
 		return level * (10 if kind == 0 else 30) if level < max_level else 0
@@ -55,7 +55,7 @@ var upgrade_cost: int:
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const FACTION_COLORS: Array[Color] = FACTIONS.COLORS
 const NEUTRAL_COLOR := Color("b5aa87")
-const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
+const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺", "能量塔"]
 # One shared ground perimeter survives building conversions and leaves enough
 # space for a rotated marcher to appear or disappear outside the outer walls.
 const MARCH_PERIMETER_RADIUS := 2.45
@@ -130,7 +130,7 @@ func _process(delta: float) -> void:
 func set_visual_paused(value: bool) -> void:
 	_visual_paused = value
 	$Visual/Smithy/Smoke.speed_scale = 0.0 if value else 1.0
-	$Visual/Smithy/ForgeAnimation.speed_scale = 0.0 if value or disruption_remaining > 0.0 else 1.0
+	_sync_disruption_visual()
 	$Disruption.set_running(not value)
 	$BurrowReady.set_running(not value)
 	for particles: GPUParticles3D in _construction_particles:
@@ -195,12 +195,24 @@ func _sync_disruption_visual() -> void:
 	$Visual/Smithy/Smoke.emitting = kind == 2 and working
 	$Visual/Smithy/Embers.visible = kind == 2 and working
 	$Visual/Smithy/HearthLight.visible = kind == 2 and working
-	$Visual/Smithy/ForgeAnimation.speed_scale = 1.0 if working and not _visual_paused else 0.0
+	$Visual/Smithy/ForgeAnimation.speed_scale = 1.0 if kind == 2 and working and not _visual_paused else 0.0
+	# Conversion preserves the old building until completion, including its motion.
+	var energy_speed := 1.0 if kind == 3 and working and not _visual_paused else 0.0
+	$Visual/EnergyTower/OrbitAnimation.speed_scale = energy_speed
+	$Visual/EnergyTower/CoreAnimation.speed_scale = energy_speed
+
+
+func can_convert_to(target_kind: int) -> bool:
+	if target_kind == kind:
+		return false
+	if target_kind == 3:
+		return kind == 2
+	return target_kind in [0, 1, 2]
 
 
 func begin_construction(target_kind: int = -1, paid_cost: int = 0) -> void:
 	assert(not is_constructing)
-	assert((target_kind == -1 and level < max_level) or (target_kind in [0, 1, 2] and target_kind != kind))
+	assert((target_kind == -1 and level < max_level) or can_convert_to(target_kind))
 	conversion_target = target_kind
 	construction_cost = paid_cost
 	construction_remaining = CONSTRUCTION_DURATION
@@ -280,9 +292,11 @@ func refresh_visual() -> void:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
 		var cloth_color := color.lerp(Color("c1a674"), 0.12)
 		$Visual/Flag.set_instance_shader_parameter("team_color", cloth_color)
-		# Only roof tiles carry ownership; both kinds update immediately on capture.
+		# Authored color surfaces update together immediately on capture.
 		$Visual/House/Roof.set_instance_shader_parameter("team_tint", color)
 		$Visual/Smithy/Roof.set_instance_shader_parameter("team_tint", color)
+		$Visual/EnergyTower/Heraldry.set_instance_shader_parameter("team_tint", color)
+		$Visual/EnergyTower/Core/Glow.set_instance_shader_parameter("team_tint", color)
 		$Visual/Tower/Gun/Barrel/BarrelBands.set_instance_shader_parameter("team_color", cloth_color)
 		$OwnershipRing.material_override.albedo_color = Color(color, 0.82)
 		_population_label.modulate = Color("34382e")
@@ -292,6 +306,7 @@ func refresh_visual() -> void:
 		$Visual/House.visible = kind == 0
 		$Visual/Tower.visible = kind == 1
 		$Visual/Smithy.visible = kind == 2
+		$Visual/EnergyTower.visible = kind == 3
 		_sync_disruption_visual()
 	if kind != _last_kind or level != _last_level:
 		_kind_label.text = KIND_NAMES[kind] if level == 1 else "%s · %d" % [KIND_NAMES[kind], level]
@@ -316,7 +331,7 @@ func refresh_visual() -> void:
 func _apply_level_visuals() -> void:
 	assert(level >= 1 and level <= max_level, "Building level must have an authored model.")
 	var tier := level - 1
-	var kind_path: String = ["House/", "Tower/", "Smithy/"][kind]
+	var kind_path: String = ["House/", "Tower/", "Smithy/", "EnergyTower/"][kind]
 	$Visual/Flag.set_instance_shader_parameter("building_level", level)
 	for path: String in LEVEL_MESHES:
 		if path.begins_with(kind_path):

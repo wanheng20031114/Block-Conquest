@@ -449,6 +449,10 @@ func _rush_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 	return best
 
 func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarches.MarchUnit]) -> float:
+	if building.kind == 3:
+		var count: int = game.energy_tower_count(building.faction)
+		var denied: float = SKILL_RULES.energy_tower_bonus(count) - SKILL_RULES.energy_tower_bonus(maxi(0, count - 1))
+		return denied * SKILL_RULES.DISABLE_DURATION * 2.0
 	if building.kind == 0:
 		var prevented := minf(building.production_rate * 6.0, maxf(0.0, building.capacity - building.population))
 		for state: RefCounted in game.faction_skills:

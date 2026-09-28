@@ -111,7 +111,7 @@ func _run() -> void:
 	game.select_building(forge)
 	game.upgrade_selected()
 	check(forge.max_level == 1 and forge.upgrade_cost == 0 and not forge.is_constructing and forge.population == 100.0, "forge upgrade is rejected without spending troops")
-	check(not game.hud.get_node("%Upgrade").visible and game.hud.get_node("%Selection").size.x == 134.0, "forge hides upgrade and shrinks to two actions")
+	check(not game.hud.get_node("%Upgrade").visible and game.hud.get_node("%Selection").size.x == 200.0 and game.hud.get_node("%ConvertEnergy").visible, "forge hides upgrade and provides three legal conversion actions")
 	game.convert_selected(0)
 	near(game.attack_bonus(0), 0.1, "forge retains attack while being converted")
 	forge.advance_construction(9.999)

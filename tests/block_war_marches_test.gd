@@ -16,8 +16,8 @@ func _check(condition: bool, description: String) -> void:
 		_failures.append(description)
 		printerr("FAIL ", description)
 
-func _on_arrived(target_id: int, faction: int, strength: float, _attack_bonus: float) -> void:
-	_arrived.append({"target_id": target_id, "faction": faction, "strength": strength})
+func _on_arrived(target_id: int, faction: int, strength: float, _attack_bonus: float, energy_origin: bool) -> void:
+	_arrived.append({"target_id": target_id, "faction": faction, "strength": strength, "energy_origin": energy_origin})
 
 func _run() -> void:
 	var marches = MARCHES.instantiate()
@@ -209,6 +209,7 @@ func _run() -> void:
 	marches.tick(0.2)
 	_check(_arrived.size() == 6 and marches.total_for(0) == 0, "The contracted rank fully enters the destination without losing or duplicating troops")
 	marches.clear()
+	_energy_origins(marches, straight)
 	var long_route := PackedVector3Array([Vector3.ZERO, Vector3(0, 0, -200)])
 	marches.send(0, 1, 0, 700, long_route)
 	# Include the complete source queue and the exit funnel at the current speed.
@@ -224,3 +225,33 @@ func _run() -> void:
 	marches.free()
 	print("BLOCK_WAR_MARCHES ", _checks, " checks; ", _failures.size(), " failures")
 	quit(0 if _failures.is_empty() else 1)
+
+func _energy_origins(marches: WarMarches, route: PackedVector3Array) -> void:
+	for dispatch: int in 4:
+		marches.clear()
+		_arrived.clear()
+		match dispatch:
+			0: marches.send(0, 1, 0, 1, route, 1.0, true)
+			1: marches.queue_departure(0, 1, 0, 1, route, true)
+			2: marches.send_tunnel(0, 1, 0, 1, route, 0.16, true)
+			3: marches.queue_tunnel_departure(0, 1, 0, 1, route, 0.16, 0.7, true)
+		_check(marches._units[0].order.energy_origin, "Energy provenance is retained by dispatch API %d" % dispatch)
+		marches.tick(20.0)
+		_check(_arrived.size() == 1 and _arrived[0].energy_origin, "Arrival signal carries energy provenance for dispatch API %d" % dispatch)
+	marches.clear()
+	_arrived.clear()
+	marches.send(0, 1, 0, 1, route, 1.0, true)
+	marches.tick(1.0)
+	var troop: WarMarches.MarchUnit = marches._units[0]
+	var returning := marches.return_order(troop.order)
+	_check(returning.energy_origin, "Recall retains the issued energy origin")
+	marches.redirect(troop, returning)
+	marches.tick(2.0)
+	_check(_arrived.size() == 1 and _arrived[0].target_id == 0 and _arrived[0].energy_origin, "Returning troops report their original energy provenance")
+	marches.clear()
+	_arrived.clear()
+	marches.send(0, 1, 0, 1, route)
+	marches.tick(20.0)
+	_check(_arrived.size() == 1 and not _arrived[0].energy_origin, "Ordinary orders default to no energy origin")
+	marches.clear()
+	_arrived.clear()

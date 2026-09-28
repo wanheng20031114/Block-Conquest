@@ -1,13 +1,13 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 1
+const SCHEMA := 2
 const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "fires"]
 const UNIT_SIZE := 14
 const MAX_ID := 2147483647
 const MAX_RECORDS := 65536
 const MAX_TIME := 1000000000.0
 const MAX_EXTRAPOLATION := 1.0
-const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5]}
+const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5, 9]}
 const FIRE := preload("res://scripts/block_war/war_fire_state.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var _order_cache: Dictionary = {}
@@ -50,7 +50,7 @@ func capture(game: Node, tick: int) -> Dictionary:
 			cooldown.append(deadline(now, skill.cooldowns[index]))
 			duration.append(deadline(now, skill.durations[index]))
 		state.factions[str(f)] = [str(skill.commander), skill.energy, cooldown, duration, skill.recruit_target_id,
-			game.morale._points[f], game.morale._idle_seconds[f], game.morale._next_decay_at[f], now]
+			game.morale._points[f], game.morale._idle_seconds[f], game.morale._next_decay_at[f], now, game.energy_regen_for(f)]
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		var order := unit.order
 		var oid := str(order.order_id)
@@ -59,7 +59,7 @@ func capture(game: Node, tick: int) -> Dictionary:
 			for index: int in order.curve.point_count:
 				points.append(v3(order.curve.get_point_position(index)))
 			_order_cache[oid] = [order.source_id, order.target_id, order.faction, order.strength,
-				order.returning, order.departure_distance, points]
+				order.returning, order.departure_distance, points, order.energy_origin]
 		state.orders[oid] = _order_cache[oid]
 		state.units[str(unit.unit_id)] = [order.order_id, unit.distance, unit.lane, unit.pending_departure,
 			unit.departure_sequence, now + unit.spawn_delay if unit.spawn_delay > 0.0 else 0.0,
@@ -188,11 +188,13 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 		# Natural growth is extrapolated; damage and paid construction are facts.
 		return float(next[3]) < float(old[3]) - 0.000001
 	if group == "factions":
-		if old[0] != next[0] or old[4] != next[4] or old[5] != next[5]: return true
+		if old[0] != next[0] or old[4] != next[4] or old[5] != next[5] or absf(float(old[9]) - float(next[9])) > 0.00001: return true
 		for array_index: int in [2, 3]:
 			for i: int in 4:
 				if absf(float(old[array_index][i]) - float(next[array_index][i])) > 0.00001: return true
-		return float(next[1]) < float(old[1]) - 0.000001
+		# Public rows redact both energy values to zero. Private accounts also
+		# publish earned capture energy immediately, beyond passive regeneration.
+		return (float(old[1]) > 0.0 or float(next[1]) > 0.0) and absf(float(next[1]) - energy_at(old, float(next[8]))) > 0.00001
 	if group == "links":
 		for i: int in [0, 1, 2, 4]:
 			if old[i] != next[i]: return true
@@ -271,16 +273,19 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 	# Check the type before ANY indexing, integer conversion or nested cast.
 	match group:
 		"buildings":
-			if not _row(row, 12) or not _integer(row[0], -1, game.faction_count - 1) or not _integer(row[1], 0, 2): return false
-			if not _integer(row[2], 1, [4, 3, 1][int(row[1])]) or not _nonnegative(row[3]) or not _integer(row[4], 0, floori(float(row[3]) + 0.000001)): return false
-			if not _integer(row[6], 0, MAX_ID) or not _integer(row[7], -1, 2): return false
+			if not _row(row, 12) or not _integer(row[0], -1, game.faction_count - 1) or not _integer(row[1], 0, 3): return false
+			if not _integer(row[2], 1, [4, 3, 1, 1][int(row[1])]) or not _nonnegative(row[3]) or not _integer(row[4], 0, floori(float(row[3]) + 0.000001)): return false
+			if not _integer(row[6], 0, MAX_ID) or not _integer(row[7], -1, 3): return false
 			for i: int in [5, 8, 9, 10, 11]:
 				if not _nonnegative(row[i]): return false
+			if int(row[7]) == 3 and int(row[1]) != 2: return false
+			if int(row[1]) == 3 and float(row[5]) > 0.0 and int(row[7]) == -1: return false
 			return true
 		"factions": return valid_account(row, game)
 		"orders":
-			if not _row(row, 7) or not _building_id(row[0], game) or not _building_id(row[1], game) or not _integer(row[2], 0, game.faction_count - 1): return false
+			if not _row(row, 8) or not _building_id(row[0], game) or not _building_id(row[1], game) or not _integer(row[2], 0, game.faction_count - 1): return false
 			if not _nonnegative(row[3]) or float(row[3]) <= 0.0 or not row[4] is bool or not _nonnegative(row[5]): return false
+			if not row[7] is bool: return false
 			if not row[6] is Array or row[6].size() < 2 or row[6].size() > 2048: return false
 			var length := 0.0
 			var previous := Vector3.ZERO
@@ -321,7 +326,8 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 	return false
 
 static func valid_account(row: Variant, game: Node) -> bool:
-	if not _row(row, 9) or row[0] not in ["squirrel", "rabbit", "bear", "frog"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
+	if not _row(row, 10) or row[0] not in ["squirrel", "rabbit", "bear", "frog"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
+	if not _number(row[9]) or float(row[9]) < RULES.ENERGY_REGEN or float(row[9]) > RULES.ENERGY_REGEN + RULES.energy_tower_bonus(game.buildings.size()): return false
 	for index: int in [2, 3]:
 		if not _row(row[index], 4): return false
 		for value: Variant in row[index]:
@@ -330,6 +336,11 @@ static func valid_account(row: Variant, game: Node) -> bool:
 	for i: int in [5, 6, 7, 8]:
 		if not _nonnegative(row[i]): return false
 	return float(row[5]) <= game.MORALE.MAX_POINTS
+
+static func energy_at(row: Array, until: float) -> float:
+	# The Host re-anchors energy, timestamp and rate together on every rate
+	# change. Never integrate an older account through a client's current towers.
+	return clampf(float(row[1]) + float(row[9]) * maxf(0.0, until - float(row[8])), 0.0, RULES.ENERGY_MAX)
 
 static func _building_id(value: Variant, game: Node) -> bool:
 	return _integer(value, 0, MAX_ID) and game.by_id.has(int(value))
@@ -407,7 +418,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		var row: Array = state.factions[key]
 		var skill: RefCounted = game.faction_skills[f]
 		skill.commander = StringName(row[0])
-		skill.energy = minf(100.0, float(row[1]) + game.ENERGY_REGEN * maxf(0.0, now - float(row[8]))) if f == game.local_faction else float(row[1])
+		skill.energy = energy_at(row, now) if f == game.local_faction else float(row[1])
 		for i: int in 4:
 			skill.cooldowns[i] = remaining(row[2][i], now)
 			skill.durations[i] = remaining(row[3][i], now)
@@ -425,6 +436,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		order.order_id = int(key)
 		order.source_id = int(row[0]); order.target_id = int(row[1]); order.faction = int(row[2])
 		order.strength = float(row[3]); order.returning = row[4]; order.departure_distance = float(row[5])
+		order.energy_origin = row[7]
 		order.curve = Curve3D.new(); order.curve.bake_interval = 0.12
 		for point: Array in row[6]: order.curve.add_point(vector(point))
 		order.length = order.curve.get_baked_length()
@@ -614,7 +626,7 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 	marches._render()
 	for f: int in game.faction_count:
 		var skill: RefCounted = game.faction_skills[f]
-		if f == game.local_faction: skill.energy = minf(game.ENERGY_MAX, skill.energy + game.ENERGY_REGEN * delta)
+		if f == game.local_faction: skill.energy = minf(game.ENERGY_MAX, skill.energy + float(_last_state.factions[str(f)][9]) * delta)
 		for i: int in 4:
 			skill.cooldowns[i] = maxf(0.0, skill.cooldowns[i] - delta)
 			skill.durations[i] = maxf(0.0, skill.durations[i] - delta)

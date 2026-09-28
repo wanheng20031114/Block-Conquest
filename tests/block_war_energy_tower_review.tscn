@@ -1,0 +1,292 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="font"]
+[ext_resource type="PackedScene" path="res://tests/energy_towers/stage.tscn" id="stage"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]
+
+[sub_resource type="Theme" id="Theme"]
+default_font = ExtResource("font")
+default_font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="Card"]
+bg_color = Color(0.13, 0.20, 0.16, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.43, 0.49, 0.36, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[node name="EnergyTowerReview" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1600.0
+offset_bottom = 1000.0
+color = Color(0.075, 0.12, 0.10, 1)
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+offset_left = 38.0
+offset_top = 20.0
+offset_right = 1562.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(0.94, 0.91, 0.79, 1)
+theme_override_font_sizes/font_size = 34
+text = "能量塔 · 六阵营外观"
+
+[node name="Subtitle" type="Label" parent="."]
+offset_left = 40.0
+offset_top = 70.0
+offset_right = 1562.0
+offset_bottom = 103.0
+theme_override_colors/font_color = Color(0.69, 0.77, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+text = "浅石塔身 · 铜制星环 · 阵营色带与能量核心"
+
+[node name="Footer" type="Label" parent="."]
+offset_left = 38.0
+offset_top = 956.0
+offset_right = 1562.0
+offset_bottom = 987.0
+theme_override_colors/font_color = Color(0.72, 0.77, 0.65, 1)
+theme_override_font_sizes/font_size = 16
+text = "真实建筑场景  /  玩家视角 · 敌方驻军隐藏  /  Godot 日光实机渲染"
+horizontal_alignment = 2
+
+[node name="Faction0" type="Panel" parent="."]
+offset_left = 38.0
+offset_top = 122.0
+offset_right = 536.0
+offset_bottom = 518.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="Faction0"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 480.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "你 · 琥珀"
+
+[node name="View" type="SubViewportContainer" parent="Faction0"]
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 490.0
+offset_bottom = 388.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Faction0/View"]
+size = Vector2i(482, 335)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="Faction0/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Building" parent="Faction0/View/Viewport" instance=ExtResource("building")]
+building_id = 0
+faction = 0
+kind = 3
+population = 36.0
+
+[node name="Faction1" type="Panel" parent="."]
+offset_left = 554.0
+offset_top = 122.0
+offset_right = 1052.0
+offset_bottom = 518.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="Faction1"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 480.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "敌方一 · 翠绿"
+
+[node name="View" type="SubViewportContainer" parent="Faction1"]
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 490.0
+offset_bottom = 388.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Faction1/View"]
+size = Vector2i(482, 335)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="Faction1/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Building" parent="Faction1/View/Viewport" instance=ExtResource("building")]
+building_id = 1
+faction = 1
+kind = 3
+population = 36.0
+
+[node name="Faction2" type="Panel" parent="."]
+offset_left = 1070.0
+offset_top = 122.0
+offset_right = 1568.0
+offset_bottom = 518.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="Faction2"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 480.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "盟友一 · 金黄"
+
+[node name="View" type="SubViewportContainer" parent="Faction2"]
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 490.0
+offset_bottom = 388.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Faction2/View"]
+size = Vector2i(482, 335)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="Faction2/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Building" parent="Faction2/View/Viewport" instance=ExtResource("building")]
+building_id = 2
+faction = 2
+kind = 3
+population = 36.0
+
+[node name="Faction3" type="Panel" parent="."]
+offset_left = 38.0
+offset_top = 534.0
+offset_right = 536.0
+offset_bottom = 930.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="Faction3"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 480.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "敌方二 · 湛蓝"
+
+[node name="View" type="SubViewportContainer" parent="Faction3"]
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 490.0
+offset_bottom = 388.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Faction3/View"]
+size = Vector2i(482, 335)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="Faction3/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Building" parent="Faction3/View/Viewport" instance=ExtResource("building")]
+building_id = 3
+faction = 3
+kind = 3
+population = 36.0
+
+[node name="Faction4" type="Panel" parent="."]
+offset_left = 554.0
+offset_top = 534.0
+offset_right = 1052.0
+offset_bottom = 930.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="Faction4"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 480.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "盟友二 · 珊瑚"
+
+[node name="View" type="SubViewportContainer" parent="Faction4"]
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 490.0
+offset_bottom = 388.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Faction4/View"]
+size = Vector2i(482, 335)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="Faction4/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Building" parent="Faction4/View/Viewport" instance=ExtResource("building")]
+building_id = 4
+faction = 4
+kind = 3
+population = 36.0
+
+[node name="Faction5" type="Panel" parent="."]
+offset_left = 1070.0
+offset_top = 534.0
+offset_right = 1568.0
+offset_bottom = 930.0
+theme_override_styles/panel = SubResource("Card")
+
+[node name="Title" type="Label" parent="Faction5"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 480.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.95, 0.91, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "敌方三 · 紫罗兰"
+
+[node name="View" type="SubViewportContainer" parent="Faction5"]
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 490.0
+offset_bottom = 388.0
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Faction5/View"]
+size = Vector2i(482, 335)
+own_world_3d = true
+msaa_3d = 2
+render_target_update_mode = 4
+
+[node name="Stage" parent="Faction5/View/Viewport" instance=ExtResource("stage")]
+
+[node name="Building" parent="Faction5/View/Viewport" instance=ExtResource("building")]
+building_id = 5
+faction = 5
+kind = 3
+population = 36.0

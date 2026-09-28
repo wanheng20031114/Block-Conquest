@@ -449,10 +449,8 @@ func _record_time(group: String, row: Variant) -> float:
 func _apply_account() -> void:
 	if _account.is_empty() or _account_base > _applied: return
 	var skill: RefCounted = game.faction_skills[game.local_faction]
-	if not Snapshot._number(_account[1]) or not Snapshot._number(_account[8]) or not Snapshot._row(_account[2], 4): return
-	for value: Variant in _account[2]:
-		if not Snapshot._number(value): return
-	skill.energy = clampf(float(_account[1]) + game.ENERGY_REGEN * maxf(0, game.elapsed - float(_account[8])), 0, game.ENERGY_MAX)
+	if not Snapshot.valid_account(_account, game): return
+	skill.energy = Snapshot.energy_at(_account, game.elapsed)
 	for i: int in 4: skill.cooldowns[i] = Snapshot.remaining(_account[2][i], game.elapsed)
 
 func _send_snapshot(player: int) -> void:
@@ -666,6 +664,7 @@ func _play_presentation(event: Dictionary) -> void:
 			game.world_effects.get_node("Rabbit").start_tunnel(int(payload.faction), Snapshot.vector(payload.entrance), Snapshot.vector(payload.exit), Snapshot.vector(payload.direction), int(payload.count), float(payload.dig_duration))
 		"capture", "construction", "construction_complete":
 			if not Snapshot._integer(payload.get("building"), 0, 2147483647) or not game.by_id.has(int(payload.building)): return
+			if event.kind == "capture" and (not Snapshot._number(payload.get("energy_bonus")) or float(payload.energy_bonus) < 0.0 or float(payload.energy_bonus) > game.SKILL_RULES.ENERGY_CAPTURE_REWARD): return
 			var building: WarBuilding = game.by_id[int(payload.building)]
 			if event.kind == "construction": game.audio.play_world(&"war_rebuild", building.global_position)
 			else:
@@ -676,7 +675,9 @@ func _play_presentation(event: Dictionary) -> void:
 					game.audio.play_world(&"war_upgrade", building.global_position)
 				else:
 					game.add_effect(building.global_position, game.faction_color(building.faction), "capture", 1.1)
-					if payload.get("faction") == game.local_faction: game.audio.play_ui(&"war_capture")
+					if payload.get("faction") == game.local_faction:
+						game.audio.play_ui(&"war_capture")
+						if float(payload.energy_bonus) > 0.0: game.hud.notify("占领成功 · 技力 +%.1f" % float(payload.energy_bonus))
 					elif payload.get("previous_faction") == game.local_faction: game.audio.play_ui(&"war_lost")
 		"dispatch":
 			if payload.get("faction") == game.local_faction: game.audio.play_ui(&"war_order")

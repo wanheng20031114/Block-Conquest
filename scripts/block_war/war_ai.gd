@@ -145,6 +145,11 @@ func _development(game: Node3D, homes: int, constructing: int) -> Dictionary:
 			score = 90.0
 			if _enemy_distance(game, building) >= FRONT_DISTANCE:
 				reserve = 0.0
+		elif building.kind == 2 and homes >= 2 and game.forge_count(faction) > 1 and game.energy_tower_count(faction) < 2:
+			# Keep an attack forge; a spare workshop can support repeated spell use.
+			kind = 3
+			cost = game.CONVERSION_COST
+			score = 16.0 if game.faction_skills[faction].energy < 65.0 else 0.0
 		elif building.level >= building.max_level:
 			continue
 		elif building.kind == 0:
@@ -201,7 +206,7 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 					break
 			if percent == 0:
 				continue
-			var value := 50.0 if target.kind == 0 else (32.0 if target.kind == 2 else 24.0)
+			var value := 50.0 if target.kind == 0 else (32.0 if target.kind in [2, 3] else 24.0)
 			var score := value - distance * 0.55 - required * 0.2
 			# Attacks remain possible against a strong last opponent after saving up.
 			if (not neutral or score > 0.0) and (best.is_empty() or score > best.score):

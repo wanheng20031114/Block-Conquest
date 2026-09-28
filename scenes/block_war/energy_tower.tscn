@@ -1,0 +1,105 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://assets/models/block_war/architecture/surface.gdshader" id="surface"]
+[ext_resource type="Shader" path="res://assets/models/block_war/architecture/energy_core.gdshader" id="core_shader"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_stone.res" id="stone"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_metal.res" id="metal"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_timber.res" id="timber"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_heraldry.res" id="heraldry"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_core_glow.res" id="glow"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_ring_a_metal.res" id="ring_a"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/architecture/energy_tower_ring_b_metal.res" id="ring_b"]
+
+[sub_resource type="ShaderMaterial" id="StoneMaterial"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.92
+
+[sub_resource type="ShaderMaterial" id="TimberMaterial"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.90
+
+[sub_resource type="ShaderMaterial" id="MetalMaterial"]
+shader = ExtResource("surface")
+shader_parameter/metalness = 0.28
+shader_parameter/surface_roughness = 0.60
+
+[sub_resource type="ShaderMaterial" id="HeraldryMaterial"]
+shader = ExtResource("surface")
+shader_parameter/surface_roughness = 0.88
+shader_parameter/tint_strength = 1.0
+
+[sub_resource type="ShaderMaterial" id="GlowMaterial"]
+shader = ExtResource("core_shader")
+
+[sub_resource type="Animation" id="Orbit"]
+resource_name = "orbit"
+length = 48.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("RingA:rotation:y")
+tracks/0/keys = {"times": PackedFloat32Array(0, 48), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [0.0, 6.2831855]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("RingB:rotation:y")
+tracks/1/keys = {"times": PackedFloat32Array(0, 48), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [0.0, -6.2831855]}
+
+[sub_resource type="AnimationLibrary" id="OrbitLibrary"]
+_data = {&"orbit": SubResource("Orbit")}
+
+[sub_resource type="Animation" id="Pulse"]
+resource_name = "pulse"
+length = 3.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/interp = 2
+tracks/0/path = NodePath("Core:scale")
+tracks/0/keys = {"times": PackedFloat32Array(0, 1.6, 3.2), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector3(1, 1, 1), Vector3(1.04, 1.04, 1.04), Vector3(1, 1, 1)]}
+
+[sub_resource type="AnimationLibrary" id="CoreLibrary"]
+_data = {&"pulse": SubResource("Pulse")}
+
+[node name="EnergyTower" type="Node3D"]
+
+[node name="Stone" type="MeshInstance3D" parent="."]
+mesh = ExtResource("stone")
+material_override = SubResource("StoneMaterial")
+
+[node name="Metal" type="MeshInstance3D" parent="."]
+mesh = ExtResource("metal")
+material_override = SubResource("MetalMaterial")
+
+[node name="Timber" type="MeshInstance3D" parent="."]
+mesh = ExtResource("timber")
+material_override = SubResource("TimberMaterial")
+
+[node name="Heraldry" type="MeshInstance3D" parent="."]
+mesh = ExtResource("heraldry")
+material_override = SubResource("HeraldryMaterial")
+
+[node name="RingA" type="Node3D" parent="."]
+position = Vector3(0, 2.46, 0)
+
+[node name="Metal" type="MeshInstance3D" parent="RingA"]
+mesh = ExtResource("ring_a")
+material_override = SubResource("MetalMaterial")
+
+[node name="RingB" type="Node3D" parent="."]
+position = Vector3(0, 2.46, 0)
+
+[node name="Metal" type="MeshInstance3D" parent="RingB"]
+mesh = ExtResource("ring_b")
+material_override = SubResource("MetalMaterial")
+
+[node name="Core" type="Node3D" parent="."]
+position = Vector3(0, 2.46, 0)
+
+[node name="Glow" type="MeshInstance3D" parent="Core"]
+mesh = ExtResource("glow")
+material_override = SubResource("GlowMaterial")
+
+[node name="OrbitAnimation" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("OrbitLibrary")}
+autoplay = &"orbit"
+
+[node name="CoreAnimation" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("CoreLibrary")}
+autoplay = &"pulse"

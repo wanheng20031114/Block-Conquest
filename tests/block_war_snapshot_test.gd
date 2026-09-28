@@ -1,6 +1,7 @@
 extends SceneTree
 ## Lossless facts, atomic reservations, display-only prediction and hostile shapes.
 const Snapshot := preload("res://scripts/network/war_snapshot.gd")
+const NetworkMatch := preload("res://scripts/network/war_network_match.gd")
 var host: Node3D
 var replica: Node3D
 var writer := Snapshot.new()
@@ -117,6 +118,8 @@ func _run() -> void:
 	var continuous := writer.capture(host, 23)
 	var delta := Snapshot.diff(previous, continuous)
 	check(delta.set.is_empty() and delta.remove.is_empty(), "natural production energy and idle clock do not spam reliable events")
+	var public_delta := Snapshot.diff(Snapshot.for_player(previous, -1), Snapshot.for_player(continuous, -1))
+	check(public_delta.set.is_empty(), "redacted energy remains stable across natural regeneration")
 	host._on_unit_arrived(0, 2, 3.0)
 	var reinforced := writer.capture(host, 24)
 	delta = Snapshot.diff(continuous, reinforced)
@@ -163,6 +166,7 @@ func _run() -> void:
 	near(replica.effects[0].life, 0.5, "remaining presentation effects age by display time")
 	replica.effects.clear()
 	_recall_and_departure()
+	_energy_towers()
 	_stress()
 	await replica.prepare_shutdown()
 	await host.prepare_shutdown()
@@ -260,3 +264,115 @@ func _recall_and_departure() -> void:
 	check(Snapshot.valid(before, replica), "real tunnel departure patch keeps garrison reservations and soldier flags atomic")
 	reader.install(replica, before)
 	check(replica.by_id[0].population == host.by_id[0].population and replica.by_id[0].queued_population == host.by_id[0].queued_population, "host-confirmed batches synchronize the exact doorway population")
+
+func _energy_towers() -> void:
+	fresh(host)
+	fresh(replica)
+	replica.local_faction = 0
+	host.elapsed = 10.0
+	host.by_id[0].kind = 3
+	host.by_id[2].kind = 3
+	host.by_id[5].kind = 2
+	host.by_id[5].construction_remaining = 2.0
+	host.by_id[5].construction_cost = 10
+	host.by_id[5].conversion_target = 3
+	var route := PackedVector3Array([Vector3.ZERO, Vector3(100, 0, 0)])
+	host.marches.send(0, 1, 0, 1, route, 1.0, true)
+	var soldier: WarMarches.MarchUnit = host.marches._units[0]
+	var state := writer.capture(host, 1500)
+	check(state.schema == 2 and Snapshot.valid(state, host), "schema two validates energy towers and smithy-to-energy construction")
+	near(state.factions["0"][9], 2.5, "own energy tower rate is captured without the allied faction's tower")
+	near(state.factions["1"][9], 2.0, "enemy faction without a tower retains its own baseline rate")
+	var decoded: Dictionary = JSON.parse_string(JSON.stringify(state, "", true, true))
+	reader.install(replica, decoded, 10.4)
+	check(replica.by_id[0].kind == 3 and replica.by_id[0].level == 1, "energy building type and sole level survive snapshot installation")
+	check(replica.by_id[5].kind == 2 and replica.by_id[5].conversion_target == 3, "in-progress conversion retains the original smithy function")
+	check(replica.marches._units[0].order.energy_origin, "issued energy origin survives JSON snapshot installation")
+	near(replica.faction_skills[0].energy, 51.0, "late snapshot projects energy using the captured faction rate")
+	reader.present(replica, decoded, 0.2)
+	near(replica.faction_skills[0].energy, 51.5, "frame presentation continues the captured energy rate")
+	near(replica.faction_skills[1].energy, 50.0, "presentation never accrues another faction's private energy")
+	var private_view := Snapshot.for_player(state, 0)
+	check(private_view.factions["2"][1] == 0.0 and private_view.factions["2"][9] == 2.5, "energy privacy filtering preserves the public per-faction rate")
+
+	# Changing an origin after dispatch must not retroactively change an order.
+	host.by_id[0].kind = 0
+	host.by_id[0].faction = 1
+	var converted := writer.capture(host, 1501)
+	check(Snapshot.valid(converted, host) and converted.orders[str(soldier.order.order_id)][7], "origin conversion and capture do not rewrite issued provenance")
+	host.marches.tick(0.5)
+	host.marches.redirect(soldier, host.marches.return_order(soldier.order))
+	converted = writer.capture(host, 1502)
+	reader.install(replica, converted)
+	check(replica.marches._units[0].order.returning and replica.marches._units[0].order.energy_origin, "return-order provenance survives resynchronization after origin capture")
+
+	for field: String in ["level", "upgrade", "conversion"]:
+		var malformed := state.duplicate(true)
+		match field:
+			"level": malformed.buildings["0"][2] = 2
+			"upgrade": malformed.buildings["0"][5] = 12.0
+			"conversion": malformed.buildings["1"][7] = 3
+		check(not Snapshot.valid(malformed, host), "snapshot rejects illegal energy tower " + field)
+	var invalid := state.duplicate(true)
+	invalid.schema = 1
+	check(not Snapshot.valid(invalid, host), "old snapshot schema is explicitly rejected")
+	var order: Array = state.orders.values()[0].duplicate(true)
+	order[7] = 1
+	check(not Snapshot.valid_record("orders", order, host), "numeric energy provenance cannot pass as a Boolean")
+	order.pop_back()
+	check(not Snapshot.valid_record("orders", order, host), "legacy march order without provenance is rejected")
+	for rate: Variant in [NAN, INF, "2.5", -1.0, 1.9, 1000.0]:
+		var account: Array = state.factions["0"].duplicate(true)
+		account[9] = rate
+		check(not Snapshot.valid_account(account, host), "invalid energy recovery rate is rejected: %s" % str(rate))
+	var legacy_account: Array = state.factions["0"].duplicate(true)
+	legacy_account.pop_back()
+	check(not Snapshot.valid_account(legacy_account, host), "legacy private account without recovery rate is rejected")
+
+	# The reliable rate change also anchors energy, even when optional motion
+	# anchors are dropped and the local display has different building state.
+	fresh(host)
+	host.elapsed = 40.0
+	host.by_id[0].kind = 3
+	host.by_id[2].kind = 3
+	host.by_id[2].faction = 0
+	host.faction_skills[0].energy = 60.0
+	var before := writer.capture(host, 1600)
+	near(before.factions["0"][9], 2.75, "two own towers use the diminishing rate in the wire account")
+	host.by_id[0].begin_disruption(5.0)
+	var after := writer.capture(host, 1601)
+	var delta := Snapshot.diff(before, after)
+	check(delta.set.get("factions", {}).has("0"), "tower disruption reliably re-anchors the owning faction's energy")
+	near(after.factions["0"][9], 2.5, "disrupted tower contributes no recovery")
+	check(not Snapshot.same_structure("factions", before.factions["0"], after.factions["0"]), "older optional anchors cannot overwrite a new recovery rate")
+	Snapshot.apply_delta(before, delta)
+	check(Snapshot.valid(before, replica), "recovery-rate change and building disruption apply as one valid fact")
+	reader.install(replica, before, 40.4)
+	near(replica.faction_skills[0].energy, 61.0, "reconnect installation uses the new absolute energy and rate baseline")
+	var network := NetworkMatch.new()
+	network.game = replica
+	network._account = after.factions["0"].duplicate(true)
+	network._account_base = 2
+	network._applied = 1
+	replica.faction_skills[0].energy = 7.0
+	network._apply_account()
+	near(replica.faction_skills[0].energy, 7.0, "private account waits for its reliable fact baseline")
+	network._applied = 2
+	for b: WarBuilding in replica.buildings: b.kind = 0
+	network._apply_account()
+	near(replica.faction_skills[0].energy, 61.0, "private account prediction uses its own captured rate despite local tower changes")
+	host.by_id[0].clear_disruption()
+	var resumed := writer.capture(host, 1602)
+	check(Snapshot.diff(after, resumed).set.get("factions", {}).has("0"), "disruption expiry reliably restores the tower recovery rate")
+	host.faction_skills[0].energy += 10.0
+	var rewarded := writer.capture(host, 1603)
+	check(Snapshot._discrete_changed("factions", resumed.factions["0"], rewarded.factions["0"]), "capture energy reward immediately updates the private account baseline")
+
+	fresh(host)
+	host.by_id[0].kind = 3
+	host.by_id[0].population = 70.0
+	host.marches.queue_tunnel_departure(0, 1, 0, 7, route, 0.16, 0.7, true)
+	state = writer.capture(host, 1700)
+	check(Snapshot.valid(state, host), "energy tunnel reservations form a valid snapshot")
+	reader.install(replica, state)
+	check(replica.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.order.energy_origin), "all restored tunnel ranks retain issued energy provenance")

@@ -3,7 +3,7 @@ extends Node3D
 
 signal presentation_event(kind: String, payload: Dictionary)
 
-const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
+const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺", "能量塔"]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const SKILL_COOLDOWNS := SKILL_RULES.COOLDOWNS
 const SKILL_DURATIONS := SKILL_RULES.DURATIONS
@@ -289,8 +289,9 @@ func _simulate_step(delta: float) -> void:
 	morale.begin_step()
 	elapsed += delta
 	var recruiting := _tick_recruitment(delta)
-	for state: SkillState in faction_skills:
-		state.energy = minf(ENERGY_MAX, state.energy + ENERGY_REGEN * delta)
+	for faction: int in faction_count:
+		var state := faction_skills[faction]
+		state.energy = minf(ENERGY_MAX, state.energy + energy_regen_for(faction) * delta)
 		for index: int in 4:
 			state.cooldowns[index] = maxf(0.0, state.cooldowns[index] - delta)
 			state.durations[index] = maxf(0.0, state.durations[index] - delta)
@@ -427,11 +428,11 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		if plan.is_empty():
 			return 0
 		_clear_building_burrow(source)
-		marches.queue_tunnel_departure(source.building_id, target.building_id, faction, count, route, SKILL_RULES.BURROW_BATCH_INTERVAL, plan.dig_duration)
+		marches.queue_tunnel_departure(source.building_id, target.building_id, faction, count, route, SKILL_RULES.BURROW_BATCH_INTERVAL, plan.dig_duration, source.kind == 3)
 		world_effects.get_node("Rabbit").start_tunnel(faction, plan.entrance, plan.exit, plan.route[1] - plan.route[0], count, plan.dig_duration)
 		presentation_event.emit("tunnel", {"faction": faction, "entrance": _vector_values(plan.entrance), "exit": _vector_values(plan.exit), "direction": _vector_values(plan.route[1] - plan.route[0]), "count": count, "dig_duration": plan.dig_duration})
 	else:
-		marches.queue_departure(source.building_id, target.building_id, faction, count, route)
+		marches.queue_departure(source.building_id, target.building_id, faction, count, route, source.kind == 3)
 	presentation_event.emit("dispatch", {"faction": faction, "source": source.building_id, "target": target.building_id, "count": count})
 	if faction == local_faction:
 		audio.play_ui(&"war_order")
@@ -450,6 +451,18 @@ func forge_count(faction: int) -> int:
 		if building.faction == faction and building.kind == 2 and building.disruption_remaining <= 0.0:
 			count += 1
 	return count
+
+func energy_tower_count(faction: int) -> int:
+	if faction < 0:
+		return 0
+	var count := 0
+	for building: WarBuilding in buildings:
+		if building.faction == faction and building.kind == 3 and building.disruption_remaining <= 0.0:
+			count += 1
+	return count
+
+func energy_regen_for(faction: int) -> float:
+	return ENERGY_REGEN + SKILL_RULES.energy_tower_bonus(energy_tower_count(faction))
 
 func attack_bonus(faction: int) -> float:
 	return 0.1 * forge_count(faction)
@@ -508,7 +521,7 @@ func _on_unit_departed(source_id: int, faction: int) -> void:
 	source.population -= 1.0
 	source.refresh_visual()
 
-func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack_bonus: float = 0.0) -> void:
+func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack_bonus: float = 0.0, energy_origin: bool = false) -> void:
 	var target: Node3D = by_id[target_id]
 	if FACTIONS.allied(target.faction, faction):
 		# Entering a teammate's building transfers command with the garrison.
@@ -542,15 +555,23 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 			target.population = survivors
 			target.level = maxi(1, target.level - 1)
 			shields.erase(target_id)
+			var energy_bonus := 0.0
+			if energy_origin and FACTIONS.hostile(faction, previous_faction):
+				var state := faction_skills[faction]
+				energy_bonus = minf(SKILL_RULES.ENERGY_CAPTURE_REWARD, ENERGY_MAX - state.energy)
+				state.energy += energy_bonus
 			target.pulse_capture()
-			presentation_event.emit("capture", {"building": target_id, "faction": faction, "previous_faction": previous_faction})
+			presentation_event.emit("capture", {"building": target_id, "faction": faction, "previous_faction": previous_faction, "energy_bonus": energy_bonus})
 			add_effect(target.global_position, faction_color(faction), "capture", 1.1)
 			if faction == local_faction:
 				audio.play_ui(&"war_capture")
 			elif previous_faction == local_faction:
 				audio.play_ui(&"war_lost")
 			if faction == local_faction:
-				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], "每秒 +%s 民兵" % target.production_rate if target.kind == 0 else ("炮塔开始拦截敌军" if target.kind == 1 else "全军攻击 +10%")])
+				var benefit: String = ["每秒 +%s 民兵" % target.production_rate, "炮塔开始拦截敌军", "全军攻击 +10%", "提高技力恢复速度"][target.kind]
+				if energy_bonus > 0.0:
+					benefit += " · 技力 +%.1f" % energy_bonus
+				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], benefit])
 			tower_clocks[target_id] = 0.6
 		if effects.size() < 80:
 			add_effect(target.global_position, faction_color(faction), "hit", 0.2)
@@ -934,7 +955,7 @@ func begin_building_construction(building: WarBuilding, kind: int, faction: int)
 	if kind == -1:
 		if building.level >= building.max_level:
 			return false
-	elif kind not in [0, 1, 2] or building.kind == kind:
+	elif not building.can_convert_to(kind):
 		return false
 	var cost: int = building.upgrade_cost if kind == -1 else CONVERSION_COST
 	if building.available_population < cost:
@@ -990,7 +1011,7 @@ func execute_network_command(faction: int, command: Dictionary) -> Dictionary:
 			var converting: bool = command.type == "convert"
 			if not _integer_fields(command, ["building", "kind"] if converting else ["building"]):
 				return {"accepted": false, "reason": "invalid_command"}
-			if converting and int(command.kind) not in [0, 1, 2]:
+			if converting and int(command.kind) not in [0, 1, 2, 3]:
 				return {"accepted": false, "reason": "invalid_command"}
 			accepted = begin_building_construction(by_id.get(int(command.building)), int(command.kind) if converting else -1, faction)
 		"skill_building":
@@ -1113,12 +1134,13 @@ func update_hud() -> void:
 		faction_totals.append(floori(populations[faction]))
 		morale_stars.append(morale.stars(faction))
 		faction_names.append(faction_name(faction))
-	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺提升所属军团攻击"
+	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺增攻 · 能量塔恢复技力"
 	if selected != null:
 		match selected.kind:
 			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限" % [selected.production_rate, selected.capacity]
 			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 守备 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, selected.level * 5]
 			2: detail = "所属军团攻击 +10% · 不可升级 · 不自动产兵"
+			3: detail = "提高技力恢复 · 出征占领敌方建筑 +10 技力 · 不可升级 · 不自动产兵"
 		if shields.has(selected.building_id):
 			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])
 		if selected.disruption_remaining > 0.0:
@@ -1141,7 +1163,7 @@ func update_hud() -> void:
 		"selected_population": floori(selected.population) if selected_population_known else -1, "selected_detail": detail,
 		"selected_available_population": floori(selected.available_population) if selected_population_known else -1,
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
-		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": ENERGY_REGEN, "energy_costs": SKILL_RULES.costs_for(faction_skills[local_faction].commander),
+		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": energy_regen_for(local_faction), "energy_tower_count": energy_tower_count(local_faction), "energy_costs": SKILL_RULES.costs_for(faction_skills[local_faction].commander),
 		"commander": faction_skills[local_faction].commander, "enemy_commander": faction_skills[opponent_faction()].commander,
 		"skill_target_types": ["ground", "building", "ground", "building"] if faction_skills[local_faction].commander == SKILL_RULES.RABBIT else ["building", "ground", "building", "ground"], "ground_skill_radius": skill_radius(armed_skill),
 		"forges": forge_count(local_faction), "selected_owned": selected != null and selected.faction == local_faction,

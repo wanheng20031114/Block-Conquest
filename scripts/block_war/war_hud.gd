@@ -14,6 +14,7 @@ signal ui_sound_requested(kind: StringName)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const BUILDING_NAMES := WarBuilding.KIND_NAMES
 
 var _paused: bool = false
 var _finished: bool = false
@@ -67,11 +68,13 @@ func _ready() -> void:
 	%ConvertHouse.pressed.connect(func(): convert_requested.emit(0))
 	%ConvertTower.pressed.connect(func(): convert_requested.emit(1))
 	%ConvertForge.pressed.connect(func(): convert_requested.emit(2))
+	%ConvertEnergy.pressed.connect(func(): convert_requested.emit(3))
 	for button: BaseButton in $UI.find_children("*", "BaseButton", true, false):
 		_pointer_blockers.append(button)
 	for panel: Control in [%PauseOverlay, %HelpOverlay, %ResultOverlay, %OnlineConfirm]:
 		_pointer_blockers.append(panel)
 	_pointer_blockers.append(%Selection)
+	_pointer_blockers.append(%EnergyBar)
 	UIMotion.bind_buttons($UI)
 	var panels: Array[Control] = [%Top, %Player, %Enemy, %Percentages, %Skills]
 	for index: int in panels.size():
@@ -134,6 +137,7 @@ func update_state(state: Dictionary) -> void:
 		%SkillDrag.get_node("Icon").texture = _skill_buttons[armed].get_node("Icon").texture
 	var energy: float = float(state.energy)
 	%EnergyBar.value = energy
+	%EnergyBar.tooltip_text = "%d / %d 技力\n当前恢复 +%.2f / 秒 · %d 座有效能量塔\n技力与能量塔收益按玩家独立计算。" % [floori(energy), int(state.energy_max), float(state.energy_regen), int(state.energy_tower_count)]
 	for index: int in 4:
 		var button: Button = _skill_buttons[index]
 		var cooldown: float = float(state.cooldowns[index])
@@ -217,7 +221,7 @@ func _update_building_actions(state: Dictionary) -> void:
 	var busy := remaining > 0
 	var converting := int(state.conversion_target)
 	var upgrading := busy and converting < 0
-	%Upgrade.visible = int(state.selected_kind) != 2
+	%Upgrade.visible = int(state.selected_kind) in [0, 1]
 	%Upgrade.get_node("NextLevel").text = str(mini(level + 1, max_level))
 	%Upgrade.get_node("Cost/Population").visible = not capped and not upgrading
 	var detail := "开工后剩余 %d 名可用驻军" % (population - cost)
@@ -234,23 +238,26 @@ func _update_building_actions(state: Dictionary) -> void:
 		upgrade_hint = "正在升至 %d 级 · 还需 %d 秒\n施工期间维持当前等级，失守会中断\n%s" % [level + 1, remaining, state.selected_detail]
 		amount = "%ds" % remaining
 	elif busy:
-		upgrade_hint = "正在改建%s · 还需 %d 秒\n完工前保留原建筑的功能和形态" % [["住宅", "炮塔", "铁匠铺"][converting], remaining]
+		upgrade_hint = "正在改建%s · 还需 %d 秒\n完工前保留原建筑的功能和形态" % [BUILDING_NAMES[converting], remaining]
 	_update_action(%Upgrade, bool(state.can_upgrade), amount, upgrade_hint, not capped and not busy and population < cost)
 	if upgrading:
 		%Upgrade.get_node("Icon").modulate.a = 0.8
-	var conversions: Array[Button] = [%ConvertHouse, %ConvertTower, %ConvertForge]
+	var conversions: Array[Button] = [%ConvertHouse, %ConvertTower, %ConvertForge, %ConvertEnergy]
 	for kind: int in conversions.size():
 		var button := conversions[kind]
-		button.visible = kind != int(state.selected_kind)
+		var allowed := kind != int(state.selected_kind) and (kind != 3 or int(state.selected_kind) == 2)
+		button.visible = allowed
 		var convert_cost := int(state.convert_cost)
-		var hint := "改建%s · 消耗 %d 名驻军\n施工 10 秒，完工后重置至 1 级\n施工期间保留当前功能和形态" % [["住宅", "炮塔", "铁匠铺"][kind], convert_cost]
+		var hint := "改建%s · 消耗 %d 名驻军\n施工 10 秒，完工后重置至 1 级\n施工期间保留当前功能和形态" % [BUILDING_NAMES[kind], convert_cost]
+		if kind == 3:
+			hint = "改建能量塔 · 消耗 %d 名驻军 · 施工 10 秒\n第 1 / 2 / 3 座额外恢复 +0.5 / +0.25 / +0.15 技力/秒；\n第 4 座起，每座额外 +0.1 技力/秒。\n本塔出征部队每次夺取敌方建筑 +10 技力，\n中立建筑除外，奖励不随塔数叠加。\n不产兵、不可升级；技力上限 100。" % convert_cost
 		if population < convert_cost:
 			hint += "\n还差 %d 名驻军" % (convert_cost - population)
 		var active_conversion := busy and kind == converting
 		if busy:
 			hint = "施工中 · 还需 %d 秒\n完工前保留当前功能和形态" % remaining
 		button.get_node("Cost/Population").visible = not active_conversion
-		_update_action(button, bool(state.selected_owned) and not busy and population >= convert_cost, "%ds" % remaining if active_conversion else str(convert_cost), hint, not busy and population < convert_cost)
+		_update_action(button, allowed and bool(state.selected_owned) and not busy and population >= convert_cost, "%ds" % remaining if active_conversion else str(convert_cost), hint, not busy and population < convert_cost)
 		if active_conversion:
 			button.get_node("Icon").modulate.a = 0.8
 	%BuildingActions.size = %BuildingActions.get_combined_minimum_size()

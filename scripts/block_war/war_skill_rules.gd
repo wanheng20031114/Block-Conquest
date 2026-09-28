@@ -9,6 +9,9 @@ const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 70.0]
 const DURATIONS: Array[float] = [6.0, 8.0, 8.0, 0.0]
 const ENERGY_MAX := 100.0
 const ENERGY_REGEN := 2.0
+const ENERGY_TOWER_BONUSES: Array[float] = [0.5, 0.25, 0.15]
+const ENERGY_TOWER_LATER_BONUS := 0.1
+const ENERGY_CAPTURE_REWARD := 10.0
 const RECRUIT_RATE := 4.0
 const HASTE_MULTIPLIER := 1.6
 const HASTE_RADIUS := 4.5
@@ -54,6 +57,12 @@ const RABBIT_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill
 const BEAR_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_bear_toolbox.svg"), preload("res://assets/ui/block_war/skill_bear_stomp.svg"), preload("res://assets/ui/block_war/skill_bear_link.svg"), preload("res://assets/ui/block_war/skill_bear_fortress.svg")]
 const FROG_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_frog_mist.svg"), preload("res://assets/ui/block_war/skill_frog_float.svg"), preload("res://assets/ui/block_war/skill_frog_cloak.svg"), preload("res://assets/ui/block_war/skill_frog_strike.svg")]
 const PORTRAITS := {&"squirrel": preload("res://assets/ui/block_war/commanders/squirrel.png"), RABBIT: preload("res://assets/ui/block_war/commanders/rabbit.png"), BEAR: preload("res://assets/ui/block_war/commanders/bear.png"), FROG: preload("res://assets/ui/block_war/commanders/frog.png")}
+
+static func energy_tower_bonus(count: int) -> float:
+	var bonus := 0.0
+	for index: int in mini(count, ENERGY_TOWER_BONUSES.size()):
+		bonus += ENERGY_TOWER_BONUSES[index]
+	return bonus + maxf(0, count - ENERGY_TOWER_BONUSES.size()) * ENERGY_TOWER_LATER_BONUS
 
 static func names_for(commander: StringName) -> Array[String]:
 	if commander == FROG: return FROG_NAMES
@@ -116,7 +125,7 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 	if commander == RABBIT:
 		return [
 			"选中半径 %.1f 米内自己的行军，持续 %d 秒。\n移速 +%d%%，攻击 +%d%%，离开落点仍生效。\n仅强化施放瞬间选中的部队，不叠加。" % [RABBIT_RUSH_RADIUS, RABBIT_DURATIONS[0], roundi((RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(RABBIT_RUSH_ATTACK_BONUS * 100.0)],
-			"拖至敌方建筑，令其停工 6 秒。\n住宅停止产兵，炮塔停止射击，\n铁匠铺暂停提供攻击增益。不叠加。",
+			"拖至敌方建筑，令其停工 6 秒。\n暂停产兵、射击、攻击增益或\n能量塔的恢复加成。不叠加。",
 			"拖至地面，松手吹响口哨。\n半径 6 米内所有阵营的行军部队，\n各自返回出发建筑，途中仍会受到攻击。",
 			"拖至自己的建筑，获得 15 秒兔洞待命。\n下一次派兵开始快速掘地，无距离限制。\n按所选比例最多派出 50 人，每 0.16 秒出洞一排。"
 		][index]
