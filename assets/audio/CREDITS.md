@@ -1,6 +1,6 @@
 # 中世纪音效来源与修改说明
 
-原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 26 类、44 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；2026-09-26 的新增来源和署名见本文末节。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
+原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 34 类、52 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；新增来源和署名见本文按日期排列的记录。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
 
 积木战争的 Suno 背景音乐独立记录在 [block_war/music/CREDITS.md](block_war/music/CREDITS.md)，不属于此处的 CC0 音效库。
 
@@ -60,3 +60,11 @@ Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dr
 按用户要求重新制作 `ui/soft_click.wav`，替换普通 UI 点击的 arc-nice 音源。新音效是 48 毫秒的短接触合成：带限噪声、很轻的低频共振、快速衰减与边界淡入淡出，无混响、扫频或饱和。由 `tools/build_ui_click.py` 确定性生成，48 kHz 单声道 PCM16；播放器维持 -8 dB。
 
 这是项目原创合成音效，未混入第三方音频，记录为 `LicenseRef-Project-Original`。参考了 [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds) 的短点击结构、[微软 UI 声音指南](https://learn.microsoft.com/en-us/windows/apps/develop/ui/sound) 的交互语义，以及 [《文明 VII》音频团队访谈](https://www.asoundeffect.com/civilization-vii-game-audio/) 中简短、低复杂度、可重复播放的设计原则；这些是设计参考，不是新 WAV 的采样来源。旧 arc-nice 文件与来源记录保留作历史追溯。制作和实测记录见 [点击音效检查](../../docs/ui_click_review.md)。
+
+## 2026-09-28：熊与青蛙的八个技能释放音
+
+新增八个独立事件 `war_bear_toolbox/stomp/link/ward` 与 `war_frog_mist/float/cloak/strike`，替换这些技能此前借用的施工、战鼓、松鼠防护罩、兔子封条和炮弹命中声。新增成品全部来自已许可的 CC0 素材；此前 44 个战役 WAV、菜单点击与 BGM 保持不变。
+
+再次下载并按原清单核对两个压缩包的 SHA-256，从 Kenney RPG Audio 原包额外保留 `cloth2.ogg`、`metalLatch.ogg`，从 rubberduck 的 80 CC0 RPG SFX 原包保留 `chain_01.ogg`、`creature_slime_02.ogg`、`blade_01.ogg`。原始文件不作修改，新增哈希记录在 `sources.json`。其他素材复用已保留的木材、铃声、落地、碎石、羽毛和软物接触源。湿润气泡是对作者 slime 成品音效的剪辑，不能称为真实水滴录音。
+
+每个新技能最多使用两种材料，进行短裁切、4 ms 能量窗口起音对齐、85 Hz 高通、克制的低通、少量变速、自然衰减和边界淡化；不新增旋律、混响、持续蜂鸣或饱和处理。成品为 48 kHz 单声道 PCM16，原生导入保留 PCM、不归一化、不循环。`tools/build_war_audio.py --new-commanders` 可只重建八个新声音而保留已认可的内容，来源逐个记在 `block_war/audio_manifest.json`。响度与试听见 [角色技能音效检查](../../docs/commander_audio_review.md)。

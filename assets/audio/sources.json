@@ -873,6 +873,41 @@
       "license": "LicenseRef-User-Project",
       "source_pack": "arc_nice_ui",
       "modified": false
+    },
+    {
+      "path": "kenney_rpg/cloth2.ogg",
+      "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+      "license": "CC0-1.0",
+      "source_pack": "kenney_rpg",
+      "modified": false
+    },
+    {
+      "path": "kenney_rpg/metalLatch.ogg",
+      "sha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708",
+      "license": "CC0-1.0",
+      "source_pack": "kenney_rpg",
+      "modified": false
+    },
+    {
+      "path": "rubberduck_rpg/chain_01.ogg",
+      "sha256": "d376caf0f61384b1d2e0b447f64f06be56d0ee0622ba70dd01cfdd78b3a10687",
+      "license": "CC0-1.0",
+      "source_pack": "rubberduck_rpg",
+      "modified": false
+    },
+    {
+      "path": "rubberduck_rpg/creature_slime_02.ogg",
+      "sha256": "8c26b66076752b712dad7be704a3e4e11d3a49847fbd804ba7f858024ff33c8d",
+      "license": "CC0-1.0",
+      "source_pack": "rubberduck_rpg",
+      "modified": false
+    },
+    {
+      "path": "rubberduck_rpg/blade_01.ogg",
+      "sha256": "caf7a7cb9b25cda4bd487c1d12d18b74a34bb18c816fd67277cf3c8d7ef32a3a",
+      "license": "CC0-1.0",
+      "source_pack": "rubberduck_rpg",
+      "modified": false
     }
   ],
   "original_synthesis": "Original project-specific numerical sound design; not described as downloaded recordings"

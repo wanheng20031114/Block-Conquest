@@ -48,17 +48,17 @@ func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 			if converting and target.kind != 0:
 				game._cancel_building_recruitment(target.building_id)
 			game.world_effects.get_node("Bear").toolbox(faction, target.global_position)
-			game.audio.play_world(&"war_upgrade", target.global_position)
+			game.audio.play_world(&"war_bear_toolbox", target.global_position)
 		2:
 			var support := partner(game, target)
 			links[target.building_id] = {"target": target.building_id, "support": support.building_id,
 				"faction": faction, "remaining": RULES.BEAR_DURATIONS[2], "settled": 0, "pulse": 0.0}
-			game.audio.play_world(&"war_rebuild", target.global_position)
+			game.audio.play_world(&"war_bear_link", target.global_position)
 		3:
 			wards[target.building_id] = {"faction": faction, "remaining": RULES.BEAR_DURATIONS[3], "shot_clock": RULES.BEAR_ORB_INTERVAL, "pulse": 0.0}
 			game.marches.blocked_destinations[target.building_id] = faction
 			fire_orb(game, target)
-			game.audio.play_world(&"war_skill_shield", target.global_position)
+			game.audio.play_world(&"war_bear_ward", target.global_position)
 	game.world_effects.get_node("Bear").sync(self, game.marches, game.by_id, 0.0)
 
 func is_invulnerable(id: int) -> bool:

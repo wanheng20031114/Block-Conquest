@@ -7,6 +7,7 @@ All outputs are 48 kHz mono PCM16 with deterministic edits and source provenance
 
 from functools import lru_cache
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import math
@@ -43,14 +44,25 @@ EVENTS = [
     ("reinforce", 2, "Combat", -2, 2, 280, 2),
     ("upgrade", 2, "Combat", 0, 4, 500, 2),
     ("rebuild", 2, "Combat", 0, 4, 500, 2),
-    ("skill_command", 1, "Combat", 2, 5, 550, 1),
-    ("skill_drum", 1, "Combat", -1, 5, 650, 1),
-    ("skill_shield", 1, "Combat", 1, 5, 650, 1),
-    ("skill_breach", 2, "Combat", 1, 6, 500, 2),
-    ("rabbit_dash", 1, "Combat", 1, 5, 120, 2),
-    ("rabbit_seal", 2, "Combat", 2, 5, 120, 2),
-    ("rabbit_recall", 1, "Combat", -3, 5, 120, 2),
-    ("rabbit_burrow", 2, "Combat", 3, 5, 120, 2),
+    # A paid cast is already cooldown-limited per faction. Global millisecond
+    # gates used to swallow a player's release after an AI cast of the same cue.
+    # Allow all six factions; the native Combat pool still bounds total voices.
+    ("skill_command", 1, "Combat", 2, 5, 0, 6),
+    ("skill_drum", 1, "Combat", -1, 5, 0, 6),
+    ("skill_shield", 1, "Combat", 1, 5, 0, 6),
+    ("skill_breach", 2, "Combat", 1, 6, 0, 6),
+    ("rabbit_dash", 1, "Combat", 1, 5, 0, 6),
+    ("rabbit_seal", 2, "Combat", 2, 5, 0, 6),
+    ("rabbit_recall", 1, "Combat", -3, 5, 0, 6),
+    ("rabbit_burrow", 2, "Combat", 3, 5, 0, 6),
+    ("bear_toolbox", 1, "Combat", 2, 5, 0, 6),
+    ("bear_stomp", 1, "Combat", 0, 5, 0, 6),
+    ("bear_link", 1, "Combat", 2, 5, 0, 6),
+    ("bear_ward", 1, "Combat", 2, 6, 0, 6),
+    ("frog_mist", 1, "Combat", 0, 5, 0, 6),
+    ("frog_float", 1, "Combat", 1, 5, 0, 6),
+    ("frog_cloak", 1, "Combat", -1, 5, 0, 6),
+    ("frog_strike", 1, "Combat", 2, 6, 0, 6),
     ("projectile_hit", 2, "Combat", -3, 3, 120, 3),
     ("victory", 1, "UI", -4, 7, 1200, 1),
     ("defeat", 1, "UI", -4, 7, 1200, 1),
@@ -80,6 +92,14 @@ DESCRIPTIONS = {
     "rabbit_seal": "Recorded paper placement and brief page movement for the seal",
     "rabbit_recall": "Existing whistle cue for recalling troops",
     "rabbit_burrow": "Existing stone movement and a soft leather drop for opening earth",
+    "bear_toolbox": "One dry wooden hammer contact and a small latch closure; instant completion, no construction sequence",
+    "bear_stomp": "Weighty leather landing with a short stone-settling tail; no repeating drum",
+    "bear_link": "Short chain tension and a subdued fastening click; two buildings join",
+    "bear_ward": "Solid wooden shield contact with one damped bell resonance; no melody or sustained hum",
+    "frog_mist": "Soft feather/cloth air release with a faint wet contact; no continuous revealing hiss",
+    "frog_float": "Rounded wet bubble from a CC0 slime effect with a light upward cloth gesture",
+    "frog_cloak": "Brief soft fabric/feather sweep that disappears quickly; no tracking or looping sound",
+    "frog_strike": "Immediate blade sweep and compact soft impact together; no windup or cannon explosion",
     "projectile_hit": "Soft impact and a restrained equipment contact at the projectile collision",
     "victory": "Four rising recorded bell strikes with flag and equipment rustle",
     "defeat": "Falling armour and two low fading bell strikes",
@@ -88,6 +108,8 @@ DESCRIPTIONS = {
 # Retain the approved combat/footstep/result assets byte-for-byte. Only these
 # cues take the transparent editing path; no saturation or heavy pitch warping.
 REFINED = set("select drag ratio order denied cancel pause resume skill_command skill_drum skill_shield skill_breach rabbit_dash rabbit_seal rabbit_recall rabbit_burrow projectile_hit".split())
+NEW_COMMANDERS = set("bear_toolbox bear_stomp bear_link bear_ward frog_mist frog_float frog_cloak frog_strike".split())
+REFINED |= NEW_COMMANDERS
 
 
 def rms_active(samples):
@@ -200,6 +222,51 @@ def refined(name, n):
     if name == "rabbit_burrow":
         return mix(.78, [(clip(f"rubberduck_rpg/stones_0{n + 1}.ogg", .72), 0, .75),
                          (clip("kenney_rpg/dropLeather.ogg", .3), 0, .25)])
+    if name in NEW_COMMANDERS:
+        # Keep real source texture. Gentle band limiting, short envelopes and
+        # at most two materials; no oscillator, saturation, reverb or pre-roll.
+        def soft(path, seconds, cutoff=5200, rate=1.0):
+            samples = filt(filt(clip(path, seconds, rate), 85, "highpass"), cutoff)
+            # The original recordings can contain quiet handling before the
+            # gesture. Align the first meaningful 4 ms energy window, not an
+            # isolated noise sample, so a spell never sounds like a slow windup.
+            power = np.convolve(samples ** 2, np.ones(192) / 192, mode="valid")
+            start = int(np.flatnonzero(power >= power.max() * .09)[0])
+            samples = samples[max(0, start - 48):]
+            samples[:48] *= np.linspace(0, 1, 48)
+            return samples
+        if name == "bear_toolbox":
+            return mix(.32, [(soft("kenney_impact/impactWood_medium_002.ogg", .17), 0, .80),
+                             (soft("kenney_rpg/metalLatch.ogg", .23, 4300), .04, .23)])
+        if name == "bear_stomp":
+            return mix(.52, [(soft("weapons_apparel/boots-leather-jump-01.wav", .40, 2600, .94), 0, 1.0),
+                             (soft("rubberduck_rpg/stones_02.ogg", .40, 3400), .024, .22)])
+        if name == "bear_link":
+            chain = soft("rubberduck_rpg/chain_01.ogg", .36, 4800)
+            chain *= np.exp(-np.arange(len(chain)) / (SR * .13))
+            return mix(.40, [(chain, 0, .70),
+                             (soft("kenney_rpg/metalLatch.ogg", .22, 4000), .04, .25)])
+        if name == "bear_ward":
+            resonance = soft("kenney_impact/impactBell_heavy_002.ogg", .68, 2900, .92)
+            resonance *= np.exp(-np.arange(len(resonance)) / (SR * .22))
+            return mix(.72, [(soft("kenney_impact/impactWood_heavy_001.ogg", .28, 3200), 0, .85),
+                             (resonance, 0, .28)])
+        if name == "frog_mist":
+            air = soft("weapons_apparel/arrow-feathers-02.wav", .42, 4200)
+            air *= np.exp(-np.arange(len(air)) / (SR * .12))
+            return mix(.44, [(air, 0, .8),
+                             (soft("rubberduck_rpg/creature_slime_02.ogg", .18, 1800), 0, .18)])
+        if name == "frog_float":
+            return mix(.46, [(soft("rubberduck_rpg/creature_slime_02.ogg", .36, 3800, 1.06), 0, .85),
+                             (soft("kenney_rpg/cloth2.ogg", .31, 4600), .018, .22)])
+        if name == "frog_cloak":
+            sweep = soft("kenney_rpg/cloth2.ogg", .30, 3600)
+            sweep *= np.exp(-np.arange(len(sweep)) / (SR * .14))
+            return mix(.32, [(sweep, 0, .8),
+                             (soft("weapons_apparel/arrow-feathers-03.wav", .22, 3000), 0, .13)])
+        if name == "frog_strike":
+            return mix(.38, [(soft("rubberduck_rpg/blade_01.ogg", .28, 5400), 0, .8),
+                             (soft("kenney_impact/impactSoft_heavy_003.ogg", .33, 2800), 0, .7)])
     if name == "projectile_hit":
         return mix(.26, [(clip(f"kenney_impact/impactSoft_heavy_00{n + 1}.ogg", .25), 0, .8),
                          (clip(f"weapons_apparel/belt-buckle-0{n + 1}.wav", .15), .01, .15)])
@@ -256,6 +323,7 @@ def export(name, samples, description):
     transparent = event in REFINED
     target_db = -22.0 if event in {"select", "drag", "ratio", "cancel", "pause", "resume"} else -19.5
     target_db = {"select": -24.0, "drag": -26.0, "order": -22.0}.get(event, target_db)
+    target_db = {"bear_ward": -18.5, "frog_mist": -21.0, "frog_cloak": -22.0}.get(event, target_db)
     if not transparent:
         samples = filt(samples, 60, "highpass")
         samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
@@ -286,7 +354,12 @@ def export(name, samples, description):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--new-commanders", action="store_true", help="Build only bear/frog WAVs, preserving all approved existing audio")
+    args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
+    previous = json.loads((OUT / "audio_manifest.json").read_text(encoding="utf-8")) if args.new_commanders else None
+    retained = {item["file"]: item for item in previous["files"]} if previous else {}
     files = []
     bank = ['extends RefCounted', '## Licensed source edits; attribution is retained in assets/audio/CREDITS.md.',
             '## Generated by tools/build_war_audio.py. UI/world call sites must match the bus.', '', 'const EVENTS: Dictionary = {']
@@ -295,8 +368,13 @@ def main():
         for index in range(count):
             USED.clear()
             filename = f"war_{name}_{index+1:02}"
-            samples = make(name, index)
-            files.append(export(filename, samples, DESCRIPTIONS[name]))
+            if args.new_commanders and name not in NEW_COMMANDERS:
+                entry = retained[filename + ".wav"]
+                assert hashlib.sha256((OUT / entry["file"]).read_bytes()).hexdigest() == entry["sha256"]
+                files.append(entry)
+            else:
+                samples = make(name, index)
+                files.append(export(filename, samples, DESCRIPTIONS[name]))
             streams.append(f'preload("res://assets/audio/block_war/{filename}.wav")')
         bank.append(f'\t"war_{name}": {{"streams": [{", ".join(streams)}], "gain_db": {gain:.1f}, '
                     f'"bus": &"{bus}", "priority": {priority}, "gap_ms": {gap}, "limit": {limit}}},')
@@ -306,7 +384,7 @@ def main():
                 "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
                 "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
                 "events": len(EVENTS), "files": files}
-    manifest["menu_click"] = build_menu_click()
+    manifest["menu_click"] = previous["menu_click"] if previous else build_menu_click()
     (OUT / "audio_manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
     print(f"Built {len(EVENTS)} events / {len(files)} WAV files / {sum(f['bytes'] for f in files):,} bytes")
     print(f"True peaks: {min(f['true_peak_db'] for f in files):.2f} to {max(f['true_peak_db'] for f in files):.2f} dBFS")

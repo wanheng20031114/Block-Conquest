@@ -1,0 +1,375 @@
+{
+  "mix_rate": 44100,
+  "preview_gain": "Captured at shipped defaults, Master fader baked in; never normalized",
+  "previews": [
+    {
+      "event": "war_bear_toolbox",
+      "label": "熊 Q · 工具箱",
+      "file": "bear_toolbox.wav"
+    },
+    {
+      "event": "war_bear_stomp",
+      "label": "熊 W · 重重跺脚",
+      "file": "bear_stomp.wav"
+    },
+    {
+      "event": "war_bear_link",
+      "label": "熊 E · 链式防守",
+      "file": "bear_link.wav"
+    },
+    {
+      "event": "war_bear_ward",
+      "label": "熊 R · 不落堡垒",
+      "file": "bear_ward.wav"
+    },
+    {
+      "event": "war_frog_mist",
+      "label": "青蛙 Q · 弱化雾气",
+      "file": "frog_mist.wav"
+    },
+    {
+      "event": "war_frog_float",
+      "label": "青蛙 W · 浮力薄隔",
+      "file": "frog_float.wav"
+    },
+    {
+      "event": "war_frog_cloak",
+      "label": "青蛙 E · 隐身",
+      "file": "frog_cloak.wav"
+    },
+    {
+      "event": "war_frog_strike",
+      "label": "青蛙 R · 致命打击",
+      "file": "frog_strike.wav"
+    }
+  ],
+  "sources": [
+    {
+      "file": "war_bear_toolbox_01.wav",
+      "onset_ms_at_2percent_peak": 0.458,
+      "duration_seconds": 0.32,
+      "first_50ms_energy_percent": 94.27
+    },
+    {
+      "file": "war_bear_stomp_01.wav",
+      "onset_ms_at_2percent_peak": 0.771,
+      "duration_seconds": 0.52,
+      "first_50ms_energy_percent": 63.9
+    },
+    {
+      "file": "war_bear_link_01.wav",
+      "onset_ms_at_2percent_peak": 1.062,
+      "duration_seconds": 0.4,
+      "first_50ms_energy_percent": 48.23
+    },
+    {
+      "file": "war_bear_ward_01.wav",
+      "onset_ms_at_2percent_peak": 0.458,
+      "duration_seconds": 0.72,
+      "first_50ms_energy_percent": 95.16
+    },
+    {
+      "file": "war_frog_mist_01.wav",
+      "onset_ms_at_2percent_peak": 0.812,
+      "duration_seconds": 0.44,
+      "first_50ms_energy_percent": 56.84
+    },
+    {
+      "file": "war_frog_float_01.wav",
+      "onset_ms_at_2percent_peak": 0.688,
+      "duration_seconds": 0.46,
+      "first_50ms_energy_percent": 50.72
+    },
+    {
+      "file": "war_frog_cloak_01.wav",
+      "onset_ms_at_2percent_peak": 0.708,
+      "duration_seconds": 0.32,
+      "first_50ms_energy_percent": 85.3
+    },
+    {
+      "file": "war_frog_strike_01.wav",
+      "onset_ms_at_2percent_peak": 0.646,
+      "duration_seconds": 0.38,
+      "first_50ms_energy_percent": 57.74
+    }
+  ],
+  "native_mix": [
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 20480,
+      "gain_db": 2.0,
+      "kind": "war_bear_toolbox",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_bear_toolbox_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_bear_toolbox_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -29.93,
+      "output_true_peak_dbtp": -17.88,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 28672,
+      "gain_db": 0.0,
+      "kind": "war_bear_stomp",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_bear_stomp_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_bear_stomp_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -29.13,
+      "output_true_peak_dbtp": -15.44,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 24576,
+      "gain_db": 2.0,
+      "kind": "war_bear_link",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_bear_link_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_bear_link_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -28.4,
+      "output_true_peak_dbtp": -12.51,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 40960,
+      "gain_db": 2.0,
+      "kind": "war_bear_ward",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_bear_ward_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_bear_ward_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -28.66,
+      "output_true_peak_dbtp": -16.89,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 24576,
+      "gain_db": 0.0,
+      "kind": "war_frog_mist",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_frog_mist_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_frog_mist_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -29.39,
+      "output_true_peak_dbtp": -13.82,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 24576,
+      "gain_db": 1.0,
+      "kind": "war_frog_float",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_frog_float_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_frog_float_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -27.15,
+      "output_true_peak_dbtp": -12.71,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 20480,
+      "gain_db": -1.0,
+      "kind": "war_frog_cloak",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_frog_cloak_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_frog_cloak_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -30.9,
+      "output_true_peak_dbtp": -15.26,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 24576,
+      "gain_db": 2.0,
+      "kind": "war_frog_strike",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_frog_strike_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_frog_strike_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -27.37,
+      "output_true_peak_dbtp": -17.58,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 57344,
+      "gain_db": 2.0,
+      "kind": "war_skill_command",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_skill_command_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_skill_command_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -26.44,
+      "output_true_peak_dbtp": -15.39,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 77824,
+      "gain_db": 1.0,
+      "kind": "war_skill_shield",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_skill_shield_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_skill_shield_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -27.41,
+      "output_true_peak_dbtp": -14.2,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 20480,
+      "gain_db": 2.0,
+      "kind": "war_rabbit_seal",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_rabbit_seal_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_rabbit_seal_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -26.7,
+      "output_true_peak_dbtp": -11.73,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 20480,
+      "gain_db": -3.0,
+      "kind": "war_projectile_hit",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_projectile_hit_01",
+      "position": "(8.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_projectile_hit_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -29.76,
+      "output_true_peak_dbtp": -20.05,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "bus": "Combat",
+      "events_played": {},
+      "frames": 20480,
+      "gain_db": -1.0,
+      "kind": "war_frog_cloak",
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "war_frog_cloak_01_edge",
+      "position": "(43.0, 0.0, 0.0)",
+      "sample": "res://assets/audio/block_war/war_frog_cloak_01.wav",
+      "type": "isolated",
+      "variant": 0,
+      "default_or_stress_50ms_rms_dbfs": -34.08,
+      "output_true_peak_dbtp": -18.66,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "events_played": {
+        "cannon_shot": 11,
+        "war_bear_link": 1,
+        "war_bear_stomp": 1,
+        "war_bear_toolbox": 1,
+        "war_bear_ward": 1,
+        "war_frog_cloak": 1,
+        "war_frog_float": 1,
+        "war_frog_mist": 1,
+        "war_frog_strike": 1,
+        "war_march": 20,
+        "war_melee": 40,
+        "war_projectile_hit": 11
+      },
+      "frames": 376832,
+      "master_db": -6.02059984207153,
+      "music_bus_db": -6.02059984207153,
+      "name": "battle_default",
+      "stress": false,
+      "type": "mix",
+      "default_or_stress_50ms_rms_dbfs": -24.7,
+      "output_true_peak_dbtp": -11.97,
+      "limiter_threshold_frames_percent": 0.0
+    },
+    {
+      "events_played": {
+        "cannon_shot": 12,
+        "war_bear_link": 1,
+        "war_bear_stomp": 1,
+        "war_bear_toolbox": 1,
+        "war_bear_ward": 6,
+        "war_frog_cloak": 1,
+        "war_frog_float": 1,
+        "war_frog_mist": 1,
+        "war_frog_strike": 1,
+        "war_march": 20,
+        "war_melee": 40,
+        "war_projectile_hit": 11
+      },
+      "frames": 380928,
+      "master_db": 0.0,
+      "music_bus_db": -6.02059984207153,
+      "name": "maximum_overlap",
+      "stress": true,
+      "type": "mix",
+      "default_or_stress_50ms_rms_dbfs": -12.59,
+      "output_true_peak_dbtp": -2.68,
+      "limiter_threshold_frames_percent": 0.0
+    }
+  ],
+  "unchanged_battle_wavs": 44,
+  "unchanged_menu_click_bgm_and_buses": true,
+  "discarded_capture_frames": [
+    0,
+    0
+  ]
+}

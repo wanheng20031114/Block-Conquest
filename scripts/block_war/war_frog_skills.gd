@@ -19,4 +19,4 @@ static func strike(game: Node3D, target: WarBuilding, faction: int) -> void:
 		game.marches.trim_departures(target.building_id, target.faction, floori(target.population))
 	target.refresh_visual()
 	game.world_effects.get_node("Frog").release(3, faction, target.global_position)
-	game.audio.play_world(&"war_projectile_hit", target.global_position)
+	game.audio.play_world(&"war_frog_strike", target.global_position)

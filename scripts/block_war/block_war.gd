@@ -701,7 +701,8 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 		world_effects.get_node("Frog").release(index, faction, center)
 		world_effects.get_node("Frog").sync(marches, 0.0)
 		_commit_skill(index, faction)
-		audio.play_world(&"war_rabbit_seal" if index == 0 else &"war_skill_shield", center)
+		var frog_sounds: Array[StringName] = [&"war_frog_mist", &"war_frog_float", &"war_frog_cloak"]
+		audio.play_world(frog_sounds[index], center)
 		update_hud()
 		return true
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
@@ -709,7 +710,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = PLAYER) -> bool:
 		world_effects.get_node("Bear").stomp(faction, center)
 		world_effects.get_node("Bear").sync(bear, marches, by_id, 0.0)
 		_commit_skill(index, faction)
-		audio.play_world(&"war_skill_drum", center)
+		audio.play_world(&"war_bear_stomp", center)
 		update_hud()
 		return true
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:

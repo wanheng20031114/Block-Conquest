@@ -85,7 +85,7 @@ func _run() -> void:
 		await create_timer(duration / 0.97 + 0.09).timeout
 		var level := _measure()
 		_check(level.y > 0.005 and level.x <= db_to_linear(-0.9), "%s reaches the real Master mix (RMS %.1f dBFS, peak %.1f dBFS)" % [kind, linear_to_db(level.y), linear_to_db(level.x)])
-	_check(sample_count == 44, "all 44 campaign variants loaded")
+	_check(sample_count == 52, "all 52 campaign variants loaded")
 	# Regression: positive event gains used to be silently clamped by max_db=0.
 	# Compare the same source before combat compression, which intentionally
 	# reduces the gain difference at the final mix's loudest transients.
@@ -164,11 +164,11 @@ func _run() -> void:
 	# Capture is a pre-fader bus effect; final output muting happens after it.
 	_check(AudioServer.is_bus_mute(0) and audio.muted and audio.settings.muted, "campaign mute updates the shared settings and native Master output")
 	audio.toggle_mute()
-	# The two virtual lookups leave the original mode's soundbank usable.
+	# Cannon fire still resolves through the remaining shared bank.
 	await _clear()
-	audio.play_ui(&"select")
-	await create_timer(0.4).timeout
-	_check(_measure().y > 0.003, "original shared UI event still plays through the inherited director")
+	audio.play_world(&"cannon_shot", Vector3(8, 0, 0))
+	await create_timer(0.6).timeout
+	_check(_measure().y > 0.003, "shared cannon event still plays through the inherited director")
 	var references: Array[WeakRef] = audio.stop_all()
 	await process_frame
 	await process_frame

@@ -3,7 +3,7 @@
   "generator": "tools/build_war_audio.py",
   "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
   "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
-  "events": 26,
+  "events": 34,
   "files": [
     {
       "file": "war_select_01.wav",
@@ -1038,6 +1038,198 @@
         {
           "path": "rubberduck_rpg/stones_02.ogg",
           "sha256": "57dc6b85ee986e68ddc4b7fb2b41cc1c885151677d32439fdb299492a3103a65",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+        }
+      ]
+    },
+    {
+      "file": "war_bear_toolbox_01.wav",
+      "description": "One dry wooden hammer contact and a small latch closure; instant completion, no construction sequence",
+      "seconds": 0.32,
+      "active_rms_db": -19.73,
+      "true_peak_db": -5.81,
+      "bytes": 30764,
+      "sha256": "515330c5764352aa3b7ae8fa9e6b16f9b0f3b7501394339cd5afe0b60a464073",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/impactWood_medium_002.ogg",
+          "sha256": "3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "kenney_rpg/metalLatch.ogg",
+          "sha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        }
+      ]
+    },
+    {
+      "file": "war_bear_stomp_01.wav",
+      "description": "Weighty leather landing with a short stone-settling tail; no repeating drum",
+      "seconds": 0.52,
+      "active_rms_db": -19.5,
+      "true_peak_db": -4.35,
+      "bytes": 49964,
+      "sha256": "296cb183045c549038593b0c425c3bacbc565710cbecffb6901594c4b0a59a72",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "rubberduck_rpg/stones_02.ogg",
+          "sha256": "57dc6b85ee986e68ddc4b7fb2b41cc1c885151677d32439fdb299492a3103a65",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+        },
+        {
+          "path": "weapons_apparel/boots-leather-jump-01.wav",
+          "sha256": "9b8b6e3ac1f0263df49c60c1e571974b421bfe12c576f26328397ee644bb3ac4",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library"
+        }
+      ]
+    },
+    {
+      "file": "war_bear_link_01.wav",
+      "description": "Short chain tension and a subdued fastening click; two buildings join",
+      "seconds": 0.4,
+      "active_rms_db": -21.65,
+      "true_peak_db": -3.0,
+      "bytes": 38444,
+      "sha256": "a1377ea0ddc3d38e995da34606b88b69112621333e1bc035cfb9eda07decc756",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_rpg/metalLatch.ogg",
+          "sha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        },
+        {
+          "path": "rubberduck_rpg/chain_01.ogg",
+          "sha256": "d376caf0f61384b1d2e0b447f64f06be56d0ee0622ba70dd01cfdd78b3a10687",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+        }
+      ]
+    },
+    {
+      "file": "war_bear_ward_01.wav",
+      "description": "Solid wooden shield contact with one damped bell resonance; no melody or sustained hum",
+      "seconds": 0.72,
+      "active_rms_db": -18.71,
+      "true_peak_db": -6.58,
+      "bytes": 69164,
+      "sha256": "45788391213554c561a52e8c37e30d365e0550dcf126a98b24fe767db5d5d906",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/impactBell_heavy_002.ogg",
+          "sha256": "a4171ed1a4a17fb858a38de1c59b5b42e50d8f046c525706c0e3ac8671f189f5",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "kenney_impact/impactWood_heavy_001.ogg",
+          "sha256": "f1b07a53ac10c615fff9ba470511fdeb722b5902e1a8520759fc20ad6f546015",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        }
+      ]
+    },
+    {
+      "file": "war_frog_mist_01.wav",
+      "description": "Soft feather/cloth air release with a faint wet contact; no continuous revealing hiss",
+      "seconds": 0.44,
+      "active_rms_db": -21.0,
+      "true_peak_db": -3.66,
+      "bytes": 42284,
+      "sha256": "ea68f1f04fbfc41a368437ab8e1efda437a2599e6df47ed2e0ec8809ba94d26b",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "rubberduck_rpg/creature_slime_02.ogg",
+          "sha256": "8c26b66076752b712dad7be704a3e4e11d3a49847fbd804ba7f858024ff33c8d",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+        },
+        {
+          "path": "weapons_apparel/arrow-feathers-02.wav",
+          "sha256": "5e2974eade6ba7238642a5993114d46d10fd28912e044cacebff0b9e18c0b4e2",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library"
+        }
+      ]
+    },
+    {
+      "file": "war_frog_float_01.wav",
+      "description": "Rounded wet bubble from a CC0 slime effect with a light upward cloth gesture",
+      "seconds": 0.46,
+      "active_rms_db": -19.5,
+      "true_peak_db": -3.7,
+      "bytes": 44204,
+      "sha256": "97dbf2cb2e75a46b0e9a99b9d5e6e81f96dc73c3c74760d4014cd1aee6962c88",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_rpg/cloth2.ogg",
+          "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        },
+        {
+          "path": "rubberduck_rpg/creature_slime_02.ogg",
+          "sha256": "8c26b66076752b712dad7be704a3e4e11d3a49847fbd804ba7f858024ff33c8d",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+        }
+      ]
+    },
+    {
+      "file": "war_frog_cloak_01.wav",
+      "description": "Brief soft fabric/feather sweep that disappears quickly; no tracking or looping sound",
+      "seconds": 0.32,
+      "active_rms_db": -22.01,
+      "true_peak_db": -3.49,
+      "bytes": 30764,
+      "sha256": "e66732b4595ed9ea90ca9deb51be0ba0f87b435ee17a71ea1722d8531e26cf70",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_rpg/cloth2.ogg",
+          "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        },
+        {
+          "path": "weapons_apparel/arrow-feathers-03.wav",
+          "sha256": "e55532c884b4dadc4c7fead111b6cf4f14886aad602f1778bb747dd5ade355e3",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library"
+        }
+      ]
+    },
+    {
+      "file": "war_frog_strike_01.wav",
+      "description": "Immediate blade sweep and compact soft impact together; no windup or cannon explosion",
+      "seconds": 0.38,
+      "active_rms_db": -21.55,
+      "true_peak_db": -4.15,
+      "bytes": 36524,
+      "sha256": "9c67314cd28fece3e2b0f19ba30f8cd2e9d88252bdb2883178318ef67bd90b6f",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/impactSoft_heavy_003.ogg",
+          "sha256": "d00286a2dc62ee5cb4d42bf56120e7050a855f69e655fc1294410aadd337eba3",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "rubberduck_rpg/blade_01.ogg",
+          "sha256": "caf7a7cb9b25cda4bd487c1d12d18b74a34bb18c816fd67277cf3c8d7ef32a3a",
           "license": "CC0-1.0",
           "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
         }
