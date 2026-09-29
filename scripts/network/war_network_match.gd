@@ -8,6 +8,7 @@ const MAX_BLOB_BYTES := 8 * 1024 * 1024
 const MAX_PENDING_EVENTS := 2048
 const BULK_BYTES_PER_SECOND := 131072.0
 const MAX_OUTBOX_BYTES := 48 * 1024 * 1024
+const RECORD_TIME_INDEX := {"buildings": 11, "factions": 8, "units": 12}
 var game: Node
 var online: Node
 var codec := Snapshot.new()
@@ -496,7 +497,7 @@ func _maybe_finish() -> void:
 	_finish_pending.clear()
 
 func _record_time(group: String, row: Variant) -> float:
-	var index: int = {"buildings": 11, "factions": 8, "units": 12}[group]
+	var index: int = RECORD_TIME_INDEX[group]
 	return float(row[index]) if row is Array and row.size() > index and Snapshot._number(row[index]) else -1.0
 
 func _apply_account() -> void:
@@ -550,10 +551,13 @@ func _send_payload(kind: String, payload: Dictionary, target: int = -1) -> void:
 	var bytes := JSON.stringify(payload, "", true, true).to_utf8_buffer()
 	sent_rule_bytes += bytes.size()
 	if bytes.size() <= 12000: online.send_match(kind, payload, target)
-	else: _send_blob(kind, payload, target)
+	else: _send_blob_bytes(kind, bytes, target)
 
 func _send_blob(purpose: String, payload: Dictionary, target: int) -> void:
 	var raw := JSON.stringify(payload, "", true, true).to_utf8_buffer()
+	_send_blob_bytes(purpose, raw, target)
+
+func _send_blob_bytes(purpose: String, raw: PackedByteArray, target: int) -> void:
 	if raw.size() > MAX_BLOB_BYTES:
 		_abort_sync("对局同步数据超过容量上限，房间已结束"); return
 	var bytes := raw.compress(FileAccess.COMPRESSION_ZSTD)

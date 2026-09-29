@@ -1,0 +1,989 @@
+{
+  "date": "2026-09-29",
+  "base_commit": "4eacf7e68195dff3d0f97b29fdd16bc0f3973457",
+  "engine": "Godot 4.7.2 stable Windows x64",
+  "scope": "Conservative equivalent multiplayer optimizations; trusted-friends information boundary preserved.",
+  "test_count": 10,
+  "regression_checks": 2676,
+  "regression_failures": 0,
+  "tests": [
+    {
+      "test": "tests/block_war_blob_equivalence_test.gd",
+      "pid": 45356,
+      "code": 0,
+      "timeout": false,
+      "seconds": 1.27,
+      "exited": true,
+      "summary": [
+        "BLOB_EQUIVALENCE checks=117 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 117,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_blob_equivalence_test.engine.log",
+      "log_sha256": "d31100d244a6451ca31fd6ef16164d9b237ceaa5b33730b93ac91d9e4b2f74b7"
+    },
+    {
+      "test": "tests/block_war_snapshot_test.gd",
+      "pid": 57948,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.28,
+      "exited": true,
+      "summary": [
+        "BLOCK_WAR_SNAPSHOT checks=1350 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 1350,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_snapshot_test.engine.log",
+      "log_sha256": "4cd93488c3a6d282744e34b4a5a00c87e0abdbc1137995b0d24da642d96448b7"
+    },
+    {
+      "test": "tests/block_war_height_replication_test.gd",
+      "pid": 37204,
+      "code": 0,
+      "timeout": false,
+      "seconds": 3.78,
+      "exited": true,
+      "summary": [
+        "BLOCK_WAR_HEIGHT_REPLICATION maps=3 checks=210 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 210,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_height_replication_test.engine.log",
+      "log_sha256": "ea47d8524827d553a2557e9cf04ead96903238775f2bddf7aef84b6562311bfe"
+    },
+    {
+      "test": "tests/block_war_replication_test.gd",
+      "pid": 15512,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.19,
+      "exited": true,
+      "summary": [
+        "REPLICATION checks=45 failures=0 reliable_bytes=13912 resyncs=1"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 45,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_replication_test.engine.log",
+      "log_sha256": "9aa28c4f49e424a19d866244d42d168f51733c45f73b5f4979847f88ab124860"
+    },
+    {
+      "test": "tests/block_war_match_control_replication_test.gd",
+      "pid": 36412,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.09,
+      "exited": true,
+      "summary": [
+        "MATCH_CONTROL_REPLICATION checks=45 failures=0 resyncs={ \"recovery\": 1 }"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 45,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_match_control_replication_test.engine.log",
+      "log_sha256": "810083702927ce741aa34288aa5ef0568ad4082e44a618919f1505fd2163f7bb"
+    },
+    {
+      "test": "tests/block_war_replication_load_test.gd",
+      "pid": 63708,
+      "code": 0,
+      "timeout": false,
+      "seconds": 10.36,
+      "exited": true,
+      "summary": [
+        "REPLICATION_LOAD checks=10 failures=0 soldiers=4096 frames=120 recovery_ms=228.481 pair_cpu_mean_ms=63.939775 pair_cpu_p95_ms=85.445 pair_cpu_p99_ms=158.969 pair_cpu_max_ms=159.463 anchor_bytes_per_second=208780 anchor_packets_per_second=304 largest_datagram=759"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 10,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_replication_load_test.engine.log",
+      "log_sha256": "75d980d13e6bd6266116c7e41d7401aa782ac8dd7c51951d8ace586995f5318b"
+    },
+    {
+      "test": "tests/block_war_replication_morale_test.gd",
+      "pid": 49564,
+      "code": 0,
+      "timeout": false,
+      "seconds": 3.67,
+      "exited": true,
+      "summary": [
+        "REPLICATION_MORALE checks=12 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 12,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_replication_morale_test.engine.log",
+      "log_sha256": "feba1ca4a4f8491a396cd851d282d23cf380e1dc82114a4f854aee592f6b9590"
+    },
+    {
+      "test": "tests/block_war_fixed_clock_test.gd",
+      "pid": 60820,
+      "code": 0,
+      "timeout": false,
+      "seconds": 8.5,
+      "exited": true,
+      "summary": [
+        "FIXED_CLOCK checks=193 failures=0 factions=6 bots=5 target_tick=600 frame_rates=[10,30,120]"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 193,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_fixed_clock_test.engine.log",
+      "log_sha256": "e6c0ee538a01f84005e39dc27836b3d3d39289cb010e543fda6430a73e6491dc"
+    },
+    {
+      "test": "tests/block_war_energy_replication_test.gd",
+      "pid": 61004,
+      "code": 0,
+      "timeout": false,
+      "seconds": 1.91,
+      "exited": true,
+      "summary": [
+        "ENERGY_REPLICATION checks=21 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ],
+      "checks": 21,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/block_war_energy_replication_test.engine.log",
+      "log_sha256": "42f821ac58195e34cd45bc9f6ceb498dbbd6b5b520ed8d7deaca64a167d10630"
+    },
+    {
+      "test": "tests/block_war_presentation_equivalence_test.gd",
+      "pid": 4044,
+      "code": 0,
+      "timeout": false,
+      "exited": true,
+      "note": "Final fixture recheck supersedes the first run: use fresh codecs for both dictionary-order variants; production code unchanged.",
+      "checks": 673,
+      "failures": 0,
+      "local_log": ".local/multiplayer-optimization/presentation_equivalence_fixture.engine.log",
+      "log_sha256": "fb74d092d7930cb9a4db5107993db9f67bea29d33799dddde72cc03f924132aa"
+    }
+  ],
+  "ab_checks": 78,
+  "ab_failures": 0,
+  "aggregate": {
+    "marching": {
+      "client_install_present": {
+        "median_of_run_means_ms": {
+          "A": 33.97721666666669,
+          "B": 30.503108333333323
+        },
+        "median_of_run_p95_ms": {
+          "A": 53.851,
+          "B": 46.88
+        },
+        "mean_time_reduction_percent": 10.22481731630961
+      },
+      "client_receive": {
+        "median_of_run_means_ms": {
+          "A": 2.013741666666666,
+          "B": 1.8884333333333325
+        },
+        "median_of_run_p95_ms": {
+          "A": 3.683,
+          "B": 3.35
+        },
+        "mean_time_reduction_percent": 6.2226617945863705
+      },
+      "host_receive": {
+        "median_of_run_means_ms": {
+          "A": 0.003625000000000003,
+          "B": 0.0034916666666666694
+        },
+        "median_of_run_p95_ms": {
+          "A": 0.005,
+          "B": 0.005
+        },
+        "mean_time_reduction_percent": 3.67816091954023
+      },
+      "host_simulate_publish": {
+        "median_of_run_means_ms": {
+          "A": 35.1286,
+          "B": 34.922499999999985
+        },
+        "median_of_run_p95_ms": {
+          "A": 36.293,
+          "B": 35.882
+        },
+        "mean_time_reduction_percent": 0.5867014341590981
+      },
+      "large_event_encode": {
+        "median_of_run_means_ms": {
+          "A": 17.4436875,
+          "B": 9.211062499999999
+        },
+        "median_of_run_p95_ms": {
+          "A": 18.283,
+          "B": 9.422
+        },
+        "mean_time_reduction_percent": 47.19543961103408
+      },
+      "pair": {
+        "median_of_run_means_ms": {
+          "A": 71.1263,
+          "B": 67.32065833333336
+        },
+        "median_of_run_p95_ms": {
+          "A": 92.798,
+          "B": 85.348
+        },
+        "mean_time_reduction_percent": 5.350540751686294
+      }
+    },
+    "overlapping_fields": {
+      "client_install_present": {
+        "median_of_run_means_ms": {
+          "A": 80.01368333333333,
+          "B": 67.09920833333334
+        },
+        "median_of_run_p95_ms": {
+          "A": 95.022,
+          "B": 82.171
+        },
+        "mean_time_reduction_percent": 16.140333080529345
+      },
+      "client_receive": {
+        "median_of_run_means_ms": {
+          "A": 20.69839166666667,
+          "B": 20.51129166666668
+        },
+        "median_of_run_p95_ms": {
+          "A": 26.367,
+          "B": 26.037
+        },
+        "mean_time_reduction_percent": 0.9039349675719066
+      },
+      "host_receive": {
+        "median_of_run_means_ms": {
+          "A": 0.003508333333333336,
+          "B": 0.0036916666666666695
+        },
+        "median_of_run_p95_ms": {
+          "A": 0.005,
+          "B": 0.005
+        },
+        "mean_time_reduction_percent": -5.2256532066508266
+      },
+      "host_simulate_publish": {
+        "median_of_run_means_ms": {
+          "A": 80.24057500000002,
+          "B": 80.41329999999999
+        },
+        "median_of_run_p95_ms": {
+          "A": 86.031,
+          "B": 87.266
+        },
+        "mean_time_reduction_percent": -0.21525892604827845
+      },
+      "large_event_encode": {
+        "median_of_run_means_ms": {
+          "A": 17.7498125,
+          "B": 9.3930625
+        },
+        "median_of_run_p95_ms": {
+          "A": 18.068,
+          "B": 9.748
+        },
+        "mean_time_reduction_percent": 47.08077902231362
+      },
+      "pair": {
+        "median_of_run_means_ms": {
+          "A": 180.9596666666666,
+          "B": 167.90978333333334
+        },
+        "median_of_run_p95_ms": {
+          "A": 206.063,
+          "B": 194.079
+        },
+        "mean_time_reduction_percent": 7.211487274328132
+      }
+    }
+  },
+  "raw_ab": {
+    "sources_sha256": {
+      "B_snapshot": "68e37440c41f4525d4354b3ac790ef8be992c2ba03804bdef1c4e3b51df33c3b",
+      "B_coordinator": "eb3f042aef3db52950be51a9f07aaa24e7b542df327e8ff89a63a774ae141137",
+      "A_snapshot": "b89c87678b5e231f3671ebeed0eec0eb163eaf21f94171a59a4dbe47dfe08fb9",
+      "A_coordinator": "a9e320049bf7c0de39c49353f6b03ecd830e2a7c9d3ac93463e75cde2a34a6e3"
+    },
+    "pid": 11788,
+    "exit_code": 0,
+    "timeout": false,
+    "exited": true,
+    "seconds": 251.25,
+    "rounds": 3,
+    "frames": 120,
+    "soldiers": 4096,
+    "results": [
+      {
+        "event_sequence": 1,
+        "fields": false,
+        "frames": 120,
+        "large_event_hash": "70d5d95414058c438e085cdaa521fe5695096f10f0ab518627a921994cbf1c97",
+        "raw_rule_bytes": 385185,
+        "round": 0,
+        "rule_hash": "125805cfbcc42e94dbf2c649b2e8d88c2c65852c0c7a7fa7ece421ea8b3d9ac9",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 166.659,
+            "mean_ms": 65.09850833333336,
+            "p95_ms": 132.599,
+            "p99_ms": 149.379
+          },
+          "client_receive": {
+            "max_ms": 115.214,
+            "mean_ms": 4.152666666666666,
+            "p95_ms": 9.263,
+            "p99_ms": 110.286
+          },
+          "host_receive": {
+            "max_ms": 0.026,
+            "mean_ms": 0.007891666666666674,
+            "p95_ms": 0.015,
+            "p99_ms": 0.023
+          },
+          "host_simulate_publish": {
+            "max_ms": 200.521,
+            "mean_ms": 66.98755000000004,
+            "p95_ms": 100.516,
+            "p99_ms": 141.673
+          },
+          "large_event_encode": {
+            "max_ms": 18.923,
+            "mean_ms": 17.4436875,
+            "p95_ms": 18.923,
+            "p99_ms": 18.923
+          },
+          "pair": {
+            "max_ms": 367.704,
+            "mean_ms": 136.25416666666663,
+            "p95_ms": 238.914,
+            "p99_ms": 311.039
+          }
+        },
+        "units": 4096,
+        "variant": "A",
+        "view_hash": "0f5be46600f986cf5d62ccecb6162bbd9df82f620e37165ad9cfe7f448b16f0e",
+        "visual_hash": "03fe1ed2bde2ca5896365946da1c0e3bc63ca514d1f5adcc7b9a0a2d07c51e4a"
+      },
+      {
+        "event_sequence": 1,
+        "fields": false,
+        "frames": 120,
+        "large_event_hash": "70d5d95414058c438e085cdaa521fe5695096f10f0ab518627a921994cbf1c97",
+        "raw_rule_bytes": 385185,
+        "round": 0,
+        "rule_hash": "125805cfbcc42e94dbf2c649b2e8d88c2c65852c0c7a7fa7ece421ea8b3d9ac9",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 69.69,
+            "mean_ms": 30.503108333333323,
+            "p95_ms": 46.761,
+            "p99_ms": 48.211
+          },
+          "client_receive": {
+            "max_ms": 50.428,
+            "mean_ms": 1.8884333333333325,
+            "p95_ms": 3.328,
+            "p99_ms": 49.665
+          },
+          "host_receive": {
+            "max_ms": 0.009,
+            "mean_ms": 0.0034916666666666694,
+            "p95_ms": 0.005,
+            "p99_ms": 0.005
+          },
+          "host_simulate_publish": {
+            "max_ms": 86.017,
+            "mean_ms": 34.922499999999985,
+            "p95_ms": 35.927,
+            "p99_ms": 85.303
+          },
+          "large_event_encode": {
+            "max_ms": 9.422,
+            "mean_ms": 9.211062499999999,
+            "p95_ms": 9.422,
+            "p99_ms": 9.422
+          },
+          "pair": {
+            "max_ms": 159.141,
+            "mean_ms": 67.32065833333336,
+            "p95_ms": 85.348,
+            "p99_ms": 158.262
+          }
+        },
+        "units": 4096,
+        "variant": "B",
+        "view_hash": "0f5be46600f986cf5d62ccecb6162bbd9df82f620e37165ad9cfe7f448b16f0e",
+        "visual_hash": "03fe1ed2bde2ca5896365946da1c0e3bc63ca514d1f5adcc7b9a0a2d07c51e4a"
+      },
+      {
+        "event_sequence": 130,
+        "fields": true,
+        "frames": 120,
+        "large_event_hash": "f5e379b8e57783c2aac6925347fbc14da43f3eda1d1b081a1e2af30d9be7da3f",
+        "raw_rule_bytes": 671282,
+        "round": 0,
+        "rule_hash": "00038deea30b8e6f02ee19629a3724d6f03a2f6c007f4a16cc4007e4d1d17672",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 101.547,
+            "mean_ms": 79.34181666666665,
+            "p95_ms": 95.022,
+            "p99_ms": 100.1
+          },
+          "client_receive": {
+            "max_ms": 74.145,
+            "mean_ms": 20.57936666666666,
+            "p95_ms": 26.367,
+            "p99_ms": 73.949
+          },
+          "host_receive": {
+            "max_ms": 0.006,
+            "mean_ms": 0.0034416666666666693,
+            "p95_ms": 0.005,
+            "p99_ms": 0.005
+          },
+          "host_simulate_publish": {
+            "max_ms": 130.96,
+            "mean_ms": 79.55622499999998,
+            "p95_ms": 85.556,
+            "p99_ms": 128.399
+          },
+          "large_event_encode": {
+            "max_ms": 17.225,
+            "mean_ms": 16.8263125,
+            "p95_ms": 17.225,
+            "p99_ms": 17.225
+          },
+          "pair": {
+            "max_ms": 285.737,
+            "mean_ms": 179.48418333333333,
+            "p95_ms": 206.063,
+            "p99_ms": 268.319
+          }
+        },
+        "units": 4096,
+        "variant": "A",
+        "view_hash": "b03bc5d8ced58311ac15a027c8198c7b1cf8018619784a4c76d46a76cbf55156",
+        "visual_hash": "9cd7898f455d46bb0d1cac78b675001d1a810b4918760cec160a78a338346769"
+      },
+      {
+        "event_sequence": 130,
+        "fields": true,
+        "frames": 120,
+        "large_event_hash": "f5e379b8e57783c2aac6925347fbc14da43f3eda1d1b081a1e2af30d9be7da3f",
+        "raw_rule_bytes": 671282,
+        "round": 0,
+        "rule_hash": "00038deea30b8e6f02ee19629a3724d6f03a2f6c007f4a16cc4007e4d1d17672",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 84.886,
+            "mean_ms": 67.09920833333334,
+            "p95_ms": 81.515,
+            "p99_ms": 84.722
+          },
+          "client_receive": {
+            "max_ms": 74.68,
+            "mean_ms": 20.50585833333334,
+            "p95_ms": 26.037,
+            "p99_ms": 73.777
+          },
+          "host_receive": {
+            "max_ms": 0.006,
+            "mean_ms": 0.003458333333333336,
+            "p95_ms": 0.004,
+            "p99_ms": 0.006
+          },
+          "host_simulate_publish": {
+            "max_ms": 133.511,
+            "mean_ms": 80.01648333333337,
+            "p95_ms": 86.88,
+            "p99_ms": 129.821
+          },
+          "large_event_encode": {
+            "max_ms": 9.748,
+            "mean_ms": 9.3930625,
+            "p95_ms": 9.748,
+            "p99_ms": 9.748
+          },
+          "pair": {
+            "max_ms": 277.721,
+            "mean_ms": 167.62855833333327,
+            "p95_ms": 194.4,
+            "p99_ms": 257.782
+          }
+        },
+        "units": 4096,
+        "variant": "B",
+        "view_hash": "b03bc5d8ced58311ac15a027c8198c7b1cf8018619784a4c76d46a76cbf55156",
+        "visual_hash": "9cd7898f455d46bb0d1cac78b675001d1a810b4918760cec160a78a338346769"
+      },
+      {
+        "event_sequence": 1,
+        "fields": false,
+        "frames": 120,
+        "large_event_hash": "70d5d95414058c438e085cdaa521fe5695096f10f0ab518627a921994cbf1c97",
+        "raw_rule_bytes": 385185,
+        "round": 1,
+        "rule_hash": "125805cfbcc42e94dbf2c649b2e8d88c2c65852c0c7a7fa7ece421ea8b3d9ac9",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 47.843,
+            "mean_ms": 30.229708333333328,
+            "p95_ms": 46.88,
+            "p99_ms": 47.456
+          },
+          "client_receive": {
+            "max_ms": 49.452,
+            "mean_ms": 1.8809749999999983,
+            "p95_ms": 3.357,
+            "p99_ms": 49.032
+          },
+          "host_receive": {
+            "max_ms": 0.006,
+            "mean_ms": 0.003191666666666669,
+            "p95_ms": 0.004,
+            "p99_ms": 0.006
+          },
+          "host_simulate_publish": {
+            "max_ms": 84.374,
+            "mean_ms": 34.34933333333332,
+            "p95_ms": 35.455,
+            "p99_ms": 84.1
+          },
+          "large_event_encode": {
+            "max_ms": 9.157,
+            "mean_ms": 8.9355,
+            "p95_ms": 9.157,
+            "p99_ms": 9.157
+          },
+          "pair": {
+            "max_ms": 157.324,
+            "mean_ms": 66.46619166666667,
+            "p95_ms": 84.55,
+            "p99_ms": 155.558
+          }
+        },
+        "units": 4096,
+        "variant": "B",
+        "view_hash": "0f5be46600f986cf5d62ccecb6162bbd9df82f620e37165ad9cfe7f448b16f0e",
+        "visual_hash": "03fe1ed2bde2ca5896365946da1c0e3bc63ca514d1f5adcc7b9a0a2d07c51e4a"
+      },
+      {
+        "event_sequence": 1,
+        "fields": false,
+        "frames": 120,
+        "large_event_hash": "70d5d95414058c438e085cdaa521fe5695096f10f0ab518627a921994cbf1c97",
+        "raw_rule_bytes": 385185,
+        "round": 1,
+        "rule_hash": "125805cfbcc42e94dbf2c649b2e8d88c2c65852c0c7a7fa7ece421ea8b3d9ac9",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 53.073,
+            "mean_ms": 32.99990833333334,
+            "p95_ms": 51.747,
+            "p99_ms": 52.963
+          },
+          "client_receive": {
+            "max_ms": 50.45,
+            "mean_ms": 1.9959666666666644,
+            "p95_ms": 3.655,
+            "p99_ms": 49.959
+          },
+          "host_receive": {
+            "max_ms": 0.007,
+            "mean_ms": 0.003141666666666669,
+            "p95_ms": 0.004,
+            "p99_ms": 0.005
+          },
+          "host_simulate_publish": {
+            "max_ms": 86.349,
+            "mean_ms": 34.355650000000004,
+            "p95_ms": 35.245,
+            "p99_ms": 85.323
+          },
+          "large_event_encode": {
+            "max_ms": 17.059,
+            "mean_ms": 16.621250000000003,
+            "p95_ms": 17.059,
+            "p99_ms": 17.059
+          },
+          "pair": {
+            "max_ms": 162.07,
+            "mean_ms": 69.35763333333331,
+            "p95_ms": 89.945,
+            "p99_ms": 159.548
+          }
+        },
+        "units": 4096,
+        "variant": "A",
+        "view_hash": "0f5be46600f986cf5d62ccecb6162bbd9df82f620e37165ad9cfe7f448b16f0e",
+        "visual_hash": "03fe1ed2bde2ca5896365946da1c0e3bc63ca514d1f5adcc7b9a0a2d07c51e4a"
+      },
+      {
+        "event_sequence": 130,
+        "fields": true,
+        "frames": 120,
+        "large_event_hash": "f5e379b8e57783c2aac6925347fbc14da43f3eda1d1b081a1e2af30d9be7da3f",
+        "raw_rule_bytes": 671282,
+        "round": 1,
+        "rule_hash": "00038deea30b8e6f02ee19629a3724d6f03a2f6c007f4a16cc4007e4d1d17672",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 84.878,
+            "mean_ms": 66.97804166666664,
+            "p95_ms": 82.7,
+            "p99_ms": 84.196
+          },
+          "client_receive": {
+            "max_ms": 76.652,
+            "mean_ms": 20.51129166666668,
+            "p95_ms": 26.343,
+            "p99_ms": 74.402
+          },
+          "host_receive": {
+            "max_ms": 0.013,
+            "mean_ms": 0.0037166666666666693,
+            "p95_ms": 0.005,
+            "p99_ms": 0.006
+          },
+          "host_simulate_publish": {
+            "max_ms": 132.559,
+            "mean_ms": 80.41329999999999,
+            "p95_ms": 87.266,
+            "p99_ms": 128.146
+          },
+          "large_event_encode": {
+            "max_ms": 9.371,
+            "mean_ms": 9.2411875,
+            "p95_ms": 9.371,
+            "p99_ms": 9.371
+          },
+          "pair": {
+            "max_ms": 271.968,
+            "mean_ms": 167.90978333333334,
+            "p95_ms": 193.294,
+            "p99_ms": 265.153
+          }
+        },
+        "units": 4096,
+        "variant": "B",
+        "view_hash": "b03bc5d8ced58311ac15a027c8198c7b1cf8018619784a4c76d46a76cbf55156",
+        "visual_hash": "9cd7898f455d46bb0d1cac78b675001d1a810b4918760cec160a78a338346769"
+      },
+      {
+        "event_sequence": 130,
+        "fields": true,
+        "frames": 120,
+        "large_event_hash": "f5e379b8e57783c2aac6925347fbc14da43f3eda1d1b081a1e2af30d9be7da3f",
+        "raw_rule_bytes": 671282,
+        "round": 1,
+        "rule_hash": "00038deea30b8e6f02ee19629a3724d6f03a2f6c007f4a16cc4007e4d1d17672",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 108.036,
+            "mean_ms": 80.01368333333333,
+            "p95_ms": 94.775,
+            "p99_ms": 101.788
+          },
+          "client_receive": {
+            "max_ms": 74.874,
+            "mean_ms": 20.69839166666667,
+            "p95_ms": 26.268,
+            "p99_ms": 72.968
+          },
+          "host_receive": {
+            "max_ms": 0.007,
+            "mean_ms": 0.0035250000000000025,
+            "p95_ms": 0.005,
+            "p99_ms": 0.005
+          },
+          "host_simulate_publish": {
+            "max_ms": 130.754,
+            "mean_ms": 80.24057500000002,
+            "p95_ms": 86.031,
+            "p99_ms": 129.775
+          },
+          "large_event_encode": {
+            "max_ms": 18.068,
+            "mean_ms": 17.7498125,
+            "p95_ms": 18.068,
+            "p99_ms": 18.068
+          },
+          "pair": {
+            "max_ms": 290.572,
+            "mean_ms": 180.9596666666666,
+            "p95_ms": 205.608,
+            "p99_ms": 266.04
+          }
+        },
+        "units": 4096,
+        "variant": "A",
+        "view_hash": "b03bc5d8ced58311ac15a027c8198c7b1cf8018619784a4c76d46a76cbf55156",
+        "visual_hash": "9cd7898f455d46bb0d1cac78b675001d1a810b4918760cec160a78a338346769"
+      },
+      {
+        "event_sequence": 1,
+        "fields": false,
+        "frames": 120,
+        "large_event_hash": "70d5d95414058c438e085cdaa521fe5695096f10f0ab518627a921994cbf1c97",
+        "raw_rule_bytes": 385185,
+        "round": 2,
+        "rule_hash": "125805cfbcc42e94dbf2c649b2e8d88c2c65852c0c7a7fa7ece421ea8b3d9ac9",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 56.077,
+            "mean_ms": 33.97721666666669,
+            "p95_ms": 53.851,
+            "p99_ms": 54.687
+          },
+          "client_receive": {
+            "max_ms": 51.562,
+            "mean_ms": 2.013741666666666,
+            "p95_ms": 3.683,
+            "p99_ms": 49.184
+          },
+          "host_receive": {
+            "max_ms": 0.007,
+            "mean_ms": 0.003625000000000003,
+            "p95_ms": 0.005,
+            "p99_ms": 0.007
+          },
+          "host_simulate_publish": {
+            "max_ms": 86.991,
+            "mean_ms": 35.1286,
+            "p95_ms": 36.293,
+            "p99_ms": 84.662
+          },
+          "large_event_encode": {
+            "max_ms": 18.283,
+            "mean_ms": 17.6936875,
+            "p95_ms": 18.283,
+            "p99_ms": 18.283
+          },
+          "pair": {
+            "max_ms": 164.418,
+            "mean_ms": 71.1263,
+            "p95_ms": 92.798,
+            "p99_ms": 159.46
+          }
+        },
+        "units": 4096,
+        "variant": "A",
+        "view_hash": "0f5be46600f986cf5d62ccecb6162bbd9df82f620e37165ad9cfe7f448b16f0e",
+        "visual_hash": "03fe1ed2bde2ca5896365946da1c0e3bc63ca514d1f5adcc7b9a0a2d07c51e4a"
+      },
+      {
+        "event_sequence": 1,
+        "fields": false,
+        "frames": 120,
+        "large_event_hash": "70d5d95414058c438e085cdaa521fe5695096f10f0ab518627a921994cbf1c97",
+        "raw_rule_bytes": 385185,
+        "round": 2,
+        "rule_hash": "125805cfbcc42e94dbf2c649b2e8d88c2c65852c0c7a7fa7ece421ea8b3d9ac9",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 53.447,
+            "mean_ms": 30.685641666666665,
+            "p95_ms": 47.9,
+            "p99_ms": 49.936
+          },
+          "client_receive": {
+            "max_ms": 50.647,
+            "mean_ms": 1.900824999999999,
+            "p95_ms": 3.35,
+            "p99_ms": 50.28
+          },
+          "host_receive": {
+            "max_ms": 0.01,
+            "mean_ms": 0.003675000000000003,
+            "p95_ms": 0.005,
+            "p99_ms": 0.006
+          },
+          "host_simulate_publish": {
+            "max_ms": 86.841,
+            "mean_ms": 34.95210833333335,
+            "p95_ms": 35.882,
+            "p99_ms": 84.842
+          },
+          "large_event_encode": {
+            "max_ms": 10.342,
+            "mean_ms": 10.0749375,
+            "p95_ms": 10.342,
+            "p99_ms": 10.342
+          },
+          "pair": {
+            "max_ms": 160.527,
+            "mean_ms": 67.54575,
+            "p95_ms": 87.751,
+            "p99_ms": 159.428
+          }
+        },
+        "units": 4096,
+        "variant": "B",
+        "view_hash": "0f5be46600f986cf5d62ccecb6162bbd9df82f620e37165ad9cfe7f448b16f0e",
+        "visual_hash": "03fe1ed2bde2ca5896365946da1c0e3bc63ca514d1f5adcc7b9a0a2d07c51e4a"
+      },
+      {
+        "event_sequence": 130,
+        "fields": true,
+        "frames": 120,
+        "large_event_hash": "f5e379b8e57783c2aac6925347fbc14da43f3eda1d1b081a1e2af30d9be7da3f",
+        "raw_rule_bytes": 671282,
+        "round": 2,
+        "rule_hash": "00038deea30b8e6f02ee19629a3724d6f03a2f6c007f4a16cc4007e4d1d17672",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 102.066,
+            "mean_ms": 80.10852499999997,
+            "p95_ms": 96.003,
+            "p99_ms": 101.4
+          },
+          "client_receive": {
+            "max_ms": 74.481,
+            "mean_ms": 20.736291666666666,
+            "p95_ms": 26.654,
+            "p99_ms": 73.843
+          },
+          "host_receive": {
+            "max_ms": 0.006,
+            "mean_ms": 0.003508333333333336,
+            "p95_ms": 0.005,
+            "p99_ms": 0.006
+          },
+          "host_simulate_publish": {
+            "max_ms": 131.085,
+            "mean_ms": 81.29827500000005,
+            "p95_ms": 87.693,
+            "p99_ms": 130.538
+          },
+          "large_event_encode": {
+            "max_ms": 18.886,
+            "mean_ms": 17.8381875,
+            "p95_ms": 18.886,
+            "p99_ms": 18.886
+          },
+          "pair": {
+            "max_ms": 287.928,
+            "mean_ms": 182.15018333333333,
+            "p95_ms": 208.002,
+            "p99_ms": 267.521
+          }
+        },
+        "units": 4096,
+        "variant": "A",
+        "view_hash": "b03bc5d8ced58311ac15a027c8198c7b1cf8018619784a4c76d46a76cbf55156",
+        "visual_hash": "9cd7898f455d46bb0d1cac78b675001d1a810b4918760cec160a78a338346769"
+      },
+      {
+        "event_sequence": 130,
+        "fields": true,
+        "frames": 120,
+        "large_event_hash": "f5e379b8e57783c2aac6925347fbc14da43f3eda1d1b081a1e2af30d9be7da3f",
+        "raw_rule_bytes": 671282,
+        "round": 2,
+        "rule_hash": "00038deea30b8e6f02ee19629a3724d6f03a2f6c007f4a16cc4007e4d1d17672",
+        "stages": {
+          "client_install_present": {
+            "max_ms": 87.514,
+            "mean_ms": 67.8729,
+            "p95_ms": 82.171,
+            "p99_ms": 86.423
+          },
+          "client_receive": {
+            "max_ms": 76.278,
+            "mean_ms": 20.671141666666653,
+            "p95_ms": 26.028,
+            "p99_ms": 74.948
+          },
+          "host_receive": {
+            "max_ms": 0.008,
+            "mean_ms": 0.0036916666666666695,
+            "p95_ms": 0.005,
+            "p99_ms": 0.006
+          },
+          "host_simulate_publish": {
+            "max_ms": 131.627,
+            "mean_ms": 81.20994999999998,
+            "p95_ms": 87.896,
+            "p99_ms": 131.026
+          },
+          "large_event_encode": {
+            "max_ms": 10.89,
+            "mean_ms": 10.253375,
+            "p95_ms": 10.89,
+            "p99_ms": 10.89
+          },
+          "pair": {
+            "max_ms": 276.692,
+            "mean_ms": 169.76145833333337,
+            "p95_ms": 194.079,
+            "p99_ms": 261.175
+          }
+        },
+        "units": 4096,
+        "variant": "B",
+        "view_hash": "b03bc5d8ced58311ac15a027c8198c7b1cf8018619784a4c76d46a76cbf55156",
+        "visual_hash": "9cd7898f455d46bb0d1cac78b675001d1a810b4918760cec160a78a338346769"
+      }
+    ],
+    "summaries": [
+      "NETWORK_AB_CHECKS checks=78 failures=0"
+    ],
+    "diagnostics": [
+      "ERROR: Failed to read the root certificate store."
+    ]
+  },
+  "method_notes": [
+    "Three alternating A/B pairs per scenario; 30 warm-up frames followed by 120 samples; 4096 soldiers.",
+    "A is generated from current B sources by restoring only the redundant operations; same gameplay and assets.",
+    "Same fixed presentation step avoids wall-time-dependent visual divergence; full real-clock replication separately regressed.",
+    "Digest equality uses existing eight-decimal canonicalization; standalone presentation test checks fields and mesh values directly, blob test checks complete bytes.",
+    "Large-event encoding sampled separately after two warmups, 16 measured iterations per run.",
+    "First ordinary A run has system-load variation; all raw samples retained and medians used.",
+    "No runtime validation, precision, update frequency, soldier capacity or effects removed."
+  ],
+  "limitations": [
+    "Headless CPU measurements, no GPU or public network latency.",
+    "Marching/overlapping-field workload plus isolated large-event packaging, not a dense-combat overall frame-rate claim.",
+    "Host simulation/publishing and full candidate validation remain major costs; stable 30 TPS/60 FPS at 4096 soldiers is not established."
+  ],
+  "static_validation": {
+    "manifest_inputs": 119,
+    "manifest_check": "passed",
+    "manifest_sha256": "161f1a26d3ac1af88e42fb3a8491bb85e8a5d74ca8d827ad61c27473c0d2297f",
+    "runtime_source_files": 225,
+    "boundary_reference_failures": 0,
+    "diff_whitespace": "passed"
+  },
+  "process_cleanup": {
+    "matches": [],
+    "remaining": 0,
+    "checked_at": "2026-09-29T22:48:21.8233756+09:00"
+  },
+  "provenance": "Field-clock changes entered concurrent gameplay commit 4eacf7e; final optimization commit adds sender changes, regression tests, benchmark and report."
+}
