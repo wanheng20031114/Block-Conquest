@@ -129,7 +129,7 @@
     "scripts/network/war_protocol.gd": "657c46f3e11091122b20733ad0f6c2d8c82f26095c4a3a64193cfba93c95f739",
     "scripts/network/war_remote_pointer.gd": "b7c31ca56f79b762862e5c6f90bca44c12c88018014fb5cec353dee7e917709f",
     "scripts/network/war_room.gd": "276f62a72d487f84618481e2d448aa67a4d6ac58ff82d3896a02f4b531fcec5f",
-    "scripts/network/war_room_slot.gd": "9212543beda9af85b869dd934e303428bbb73bd0b5e6e204b772254917d15b3e",
+    "scripts/network/war_room_slot.gd": "3530c5f9565708e3c3b78f460abb563c514f17e57aa249b41704c79a1391ba6b",
     "scripts/network/war_snapshot.gd": "5d4a52d073340e51ecbc6e2efd332a5cf12ed9551b6a1f943046c0d5002cee60",
     "scripts/network/war_teammate_cursors.gd": "5b7bb353ab64bb07cec9fe7e6ae5ba4021e07d9cdd78a3c43a4a89407e57ad20"
   }

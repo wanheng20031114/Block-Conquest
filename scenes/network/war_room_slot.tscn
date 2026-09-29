@@ -18,11 +18,28 @@ border_width_top = 1
 border_width_bottom = 1
 border_color = Color(0.76, 0.81, 0.74, 1)
 
+[sub_resource type="StyleBoxFlat" id="CardReady"]
+bg_color = Color(0.811765, 0.898039, 0.760784, 1)
+content_margin_left = 16.0
+content_margin_right = 16.0
+content_margin_top = 14.0
+content_margin_bottom = 14.0
+corner_radius_top_left = 20
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 20
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.537255, 0.682353, 0.47451, 1)
+
 [node name="Seat" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 174)
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("Card")
 script = ExtResource("script")
+ready_panel_style = SubResource("CardReady")
 
 [node name="Content" type="VBoxContainer" parent="."]
 layout_mode = 2

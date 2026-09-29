@@ -8,6 +8,8 @@ signal commander_requested(slot_id: int, commander: String)
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const COMMANDERS: Array[String] = ["squirrel", "rabbit", "bear", "frog", "fox", "pig"]
+@export var ready_panel_style: StyleBox
+@onready var _default_panel_style: StyleBox = get_theme_stylebox("panel")
 var slot_id := 0
 var _slot: Dictionary = {}
 
@@ -22,6 +24,9 @@ func refresh(slot: Dictionary, local_player: int, host_player: int, editable: bo
 	_slot = slot
 	slot_id = int(slot.slot_id)
 	var kind := str(slot.kind)
+	var ready_for_match := kind == "bot" or (kind == "human" and bool(slot.ready)
+		and bool(slot.connected) and str(slot.controller) == "human")
+	add_theme_stylebox_override("panel", ready_panel_style if ready_for_match else _default_panel_style)
 	var own := kind == "human" and int(slot.player_id) == local_player
 	var host := local_player == host_player
 	var tint: Color = FACTIONS.COLORS[int(slot.faction_id)]
@@ -52,7 +57,7 @@ func refresh(slot: Dictionary, local_player: int, host_player: int, editable: bo
 			%Status.text = "连接中断 · 等待重连"
 		elif str(slot.controller) == "reconnecting":
 			%Status.text = "正在同步战场"
-		%Status.modulate = Color("387651") if bool(slot.ready) else Color("8d6d40")
+		%Status.modulate = Color("387651") if ready_for_match else Color("8d6d40")
 
 func _commander_selected(index: int) -> void:
 	commander_requested.emit(slot_id, COMMANDERS[index])
