@@ -85,7 +85,8 @@ func _run() -> void:
 		await create_timer(duration / 0.97 + 0.09).timeout
 		var level := _measure()
 		_check(level.y > 0.005 and level.x <= db_to_linear(-0.9), "%s reaches the real Master mix (RMS %.1f dBFS, peak %.1f dBFS)" % [kind, linear_to_db(level.y), linear_to_db(level.x)])
-	_check(sample_count == 52, "all 52 campaign variants loaded")
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/block_war/audio_manifest.json"))
+	_check(sample_count == manifest.files.size(), "all authored campaign variants loaded")
 	# Regression: positive event gains used to be silently clamped by max_db=0.
 	# Compare the same source before combat compression, which intentionally
 	# reduces the gain difference at the final mix's loudest transients.

@@ -1,6 +1,8 @@
 extends RefCounted
 ## Host-owned next-departure orders and delayed, indiscriminate impact.
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const CAST_SOUNDS: Array[StringName] = [&"war_pig_charge", &"war_pig_fly", &"war_pig_formation", &"war_pig_drop"]
+const IMPACT_SOUND := &"war_pig_impact"
 var ready: Dictionary[int, Vector3] = {}
 var ready_owners: Dictionary[int, int] = {}
 var drops: Array[Dictionary] = []
@@ -95,7 +97,7 @@ func _impact(game: Node3D, at: Vector3, faction: int) -> void:
 		game.marches.trim_departures(building.building_id, building.faction, floori(building.population))
 		building.refresh_visual()
 	game.marches._render()
-	game.audio.play_world(&"war_bear_stomp", at)
+	game.audio.play_world(IMPACT_SOUND, at)
 	game.presentation_event.emit("pig_impact", {"at": game._vector_values(at)})
 	game.update_hud()
 

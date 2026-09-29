@@ -1,6 +1,6 @@
 # 中世纪音效来源与修改说明
 
-原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 38 类、56 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；新增来源和署名见本文按日期排列的记录。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
+原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 43 类、61 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；新增来源和署名见本文按日期排列的记录。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
 
 积木战争的 Suno 背景音乐独立记录在 [block_war/music/CREDITS.md](block_war/music/CREDITS.md)，不属于此处的 CC0 音效库。
 
@@ -81,3 +81,21 @@ Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dr
 | 恐慌 | Kenney Impact 的 `impactWood_medium_002.ogg`；Vehicle 的 `arrow-feathers-03.wav` | 同一木敲短重复一次，配气流，总长 0.54 秒 |
 
 采用能量窗口起音对齐、85 Hz 高通、柔和低通、短包络及边界淡化，按活动区 RMS 和真峰值设置增益；不新增合成振荡器、混响或饱和。`tools/build_war_audio.py --fox` 可单独复现，不改已认可的其他音效。每个原件、发布页、许可及成品哈希记录在 `block_war/audio_manifest.json`；原生总线采集、压力测试和可试听片段见[狐狸验收记录](../../docs/block_war_fox_review.md)。
+
+## 2026-09-30：猪猪的四个技能与独立落地音
+
+新增 `war_pig_charge/fly/formation/drop/impact` 五个独立事件，替换此前借用其他英雄和通用技能的声音。全部使用已有且未修改的 CC0 原件，经本项目重新剪辑和混音；之前 56 个战役 WAV、UI 点击和背景音乐保持原文件哈希。没有把橡胶玩具、皮革或木材拟音宣称为真实猪叫。
+
+| 事件 | 实际采样材料 | 编辑与时长 |
+| --- | --- | --- |
+| 猪冲锋 | Vehicle 的 `quiver-leather-squeeze-02.wav`；Kenney Impact 的 `footstep_wood_000.ogg` | 短皮革压力与三个加速的蹄状木接触；0.48 秒 |
+| 猪会飞 | Vehicle 的 `arrow-feathers-01.wav` | 两次不同速率的羽毛扫动，8 毫秒柔和起音、后一次音高略升；0.54 秒 |
+| 猪整队 | Kenney Impact 的 `footstep_wood_002.ogg`、`footstep_wood_000.ogg` | 三组成对木接触逐渐收紧、最后合拢；0.43 秒 |
+| 特大猪下降 | Vehicle 的 `arrow-feathers-02.wav` | 羽毛动作倒放、重采样及渐强，只有接近的空气声；0.65 秒 |
+| 特大猪落地 | Kenney Impact 的 `impactSoft_heavy_001.ogg`；rubberduck 的 `stones_01.ogg` | 低沉柔软身体接触为主、35 毫秒后少量碎石，0.62 秒 |
+
+原始许可发布页分别为 [Kenney Impact Sounds](https://kenney.nl/assets/impact-sounds)、[Vehicle / Jan Schupke 的 Fantasy Weapons and Apparel SFX Library](https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library)、[rubberduck 的 80 CC0 RPG SFX](https://opengameart.org/content/80-cc0-rpg-sfx)。2026-09-30 再次读取三份作者发布页，确认 CC0，并重新下载三个原始包：包 SHA-256 与 `sources.json` 一致，本次七个采样文件与包内原件逐字节相同。具体核验记录见 [猪猪音源清单](sources/PIG_SKILL_SOURCES.md)。CC0 允许商业使用、修改及再分发，完整许可继续保留在 `licenses/CC0-1.0.txt`。
+
+制作采用 75 Hz 高通、2.2–4.6 kHz 的克制低通、能量窗口起音对齐、短包络、变速、时序组合和边界淡化。下降和命中是分开的事件，命中只在实际碰撞结算时请求，不预先拼进下降音轨。没有新增持续循环、旋律、合成噪声、混响或饱和。五份成品为 48 kHz 单声道 PCM16，制作真峰值上限 -3.2 dBFS；Godot 导入保留 PCM、不归一化、不循环，仍使用原生 Combat 总线和用户的音量/静音设置。
+
+`python tools/build_war_audio.py --pig` 只重建这五个文件并保留其他音效；`block_war/audio_manifest.json` 保存每份成品的准确采样来源、处理步骤、活动区 RMS、真峰值及 SHA-256。

@@ -945,8 +945,7 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		_commit_skill(index, faction)
 		pig.arm(self, index, target, faction)
 		_present_skill(index, faction, target.global_position, target.building_id)
-		var sounds: Array[StringName] = [&"war_rabbit_dash", &"war_frog_float", &"war_skill_command"]
-		audio.play_world(sounds[index], target.global_position)
+		audio.play_world(pig.CAST_SOUNDS[index], target.global_position)
 		if faction == local_faction:
 			hud.notify("%s · 待命 15 秒，下次出兵生效" % SKILL_RULES.PIG_NAMES[index])
 		update_hud()
@@ -1006,7 +1005,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 		pig.start_drop(self, center, faction)
 		_commit_skill(index, faction)
 		_present_skill(index, faction, center)
-		audio.play_world(&"war_frog_float", center)
+		audio.play_world(pig.CAST_SOUNDS[index], center)
 		update_hud()
 		return true
 	if faction_skills[faction].commander == SKILL_RULES.FOX:

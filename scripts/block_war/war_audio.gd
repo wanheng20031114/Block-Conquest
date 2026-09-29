@@ -38,7 +38,9 @@ func tick_marches(delta: float, marches: WarMarches) -> void:
 	# Read native march records; producing a temporary dictionary for every
 	# soldier caused an audible-frame CPU spike in large multiplayer armies.
 	for unit: WarMarches.MarchUnit in marches._units:
-		if not unit.is_exposed(): continue
+		# Footfalls belong to visible ground troops, never a flying/levitating
+		# formation or hidden soldiers whose location sound could reveal.
+		if not unit.is_exposed() or unit.order.airborne or unit.levitation_remaining > 0.0 or unit.cloaked: continue
 		var at: Vector3 = unit.position
 		var distance_squared := _listener.global_position.distance_squared_to(at)
 		if distance_squared > 72.0 * 72.0 or not _camera.is_position_in_frustum(at):

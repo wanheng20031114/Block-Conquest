@@ -67,6 +67,11 @@ EVENTS = [
     ("fox_steal", 1, "Combat", -1, 5, 0, 6),
     ("fox_convert", 1, "Combat", 0, 5, 0, 6),
     ("fox_panic", 1, "Combat", 1, 6, 0, 6),
+    ("pig_charge", 1, "Combat", 1, 5, 0, 6),
+    ("pig_fly", 1, "Combat", 1, 5, 0, 6),
+    ("pig_formation", 1, "Combat", 0, 5, 0, 6),
+    ("pig_drop", 1, "Combat", 1, 5, 0, 6),
+    ("pig_impact", 1, "Combat", 1, 6, 0, 6),
     ("projectile_hit", 2, "Combat", -3, 3, 120, 3),
     ("victory", 1, "UI", -4, 7, 1200, 1),
     ("defeat", 1, "UI", -4, 7, 1200, 1),
@@ -108,6 +113,11 @@ DESCRIPTIONS = {
     "fox_steal": "One damped bright bell drawn across a short soft cloth gesture; no melody",
     "fox_convert": "Brief flag cloth snap and quiet fastening contact, without a triumphant jingle",
     "fox_panic": "Two compact low wooden warning knocks and a short outward cloth rush",
+    "pig_charge": "A short leather pressure gesture and three accelerating wooden hoof-like contacts; foley, not an animal recording",
+    "pig_fly": "Two light feather sweeps rise in pitch and overlap into one compact lift; no wet bubble",
+    "pig_formation": "Three close paired wooden hoof-like contacts settle into a firm unified beat; no marching loop",
+    "pig_drop": "A 650 ms feather-air approach grows toward landing and stops; contains no impact",
+    "pig_impact": "A low rounded soft-body landing and a small dry stone scatter; immediate impact, no windup",
     "projectile_hit": "Soft impact and a restrained equipment contact at the projectile collision",
     "victory": "Four rising recorded bell strikes with flag and equipment rustle",
     "defeat": "Falling armour and two low fading bell strikes",
@@ -118,7 +128,15 @@ DESCRIPTIONS = {
 REFINED = set("select drag ratio order denied cancel pause resume skill_command skill_drum skill_shield skill_breach rabbit_dash rabbit_seal rabbit_recall rabbit_burrow projectile_hit".split())
 NEW_COMMANDERS = set("bear_toolbox bear_stomp bear_link bear_ward frog_mist frog_float frog_cloak frog_strike".split())
 FOX = set("fox_bomb fox_steal fox_convert fox_panic".split())
-REFINED |= NEW_COMMANDERS | FOX
+PIG = set("pig_charge pig_fly pig_formation pig_drop pig_impact".split())
+REFINED |= NEW_COMMANDERS | FOX | PIG
+PIG_EDITS = {
+    "pig_charge": "75 Hz highpass, 2.6/3.4 kHz lowpass; leather at 1.08x with 100 ms decay, 0.94x wooden contacts at 55/205/315 ms; boundary fades and linear gain",
+    "pig_fly": "75 Hz highpass, 4.3/4.6 kHz lowpass; 1.08x/1.28x feather sweeps at 0/160 ms, 8 ms onset fades and 110/160 ms decay; boundary fades and linear gain",
+    "pig_formation": "75 Hz highpass, 2.9/3.2 kHz lowpass; 0.91x/1.03x wood contacts paired at 0/42, 140/171 and 255/270 ms; boundary fades and linear gain",
+    "pig_drop": "75 Hz highpass, 4.1 kHz lowpass; reverse 0.96x recorded feather movement, polyphase-resample to 650 ms, one crescendo and 35 ms tail fade; linear gain, no impact layer",
+    "pig_impact": "75 Hz highpass, 2.2/3.4 kHz lowpass; 0.78x soft impact at 0 ms, 1.05x stones at 35 ms with 95 ms decay; boundary fades and linear gain",
+}
 
 
 def rms_active(samples):
@@ -199,6 +217,8 @@ def recorded(relative, seconds, rate=1.0):
 
 def refined(name, n):
     clip = recorded
+    if name in PIG:
+        return make_pig(name)
     if name in ("select", "drag", "order"):
         seconds = {"select": .08, "drag": .09, "order": .16}[name]
         material = "medium" if name == "order" else "light"
@@ -296,6 +316,64 @@ def refined(name, n):
     raise ValueError(name)
 
 
+def make_pig(name):
+    """Pig's five licensed foley gestures; only the R approach is a windup.
+
+    All gestures use retained CC0 recordings. Wooden contacts suggest small
+    hooves; leather pressure is deliberately not labelled a real pig snort.
+    No generated oscillator/noise, distortion, reverb, or looping is added.
+    """
+    def material(path, seconds, cutoff, rate=1.0):
+        samples = filt(filt(recorded(path, seconds, rate), 75, "highpass"), cutoff)
+        power = np.convolve(samples ** 2, np.ones(192) / 192, mode="valid")
+        onset = int(np.flatnonzero(power >= power.max() * .09)[0])
+        samples = samples[max(0, onset - 48):]
+        samples /= max(float(np.max(np.abs(samples))), 1e-10)
+        samples[:48] *= np.linspace(0, 1, 48)
+        fade = min(round(.025 * SR), len(samples) // 3)
+        samples[-fade:] *= np.linspace(1, 0, fade)
+        return samples
+
+    if name == "pig_charge":
+        pressure = material("weapons_apparel/quiver-leather-squeeze-02.wav", .26, 2600, 1.08)
+        pressure *= np.exp(-np.arange(len(pressure)) / (SR * .10))
+        hoof = material("kenney_impact/footstep_wood_000.ogg", .13, 3400, .94)
+        return mix(.48, [(pressure, 0, .62), (hoof, .055, .42),
+                         (hoof, .205, .60), (hoof, .315, .78)])
+    if name == "pig_fly":
+        first = material("weapons_apparel/arrow-feathers-01.wav", .28, 4300, 1.08)
+        second = material("weapons_apparel/arrow-feathers-01.wav", .34, 4600, 1.28)
+        # The feather recording has a sharp handling transient. An 8 ms onset
+        # fade keeps the wing gesture light rather than turning it into a click.
+        for feather in (first, second):
+            feather[:384] *= np.linspace(0, 1, 384)
+        first *= np.exp(-np.arange(len(first)) / (SR * .11))
+        second *= np.exp(-np.arange(len(second)) / (SR * .16))
+        return mix(.54, [(first, 0, .65), (second, .16, .82)])
+    if name == "pig_formation":
+        left = material("kenney_impact/footstep_wood_002.ogg", .12, 2900, .91)
+        right = material("kenney_impact/footstep_wood_000.ogg", .12, 3200, 1.03)
+        return mix(.43, [(left, 0, .48), (right, .042, .35),
+                         (left, .14, .65), (right, .171, .44),
+                         (left, .255, .88), (right, .270, .55)])
+    if name == "pig_drop":
+        # Reverse only a sustained real feather movement, then apply a single
+        # crescendo. The tail reaches the authoritative 0.65 s collision; the
+        # collision has its own event so pause/network timing cannot pre-hit.
+        air = material("weapons_apparel/arrow-feathers-02.wav", .70, 4100, .96)[::-1].copy()
+        air = signal.resample_poly(air, round(.65 * SR), len(air))[:round(.65 * SR)]
+        phase = np.linspace(0, 1, len(air))
+        air *= (.12 + .88 * phase ** 1.25) * np.minimum(phase / .04, 1)
+        air[-round(.035 * SR):] *= np.linspace(1, 0, round(.035 * SR))
+        return mix(.65, [(air, 0, 1)])
+    if name == "pig_impact":
+        body = material("kenney_impact/impactSoft_heavy_001.ogg", .56, 2200, .78)
+        stones = material("rubberduck_rpg/stones_01.ogg", .34, 3400, 1.05)
+        stones *= np.exp(-np.arange(len(stones)) / (SR * .095))
+        return mix(.62, [(body, 0, 1), (stones, .035, .22)])
+    raise ValueError(name)
+
+
 def make(name, variant):
     if name in REFINED:
         return refined(name, variant)
@@ -348,6 +426,8 @@ def export(name, samples, description):
     target_db = {"select": -24.0, "drag": -26.0, "order": -22.0}.get(event, target_db)
     target_db = {"bear_ward": -18.5, "frog_mist": -21.0, "frog_cloak": -22.0}.get(event, target_db)
     target_db = {"fox_bomb": -19.5, "fox_steal": -21.0, "fox_convert": -20.5, "fox_panic": -19.5}.get(event, target_db)
+    target_db = {"pig_charge": -20.0, "pig_fly": -21.0, "pig_formation": -21.0,
+                 "pig_drop": -22.0, "pig_impact": -18.5}.get(event, target_db)
     if not transparent:
         samples = filt(samples, 60, "highpass")
         samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
@@ -355,6 +435,8 @@ def export(name, samples, description):
     samples *= 10 ** (target_db / 20) / max(rms_active(samples), 1e-10)
     true_peak = float(np.max(np.abs(signal.resample_poly(samples, 4, 1))))
     ceiling_db = -7.0 if transparent and event in {"select", "drag", "ratio", "order", "denied", "cancel", "pause", "resume"} else -3.0
+    if event in PIG:
+        ceiling_db = -3.2  # Quantization/fade headroom under the -3 dBFS ceiling.
     samples *= min(1., 10 ** (ceiling_db / 20) / max(true_peak, 1e-10))
     samples[:96] *= np.linspace(0, 1, 96)
     samples[-960:] *= np.linspace(1, 0, 960)
@@ -370,7 +452,8 @@ def export(name, samples, description):
             "active_rms_db": round(20*math.log10(rms_active(samples)), 2),
             "true_peak_db": round(20*math.log10(float(np.max(np.abs(signal.resample_poly(samples, 4, 1))))), 2),
             "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation" if transparent else "Original retained foley recipe",
+            "processing": PIG_EDITS[event] + "; -3.2 dBFS true-peak ceiling; no saturation" if event in PIG else (
+                "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation" if transparent else "Original retained foley recipe"),
             "sources": [{"path": source, "sha256": hashlib.sha256((SOURCES/source).read_bytes()).hexdigest(),
                          "license": SOURCE_PACKS[source.split('/')[0]]["license"],
                          "page": SOURCE_PACKS[source.split('/')[0]]["page"]}
@@ -381,9 +464,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--new-commanders", action="store_true", help="Build only bear/frog WAVs, preserving all approved existing audio")
     parser.add_argument("--fox", action="store_true", help="Build only fox WAVs; retain all approved audio byte-for-byte")
+    parser.add_argument("--pig", action="store_true", help="Build only the five pig WAVs; retain all other audio byte-for-byte")
     args = parser.parse_args()
+    if sum((args.new_commanders, args.fox, args.pig)) > 1:
+        parser.error("Choose only one scoped build flag")
     OUT.mkdir(parents=True, exist_ok=True)
-    previous = json.loads((OUT / "audio_manifest.json").read_text(encoding="utf-8")) if args.new_commanders or args.fox else None
+    previous = json.loads((OUT / "audio_manifest.json").read_text(encoding="utf-8")) if args.new_commanders or args.fox or args.pig else None
     retained = {item["file"]: item for item in previous["files"]} if previous else {}
     files = []
     bank = ['extends RefCounted', '## Licensed source edits; attribution is retained in assets/audio/CREDITS.md.',
@@ -393,7 +479,7 @@ def main():
         for index in range(count):
             USED.clear()
             filename = f"war_{name}_{index+1:02}"
-            if (args.fox and name not in FOX) or (args.new_commanders and name not in NEW_COMMANDERS):
+            if (args.fox and name not in FOX) or (args.new_commanders and name not in NEW_COMMANDERS) or (args.pig and name not in PIG):
                 entry = retained[filename + ".wav"]
                 assert hashlib.sha256((OUT / entry["file"]).read_bytes()).hexdigest() == entry["sha256"]
                 files.append(entry)
