@@ -258,3 +258,5 @@ Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_w
 1.3.1 的制作细节、正式包实机截图与专项验证见 [高地与土坡战场记录](art/block_war_height_maps.md)。
 
 需要重建基础自然素材时，使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）与 `tools/bake_war_map_details.gd`（桥梁基础网格），最后执行上面的统一地图构建流程。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点。`dress_war_map.py` 属于旧裂谷布局的历史制作工具，当前九图使用 `build_block_war_maps.py`。岩石支撑、树林疏密检查见 [环境制作规范](art/block_war_environment_direction.md)。
+
+1.3.2：复核全部九图住宅密度，给四图补充24座中立住宅，所有地图人均至少4座住宅；新增据点与早期扩张公平性见 [住宅扩张平衡记录](art/block_war_housing_balance.md)。

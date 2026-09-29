@@ -18,6 +18,16 @@ func frame_at(point: Vector3, zoom: float) -> void:
 	game.camera_rig.zoom_target = zoom
 	game.camera_rig.focus_at(point, true)
 
+func central_tower() -> WarBuilding:
+	var closest: WarBuilding
+	var distance := INF
+	for building: WarBuilding in game.buildings:
+		if building.kind == 1 and building.global_position.length_squared() < distance:
+			closest = building
+			distance = building.global_position.length_squared()
+	assert(closest != null, "Elevated map review requires its authored central tower")
+	return closest
+
 func _run() -> void:
 	create_timer(120.0, true, false, true).timeout.connect(func(): quit(3))
 	output = OS.get_cmdline_user_args()[0]
@@ -44,7 +54,7 @@ func _run() -> void:
 			await capture(map_id + "_terrain_detail")
 			await game.prepare_shutdown()
 			continue
-		var target: WarBuilding = game.buildings[-1] if map_id != "crown" else game.buildings[14]
+		var target: WarBuilding = central_tower() if map_id != "crown" else game.buildings[14]
 		var source: WarBuilding = game.buildings[0] if map_id != "crown" else game.buildings[2]
 		var route: PackedVector3Array = game.map.get_building_route(source, target)
 		game.marches.send(source.building_id, target.building_id, source.faction, 120, route)

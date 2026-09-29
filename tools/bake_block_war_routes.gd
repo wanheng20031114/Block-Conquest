@@ -19,6 +19,7 @@ func _run() -> void:
 		map.bake_routes = true
 		root.add_child(map)
 		var buildings := map.get_node("Buildings").get_children()
+		print("ROUTES_BAKING ", definition.map_id, " buildings=", buildings.size(), " pairs=", buildings.size() * (buildings.size() - 1) / 2)
 		for i: int in buildings.size():
 			for j: int in range(i + 1, buildings.size()):
 				var route := map.get_building_route(buildings[i], buildings[j])
@@ -27,6 +28,8 @@ func _run() -> void:
 					map.queue_free()
 					quit(1)
 					return
+			if (i + 1) % 5 == 0:
+				print("ROUTES_PROGRESS ", definition.map_id, " sources=", i + 1, "/", buildings.size(), " cached=", map._route_cache.size())
 		var saved := ROUTES.new()
 		saved.routes = map._route_cache
 		saved.distances = map._route_distances

@@ -1,0 +1,74 @@
+{
+  "release": "1.3.2",
+  "engine": "4.7.2.stable",
+  "date": "2026-09-29",
+  "housing_policy": {
+    "count_all_human_and_computer_seats": true,
+    "residences_only": true,
+    "minimum_residences_per_seat": 4,
+    "distinct_early_expansions_per_seat": 2,
+    "early_expansion_radius_m": 34,
+    "starting_residences_per_seat": 1,
+    "starting_garrison": 60
+  },
+  "maps": {
+    "rift": {"seats": 2, "residences": 8, "sites": 13},
+    "lake": {"seats": 2, "residences": 8, "sites": 14},
+    "rivers": {"seats": 4, "residences": 16, "sites": 25},
+    "ridges": {"seats": 4, "residences": 18, "sites": 27},
+    "islands": {"seats": 6, "residences": 26, "sites": 41},
+    "highland": {"seats": 6, "residences_before": 22, "residences": 26, "sites": 41},
+    "terraces": {"seats": 2, "residences_before": 6, "residences": 10, "sites": 15},
+    "switchback": {"seats": 4, "residences_before": 12, "residences": 16, "sites": 19},
+    "crown": {"seats": 6, "residences_before": 16, "residences": 28, "sites": 33}
+  },
+  "added_neutral_residences": 24,
+  "rebaked_route_pairs": {"terraces": 105, "switchback": 171, "crown": 528, "highland": 820},
+  "checks": {
+    "housing_density_source": 927,
+    "housing_density_packaged": 927,
+    "height_geometry": 1231,
+    "terraces_switchback_height_routes": 2325,
+    "crown_height_routes": 3391,
+    "highland_bridge_and_formation_routes": 1789,
+    "map_preview": 952,
+    "map_select": 114,
+    "offline_authoring": 11,
+    "gpu_surface": 213,
+    "height_replication": 210,
+    "runtime_sources_reference_scan": 213,
+    "packaged_smoke": 102,
+    "public_dtls": 60,
+    "public_maps": 67
+  },
+  "final_failures": 0,
+  "visuals": {
+    "source_and_packaged_capture_count_each": 13,
+    "packaged_directory": ".local/housing-pack-visual",
+    "packaged_log": "BlockWarReview_86913698768f4be48a949cec0d5e5943.log",
+    "committed_examples": "docs/art/block_war_housing_balance",
+    "reviewed": ["residence grounding", "vegetation overlap", "label spacing", "road connectivity", "ramp and bridge clearance"]
+  },
+  "pck_sha256": "5dfae42782ca2b56b33ad5262164711739c78c4d313b5237e04118a3109fe594",
+  "zip_sha256": "0aedfb8db71e41a6ed1a9e385972c4b9b495fe876bbeb9cf8c284a632a0cc40c",
+  "zip_bytes": 81391036,
+  "manifest_sha256": "da8f8f3fd935bebc300df0cc583ae7b5c39a44076c25171b9d86144f3d34c2ab",
+  "manifest_files": 110,
+  "relay": {
+    "release": "733a642373ac5e1c",
+    "pck_sha256": "88c00c7b9179f4c1597b77dd71208a2e367315ba78fcf95df0ebd39df5a976e1",
+    "active": true,
+    "restarts": 0,
+    "post_test_rooms": 0,
+    "post_test_connections": 0,
+    "unrelated_relays_preserved": true,
+    "script_errors": 0,
+    "controlled_disconnect_native_tls_diagnostics": 4,
+    "public_client_script_errors": 0
+  },
+  "cleanup": {
+    "verified_using": "Win32_Process CIM",
+    "local_auxiliary_processes_remaining": 0,
+    "production_service_preserved": true
+  }
+}

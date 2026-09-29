@@ -83,26 +83,31 @@ def layouts():
                      mountains=[(x, z, 8, 10) for x in (-36, 28) for z in (-20, 10)],
                      buildings=starts(60, [-39, 0, 39]) + mirrored([40], [-39, 0, 39]) + mirrored([60, 39], [-19.5, 19.5])
                      + mirrored([26], [-39, 0, 39], 1, 25) + mirrored([52], [-44, -10.5, 10.5, 44], 2, 18)
-                     + [building(0, z, 1 if z == 0 else 0, population=35 if z == 0 else 22) for z in (-41, 0, 41)]))
+                     + [building(0, z, 1 if z == 0 else 0, population=35 if z == 0 else 22) for z in (-41, 0, 41)]
+                     + mirrored([68], [-10, 10], population=12)))
     # Wide, deliberately placed earth ramps are the only ways across cliff edges.
     maps.append(dict(common, id="terraces", title="叠翠台地", half=(44, 32),
                      description="四条宽土坡通向中央台地，坡顶炮塔控制近路。沿南北低地绕行，可以避开正面争坡并抢占两翼工坊。",
                      terrain=True,
                      buildings=starts(34, [0]) + mirrored([33], [-20, 20])
-                     + mirrored([18], [-23, 23], 2, 20) + [building(0, 0, 1, population=36)]))
+                     + mirrored([18], [-23, 23], 2, 20) + [building(0, 0, 1, population=36)]
+                     + mirrored([35.5], [-10, 10], population=12)))
     maps.append(dict(medium, id="switchback", title="盘山双关", half=(54, 44), color=(0.37, 0.465, 0.215),
                      description="南北两座台地由二段土坡连接八米高的山脊要塞。可以沿坡逐层推进，也能走山脚与外沿山道换线包抄。",
                      terrain=True,
                      buildings=starts(43, [-27, 27]) + mirrored([42], [-9, 9])
                      + mirrored([28], [0], 2, 20) + mirrored([10], [-27, 27], 0, 24)
-                     + [building(0, 0, 1, population=42)]))
+                     + [building(0, 0, 1, population=42)]
+                     + mirrored([31], [-12, 12], population=14)))
     maps.append(dict(large, id="crown", title="云冠盆地", half=(76, 58), color=(0.355, 0.455, 0.22),
                      description="环形高地围住林间盆地，六处外坡连接三条战线，两处内坡通向腹地。夺取坡顶哨塔，或借盆地工坊组织跨线支援。",
                      water=[(-12, -58, 24, 10), (-12, 48, 24, 10)],
                      terrain=True,
                      buildings=starts(64, [-30, 0, 30]) + mirrored([62], [-16, 16])
                      + mirrored([18], [-28, 28], 1, 28) + mirrored([28], [0], 0, 24)
-                     + mirrored([12], [-11, 11], 0, 18) + [building(0, 0, 2, population=30)]))
+                     + mirrored([12], [-11, 11], 0, 18) + [building(0, 0, 2, population=30)]
+                     + mirrored([64, 48], [-46, 46], population=12)
+                     + mirrored([48], [-14, 14], population=14)))
     return maps
 
 
@@ -170,6 +175,7 @@ building_factions = PackedInt32Array({', '.join(str(b[3]) for b in items)})
 
 def author(layout):
     items, (hx, hz) = layout["buildings"], layout["half"]
+    assert len(items) <= 64, (layout["id"], "ground material supports at most 64 sites")
     paths = author_paths(layout)
     assert len(layout["bridges"]) <= 16
     externals = [
