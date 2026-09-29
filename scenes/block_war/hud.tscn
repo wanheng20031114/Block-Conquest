@@ -636,23 +636,6 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
 
 
-[node name="MapTitle" type="Label" parent="UI/Top"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -250.0
-offset_top = 75.0
-offset_right = 250.0
-offset_bottom = 98.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.94, 0.92, 0.80, 1)
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_y = 2
-text = "裂谷交汇 · 1v1"
-horizontal_alignment = 1
-
 [node name="Actions" type="HBoxContainer" parent="UI"]
 layout_mode = 0
 anchor_left = 1.0

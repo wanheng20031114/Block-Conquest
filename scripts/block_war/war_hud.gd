@@ -125,7 +125,6 @@ func update_state(state: Dictionary) -> void:
 	var count_ink := Color(0.055, 0.12, 0.095) if has_territory else Color(0.99, 1, 0.97)
 	%PlayerTotal.add_theme_color_override("font_color", count_ink)
 	%EnemyTotal.add_theme_color_override("font_color", count_ink)
-	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
 	$UI/Player/Name.text = SKILL_RULES.name_for(commander)
 	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else SKILL_RULES.name_for(_enemy_commander)
 	$UI/Enemy/Role.text = state.get("enemy_role", "%d 名电脑对手" % state.team_size)
@@ -146,7 +145,6 @@ func update_state(state: Dictionary) -> void:
 		# Team matches put each other player's icons below their morale row.
 		var skill_row_space: float = 0.0 if duel else 24.0
 		%Time.position.y = 54.0 + skill_row_space
-		%MapTitle.position.y = 75.0 + skill_row_space
 		%Toast.position.y = 124.0 + skill_row_space
 		%MatchStatus.position.y = 128.0 + skill_row_space
 	for index: int in 4:

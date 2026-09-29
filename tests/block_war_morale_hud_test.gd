@@ -211,9 +211,9 @@ func _run() -> void:
 	hud.update_state(sample([10, 10], [0.9999, 4.5]))
 	check(not balance.get_node("Stars/Faction0/Star0/Glow").visible and not balance.get_node("Stars/Faction1/Star4/Glow").visible, "losing full charge hides glow immediately")
 	var stars_bottom: float = balance.get_node("Stars/Faction0").get_global_rect().end.y
-	check(hud.get_node("%Time").get_global_rect().position.y > stars_bottom and hud.get_node("%MapTitle").get_global_rect().position.y >= hud.get_node("%Time").get_global_rect().end.y, "existing time and map labels stay below all stars")
+	check(hud.get_node("%Time").visible and hud.get_node("%Time").text == "02:06" and hud.get_node("%Time").get_global_rect().position.y > stars_bottom, "match time remains visible and updates below all stars")
 	hud.notify("气势提升")
-	check(hud.get_node("%Toast").get_global_rect().position.y >= hud.get_node("%MapTitle").get_global_rect().end.y, "revealing toast does not cover top information")
+	check(hud.get_node("%Toast").get_global_rect().position.y >= hud.get_node("%Time").get_global_rect().end.y, "revealing toast does not cover match time")
 	await verify_public_skills()
 	hud.queue_free()
 	await process_frame
