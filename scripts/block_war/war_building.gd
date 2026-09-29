@@ -27,6 +27,7 @@ const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
 const CONSTRUCTION_DURATION := 10.0
 const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
 const SELECTION_REBOUND_DURATION := 0.38
+const ATTACK_RANGE_ROTATION_SPEED := PI / 60.0 # Three degrees per second.
 
 # The match advances this clock, so pause and game-over freeze construction too.
 var construction_remaining := 0.0
@@ -127,6 +128,8 @@ func _process(delta: float) -> void:
 	_update_attack_range(delta)
 	if _visual_paused:
 		return
+	if _attack_range.visible:
+		_attack_range.rotation.y = fposmod(_attack_range.rotation.y + delta * ATTACK_RANGE_ROTATION_SPEED, TAU)
 	_visual_time += delta
 	_team_material.set_shader_parameter("visual_time", _visual_time)
 	if kind == 2:

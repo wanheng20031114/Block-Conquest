@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- 36 rounded dashes; their centre stays at 0.98 of the texture radius. -->
+  <!-- Layered strokes soften the edge without requiring an SVG blur filter. -->
+  <g fill="none" stroke="white" stroke-linecap="round" stroke-dasharray="52.54418433 35.02945622">
+    <circle cx="512" cy="512" r="501.76" stroke-width="12" opacity="0.025"/>
+    <circle cx="512" cy="512" r="501.76" stroke-width="8" opacity="0.07"/>
+    <circle cx="512" cy="512" r="501.76" stroke-width="5" opacity="0.18"/>
+    <circle cx="512" cy="512" r="501.76" stroke-width="3" opacity="0.7"/>
+  </g>
+</svg>
