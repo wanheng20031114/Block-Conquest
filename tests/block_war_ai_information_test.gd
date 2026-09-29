@@ -1,5 +1,5 @@
 extends SceneTree
-## Paired decisions must not change when only unobservable enemy state changes.
+## Public totals inform strategy; hidden distributions and positions do not.
 
 const INFORMATION := preload("res://scripts/block_war/war_ai_information.gd")
 const AI := preload("res://scripts/block_war/war_ai.gd")
@@ -69,6 +69,7 @@ func soldier(faction: int = 0, target: int = 1) -> WarMarches.MarchUnit:
 
 func hidden_army(mode: String, count: int = 24) -> void:
 	if mode == "cloak":
+		game.by_id[0].population -= count
 		for index: int in count:
 			var unit := soldier()
 			unit.cloaked = true
@@ -129,9 +130,32 @@ func observation_contract() -> void:
 	check(INFORMATION.is_unit_known(game, friendly, 1), "allied cloaked doorway queues stay known")
 	check(INFORMATION.snapshot_incoming(game, 1).get(Vector2i(1, 3), 0) == 4, "allied queue reservations remain in the shared plan")
 	near(INFORMATION.team_strength(game, 1, 1), 80.0, "allied pending soldiers are counted exactly once")
-	var enemy_strength: float = INFORMATION.team_strength(game, 0, 1)
-	game.by_id[0].population = 9876.0
-	near(INFORMATION.team_strength(game, 0, 1), enemy_strength, "team estimates exclude hidden garrisons and queues")
+
+func public_strength_contract() -> void:
+	reset()
+	set_building(2, 0, 2, 1, 40.0)
+	set_building(4, 2, 0, 1, 20.9)
+	near(INFORMATION.team_strength(game, 0, 1), 120.0, "AI sums the same public personal totals as players")
+	game.by_id[0].population += 900.0
+	near(INFORMATION.team_strength(game, 0, 1), 1020.0, "enemy growth updates the public strength estimate")
+	game.by_id[0].population -= 950.0
+	game.by_id[2].population += 950.0
+	near(INFORMATION.team_strength(game, 0, 1), 1020.0, "redistribution between hidden garrisons leaves public strength unchanged")
+	for mode: String in ["cloak", "queue", "dig"]:
+		reset()
+		set_building(2, 0, 2, 1, 40.0)
+		hidden_army(mode)
+		check(game.total_for(0) == 100, "%s fixture conserves the public army total" % mode)
+		near(INFORMATION.team_strength(game, 0, 1), 100.0, "%s soldiers contribute exactly once to public strength" % mode)
+		for unit: WarMarches.MarchUnit in game.marches._units:
+			unit.order.strength = 7.0
+		near(INFORMATION.team_strength(game, 0, 1), 100.0, "%s strength bonuses remain hidden" % mode)
+		check(INFORMATION.snapshot_incoming(game, 1).is_empty(), "%s routes stay hidden despite public army totals" % mode)
+	reset()
+	var ordinary := soldier()
+	game.by_id[0].population -= 1.0
+	ordinary.order.strength = 1.25
+	near(INFORMATION.team_strength(game, 0, 1), 60.25, "visible enhanced soldier adds only its bonus above the public headcount")
 
 func strategy_signature(population: float, hidden_mode: String) -> Dictionary:
 	reset()
@@ -139,8 +163,9 @@ func strategy_signature(population: float, hidden_mode: String) -> Dictionary:
 		set_building(id, 1, 0, 4, 180.0)
 	game.by_id[1].population = 500.0
 	set_building(0, 0, 0, 4, population)
-	set_building(2, 0, 2, 1, population)
+	set_building(2, 0, 2, 1, 1040.0 - population)
 	hidden_army(hidden_mode)
+	check(game.total_for(0) == 1040, "strategy comparison preserves the public enemy total")
 	var ai := AI.new(1)
 	for building: WarBuilding in game.buildings:
 		if building.faction == 1:
@@ -157,9 +182,9 @@ func strategy_pairs() -> void:
 	check(not baseline.conquest.is_empty(), "the fairness fixture offers a real offensive decision")
 	check(not baseline.actions.is_empty(), "the fairness fixture performs a real paid action")
 	for population: float in [1.0, 999.0]:
-		check(strategy_signature(population, "") == baseline, "enemy stockpile %s cannot alter conquest or paid actions" % population)
+		check(strategy_signature(population, "") == baseline, "hidden garrison redistribution %s cannot alter conquest or paid actions" % population)
 	for hidden_mode: String in ["cloak", "queue", "dig"]:
-		check(strategy_signature(40.0, hidden_mode) == baseline, "unseen %s armies cannot alter strategy" % hidden_mode)
+		check(strategy_signature(40.0, hidden_mode) == baseline, "unseen %s movement with unchanged public totals cannot alter strategy" % hidden_mode)
 
 func skill_signature(commander: StringName, index: int, population: float, account_energy: float) -> Array[Dictionary]:
 	reset()
@@ -178,6 +203,8 @@ func skill_signature(commander: StringName, index: int, population: float, accou
 	else:
 		set_building(1, 1, 0, 4, 80.0)
 		set_building(0, 0, 2, 1, population)
+	if commander != &"frog":
+		set_building(4, 0, 2, 1, 510.0 - population)
 	TACTICS.new(1).take_turn(game)
 	return actions.duplicate(true)
 
@@ -196,21 +223,42 @@ func hud_information() -> void:
 	game.by_id[1].population = 0.4
 	game.update_hud()
 	var bar: Control = game.hud.get_node("%Balance")
-	var before: PackedFloat32Array = bar._targets.duplicate()
 	check(game.hud.get_node("%PlayerTotal").text == "1", "HUD keeps the known alliance's aggregate fractional population")
-	check(game.hud.get_node("%EnemyTotal").text == "未知", "HUD never exposes an enemy army total")
-	game.by_id[0].population = 9999.0
+	check(game.hud.get_node("%EnemyTotal").text == "60", "HUD exposes the opposing alliance's total")
+	for faction: int in [1, 3, 5]:
+		check(bar.get_node("Totals/Faction%d" % faction).text == "0", "personal totals floor separately from their alliance aggregate")
+	var populations: Array[int] = [60, 10, 20, 30, 40, 50]
+	for faction: int in 6:
+		set_building(faction, faction, 0, 1, float(populations[faction]))
+	game.update_hud()
+	for faction: int in 6:
+		near(bar._targets[faction], float(populations[faction]) / 210.0, "faction %d bar share reflects army size rather than equal territory" % faction)
+		check(bar.get_node("Totals/Faction%d" % faction).text == str(populations[faction]), "faction %d exposes its personal army total" % faction)
+	var before: PackedFloat32Array = bar._targets.duplicate()
 	hidden_army("cloak")
 	hidden_army("dig")
 	game.update_hud()
-	check(bar._targets == before, "hidden army and garrison changes cannot change the territory bar")
-	check(game.hud.get_node("%EnemyTotal").text == "未知", "new hidden armies keep the enemy total unknown")
-	check(bar.get_node("Stars/Faction0").tooltip_text.contains("据点占比"), "the bar explains its public territory measure")
+	check(bar._targets == before, "hidden dispatches conserve each faction's public share without revealing their routes")
+	check(game.hud.get_node("%EnemyTotal").text == "120", "cloaked and digging soldiers are included exactly once in the enemy total")
+	game.by_id[0].population += 90.0
+	game.update_hud()
+	near(bar._targets[0], 0.5, "public enemy growth immediately updates its army share")
+	check(bar.get_node("Totals/Faction0").text == "150", "public growth updates the individual enemy total")
+	check(game.hud.get_node("%EnemyTotal").text == "210", "public growth updates the enemy alliance total")
+	check(bar.get_node("Stars/Faction0").tooltip_text.contains("兵力"), "the bar explains its public troop measure")
+	for observer: int in 6:
+		game.local_faction = observer
+		game.update_hud()
+		check(game.hud.get_node("%PlayerTotal").text == str(game.team_total_for(observer)), "observer %d sees its alliance total" % observer)
+		check(game.hud.get_node("%EnemyTotal").text == str(game.team_total_for(1 - observer % 2)), "observer %d sees its opposing alliance total" % observer)
+		for faction: int in 6:
+			var total: Label = bar.get_node("Totals/Faction%d" % faction)
+			check(total.visible and total.text == str(game.total_for(faction)), "observer %d sees faction %d total regardless of allegiance" % [observer, faction])
 	# Remove enemy pending orders before changing their source for later cleanup.
 	game.marches.clear()
 	game.by_id[0].faction = 3
 	game.update_hud()
-	check(bar._targets != before and bar._targets[0] == 0.0, "visible ownership changes update the territory bar")
+	check(bar._targets[0] == 0.0 and bar.get_node("Totals/Faction0").text == "0", "a faction without remaining soldiers has a public zero total")
 
 func _run() -> void:
 	create_timer(60.0, true, false, true).timeout.connect(func(): quit(3))
@@ -228,6 +276,7 @@ func _run() -> void:
 		if kind in ["dispatch", "construction", "skill"] and int(payload.faction) == 1:
 			actions.append({"kind":kind,"payload":payload.duplicate(true)}))
 	observation_contract()
+	public_strength_contract()
 	strategy_pairs()
 	skill_pairs()
 	hud_information()

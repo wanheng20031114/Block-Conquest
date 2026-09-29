@@ -1,5 +1,5 @@
 extends RefCounted
-## Decisions use public buildings and observed armies, never hidden enemy stockpiles.
+## Decisions use public army totals, buildings and observed armies, never hidden garrison distributions.
 
 static func garrison_estimate(game: Node3D, building: WarBuilding, faction: int) -> float:
 	if building.faction < 0 or game.FACTIONS.allied(building.faction, faction):
@@ -38,12 +38,13 @@ static func incoming_damage(game: Node3D, building: WarBuilding, incoming: Dicti
 
 static func team_strength(game: Node3D, team: int, faction: int) -> float:
 	var result := 0.0
-	for building: WarBuilding in game.buildings:
-		if game.FACTIONS.allied(building.faction, team):
-			# Known reservations are counted as units below, once rather than again
-			# inside their source. Enemy queues remain part of an estimated garrison.
-			result += building.available_population if game.FACTIONS.allied(building.faction, faction) else garrison_estimate(game, building, faction)
+	for member: int in game.faction_count:
+		if game.FACTIONS.allied(member, team):
+			# Public totals already include garrisons, reservations and hidden armies
+			# exactly once, without revealing where those soldiers are stationed.
+			result += game.total_for(member)
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if game.FACTIONS.allied(unit.order.faction, team) and is_unit_known(game, unit, faction):
-			result += unit.order.strength
+			# The base soldier is in the public total; only observed bonuses add strength.
+			result += unit.order.strength - 1.0
 	return result

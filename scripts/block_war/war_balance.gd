@@ -1,5 +1,5 @@
 extends Control
-## Public territory shares pair each faction's buildings with its morale.
+## Public army shares pair each faction's troop total with its morale.
 
 const FACTIONS = preload("res://scripts/block_war/war_factions.gd")
 const ORDER: Array[int] = [0, 2, 4, 1, 3, 5]
@@ -7,8 +7,9 @@ const ROW_WIDTH: float = 92.0
 const ROW_GAP: float = 8.0
 const BAR_HEIGHT: float = 24.0
 const ROW_TOP: float = 34.0
+const TOTAL_HEIGHT: float = 24.0
 var _faction_count: int = 0
-var _has_buildings: bool = false
+var _has_troops: bool = false
 var _weights := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _targets := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _balance_tween: Tween
@@ -20,10 +21,11 @@ func _ready() -> void:
 		get_node("Segments/Faction%d" % faction).color = FACTIONS.COLORS[faction]
 		get_node("Glows/Faction%d" % faction).modulate = FACTIONS.COLORS[faction]
 		get_node("Leaders/Faction%d" % faction).default_color = Color(FACTIONS.COLORS[faction], 0.6)
+		get_node("Totals/Faction%d" % faction).add_theme_color_override("font_color", FACTIONS.COLORS[faction].lightened(0.25))
 	resized.connect(_layout)
 	_layout()
 
-func update_factions(building_counts: Array, morale: Array, count: int, local_faction: int = 0, names: Array = []) -> void:
+func update_factions(troop_counts: Array, morale: Array, count: int, local_faction: int = 0, names: Array = []) -> void:
 	_local_faction = local_faction
 	_order = [local_faction]
 	for faction: int in ORDER:
@@ -34,15 +36,16 @@ func update_factions(building_counts: Array, morale: Array, count: int, local_fa
 			_order.append(faction)
 	var total: float = 0.0
 	for faction: int in count:
-		total += float(building_counts[faction])
-	_has_buildings = total > 0.0
+		total += float(troop_counts[faction])
+	_has_troops = total > 0.0
 	var targets := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 	for faction: int in count:
-		targets[faction] = float(building_counts[faction]) / total if _has_buildings else 1.0 / float(count)
+		targets[faction] = float(troop_counts[faction]) / total if _has_troops else 1.0 / float(count)
+		get_node("Totals/Faction%d" % faction).text = str(int(troop_counts[faction]))
 		var row: HBoxContainer = get_node("Stars/Faction%d" % faction)
 		var full_stars: int = floori(float(morale[faction]))
 		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [names[faction] if names.size() == count else FACTIONS.NAMES[faction], full_stars, full_stars * 5, roundi(full_stars * WarMorale.DEFENSE_PER_STAR * 100.0), full_stars * 10]
-		row.tooltip_text += "\n%d 处据点 · 顶部色带表示据点占比\n己方数字为联盟总兵力，敌方总兵力未知" % int(building_counts[faction])
+		row.tooltip_text += "\n总兵力 %d · 顶部色带表示兵力占比\n包含驻军与行军；色带两端为双方联盟总兵力" % int(troop_counts[faction])
 		if full_stars < 5:
 			var next_star_percent: float = floorf((float(morale[faction]) - full_stars) * 1000.0) / 10.0
 			row.tooltip_text += "\n下颗星充能 %.1f%%" % next_star_percent
@@ -82,9 +85,10 @@ func _layout() -> void:
 		var glow: Panel = get_node("Glows/Faction%d" % faction)
 		var row: Control = get_node("Stars/Faction%d" % faction)
 		var leader: Line2D = get_node("Leaders/Faction%d" % faction)
-		segment.visible = faction < _faction_count and _has_buildings and _weights[faction] > 0.0
+		segment.visible = faction < _faction_count and _has_troops and _weights[faction] > 0.0
 		glow.visible = segment.visible
 		row.visible = faction < _faction_count
+		get_node("Totals/Faction%d" % faction).visible = faction < _faction_count and _faction_count > 2
 		get_node("Skills/Faction%d" % faction).visible = faction < _faction_count and _faction_count > 2 and faction != _local_faction
 		leader.hide()
 		if faction >= _faction_count:
@@ -112,10 +116,14 @@ func _layout() -> void:
 	for index: int in seats.size():
 		var row: Control = get_node("Stars/Faction%d" % seats[index])
 		row.scale = Vector2.ONE * scale_factor
-		row.position = Vector2(packed_centers[index] - half_width, ROW_TOP).round()
+		var morale_top: float = ROW_TOP + (TOTAL_HEIGHT if _faction_count > 2 else 0.0)
+		row.position = Vector2(packed_centers[index] - half_width, morale_top).round()
+		var total_label: Label = get_node("Totals/Faction%d" % seats[index])
+		total_label.scale = row.scale
+		total_label.position = Vector2(row.position.x, ROW_TOP)
 		var skills: Control = get_node("Skills/Faction%d" % seats[index])
 		skills.scale = row.scale
-		skills.position = Vector2(row.position.x, ROW_TOP + 22.0)
+		skills.position = Vector2(row.position.x, morale_top + 22.0)
 		if absf(packed_centers[index] - centers[index]) > 4.0:
 			var leader: Line2D = get_node("Leaders/Faction%d" % seats[index])
 			leader.points = PackedVector2Array([Vector2(centers[index], BAR_HEIGHT + 1), Vector2(centers[index], BAR_HEIGHT + 3), Vector2(packed_centers[index], ROW_TOP - 2)])

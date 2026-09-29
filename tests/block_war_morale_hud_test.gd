@@ -23,7 +23,7 @@ func check(value: bool, label: String) -> void:
 func sample(totals: Array, morale: Array, local_faction: int = 0) -> Dictionary:
 	var state := {"commander": COMMANDERS[local_faction], "enemy_commander": COMMANDERS[1 - local_faction % 2], "player_total": 0, "enemy_total": 0,
 		"local_faction": local_faction, "faction_commanders": [], "faction_skill_statuses": [], "faction_skill_active": [], "faction_names": [],
-		"faction_buildings": totals, "morale_stars": morale, "faction_count": totals.size(),
+		"faction_totals": totals, "morale_stars": morale, "faction_count": totals.size(),
 		"map_title": "裂谷交汇", "map_mode": "%dv%d" % [totals.size() / 2, totals.size() / 2], "team_size": totals.size() / 2,
 		"time": 126, "percentage": 50, "forges": 0, "selected_owned": false, "selected_level": 0,
 		"selected_available_population": 0, "upgrade_cost": 10, "selected_max_level": 4, "construction_remaining": 0.0,
@@ -43,6 +43,26 @@ func capture(label: String) -> void:
 		return
 	await RenderingServer.frame_post_draw
 	check(root.get_texture().get_image().save_png(output.path_join(label + ".png")) == OK, "capture " + label)
+
+func verify_public_totals(state: Dictionary, label: String) -> void:
+	check(hud.get_node("%PlayerTotal").text == str(state.player_total), label + " exact allied total")
+	check(hud.get_node("%EnemyTotal").text == str(state.enemy_total), label + " exact public opposing total")
+	var shown_rects: Array[Rect2] = []
+	for faction: int in 6:
+		var total: Label = balance.get_node("Totals/Faction%d" % faction)
+		check(total.visible == (state.faction_count > 2 and faction < state.faction_count), label + " individual total visibility %d" % faction)
+		if not total.visible:
+			continue
+		check(total.text == str(state.faction_totals[faction]), label + " exact individual total including zero %d" % faction)
+		var rect := total.get_global_rect()
+		var stars: Rect2 = balance.get_node("Stars/Faction%d" % faction).get_global_rect()
+		var bar: Rect2 = balance.get_global_rect()
+		check(absf(rect.get_center().x - stars.get_center().x) < 0.1 and rect.end.y <= stars.position.y, label + " number centered above matching morale %d" % faction)
+		check(rect.position.x >= bar.position.x - 0.1 and rect.end.x <= bar.end.x + 0.1, label + " number fits balance width %d" % faction)
+		check(total.mouse_filter == Control.MOUSE_FILTER_IGNORE and not hud.is_pointer_blocked(rect.get_center()), label + " number preserves battlefield input %d" % faction)
+		for previous: Rect2 in shown_rects:
+			check(not rect.intersects(previous), label + " individual totals never overlap %d" % faction)
+		shown_rects.append(rect)
 
 func verify_skill_row(row: Control, commander: StringName, statuses: Array, active: bool, label: String) -> void:
 	check(row.get_child_count() == 4, label + " four authored skill slots")
@@ -81,10 +101,11 @@ func verify_public_skills() -> void:
 	hud.update_state(inactive)
 	verify_skill_row(enemy_row, &"rabbit", [2, 2, 2, 2], true, "resume restores all ready lights")
 	for local_faction: int in 2:
-		var state := sample([100, 100], [1.5, 2.75], local_faction)
+		var state := sample([111, 257], [1.5, 2.75], local_faction)
 		state.online = true
 		state.faction_names = ["测试玩家甲", "测试玩家乙"]
 		hud.update_state(state)
+		verify_public_totals(state, "duel local seat %d" % local_faction)
 		check(enemy_row.visible and not hud.get_node("UI/Enemy/Role").visible, "duel replaces role text with skill row")
 		check(hud.get_node("UI/Enemy/Name").text == state.faction_names[1 - local_faction], "duel maps opposite online seat name %d" % local_faction)
 		verify_skill_row(enemy_row, state.faction_commanders[1 - local_faction], state.faction_skill_statuses[1 - local_faction], true, "duel local seat %d" % local_faction)
@@ -96,11 +117,13 @@ func verify_public_skills() -> void:
 		await process_frame
 		for count: int in [4, 6]:
 			for local_faction: int in count:
-				var totals: Array = [1, 900, 2, 8, 1, 500].slice(0, count)
+				var totals: Array = [0, 900, 2, 8, 1, 500].slice(0, count)
 				var state := sample(totals, [1.5, 2.75, 0.0, 4.1, 5.0, 3.25].slice(0, count), local_faction)
+				state.online = local_faction % 2 == 1
 				hud.update_state(state)
 				await create_timer(0.3).timeout
 				var label := "%dx%d %d seats local %d" % [dimensions.x, dimensions.y, count, local_faction]
+				verify_public_totals(state, label)
 				check(not enemy_row.visible and hud.get_node("UI/Enemy/Role").visible, label + " alliance summary shows no misleading skill row")
 				var shown_rects: Array[Rect2] = []
 				for faction: int in 6:
@@ -121,7 +144,9 @@ func verify_public_skills() -> void:
 				if local_faction == count - 1:
 					await capture("09_public_%dx%d_%d_players" % [dimensions.x, dimensions.y, count])
 	# Returning to a duel must also remove stale multiplayer indicators.
-	hud.update_state(sample([100, 100], [0.0, 0.0]))
+	var duel := sample([100, 100], [0.0, 0.0])
+	hud.update_state(duel)
+	verify_public_totals(duel, "returning from team match restores duel totals")
 	check(enemy_row.visible, "returning from team match restores duel skill row")
 	for faction: int in 6:
 		check(not balance.get_node("Skills/Faction%d" % faction).visible, "returning to duel clears stale top row %d" % faction)
@@ -149,8 +174,10 @@ func verify_near_full_stars() -> void:
 		check(star.tint_progress == Color.WHITE and star.get_node("Glow").visible, "refilling restores full brightness and glow %s" % example[0])
 
 func verify(totals: Array, morale: Array, label: String) -> void:
-	hud.update_state(sample(totals, morale))
+	var state := sample(totals, morale)
+	hud.update_state(state)
 	await create_timer(0.35).timeout
+	verify_public_totals(state, label)
 	var population: float = 0.0
 	for total: int in totals:
 		population += total
@@ -164,11 +191,12 @@ func verify(totals: Array, morale: Array, label: String) -> void:
 			continue
 		check(row.get_child_count() == 5, label + " five authored slots %d" % faction)
 		check(row.tooltip_text.contains("%d 星" % floori(float(morale[faction]))) and row.tooltip_text.contains("防御 +%d%%" % (floori(float(morale[faction])) * 20)), label + " tooltip uses complete star bonuses %d" % faction)
+		check(not row.tooltip_text.contains("未知") and not row.tooltip_text.contains("据点占比"), label + " tooltip reflects public troop rule %d" % faction)
 		check(row.mouse_filter == Control.MOUSE_FILTER_PASS and not hud.is_pointer_blocked(row.get_global_rect().get_center()), label + " morale hover preserves battlefield input %d" % faction)
 		if population > 0.0:
-			check(absf(segment.position.x - right) < 0.1 and absf(segment.size.x / balance.size.x - float(totals[faction]) / population) < 0.001, label + " exact public building share %d" % faction)
+			check(absf(segment.position.x - right) < 0.1 and absf(segment.size.x / balance.size.x - float(totals[faction]) / population) < 0.001, label + " exact public troop share %d" % faction)
 		else:
-			check(not segment.visible, label + " zero owned buildings leaves neutral bar %d" % faction)
+			check(not segment.visible, label + " zero troops leaves neutral bar %d" % faction)
 		right += segment.size.x
 		var rect := Rect2(row.position, row.size * row.scale)
 		check(rect.position.x >= -0.1 and rect.end.x <= balance.size.x + 0.1, label + " row stays inside bar %d" % faction)

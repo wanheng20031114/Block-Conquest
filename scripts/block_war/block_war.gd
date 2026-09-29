@@ -1343,26 +1343,30 @@ func _on_debug_visibility_changed(visible: bool) -> void:
 func update_hud() -> void:
 	if not is_node_ready():
 		return
-	var faction_buildings: Array[int] = []
+	var faction_population: Array[float] = []
+	var faction_totals: Array[int] = []
 	var morale_stars: Array[float] = []
 	var faction_names: Array[String] = []
 	var faction_commanders: Array[StringName] = []
 	var faction_skill_statuses: Array = []
 	var faction_skill_active: Array[bool] = []
-	# Only our alliance's population is public. The shared color bar measures
-	# visible territory, so neither its width nor a total reveals enemy garrisons.
-	faction_buildings.resize(faction_count)
-	faction_buildings.fill(0)
-	var player_population := 0.0
+	# Army totals are public, including hidden and reserved marching soldiers.
+	# Reserved soldiers are already in _units; subtract them from each garrison.
+	faction_population.resize(faction_count)
+	faction_population.fill(0.0)
 	for unit: WarMarches.MarchUnit in marches._units:
-		if FACTIONS.allied(unit.order.faction, local_faction):
-			player_population += 1.0
+		faction_population[unit.order.faction] += 1.0
 	for building: WarBuilding in buildings:
 		if building.faction >= 0:
-			faction_buildings[building.faction] += 1
-			if FACTIONS.allied(building.faction, local_faction):
-				player_population += building.available_population
+			faction_population[building.faction] += building.available_population
+	var player_population := 0.0
+	var enemy_population := 0.0
 	for faction: int in faction_count:
+		faction_totals.append(floori(faction_population[faction]))
+		if FACTIONS.allied(faction, local_faction):
+			player_population += faction_population[faction]
+		else:
+			enemy_population += faction_population[faction]
 		morale_stars.append(morale.stars(faction))
 		faction_names.append(faction_name(faction))
 		faction_commanders.append(faction_skills[faction].commander)
@@ -1392,8 +1396,8 @@ func update_hud() -> void:
 			if FACTIONS.allied(selected.faction, local_faction) and selected.faction != local_faction:
 				detail += " · 增援抵达后归队友指挥"
 	var selected_population_known: bool = selected != null and selected.is_population_visible()
-	hud.update_state({"player_total": floori(player_population), "time": elapsed,
-		"faction_count": faction_count, "faction_buildings": faction_buildings, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
+	hud.update_state({"player_total": floori(player_population), "enemy_total": floori(enemy_population), "time": elapsed,
+		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
 		"faction_commanders": faction_commanders, "faction_skill_statuses": faction_skill_statuses, "faction_skill_active": faction_skill_active,
 		"online": not match_config.is_empty(), "enemy_role": _enemy_role(),
 		"global_paused": match_paused, "local_surrendered": has_surrendered(local_faction),

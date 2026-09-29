@@ -98,6 +98,56 @@ func boundary(delta: float = Coordinator.STEP, loss: bool = false) -> void:
 	client.process(delta)
 	deliver(client_wire, authority)
 
+func public_army_totals(label: String) -> void:
+	replica.update_hud()
+	for faction: int in host.faction_count:
+		var expected: int = host.total_for(faction)
+		check(replica.total_for(faction) == expected, label + " complete replicated army for seat %d" % faction)
+		var total: Label = replica.hud.get_node("%Balance").get_node("Totals/Faction%d" % faction)
+		check(total.visible and total.text == str(expected), label + " public HUD army for seat %d" % faction)
+	check(replica.hud.get_node("%PlayerTotal").text == str(host.team_total_for(replica.local_faction)), label + " public local alliance total")
+	check(replica.hud.get_node("%EnemyTotal").text == str(host.team_total_for(1 - replica.local_faction % 2)), label + " public opposing alliance total")
+	check(not replica.by_id[5].is_population_visible() and replica.by_id[5].get_node("PopulationLabel").text.is_empty(), label + " opposing garrison remains hidden")
+
+func hidden_army_totals() -> void:
+	# Freeze natural growth above capacity so the public totals are independent
+	# of presentation-clock interpolation during these same-time transactions.
+	host.marches.clear()
+	host.projectiles.clear()
+	host.bear.shots.clear()
+	for faction: int in host.faction_count:
+		host.by_id[faction].population = 80.25 + faction
+	var cloaked_source: WarBuilding = host.by_id[3]
+	var target: WarBuilding = host.by_id[8]
+	var before_cloaked: int = host.total_for(3)
+	cloaked_source.population -= 8.0
+	host.marches.send(3, 8, 3, 8, PackedVector3Array([cloaked_source.global_position, target.global_position]))
+	for unit: WarMarches.MarchUnit in host.marches._units:
+		unit.cloaked = true
+		unit.distance = 2.0
+		host.marches._update_pose(unit)
+	var tunnel_source: WarBuilding = host.by_id[1]
+	var before_tunnel: int = host.total_for(1)
+	host.marches.queue_tunnel_departure(1, 8, 1, 12, PackedVector3Array([tunnel_source.global_position, target.global_position]), 0.16, 1.0)
+	check(host.total_for(3) == before_cloaked and host.total_for(1) == before_tunnel, "hidden departure and tunnel reservations preserve exact faction totals")
+	check(tunnel_source.queued_population == 12, "hidden tunnel fixture retains all twelve passengers in its garrison reservation")
+	authority._tick += 1
+	authority._publish_step(0.0)
+	flush()
+	public_army_totals("hidden-unit reliable event")
+	check(replica.marches._units.filter(func(unit: WarMarches.MarchUnit): return unit.cloaked).size() == 8, "replica retains all cloaked soldiers for public totals")
+	check(replica.marches._units.filter(func(unit: WarMarches.MarchUnit): return unit.pending_departure and unit.spawn_delay > 0.0).size() == 12, "replica retains underground reservations without exposing passengers")
+	authority._snapshot_sent_at.clear()
+	authority._send_snapshot(102)
+	flush()
+	public_army_totals("hidden-unit recovery snapshot")
+	check(host.marches.hit_target(host.marches._units[0], Vector3.UP), "hidden public-total fixture resolves an actual cloaked casualty")
+	authority._tick += 1
+	authority._publish_step(0.0)
+	flush()
+	check(host.total_for(3) == before_cloaked - 1, "cloaked casualty removes exactly one soldier from the public army")
+	public_army_totals("hidden-unit casualty event")
+
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
 	root.get_node("Session").block_war_map_id = "highland"
@@ -121,6 +171,7 @@ func _run() -> void:
 	check(replica.local_faction == 2 and host.local_faction == 5, "arbitrary host and client seats retained")
 	check(replica.faction_skills[2].energy == 20.0 and replica.faction_skills[5].energy == 0.0, "only local private account restored")
 	check(host_wire.recovered.has(102), "completed snapshot acknowledged on command channel")
+	public_army_totals("initial nonzero-seat snapshot")
 
 	var source: WarBuilding = host.by_id[2]
 	var target: WarBuilding = host.by_id[8]
@@ -130,6 +181,7 @@ func _run() -> void:
 	authority._receive_command(102, command)
 	boundary()
 	check(source.queued_population > 0 and source.population > original * 0.5, "command reserves troops without debiting the entire queue")
+	public_army_totals("ordinary departure queue")
 	print("DEPARTURE initial=", original, " remaining=", source.population, " queued=", source.queued_population, " units=",host.marches._units.size())
 	check(authority._commands.is_empty(), "duplicate queued command only executes once")
 	var first_units: int = host.marches._units.size()
@@ -245,6 +297,7 @@ func _run() -> void:
 	authority.process(Coordinator.STEP)
 	check(host.elapsed - paused_at < 0.04, "resume never catches up five seconds of paused time")
 	flush()
+	hidden_army_totals()
 
 	# Final result can overtake a chunked final state but cannot freeze it early.
 	client._on_message(105, "finished", {"winner": 1, "seq": authority._seq + 1})

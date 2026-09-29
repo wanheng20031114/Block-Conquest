@@ -119,10 +119,10 @@ func update_state(state: Dictionary) -> void:
 		$UI/Enemy/Icon.texture = SKILL_RULES.PORTRAITS[_enemy_commander]
 	var player_total: int = int(state.player_total)
 	%PlayerTotal.text = str(player_total)
-	%EnemyTotal.text = "未知"
+	%EnemyTotal.text = str(int(state.enemy_total))
 	# Ink sits directly on the faction colors; an empty rail has a dark surface.
-	var has_territory: bool = state.faction_buildings.any(func(count: int) -> bool: return count > 0)
-	var count_ink := Color(0.055, 0.12, 0.095) if has_territory else Color(0.99, 1, 0.97)
+	var has_troops: bool = state.faction_totals.any(func(count: int) -> bool: return count > 0)
+	var count_ink := Color(0.055, 0.12, 0.095) if has_troops else Color(0.99, 1, 0.97)
 	%PlayerTotal.add_theme_color_override("font_color", count_ink)
 	%EnemyTotal.add_theme_color_override("font_color", count_ink)
 	$UI/Player/Name.text = SKILL_RULES.name_for(commander)
@@ -138,15 +138,15 @@ func update_state(state: Dictionary) -> void:
 			$UI/Enemy/Name.text = state.faction_names[enemy_faction]
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	%Balance.update_factions(state.faction_buildings, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
+	%Balance.update_factions(state.faction_totals, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
 	%Balance.update_skills(state.faction_commanders, state.faction_skill_statuses, state.faction_names, state.faction_skill_active)
 	if _public_skill_layout_count != int(state.faction_count):
 		_public_skill_layout_count = int(state.faction_count)
-		# Team matches put each other player's icons below their morale row.
-		var skill_row_space: float = 0.0 if duel else 24.0
-		%Time.position.y = 54.0 + skill_row_space
-		%Toast.position.y = 124.0 + skill_row_space
-		%MatchStatus.position.y = 128.0 + skill_row_space
+		# Team matches show individual totals above morale and skills below it.
+		var player_row_space: float = 0.0 if duel else 48.0
+		%Time.position.y = 54.0 + player_row_space
+		%Toast.position.y = 124.0 + player_row_space
+		%MatchStatus.position.y = 128.0 + player_row_space
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
 		_percentage_buttons[index].disabled = _global_paused or _local_surrendered or _finished

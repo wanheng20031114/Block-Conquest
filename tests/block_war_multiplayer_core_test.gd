@@ -71,12 +71,16 @@ func _run() -> void:
 	game.update_hud()
 	var debug: Dictionary = preload("res://scripts/block_war/war_debug_data.gd").capture(game)
 	check(is_equal_approx(debug.attack_multiplier, 1.15) and is_equal_approx(debug.defense_multiplier, 1.60) and is_equal_approx(debug.speed_multiplier, 1.30), "optional debug data uses local morale rather than first player's morale")
-	check(game.hud.get_node("%Balance")._order == [5, 1, 3, 0, 2, 4], "own faction and teammates lead the territory bar")
+	check(game.hud.get_node("%Balance")._order == [5, 1, 3, 0, 2, 4], "own faction and teammates lead the public army bar")
 	check(game.hud.get_node("UI/Enemy/Role").text == "1 名玩家 · 2 名电脑", "enemy panel identifies human and bot mixture")
 	check(game.hud.get_node("%Balance").get_node("Stars/Faction5").tooltip_text.begins_with("Seat 5（你）"), "morale tooltip labels local seat")
 	for faction: int in 6: game.by_id[faction].population = 0.4
 	game.update_hud()
-	check(game.hud.get_node("%PlayerTotal").text == "1" and game.hud.get_node("%EnemyTotal").text == "未知", "team HUD preserves known fractional totals and hides enemy population")
+	check(game.hud.get_node("%PlayerTotal").text == "1" and game.hud.get_node("%EnemyTotal").text == "1", "both public alliance totals round down after summing fractional garrisons")
+	for faction: int in 6:
+		var total: Label = game.hud.get_node("%Balance").get_node("Totals/Faction%d" % faction)
+		check(total.visible and total.text == "0", "seat %d publicly displays its own rounded army total" % faction)
+	check(not game.by_id[0].is_population_visible() and game.by_id[0].get_node("PopulationLabel").text.is_empty(), "public enemy totals do not reveal individual enemy garrisons")
 	check(game.total_for(5) == 0 and game.team_total_for(5) == 1, "individual floor and aggregate team floor remain distinct")
 	for faction: int in 6: game.by_id[faction].population = 60.0
 
