@@ -4,12 +4,17 @@ extends RefCounted
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
 const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
-const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog", &"fox"]
+const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog", &"fox", &"pig"]
 
 
 static func hero_profile(id: StringName) -> Dictionary:
 	assert(id in HEROES)
 	var profiles: Dictionary = {
+		&"pig": {
+			"title": RULES.name_for(id), "subtitle": "出征准备与精准重击",
+			"summary": "提前强化下一次出兵，让部队冲锋、起飞或紧密集结；以特大猪砸破密集阵地。",
+			"note": "三种出征准备各持续 15 秒，可叠加；同时拥有飞行和整队时，最多出兵 30 人。特大猪会伤及敌我双方。",
+		},
 		&"fox": {
 			"title": RULES.name_for(id), "subtitle": "诡计与阵线瓦解",
 			"summary": "投弹削弱据点，偷取敌方士气，招降行军并驱散驻军。",
@@ -46,6 +51,7 @@ static func hero_profile(id: StringName) -> Dictionary:
 static func skill_summary(id: StringName, index: int) -> String:
 	assert(id in HEROES and index >= 0 and index < 4)
 	match id:
+		&"pig": return RULES.description(index, id)
 		&"fox": return RULES.description(index, id)
 		&"squirrel":
 			return [
@@ -81,6 +87,7 @@ static func skill_summary(id: StringName, index: int) -> String:
 static func skill_target(id: StringName, index: int) -> String:
 	assert(id in HEROES and index >= 0 and index < 4)
 	var targets: Dictionary = {
+		&"pig": ["自己的建筑", "自己的建筑", "自己的建筑", "任意地面 · 敌我全部受影响"],
 		&"fox": ["敌方或中立建筑", "有士气的敌方英雄所属建筑", "敌方行军部队", "有同阵营避难建筑的敌方据点"],
 		&"squirrel": ["自己或盟友住宅", "地面区域", "自己或盟友建筑", "地面区域"],
 		&"rabbit": ["自己的行军部队", "敌方建筑", "所有阵营的行军部队", "自己的建筑"],
@@ -173,7 +180,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "通行路线", "body": "部队沿可通行路线前进。水域和山地阻挡通行，桥梁连接两岸；派兵前的路线预览显示实际行进方向。"},
 				{"title": "途中交互", "body": "双方行军部队可以互相穿行，不在途中进行近战。炮塔、火焰与其他技能仍可影响行军。"},
-				{"title": "兔洞运输", "body": "兔洞可将部队快速送至目标附近，但两座建筑之间仍须存在可通行路线。出洞后继续向目标行军。"},
+				{"title": "特殊机动", "body": "兔洞将部队送至目标附近，两楼仍须有可通行路线。猪会飞则可无视地形、直线前往目的地，最多派出 30 人；与猪整队叠加仍取 30 人上限，其余驻军留在建筑。"},
 			],
 			"tip": "派兵时同时观察路线长度与沿途敌方炮塔。",
 			"icon": preload("res://assets/ui/block_war/skill_haste.svg"),

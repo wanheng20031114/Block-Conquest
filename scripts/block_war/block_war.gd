@@ -27,9 +27,11 @@ const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
 const FROG_SKILLS := preload("res://scripts/block_war/war_frog_skills.gd")
 const FOX_SKILLS := preload("res://scripts/block_war/war_fox_skills.gd")
+const PIG_SKILLS := preload("res://scripts/block_war/war_pig_skills.gd")
 const FIRE_STATE := preload("res://scripts/block_war/war_fire_state.gd")
 const SURRENDER := preload("res://scripts/block_war/war_surrender.gd")
 var bear := BEAR_SKILLS.new()
+var pig := PIG_SKILLS.new()
 
 class SkillState extends RefCounted:
 	var commander: StringName = &"squirrel"
@@ -348,6 +350,7 @@ func simulate(delta: float) -> void:
 		step = minf(step, morale.step_limit())
 		step = minf(step, world_effects.fire_step_limit())
 		step = minf(step, bear.step_limit())
+		step = minf(step, pig.step_limit())
 		for shield_remaining: float in shields.values():
 			step = minf(step, shield_remaining)
 		for building: WarBuilding in buildings:
@@ -386,6 +389,7 @@ func _simulate_step(delta: float) -> void:
 	_advance_fire_states(delta)
 	world_effects.tick(delta)
 	_tick_fire_buildings()
+	pig.advance(self, delta)
 	# Damage in this interval still belongs to the shield's last active span.
 	# The next substep starts after its expiry, with protection already removed.
 	for id: int in shields.keys():
@@ -481,7 +485,18 @@ func select_building(building: Node3D) -> void:
 
 func dispatch_count(source: WarBuilding, amount_percent: int) -> int:
 	var count := floori(source.available_population * amount_percent / 100.0)
-	return mini(count, SKILL_RULES.BURROW_LIMIT) if source.burrow_remaining > 0.0 else count
+	if source.burrow_remaining > 0.0: count = mini(count, SKILL_RULES.BURROW_LIMIT)
+	return mini(count, pig.limit_for(source.building_id))
+
+func dispatch_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Array:
+	if pig.flags_for(source.building_id).y > 0.0:
+		return flight_route(source, target)
+	return map.get_building_route(source, target)
+
+func flight_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Array:
+	var entrance: Vector3 = map.definition.surface_point(source.march_perimeter_towards(target.global_position))
+	var exit: Vector3 = map.definition.surface_point(target.march_perimeter_towards(source.global_position))
+	return marches.make_flight_route(entrance, exit, map.flight_obstacle_top)
 
 func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = -2) -> int:
 	faction = local_faction if faction == -2 else faction
@@ -495,7 +510,7 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 			hud.notify("当前比例不足 1 名可用民兵 · 待出发部队已预留")
 			audio.play_ui(&"war_denied")
 		return 0
-	var route: PackedVector3Array = map.get_building_route(source, target)
+	var route := dispatch_route(source, target)
 	if route.size() < 2:
 		if faction == local_faction:
 			hud.notify("没有可通行的路线")
@@ -510,7 +525,9 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		world_effects.get_node("Rabbit").start_tunnel(faction, plan.entrance, plan.exit, plan.route[1] - plan.route[0], count, plan.dig_duration)
 		presentation_event.emit("tunnel", {"faction": faction, "entrance": _vector_values(plan.entrance), "exit": _vector_values(plan.exit), "direction": _vector_values(plan.route[1] - plan.route[0]), "count": count, "dig_duration": plan.dig_duration})
 	else:
-		marches.queue_departure(source.building_id, target.building_id, faction, count, route, source.kind == 3)
+		var pig_flags: Vector3 = pig.flags_for(source.building_id)
+		marches.queue_departure(source.building_id, target.building_id, faction, count, route, source.kind == 3, pig_flags.x > 0.0, pig_flags.y > 0.0, pig_flags.z > 0.0)
+	pig.clear_building(self, source.building_id)
 	presentation_event.emit("dispatch", {"faction": faction, "source": source.building_id, "target": target.building_id, "count": count})
 	if faction == local_faction:
 		audio.play_ui(&"war_order")
@@ -641,6 +658,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 			bear.clear_building(self, target_id)
 			target.clear_disruption()
 			_clear_building_burrow(target)
+			pig.clear_building(self, target_id)
 			target.faction = faction
 			_cancel_building_recruitment(target_id)
 			target.population = survivors
@@ -817,6 +835,8 @@ func skill_is_ground(index: int, faction: int = -2) -> bool:
 
 func skill_radius(index: int, faction: int = -2) -> float:
 	faction = local_faction if faction == -2 else faction
+	if faction_skills[faction].commander == SKILL_RULES.PIG:
+		return SKILL_RULES.PIG_DROP_RADIUS
 	if faction_skills[faction].commander == SKILL_RULES.FOX:
 		return SKILL_RULES.FOX_CONVERT_RADIUS
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
@@ -875,6 +895,8 @@ func _valid_skill_target(index: int, target: Node3D, faction: int = -2) -> bool:
 	faction = local_faction if faction == -2 else faction
 	if target == null:
 		return false
+	if faction_skills[faction].commander == SKILL_RULES.PIG:
+		return pig.valid_target(index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.FOX:
 		return FOX_SKILLS.valid_target(self, index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
@@ -903,7 +925,9 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		return false
 	if not _valid_skill_target(index, target, faction):
 		if faction == local_faction:
-			if faction_skills[faction].commander == SKILL_RULES.FOX:
+			if faction_skills[faction].commander == SKILL_RULES.PIG:
+				hud.notify("选择尚未获得此待命效果的自己的建筑" if index < 3 else "拖至战场地面后松手")
+			elif faction_skills[faction].commander == SKILL_RULES.FOX:
 				hud.notify(["选择有驻军、未处于无敌保护的敌方或中立建筑", "选择仍有士气的敌方建筑；自己的士气须未满", "拖至有敌军的地面区域后松手", "选择有同阵营避难建筑、未处于无敌保护的敌方建筑"][index])
 			elif faction_skills[faction].commander == SKILL_RULES.FROG:
 				hud.notify("选择未处于无敌保护的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
@@ -915,6 +939,16 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
+	if faction_skills[faction].commander == SKILL_RULES.PIG:
+		_commit_skill(index, faction)
+		pig.arm(self, index, target, faction)
+		_present_skill(index, faction, target.global_position, target.building_id)
+		var sounds: Array[StringName] = [&"war_rabbit_dash", &"war_frog_float", &"war_skill_command"]
+		audio.play_world(sounds[index], target.global_position)
+		if faction == local_faction:
+			hud.notify("%s · 待命 15 秒，下次出兵生效" % SKILL_RULES.PIG_NAMES[index])
+		update_hud()
+		return true
 	if faction_skills[faction].commander in [SKILL_RULES.BEAR, SKILL_RULES.FROG, SKILL_RULES.FOX]:
 		if faction_skills[faction].commander == SKILL_RULES.FOX:
 			FOX_SKILLS.cast(self, index, target, faction)
@@ -966,6 +1000,13 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 			audio.play_ui(&"war_denied")
 		return false
 	var center: Vector3 = map.definition.surface_point(at)
+	if faction_skills[faction].commander == SKILL_RULES.PIG:
+		pig.start_drop(self, center, faction)
+		_commit_skill(index, faction)
+		_present_skill(index, faction, center)
+		audio.play_world(&"war_frog_float", center)
+		update_hud()
+		return true
 	if faction_skills[faction].commander == SKILL_RULES.FOX:
 		if FOX_SKILLS.convert(self, center, faction) == 0:
 			if faction == local_faction:
@@ -1336,6 +1377,10 @@ func update_hud() -> void:
 			detail += " · 停工 %ds" % ceili(selected.disruption_remaining)
 		if selected.burrow_remaining > 0.0:
 			detail += " · 兔洞待命 %ds · 下次最多 50 人" % ceili(selected.burrow_remaining)
+		var pig_flags: Vector3 = pig.flags_for(selected.building_id)
+		for index: int in 3:
+			if pig_flags[index] > 0.0:
+				detail += " · %s待命 %ds" % [SKILL_RULES.PIG_NAMES[index], ceili(pig_flags[index])]
 		if selected.is_population_visible() and selected.queued_population > 0:
 			detail += " · 待出发 %d · 可用 %d" % [selected.queued_population, floori(selected.available_population)]
 		if selected.faction >= 0 and faction_count > 2:
@@ -1358,7 +1403,7 @@ func update_hud() -> void:
 		"cooldowns": cooldowns, "skill_durations": active_durations, "armed_skill": armed_skill,
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": energy_regen_for(local_faction), "energy_tower_count": energy_tower_count(local_faction), "energy_costs": SKILL_RULES.costs_for(faction_skills[local_faction].commander),
 		"commander": faction_skills[local_faction].commander, "enemy_commander": faction_skills[opponent_faction()].commander,
-		"skill_target_types": ["ground", "building", "ground", "building"] if faction_skills[local_faction].commander == SKILL_RULES.RABBIT else ["building", "ground", "building", "ground"], "ground_skill_radius": skill_radius(armed_skill),
+		"skill_target_types": ["ground" if skill_is_ground(0) else "building", "ground" if skill_is_ground(1) else "building", "ground" if skill_is_ground(2) else "building", "ground" if skill_is_ground(3) else "building"], "ground_skill_radius": skill_radius(armed_skill),
 		"forges": forge_count(local_faction), "selected_owned": selected != null and selected.faction == local_faction,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
@@ -1538,7 +1583,7 @@ func _update_drag(screen: Vector2) -> void:
 				order_route = PackedVector3Array([plan.entrance, plan.exit])
 				order_route.append_array(plan.route)
 		else:
-			order_route = map.get_building_route(drag_source, hovered)
+			order_route = dispatch_route(drag_source, hovered)
 
 func _cancel_drag() -> void:
 	drag_source = null

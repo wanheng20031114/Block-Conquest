@@ -246,7 +246,7 @@ theme_override_font_sizes/font_size = 25
 [node name="IndexNote" type="Label" parent="Margin/Column/Body/Sidebar/Navigation"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "5 位英雄 · 20 项技能"
+text = "6 位英雄 · 24 项技能"
 theme_override_font_sizes/font_size = 17
 theme_type_variation = &"MenuMuted"
 

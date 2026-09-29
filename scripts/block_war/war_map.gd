@@ -25,6 +25,8 @@ var _flow_time := 0.0
 var _visual_paused := false
 var _water_materials: Array[ShaderMaterial] = []
 var _recall_navigation: Dictionary[int, AStar3D] = {}
+# Static visible scenery is separate from the terrain height field on flat maps.
+var flight_obstacle_top := 0.0
 const NATURE_MATERIALS: Array[ShaderMaterial] = [
 	preload("res://assets/models/block_war/nature/leaves.tres"),
 	preload("res://assets/models/block_war/nature/grass.tres"),
@@ -42,6 +44,13 @@ func _ready() -> void:
 	for decoration: Node3D in $Nature.get_children():
 		if decoration.has_meta("route_radius"):
 			_register_tree_obstacle(Vector3(decoration.position.x, decoration.position.z, float(decoration.get_meta("route_radius")) * decoration.scale.x))
+	# Compute once, including nested trunks, canopies and batched meadow meshes.
+	# Native transformed bounds account for their authored rotation and scale;
+	# hidden scenery and Buildings do not inflate this static flight clearance.
+	for geometry: GeometryInstance3D in $Nature.find_children("*", "GeometryInstance3D", true, false):
+		if geometry.is_visible_in_tree():
+			var bounds: AABB = geometry.global_transform * geometry.get_aabb()
+			flight_obstacle_top = maxf(flight_obstacle_top, bounds.end.y)
 	if bake_routes:
 		_build_navigation()
 	else:

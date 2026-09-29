@@ -15,6 +15,7 @@ static func transfer(game: Node3D, faction: int, recipients: Array[int]) -> Dict
 		cancelled += old_queue - building.queued_population
 		game.bear.clear_building(game, building.building_id)
 		game._clear_building_burrow(building)
+		game.pig.clear_building(game, building.building_id)
 		building.faction = owners[building.building_id]
 		building.refresh_visual()
 	# Caster-bound fields expire without replacing a receiver's skill account.
@@ -44,6 +45,8 @@ static func transfer(game: Node3D, faction: int, recipients: Array[int]) -> Dict
 		transferred += 1
 	for fire: RefCounted in game.fire_states:
 		if fire.faction == faction: fire.faction = recipients.pick_random()
+	for drop: Dictionary in game.pig.drops:
+		if drop.faction == faction: drop.faction = recipients.pick_random()
 	game.marches._render()
 	game.world_effects.update_skills(0.0, game.faction_skills, game.shields, game.by_id, game.marches)
 	game.world_effects.get_node("Bear").sync(game.bear, game.marches, game.by_id, 0.0)

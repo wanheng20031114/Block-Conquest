@@ -77,7 +77,12 @@ Invoke-OwnedGodot @('--headless', '--path', ('"' + $smokeRoot + '"'), '--main-pa
 if (Select-String -LiteralPath $smokeLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Packaged startup failed.' }
 Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/windows-readme.txt') -Destination (Join-Path $buildRoot 'START_HERE.txt') -Force
 Copy-Item -LiteralPath (Join-Path $projectRoot 'assets/ui/medieval/fonts/OFL.txt') -Destination (Join-Path $buildRoot 'FONT_LICENSE.txt') -Force
+$licenseRoot = Join-Path $buildRoot 'licenses'
+New-Item -ItemType Directory -Path $licenseRoot -Force | Out-Null
+Get-ChildItem -LiteralPath (Join-Path $projectRoot 'licenses') -Filter '*.txt' -File | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $licenseRoot -Force
+}
 $archive = Join-Path $projectRoot ('builds/积木战争-' + $(if ($VersionedOutput) { $VersionedOutput + '-' } else { '' }) + 'Windows-x64.zip')
-$deliverables = @('积木战争.exe', '积木战争.pck', 'START_HERE.txt', 'FONT_LICENSE.txt') | ForEach-Object { Join-Path $buildRoot $_ }
+$deliverables = @('积木战争.exe', '积木战争.pck', 'START_HERE.txt', 'FONT_LICENSE.txt', 'licenses') | ForEach-Object { Join-Path $buildRoot $_ }
 Compress-Archive -LiteralPath $deliverables -DestinationPath $archive -Force
 Get-Item -LiteralPath $executable, $archive | Select-Object FullName, Length

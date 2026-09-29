@@ -43,6 +43,8 @@ func _draw() -> void:
 					color = Color(0.9, 0.35, 0.27, 0.65)
 			elif game.faction_skills[game.local_faction].commander == game.SKILL_RULES.FOX:
 				color = Color("edb879") if not game.fox_preview.is_empty() else Color(0.9, 0.35, 0.27, 0.65)
+			elif game.faction_skills[game.local_faction].commander == game.SKILL_RULES.PIG:
+				color = Color("e4a39b")
 			if not game.can_cast_skill(game.armed_skill):
 				color = Color(0.9, 0.35, 0.27, 0.65)
 			_ring(center, game.skill_radius(game.armed_skill), color, 2.5)
@@ -193,7 +195,8 @@ func dispatch_advantage() -> int:
 	if game.drag_source == null or game.hovered == null or game.FACTIONS.allied(game.drag_source.faction, game.hovered.faction):
 		return 0
 	# Integer percentage points avoid floating-point noise at 100/120/140%.
-	var difference := roundi((game.combat_multiplier(game.drag_source.faction, game.hovered) - 1.0) * 100.0)
+	var pig_attack: float = game.SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if game.pig.flags_for(game.drag_source.building_id).x > 0.0 else 0.0
+	var difference := roundi((game.combat_multiplier(game.drag_source.faction, game.hovered, pig_attack) - 1.0) * 100.0)
 	return signi(difference) * ceili(absi(difference) / 20.0)
 
 func _cloud_outline(rect: Rect2) -> PackedVector2Array:

@@ -14,7 +14,7 @@
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/bear.png" id="bear"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/beaver.png" id="beaver"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/pig.svg" id="pig"]
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/fox.png" id="fox"]
 
@@ -660,8 +660,6 @@ metadata/ui_motion_hover_scale = 1.01
 custom_minimum_size = Vector2(150,152)
 size_flags_horizontal = 3
 toggle_mode = true
-disabled = true
-focus_mode = 0
 
 [node name="Content" type="VBoxContainer" parent="Margin/Column/Roster/Animal3"]
 layout_mode = 1
@@ -680,18 +678,17 @@ theme_override_constants/separation = 0
 [node name="Portrait" type="TextureRect" parent="Margin/Column/Roster/Animal3/Content"]
 layout_mode = 2
 mouse_filter = 2
-texture = ExtResource("beaver")
+texture = ExtResource("pig")
 expand_mode = 1
 stretch_mode = 5
 custom_minimum_size = Vector2(0,94)
 size_flags_vertical = 3
 texture_filter = 1
-self_modulate = Color(1, 1, 1, 0.48)
 
 [node name="Name" type="Label" parent="Margin/Column/Roster/Animal3/Content"]
 layout_mode = 2
 mouse_filter = 2
-text = "海狸"
+text = "猪猪"
 theme_type_variation = &"MenuHeading"
 theme_override_font_sizes/font_size = 22
 horizontal_alignment = 1
@@ -703,6 +700,7 @@ mouse_filter = 2
 theme_override_constants/separation = 4
 
 [node name="Lock" type="TextureRect" parent="Margin/Column/Roster/Animal3/Content/Status"]
+visible = false
 layout_mode = 2
 mouse_filter = 2
 texture = ExtResource("lock")
@@ -714,7 +712,7 @@ size_flags_vertical = 4
 [node name="Availability" type="Label" parent="Margin/Column/Roster/Animal3/Content/Status"]
 layout_mode = 2
 mouse_filter = 2
-text = "尚未开放"
+text = "可以出战"
 theme_type_variation = &"MenuMuted"
 theme_override_font_sizes/font_size = 13
 

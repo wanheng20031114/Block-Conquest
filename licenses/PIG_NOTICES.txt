@@ -1,0 +1,39 @@
+Block Conquest / 积木战争 — 猪猪素材与第三方声明
+
+Google Noto Emoji — pig (U+1F416)
+Copyright 2013 Google, Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0.
+The full license accompanies this file as Apache-2.0.txt.
+The original SVG-directory copyright notice accompanies this file as
+Noto-Emoji-LICENSE.txt.
+
+Upstream project: https://github.com/googlefonts/noto-emoji
+Source revision: 8998f5dd683424a73e2314a8c1f1e359c19e8742
+Source asset: svg/emoji_u1f416.svg
+Source license: svg/LICENSE
+Original SHA-256:
+0d2654ec47e6d05d03ccaf7ba7d4d2a38435fba5b0ade123045c4ea8e2b74cf3
+
+Runtime asset: assets/ui/block_war/commanders/pig.svg
+Source record: assets/source/block_war/pig/provenance.json
+
+The original SVG is used unchanged. Godot rasterizes it at import time
+with its original transparency; display scaling and game animation do
+not change the source artwork. In-game effects, skill rules and character
+presentation are additions by Block Conquest, not part of Google's artwork.
+
+本项目直接复用 Google 官方 Noto Emoji 的粉色猪原始 SVG，保留原色、
+造型和原生透明背景。来源与授权流程参考 Bot Jump 工程，但未使用
+Bot Jump 中灰白飞行猪、翅膀或炸弹的改编图。原始文件未经重绘、抠图
+或重新着色。Godot 在导入时按 4.5 倍栅格化为 576 × 576 纹理。
+猪猪头像与“特大猪”效果可复用同一份经授权的原始图像。
+
+Redistributions containing this artwork must retain its copyright notice
+and the Apache License 2.0. Modified versions must identify their changes.
+This notice applies to the identified artwork, not unrelated game code
+or assets. It does not grant trademark rights. Google does not sponsor
+or endorse Block Conquest.
+
+分发包含此猪图的游戏时，请随附本声明、完整 Apache 2.0 许可证及
+原始版权声明。上述授权不会将无关代码、音频或其他素材改为 Apache
+2.0 许可，也不表示 Google 为本游戏提供背书。

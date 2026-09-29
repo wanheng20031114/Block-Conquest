@@ -1,0 +1,137 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_pig_effects.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/pig_ready.tscn" id="ready"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/pig_drop.tscn" id="drop"]
+
+[sub_resource type="Gradient" id="DustFade"]
+offsets = PackedFloat32Array(0, 0.2, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.40, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="DustRamp"]
+gradient = SubResource("DustFade")
+
+[sub_resource type="ParticleProcessMaterial" id="DustProcess"]
+gravity = Vector3(0, 0.8, 0)
+color = Color(0.79, 0.68, 0.54, 1)
+color_ramp = SubResource("DustRamp")
+scale_min = 0.65
+scale_max = 1.35
+damping_min = 0.8
+damping_max = 1.2
+
+[sub_resource type="StandardMaterial3D" id="DustMaterial"]
+transparency = 1
+vertex_color_use_as_albedo = true
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="DustMesh"]
+material = SubResource("DustMaterial")
+radius = 0.40
+height = 0.58
+radial_segments = 8
+rings = 4
+
+[sub_resource type="Gradient" id="TrailFade"]
+offsets = PackedFloat32Array(0, 0.25, 1)
+colors = PackedColorArray(1, 1, 1, 0.15, 1, 1, 1, 0.62, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="TrailRamp"]
+gradient = SubResource("TrailFade")
+
+[sub_resource type="ParticleProcessMaterial" id="ChargeProcess"]
+gravity = Vector3(0, 0.2, 0)
+color = Color(0.97, 0.57, 0.49, 1)
+color_ramp = SubResource("TrailRamp")
+scale_min = 0.65
+scale_max = 1.0
+
+[sub_resource type="ParticleProcessMaterial" id="FlightProcess"]
+gravity = Vector3(0, -0.1, 0)
+color = Color(0.97, 0.91, 0.80, 1)
+color_ramp = SubResource("TrailRamp")
+scale_min = 0.6
+scale_max = 1.0
+
+[sub_resource type="StandardMaterial3D" id="TrailMaterial"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="BoxMesh" id="ChargeMesh"]
+material = SubResource("TrailMaterial")
+size = Vector3(0.075, 0.075, 0.42)
+
+[sub_resource type="PrismMesh" id="FlightMesh"]
+material = SubResource("TrailMaterial")
+size = Vector3(0.11, 0.045, 0.36)
+
+[node name="PigEffects" type="Node3D"]
+script = ExtResource("script")
+
+[node name="Preparations" type="Node3D" parent="."]
+[node name="Ready0" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready1" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready2" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready3" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready4" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready5" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready6" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready7" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready8" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready9" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready10" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready11" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready12" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready13" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready14" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready15" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready16" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready17" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready18" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready19" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready20" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready21" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready22" parent="Preparations" instance=ExtResource("ready")]
+[node name="Ready23" parent="Preparations" instance=ExtResource("ready")]
+
+[node name="Drops" type="Node3D" parent="."]
+[node name="Drop0" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop1" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop2" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop3" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop4" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop5" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop6" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop7" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop8" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop9" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop10" parent="Drops" instance=ExtResource("drop")]
+[node name="Drop11" parent="Drops" instance=ExtResource("drop")]
+
+[node name="Dust" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 256
+lifetime = 0.68
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
+process_material = SubResource("DustProcess")
+draw_pass_1 = SubResource("DustMesh")
+cast_shadow = 0
+
+[node name="ChargeTrails" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 512
+lifetime = 0.36
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
+process_material = SubResource("ChargeProcess")
+draw_pass_1 = SubResource("ChargeMesh")
+cast_shadow = 0
+
+[node name="FlightTrails" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 768
+lifetime = 0.46
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
+process_material = SubResource("FlightProcess")
+draw_pass_1 = SubResource("FlightMesh")
+cast_shadow = 0

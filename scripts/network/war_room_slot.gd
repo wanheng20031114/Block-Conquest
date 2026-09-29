@@ -7,7 +7,7 @@ signal commander_requested(slot_id: int, commander: String)
 
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
-const COMMANDERS: Array[String] = ["squirrel", "rabbit", "bear", "frog", "fox"]
+const COMMANDERS: Array[String] = ["squirrel", "rabbit", "bear", "frog", "fox", "pig"]
 var slot_id := 0
 var _slot: Dictionary = {}
 

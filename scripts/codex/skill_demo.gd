@@ -49,7 +49,7 @@ func _ready() -> void:
 
 
 func configure(next_commander: StringName, next_skill_index: int) -> void:
-	assert(next_commander in [&"squirrel", &"rabbit", &"bear", &"frog", &"fox"])
+	assert(next_commander in [&"squirrel", &"rabbit", &"bear", &"frog", &"fox", &"pig"])
 	assert(next_skill_index >= 0 and next_skill_index < 4)
 	commander = next_commander
 	skill_index = next_skill_index
@@ -139,6 +139,62 @@ func _render_demo() -> void:
 		&"bear": _bear()
 		&"frog": _frog()
 		&"fox": _fox()
+		&"pig": _pig()
+
+func _pig() -> void:
+	var departure := _phase(0.26, 0.86)
+	if skill_index < 3:
+		_place(skill_icon, _left - Vector2(0, 55), Vector2(38, 38))
+		skill_icon.visible = progress < 0.28
+		shield.visible = progress > 0.08 and progress < 0.28
+		shield.modulate = Color("f7b8ae")
+	match skill_index:
+		0:
+			_march(allies, departure)
+			for ally: TextureRect in allies:
+				ally.visible = progress > 0.26
+				ally.modulate = FRIEND.lerp(Color("f08c78"), 0.4)
+			_label("移速 +20% · 攻击 +10%" if progress > 0.26 else "建筑待命 · 15 秒")
+			caption.text = "下次出兵获得冲锋，入城前持续生效"
+		1:
+			route.points = PackedVector2Array([_left + Vector2(0, 16), _middle + Vector2(0, 35), _right + Vector2(0, 16)])
+			_march(allies, departure, false, 32.0 * sin(departure * PI))
+			for ally: TextureRect in allies:
+				ally.visible = progress > 0.26
+			home_count.text = "己方 · %d" % (40 - int(minf(1.0, departure * 3.0) * 30.0))
+			tunnel.visible = progress > 0.26
+			tunnel.points = PackedVector2Array([_left + Vector2(26, -10), _right + Vector2(-26, -10)])
+			tunnel.modulate = Color("e0b4c6")
+			_label("直线飞行 · 最多 30 人" if progress > 0.26 else "建筑待命 · 15 秒")
+			caption.text = "飞越地形障碍，达到 30 人后停止出兵"
+		2:
+			for index: int in 3:
+				allies[index].visible = progress > 0.26
+				_place(allies[index], Vector2(lerpf(_travel_left, _travel_right, departure) - index * 12.0, _middle.y - float(index % 2) * 4.0), Vector2(18, 24))
+			home_count.text = "己方 · %d" % (80 - int(minf(1.0, departure * 3.0) * 60.0))
+			_label("密集出发 · 最多 60 人" if progress > 0.26 else "建筑待命 · 15 秒")
+			caption.text = "缩短出兵间隔，剩余驻军留在建筑"
+		3:
+			var landing := _phase(0.20, 0.43)
+			var impact := _phase(0.43, 0.56)
+			var struck := progress >= 0.43
+			var target := _right - Vector2(22, 0)
+			range_ring.visible = progress > 0.08 and progress < 0.68
+			_place(range_ring, target + Vector2(0, 8), Vector2(95, 42))
+			range_ring.modulate = Color("e9aba1")
+			skill_icon.texture = RULES.PORTRAITS[&"pig"]
+			var extent := Vector2(62, 62) * Vector2(1.0 + sin(impact * PI) * 0.2, 1.0 - sin(impact * PI) * 0.3)
+			_place(skill_icon, target - Vector2(0, 88.0 - landing * landing * 68.0), extent)
+			skill_icon.modulate.a = 1.0 - _phase(0.60, 0.75)
+			for index: int in 3:
+				allies[index].visible = not struck
+				enemies[index].visible = not struck
+				_place(allies[index], target + Vector2(-19 + index * 11, 0), Vector2(12, 16))
+				_place(enemies[index], target + Vector2(-11 + index * 11, 13), Vector2(12, 16))
+			away_count.show()
+			away_count.text = "敌方 · %d" % (25 if struck else 50)
+			_label("范围行军全灭 · 驻军减半" if struck else "小范围落点 · 注意友军")
+			caption.text = "任意位置召唤，落地时同时伤及敌我"
 
 func _fox() -> void:
 	var released := progress >= 0.38

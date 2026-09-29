@@ -24,6 +24,9 @@ func take_turn(game: Node3D) -> void:
 	# Short marches can finish between six-second decisions. Rabbit's instant
 	# squad selection needs a chance to act after the preceding turn's dispatch.
 	next_decision = game.elapsed + (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP)
+	if game.faction_skills[faction].commander == SKILL_RULES.PIG:
+		_pig_turn(game)
+		return
 	if game.faction_skills[faction].commander == SKILL_RULES.FOX:
 		_fox_turn(game)
 		return
@@ -85,6 +88,185 @@ func take_turn(game: Node3D) -> void:
 		game.cast_ground_skill(best.index, best.at, faction)
 	elif best.index >= 0:
 		game.cast_skill(best.index, best.target, faction)
+
+func _pig_turn(game: Node3D) -> void:
+	var incoming: Dictionary[Vector2i, int] = INFORMATION.snapshot_incoming(game, faction)
+	var threats: Dictionary[int, float] = {}
+	var reinforcements: Dictionary[int, int] = {}
+	for building: WarBuilding in game.buildings:
+		if game.FACTIONS.allied(building.faction, faction):
+			threats[building.building_id] = INFORMATION.incoming_damage(game, building, incoming, faction)
+	for key: Vector2i in incoming:
+		if game.FACTIONS.allied(key.y, faction):
+			reinforcements[key.x] = reinforcements.get(key.x, 0) + incoming[key]
+	var best := {"index": -1, "score": 12.0}
+	if game.can_cast_skill(3, faction):
+		var drop := _pig_drop_target(game)
+		if not drop.is_empty():
+			best = {"index": 3, "score": drop.score, "at": drop.at}
+	for source: WarBuilding in game.buildings:
+		if source.faction != faction:
+			continue
+		var reserve: float = 8.0 + (source.level - 1) * 2.0 + threats.get(source.building_id, 0.0)
+		for index: int in 3:
+			if not game.can_cast_skill(index, faction) or not game.pig.valid_target(index, source, faction):
+				continue
+			for target: WarBuilding in game.buildings:
+				if target == source:
+					continue
+				var plan := _pig_dispatch_plan(game, source, target, index, reserve, threats, reinforcements, incoming)
+				if not plan.is_empty() and plan.score > best.score:
+					best = plan
+	if best.index == 3:
+		game.cast_ground_skill(3, best.at, faction)
+	elif best.index >= 0:
+		# The destination, real capped count and route are chosen before payment.
+		# Consume the next-order enchantment immediately, within the same decision.
+		if game.cast_skill(best.index, best.source, faction):
+			game.issue_order(best.source, best.target, best.percent, faction)
+
+func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, index: int, reserve: float, threats: Dictionary[int, float], reinforcements: Dictionary[int, int], incoming: Dictionary[Vector2i, int]) -> Dictionary:
+	var allied: bool = game.FACTIONS.allied(target.faction, faction)
+	var missing: float = threats.get(target.building_id, 0.0) - target.available_population - reinforcements.get(target.building_id, 0) + 6.0 if allied else 0.0
+	if allied and (missing <= 0.0 or threats.get(target.building_id, 0.0) < 8.0):
+		return {}
+	if not allied and (reinforcements.get(target.building_id, 0) > 0 or game.bear.is_invulnerable(target.building_id)):
+		return {}
+	if target.faction < 0:
+		for attacker: int in game.faction_count:
+			if game.FACTIONS.hostile(attacker, faction) and incoming.get(Vector2i(target.building_id, attacker), 0) > 0:
+				return {} # Do not race an observed enemy wave to neutral territory.
+	var flags: Vector3 = game.pig.ready.get(source.building_id, Vector3.ZERO)
+	var flying := index == 1 or flags.y > 0.0
+	var dense := index == 2 or flags.z > 0.0
+	var charge := index == 0 or flags.x > 0.0
+	var limit: int = game.pig.limit_for(source.building_id)
+	if index == 1:
+		limit = mini(limit, SKILL_RULES.PIG_FLIGHT_LIMIT)
+	elif index == 2:
+		limit = mini(limit, SKILL_RULES.PIG_FORMATION_LIMIT)
+	var ground_length: float = game.map.get_building_distance(source, target)
+	var route: PackedVector3Array = game.flight_route(source, target) if flying else game.map.get_building_route(source, target)
+	if route.size() < 2:
+		return {}
+	var length := 0.0
+	for point: int in range(1, route.size()):
+		length += route[point - 1].distance_to(route[point])
+	# Flight is precious: choose a useful shortcut instead of a slower hop
+	# between neighboring houses. An otherwise disconnected target is valid.
+	if index == 1 and is_finite(ground_length) and ground_length - length < (2.0 if allied else 4.0):
+		return {}
+	var speed: float = game.marches.base_speed(faction)
+	var attack_bonus := SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if charge else 0.0
+	for percent: int in [25, 50, 75, 100]:
+		var count := mini(limit, floori(source.available_population * percent / 100.0))
+		if count < (18 if index == 2 else 8) or source.available_population - count < reserve:
+			continue
+		var queue_time: float = game.marches.estimate_arrival_time(source.building_id, 0.0, count, faction)
+		if dense:
+			queue_time -= floorf(float(count - 1) / WarMarches.COLUMNS) * (WarMarches.ROW_SPACING - WarMarches.DENSE_ROW_SPACING) / speed
+		var arrival := maxf(0.0, queue_time) + length / (speed * (1.0 + (SKILL_RULES.PIG_CHARGE_SPEED_BONUS if charge else 0.0)))
+		var score := 0.0
+		if allied:
+			if count < minf(missing, 12.0):
+				continue
+			score = 28.0 + minf(missing, count) * 1.1 - arrival * 0.5
+		else:
+			var defenders := INFORMATION.garrison_estimate(game, target, faction)
+			if target.faction >= 0:
+				defenders += minf(maxf(0.0, target.capacity - defenders), target.production_rate * maxf(0.0, arrival - target.disruption_remaining))
+				for defender: int in game.faction_count:
+					if game.FACTIONS.allied(defender, target.faction):
+						defenders += incoming.get(Vector2i(target.building_id, defender), 0)
+			var damage: float = count * game.combat_multiplier(faction, target, attack_bonus)
+			if damage < defenders * (1.0 if target.faction < 0 else 1.2) + 5.0:
+				continue
+			score = 22.0 + (8.0 if target.kind == 0 else 0.0) + minf(12.0, damage - defenders) * 0.5 - arrival * 0.45
+		if index == 1:
+			score += minf(18.0, maxf(0.0, ground_length - length)) if is_finite(ground_length) else 18.0
+		elif index == 2:
+			score += count * 0.12
+		else:
+			score += count * SKILL_RULES.PIG_CHARGE_ATTACK_BONUS
+		return {"index": index, "source": source, "target": target, "percent": percent, "score": score}
+	return {}
+
+func _pig_drop_target(game: Node3D) -> Dictionary:
+	var radius := SKILL_RULES.PIG_DROP_RADIUS
+	var projected: Array[Dictionary] = []
+	var departures: Dictionary[int, int] = {}
+	var cells: Dictionary[Vector2i, Dictionary] = {}
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if not INFORMATION.is_unit_known(game, unit, faction) or unit.spawn_delay > SKILL_RULES.PIG_DROP_FALL_TIME:
+			continue
+		var distance: float = unit.distance + game.marches.movement_distance(unit, SKILL_RULES.PIG_DROP_FALL_TIME)
+		if distance < 0.0:
+			continue # Still inside: included once in its building's population.
+		if unit.pending_departure:
+			departures[unit.order.source_id] = departures.get(unit.order.source_id, 0) + 1
+		var friendly: bool = game.FACTIONS.allied(unit.order.faction, faction)
+		var at := unit.order.sample(minf(distance, unit.order.length))
+		if not unit.pending_departure:
+			at += unit.position - unit.order.sample(unit.distance)
+		var value := unit.order.strength
+		if distance >= unit.order.length:
+			var destination: WarBuilding = game.by_id[unit.order.target_id]
+			# A known reinforcement is inside at impact, so only half is lost.
+			# An enemy attack already reaching our gate is not a future free kill.
+			if game.FACTIONS.allied(destination.faction, unit.order.faction):
+				value *= 0.5
+			elif not friendly:
+				continue
+		projected.append({"at": at, "value": value, "friendly": friendly})
+		if not friendly:
+			var cell := Vector2i(floori(at.x / radius), floori(at.z / radius))
+			if not cells.has(cell):
+				cells[cell] = {"sum": Vector3.ZERO, "count": 0}
+			cells[cell].sum += at
+			cells[cell].count += 1
+	var candidates: Array[Vector3] = []
+	var keys := cells.keys()
+	keys.sort_custom(func(a: Vector2i, b: Vector2i): return cells[a].count > cells[b].count)
+	for key: Vector2i in keys.slice(0, 24):
+		candidates.append(game.map.definition.surface_point(cells[key].sum / float(cells[key].count)))
+	for building: WarBuilding in game.buildings:
+		if game.FACTIONS.hostile(building.faction, faction):
+			candidates.append(game.map.definition.surface_point(building.global_position))
+	var best := {}
+	for at: Vector3 in candidates:
+		if not game._valid_ground_skill_target(at):
+			continue
+		var already_falling := false
+		for drop: Dictionary in game.pig.drops:
+			if not drop.impacted and _xz(drop.at).distance_to(_xz(at)) <= radius:
+				already_falling = true
+		if already_falling:
+			continue
+		var enemy_loss := 0.0
+		var friendly_loss := 0.0
+		for entry: Dictionary in projected:
+			# Slight extra margin for allies avoids deliberately clipping a file
+			# whose lane turns during the short visible falling animation.
+			if _xz(entry.at).distance_to(_xz(at)) > radius + (0.5 if entry.friendly else 0.0):
+				continue
+			if entry.friendly:
+				friendly_loss += entry.value
+			else:
+				enemy_loss += entry.value
+		for building: WarBuilding in game.buildings:
+			if _xz(building.global_position).distance_squared_to(_xz(at)) > radius * radius:
+				continue
+			var loss := maxf(0.0, INFORMATION.garrison_estimate(game, building, faction) - departures.get(building.building_id, 0)) * 0.5
+			if game.FACTIONS.allied(building.faction, faction):
+				friendly_loss += loss
+			elif game.FACTIONS.hostile(building.faction, faction):
+				enemy_loss += loss
+		# Unlike fire this also halves buildings, even wards; all allied seats
+		# are real collateral. Hidden enemy garrisons never enter this estimate.
+		var score := enemy_loss - friendly_loss * 2.0
+		if score >= 24.0 and (best.is_empty() or score > best.score):
+			best = {"at": at, "score": score}
+	return best
 
 func _fox_turn(game: Node3D) -> void:
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}

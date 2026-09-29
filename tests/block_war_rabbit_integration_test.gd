@@ -2,14 +2,14 @@ extends "res://tests/block_war_rabbit_test.gd"
 ## Native viewport input, timing boundaries and deliberate AI choices.
 
 const TACTICS := preload("res://scripts/block_war/war_ai_skills.gd")
+var _input_viewport: Viewport
 
 func motion(at: Vector2) -> void:
 	var event := InputEventMouseMotion.new()
 	event.window_id = root.get_window_id()
 	event.position = at
 	event.global_position = at
-	Input.parse_input_event(event)
-	Input.flush_buffered_events()
+	(_input_viewport if _input_viewport != null else root).push_input(event, true)
 
 func mouse(at: Vector2, down: bool, button: int = MOUSE_BUTTON_LEFT) -> void:
 	motion(at)
@@ -20,8 +20,7 @@ func mouse(at: Vector2, down: bool, button: int = MOUSE_BUTTON_LEFT) -> void:
 	event.button_index = button
 	event.pressed = down
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if down and button == MOUSE_BUTTON_LEFT else 0
-	Input.parse_input_event(event)
-	Input.flush_buffered_events()
+	(_input_viewport if _input_viewport != null else root).push_input(event, true)
 
 func key(code: int, down: bool) -> void:
 	var event := InputEventKey.new()
@@ -29,8 +28,7 @@ func key(code: int, down: bool) -> void:
 	event.keycode = code
 	event.physical_keycode = code
 	event.pressed = down
-	Input.parse_input_event(event)
-	Input.flush_buffered_events()
+	(_input_viewport if _input_viewport != null else root).push_input(event, true)
 
 func icon(index: int) -> Vector2:
 	return game.hud.get_node("UI/Skills/Row/Skill%d" % index).get_global_rect().get_center()
@@ -71,6 +69,18 @@ func _run() -> void:
 
 func _native_input() -> void:
 	await reset()
+	# Native Windows roots query the physical OS cursor even after push_input.
+	# A SubViewport keeps the injected pointer position, so the real keyboard
+	# release path can run on an inactive private desktop without OS input.
+	var input_view := SubViewport.new()
+	input_view.size = root.size
+	input_view.own_world_3d = true
+	input_view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(input_view)
+	game.reparent(input_view)
+	_input_viewport = input_view
+	await physics_frame
+	await process_frame
 	game.select_building(null)
 	var center := Vector3(-22, 0, 10)
 	expose(0, 6, center, center + Vector3(30, 0, 0), enemy().building_id)
@@ -87,6 +97,7 @@ func _native_input() -> void:
 	key(KEY_W, true)
 	check(game.armed_skill == 1, "held W arms hostile building targeting")
 	motion(screen(enemy()))
+	check(game.get_viewport().get_mouse_position().is_equal_approx(screen(enemy())), "native viewport tracks the injected target for keyboard release")
 	near(enemy().disruption_remaining, 0.0, "held key and motion cannot cast early")
 	key(KEY_W, false)
 	near(enemy().disruption_remaining, 6.0, "releasing W disables the hovered building")
@@ -107,6 +118,11 @@ func _native_input() -> void:
 	check(recall_count > 0 and game.skill_is_ground(2), "native E ground drag shows real returners")
 	mouse(recall_at, false)
 	check(game.marches.incoming_for(home().building_id, 0) == recall_count, "native E release redirects previewed soldiers")
+	game.reparent(root)
+	current_scene = game
+	_input_viewport = null
+	input_view.queue_free()
+	await physics_frame
 	await reset()
 	var plan := tunnel_plan()
 	check(not plan.is_empty(), "R native drag setup has a source and destination")
@@ -172,14 +188,14 @@ func _boundaries() -> void:
 	await reset()
 	var plan := tunnel_plan()
 	check(game.cast_skill(3, plan.source), "source capture while awaiting an order setup")
-	game._on_unit_arrived(plan.source.building_id, 1, plan.source.population + 1.0)
+	game._on_unit_arrived(plan.source.building_id, 1, (plan.source.population + 1.0) / game.combat_multiplier(1, plan.source))
 	check(plan.source.faction == 1 and plan.source.burrow_remaining == 0.0 and game.marches.total_for(0) == 0, "capture clears the unused source enchantment and its remaining duration")
 	check(game.issue_order(plan.source, plan.target, 100) == 0, "the former owner cannot consume a captured source's enchantment")
 	await reset()
 	plan = tunnel_plan()
 	check(game.cast_skill(3, plan.source) and game.issue_order(plan.source, plan.target, 100) == 50, "capture during digging setup")
 	game.simulate(plan.dig_duration * 0.5)
-	game._on_unit_arrived(plan.source.building_id, 1, plan.source.population + 1.0)
+	game._on_unit_arrived(plan.source.building_id, 1, (plan.source.population + 1.0) / game.combat_multiplier(1, plan.source))
 	check(plan.source.faction == 1 and plan.source.burrow_remaining == 0.0 and plan.source.queued_population == 0 and game.marches.total_for(0) == 0, "capture during digging cancels every passenger before anyone leaves")
 	game.simulate(2.0)
 	check(game.marches.total_for(0) == 0, "a canceled digging operation cannot later spawn an army")
@@ -188,7 +204,7 @@ func _boundaries() -> void:
 	check(game.cast_skill(3, plan.source) and game.issue_order(plan.source, plan.target, 100) == 50, "source capture during staged departure setup")
 	game.simulate(plan.dig_duration + 0.01)
 	check(plan.source.queued_population == 44, "only the first six have left before source capture")
-	game._on_unit_arrived(plan.source.building_id, 1, plan.source.population + 1.0)
+	game._on_unit_arrived(plan.source.building_id, 1, (plan.source.population + 1.0) / game.combat_multiplier(1, plan.source))
 	check(game.marches.total_for(0) == 6 and plan.source.queued_population == 0, "capturing source cancels waiting passengers and preserves the six departed")
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		check(unit.order.faction == 0, "departed passenger retains original faction")

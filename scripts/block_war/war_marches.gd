@@ -12,6 +12,10 @@ signal unit_departed(source_id: int, faction: int)
 const COLUMNS := 6
 const COLUMN_SPACING := 0.56
 const ROW_SPACING := 0.90
+const DENSE_COLUMN_SPACING := 0.44
+const DENSE_ROW_SPACING := 0.50
+const FLIGHT_CLEARANCE := 2.5
+const GROUND_FIRE_HEIGHT := 0.40
 const SPEED := 3.1
 const MODEL_SCALE := 0.62
 const GATE_LENGTH := 2.4
@@ -27,6 +31,9 @@ class MarchOrder extends RefCounted:
 	var strength: float
 	# Issued-order provenance survives conversion, capture, tunnels and recall.
 	var energy_origin := false
+	var pig_charge := false
+	var airborne := false
+	var dense := false
 	var curve: Curve3D
 	var length: float
 	var returning := false
@@ -34,6 +41,7 @@ class MarchOrder extends RefCounted:
 	var haste_intervals: Dictionary[float, PackedVector2Array] = {}
 	var slow_intervals: Dictionary[Vector2, PackedVector2Array] = {}
 	var mist_intervals: Dictionary[Vector2, PackedVector2Array] = {}
+	var ground_fire_intervals: Dictionary[float, PackedVector2Array] = {}
 
 	func sample(distance: float) -> Vector3:
 		return curve.sample_baked(length - distance if returning else distance)
@@ -118,23 +126,30 @@ func send(source_id: int, target_id: int, faction: int, count: int, route: Packe
 	# Transport soldiers whose source has already paid for them (including fixtures).
 	_send(source_id, target_id, faction, count, route, strength, false, energy_origin)
 
-func queue_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, energy_origin: bool = false) -> void:
+func queue_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, energy_origin: bool = false, charge: bool = false, airborne: bool = false, dense: bool = false) -> void:
 	# Normal building orders reserve a garrison, then pay one soldier per departure.
-	_send(source_id, target_id, faction, count, route, 1.0, true, energy_origin)
+	_send(source_id, target_id, faction, count, route, 1.0, true, energy_origin, charge, airborne, dense)
 
-func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool, energy_origin: bool) -> void:
+func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool, energy_origin: bool, charge: bool = false, airborne: bool = false, dense: bool = false) -> void:
 	if count <= 0:
 		return
 	var order := _make_order(source_id, target_id, faction, route, strength, energy_origin)
+	order.pig_charge = charge
+	order.airborne = airborne
+	order.dense = dense
+	var column_spacing := DENSE_COLUMN_SPACING if dense else COLUMN_SPACING
+	var row_spacing := DENSE_ROW_SPACING if dense else ROW_SPACING
 	if from_garrison:
 		departure_queue_changed.emit(source_id, faction, count)
 	# All exits of a building share one queue, including orders heading to different sides.
 	var first_distance := 0.0
+	var preceding_spacing := row_spacing
 	for existing: MarchUnit in _units:
 		if existing.order.source_id == source_id and existing.distance < first_distance:
 			first_distance = existing.distance
+			preceding_spacing = DENSE_ROW_SPACING if existing.order.dense else ROW_SPACING
 	if first_distance < 0.0:
-		first_distance -= ROW_SPACING
+		first_distance -= maxf(row_spacing, preceding_spacing)
 	var columns := mini(COLUMNS, count)
 	for index: int in count:
 		var unit := MarchUnit.new()
@@ -146,8 +161,8 @@ func _send(source_id: int, target_id: int, faction: int, count: int, route: Pack
 		_departure_sequence += 1
 		var row: int = index / columns
 		var row_count := mini(columns, count - row * columns)
-		unit.lane = (float(index % columns) - float(row_count - 1) * 0.5) * COLUMN_SPACING
-		unit.distance = first_distance - float(row) * ROW_SPACING - absf(unit.lane) * 0.11
+		unit.lane = (float(index % columns) - float(row_count - 1) * 0.5) * column_spacing
+		unit.distance = first_distance - float(row) * row_spacing - absf(unit.lane) * 0.11
 		unit.position = route[0]
 		# Adjacent ranks share a cadence, with a restrained phase offset per file.
 		unit.gait = float(row % 2) * 0.35 + float(index % columns) * 0.08
@@ -157,6 +172,33 @@ func _send(source_id: int, target_id: int, faction: int, count: int, route: Pack
 		_units.append(unit)
 	_ensure_capacity(_units.size())
 	_render()
+
+func make_flight_route(from: Vector3, to: Vector3, obstacle_top: float = 0.0) -> PackedVector3Array:
+	# Lift above the entire terrain before crossing it. Compact rounded corners
+	# keep takeoff/landing smooth even for neighboring buildings or cliff edges.
+	# Every horizontal point stays on the direct source-to-target line.
+	var horizontal := Vector3(to.x - from.x, 0.0, to.z - from.z)
+	assert(horizontal.length_squared() > 0.0001, "Flight needs distinct building exits.")
+	var direction := horizontal.normalized()
+	var terrain_top := map_definition.terrain.max_height if map_definition.has_elevation() else 0.0
+	var cruise := maxf(maxf(terrain_top, obstacle_top), maxf(from.y, to.y)) + FLIGHT_CLEARANCE
+	var bend := minf(0.8, horizontal.length() * 0.25)
+	var route := PackedVector3Array([from, Vector3(from.x, cruise - bend, from.z)])
+	for index: int in range(1, 7):
+		var angle := float(index) / 6.0 * PI * 0.5
+		var point := from + direction * bend * (1.0 - cos(angle))
+		point.y = cruise - bend + sin(angle) * bend
+		route.append(point)
+	var descent := to - direction * bend
+	descent.y = cruise
+	route.append(descent)
+	for index: int in range(1, 7):
+		var angle := float(index) / 6.0 * PI * 0.5
+		var point := to - direction * bend * (1.0 - sin(angle))
+		point.y = cruise - bend + cos(angle) * bend
+		route.append(point)
+	route.append(to)
+	return route
 
 func _depart(unit: MarchUnit) -> void:
 	if not unit.pending_departure:
@@ -241,6 +283,9 @@ func return_order(outbound: MarchOrder) -> MarchOrder:
 	order.faction = outbound.faction
 	order.strength = outbound.strength
 	order.energy_origin = outbound.energy_origin
+	order.pig_charge = outbound.pig_charge
+	order.airborne = outbound.airborne
+	order.dense = outbound.dense
 	order.curve = outbound.curve
 	order.length = outbound.length
 	order.departure_distance = outbound.departure_distance
@@ -258,6 +303,9 @@ func transfer_order(original: MarchOrder, faction: int) -> MarchOrder:
 	order.faction = faction
 	order.strength = original.strength
 	order.energy_origin = original.energy_origin
+	order.pig_charge = original.pig_charge
+	order.airborne = original.airborne
+	order.dense = original.dense
 	order.curve = original.curve
 	order.length = original.length
 	order.returning = original.returning
@@ -332,10 +380,15 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 			var arrived := concealed_fraction + (1.0 - concealed_fraction) * clampf((unit.order.length - previous_distance) / maxf(step, 0.000001), 0.0, 1.0)
 			var burned := false
 			for fire: Dictionary in fire_segments:
-				var contact := fire_contact(before, unit.position, fire, emerged, arrived)
+				var contact := _march_fire_contact(unit, before, previous_distance, fire, emerged, arrived)
 				if contact >= 0.0:
-					unit.position = before.lerp(unit.position, inverse_lerp(emerged, arrived, contact))
-					if map_definition.has_elevation():
+					var progress := inverse_lerp(emerged, arrived, contact)
+					if unit.order.airborne:
+						var fire_distance := lerpf(maxf(0.0, previous_distance), minf(unit.order.length, unit.distance), progress)
+						unit.position = _formation_position(unit.order, fire_distance, unit.lane, _route_heading(unit.order, fire_distance))
+					else:
+						unit.position = before.lerp(unit.position, progress)
+					if map_definition.has_elevation() and not unit.order.airborne:
 						unit.position = map_definition.surface_point(unit.position)
 					_defeat(index, (unit.position - fire.center).normalized(), true, int(fire.get("faction", -1)))
 					burned = true
@@ -477,9 +530,60 @@ func ignite_at(center: Vector3, radius: float, faction: int = -1) -> void:
 	var core := {"center": center, "from_radius": radius, "to_radius": radius, "active_fraction": 1.0}
 	for index: int in range(_units.size() - 1, -1, -1):
 		var unit := _units[index]
-		if unit.is_exposed() and fire_contact(unit.position, unit.position, core) >= 0.0:
+		if unit.is_exposed() and (not unit.order.airborne or _near_ground(unit.position)) and fire_contact(unit.position, unit.position, core) >= 0.0:
 			_defeat(index, (unit.position - center).normalized(), true, faction)
 	_render()
+
+func _near_ground(at: Vector3) -> bool:
+	return at.y - map_definition.surface_height(Vector2(at.x, at.z)) <= GROUND_FIRE_HEIGHT
+
+func _march_fire_contact(unit: MarchUnit, before: Vector3, previous_distance: float, fire: Dictionary, emerged: float, arrived: float) -> float:
+	if not unit.order.airborne:
+		return fire_contact(before, unit.position, fire, emerged, arrived)
+	# Clip the moving fire test to the actual takeoff/landing segments touching
+	# the ground. A long tick can cross an entire flight without burning its cruise.
+	var start := maxf(0.0, previous_distance)
+	var end := minf(unit.order.length, unit.distance)
+	if end <= start:
+		return fire_contact(before, unit.position, fire, emerged, arrived) if _near_ground(unit.position) else -1.0
+	if not unit.order.ground_fire_intervals.has(unit.lane):
+		unit.order.ground_fire_intervals[unit.lane] = _ground_fire_spans(unit.order, unit.lane)
+	for span: Vector2 in unit.order.ground_fire_intervals[unit.lane]:
+		var low := maxf(start, span.x)
+		var high := minf(end, span.y)
+		if high <= low:
+			continue
+		var from := _formation_position(unit.order, low, unit.lane, _route_heading(unit.order, low))
+		var to := _formation_position(unit.order, high, unit.lane, _route_heading(unit.order, high))
+		var first := lerpf(emerged, arrived, inverse_lerp(start, end, low))
+		var last := lerpf(emerged, arrived, inverse_lerp(start, end, high))
+		var contact := fire_contact(from, to, fire, first, last)
+		if contact >= 0.0:
+			return contact
+	return -1.0
+
+func _ground_fire_spans(order: MarchOrder, lane: float) -> PackedVector2Array:
+	var spans := PackedVector2Array()
+	var count := maxi(1, ceili(order.length / 0.12))
+	var from := _formation_position(order, 0.0, lane, _route_heading(order, 0.0))
+	var previous_clearance := from.y - map_definition.surface_height(Vector2(from.x, from.z)) - GROUND_FIRE_HEIGHT
+	var opened := 0.0 if previous_clearance <= 0.0 else -1.0
+	for index: int in range(1, count + 1):
+		var low := order.length * float(index - 1) / count
+		var high := order.length * float(index) / count
+		var at := _formation_position(order, high, lane, _route_heading(order, high))
+		var clearance := at.y - map_definition.surface_height(Vector2(at.x, at.z)) - GROUND_FIRE_HEIGHT
+		if (clearance <= 0.0) != (previous_clearance <= 0.0):
+			var crossing := lerpf(low, high, previous_clearance / (previous_clearance - clearance))
+			if clearance <= 0.0:
+				opened = crossing
+			else:
+				spans.append(Vector2(opened, crossing))
+				opened = -1.0
+		previous_clearance = clearance
+	if opened >= 0.0:
+		spans.append(Vector2(opened, order.length))
+	return spans
 
 func _defeat(index: int, impulse: Vector3, burning: bool, killer_faction: int = -1) -> void:
 	var unit := _units[index]
@@ -547,9 +651,9 @@ func create_slow_zone(faction: int, at: Vector3, radius: float, duration: float)
 	_render()
 
 func projected_attack_bonus(unit: MarchUnit) -> float:
-	var bonus := 0.0
+	var bonus := RULES.PIG_CHARGE_ATTACK_BONUS if unit.order.pig_charge else 0.0
 	if unit.rush_remaining > 0.0 and unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001:
-		bonus = RULES.RABBIT_RUSH_ATTACK_BONUS
+		bonus += RULES.RABBIT_RUSH_ATTACK_BONUS
 	if unit.weakened or _touches_mist(unit, INF):
 		bonus -= RULES.FROG_WEAKNESS
 	return bonus
@@ -617,6 +721,8 @@ func speed_multiplier(unit: MarchUnit) -> float:
 	if not unit.is_exposed():
 		return environment_speed[unit.order.faction]
 	var multiplier := RULES.RABBIT_RUSH_MULTIPLIER if unit.rush_remaining > 0.0 else 1.0
+	if unit.order.pig_charge:
+		multiplier += RULES.PIG_CHARGE_SPEED_BONUS
 	if haste_zones.has(unit.order.faction):
 		var zone := haste_zones[unit.order.faction]
 		var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
@@ -632,16 +738,26 @@ func movement_distance(unit: MarchUnit, delta: float) -> float:
 	# Timed boosts and fields continue aging while a soldier is held in the air.
 	var concealed_time := minf(delta, maxf(unit.spawn_delay, unit.levitation_remaining))
 	delta -= concealed_time
+	# A newer enchanted order must not overtake a previous queue while its
+	# population still belongs to the building. Split the exact exit time first.
+	var queued_time := minf(delta, maxf(0.0, -unit.distance / base_speed(unit.order.faction)))
+	var queued_step := queued_time * base_speed(unit.order.faction)
+	delta -= queued_time
+	concealed_time += queued_time
+	if delta <= 0.0:
+		return queued_step
+	var charge := RULES.PIG_CHARGE_SPEED_BONUS if unit.order.pig_charge else 0.0
 	var rushing := minf(delta, maxf(0.0, unit.rush_remaining - concealed_time))
 	# The ordinary case has no spatial crossings. Integrate the boost's expiry
 	# directly, avoiding two field-segment walks for every soldier each tick.
 	if slow_zones.is_empty() and not haste_zones.has(unit.order.faction):
-		return base_speed(unit.order.faction) * (delta + rushing * (RULES.RABBIT_RUSH_MULTIPLIER - 1.0))
+		return queued_step + base_speed(unit.order.faction) * (delta * (1.0 + charge) + rushing * (RULES.RABBIT_RUSH_MULTIPLIER - 1.0))
 	var zone_time := 0.0
 	if haste_zones.has(unit.order.faction):
 		zone_time = maxf(0.0, haste_zones[unit.order.faction].remaining - concealed_time)
-	var step := _movement_segment(unit, unit.distance, rushing, RULES.RABBIT_RUSH_MULTIPLIER, zone_time, concealed_time)
-	return step + _movement_segment(unit, unit.distance + step, delta - rushing, 1.0, maxf(0.0, zone_time - rushing), concealed_time + rushing)
+	var start := unit.distance + queued_step
+	var step := _movement_segment(unit, start, rushing, RULES.RABBIT_RUSH_MULTIPLIER + charge, zone_time, concealed_time)
+	return queued_step + step + _movement_segment(unit, start + step, delta - rushing, 1.0 + charge, maxf(0.0, zone_time - rushing), concealed_time + rushing)
 
 func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float, time_offset: float = 0.0) -> float:
 	if not slow_zones.is_empty():
@@ -801,6 +917,10 @@ func _route_heading(order: MarchOrder, distance: float) -> Vector3:
 	var after := order.sample(minf(order.length, distance + 0.3))
 	var heading := after - before
 	heading.y = 0.0
+	if order.airborne and heading.length_squared() < 0.000001:
+		# Vertical takeoff/landing still faces the intended horizontal destination.
+		heading = order.sample(order.length) - order.sample(0.0)
+		heading.y = 0.0
 	return heading.normalized()
 
 func _formation_position(order: MarchOrder, distance: float, lane: float, heading: Vector3) -> Vector3:
@@ -819,11 +939,11 @@ func _formation_position(order: MarchOrder, distance: float, lane: float, headin
 	var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
 	var corner_width := lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
 	var point := center + sideways * lane * gate_width * corner_width
-	return point if not map_definition.has_elevation() else map_definition.surface_point(point)
+	return point if order.airborne or not map_definition.has_elevation() else map_definition.surface_point(point)
 
 func _presentation_position(unit: MarchUnit) -> Vector3:
 	var at := unit.position + unit.presentation_offset
-	if map_definition.has_elevation():
+	if map_definition.has_elevation() and not unit.order.airborne:
 		# Network correction may slide a body across a ramp or terrace edge.
 		# Preserve spell levitation, but never interpolate terrain height in air.
 		var lift := unit.position.y - map_definition.surface_height(Vector2(unit.position.x, unit.position.z))

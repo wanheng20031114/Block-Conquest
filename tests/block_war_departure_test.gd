@@ -44,7 +44,9 @@ func reset_match(population: float = 80.0) -> void:
 	target = game.by_id[1]
 	other = game.by_id[2]
 	source.faction = 0
-	source.kind = 2
+	# A nonproducing energy tower isolates queue accounting from forge armor.
+	# The old smithy fixture silently granted its own garrison +15% defense.
+	source.kind = 3
 	source.population = population
 	target.faction = 1
 	source.refresh_visual()

@@ -22,6 +22,7 @@ func configure_surface(definition: WarMapDefinition) -> void:
 	$Frog.configure_surface(definition)
 	$Bear.configure_surface(definition)
 	$Fox.configure_surface(definition)
+	$PigEffects.configure_surface(definition)
 	for fire: WarFireWave in $FireWaves.get_children():
 		fire.configure_surface(definition)
 
@@ -132,6 +133,7 @@ func burst(at: Vector3, color: Color, impact: bool = false) -> void:
 
 func tick(delta: float) -> void:
 	$Rabbit.tick(delta)
+	$PigEffects.tick(delta)
 	_light_remaining = maxf(0.0, _light_remaining - delta)
 	$ImpactLight.light_energy = _light_remaining * 10.0
 	for index: int in range(_deaths.size() - 1, -1, -1):
@@ -142,6 +144,7 @@ func tick(delta: float) -> void:
 	sync_fire_states(get_parent().fire_states)
 
 func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dictionary, marches: WarMarches) -> void:
+	$PigEffects.update_units(delta, marches)
 	$Fox.advance(delta)
 	_skill_time += delta
 	_skill_emission += delta
@@ -221,6 +224,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			_wind_offset = (_wind_offset + 48) % active.size()
 
 func set_running(value: bool) -> void:
+	$PigEffects.set_running(value)
 	$Fox.set_running(value)
 	$Frog.set_running(value)
 	$Bear.set_running(value)
@@ -234,3 +238,12 @@ func set_running(value: bool) -> void:
 			particles.speed_scale = 1.0 if value else 0.0
 	for fire: WarFireWave in $FireWaves.get_children():
 		fire.set_running(value)
+
+func pig_ready(buildings: Array, ready: Dictionary) -> void:
+	$PigEffects.update_ready(buildings, ready)
+
+func pig_drop(id: int, faction: int, center: Vector3, age: float = 0.0) -> void:
+	$PigEffects.start_drop(id, faction, center, age)
+
+func sync_pig_drops(states: Array) -> void:
+	$PigEffects.sync_drops(states)

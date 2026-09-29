@@ -164,7 +164,7 @@ func _run() -> void:
 	if not _check(current_scene.scene_file_path == CODEX, "native menu click opens the codex"):
 		_finish()
 		return
-	_check(_control("Entries").item_count == 5, "all five heroes are unlocked from first visit")
+	_check(_control("Entries").item_count == 6, "all six heroes are unlocked from first visit")
 	_check(current_scene.category == 0 and _control("Heroes").button_pressed, "hero category is selected initially")
 
 	for row: int in CATALOG.HEROES.size():

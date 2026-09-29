@@ -66,12 +66,26 @@ const FOX_STEAL_STARS := 1.0
 const FOX_CONVERT_RADIUS := 3.0
 const FOX_PANIC_FRACTION := 0.8
 const FOX_PANIC_DESTINATIONS := 3
+const PIG := &"pig"
+const PIG_NAMES: Array[String] = ["猪冲锋", "猪会飞", "猪整队", "特大猪"]
+const PIG_COSTS: Array[float] = [15.0, 25.0, 25.0, 80.0]
+const PIG_COOLDOWNS: Array[float] = [18.0, 30.0, 35.0, 85.0]
+const PIG_DURATIONS: Array[float] = [15.0, 15.0, 15.0, 0.0]
+const PIG_READY_DURATION := 15.0
+const PIG_CHARGE_SPEED_BONUS := 0.20
+const PIG_CHARGE_ATTACK_BONUS := 0.10
+const PIG_FLIGHT_LIMIT := 30
+const PIG_FORMATION_LIMIT := 60
+const PIG_DROP_RADIUS := 3.0
+const PIG_DROP_FALL_TIME := 0.65
+const PIG_DROP_LIFETIME := 1.4
+const PIG_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_pig_charge.svg"), preload("res://assets/ui/block_war/skill_pig_fly.svg"), preload("res://assets/ui/block_war/skill_pig_formation.svg"), preload("res://assets/ui/block_war/skill_pig_drop.svg")]
 const SQUIRREL_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_muster.svg"), preload("res://assets/ui/block_war/skill_haste.svg"), preload("res://assets/ui/block_war/skill_bulwark.svg"), preload("res://assets/ui/block_war/skill_impact.svg")]
 const RABBIT_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_rabbit_dash.svg"), preload("res://assets/ui/block_war/skill_rabbit_seal.svg"), preload("res://assets/ui/block_war/skill_rabbit_recall.svg"), preload("res://assets/ui/block_war/skill_rabbit_burrow.svg")]
 const BEAR_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_bear_toolbox.svg"), preload("res://assets/ui/block_war/skill_bear_stomp.svg"), preload("res://assets/ui/block_war/skill_bear_link.svg"), preload("res://assets/ui/block_war/skill_bear_fortress.svg")]
 const FROG_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_frog_mist.svg"), preload("res://assets/ui/block_war/skill_frog_float.svg"), preload("res://assets/ui/block_war/skill_frog_cloak.svg"), preload("res://assets/ui/block_war/skill_frog_strike.svg")]
 const FOX_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_fox_bomb.svg"), preload("res://assets/ui/block_war/skill_fox_steal.svg"), preload("res://assets/ui/block_war/skill_fox_convert.svg"), preload("res://assets/ui/block_war/skill_fox_panic.svg")]
-const PORTRAITS := {&"squirrel": preload("res://assets/ui/block_war/commanders/squirrel.png"), RABBIT: preload("res://assets/ui/block_war/commanders/rabbit.png"), BEAR: preload("res://assets/ui/block_war/commanders/bear.png"), FROG: preload("res://assets/ui/block_war/commanders/frog.png"), FOX: preload("res://assets/ui/block_war/commanders/fox.png")}
+const PORTRAITS := {&"squirrel": preload("res://assets/ui/block_war/commanders/squirrel.png"), RABBIT: preload("res://assets/ui/block_war/commanders/rabbit.png"), BEAR: preload("res://assets/ui/block_war/commanders/bear.png"), FROG: preload("res://assets/ui/block_war/commanders/frog.png"), FOX: preload("res://assets/ui/block_war/commanders/fox.png"), PIG: preload("res://assets/ui/block_war/commanders/pig.svg")}
 
 static func natural_energy_regen(elapsed: float) -> float:
 	return ENERGY_REGEN if elapsed < ENERGY_ACCELERATION_TIME else ENERGY_LATE_REGEN
@@ -92,42 +106,49 @@ static func energy_tower_bonus(count: int) -> float:
 	return bonus + maxf(0, count - ENERGY_TOWER_BONUSES.size()) * ENERGY_TOWER_LATER_BONUS
 
 static func names_for(commander: StringName) -> Array[String]:
+	if commander == PIG: return PIG_NAMES
 	if commander == FOX: return FOX_NAMES
 	if commander == FROG: return FROG_NAMES
 	if commander == BEAR: return BEAR_NAMES
 	return RABBIT_NAMES if commander == RABBIT else NAMES
 
 static func costs_for(commander: StringName) -> Array[float]:
+	if commander == PIG: return PIG_COSTS
 	if commander == FOX: return FOX_COSTS
 	if commander == FROG: return FROG_COSTS
 	if commander == BEAR: return BEAR_COSTS
 	return RABBIT_COSTS if commander == RABBIT else COSTS
 
 static func cooldowns_for(commander: StringName) -> Array[float]:
+	if commander == PIG: return PIG_COOLDOWNS
 	if commander == FOX: return FOX_COOLDOWNS
 	if commander == FROG: return FROG_COOLDOWNS
 	if commander == BEAR: return BEAR_COOLDOWNS
 	return RABBIT_COOLDOWNS if commander == RABBIT else COOLDOWNS
 
 static func durations_for(commander: StringName) -> Array[float]:
+	if commander == PIG: return PIG_DURATIONS
 	if commander == FOX: return FOX_DURATIONS
 	if commander == FROG: return FROG_DURATIONS
 	if commander == BEAR: return BEAR_DURATIONS
 	return RABBIT_DURATIONS if commander == RABBIT else DURATIONS
 
 static func is_ground(index: int, commander: StringName) -> bool:
+	if commander == PIG: return index == 3
 	if commander == FOX: return index == 2
 	if commander == FROG: return index in [0, 1, 2]
 	if commander == BEAR: return index == 1
 	return index in [0, 2] if commander == RABBIT else index in [1, 3]
 
 static func name_for(commander: StringName) -> String:
+	if commander == PIG: return "猪猪"
 	if commander == FOX: return "狐狸"
 	if commander == FROG: return "青蛙"
 	if commander == BEAR: return "熊"
 	return "兔子" if commander == RABBIT else "松鼠"
 
 static func icons_for(commander: StringName) -> Array[Texture2D]:
+	if commander == PIG: return PIG_ICONS
 	if commander == FOX: return FOX_ICONS
 	if commander == FROG: return FROG_ICONS
 	if commander == BEAR: return BEAR_ICONS
@@ -142,6 +163,13 @@ static func effect_text(index: int) -> String:
 	return ""
 
 static func description(index: int, commander: StringName = COMMANDER_ID) -> String:
+	if commander == PIG:
+		return [
+			"选择自己的建筑，获得 15 秒冲锋待命。\n下一次派出的部队移速 +20%、攻击 +10%，持续至入城。\n可与飞行、整队叠加；过期未出兵则失效。",
+			"选择自己的建筑，获得 15 秒飞行待命。\n下一次派兵飞越地形，沿直线前往目的地。\n最多派出 30 人后停止；余兵留守，可叠加。",
+			"选择自己的建筑，获得 15 秒整队待命。\n下一次派兵缩短排距和列距，集中抵达。\n最多派出 60 人后停止；叠加飞行时上限 30 人。",
+			"选择战场落点，0.65 秒后特大猪砸下。\n半径 3 米内敌我所有行军部队死亡，建筑驻军减半。\n无视防护与分伤，不直接占领；空地也可施放。"
+		][index]
 	if commander == FOX:
 		return [
 			"向敌方或中立建筑投下炸弹。\n损失当前驻军的 50%，最多 30 人，向下取整。\n不直接占领；无敌可阻挡，链式防守可分担。",

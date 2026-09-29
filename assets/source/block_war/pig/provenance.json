@@ -1,0 +1,26 @@
+{
+  "project": "Google Noto Emoji",
+  "asset": "Pig (U+1F416)",
+  "upstream_commit": "8998f5dd683424a73e2314a8c1f1e359c19e8742",
+  "upstream_asset": "https://github.com/googlefonts/noto-emoji/blob/8998f5dd683424a73e2314a8c1f1e359c19e8742/svg/emoji_u1f416.svg",
+  "upstream_license": "https://github.com/googlefonts/noto-emoji/blob/8998f5dd683424a73e2314a8c1f1e359c19e8742/svg/LICENSE",
+  "spdx": "Apache-2.0",
+  "copyright": "Copyright 2013 Google, Inc. All Rights Reserved.",
+  "original_svg_sha256": "0d2654ec47e6d05d03ccaf7ba7d4d2a38435fba5b0ade123045c4ea8e2b74cf3",
+  "verified_against_upstream": "2026-09-29",
+  "local_source": "noto_emoji_u1f416.svg",
+  "runtime_asset": "assets/ui/block_war/commanders/pig.svg",
+  "source_modifications": [],
+  "processing": [
+    "Original source and runtime SVG are byte-for-byte identical to upstream",
+    "Native Godot SVG import at scale 4.5, yielding 576 by 576 pixels",
+    "Original vector alpha preserved; no RGB-based background removal or recoloring",
+    "Runtime display transforms and game effects are separate from the original artwork"
+  ],
+  "distribution_notices": [
+    "licenses/Apache-2.0.txt",
+    "licenses/Noto-Emoji-LICENSE.txt",
+    "licenses/PIG_NOTICES.txt"
+  ],
+  "reference_project": "Bot Jump's provenance and original SVG archive; no modified Bot Jump images reused"
+}

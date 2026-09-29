@@ -1,8 +1,9 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 5
-const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "combat_remainders", "fires"]
+const SCHEMA := 6
+const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "combat_remainders", "fires", "pig_ready", "pig_drops"]
 const UNIT_SIZE := 14
+const COUNTER_SIZE := 5
 const MAX_ID := 2147483647
 const MAX_RECORDS := 65536
 const MAX_TIME := 1000000000.0
@@ -61,7 +62,8 @@ func capture(game: Node, tick: int) -> Dictionary:
 			for index: int in order.curve.point_count:
 				points.append(v3(order.curve.get_point_position(index)))
 			_order_cache[oid] = [order.source_id, order.target_id, order.faction, order.strength,
-				order.returning, order.departure_distance, points, order.energy_origin]
+				order.returning, order.departure_distance, points, order.energy_origin,
+				order.pig_charge, order.airborne, order.dense]
 		state.orders[oid] = _order_cache[oid]
 		state.units[str(unit.unit_id)] = [order.order_id, unit.distance, unit.lane, unit.pending_departure,
 			unit.departure_sequence, now + unit.spawn_delay if unit.spawn_delay > 0.0 else 0.0,
@@ -103,7 +105,12 @@ func capture(game: Node, tick: int) -> Dictionary:
 			hits.append(id)
 		hits.sort()
 		state.fires[str(fire.effect_id)] = [v3(fire.global_position), fire.radius, fire.faction, now - fire.age, hits]
-	state["counters"] = [game.marches._next_order_id, game.marches._next_unit_id, game.marches._departure_sequence, game._next_fire_id]
+	for id: int in game.pig.ready:
+		var times: Vector3 = game.pig.ready[id]
+		state.pig_ready[str(id)] = [game.pig.ready_owners[id], deadline(now, times.x), deadline(now, times.y), deadline(now, times.z)]
+	for drop: Dictionary in game.pig.drops:
+		state.pig_drops[str(drop.id)] = [drop.faction, v3(drop.at), now - float(drop.age), drop.impacted]
+	state["counters"] = [game.marches._next_order_id, game.marches._next_unit_id, game.marches._departure_sequence, game._next_fire_id, game.pig.next_drop_id]
 	return state
 
 func _capture_shots(output: Dictionary, shots: Array, kind: String, now: float) -> void:
@@ -202,7 +209,10 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 		if old[0] != next[0] or old[4] != next[4] or old[5] != next[5] or old[10] != next[10] or absf(float(old[9]) - float(next[9])) > 0.00001: return true
 		for array_index: int in [2, 3]:
 			for i: int in 4:
-				if absf(float(old[array_index][i]) - float(next[array_index][i])) > 0.00001: return true
+				# Pig readiness lives in Vector3 float32 timers. Allow their tiny
+				# subtraction drift without turning an idle countdown into traffic.
+				var epsilon := 0.001 if old[0] == "pig" and array_index == 3 and i < 3 else 0.00001
+				if absf(float(old[array_index][i]) - float(next[array_index][i])) > epsilon: return true
 		# Public rows redact both energy values to zero. Private accounts also
 		# publish earned combat/capture energy immediately, beyond regeneration.
 		return (float(old[1]) > 0.0 or float(next[1]) > 0.0) and absf(float(next[1]) - energy_at(old, float(next[8]))) > 0.00001
@@ -218,6 +228,13 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 		return old[6] != next[6]
 	if group == "fires":
 		return old[0] != next[0] or old[1] != next[1] or old[2] != next[2] or absf(float(old[3]) - float(next[3])) > 0.00001 or old[4] != next[4]
+	if group == "pig_ready":
+		if old[0] != next[0]: return true
+		for i: int in range(1, 4):
+			if absf(float(old[i]) - float(next[i])) > 0.001: return true
+		return false
+	if group == "pig_drops":
+		return old[0] != next[0] or old[1] != next[1] or absf(float(old[2]) - float(next[2])) > 0.00001 or old[3] != next[3]
 	if group == "fields":
 		if old.size() != next.size(): return true
 		for i: int in old.size():
@@ -257,25 +274,40 @@ static func valid(state: Dictionary, game: Node) -> bool:
 			if group == "fields":
 				if not key is String or key != str(row[0]) + ":" + str(int(row[1])): return false
 			elif not _id(key): return false
-			elif group in ["buildings", "wards", "remainders", "combat_remainders", "links"]:
+			elif group in ["buildings", "wards", "remainders", "combat_remainders", "links", "pig_ready"]:
 				if not game.by_id.has(int(key)): return false
 			elif group == "factions":
 				if int(key) >= game.faction_count: return false
 			elif int(key) < 1: return false
 			if group == "units" and not state.orders.has(str(int(row[0]))): return false
 			if group == "links" and int(key) != int(row[0]): return false
+			if group == "pig_ready" and int(row[0]) != int(state.buildings[key][0]): return false
+			if group == "pig_ready":
+				for i: int in range(1, 4):
+					if float(row[i]) > float(state.time) + RULES.PIG_READY_DURATION + 0.001: return false
+			if group == "pig_drops":
+				var age := float(state.time) - float(row[2])
+				# Reliable mirrors may retain an expired visual until its deletion
+				# fact arrives; only a future start or premature impact is impossible.
+				if age < -0.00001: return false
+				if row[3] and age < RULES.PIG_DROP_FALL_TIME - 0.001: return false
 	for key: String in state.combat_remainders:
 		if not state.remainders.has(key) or float(state.combat_remainders[key]) <= 0.0 or float(state.combat_remainders[key]) > float(state.remainders[key]): return false
-	if not _row(state.get("counters"), 4): return false
-	for i: int in 4:
+	if not _row(state.get("counters"), COUNTER_SIZE): return false
+	for i: int in COUNTER_SIZE:
 		if not _integer(state.counters[i], 0 if i == 2 else 1, MAX_ID): return false
-	for pair: Array in [["orders", 0], ["units", 1], ["fires", 3]]:
+	for pair: Array in [["orders", 0], ["units", 1], ["fires", 3], ["pig_drops", 4]]:
 		for key: String in state[pair[0]]:
 			if int(key) >= int(state.counters[pair[1]]): return false
 	# The hidden doorway soldiers and their garrison reservations form one fact.
 	var reservations := {}
+	var order_counts := {}
 	for row: Array in state.units.values():
-		var order: Array = state.orders[str(int(row[0]))]
+		var order_key := str(int(row[0]))
+		var order: Array = state.orders[order_key]
+		order_counts[order_key] = int(order_counts.get(order_key, 0)) + 1
+		var limit: int = RULES.PIG_FLIGHT_LIMIT if order[9] else (RULES.PIG_FORMATION_LIMIT if order[10] else MAX_RECORDS)
+		if int(order_counts[order_key]) > limit: return false
 		if row[3]:
 			var source := str(int(order[0]))
 			if int(state.buildings[source][0]) != int(order[2]): return false
@@ -315,9 +347,10 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			return true
 		"factions": return valid_account(row, game)
 		"orders":
-			if not _row(row, 8) or not _building_id(row[0], game) or not _building_id(row[1], game) or not _integer(row[2], 0, game.faction_count - 1): return false
+			if not _row(row, 11) or not _building_id(row[0], game) or not _building_id(row[1], game) or not _integer(row[2], 0, game.faction_count - 1): return false
 			if not _nonnegative(row[3]) or float(row[3]) <= 0.0 or not row[4] is bool or not _nonnegative(row[5]): return false
-			if not row[7] is bool: return false
+			for i: int in range(7, 11):
+				if not row[i] is bool: return false
 			if not row[6] is Array or row[6].size() < 2 or row[6].size() > 2048: return false
 			var length := 0.0
 			var previous := Vector3.ZERO
@@ -341,7 +374,7 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			if not _row(row, 8) or row[0] not in ["haste", "slow", "weak"] or not _integer(row[1], 0, game.faction_count - 1) or not _vector(row[2]): return false
 			for i: int in [3, 4, 5, 6]:
 				if not _nonnegative(row[i]): return false
-			return float(row[3]) > 0 and float(row[3]) < 1000 and float(row[5]) > 0 and float(row[6]) > 0 and float(row[6]) <= 100 and row[7] in ["squirrel", "rabbit", "bear", "frog", "fox"]
+			return float(row[3]) > 0 and float(row[3]) < 1000 and float(row[5]) > 0 and float(row[6]) > 0 and float(row[6]) <= 100 and row[7] in ["squirrel", "rabbit", "bear", "frog", "fox", "pig"]
 		"links":
 			if not _row(row, 6) or not _building_id(row[0], game) or not _building_id(row[1], game) or int(row[0]) == int(row[1]) or not _integer(row[2], 0, game.faction_count - 1): return false
 			return _nonnegative(row[3]) and _integer(row[4], 0, MAX_ID) and _nonnegative(row[5]) and float(row[5]) <= 1.0
@@ -355,10 +388,17 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			for id: Variant in row[4]:
 				if not _building_id(id, game): return false
 			return true
+		"pig_ready":
+			if not _row(row, 4) or not _integer(row[0], 0, game.faction_count - 1): return false
+			for i: int in range(1, 4):
+				if not _nonnegative(row[i]): return false
+			return float(row[1]) > 0.0 or float(row[2]) > 0.0 or float(row[3]) > 0.0
+		"pig_drops":
+			return _row(row, 4) and _integer(row[0], 0, game.faction_count - 1) and _vector(row[1]) and _number(row[2]) and absf(float(row[2])) <= MAX_TIME and row[3] is bool
 	return false
 
 static func valid_account(row: Variant, game: Node) -> bool:
-	if not _row(row, 11) or row[0] not in ["squirrel", "rabbit", "bear", "frog", "fox"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
+	if not _row(row, 11) or row[0] not in ["squirrel", "rabbit", "bear", "frog", "fox", "pig"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
 	for index: int in [2, 3]:
 		if not _row(row[index], 4): return false
 		for value: Variant in row[index]:
@@ -442,7 +482,8 @@ static func same_structure(group: String, first: Array, second: Array) -> bool:
 		elif first[index] is Array and second[index] is Array:
 			if first[index].size() != second[index].size(): return false
 			for i: int in first[index].size():
-				if absf(float(first[index][i]) - float(second[index][i])) > 0.00001: return false
+				var epsilon := 0.001 if group == "factions" and first[0] == "pig" and index == 3 and i < 3 else 0.00001
+				if absf(float(first[index][i]) - float(second[index][i])) > epsilon: return false
 		elif first[index] != second[index]: return false
 	return true
 
@@ -485,6 +526,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		order.source_id = int(row[0]); order.target_id = int(row[1]); order.faction = int(row[2])
 		order.strength = float(row[3]); order.returning = row[4]; order.departure_distance = float(row[5])
 		order.energy_origin = row[7]
+		order.pig_charge = row[8]; order.airborne = row[9]; order.dense = row[10]
 		order.curve = Curve3D.new(); order.curve.bake_interval = 0.12
 		for point: Array in row[6]: order.curve.add_point(vector(point))
 		order.length = order.curve.get_baked_length()
@@ -560,6 +602,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 	for key: String in state.combat_remainders: game.bear.combat_damage_remainders[int(key)] = float(state.combat_remainders[key])
 	_install_shots(game, state, now)
 	_install_fire(game, state, now)
+	_present_pig(game, state, now)
 	game.world_effects.update_skills(0.0, game.faction_skills, game.shields, game.by_id, game.marches)
 	game.world_effects.get_node("Bear").sync(game.bear, game.marches, game.by_id, 0.0)
 	game.world_effects.get_node("Frog").sync(game.marches, 0.0)
@@ -666,6 +709,21 @@ func _install_fire(game: Node, state: Dictionary, now: float) -> void:
 	game._next_fire_id = int(state.counters[3])
 	game.world_effects.sync_fire_states(game.fire_states)
 
+func _present_pig(game: Node, state: Dictionary, now: float) -> void:
+	# Clock reconstruction is visual only. Crossing the impact deadline here
+	# must never call advance, halve garrisons or kill any marching soldier.
+	game.pig.ready.clear(); game.pig.ready_owners.clear(); game.pig.drops.clear()
+	for key: String in state.pig_ready:
+		var row: Array = state.pig_ready[key]
+		game.pig.ready[int(key)] = Vector3(remaining(row[1], now), remaining(row[2], now), remaining(row[3], now))
+		game.pig.ready_owners[int(key)] = int(row[0])
+	for key: String in state.pig_drops:
+		var row: Array = state.pig_drops[key]
+		game.pig.drops.append({"id": int(key), "faction": int(row[0]), "at": vector(row[1]), "age": maxf(0.0, now - float(row[2])), "impacted": row[3]})
+	game.pig.next_drop_id = int(state.counters[4])
+	game.world_effects.pig_ready(game.buildings, game.pig.ready)
+	game.world_effects.sync_pig_drops(game.pig.drops)
+
 func present(game: Node, _state: Dictionary, delta: float) -> void:
 	# No departure, hit, capture, production event, AI, or morale settlement.
 	if delta <= 0.0 or _last_state.is_empty() or game.is_rule_paused(): return
@@ -713,6 +771,7 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 	_draw_shots(game, delta)
 	game.audio.tick_marches(delta, game.marches)
 	game.world_effects.tick(delta)
+	_present_pig(game, _last_state, game.elapsed)
 	game.world_effects.update_skills(delta, game.faction_skills, game.shields, game.by_id, game.marches)
 	game.world_effects.get_node("Bear").sync(game.bear, game.marches, game.by_id, delta)
 	game.world_effects.get_node("Frog").sync(game.marches, delta)

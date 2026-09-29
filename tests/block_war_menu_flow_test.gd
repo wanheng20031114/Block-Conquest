@@ -58,14 +58,16 @@ func _run() -> void:
 	check(current_scene.scene_file_path.ends_with("commander_select.tscn"), "lobby enters animal selection first")
 	var picker := current_scene
 	check(picker.get_node("%AnimalName").text == "松鼠", "species name has no nickname or title")
-	for i: int in [3]:
-		var locked: Button = picker.get_node("%%Animal%d" % i)
-		check(locked.is_visible_in_tree() and locked.disabled and locked.focus_mode == Control.FOCUS_NONE, "locked animal %d is visible but excluded from mouse and keyboard selection" % i)
-		click(locked)
-		check(session.block_war_commander == &"squirrel", "locked click preserves the commander")
-		check(locked.get_node("Content/Status/Availability").text == "尚未开放", "locked status uses words as well as color")
-	picker._select(3)
-	check(session.block_war_commander == &"squirrel", "selection boundary rejects unimplemented profiles")
+	var pig: Button = picker.get_node("%Animal3")
+	check(pig.is_visible_in_tree() and not pig.disabled and pig.focus_mode != Control.FOCUS_NONE, "pig roster slot supports mouse and keyboard selection")
+	click(pig)
+	await settle()
+	check(session.block_war_commander == &"pig" and picker.get_node("%AnimalName").text == "猪猪", "native pig click selects sixth hero")
+	check(pig.get_node("Content/Status/Availability").text == "可以出战", "pig status confirms availability")
+	for i: int in 4:
+		check(picker.get_node("%%SkillName%d" % i).text == RULES.PIG_NAMES[i], "pig menu skill %d" % i)
+	picker._select(6)
+	check(session.block_war_commander == &"pig", "selection boundary rejects out-of-range roster slots")
 	click(picker.get_node("%Animal4"))
 	await settle()
 	check(session.block_war_commander == &"fox" and picker.get_node("%AnimalName").text == "狐狸", "fox is playable")
@@ -102,6 +104,8 @@ func _run() -> void:
 	await scene_changed
 	await settle()
 	check(current_scene.scene_file_path.ends_with("map_select.tscn"), "confirmation enters battlefield selection")
+	click(current_scene.get_node("%OpponentCommander5"))
+	check(session.block_war_opponent_commander == &"pig", "pig can be chosen as computer opponent")
 	click(current_scene.get_node("%OpponentCommander4"))
 	check(session.block_war_opponent_commander == &"fox", "fox can be chosen as computer opponent")
 	click(current_scene.get_node("%OpponentCommander3"))
