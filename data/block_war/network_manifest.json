@@ -102,7 +102,7 @@
     "scripts/block_war/war_map_preview.gd": "0a0fe94d669b56168a59f3ab4f3bc109fa7402510d93e8c65c8c9aa3665d0d18",
     "scripts/block_war/war_map_routes.gd": "ddd6cf3d69d94bfd6504eb0d0345fbaf711b765097bfd981919f87d21c58b620",
     "scripts/block_war/war_map_select.gd": "0442b80b9e05fec0d8f835534d6b924d613cc9a70e1c29e485c572e8a3e226e7",
-    "scripts/block_war/war_marches.gd": "03e5766ec0b45073c54de1b1f0cd38356a7676f5ba9b04a43428641f3d3de055",
+    "scripts/block_war/war_marches.gd": "445650488cea30e62a2168ddb0001d0b88580afdab8c060c1211701e79e3f8b7",
     "scripts/block_war/war_morale.gd": "653565d37311e55c7bab65326c3062f7524da95f4295718859948aac01e31dbd",
     "scripts/block_war/war_morale_star.gd": "ac0c6b4a4d91f3a2bd14eb63b169058c2747b672bf6fe0abbb15183343439fe5",
     "scripts/block_war/war_overlay.gd": "4c74b789661ad006ae908bcaa9587cdacf1c9a2ada231d6dde88277604822f1b",
@@ -124,13 +124,13 @@
     "scripts/block_war/war_surrender.gd": "0a24cc97ab6c454ec5094be6c9eab00d15d9dec960e5456e6ae2564765e60bd5",
     "scripts/block_war/war_terrain_surface.gd": "0e222822e5bfb6ee962e0d1d9402a4fce7ff6c29fcb1bdd8e33546cfa158ca74",
     "scripts/block_war/war_tunnel_effect.gd": "622c2e5e51ce341f561b9b1de86af0da16775f7c69616553302b6f3adda744c0",
-    "scripts/network/war_network_match.gd": "de1deca935eb37121aff588d39e7820d788fe31a832b4c117587001f1b8fb912",
+    "scripts/network/war_network_match.gd": "3a45e6b09af9aa3ffa189905ea1fc0769175cb43adabfafcb05ac1432a772cea",
     "scripts/network/war_online.gd": "e3d5ef08056a764ccf36c1d98902ab3838bf0bb0c2b4f641bc8368c6e15f80dd",
     "scripts/network/war_protocol.gd": "657c46f3e11091122b20733ad0f6c2d8c82f26095c4a3a64193cfba93c95f739",
     "scripts/network/war_remote_pointer.gd": "b7c31ca56f79b762862e5c6f90bca44c12c88018014fb5cec353dee7e917709f",
     "scripts/network/war_room.gd": "276f62a72d487f84618481e2d448aa67a4d6ac58ff82d3896a02f4b531fcec5f",
     "scripts/network/war_room_slot.gd": "3530c5f9565708e3c3b78f460abb563c514f17e57aa249b41704c79a1391ba6b",
-    "scripts/network/war_snapshot.gd": "c03f514982e020f99b9947597ce5602f4b98dc1c158010cbf07aed5b9af1430a",
+    "scripts/network/war_snapshot.gd": "05b131fee7801365606c628e33cbb0cd301e122ec7e3cafbb2ebfc9579ff547e",
     "scripts/network/war_teammate_cursors.gd": "5b7bb353ab64bb07cec9fe7e6ae5ba4021e07d9cdd78a3c43a4a89407e57ad20"
   }
 }

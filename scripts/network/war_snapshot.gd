@@ -17,10 +17,13 @@ var _objects: Dictionary = {}
 var _orders: Dictionary = {}
 var _installed_unit_rows: Dictionary = {}
 var _installed_order_rows: Dictionary = {}
+var _link_pulses: Dictionary = {}
+var _ward_pulses: Dictionary = {}
 var _presentation_rows: Array[Array] = []
 var _field_geometry: Dictionary = {}
 var _last_state: Dictionary = {}
 var _environment_speeds := PackedFloat64Array()
+var _render_pending := false
 
 static func v3(value: Vector3) -> Array:
 	return [value.x, value.y, value.z]
@@ -487,7 +490,7 @@ static func same_structure(group: String, first: Array, second: Array) -> bool:
 		elif first[index] != second[index]: return false
 	return true
 
-func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: bool = false) -> bool:
+func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: bool = false, defer_render: bool = false) -> bool:
 	# Caller validates once before an atomic install. No gameplay signal is emitted.
 	# Public replicas retain local private fields and defer UI/control presentation
 	# until the coordinator applies the account at the same reliable boundary.
@@ -564,6 +567,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 			continue
 		units_changed = true
 		var previous := unit.position + unit.presentation_offset
+		var previous_gait := unit.gait + unit.presentation_gait_offset
 		var was_exposed := existing and unit.is_exposed()
 		unit.alive = true; unit.order = _orders[str(int(row[0]))]
 		unit.distance = float(row[1]); unit.lane = float(row[2]); unit.pending_departure = row[3]
@@ -578,7 +582,9 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 		unit.levitation_remaining = remaining(row[7], now)
 		game.marches._update_pose(unit)
 		var offset := previous - unit.position
-		unit.presentation_offset = offset if not game.match_paused and was_exposed and unit.is_exposed() and offset.length_squared() <= 16.0 else Vector3.ZERO
+		var smooth: bool = not game.match_paused and was_exposed and unit.is_exposed() and offset.length_squared() <= 16.0
+		unit.presentation_offset = offset if smooth else Vector3.ZERO
+		unit.presentation_gait_offset = previous_gait - unit.gait if smooth else 0.0
 		_installed_unit_rows[key] = row
 		units.append(unit)
 	_set_field_clock(game, state, now, true)
@@ -592,15 +598,24 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 	_presentation_rows = rows
 	game.marches._next_order_id = int(state.counters[0]); game.marches._next_unit_id = int(state.counters[1]); game.marches._departure_sequence = int(state.counters[2])
 	game.marches._ensure_capacity(units.size())
-	if units_changed: game.marches._render()
+	_render_pending = _render_pending or units_changed
+	if _render_pending and not defer_render:
+		game.marches._render()
+		_render_pending = false
 	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear(); game.marches.blocked_destinations.clear()
 	for key: String in state.links:
 		var row: Array = state.links[key]
-		game.bear.links[int(key)] = {"target": int(row[0]), "support": int(row[1]), "faction": int(row[2]), "remaining": remaining(row[3], now), "settled": int(row[4]), "pulse": float(row[5])}
+		var pulse := _pulse_at(_link_pulses, key, row, 5, float(state.time), now, 3.0)
+		game.bear.links[int(key)] = {"target": int(row[0]), "support": int(row[1]), "faction": int(row[2]), "remaining": remaining(row[3], now), "settled": int(row[4]), "pulse": pulse}
 	for key: String in state.wards:
 		var row: Array = state.wards[key]
-		game.bear.wards[int(key)] = {"faction": int(row[0]), "remaining": remaining(row[1], now), "shot_clock": remaining(row[2], now), "pulse": float(row[3])}
+		var pulse := _pulse_at(_ward_pulses, key, row, 3, float(state.time), now, 5.0)
+		game.bear.wards[int(key)] = {"faction": int(row[0]), "remaining": remaining(row[1], now), "shot_clock": remaining(row[2], now), "pulse": pulse}
 		if remaining(row[1], now) > 0: game.marches.blocked_destinations[int(key)] = int(row[0])
+	for key: String in _link_pulses.keys():
+		if not state.links.has(key): _link_pulses.erase(key)
+	for key: String in _ward_pulses.keys():
+		if not state.wards.has(key): _ward_pulses.erase(key)
 	for key: String in state.remainders: game.bear.damage_remainders[int(key)] = float(state.remainders[key])
 	for key: String in state.combat_remainders: game.bear.combat_damage_remainders[int(key)] = float(state.combat_remainders[key])
 	_install_shots(game, state, now)
@@ -613,6 +628,16 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 		if control_changed: game.sync_match_control_presentation()
 		game.update_hud()
 	return control_changed
+
+func _pulse_at(cache: Dictionary, key: String, row: Array, index: int, sampled_at: float, now: float, decay: float) -> float:
+	# Pulse decay is deliberately absent from reliable diffs. Keep the first
+	# sample's deadline when unrelated facts/anchors reinstall that same row.
+	# A changed settled count or shot clock carries the next authoritative pulse.
+	if not cache.has(key) or cache[key].row != row:
+		# The display may trail the fact clock. Once a pulse is shown, it starts
+		# decaying immediately instead of restarting until that clock catches up.
+		cache[key] = {"row": row, "deadline": minf(sampled_at, now) + float(row[index]) / decay}
+	return minf(float(row[index]), remaining(float(cache[key].deadline), now) * decay)
 
 func _present_buildings(game: Node, state: Dictionary, now: float) -> void:
 	for key: String in state.buildings:
@@ -676,10 +701,11 @@ func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, _
 	# field crossings are integrated by movement_distance for each soldier. The
 	# caller sets the shared field clock once per frame, or per historical anchor.
 	var step: float = game.marches.movement_distance(unit, seconds)
+	var previous_distance := unit.distance
 	unit.distance = minf(unit.order.length - 0.001, unit.distance + step)
 	if game.marches.blocked_destinations.has(unit.order.target_id) and game.FACTIONS.hostile(unit.order.faction, game.marches.blocked_destinations[unit.order.target_id]):
 		unit.distance = minf(unit.distance, unit.order.length - 0.12)
-	unit.gait += step * 7.0
+	unit.gait += maxf(0.0, unit.distance - previous_distance) * 7.0
 	unit.spawn_delay = maxf(0.0, unit.spawn_delay - seconds)
 	unit.rush_remaining = maxf(0.0, unit.rush_remaining - seconds)
 	unit.levitation_remaining = maxf(0.0, unit.levitation_remaining - seconds)
@@ -731,7 +757,12 @@ func _present_pig(game: Node, state: Dictionary, now: float) -> void:
 
 func present(game: Node, _state: Dictionary, delta: float) -> void:
 	# No departure, hit, capture, production event, AI, or morale settlement.
-	if delta <= 0.0 or _last_state.is_empty() or game.is_rule_paused(): return
+	if _last_state.is_empty(): return
+	if delta <= 0.0 or game.is_rule_paused():
+		if _render_pending:
+			game.marches._render()
+			_render_pending = false
+		return
 	var before: float = game.elapsed
 	game.elapsed += delta
 	var marches: WarMarches = game.marches
@@ -740,14 +771,30 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 	for index: int in marches._units.size():
 		var unit: WarMarches.MarchUnit = marches._units[index]
 		var row: Array = _presentation_rows[index]
-		var prediction := minf(delta, maxf(0.0, float(row[12]) + MAX_EXTRAPOLATION - before))
-		_move_visual_unit(game, unit, prediction, before)
+		var base := float(row[12])
+		var start := maxf(before, base)
+		var prediction := maxf(0.0, minf(game.elapsed, base + MAX_EXTRAPOLATION) - start)
+		if base > before and prediction > 0.0:
+			# This frame straddles a newly received future sample. Integrate only
+			# after its timestamp, with timers at that same boundary.
+			unit.spawn_delay = remaining(row[5], start)
+			unit.rush_remaining = remaining(row[6], start)
+			unit.levitation_remaining = remaining(row[7], start)
+			_set_field_clock(game, _last_state, start, false)
+		_move_visual_unit(game, unit, prediction, start)
+		if base > before and prediction > 0.0:
+			_set_field_clock(game, _last_state, before, false)
 		unit.spawn_delay = remaining(row[5], game.elapsed)
 		unit.rush_remaining = remaining(row[6], game.elapsed)
 		unit.levitation_remaining = remaining(row[7], game.elapsed)
-		unit.presentation_offset *= smoothing
+		# A sample ahead of the display clock is an interpolation endpoint.
+		# Reach it at its timestamp instead of moving it a second time early.
+		var correction := maxf(0.0, base - game.elapsed) / (base - before) if base > before else smoothing
+		unit.presentation_offset *= correction
+		unit.presentation_gait_offset *= correction
 		marches._update_pose(unit)
 	marches._render()
+	_render_pending = false
 	for f: int in game.faction_count:
 		var skill: RefCounted = game.faction_skills[f]
 		if f == game.local_faction:

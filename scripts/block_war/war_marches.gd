@@ -57,6 +57,7 @@ class MarchUnit extends RefCounted:
 	var position: Vector3
 	# Client-only interpolation; never enters simulation snapshots or targeting.
 	var presentation_offset := Vector3.ZERO
+	var presentation_gait_offset := 0.0
 	var heading: Vector3 = Vector3.FORWARD
 	var gait: float
 	var spawn_delay := 0.0
@@ -962,7 +963,8 @@ func _render() -> void:
 		var index := cloaked_slot if unit.cloaked else slot
 		mesh.set_instance_transform(index, Transform3D(basis, _presentation_position(unit)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
-		color.a = -(unit.gait + 1.0) if unit.rush_remaining > 0.0 else unit.gait
+		var gait := unit.gait + unit.presentation_gait_offset
+		color.a = -(gait + 1.0) if unit.rush_remaining > 0.0 else gait
 		mesh.set_instance_custom_data(index, color)
 		if unit.cloaked:
 			cloaked_slot += 1

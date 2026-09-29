@@ -1,0 +1,894 @@
+{
+  "regression_scripts": 17,
+  "regression_checks": 3378,
+  "regressions": [
+    {
+      "test": "tests/block_war_anchor_order_test.gd",
+      "pid": 51316,
+      "code": 0,
+      "timeout": false,
+      "seconds": 0.8,
+      "exited": true,
+      "summary": [
+        "ANCHOR_ORDER checks=42 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_energy_replication_test.gd",
+      "pid": 39184,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.0,
+      "exited": true,
+      "summary": [
+        "ENERGY_REPLICATION checks=21 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_event_gap_test.gd",
+      "pid": 8148,
+      "code": 0,
+      "timeout": false,
+      "seconds": 0.7,
+      "exited": true,
+      "summary": [
+        "EVENT_GAP checks=43 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_future_motion_test.gd",
+      "pid": 62680,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.19,
+      "exited": true,
+      "summary": [
+        "FUTURE_MOTION checks=185 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_height_replication_test.gd",
+      "pid": 1172,
+      "code": 0,
+      "timeout": false,
+      "seconds": 4.05,
+      "exited": true,
+      "summary": [
+        "BLOCK_WAR_HEIGHT_REPLICATION maps=3 checks=210 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_match_control_replication_test.gd",
+      "pid": 48572,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.19,
+      "exited": true,
+      "summary": [
+        "MATCH_CONTROL_REPLICATION checks=45 failures=0 resyncs={ \"recovery\": 1 }"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_native_network_test.gd",
+      "pid": 4260,
+      "code": 0,
+      "timeout": false,
+      "seconds": 11.44,
+      "exited": true,
+      "summary": [
+        "BLOCK_WAR_NATIVE_NETWORK checks=66 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store.",
+        "ERROR: TLS handshake error: -30464",
+        "ERROR: TLS handshake error: -30464"
+      ]
+    },
+    {
+      "test": "tests/block_war_pig_replication_test.gd",
+      "pid": 66364,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.47,
+      "exited": true,
+      "summary": [
+        "PIG_REPLICATION checks=63 failures=0 impacts=2"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_presentation_equivalence_test.gd",
+      "pid": 54960,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.75,
+      "exited": true,
+      "summary": [
+        "PRESENTATION_EQUIVALENCE checks=741 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_presentation_pulse_test.gd",
+      "pid": 22128,
+      "code": 0,
+      "timeout": false,
+      "seconds": 1.92,
+      "exited": true,
+      "summary": [
+        "PRESENTATION_PULSE checks=68 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_public_skills_test.gd",
+      "pid": 17048,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.0,
+      "exited": true,
+      "summary": [
+        "BLOCK_WAR_PUBLIC_SKILLS checks=72 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_replication_load_test.gd",
+      "pid": 56324,
+      "code": 0,
+      "timeout": false,
+      "seconds": 11.56,
+      "exited": true,
+      "summary": [
+        "REPLICATION_LOAD checks=10 failures=0 soldiers=4096 frames=120 recovery_ms=229.25 pair_cpu_mean_ms=73.9524666666666 pair_cpu_p95_ms=91.606 pair_cpu_p99_ms=164.505 pair_cpu_max_ms=165.95 anchor_bytes_per_second=208996 anchor_packets_per_second=304 largest_datagram=759"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_replication_morale_test.gd",
+      "pid": 45828,
+      "code": 0,
+      "timeout": false,
+      "seconds": 3.88,
+      "exited": true,
+      "summary": [
+        "REPLICATION_MORALE checks=12 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_replication_test.gd",
+      "pid": 37336,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.28,
+      "exited": true,
+      "summary": [
+        "REPLICATION checks=45 failures=0 reliable_bytes=13960 resyncs=1"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_skill_card_replication_test.gd",
+      "pid": 36136,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.2,
+      "exited": true,
+      "summary": [
+        "SKILL_CARD_REPLICATION checks=331 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    },
+    {
+      "test": "tests/block_war_snapshot_test.gd",
+      "pid": 44160,
+      "code": 0,
+      "timeout": false,
+      "seconds": 2.56,
+      "exited": true,
+      "summary": [
+        "BLOCK_WAR_SNAPSHOT checks=1380 failures=0"
+      ],
+      "errors": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    }
+  ],
+  "motion_ab": {
+    "reference": {
+      "revision": "106b8e59a429086aa7903f1c71523ded866c78c0",
+      "source_sha256": {
+        "scripts/network/war_network_match.gd": "de1deca935eb37121aff588d39e7820d788fe31a832b4c117587001f1b8fb912",
+        "scripts/network/war_snapshot.gd": "c03f514982e020f99b9947597ce5602f4b98dc1c158010cbf07aed5b9af1430a"
+      }
+    },
+    "results": [
+      {
+        "variant": "baseline",
+        "round": 0,
+        "pid": 24860,
+        "code": 1,
+        "timeout": false,
+        "exited": true,
+        "seconds": 7.09,
+        "metrics": [
+          {
+            "backward_steps": 0,
+            "case": "clean",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 1,
+            "frames": 360,
+            "gait_delta_max": 2.59315000000011,
+            "gait_rewinds": 0,
+            "host_rule_hash": "b6f5589d7a24e8e971d218d63b7ab6b392497ee38780074b41409a9dc63524f0",
+            "mean_speed_ratio": 1.00016628862709,
+            "mirror_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 3.305,
+            "public_rule_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "raw_rule_bytes": 667,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0388888888888889,
+            "stalls": 84,
+            "step_max": 0.125833511352539,
+            "step_p95": 0.0654375553131104,
+            "units": 96,
+            "variant": "baseline",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "frequent_facts",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 10.8500000000001,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.999999702190413,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 4.545,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.988888888888889,
+            "stalls": 2136,
+            "step_max": 4.65000212192535,
+            "step_p95": 0.0,
+            "units": 96,
+            "variant": "baseline",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "jitter_and_loss",
+            "display_server": "headless",
+            "dropped_anchors": 23,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 63.9354333333334,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.827952841276764,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 4.387,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.915740740740741,
+            "stalls": 1978,
+            "step_max": 9.8151695728302,
+            "step_p95": 0.0526995658874512,
+            "units": 96,
+            "variant": "baseline",
+            "visibility_errors": 0
+          }
+        ],
+        "summary": [
+          "CLIENT_MOTION checks=44 failures=10"
+        ],
+        "diagnostics": [
+          "ERROR: Failed to read the root certificate store.",
+          "FAIL clean ordinary march does not periodically stop",
+          "FAIL clean no abrupt walking-pose phase jump",
+          "FAIL soldier blocked at the gate freezes position and walking gait for every frame",
+          "FAIL frequent_facts ordinary march does not periodically stop",
+          "FAIL frequent_facts rendered position has no multi-frame correction jump",
+          "FAIL frequent_facts no abrupt walking-pose phase jump",
+          "FAIL jitter_and_loss ordinary march does not periodically stop",
+          "FAIL jitter_and_loss rendered travel retains ordinary speed",
+          "FAIL jitter_and_loss rendered position has no multi-frame correction jump",
+          "FAIL jitter_and_loss no abrupt walking-pose phase jump"
+        ]
+      },
+      {
+        "variant": "current",
+        "round": 0,
+        "pid": 29924,
+        "code": 0,
+        "timeout": false,
+        "exited": true,
+        "seconds": 7.86,
+        "metrics": [
+          {
+            "backward_steps": 0,
+            "case": "clean",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 1,
+            "frames": 360,
+            "gait_delta_max": 0.372294385296968,
+            "gait_rewinds": 0,
+            "host_rule_hash": "b6f5589d7a24e8e971d218d63b7ab6b392497ee38780074b41409a9dc63524f0",
+            "mean_speed_ratio": 0.999336934858753,
+            "mirror_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 2.556,
+            "public_rule_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "raw_rule_bytes": 667,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0,
+            "stalls": 0,
+            "step_max": 0.0531854629516602,
+            "step_p95": 0.0529080629348755,
+            "units": 96,
+            "variant": "current",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "frequent_facts",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 0.363211123019212,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.999615063163115,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 5.461,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0,
+            "stalls": 0,
+            "step_max": 0.0518875122070313,
+            "step_p95": 0.0517692565917969,
+            "units": 96,
+            "variant": "current",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "jitter_and_loss",
+            "display_server": "headless",
+            "dropped_anchors": 23,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 0.387099974116921,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.998861985180968,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 5.638,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0,
+            "stalls": 0,
+            "step_max": 0.0553035736083984,
+            "step_p95": 0.0527076721191406,
+            "units": 96,
+            "variant": "current",
+            "visibility_errors": 0
+          }
+        ],
+        "summary": [
+          "CLIENT_MOTION checks=44 failures=0"
+        ],
+        "diagnostics": [
+          "ERROR: Failed to read the root certificate store."
+        ]
+      },
+      {
+        "variant": "current",
+        "round": 1,
+        "pid": 57968,
+        "code": 0,
+        "timeout": false,
+        "exited": true,
+        "seconds": 7.94,
+        "metrics": [
+          {
+            "backward_steps": 0,
+            "case": "clean",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 1,
+            "frames": 360,
+            "gait_delta_max": 0.372892834332731,
+            "gait_rewinds": 0,
+            "host_rule_hash": "b6f5589d7a24e8e971d218d63b7ab6b392497ee38780074b41409a9dc63524f0",
+            "mean_speed_ratio": 0.999338327770165,
+            "mirror_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 2.622,
+            "public_rule_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "raw_rule_bytes": 667,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0,
+            "stalls": 0,
+            "step_max": 0.0532703399658203,
+            "step_p95": 0.0529146194458008,
+            "units": 96,
+            "variant": "current",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "frequent_facts",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 0.362657447596746,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.99959350294537,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 5.255,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0,
+            "stalls": 0,
+            "step_max": 0.0518083572387695,
+            "step_p95": 0.0517730712890625,
+            "units": 96,
+            "variant": "current",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "jitter_and_loss",
+            "display_server": "headless",
+            "dropped_anchors": 23,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 0.387911775759306,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.998866924461925,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 6.033,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0,
+            "stalls": 0,
+            "step_max": 0.0554161071777344,
+            "step_p95": 0.0527362823486328,
+            "units": 96,
+            "variant": "current",
+            "visibility_errors": 0
+          }
+        ],
+        "summary": [
+          "CLIENT_MOTION checks=44 failures=0"
+        ],
+        "diagnostics": [
+          "ERROR: Failed to read the root certificate store."
+        ]
+      },
+      {
+        "variant": "baseline",
+        "round": 1,
+        "pid": 45476,
+        "code": 1,
+        "timeout": false,
+        "exited": true,
+        "seconds": 7.31,
+        "metrics": [
+          {
+            "backward_steps": 0,
+            "case": "clean",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 1,
+            "frames": 360,
+            "gait_delta_max": 2.59315000000011,
+            "gait_rewinds": 0,
+            "host_rule_hash": "b6f5589d7a24e8e971d218d63b7ab6b392497ee38780074b41409a9dc63524f0",
+            "mean_speed_ratio": 0.999999711804065,
+            "mirror_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 6.247,
+            "public_rule_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+            "raw_rule_bytes": 667,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.0388888888888889,
+            "stalls": 84,
+            "step_max": 0.125838279724121,
+            "step_p95": 0.0654795169830322,
+            "units": 96,
+            "variant": "baseline",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "frequent_facts",
+            "display_server": "headless",
+            "dropped_anchors": 0,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 10.8500000000001,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.999999702190413,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 4.536,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.988888888888889,
+            "stalls": 2136,
+            "step_max": 4.65000212192535,
+            "step_p95": 0.0,
+            "units": 96,
+            "variant": "baseline",
+            "visibility_errors": 0
+          },
+          {
+            "backward_steps": 0,
+            "case": "jitter_and_loss",
+            "display_server": "headless",
+            "dropped_anchors": 23,
+            "event_sequence": 240,
+            "frames": 360,
+            "gait_delta_max": 63.9354333333334,
+            "gait_rewinds": 0,
+            "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+            "mean_speed_ratio": 0.827865908222814,
+            "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "mode": "headless_inputs",
+            "multimesh_readback_errors": 0,
+            "multimesh_readback_samples": 0,
+            "pair_cpu_p95_ms": 4.37,
+            "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+            "raw_rule_bytes": 63617,
+            "rule_tick": 240,
+            "samples": 2160,
+            "stall_ratio": 0.915740740740741,
+            "stalls": 1978,
+            "step_max": 9.8151695728302,
+            "step_p95": 0.052699089050293,
+            "units": 96,
+            "variant": "baseline",
+            "visibility_errors": 0
+          }
+        ],
+        "summary": [
+          "CLIENT_MOTION checks=44 failures=10"
+        ],
+        "diagnostics": [
+          "ERROR: Failed to read the root certificate store.",
+          "FAIL clean ordinary march does not periodically stop",
+          "FAIL clean no abrupt walking-pose phase jump",
+          "FAIL soldier blocked at the gate freezes position and walking gait for every frame",
+          "FAIL frequent_facts ordinary march does not periodically stop",
+          "FAIL frequent_facts rendered position has no multi-frame correction jump",
+          "FAIL frequent_facts no abrupt walking-pose phase jump",
+          "FAIL jitter_and_loss ordinary march does not periodically stop",
+          "FAIL jitter_and_loss rendered travel retains ordinary speed",
+          "FAIL jitter_and_loss rendered position has no multi-frame correction jump",
+          "FAIL jitter_and_loss no abrupt walking-pose phase jump"
+        ]
+      }
+    ],
+    "equivalence_errors": []
+  },
+  "rendered_motion_ab": {
+    "baseline": {
+      "source_log_sha256": "b2668a0380d29008be2661d7cb49eeff21a28741bf1fbda591c8297f4c37551d",
+      "metrics": [
+        {
+          "backward_steps": 0,
+          "case": "clean",
+          "display_server": "Windows",
+          "dropped_anchors": 0,
+          "event_sequence": 1,
+          "frames": 360,
+          "gait_delta_max": 2.54613333333347,
+          "gait_rewinds": 0,
+          "host_rule_hash": "b6f5589d7a24e8e971d218d63b7ab6b392497ee38780074b41409a9dc63524f0",
+          "mean_speed_ratio": 0.999999711804065,
+          "mirror_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+          "mode": "rendered",
+          "multimesh_readback_errors": 0,
+          "multimesh_readback_samples": 2886,
+          "pair_cpu_p95_ms": 3.273,
+          "public_rule_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+          "raw_rule_bytes": 667,
+          "rule_tick": 240,
+          "samples": 2160,
+          "stall_ratio": 0.0361111111111111,
+          "stalls": 78,
+          "step_max": 0.117986679077148,
+          "step_p95": 0.0654375553131104,
+          "units": 96,
+          "variant": "baseline",
+          "visibility_errors": 0
+        },
+        {
+          "backward_steps": 0,
+          "case": "frequent_facts",
+          "display_server": "Windows",
+          "dropped_anchors": 0,
+          "event_sequence": 240,
+          "frames": 360,
+          "gait_delta_max": 10.8500000000001,
+          "gait_rewinds": 0,
+          "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+          "mean_speed_ratio": 0.999999702190413,
+          "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "mode": "rendered",
+          "multimesh_readback_errors": 0,
+          "multimesh_readback_samples": 2886,
+          "pair_cpu_p95_ms": 5.525,
+          "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "raw_rule_bytes": 63617,
+          "rule_tick": 240,
+          "samples": 2160,
+          "stall_ratio": 0.988888888888889,
+          "stalls": 2136,
+          "step_max": 4.65000212192535,
+          "step_p95": 0.0,
+          "units": 96,
+          "variant": "baseline",
+          "visibility_errors": 0
+        },
+        {
+          "backward_steps": 0,
+          "case": "jitter_and_loss",
+          "display_server": "Windows",
+          "dropped_anchors": 23,
+          "event_sequence": 240,
+          "frames": 360,
+          "gait_delta_max": 63.8920333333334,
+          "gait_rewinds": 0,
+          "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+          "mean_speed_ratio": 0.827170390382035,
+          "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "mode": "rendered",
+          "multimesh_readback_errors": 0,
+          "multimesh_readback_samples": 2886,
+          "pair_cpu_p95_ms": 4.603,
+          "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "raw_rule_bytes": 63617,
+          "rule_tick": 240,
+          "samples": 2160,
+          "stall_ratio": 0.915740740740741,
+          "stalls": 1978,
+          "step_max": 9.79214143753052,
+          "step_p95": 0.0504417419433594,
+          "units": 96,
+          "variant": "baseline",
+          "visibility_errors": 0
+        }
+      ],
+      "summary": [
+        "CLIENT_MOTION checks=48 failures=10"
+      ],
+      "diagnostics": [
+        "ERROR: Failed to read the root certificate store.",
+        "FAIL clean ordinary march does not periodically stop",
+        "FAIL clean no abrupt walking-pose phase jump",
+        "FAIL soldier blocked at the gate freezes position and walking gait for every frame",
+        "FAIL frequent_facts ordinary march does not periodically stop",
+        "FAIL frequent_facts rendered position has no multi-frame correction jump",
+        "FAIL frequent_facts no abrupt walking-pose phase jump",
+        "FAIL jitter_and_loss ordinary march does not periodically stop",
+        "FAIL jitter_and_loss rendered travel retains ordinary speed",
+        "FAIL jitter_and_loss rendered position has no multi-frame correction jump",
+        "FAIL jitter_and_loss no abrupt walking-pose phase jump"
+      ]
+    },
+    "current": {
+      "source_log_sha256": "cda80cdb2cbac2161aa2dd44e4a0f154af18dd76f261afad11194d572e0afdd7",
+      "metrics": [
+        {
+          "backward_steps": 0,
+          "case": "clean",
+          "display_server": "Windows",
+          "dropped_anchors": 0,
+          "event_sequence": 1,
+          "frames": 360,
+          "gait_delta_max": 0.372246697721877,
+          "gait_rewinds": 0,
+          "host_rule_hash": "b6f5589d7a24e8e971d218d63b7ab6b392497ee38780074b41409a9dc63524f0",
+          "mean_speed_ratio": 0.999334029399366,
+          "mirror_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+          "mode": "rendered",
+          "multimesh_readback_errors": 0,
+          "multimesh_readback_samples": 2886,
+          "pair_cpu_p95_ms": 3.184,
+          "public_rule_hash": "e0076ced627a2a12b7ec3f0e00a91045da00781988454456939e3156a7026947",
+          "raw_rule_bytes": 667,
+          "rule_tick": 240,
+          "samples": 2160,
+          "stall_ratio": 0.0,
+          "stalls": 0,
+          "step_max": 0.0531787872314453,
+          "step_p95": 0.0529061555862427,
+          "units": 96,
+          "variant": "current",
+          "visibility_errors": 0
+        },
+        {
+          "backward_steps": 0,
+          "case": "frequent_facts",
+          "display_server": "Windows",
+          "dropped_anchors": 0,
+          "event_sequence": 240,
+          "frames": 360,
+          "gait_delta_max": 0.36323064080662,
+          "gait_rewinds": 0,
+          "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+          "mean_speed_ratio": 0.999610790428722,
+          "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "mode": "rendered",
+          "multimesh_readback_errors": 0,
+          "multimesh_readback_samples": 2886,
+          "pair_cpu_p95_ms": 6.242,
+          "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "raw_rule_bytes": 63617,
+          "rule_tick": 240,
+          "samples": 2160,
+          "stall_ratio": 0.0,
+          "stalls": 0,
+          "step_max": 0.0518903732299805,
+          "step_p95": 0.051753044128418,
+          "units": 96,
+          "variant": "current",
+          "visibility_errors": 0
+        },
+        {
+          "backward_steps": 0,
+          "case": "jitter_and_loss",
+          "display_server": "Windows",
+          "dropped_anchors": 23,
+          "event_sequence": 240,
+          "frames": 360,
+          "gait_delta_max": 0.388061434538685,
+          "gait_rewinds": 0,
+          "host_rule_hash": "357489a00533969cd47edbf2ef67354a32455b2ead8e04f6923cd1b18776eb74",
+          "mean_speed_ratio": 0.998876358659464,
+          "mirror_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "mode": "rendered",
+          "multimesh_readback_errors": 0,
+          "multimesh_readback_samples": 2886,
+          "pair_cpu_p95_ms": 6.043,
+          "public_rule_hash": "c3f041278f96ab836f402602f465ec64418e4f2591502a0c82d1a8643590d414",
+          "raw_rule_bytes": 63617,
+          "rule_tick": 240,
+          "samples": 2160,
+          "stall_ratio": 0.0,
+          "stalls": 0,
+          "step_max": 0.0554389953613281,
+          "step_p95": 0.052764892578125,
+          "units": 96,
+          "variant": "current",
+          "visibility_errors": 0
+        }
+      ],
+      "summary": [
+        "CLIENT_MOTION checks=48 failures=0"
+      ],
+      "diagnostics": [
+        "ERROR: Failed to read the root certificate store."
+      ]
+    }
+  },
+  "source_sha256_lf": {
+    "scripts/block_war/war_marches.gd": "445650488cea30e62a2168ddb0001d0b88580afdab8c060c1211701e79e3f8b7",
+    "scripts/network/war_network_match.gd": "3a45e6b09af9aa3ffa189905ea1fc0769175cb43adabfafcb05ac1432a772cea",
+    "scripts/network/war_snapshot.gd": "05b131fee7801365606c628e33cbb0cd301e122ec7e3cafbb2ebfc9579ff547e",
+    "data/block_war/network_manifest.json": "81baa5d3ee47467780fc390696a66bc8da036c8a7d6ead8bd73d934c897df23c"
+  },
+  "static_checks": {
+    "manifest_inputs": 129,
+    "runtime_files": 237,
+    "reference_errors": 0
+  },
+  "process_cleanup": {
+    "command": "Get-CimInstance Win32_Process with Godot headless/check-only and task-specific renderer/runner filters",
+    "remaining_test_processes": [],
+    "normal_editor_preserved": true
+  },
+  "limitations": [
+    "Headless trajectories are renderer inputs; GPU evidence comes from the separate Vulkan runs.",
+    "Motion uses virtual 60 Hz steps with serialized fake-network delay/loss; this is not a public-network FPS benchmark.",
+    "Private desktop renderer is capped at 24 FPS; reported CPU times exclude its frame wait.",
+    "Native DTLS completed 66 checks; two TLS handshake diagnostics appeared during the reconnect test and are retained in its receipt.",
+    "4096-soldier client presentation averaged 33.45 ms CPU; no claim of stable 60 FPS at that load.",
+    "No client EXE export or remote Relay deployment in this task."
+  ]
+}

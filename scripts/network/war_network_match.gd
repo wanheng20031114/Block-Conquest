@@ -6,6 +6,7 @@ const ANCHOR_INTERVAL := 0.5
 const CHUNK_BYTES := 720
 const MAX_BLOB_BYTES := 8 * 1024 * 1024
 const MAX_PENDING_EVENTS := 2048
+const MAX_PENDING_ANCHOR_ROWS := Snapshot.MAX_RECORDS
 const BULK_BYTES_PER_SECOND := 131072.0
 const MAX_OUTBOX_BYTES := 48 * 1024 * 1024
 const RECORD_TIME_INDEX := {"buildings": 11, "factions": 8, "units": 12}
@@ -58,6 +59,7 @@ var _since_digest := 0.0
 var _since_time := 0.0
 var _silence := 0.0
 var _gap_age := 0.0
+var _gap_transfer: Dictionary = {}
 var _last_resync_ms := -10000
 var _snapshot_loading := true
 var _result_sent := false
@@ -203,10 +205,7 @@ func process(delta: float) -> void:
 			online.send_match("ack", {"op": "time", "stamp": stamp}, -1, 1, true)
 			for key: int in _time_requests.keys():
 				if stamp - key > 10000: _time_requests.erase(key)
-		if not _pending.is_empty():
-			_gap_age += delta
-			if _gap_age > 2.0: _request_resync("event_gap")
-		else: _gap_age = 0.0
+		_check_event_gap(delta, Time.get_ticks_msec())
 		if _silence > 2.0:
 			_set_transport_paused(true)
 			_request_resync("authority_silence")
@@ -214,13 +213,8 @@ func process(delta: float) -> void:
 		if not _snapshot_loading and not _mirror.is_empty():
 			_set_transport_paused(_recovery_waiting)
 			game.hud.set_network_status("正在追上战况" if _recovery_waiting else "", "等待后续战斗事件确认" if _recovery_waiting else "")
-			_apply_view()
-			# Follow the Host clock with a small display delay. Pauses never accrue
-			# simulation debt, and absent packets can predict at most half a second.
-			var ahead := 0.0 if game.is_rule_paused() else minf(0.5, maxf(0.0, float(Time.get_ticks_msec() - _host_received_ms) / 1000.0))
-			var target := _host_time + ahead + rtt_ms / 2000.0 - 0.1
-			var step := clampf(target - game.elapsed, 0.0, delta * 1.15)
-			codec.present(game, _view, step)
+			_apply_view(true)
+			codec.present(game, _view, _presentation_step(delta))
 			_apply_account()
 			_maybe_finish()
 
@@ -385,7 +379,9 @@ func _on_message(sender: int, kind: String, payload: Dictionary) -> void:
 			if not Snapshot._integer(payload.get("tick"), 0, 2147483647) or not Snapshot._number(payload.get("time")): return
 			var stamp := int(payload.get("stamp", -1)) if Snapshot._integer(payload.get("stamp"), 0, 9007199254740991) else -1
 			if _time_requests.has(stamp):
-				rtt_ms = float(Time.get_ticks_msec() - stamp); _time_requests.erase(stamp)
+				var sample := float(Time.get_ticks_msec() - stamp)
+				rtt_ms = sample if rtt_ms <= 0.0 else lerpf(rtt_ms, sample, 0.125)
+				_time_requests.erase(stamp)
 			_set_clock(float(payload.time), int(payload.tick))
 		"finished":
 			if Snapshot._integer(payload.get("winner"), -1, 1) and Snapshot._integer(payload.get("seq"), 0, 2147483647):
@@ -399,6 +395,25 @@ func _receive_events(payload: Dictionary) -> void:
 		_pending.clear(); _request_resync(); return
 	_pending[seq] = payload
 	_drain_events()
+
+func _check_event_gap(delta: float, now: int) -> void:
+	if _snapshot_loading or _pending.is_empty():
+		_gap_age = 0.0
+		_gap_transfer.clear()
+		return
+	_gap_age += delta
+	if _gap_age <= 2.0: return
+	# Later small facts can overtake an event blob on the bulk stream. Allow
+	# one already-active transfer its existing deadline, never a rolling timeout
+	# extended by unrelated blobs. Completing it must advance the missing seq.
+	if _gap_transfer.is_empty():
+		for id: String in _blobs:
+			var blob: Dictionary = _blobs[id]
+			if blob.meta.purpose != "events": continue
+			if _gap_transfer.is_empty() or int(blob.deadline) < int(_gap_transfer.deadline):
+				_gap_transfer = {"id": id, "deadline": int(blob.deadline)}
+	if not _gap_transfer.is_empty() and _blobs.has(_gap_transfer.id) and now < int(_gap_transfer.deadline): return
+	_request_resync("event_gap")
 
 func _drain_events() -> void:
 	if _snapshot_loading or _mirror.is_empty(): return
@@ -415,10 +430,14 @@ func _drain_events() -> void:
 		if not Snapshot.valid(candidate, game):
 			_request_resync("invalid_state"); return
 		_pending.erase(_applied + 1); _applied += 1
+		_gap_age = 0.0
+		_gap_transfer.clear()
 		_mirror = candidate
+		_set_clock(float(payload.time), int(payload.tick))
 		_view_dirty = true
 		for visual: Variant in payload.get("visuals", []):
 			if visual is Dictionary and _queued_visuals.size() < 4096: _queued_visuals.append(visual)
+	_replay_pending_anchors()
 	_try_recovery_ack()
 
 func _valid_patch(payload: Dictionary) -> bool:
@@ -438,13 +457,18 @@ func _valid_patch(payload: Dictionary) -> bool:
 
 var _anchor_versions: Dictionary = {}
 var _anchor_state: Dictionary = {}
+var _pending_anchors: Dictionary = {}
 
 func _receive_anchor(payload: Dictionary) -> void:
-	if _snapshot_loading or _mirror.is_empty() or not Snapshot._integer(payload.get("base"), 0, 2147483647) or int(payload.base) > _applied: return
+	if _snapshot_loading or _mirror.is_empty() or not Snapshot._integer(payload.get("base"), 0, 2147483647): return
 	if payload.get("group") not in ["buildings", "factions", "units"] or not payload.get("rows") is Dictionary or not Snapshot._integer(payload.get("tick"), 0, 2147483647) or not Snapshot._number(payload.get("time")): return
 	var group: String = payload.group
 	if payload.rows.size() > 32: return
+	if int(payload.base) > _applied:
+		_queue_future_anchor(payload)
+		return
 	if not _anchor_state.has(group): _anchor_state[group] = {}
+	var accepted := false
 	for key: Variant in payload.rows:
 		if not key is String or not _mirror[group].has(key): continue
 		var stamp: String = group + ":" + str(key)
@@ -452,6 +476,9 @@ func _receive_anchor(payload: Dictionary) -> void:
 		var row: Variant = payload.rows[key]
 		if group == "units":
 			if not Snapshot._integer(row, -10000000, 10000000): continue
+			# Compact rows carry no order ID. A later same-time transaction may
+			# have redirected this soldier, so an earlier base cannot identify it.
+			if int(payload.base) < _applied and float(payload.time) <= _record_time(group, _mirror.units[key]): continue
 			var distance: float = float(row) / 1000.0
 			row = _mirror.units[key].duplicate(false)
 			row[13] = float(row[13]) + maxf(0.0, distance - float(row[1])) * 7.0
@@ -464,8 +491,40 @@ func _receive_anchor(payload: Dictionary) -> void:
 		_anchor_versions[stamp] = int(payload.tick)
 		_anchor_state[group][key] = row
 		_view_dirty = true
+		accepted = true
+	if accepted: _set_clock(float(payload.time), int(payload.tick))
 
-func _apply_view() -> void:
+func _queue_future_anchor(payload: Dictionary) -> void:
+	if not Snapshot._nonnegative(payload.time): return
+	var group: String = payload.group
+	for key: Variant in payload.rows:
+		if not key is String: continue
+		var row: Variant = payload.rows[key]
+		if group == "units":
+			if not Snapshot._integer(row, -10000000, 10000000): continue
+		elif not Snapshot.valid_record(group, row, game): continue
+		var stamp: String = group + ":" + key
+		if int(payload.tick) <= int(_anchor_versions.get(stamp, -1)): continue
+		if _pending_anchors.has(stamp) and int(payload.tick) <= int(_pending_anchors[stamp].tick): continue
+		_pending_anchors.erase(stamp)
+		if _pending_anchors.size() >= MAX_PENDING_ANCHOR_ROWS:
+			# These optional absolute rows can be replaced or dropped. Evict in
+			# batches so overflowing traffic does not allocate all keys per row.
+			var oldest: Array = _pending_anchors.keys()
+			for index: int in ceili(MAX_PENDING_ANCHOR_ROWS / 4.0):
+				_pending_anchors.erase(oldest[index])
+		_pending_anchors[stamp] = {"group": group, "rows": {key: row}, "base": payload.base, "tick": payload.tick, "time": payload.time}
+
+func _replay_pending_anchors() -> void:
+	for stamp: String in _pending_anchors.keys():
+		var payload: Dictionary = _pending_anchors[stamp]
+		if int(payload.base) > _applied: continue
+		_pending_anchors.erase(stamp)
+		# Re-run existence, version, structure and timestamp checks against the
+		# committed state; queuing alone never changes the view or Host clock.
+		_receive_anchor(payload)
+
+func _apply_view(defer_render: bool = false) -> void:
 	if not _view_dirty: return
 	# A network service pass may deliver hundreds of small absolute anchors.
 	# Compose and install once per frame, never once per packet or soldier.
@@ -478,7 +537,12 @@ func _apply_view() -> void:
 				records.erase(key)
 				_anchor_versions.erase(name + ":" + key)
 			else: _view[name][key] = records[key]
-	var control_changed: bool = codec.install(game, _view, float(_mirror.time) if _mirror.match_control.paused else maxf(game.elapsed, float(_mirror.time)), true)
+	# Ordinary facts must not jump the display clock: unchanged soldiers retain
+	# their local poses, and present() is responsible for advancing all of them.
+	# Only explicit pause/resume boundaries (and snapshot installation) align it.
+	var control_boundary: bool = game.match_paused != _mirror.match_control.paused
+	var now: float = float(_mirror.time) if control_boundary or _mirror.match_control.paused else game.elapsed
+	var control_changed: bool = codec.install(game, _view, now, true, defer_render)
 	_view_dirty = false
 	_apply_account()
 	# HUD ready/cooldown edges must only observe the complete public + private
@@ -489,10 +553,21 @@ func _apply_view() -> void:
 	_queued_visuals.clear()
 
 func _set_clock(time: float, tick: int) -> void:
-	if tick < _host_tick or time < 0.0: return
+	# Repeated heartbeats for the same tick must not restart extrapolation age.
+	if tick < _host_tick or time < 0.0 or (tick == _host_tick and time <= _host_time): return
 	_host_tick = tick
 	_host_time = time
 	_host_received_ms = Time.get_ticks_msec()
+
+func _presentation_step(delta: float) -> float:
+	if delta <= 0.0 or game.is_rule_paused(): return 0.0
+	var age := maxf(0.0, float(Time.get_ticks_msec() - _host_received_ms) / 1000.0)
+	var limit := _host_time + 0.5 + rtt_ms / 2000.0
+	var target := _host_time + minf(0.5, age) + rtt_ms / 2000.0 - 0.1
+	# Ease clock error through speed, never alternating zero-time frames and
+	# jumps on packet arrival. A stale authority still has a finite prediction cap.
+	var rate := clampf(1.0 + (target - game.elapsed - delta) * 2.0, 0.9, 1.1)
+	return minf(delta * rate, maxf(0.0, limit - game.elapsed))
 
 func _maybe_finish() -> void:
 	if _finish_pending.is_empty() or _snapshot_loading or int(_finish_pending.seq) > _applied: return
@@ -661,17 +736,20 @@ func _install_snapshot(payload: Dictionary) -> void:
 	_snapshot_tick = int(payload.view.tick)
 	codec = Snapshot.new()
 	_anchor_state.clear(); _anchor_versions.clear()
+	_pending_anchors.clear()
 	for group: String in ["buildings", "factions", "units"]:
 		_anchor_state[group] = payload.view[group].duplicate(false)
 		for key: String in _anchor_state[group]: _anchor_versions[group + ":" + key] = _snapshot_tick
 	_view_dirty = true
 	game.elapsed = float(payload.view.time)
+	_host_tick = -1
 	# Multiple control transactions can change energy income at one paused tick.
 	# A recovery baseline must not replace a newer private account from that tick.
 	if _snapshot_tick > _account_tick or (_snapshot_tick == _account_tick and _applied >= _account_base):
 		_account = payload.account; _account_tick = _snapshot_tick; _account_base = _applied
 	_set_clock(float(payload.view.time), _snapshot_tick)
 	_snapshot_loading = false; _gap_age = 0.0
+	_gap_transfer.clear()
 	for seq: int in _pending.keys():
 		if seq <= _applied: _pending.erase(seq)
 	_drain_events()
