@@ -60,7 +60,7 @@ func verify_near_full_stars() -> void:
 		hud.update_state(sample([100, 100], [0.0, example[0]]))
 		check(absf(star.value - (float(example[0]) - 4.0)) < 0.000000000001, "near-full charge keeps its original continuous ratio %s" % example[0])
 		check(star.tint_progress.r <= 0.65 and star.tint_progress.g <= 0.65 and star.tint_progress.b <= 0.65 and star.tint_progress.a == 1.0 and not star.get_node("Glow").visible, "dropping below full charge immediately dims gold and removes glow %s" % example[0])
-		check(row.tooltip_text.contains("敌方一 · 4 星") and row.tooltip_text.contains("攻击 +20% · 防御 +100% · 移速 +40%") and row.tooltip_text.ends_with("下颗星充能 " + example[1]), "tooltip keeps whole-star bonuses and floors the next-star percentage %s" % example[0])
+		check(row.tooltip_text.contains("敌方一 · 4 星") and row.tooltip_text.contains("攻击 +20% · 防御 +80% · 移速 +40%") and row.tooltip_text.ends_with("下颗星充能 " + example[1]), "tooltip keeps whole-star bonuses and floors the next-star percentage %s" % example[0])
 		hud.update_state(sample([100, 100], [0.0, 5.0]))
 		check(star.tint_progress == Color.WHITE and star.get_node("Glow").visible, "refilling restores full brightness and glow %s" % example[0])
 
@@ -79,7 +79,7 @@ func verify(totals: Array, morale: Array, label: String) -> void:
 		if faction >= totals.size():
 			continue
 		check(row.get_child_count() == 5, label + " five authored slots %d" % faction)
-		check(row.tooltip_text.contains("%d 星" % floori(float(morale[faction]))) and row.tooltip_text.contains("防御 +%d%%" % (floori(float(morale[faction])) * 25)), label + " tooltip uses complete star bonuses %d" % faction)
+		check(row.tooltip_text.contains("%d 星" % floori(float(morale[faction]))) and row.tooltip_text.contains("防御 +%d%%" % (floori(float(morale[faction])) * 20)), label + " tooltip uses complete star bonuses %d" % faction)
 		check(row.mouse_filter == Control.MOUSE_FILTER_PASS and not hud.is_pointer_blocked(row.get_global_rect().get_center()), label + " morale hover preserves battlefield input %d" % faction)
 		if population > 0.0:
 			check(absf(segment.position.x - right) < 0.1 and absf(segment.size.x / balance.size.x - float(totals[faction]) / population) < 0.001, label + " exact public building share %d" % faction)

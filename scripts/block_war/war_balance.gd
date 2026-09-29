@@ -37,7 +37,7 @@ func update_factions(building_counts: Array, morale: Array, count: int, local_fa
 		targets[faction] = float(building_counts[faction]) / total if _has_buildings else 1.0 / float(count)
 		var row: HBoxContainer = get_node("Stars/Faction%d" % faction)
 		var full_stars: int = floori(float(morale[faction]))
-		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [names[faction] if names.size() == count else FACTIONS.NAMES[faction], full_stars, full_stars * 5, full_stars * 25, full_stars * 10]
+		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [names[faction] if names.size() == count else FACTIONS.NAMES[faction], full_stars, full_stars * 5, roundi(full_stars * WarMorale.DEFENSE_PER_STAR * 100.0), full_stars * 10]
 		row.tooltip_text += "\n%d 处据点 · 顶部色带表示据点占比\n己方数字为联盟总兵力，敌方总兵力未知" % int(building_counts[faction])
 		if full_stars < 5:
 			var next_star_percent: float = floorf((float(morale[faction]) - full_stars) * 1000.0) / 10.0

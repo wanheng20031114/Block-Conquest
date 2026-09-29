@@ -38,7 +38,7 @@ func _levels_and_stars() -> void:
 		var morale := fresh(thresholds[whole])
 		check(morale.level(0) == whole and morale.stars(0) == float(whole), "threshold_enters_level_%d" % whole)
 		check(is_equal_approx(morale.attack(0), 1.0 + 0.05 * whole), "attack_bonus_level_%d" % whole)
-		check(is_equal_approx(morale.defense(0), 1.0 + 0.25 * whole), "defense_bonus_level_%d" % whole)
+		check(is_equal_approx(morale.defense(0), 1.0 + 0.20 * whole), "defense_bonus_level_%d" % whole)
 		check(is_equal_approx(morale.speed(0), 1.0 + 0.1 * whole), "speed_bonus_level_%d" % whole)
 		if whole < thresholds.size() - 1:
 			morale.adjust(0, (thresholds[whole + 1] - thresholds[whole]) * 0.5)

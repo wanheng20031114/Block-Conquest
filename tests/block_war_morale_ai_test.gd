@@ -57,7 +57,11 @@ func _run() -> void:
 	game.audio.muted = true
 	ai = AI.new(0)
 
-	var target := reset(0.0, 490.0, 160.0)
+	# At 20% defense per star, 240 defenders outlast the static 334-soldier
+	# wave. Independently summing damage gives 1 + 50*(5/6) + 100*(5/7) +
+	# 200*(5/8) through arrival 351; 19/21 defenders remain. Arrival 352
+	# deals 5/9, leaving 22/63, so only arrival 353 captures the building.
+	var target := reset(0.0, 490.0, 240.0)
 	var old_requirement: float = target.population / game.combat_multiplier(0, target) * 1.35 + 10.0
 	var updated_requirement: float = ai._assault_losses(game, target, target.population) * 1.35 + 10.0
 	for unit: int in ceili(old_requirement):
@@ -68,7 +72,7 @@ func _run() -> void:
 	while target.faction != 0 and required < 1000:
 		game._on_unit_arrived(1, 0, 1.0)
 		required += 1
-	check(required == 243, "160 defenders starting at 490 morale require 243 real arrivals")
+	check(required == 353, "240 defenders starting at 490 morale require 353 real arrivals")
 	check(updated_requirement >= required, "updated estimate and unchanged margin cover the proven underestimation")
 
 	for attacking: float in [0.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0]:

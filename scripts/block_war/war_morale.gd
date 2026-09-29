@@ -14,6 +14,7 @@ const DECAY_PER_SECOND: Array[float] = [10.0, 20.0, 25.0, 50.0, 100.0, 200.0]
 const MAX_POINTS := 8000.0
 const KILL_REWARD := 10.0
 const ATTACKER_LOSS_PENALTY := 10.0
+const DEFENSE_PER_STAR := 0.20
 # A nanosecond tolerance only absorbs floating-point clock accumulation. It
 # never changes morale thresholds, levels, or the integer settlement times.
 const CLOCK_TOLERANCE := 0.000000001
@@ -69,7 +70,7 @@ func attack(faction: int) -> float:
 	return 1.0 if faction < 0 else 1.0 + 0.05 * level(faction)
 
 func defense(faction: int) -> float:
-	return 1.0 if faction < 0 else 1.0 + 0.25 * level(faction)
+	return 1.0 if faction < 0 else 1.0 + DEFENSE_PER_STAR * level(faction)
 
 func speed(faction: int) -> float:
 	return 1.0 if faction < 0 else 1.0 + 0.1 * level(faction)
