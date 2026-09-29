@@ -9,18 +9,34 @@
   "original_svg_sha256": "0d2654ec47e6d05d03ccaf7ba7d4d2a38435fba5b0ade123045c4ea8e2b74cf3",
   "verified_against_upstream": "2026-09-29",
   "local_source": "noto_emoji_u1f416.svg",
-  "runtime_asset": "assets/ui/block_war/commanders/pig.svg",
+  "runtime_asset": "assets/ui/block_war/commanders/pig.png",
   "source_modifications": [],
   "processing": [
-    "Original source and runtime SVG are byte-for-byte identical to upstream",
-    "Native Godot SVG import at scale 4.5, yielding 576 by 576 pixels",
-    "Original vector alpha preserved; no RGB-based background removal or recoloring",
-    "Runtime display transforms and game effects are separate from the original artwork"
+    "Original Google SVG retained unchanged in source archive; no longer used as the runtime portrait",
+    "New pixel-art character generated from a text brief using built-in image_gen on 2026-09-29",
+    "Native 1254 by 1254 RGBA PNG copied byte-for-byte; alpha preserved, no RGB-based background extraction or resizing",
+    "Hero selection, map opponents, encyclopedia, HUD and giant-pig effect share the new texture"
   ],
   "distribution_notices": [
     "licenses/Apache-2.0.txt",
     "licenses/Noto-Emoji-LICENSE.txt",
     "licenses/PIG_NOTICES.txt"
   ],
-  "reference_project": "Bot Jump's provenance and original SVG archive; no modified Bot Jump images reused"
+  "reference_project": "Bot Jump's provenance and original SVG archive; no modified Bot Jump images reused",
+  "generated_runtime": {
+    "tool": "OpenAI built-in image_gen",
+    "date": "2026-09-29",
+    "prompt_file": "pixel_prompt.txt",
+    "sha256": "df123e3256ce8d30f0069539cb51624c013608d61c71d2020547b94092074fca",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "image_inputs": [],
+    "visual_style_references": [
+      "assets/ui/block_war/commanders/rabbit.png",
+      "assets/ui/block_war/commanders/bear.png",
+      "assets/ui/block_war/commanders/fox.png"
+    ],
+    "design_changes": "New standing pink pig with blue waistcoat, cream neckerchief, belt, curled tail and chunky chocolate pixel outlines. Existing hero portraits were inspected to formulate the text prompt."
+  }
 }

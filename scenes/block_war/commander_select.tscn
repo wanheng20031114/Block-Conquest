@@ -14,7 +14,7 @@
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/bear.png" id="bear"]
 
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/pig.svg" id="pig"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/pig.png" id="pig"]
 
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/fox.png" id="fox"]
 

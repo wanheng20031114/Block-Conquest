@@ -14,19 +14,28 @@ Source license: svg/LICENSE
 Original SHA-256:
 0d2654ec47e6d05d03ccaf7ba7d4d2a38435fba5b0ade123045c4ea8e2b74cf3
 
-Runtime asset: assets/ui/block_war/commanders/pig.svg
+Archived reference: assets/source/block_war/pig/noto_emoji_u1f416.svg
+Runtime asset: assets/ui/block_war/commanders/pig.png
 Source record: assets/source/block_war/pig/provenance.json
+Generation prompt: assets/source/block_war/pig/pixel_prompt.txt
 
-The original SVG is used unchanged. Godot rasterizes it at import time
-with its original transparency; display scaling and game animation do
-not change the source artwork. In-game effects, skill rules and character
-presentation are additions by Block Conquest, not part of Google's artwork.
+The original Google SVG is retained unchanged as an archived reference.
+On 2026-09-29, the runtime portrait was replaced with a newly generated
+pixel-art pig commander: pink skin, a blue waistcoat, a cream neckerchief,
+and a standing pose matching this game's animal hero roster. The new PNG
+was generated with the built-in OpenAI image_gen tool from the recorded
+text prompt, not rasterized or recolored from the Google SVG. The native
+RGBA transparency is preserved without color-based background removal.
+The new character presentation and game effects are additions by Block
+Conquest; they are not official Google artwork.
 
-本项目直接复用 Google 官方 Noto Emoji 的粉色猪原始 SVG，保留原色、
-造型和原生透明背景。来源与授权流程参考 Bot Jump 工程，但未使用
-Bot Jump 中灰白飞行猪、翅膀或炸弹的改编图。原始文件未经重绘、抠图
-或重新着色。Godot 在导入时按 4.5 倍栅格化为 576 × 576 纹理。
-猪猪头像与“特大猪”效果可复用同一份经授权的原始图像。
+本项目最初使用 Google Noto Emoji 的粉色猪，现将该原始 SVG 保留于
+来源档案。来源与授权流程参考 Bot Jump 工程，未使用其中灰白飞行猪、
+翅膀或炸弹的改编图。2026-09-29 起，运行时改用新生成的像素猪猪：
+粉色身体、蓝色马甲、奶白围巾、直立姿态，与兔子、熊和狐狸画风一致。
+新 PNG 由内置 image_gen 按记录的文本提示词生成，保留原生 Alpha，
+未用代码生成图像、按颜色抠图或将原始 emoji 简单像素化。
+猪猪头像、百科和“特大猪”共用该像素图；其造型不是 Google 官方作品。
 
 Redistributions containing this artwork must retain its copyright notice
 and the Apache License 2.0. Modified versions must identify their changes.
@@ -34,6 +43,6 @@ This notice applies to the identified artwork, not unrelated game code
 or assets. It does not grant trademark rights. Google does not sponsor
 or endorse Block Conquest.
 
-分发包含此猪图的游戏时，请随附本声明、完整 Apache 2.0 许可证及
+分发包含上述 Google 原始素材的内容时，请随附本声明、完整 Apache 2.0 许可证及
 原始版权声明。上述授权不会将无关代码、音频或其他素材改为 Apache
 2.0 许可，也不表示 Google 为本游戏提供背书。

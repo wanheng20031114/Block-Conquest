@@ -184,7 +184,9 @@ func _pig() -> void:
 			range_ring.modulate = Color("e9aba1")
 			skill_icon.texture = RULES.PORTRAITS[&"pig"]
 			var extent := Vector2(62, 62) * Vector2(1.0 + sin(impact * PI) * 0.2, 1.0 - sin(impact * PI) * 0.3)
-			_place(skill_icon, target - Vector2(0, 88.0 - landing * landing * 68.0), extent)
+			# Keep the full portrait below the legend throughout its descent.
+			var start_y := maxf(target.y - 88.0, $Legend.get_rect().end.y + 8.0 + 31.0)
+			_place(skill_icon, Vector2(target.x, lerpf(start_y, target.y - 20.0, landing * landing)), extent)
 			skill_icon.modulate.a = 1.0 - _phase(0.60, 0.75)
 			for index: int in 3:
 				allies[index].visible = not struck

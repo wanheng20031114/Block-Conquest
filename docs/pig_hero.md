@@ -1,6 +1,6 @@
 # 猪猪
 
-第六位可选英雄；真人、单人电脑与联机电脑使用相同规则。图像来自 Google Noto Emoji U+1F416，完整 Apache 2.0 许可和来源见 `licenses/PIG_NOTICES.txt`。原始 SVG 未改绘。
+第六位可选英雄；真人、单人电脑与联机电脑使用相同规则。头像、百科和特大猪共用原生透明背景的新像素角色，与其他动物英雄统一画风。使用内置 image_gen 生成，提示词见 `assets/source/block_war/pig/pixel_prompt.txt`。早期 Google Noto Emoji U+1F416 参考 SVG 保留于来源档案，完整 Apache 2.0 许可和变更声明见 `licenses/PIG_NOTICES.txt`。
 
 | 技能 | 技力 / 冷却 | 行为 |
 | --- | --- | --- |

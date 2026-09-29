@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/block_war/war_pig_drop.gd" id="script"]
 [ext_resource type="Shader" path="res://assets/models/block_war/pig_ground.gdshader" id="shader"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/pig.svg" id="pig"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/pig.png" id="pig"]
 
 [sub_resource type="ShaderMaterial" id="GroundMaterial"]
 resource_local_to_scene = true
@@ -26,6 +26,7 @@ cast_shadow = 0
 [node name="Pig" type="Sprite3D" parent="."]
 position = Vector3(0, 13.75, 0)
 texture = ExtResource("pig")
-pixel_size = 0.00955
+texture_filter = 0
+pixel_size = 0.004385965
 billboard = 1
 cast_shadow = 0
