@@ -228,7 +228,7 @@ size_flags_vertical = 3
 
 [node name="Sidebar" type="PanelContainer" parent="Margin/Column/Body"]
 layout_mode = 2
-custom_minimum_size = Vector2(286, 0)
+custom_minimum_size = Vector2(246, 0)
 theme_override_styles/panel = SubResource("Sidebar")
 
 [node name="Navigation" type="VBoxContainer" parent="Margin/Column/Body/Sidebar"]
@@ -315,7 +315,7 @@ vertical_alignment = 1
 [node name="PageContent" type="VBoxContainer" parent="Margin/Column/Body/Book"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 9
 
 
 [node name="DetailTag" type="Label" parent="Margin/Column/Body/Book/PageContent"]
@@ -351,20 +351,20 @@ size_flags_vertical = 3
 
 [node name="PortraitColumn" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage"]
 layout_mode = 2
-theme_override_constants/separation = 15
-custom_minimum_size = Vector2(242, 0)
+theme_override_constants/separation = 8
+custom_minimum_size = Vector2(182, 0)
 
 [node name="PortraitStage" type="PanelContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn"]
 layout_mode = 2
-custom_minimum_size = Vector2(242, 282)
-size_flags_vertical = 3
+custom_minimum_size = Vector2(182, 128)
+size_flags_vertical = 0
 theme_override_styles/panel = SubResource("PortraitStage")
 
 [node name="Portrait" type="TextureRect" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/PortraitStage"]
 unique_name_in_owner = true
 layout_mode = 2
 texture = ExtResource("portrait")
-custom_minimum_size = Vector2(218, 230)
+custom_minimum_size = Vector2(156, 104)
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
@@ -374,7 +374,7 @@ texture_filter = 1
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 19
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -386,29 +386,29 @@ theme_override_styles/panel = SubResource("Note")
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 17
 autowrap_mode = 2
-custom_minimum_size = Vector2(206, 0)
+custom_minimum_size = Vector2(154, 0)
 
 [node name="Skills" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage"]
 layout_mode = 2
 theme_override_constants/separation = 10
 size_flags_horizontal = 3
 
-[node name="SkillTabs" type="GridContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills"]
+[node name="SkillTabs" type="GridContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn"]
 layout_mode = 2
-columns = 2
+columns = 1
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 8
 
-[node name="Skill0" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+[node name="Skill0" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/SkillTabs"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "技能"
 mouse_default_cursor_shape = 2
 theme_type_variation = &"MenuChoice"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 46)
+custom_minimum_size = Vector2(180, 42)
 toggle_mode = true
 expand_icon = true
 theme_override_constants/icon_max_width = 26
@@ -416,14 +416,14 @@ theme_override_constants/h_separation = 10
 theme_override_font_sizes/font_size = 20
 metadata/ui_motion_hover_scale = 1.012
 
-[node name="Skill1" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+[node name="Skill1" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/SkillTabs"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "技能"
 mouse_default_cursor_shape = 2
 theme_type_variation = &"MenuChoice"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 46)
+custom_minimum_size = Vector2(180, 42)
 toggle_mode = true
 expand_icon = true
 theme_override_constants/icon_max_width = 26
@@ -431,14 +431,14 @@ theme_override_constants/h_separation = 10
 theme_override_font_sizes/font_size = 20
 metadata/ui_motion_hover_scale = 1.012
 
-[node name="Skill2" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+[node name="Skill2" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/SkillTabs"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "技能"
 mouse_default_cursor_shape = 2
 theme_type_variation = &"MenuChoice"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 46)
+custom_minimum_size = Vector2(180, 42)
 toggle_mode = true
 expand_icon = true
 theme_override_constants/icon_max_width = 26
@@ -446,26 +446,32 @@ theme_override_constants/h_separation = 10
 theme_override_font_sizes/font_size = 20
 metadata/ui_motion_hover_scale = 1.012
 
-[node name="Skill3" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillTabs"]
+[node name="Skill3" type="Button" parent="Margin/Column/Body/Book/PageContent/HeroPage/PortraitColumn/SkillTabs"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "技能"
 mouse_default_cursor_shape = 2
 theme_type_variation = &"MenuChoice"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 46)
+custom_minimum_size = Vector2(180, 42)
 toggle_mode = true
 expand_icon = true
 theme_override_constants/icon_max_width = 26
 theme_override_constants/h_separation = 10
 theme_override_font_sizes/font_size = 20
 metadata/ui_motion_hover_scale = 1.012
+
+[node name="Demo" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills" instance=ExtResource("demo")]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 320)
+size_flags_vertical = 3
 
 [node name="SkillInfo" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 5
-custom_minimum_size = Vector2(0, 150)
+custom_minimum_size = Vector2(0, 130)
 
 [node name="SkillHeading" type="HBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/SkillInfo"]
 layout_mode = 2
@@ -501,12 +507,6 @@ text = ""
 theme_override_font_sizes/font_size = 20
 autowrap_mode = 2
 
-[node name="Demo" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills" instance=ExtResource("demo")]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 210)
-size_flags_vertical = 3
-
 [node name="Playback" type="HBoxContainer" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -514,7 +514,7 @@ theme_override_constants/separation = 8
 
 [node name="DemoNote" type="Label" parent="Margin/Column/Body/Book/PageContent/HeroPage/Skills/Playback"]
 layout_mode = 2
-text = "技能示意 · 时长与比例经简化"
+text = "实机演示 · 橙色己方 / 青色敌方"
 theme_override_font_sizes/font_size = 15
 size_flags_horizontal = 3
 size_flags_vertical = 4

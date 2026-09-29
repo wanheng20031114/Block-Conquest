@@ -17,6 +17,16 @@ rings = 6
 albedo_color = Color(0.20, 0.24, 0.25, 1)
 metallic = 0.35
 roughness = 0.32
+[sub_resource type="StandardMaterial3D" id="ShockMaterial"]
+resource_local_to_scene = true
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.86, 0.53, 0.8)
+[sub_resource type="TorusMesh" id="ShockMesh"]
+inner_radius = 0.88
+outer_radius = 1.0
+rings = 40
+ring_segments = 6
 [sub_resource type="StandardMaterial3D" id="Brass"]
 albedo_color = Color(0.92, 0.62, 0.27, 1)
 metallic = 0.6
@@ -175,4 +185,9 @@ cast_shadow = 0
 [node name="Wave" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.10, 0)
 mesh = SubResource("WaveMesh")
+cast_shadow = 0
+[node name="ImpactRing" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("ShockMesh")
+material_override = SubResource("ShockMaterial")
 cast_shadow = 0

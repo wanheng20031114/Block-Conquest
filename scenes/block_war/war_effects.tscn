@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/block_war/fox_effects.tscn" id="fox"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/pig_effects.tscn" id="pig"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/blast_casualties.tscn" id="blast_casualties"]
 
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_effects.tscn" id="rabbit"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/bear_effects.tscn" id="bear"]
@@ -178,6 +179,8 @@ script = ExtResource("script")
 
 [node name="Cannonballs" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Balls")
+
+[node name="BlastCasualties" parent="." instance=ExtResource("blast_casualties")]
 
 [node name="Casualties" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Casualties")

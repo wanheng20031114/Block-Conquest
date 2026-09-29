@@ -16,6 +16,7 @@ const EMIT_FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG
 
 func configure_surface(definition: WarMapDefinition) -> void:
 	map_definition = definition
+	$BlastCasualties.map_definition = definition
 	WarSurfaceEffects.configure($RecruitRings.multimesh.mesh.material, definition)
 	WarSurfaceEffects.configure($HasteFields.multimesh.mesh.material, definition)
 	$Rabbit.configure_surface(definition)
@@ -45,10 +46,24 @@ func hit(at: Vector3, direction: Vector3, muzzle: bool = false) -> void:
 	effect.get_node("Dust").restart()
 
 func casualty(at: Vector3, heading: Vector3, faction: int, impulse: Vector3, burning: bool) -> void:
+	if not burning and impulse.y > 0.4:
+		$BlastCasualties.soldier(at, heading, faction, impulse)
+		return
 	var push := Vector3(impulse.x, 0, impulse.z).normalized()
 	_deaths.append({"at": at, "heading": heading, "faction": faction, "impulse": push, "age": 0.0})
 	if not burning:
 		hit(at + Vector3(0, 0.6, 0), impulse)
+
+func garrison_blast(building: WarBuilding, loss: float, delay: float = 0.0) -> void:
+	# A bounded sample communicates garrison losses without creating live troops
+	# or publishing the building's hidden population to the other client.
+	if floori(loss + 0.000001) <= 0: return
+	# Even a capped exact sample leaks low enemy garrisons through percentage
+	# skills. Owned buildings therefore use a fixed, illustrative visual burst.
+	var count: int = $BlastCasualties.FACTION_BURST if building.faction >= 0 else mini($BlastCasualties.MAX_BURST, floori(loss + 0.000001))
+	var at := building.global_position + Vector3.UP * (1.2 + building.level * 0.2)
+	$BlastCasualties.burst(at, building.faction, count, delay)
+	get_parent().presentation_event.emit("garrison_blast", {"at": [at.x, at.y, at.z], "faction": building.faction, "count": count, "delay": delay})
 
 func start_fire(at: Vector3, radius: float, faction: int = 0) -> RefCounted:
 	# Compatibility for existing skill fixtures; the match owns the rule state.
@@ -132,6 +147,7 @@ func burst(at: Vector3, color: Color, impact: bool = false) -> void:
 		_light_remaining = 0.35
 
 func tick(delta: float) -> void:
+	$BlastCasualties.tick(delta)
 	$Rabbit.tick(delta)
 	$PigEffects.tick(delta)
 	_light_remaining = maxf(0.0, _light_remaining - delta)

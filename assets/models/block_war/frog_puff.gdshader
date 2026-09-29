@@ -5,6 +5,8 @@ void vertex() {
 }
 void fragment() {
     vec2 p = UV * 2.0 - 1.0;
-    ALBEDO = COLOR.rgb;
-    ALPHA = (1.0 - smoothstep(0.15, 1.0, length(p))) * COLOR.a * 0.15;
+    float lobes = 0.09 * sin(p.x * 8.0 + p.y * 3.0) + 0.06 * cos(p.y * 11.0 - p.x * 2.0);
+    float volume = 1.0 - smoothstep(0.05, 0.97, length(p) + lobes);
+    ALBEDO = COLOR.rgb * (0.78 + 0.22 * (1.0 - UV.y));
+    ALPHA = volume * COLOR.a * 0.24;
 }

@@ -13,7 +13,7 @@ static func hero_profile(id: StringName) -> Dictionary:
 		&"pig": {
 			"title": RULES.name_for(id), "subtitle": "出征准备与精准重击",
 			"summary": "提前强化下一次出兵，让部队冲锋、起飞或紧密集结；以特大猪砸破密集阵地。",
-			"note": "三种出征准备各持续 15 秒，可叠加；同时拥有飞行和整队时，最多出兵 30 人。特大猪会伤及敌我双方。",
+			"note": "出征准备可叠加；同时飞行和整队时，最多派出 30 人。特大猪会伤及双方。",
 		},
 		&"fox": {
 			"title": RULES.name_for(id), "subtitle": "诡计与阵线瓦解",

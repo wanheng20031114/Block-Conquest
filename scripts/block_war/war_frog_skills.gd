@@ -12,7 +12,9 @@ static func valid_target(game: Node3D, index: int, target: WarBuilding, faction:
 static func strike(game: Node3D, target: WarBuilding, faction: int) -> void:
 	# This explicitly bypasses the bear's link, but invulnerability rejects the
 	# entire cast before payment. Ownership and actual marching soldiers stay put.
-	target.population -= strike_loss(target)
+	var loss := strike_loss(target)
+	target.population -= loss
+	game.world_effects.garrison_blast(target, loss)
 	target.cancel_construction()
 	target.level = 1
 	if target.queued_population > floori(target.population):

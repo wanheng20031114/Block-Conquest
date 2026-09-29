@@ -93,7 +93,9 @@ func _impact(game: Node3D, at: Vector3, faction: int) -> void:
 	# This is a direct population effect, independent of armor/wards/links.
 	for building: WarBuilding in game.buildings:
 		if _xz(building.global_position).distance_squared_to(_xz(at)) > radius_squared: continue
+		var before := building.population
 		building.population *= 0.5
+		game.world_effects.garrison_blast(building, before - building.population)
 		game.marches.trim_departures(building.building_id, building.faction, floori(building.population))
 		building.refresh_visual()
 	game.marches._render()

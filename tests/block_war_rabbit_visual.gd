@@ -39,7 +39,7 @@ func clip(label: String, frames: int, follow_rush: bool = false) -> void:
 					focus += unit.position
 					count += 1
 			if count > 0:
-				game.camera_rig.focus_at(focus / float(count), true)
+				game.camera_rig.global_position = focus / float(count)
 		game.overlay.queue_redraw()
 		await process_frame
 		if index % 2 == 0:
@@ -78,7 +78,7 @@ func _run() -> void:
 	await reset_game()
 	game.hud.hide()
 	var center := Vector3(-22, 0, 10)
-	game.camera_rig.focus_at(center, true)
+	game.camera_rig.global_position = center
 	game.camera.size = 19.0
 	game.marches.send(0, 1, 0, 66, PackedVector3Array([center + Vector3(-5, 0, 0), center + Vector3(55, 0, 0)]))
 	game.marches.tick(1.6)
@@ -96,7 +96,7 @@ func _run() -> void:
 	target.kind = 2
 	target.level = 1
 	target.refresh_visual()
-	game.camera_rig.focus_at(target.global_position + Vector3(0, 0, 1), true)
+	game.camera_rig.global_position = target.global_position + Vector3(0, 0, 1)
 	game.camera.size = 13.0
 	assert(game.cast_skill(1, target))
 	await clip("seal", 162)
@@ -110,7 +110,7 @@ func _run() -> void:
 	var route: PackedVector3Array = game.map.get_building_route(home, other_home)
 	var reverse_route: PackedVector3Array = game.map.get_building_route(other_home, home)
 	center = (home.global_position + other_home.global_position) * 0.5
-	game.camera_rig.focus_at(center, true)
+	game.camera_rig.global_position = center
 	game.camera.size = 24.0
 	game.marches.send(home.building_id, other_home.building_id, 0, 36, route)
 	game.marches.send(other_home.building_id, home.building_id, 1, 36, reverse_route)
@@ -127,7 +127,7 @@ func _run() -> void:
 	var plan: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, home, target, 100)
 	assert(not plan.is_empty())
 	assert(home.global_position.distance_to(target.global_position) > 30.0)
-	game.camera_rig.focus_at(home.global_position, true)
+	game.camera_rig.global_position = home.global_position
 	game.camera.size = 24.0
 	await process_frame
 	game.request_skill(3)
@@ -138,11 +138,11 @@ func _run() -> void:
 	game.hud.hide()
 	assert(game.cast_skill(3, home))
 	await clip("burrow_ready", 24)
-	game.camera_rig.focus_at((plan.entrance + plan.exit) * 0.5, true)
+	game.camera_rig.global_position = (plan.entrance + plan.exit) * 0.5
 	game.camera.size = 58.0
 	assert(game.issue_order(home, target, 100) == 50)
 	await clip("burrow_dig", 36)
-	game.camera_rig.focus_at(plan.exit, true)
+	game.camera_rig.global_position = plan.exit
 	game.camera.size = 24.0
 	await clip("burrow_exit", 60)
 	await game.prepare_shutdown()

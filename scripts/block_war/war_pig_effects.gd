@@ -89,15 +89,21 @@ func _emit_landing(slot: Node3D) -> void:
 	if slot.active and not slot.dust_emitted and slot.age >= slot.IMPACT_TIME:
 		slot.dust_emitted = true
 		$Dust.visibility_aabb = $Dust.visibility_aabb.merge(AABB(slot.position - Vector3(5, 0, 5), Vector3(10, 7, 10)))
-		for index: int in 18:
+		for index: int in 28:
 			var angle := index * 2.399963
 			var radial := Vector3(cos(angle), 0, sin(angle))
-			var at := WarSurfaceEffects.offset_point(map_definition, slot.position, radial * (0.7 + float(index % 3) * 0.28) + Vector3.UP * 0.18)
-			$Dust.emit_particle(Transform3D(Basis.IDENTITY, at), radial * (1.8 + float(index % 3) * 0.3) + Vector3.UP * 0.45, Color(), Color(), EMIT)
+			var at := WarSurfaceEffects.offset_point(map_definition, slot.position, radial * (0.7 + float(index % 3) * 0.28) + Vector3.UP * (slot.roof_height + 0.18))
+			$Dust.emit_particle(Transform3D(Basis.IDENTITY, at), radial * (3.0 + float(index % 3) * 0.45) + Vector3.UP * 0.65, Color(), Color(), EMIT)
+		for index: int in 16:
+			var angle := index * 2.399963
+			var radial := Vector3(cos(angle), 0, sin(angle))
+			var at := WarSurfaceEffects.offset_point(map_definition, slot.position, radial * 1.2 + Vector3.UP * (slot.roof_height + 0.2))
+			var basis := Basis.from_euler(Vector3(angle, angle * 0.3, angle * 0.7))
+			$Debris.emit_particle(Transform3D(basis, at), radial * (2.0 + float(index % 4) * 0.55) + Vector3.UP * (2.2 + float(index % 3) * 0.7), Color(), Color(), EMIT)
 
 func set_running(value: bool) -> void:
 	running = value
-	for emitter: GPUParticles3D in [$Dust, $ChargeTrails, $FlightTrails]:
+	for emitter: GPUParticles3D in [$Dust, $Debris, $ChargeTrails, $FlightTrails]:
 		emitter.speed_scale = 1.0 if value else 0.0
 
 func update_units(delta: float, marches: WarMarches) -> void:
@@ -138,6 +144,6 @@ func reset() -> void:
 		slot.reset()
 	trail_clock = 0.0
 	trail_offset = 0
-	for emitter: GPUParticles3D in [$Dust, $ChargeTrails, $FlightTrails]:
+	for emitter: GPUParticles3D in [$Dust, $Debris, $ChargeTrails, $FlightTrails]:
 		emitter.restart()
 		emitter.emitting = false

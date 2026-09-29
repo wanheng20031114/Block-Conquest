@@ -95,7 +95,7 @@ func _run() -> void:
 			game.by_id[7].faction = 1
 		await capture("%s_before" % ["Q", "W", "E", "R"][index])
 		assert(game.cast_skill(index, target))
-		await clip(["Q", "W", "E", "R"][index], 84 if index == 3 else 32)
+		await clip(["Q", "W", "E", "R"][index], 84 if index == 3 else (48 if index == 1 else 32))
 	await fresh()
 	game.update_hud()
 	await capture("hud")

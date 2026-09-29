@@ -5,6 +5,8 @@
 [ext_resource type="Shader" path="res://assets/models/block_war/frog_float.gdshader" id="float"]
 [ext_resource type="Shader" path="res://assets/models/block_war/frog_sweep.gdshader" id="sweep"]
 [ext_resource type="Shader" path="res://assets/models/block_war/frog_puff.gdshader" id="puff"]
+[ext_resource type="Shader" path="res://assets/models/block_war/frog_impact_dust.gdshader" id="impact_dust"]
+[ext_resource type="Shader" path="res://assets/models/block_war/frog_cast_bloom.gdshader" id="cast_bloom"]
 
 [sub_resource type="ShaderMaterial" id="MistMaterial"]
 resource_local_to_scene = true
@@ -40,6 +42,7 @@ custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("BubbleMesh")
 
 [sub_resource type="ShaderMaterial" id="SweepMaterial"]
+render_priority = 1
 shader = ExtResource("sweep")
 [sub_resource type="PlaneMesh" id="SweepPlane"]
 material = SubResource("SweepMaterial")
@@ -78,6 +81,65 @@ roughness = 0.75
 material = SubResource("FleckMaterial")
 size = Vector3(0.12, 0.035, 0.19)
 
+[sub_resource type="ShaderMaterial" id="BloomMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("cast_bloom")
+[sub_resource type="PlaneMesh" id="BloomPlane"]
+resource_local_to_scene = true
+subdivide_width = 47
+subdivide_depth = 47
+material = SubResource("BloomMaterial")
+size = Vector2(2, 2)
+[sub_resource type="MultiMesh" id="Blooms"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("BloomPlane")
+
+[sub_resource type="Gradient" id="DustFade"]
+offsets = PackedFloat32Array(0, 0.08, 0.28, 0.70, 1)
+colors = PackedColorArray(1, 1, 1, 0.45, 1, 1, 1, 0.8, 1, 1, 1, 0.65, 1, 1, 1, 0.2, 1, 1, 1, 0)
+[sub_resource type="GradientTexture1D" id="DustRamp"]
+gradient = SubResource("DustFade")
+[sub_resource type="Curve" id="DustGrowth"]
+_data = [Vector2(0, 0.55), 0.0, 1.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+[sub_resource type="CurveTexture" id="DustScale"]
+curve = SubResource("DustGrowth")
+[sub_resource type="ParticleProcessMaterial" id="DustProcess"]
+gravity = Vector3(0, -0.35, 0)
+scale_min = 0.9
+scale_max = 1.6
+scale_curve = SubResource("DustScale")
+color_ramp = SubResource("DustRamp")
+[sub_resource type="ShaderMaterial" id="DustMaterial"]
+shader = ExtResource("impact_dust")
+[sub_resource type="QuadMesh" id="DustMesh"]
+material = SubResource("DustMaterial")
+size = Vector2(1.5, 1.25)
+
+[sub_resource type="Gradient" id="RubbleFade"]
+offsets = PackedFloat32Array(0, 0.5, 0.75, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.75, 1, 1, 1, 0)
+[sub_resource type="GradientTexture1D" id="RubbleRamp"]
+gradient = SubResource("RubbleFade")
+[sub_resource type="ParticleProcessMaterial" id="RubbleProcess"]
+gravity = Vector3(0, -13, 0)
+angular_velocity_min = -320.0
+angular_velocity_max = 340.0
+scale_min = 0.65
+scale_max = 1.35
+color_ramp = SubResource("RubbleRamp")
+[sub_resource type="StandardMaterial3D" id="RubbleMaterial"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.68, 0.63, 0.52, 1)
+roughness = 0.96
+[sub_resource type="PrismMesh" id="RubbleMesh"]
+material = SubResource("RubbleMaterial")
+size = Vector3(0.25, 0.18, 0.3)
+
 [node name="Frog" type="Node3D"]
 script = ExtResource("script")
 [node name="Mist" type="MultiMeshInstance3D" parent="."]
@@ -88,6 +150,9 @@ multimesh = SubResource("Bubbles")
 cast_shadow = 0
 [node name="Cuts" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Cuts")
+cast_shadow = 0
+[node name="CastBlooms" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Blooms")
 cast_shadow = 0
 [node name="Puffs" type="GPUParticles3D" parent="."]
 emitting = false
@@ -104,4 +169,20 @@ lifetime = 0.6
 visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("FleckProcess")
 draw_pass_1 = SubResource("LeafMesh")
+cast_shadow = 0
+[node name="StrikeDust" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 384
+lifetime = 1.25
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
+process_material = SubResource("DustProcess")
+draw_pass_1 = SubResource("DustMesh")
+cast_shadow = 0
+[node name="Rubble" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 256
+lifetime = 0.82
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
+process_material = SubResource("RubbleProcess")
+draw_pass_1 = SubResource("RubbleMesh")
 cast_shadow = 0

@@ -62,6 +62,19 @@ vertex_color_use_as_albedo = true
 material = SubResource("TrailMaterial")
 size = Vector3(0.075, 0.075, 0.42)
 
+[sub_resource type="ParticleProcessMaterial" id="DebrisProcess"]
+gravity = Vector3(0, -11, 0)
+color = Color(0.51, 0.39, 0.26, 1)
+color_ramp = SubResource("TrailRamp")
+angular_velocity_min = -240.0
+angular_velocity_max = 240.0
+scale_min = 0.75
+scale_max = 1.5
+
+[sub_resource type="BoxMesh" id="DebrisMesh"]
+material = SubResource("DustMaterial")
+size = Vector3(0.19, 0.14, 0.16)
+
 [sub_resource type="PrismMesh" id="FlightMesh"]
 material = SubResource("TrailMaterial")
 size = Vector3(0.11, 0.045, 0.36)
@@ -125,6 +138,15 @@ lifetime = 0.36
 visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("ChargeProcess")
 draw_pass_1 = SubResource("ChargeMesh")
+cast_shadow = 0
+
+[node name="Debris" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 192
+lifetime = 0.68
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
+process_material = SubResource("DebrisProcess")
+draw_pass_1 = SubResource("DebrisMesh")
 cast_shadow = 0
 
 [node name="FlightTrails" type="GPUParticles3D" parent="."]

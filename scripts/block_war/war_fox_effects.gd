@@ -60,22 +60,29 @@ func advance(delta: float) -> void:
 		if slot.kind == 0 and slot.age >= 0.18 and not slot.impacted:
 			slot.impacted = true
 			impact(slot.position + Vector3.UP * (slot.roof_height + 0.6))
-		elif emit and slot.kind == 1 and slot.age < 0.78:
+		elif emit and slot.kind == 0 and slot.age < 0.18:
+			_mote(slot.get_node("Bomb/Spark").global_position, Vector3(0.2, 0.55, 0), 0.55)
+		elif emit and slot.kind == 1 and slot.age < slot.star_arrival:
 			_mote(slot.get_node("Star").global_position, Vector3.UP * 0.1, 0.65)
 
 func impact(at: Vector3) -> void:
-	for i: int in 18:
+	for i: int in 28:
 		var a := i * 2.399963
 		var radial := Vector3(cos(a), 0.35 + (i % 3) * 0.18, sin(a))
 		_mote(at + radial * 0.28, radial * (3.8 + (i % 4)), 1.0)
-	for i: int in 10:
-		var a := i * TAU / 10.0
+	for i: int in 14:
+		var a := i * TAU / 14.0
 		var radial := Vector3(cos(a), 0.1, sin(a))
-		$Smoke.emit_particle(Transform3D(Basis.IDENTITY, at + radial * 0.35), radial * 1.7 + Vector3.UP * 0.65, Color(), Color(), EMIT)
+		$Smoke.emit_particle(Transform3D(Basis.IDENTITY, at + radial * 0.55), radial * 2.8 + Vector3.UP * (0.6 + float(i % 3) * 0.45), Color(), Color(), EMIT)
+	for i: int in 10:
+		var a := i * 2.399963
+		var radial := Vector3(cos(a), 0, sin(a))
+		var basis := Basis.from_euler(Vector3(a * 0.3, a, a * 0.7))
+		$Fragments.emit_particle(Transform3D(basis, at + radial * 0.3), radial * (2.6 + float(i % 3) * 0.8) + Vector3.UP * (2.2 + float(i % 4) * 0.5), Color(), Color(), EMIT)
 
 func _mote(at: Vector3, velocity: Vector3, size: float) -> void:
 	$Sparks.emit_particle(Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * size), at), velocity, Color(), Color(), EMIT)
 
 func set_running(value: bool) -> void:
-	for particles: GPUParticles3D in [$Sparks, $Smoke, $Pennants]:
+	for particles: GPUParticles3D in [$Sparks, $Smoke, $Pennants, $Fragments]:
 		particles.speed_scale = 1.0 if value else 0.0

@@ -1,0 +1,116 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/codex/demo_world.gd" id="world"]
+[ext_resource type="Script" path="res://scripts/codex/demo_map.gd" id="map"]
+[ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/marches.tscn" id="marches"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/war_effects.tscn" id="effects"]
+[ext_resource type="Script" path="res://scripts/codex/demo_audio.gd" id="audio"]
+[ext_resource type="Script" path="res://scripts/codex/demo_feedback.gd" id="feedback"]
+[ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="environment"]
+[ext_resource type="Shader" path="res://assets/block_war/environment/map_ground.gdshader" id="ground"]
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/meadow_noise.tres" id="noise"]
+
+[sub_resource type="Resource" id="MapDefinition"]
+resource_local_to_scene = true
+script = ExtResource("definition")
+map_id = "codex_training"
+title = "技能演示"
+half_size = Vector2(22, 16)
+camera_bounds = Rect2(-22, -16, 44, 32)
+
+[sub_resource type="ShaderMaterial" id="Grass"]
+resource_local_to_scene = true
+shader = ExtResource("ground")
+shader_parameter/meadow_noise = ExtResource("noise")
+shader_parameter/half_size = Vector2(22, 16)
+shader_parameter/site_count = 4
+shader_parameter/sites = PackedVector2Array(-9, 0, 9, 0, -9, -9, 9, -9)
+shader_parameter/path_count = 3
+shader_parameter/paths = PackedVector4Array(-9, 0, 9, 0, -9, 0, -9, -9, 9, 0, 9, -9)
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+size = Vector2(58, 44)
+
+[node name="DemoWorld" type="Node3D"]
+script = ExtResource("world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-49, -38, 0)
+light_color = Color(1, 0.955, 0.83, 1)
+light_energy = 1.06
+shadow_enabled = true
+directional_shadow_max_distance = 65.0
+shadow_bias = 0.035
+shadow_normal_bias = 0.7
+shadow_blur = 1.1
+
+[node name="Map" type="Node3D" parent="."]
+script = ExtResource("map")
+definition = SubResource("MapDefinition")
+water_paths = Array[NodePath]([])
+bake_routes = true
+
+[node name="Ground" type="MeshInstance3D" parent="Map"]
+mesh = SubResource("GroundMesh")
+material_override = SubResource("Grass")
+
+[node name="Nature" type="Node3D" parent="Map"]
+
+[node name="Buildings" type="Node3D" parent="Map"]
+
+[node name="Home" parent="Map/Buildings" instance=ExtResource("building")]
+position = Vector3(-9, 0, 0)
+building_id = 0
+faction = 0
+population = 40.0
+
+[node name="Away" parent="Map/Buildings" instance=ExtResource("building")]
+position = Vector3(9, 0, 0)
+building_id = 1
+faction = 1
+population = 60.0
+
+[node name="Support" parent="Map/Buildings" instance=ExtResource("building")]
+position = Vector3(-9, 0, -9)
+building_id = 2
+faction = 0
+population = 45.0
+
+[node name="Refuge" parent="Map/Buildings" instance=ExtResource("building")]
+position = Vector3(9, 0, -9)
+building_id = 3
+faction = 1
+population = 45.0
+
+[node name="Marches" parent="." instance=ExtResource("marches")]
+
+[node name="Effects" parent="." instance=ExtResource("effects")]
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position = Vector3(0, 28, 21.876)
+rotation_degrees = Vector3(-52, 0, 0)
+projection = 1
+keep_aspect = 1
+size = 13.0
+near = 0.1
+far = 100.0
+current = true
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("feedback")
+
+[node name="Audio" type="Node" parent="."]
+script = ExtResource("audio")
+
+[node name="Orders" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="Overlay" type="Control" parent="Orders"]
+mouse_filter = 2

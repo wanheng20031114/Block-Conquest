@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_blast_casualties.gd" id="script"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/militia.res" id="militia"]
+[ext_resource type="Shader" path="res://assets/models/block_war/blast_casualty.gdshader" id="shader"]
+
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("shader")
+
+[sub_resource type="MultiMesh" id="bodies"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+mesh = ExtResource("militia")
+custom_aabb = AABB(-180, -30, -180, 360, 100, 360)
+
+[node name="BlastCasualties" type="MultiMeshInstance3D"]
+multimesh = SubResource("bodies")
+material_override = SubResource("material")
+script = ExtResource("script")

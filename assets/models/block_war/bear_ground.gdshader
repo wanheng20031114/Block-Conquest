@@ -26,8 +26,9 @@ void fragment() {
         toes = max(toes, 1.0 - smoothstep(0.075, 0.095, length(p - c)));
     }
     float age = (1.0 - effect.a) * 4.0;
-    float ripple = pow(max(0.0, 1.0 - abs(r - age * 6.0) / 0.085), 2.0) * (1.0 - smoothstep(0.12, 0.20, age));
+    float ripple = pow(max(0.0, 1.0 - abs(r - age * 2.65) / 0.075), 2.0) * (1.0 - smoothstep(0.24, 0.39, age));
+    float echo = pow(max(0.0, 1.0 - abs(r - max(0.0, age - 0.10) * 2.0) / 0.055), 2.0) * smoothstep(0.10, 0.15, age) * (1.0 - smoothstep(0.39, 0.57, age));
     float fade = smoothstep(0.0, 0.12, effect.a);
-    ALBEDO = mix(vec3(0.36, 0.27, 0.13), vec3(0.91, 0.74, 0.39), border + ripple);
-    ALPHA = min(0.65, (border * broken * 0.7 + cracks * 0.42 + (pad + toes) * 0.2 + ripple * 0.55)) * fade;
+    ALBEDO = mix(vec3(0.36, 0.27, 0.13), vec3(0.91, 0.74, 0.39), clamp(border + ripple + echo, 0.0, 1.0));
+    ALPHA = min(0.65, (border * broken * 0.7 + cracks * 0.42 + (pad + toes) * 0.2 + ripple * 0.68 + echo * 0.35)) * fade;
 }

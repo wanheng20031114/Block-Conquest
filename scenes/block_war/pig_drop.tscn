@@ -13,6 +13,18 @@ size = Vector2(6, 6)
 subdivide_width = 24
 subdivide_depth = 24
 
+[sub_resource type="StandardMaterial3D" id="ImpactMaterial"]
+resource_local_to_scene = true
+shading_mode = 0
+transparency = 1
+albedo_color = Color(0.96, 0.80, 0.60, 0.75)
+
+[sub_resource type="TorusMesh" id="ImpactMesh"]
+inner_radius = 0.89
+outer_radius = 1.0
+rings = 40
+ring_segments = 6
+
 [node name="PigDrop" type="Node3D"]
 visible = false
 script = ExtResource("script")
@@ -29,4 +41,10 @@ texture = ExtResource("pig")
 texture_filter = 0
 pixel_size = 0.004385965
 billboard = 1
+cast_shadow = 0
+
+[node name="ImpactRing" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("ImpactMesh")
+material_override = SubResource("ImpactMaterial")
 cast_shadow = 0

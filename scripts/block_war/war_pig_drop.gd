@@ -49,6 +49,11 @@ func pose() -> void:
 	$Pig.rotation.z = lerpf(-0.16, 0.0, falling) + sin(landed * 16.0) * 0.035 * (1.0 - smoothstep(0.1, 0.5, landed))
 	$Pig.modulate.a = fade
 	$Pig.visible = landed < 0.70
+	$ImpactRing.visible = age >= IMPACT_TIME and landed < 0.5
+	$ImpactRing.position.y = roof_height + 0.22 + landed * 0.35
+	var reach := lerpf(0.8, 3.6, 1.0 - pow(1.0 - clampf(landed / 0.5, 0.0, 1.0), 2.0))
+	$ImpactRing.scale = Vector3(reach, 0.7, reach)
+	$ImpactRing.material_override.albedo_color.a = (1.0 - smoothstep(0.06, 0.5, landed)) * 0.68
 
 func reset() -> void:
 	drop_id = -1

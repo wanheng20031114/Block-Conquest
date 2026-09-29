@@ -20,10 +20,11 @@ func reset_game(at: Vector3, zoom: float = 22.0) -> void:
 	game.camera_rig.edge_scroll = false
 	game.ai_enabled = false
 	game.audio.muted = true
+	game.energy = 100.0
 	game.select_building(null)
 	game.hud.hide()
-	game.camera_rig.focus_at(at, true)
 	game.camera.size = zoom
+	game.camera_rig.global_position = at
 	await physics_frame
 	await RenderingServer.frame_post_draw
 
@@ -46,22 +47,23 @@ func _run() -> void:
 	output = OS.get_cmdline_user_args()[0]
 	root.size = Vector2i(960, 540)
 	root.get_node("Session").block_war_map_id = "rift"
+	root.get_node("Session").block_war_commander = &"squirrel"
 	await reset_game(Vector3(-24, 0, -5), 18.0)
-	game.cast_skill(0, game.by_id[0])
+	assert(game.cast_skill(0, game.by_id[0]))
 	await clip("recruit", 72)
 	await reset_game(Vector3(-24, 0, -5), 18.0)
-	game.cast_skill(2, game.by_id[0])
+	assert(game.cast_skill(2, game.by_id[0]))
 	await clip("shield", 72)
 	await reset_game(CENTER + Vector3(4, 0, 0), 22.0)
 	game.marches.send(900, 1, 0, 96, PackedVector3Array([CENTER + Vector3(-8, 0, 0), CENTER + Vector3(35, 0, 0)]))
 	game.marches.tick(1.0)
-	game.cast_ground_skill(1, CENTER)
+	assert(game.cast_ground_skill(1, CENTER))
 	await clip("haste", 72)
 	await reset_game(CENTER, 18.0)
 	game.marches.send(900, 1, 0, 72, PackedVector3Array([CENTER + Vector3(-7, 0, 0.6), CENTER + Vector3(30, 0, 0.6)]))
 	game.marches.send(901, 0, 1, 72, PackedVector3Array([CENTER + Vector3(7, 0, -0.6), CENTER + Vector3(-30, 0, -0.6)]))
 	game.marches.tick(1.0)
-	game.cast_ground_skill(3, CENTER)
+	assert(game.cast_ground_skill(3, CENTER))
 	await clip("fire", 96)
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_SKILLS_VISUAL native_frames=312 output=", output)

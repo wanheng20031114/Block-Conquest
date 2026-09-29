@@ -33,6 +33,11 @@ func clip(label: String, frames: int) -> void:
 		await process_frame
 		await capture("%s_%03d" % [label, i])
 
+func focus(at: Vector3, zoom: float) -> void:
+	# Isolate visual inspection from the gameplay camera's map-edge constraint.
+	game.camera.size = zoom
+	game.camera_rig.global_position = at
+
 func _run() -> void:
 	create_timer(140.0, true, false, true).timeout.connect(func(): quit(3))
 	output = OS.get_cmdline_user_args()[0]
@@ -65,8 +70,7 @@ func _run() -> void:
 		await capture("bear_hint_%d" % i)
 	await reset_game()
 	var home: WarBuilding = game.buildings[0]
-	game.camera_rig.focus_at(home.global_position, true)
-	game.camera.size = 18.0
+	focus(home.global_position, 18.0)
 	game.select_building(home)
 	game.upgrade_selected()
 	game.simulate(1.0)
@@ -76,8 +80,7 @@ func _run() -> void:
 	await reset_game()
 	game.hud.hide()
 	var center := Vector3(-23, 0, 7)
-	game.camera_rig.focus_at(center, true)
-	game.camera.size = 20.0
+	focus(center, 20.0)
 	game.marches.send(1, 0, 1, 48, PackedVector3Array([center - Vector3(6, 0, 0), center + Vector3(26, 0, 0)]))
 	game.marches.tick(1.2)
 	assert(game.cast_ground_skill(1, center))
@@ -88,8 +91,7 @@ func _run() -> void:
 	support.faction = 0
 	support.population = 50
 	support.refresh_visual()
-	game.camera_rig.focus_at((home.global_position + support.global_position) * 0.5, true)
-	game.camera.size = 23.0
+	focus((home.global_position + support.global_position) * 0.5, 23.0)
 	game.request_skill(2, true)
 	game._update_skill_drag(game.camera.unproject_position(home.global_position))
 	await capture("link_preview")
@@ -103,8 +105,7 @@ func _run() -> void:
 	await capture("link_normal_zoom")
 	await reset_game()
 	home = game.buildings[0]
-	game.camera_rig.focus_at(home.global_position + Vector3(2, 0, 0), true)
-	game.camera.size = 22.0
+	focus(home.global_position + Vector3(2, 0, 0), 22.0)
 	game.hud.hide()
 	game.marches.send(1, 0, 1, 50, PackedVector3Array([home.global_position + Vector3(11, 0, 4), home.global_position + Vector3(2.6, 0, 0)]))
 	game.marches.tick(0.6)

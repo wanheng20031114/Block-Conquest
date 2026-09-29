@@ -1,7 +1,7 @@
 extends Node3D
 ## Bounded authored meshes/particles; animation follows the match clock.
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const EMIT := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
+const EMIT := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_ROTATION_SCALE | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
 var time := 0.0
 var tool_ages: Array[float] = [2, 2, 2, 2, 2, 2]
 var emission_clock := 0.0
@@ -34,7 +34,8 @@ func stomp(_faction: int, at: Vector3) -> void:
 		var r := 1.0 + 3.2 * sqrt(float(i) / 48.0)
 		var radial := Vector3(cos(a), 0, sin(a))
 		var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * r + Vector3.UP * 0.12)
-		$Dust.emit_particle(Transform3D(Basis.IDENTITY, origin), radial * 0.8 + Vector3.UP * (0.6 + float(i % 3) * 0.2), Color("bdaa76"), Color(), EMIT)
+		var basis := Basis.from_euler(Vector3(a * 0.7, a, a * 0.3)).scaled(Vector3.ONE * (1.1 + float(i % 3) * 0.25))
+		$Dust.emit_particle(Transform3D(basis, origin), radial * 1.6 + Vector3.UP * (1.4 + float(i % 3) * 0.5), Color("bdaa76"), Color(), EMIT)
 
 func spark(at: Vector3) -> void:
 	for i: int in 8:
@@ -50,6 +51,7 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 	for path: String in ["Ground", "Wards", "Orbs"]:
 		get_node(path).multimesh.mesh.material.set_shader_parameter("visual_time", time)
 	for faction: int in 6:
+		var previous_age := tool_ages[faction]
 		tool_ages[faction] += delta
 		var tool: Node3D = $Tools.get_child(faction)
 		var age := tool_ages[faction]
@@ -57,7 +59,12 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 		if tool.visible:
 			var pop := minf(1.0, age / 0.07) * (1.0 - smoothstep(0.75, 1.0, age))
 			tool.scale = Vector3.ONE * pop
-			tool.get_node("Hammer").rotation.z = -0.65 + 0.9 * sin(clampf(age / 0.18, 0.0, 1.0) * PI)
+			var strike := smoothstep(0.09, 0.19, age)
+			var rebound := sin(maxf(0.0, age - 0.19) * 21.0) * exp(-maxf(0.0, age - 0.19) * 9.0)
+			tool.get_node("Hammer").rotation.z = lerpf(-0.9, 0.65, strike) - rebound * 0.20
+			tool.get_node("Hammer").position.y = 1.1 - strike * 0.18 + rebound * 0.06
+			if previous_age < 0.19 and age >= 0.19:
+				spark(tool.global_position + Vector3(0.7, 1.0, 0))
 	var fields: MultiMesh = $Ground.multimesh
 	var count := 0
 	for faction: int in marches.slow_zones:

@@ -181,8 +181,9 @@ func _run() -> void:
 			_check(_control("SkillStats").text == "%d 技力    ·    %d 秒冷却" % [RULES.costs_for(id)[index], RULES.cooldowns_for(id)[index]], context + " energy and cooldown match battle rules")
 			_check(_control("SkillDescription").text == CATALOG.skill_summary(id, index), context + " description matches the catalogue")
 			_check(_control("Demo").playing, context + " demo runs")
-			_check(_control("Demo").commander == id and _control("Demo").skill_index == index, context + " diagram matches the displayed skill")
-			_check(_control("Demo").progress > 0.45 and _control("Demo").progress < 0.7, context + " native animation reaches its active phase")
+			_check(_control("Demo").commander == id and _control("Demo").skill_index == index, context + " battlefield matches the displayed skill")
+			_check(_control("Demo").world.cast_succeeded, context + " actual battle rules accept the scheduled skill")
+			_check(_control("Demo").viewport.own_world_3d and _control("Demo").world.network_match == null, context + " native battlefield remains isolated")
 			_hero_layout(context)
 			await _capture("hero_%s_%d" % [id, index + 1])
 
@@ -190,13 +191,13 @@ func _run() -> void:
 	_click("Pause")
 	_check(not demo.playing, "pause button stops the demonstration")
 	var paused_progress: float = demo.progress
-	var paused_positions: Array[Vector2] = []
-	for unit: Control in demo.allies + demo.enemies:
+	var paused_positions: Array[Vector3] = []
+	for unit: WarMarches.MarchUnit in demo.world.marches._units:
 		paused_positions.append(unit.position)
 	await _frames(12)
 	_check(is_equal_approx(demo.progress, paused_progress), "paused demonstration does not advance")
-	var current_positions: Array[Vector2] = []
-	for unit: Control in demo.allies + demo.enemies:
+	var current_positions: Array[Vector3] = []
+	for unit: WarMarches.MarchUnit in demo.world.marches._units:
 		current_positions.append(unit.position)
 	_check(current_positions == paused_positions, "paused demonstration keeps every soldier in place")
 	_click("Skill1")

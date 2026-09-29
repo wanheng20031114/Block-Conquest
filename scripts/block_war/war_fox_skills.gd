@@ -59,7 +59,9 @@ static func convert(game: Node3D, center: Vector3, faction: int) -> int:
 static func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 	match index:
 		0:
+			var before := target.population
 			game.bear.apply_damage(game, target, bomb_loss(target), false, true)
+			game.world_effects.garrison_blast(target, before - target.population, 0.18)
 		1:
 			game.morale.transfer_stars(target.faction, faction, stolen_stars(game, target.faction, faction))
 		3:
