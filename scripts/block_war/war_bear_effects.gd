@@ -7,15 +7,24 @@ var tool_ages: Array[float] = [2, 2, 2, 2, 2, 2]
 var emission_clock := 0.0
 var serial := 0
 var map_definition := WarMapDefinition.new()
+var _link_meshes: Dictionary[Mesh, TriangleMesh] = {}
+var _link_mounts: Dictionary[int, Dictionary] = {}
+const LINK_BODY_PATHS := ["House/Stone", "Tower/Stone", "Smithy/Stone", "EnergyTower/Stone"]
+# Interior points in the authored meshes; the actual wall is found by a native
+# BVH ray query. The open smithy attaches to its furnace, not to empty canopy air.
+const LINK_BODY_CENTERS: Array[Vector3] = [Vector3(0, 1.0, -0.066), Vector3(0, 0.9, 0), Vector3(-0.69, 0.8, -0.21), Vector3(0, 0.82, 0)]
 
 func configure_surface(definition: WarMapDefinition) -> void:
 	map_definition = definition
 	WarSurfaceEffects.configure($Ground.multimesh.mesh.material, definition)
+	WarSurfaceEffects.configure($LinkGrounds.multimesh.mesh.material, definition)
 
 func _ready() -> void:
 	for path: String in ["Ground", "Wards", "Orbs", "OrbBands"]:
 		get_node(path).multimesh.instance_count = 6
-	$Chains.multimesh.instance_count = 384
+	$Chains.multimesh.instance_count = 512
+	for path: String in ["LinkAnchors", "LinkPlates", "LinkGrounds"]:
+		get_node(path).multimesh.instance_count = 12
 	$Bolts.multimesh.instance_count = 64
 
 func toolbox(faction: int, at: Vector3) -> void:
@@ -48,7 +57,7 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 	var emit := emission_clock >= 0.16
 	if emit:
 		emission_clock = fmod(emission_clock, 0.16)
-	for path: String in ["Ground", "Wards", "Orbs"]:
+	for path: String in ["Ground", "Wards", "Orbs", "LinkGrounds"]:
 		get_node(path).multimesh.mesh.material.set_shader_parameter("visual_time", time)
 	for faction: int in 6:
 		var previous_age := tool_ages[faction]
@@ -78,26 +87,7 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 			var p := WarSurfaceEffects.offset_point(map_definition, zone.at, Vector3(cos(angle), 0.03, sin(angle)) * zone.radius * 0.92)
 			$Dust.emit_particle(Transform3D(Basis.IDENTITY, p), Vector3.UP * 0.2, Color("b9a679"), Color(), EMIT)
 	fields.visible_instance_count = count
-	var chains: MultiMesh = $Chains.multimesh
-	count = 0
-	for link: Dictionary in bear.links.values():
-		var a: Vector3 = by_id[link.target].global_position
-		var b: Vector3 = by_id[link.support].global_position
-		var heading := (b - a).normalized()
-		a += heading * 2.2 + Vector3.UP * 1.4
-		b -= heading * 2.2 - Vector3.UP * 1.4
-		var pieces := maxi(2, ceili(a.distance_to(b) / 0.32))
-		for i: int in pieces:
-			var t := float(i) / float(pieces - 1)
-			var at := a.lerp(b, t) - Vector3.UP * sin(t * PI) * 0.45
-			if map_definition.has_elevation():
-				at.y = maxf(at.y, map_definition.surface_height(Vector2(at.x, at.z)) + 0.45)
-			var basis := Basis.looking_at(heading) * Basis(Vector3.FORWARD, PI * 0.5 if i % 2 == 0 else 0.0)
-			chains.set_instance_transform(count, Transform3D(basis, at))
-			var glint := exp(-pow((t - (1.0 - float(link.pulse)) * 1.5) * 8.0, 2.0)) if link.pulse > 0.0 else 0.0
-			chains.set_instance_color(count, Color("95846a").lerp(Color("ffe6a0"), glint))
-			count += 1
-	chains.visible_instance_count = count
+	_sync_links(bear.links, by_id)
 	var walls: MultiMesh = $Wards.multimesh
 	var orbs: MultiMesh = $Orbs.multimesh
 	var rings: MultiMesh = $OrbBands.multimesh
@@ -127,6 +117,84 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 		bolts.set_instance_transform(count, Transform3D(Basis.looking_at(direction), shot.position))
 		count += 1
 	bolts.visible_instance_count = count
+
+func _link_mount(building: WarBuilding, toward: Vector3) -> Dictionary:
+	var body: MeshInstance3D = building.get_node("Visual/" + LINK_BODY_PATHS[building.kind])
+	var direction: Vector3 = body.to_local(toward) - LINK_BODY_CENTERS[building.kind]
+	direction.y = 0.0
+	direction = direction.normalized()
+	var id := building.building_id
+	if not _link_mounts.has(id) or _link_mounts[id].mesh != body.mesh or not _link_mounts[id].direction.is_equal_approx(direction):
+		if not _link_meshes.has(body.mesh):
+			_link_meshes[body.mesh] = body.mesh.generate_triangle_mesh()
+		var start: Vector3 = LINK_BODY_CENTERS[building.kind] + direction * (body.mesh.get_aabb().size.length() + 1.0)
+		var hit: Dictionary = _link_meshes[body.mesh].intersect_ray(start, -direction)
+		assert(not hit.is_empty(), "Authored building must have a solid link attachment surface.")
+		_link_mounts[id] = {"mesh": body.mesh, "direction": direction, "at": hit.position, "normal": hit.normal}
+	var mount := _link_mounts[id]
+	var normal: Vector3 = (body.global_basis.inverse().transposed() * mount.normal).normalized()
+	return {"at": body.to_global(mount.at) + normal * 0.075, "normal": normal}
+
+func _link_point(a: Vector3, b: Vector3, t: float) -> Vector3:
+	var at := a.lerp(b, t)
+	at.y -= sin(t * PI) * minf(0.55, a.distance_to(b) * 0.045)
+	if map_definition.has_elevation():
+		var lift := maxf(0.0, map_definition.surface_height(Vector2(at.x, at.z)) + 0.24 - at.y)
+		at.y += lift * smoothstep(0.0, 0.07, t) * smoothstep(0.0, 0.07, 1.0 - t)
+	return at
+
+func _link_glint(t: float, pulse: float) -> float:
+	return exp(-pow((t - (1.0 - pulse) * 1.5) * 7.0, 2.0)) if pulse > 0.0 else 0.0
+
+func _sync_links(links: Dictionary, by_id: Dictionary) -> void:
+	var chains: MultiMesh = $Chains.multimesh
+	var anchors: MultiMesh = $LinkAnchors.multimesh
+	var plates: MultiMesh = $LinkPlates.multimesh
+	var grounds: MultiMesh = $LinkGrounds.multimesh
+	var count := 0
+	var ends := 0
+	var active: Array[int] = []
+	for link: Dictionary in links.values():
+		# A replica can still have an expired row awaiting reliable deletion.
+		if link.remaining <= 0.0: continue
+		var source: WarBuilding = by_id[link.target]
+		var support: WarBuilding = by_id[link.support]
+		var mounts: Array[Dictionary] = [_link_mount(source, support.global_position), _link_mount(support, source.global_position)]
+		var a: Vector3 = mounts[0].at + mounts[0].normal * 0.12
+		var b: Vector3 = mounts[1].at + mounts[1].normal * 0.12
+		for endpoint: int in 2:
+			var building: WarBuilding = source if endpoint == 0 else support
+			active.append(building.building_id)
+			var mount := mounts[endpoint]
+			var normal: Vector3 = mount.normal
+			var side := Vector3.UP.cross(normal).normalized()
+			var basis := Basis(side, normal, side.cross(normal)).orthonormalized()
+			var custom := Color(_link_glint(float(endpoint), link.pulse), 0, 0, 1)
+			plates.set_instance_transform(ends, Transform3D(basis, mount.at - normal * 0.035))
+			plates.set_instance_custom_data(ends, custom)
+			anchors.set_instance_transform(ends, Transform3D(basis, mount.at + normal * 0.08))
+			anchors.set_instance_custom_data(ends, custom)
+			var heading := (support.global_position - source.global_position) * (1.0 if endpoint == 0 else -1.0)
+			heading.y = 0.0
+			grounds.set_instance_transform(ends, Transform3D(Basis.looking_at(heading).scaled(Vector3.ONE * 2.8), building.global_position + Vector3.UP * 0.115))
+			grounds.set_instance_custom_data(ends, Color(link.pulse, endpoint, link.remaining / RULES.BEAR_DURATIONS[2], 1))
+			ends += 1
+		var pieces := maxi(2, ceili(a.distance_to(b) / 0.42))
+		for index: int in pieces:
+			var t := float(index) / float(pieces - 1)
+			var at := _link_point(a, b, t)
+			var tangent := (_link_point(a, b, minf(1.0, t + 0.012)) - _link_point(a, b, maxf(0.0, t - 0.012))).normalized()
+			var basis := Basis.looking_at(tangent) * Basis(Vector3.FORWARD, PI * (0.25 + 0.5 * float(index % 2)))
+			basis *= Basis.from_scale(Vector3(0.76, 1.0, 1.40))
+			chains.set_instance_transform(count, Transform3D(basis, at))
+			chains.set_instance_custom_data(count, Color(_link_glint(t, link.pulse), 0, 0, 1))
+			count += 1
+	chains.visible_instance_count = count
+	anchors.visible_instance_count = ends
+	plates.visible_instance_count = ends
+	grounds.visible_instance_count = ends
+	for id: int in _link_mounts.keys():
+		if not active.has(id): _link_mounts.erase(id)
 
 func set_running(value: bool) -> void:
 	$Motes.speed_scale = 1.0 if value else 0.0

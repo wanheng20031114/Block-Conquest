@@ -5,6 +5,8 @@
 [ext_resource type="Shader" path="res://assets/models/block_war/bear_ground.gdshader" id="ground"]
 [ext_resource type="Shader" path="res://assets/models/block_war/bear_ward.gdshader" id="ward"]
 [ext_resource type="Shader" path="res://assets/models/block_war/bear_orb.gdshader" id="orb"]
+[ext_resource type="Shader" path="res://assets/models/block_war/bear_chain.gdshader" id="chain"]
+[ext_resource type="Shader" path="res://assets/models/block_war/bear_link_ground.gdshader" id="link_ground"]
 
 [sub_resource type="ShaderMaterial" id="GroundMaterial"]
 resource_local_to_scene = true
@@ -23,24 +25,68 @@ visible_instance_count = 0
 custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("GroundMesh")
 
-[sub_resource type="StandardMaterial3D" id="ChainMaterial"]
-albedo_color = Color(1, 1, 1, 1)
-vertex_color_use_as_albedo = true
-metallic = 0.45
-roughness = 0.38
+[sub_resource type="ShaderMaterial" id="ChainMaterial"]
+shader = ExtResource("chain")
 [sub_resource type="TorusMesh" id="ChainMesh"]
 material = SubResource("ChainMaterial")
-inner_radius = 0.10
-outer_radius = 0.20
-rings = 12
-ring_segments = 6
+inner_radius = 0.14
+outer_radius = 0.23
+rings = 24
+ring_segments = 10
 [sub_resource type="MultiMesh" id="Chains"]
 resource_local_to_scene = true
 transform_format = 1
-use_colors = true
+use_custom_data = true
 visible_instance_count = 0
 custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("ChainMesh")
+
+[sub_resource type="TorusMesh" id="LinkAnchorMesh"]
+material = SubResource("ChainMaterial")
+inner_radius = 0.15
+outer_radius = 0.29
+rings = 28
+ring_segments = 12
+[sub_resource type="MultiMesh" id="LinkAnchors"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("LinkAnchorMesh")
+[sub_resource type="ShaderMaterial" id="PlateMaterial"]
+shader = ExtResource("chain")
+shader_parameter/base_tint = Color(0.24, 0.17, 0.09, 1)
+[sub_resource type="CylinderMesh" id="LinkPlateMesh"]
+material = SubResource("PlateMaterial")
+top_radius = 0.36
+bottom_radius = 0.31
+height = 0.12
+radial_segments = 8
+rings = 1
+[sub_resource type="MultiMesh" id="LinkPlates"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("LinkPlateMesh")
+[sub_resource type="ShaderMaterial" id="LinkGroundMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("link_ground")
+[sub_resource type="PlaneMesh" id="LinkGroundMesh"]
+resource_local_to_scene = true
+material = SubResource("LinkGroundMaterial")
+size = Vector2(2, 2)
+subdivide_width = 31
+subdivide_depth = 31
+[sub_resource type="MultiMesh" id="LinkGrounds"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("LinkGroundMesh")
 
 [sub_resource type="ShaderMaterial" id="WardMaterial"]
 resource_local_to_scene = true
@@ -148,6 +194,15 @@ multimesh = SubResource("Ground")
 cast_shadow = 0
 [node name="Chains" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Chains")
+cast_shadow = 0
+[node name="LinkAnchors" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("LinkAnchors")
+cast_shadow = 0
+[node name="LinkPlates" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("LinkPlates")
+cast_shadow = 0
+[node name="LinkGrounds" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("LinkGrounds")
 cast_shadow = 0
 [node name="Wards" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Wards")
