@@ -146,6 +146,21 @@ func _interceptions() -> void:
 	near(game.morale.points(1), 180.0, "a reinforcement was not on an attack order")
 
 func _movement() -> void:
+	var thresholds := [0.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0]
+	var speeds := [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
+	for level: int in thresholds.size():
+		reset()
+		game.by_id[0].kind = 2
+		game.morale.adjust(0, thresholds[level])
+		game.sync_environment_bonuses()
+		game.marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(0, 0, 50)]))
+		var unit: WarMarches.MarchUnit = game.marches._units[0]
+		game.marches.tick(1.0)
+		near(unit.distance, WarMarches.SPEED * speeds[level], "actual morale movement at level %d excludes forge speed" % level)
+		near(game.marches.speed_multiplier(unit), speeds[level], "movement feedback at level %d excludes forge speed" % level)
+		if level > 0:
+			game.morale.adjust(0, -0.001)
+			near(game.marches.base_speed(0), WarMarches.SPEED * speeds[level - 1], "falling below morale threshold %d immediately refreshes movement" % level)
 	reset()
 	var route := PackedVector3Array([Vector3.ZERO, Vector3(0, 0, 50)])
 	game.morale.adjust(1, 4000.0)

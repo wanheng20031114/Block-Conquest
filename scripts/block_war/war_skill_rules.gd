@@ -125,7 +125,7 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 	if commander == RABBIT:
 		return [
 			"选中半径 %.1f 米内自己的行军，持续 %d 秒。\n移速 +%d%%，攻击 +%d%%，离开落点仍生效。\n仅强化施放瞬间选中的部队，不叠加。" % [RABBIT_RUSH_RADIUS, RABBIT_DURATIONS[0], roundi((RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(RABBIT_RUSH_ATTACK_BONUS * 100.0)],
-			"拖至敌方建筑，令其停工 6 秒。\n暂停产兵、射击、铁匠铺攻防与移速、\n能量塔恢复加成。不叠加。",
+			"拖至敌方建筑，令其停工 6 秒。\n暂停产兵、射击、铁匠铺攻防、\n能量塔恢复加成。不叠加。",
 			"拖至地面，松手吹响口哨。\n半径 6 米内所有阵营的行军部队，\n各自返回出发建筑，途中仍会受到攻击。",
 			"拖至自己的建筑，获得 15 秒兔洞待命。\n下一次派兵开始快速掘地，无距离限制。\n按所选比例最多派出 50 人，每 0.16 秒出洞一排。"
 		][index]

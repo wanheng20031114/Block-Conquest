@@ -261,7 +261,7 @@ func _movement_groups(marches: WarMarches) -> void:
 	var distances: Array[float] = []
 	for short_ticks: bool in [false, true]:
 		marches.clear()
-		marches.environment_speed[0] = 1.3 # Two own smithies plus one morale star.
+		marches.environment_speed[0] = 1.3 # Three complete morale stars.
 		marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(300, 0, 0)]))
 		var unit := marches._units[0]
 		marches.apply_rush(0, Vector3.ZERO, 5.0, 1.0)
@@ -270,7 +270,7 @@ func _movement_groups(marches: WarMarches) -> void:
 		marches.create_haste_zone(0, Vector3.ZERO, 1000.0, 2.0, 1.6)
 		marches.create_slow_zone(1, Vector3.ZERO, 1000.0, 0.5)
 		marches.create_slow_zone(3, Vector3.ZERO, 1000.0, 0.5)
-		_check(is_equal_approx(marches.base_speed(0), WarMarches.SPEED * 1.3), "Smithy and morale are added within the persistent environment factor")
+		_check(is_equal_approx(marches.base_speed(0), WarMarches.SPEED * 1.3), "Three morale stars provide the persistent movement factor")
 		_check(is_equal_approx(marches.speed_multiplier(unit), 2.6), "Environment 1.3 multiplies additive skills 1 + 1 + 0.6 - 0.6; identical skills do not stack")
 		if short_ticks:
 			for index: int in 20: marches.tick(0.1)

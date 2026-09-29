@@ -549,10 +549,10 @@ func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 
 
 func sync_environment_bonuses() -> void:
 	for faction: int in faction_count:
-		marches.environment_speed[faction] = morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(forge_count(faction))
+		marches.environment_speed[faction] = morale.speed(faction)
 
 func _on_morale_changed(faction: int) -> void:
-	marches.environment_speed[faction] = morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(forge_count(faction))
+	marches.environment_speed[faction] = morale.speed(faction)
 
 func _on_building_completed(kind: int, completed_level: int, converted: bool, building: WarBuilding) -> void:
 	sync_environment_bonuses()
@@ -643,7 +643,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 			elif previous_faction == local_faction:
 				audio.play_ui(&"war_lost")
 			if faction == local_faction:
-				var benefit: String = ["每秒 +%s 民兵" % target.production_rate, "炮塔开始拦截敌军", "提高全军攻击、防御与移速", "提高技力恢复速度"][target.kind]
+				var benefit: String = ["每秒 +%s 民兵" % target.production_rate, "炮塔开始拦截敌军", "提高全军攻击与防御", "提高技力恢复速度"][target.kind]
 				if energy_bonus > 0.0:
 					benefit += " · 技力 +%.1f" % energy_bonus
 				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], benefit])
@@ -1264,7 +1264,7 @@ func update_hud() -> void:
 		match selected.kind:
 			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限" % [selected.production_rate, selected.capacity]
 			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 防御 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, roundi(COMBAT_RULES.tower_defense_bonus(selected.level) * 100.0)]
-			2: detail = "提高所属军团攻击、防御与移速 · 不可升级 · 不自动产兵"
+			2: detail = "提高所属军团攻击与防御 · 不可升级 · 不自动产兵"
 			3: detail = "提高技力恢复 · 出征占领敌方建筑 +10 技力 · 不可升级 · 不自动产兵"
 		if shields.has(selected.building_id):
 			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])

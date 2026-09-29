@@ -43,7 +43,7 @@ func _run() -> void:
 	game.audio.muted = true
 	reset() # These movement fixtures need a funded skill pool after the 30-energy opening.
 	for building: WarBuilding in game.buildings:
-		building.kind = 3 # Suppress production and towers without a forge movement bonus.
+		building.kind = 3 # Suppress production and towers for the movement fixture.
 		building.population = 1000.0
 		building.refresh_visual()
 	game.sync_environment_bonuses()

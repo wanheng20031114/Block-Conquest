@@ -47,6 +47,9 @@ func _levels_and_stars() -> void:
 		if whole > 0:
 			var below := fresh(thresholds[whole] - 0.001)
 			check(below.level(0) == whole - 1, "below_threshold_retains_lower_bonus_%d" % whole)
+			check(is_equal_approx(below.attack(0), 1.0 + 0.05 * (whole - 1)), "below_threshold_retains_lower_attack_%d" % whole)
+			check(is_equal_approx(below.defense(0), 1.0 + 0.20 * (whole - 1)), "below_threshold_retains_lower_defense_%d" % whole)
+			check(is_equal_approx(below.speed(0), 1.0 + 0.10 * (whole - 1)), "below_threshold_retains_lower_speed_%d" % whole)
 	var capped := fresh(1000000.0)
 	check(capped.points(0) == 8000.0 and capped.level(0) == 5 and capped.stars(0) == 5.0, "positive_events_cap_at_five_stars")
 	capped.adjust(0, -1000000.0)

@@ -129,10 +129,10 @@ static func guides() -> Array[Dictionary]:
 		},
 		{
 			"id": &"smithy", "title": "铁匠铺", "tag": "建筑 · 全军支援",
-			"summary": "提高所属玩家全军的攻击、防御与行军速度。",
+			"summary": "提高所属玩家全军的攻击与防御。",
 			"sections": [
 				{"title": "攻防增益", "body": "有效铁匠铺为 1 / 2 / 3 / 4 座时，累计攻击提高 %d%% / %d%% / %d%% / %d%%，防御提高 %d%% / %d%% / %d%% / %d%%。第 5 座起，攻防加成不再增加。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_attack_bonus(2) * 100.0), roundi(COMBAT.forge_attack_bonus(3) * 100.0), roundi(COMBAT.forge_attack_bonus(4) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(2) * 100.0), roundi(COMBAT.forge_defense_bonus(3) * 100.0), roundi(COMBAT.forge_defense_bonus(4) * 100.0)]},
-				{"title": "行军与归属", "body": "每座有效铁匠铺提供 %d%% 移速加成，不设座数上限。各项增益只属于建筑拥有者，不共享给队友。" % roundi(COMBAT.forge_speed_bonus(1) * 100.0)},
+				{"title": "加成归属", "body": "铁匠铺不提供移速加成。攻防增益只属于建筑拥有者，不共享给队友。"},
 				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供全部增益。"},
 			],
 			"tip": "铁匠铺与士气的同类加成相加；炮塔守备计入防御，技能加成独立结算。",

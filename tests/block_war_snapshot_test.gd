@@ -218,10 +218,10 @@ func _environment_speed() -> void:
 	host.by_id[0].kind = 2
 	host.by_id[2].kind = 2; host.by_id[2].faction = 0
 	host.by_id[2].begin_disruption(0.4)
-	host.by_id[4].kind = 2 # An allied faction's forge must not count.
+	host.by_id[4].kind = 2 # Neither own nor allied forges change movement.
 	host.morale.adjust(0, 500.0)
 	host.sync_environment_bonuses()
-	near(host.marches.environment_speed[0], 1.2, "one working forge and one morale star add before the skill group")
+	near(host.marches.environment_speed[0], 1.1, "only the morale star affects permanent movement before the skill group")
 	for index: int in 2:
 		host.marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(300, 0, 0)]))
 		var unit: WarMarches.MarchUnit = host.marches._units[-1]
@@ -231,19 +231,20 @@ func _environment_speed() -> void:
 	var state := writer.capture(host, 1800)
 	var historical := Snapshot.new()
 	historical.install(replica, state, 10.8)
-	# Held .0-.2; then .1*1.2*2 + .1*1.2*2.6 + .1*1.3*2.6
-	# + .1*1.3*1.6 + .2*1.3, all multiplied by the base speed 3.1.
+	# Held .0-.2; then .1*2 + .2*2.6 + .1*1.6 + .2*1,
+	# all multiplied by base speed 3.1 and morale 1.1. Forge recovery at .4
+	# changes combat bonuses only, within the uninterrupted .3-.5 rush segment.
 	for unit: WarMarches.MarchUnit in replica.marches._units:
-		near(unit.distance, 4.2098, "late snapshot integrates forge recovery and every timed skill boundary for each soldier")
-	near(replica.marches.environment_speed[0], 1.3, "historical integration restores the present environment speed")
+		near(unit.distance, 3.6828, "late snapshot handles every skill boundary without forge recovery adding speed")
+	near(replica.marches.environment_speed[0], 1.1, "historical integration preserves morale-only environment speed")
 	var stepped := Snapshot.new()
 	stepped.install(replica, state)
 	for index: int in 8: stepped.present(replica, state, 0.1)
 	for unit: WarMarches.MarchUnit in replica.marches._units:
-		near(unit.distance, 4.2098, "short presentation frames match the historical movement integral")
+		near(unit.distance, 3.6828, "short presentation frames match the historical movement integral")
 	host.simulate(0.8)
 	for unit: WarMarches.MarchUnit in host.marches._units:
-		near(unit.distance, 4.2098, "authority movement matches snapshot prediction through forge recovery")
+		near(unit.distance, 3.6828, "authority movement matches snapshot prediction through forge recovery")
 
 	for change: String in ["conversion", "capture", "disruption"]:
 		fresh(host)
@@ -261,11 +262,39 @@ func _environment_speed() -> void:
 			"disruption": host.by_id[0].begin_disruption(2.0)
 		var after := writer.capture(host, 1901)
 		var delta := Snapshot.diff(before, after)
-		check(delta.set.get("units", {}).size() == 1, "forge " + change + " reliably re-anchors every moving soldier")
+		check(delta.set.get("units", {}).is_empty(), "forge " + change + " sends no redundant movement anchors")
+		check(delta.set.get("buildings", {}).has("0"), "forge " + change + " still reliably updates its building fact")
 		Snapshot.apply_delta(before, delta)
-		check(Snapshot.valid(before, replica), "forge " + change + " and movement anchor form one valid fact")
+		check(Snapshot.valid(before, replica), "forge " + change + " preserves a valid unchanged movement baseline")
 		codec.install(replica, before, 20.3)
-		near(replica.marches._units[0].distance, WarMarches.SPEED * 0.3, "same-time forge " + change + " replaces the extrapolated environment factor")
+		near(replica.marches._units[0].distance, WarMarches.SPEED * 0.3, "same-time forge " + change + " leaves extrapolated movement unchanged")
+
+	for gaining_star: bool in [true, false]:
+		fresh(host)
+		host.elapsed = 30.0
+		host.by_id[0].kind = 2
+		host.morale.adjust(0, 499.0 if gaining_star else 500.0)
+		host.sync_environment_bonuses()
+		host.marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(300, 0, 0)]))
+		var before := writer.capture(host, 1950)
+		var codec := Snapshot.new()
+		codec.install(replica, before)
+		codec.present(replica, before, 0.3)
+		host.simulate(0.3)
+		host.morale.adjust(0, 1.0 if gaining_star else -1.0)
+		var after := writer.capture(host, 1951)
+		var delta := Snapshot.diff(before, after)
+		check(delta.set.get("units", {}).size() == 1, "morale threshold change reliably re-anchors moving soldiers")
+		Snapshot.apply_delta(before, delta)
+		check(Snapshot.valid(before, replica), "morale threshold and movement anchor remain one valid fact")
+		codec.install(replica, before, 30.3)
+		codec.present(replica, before, 0.2)
+		host.simulate(0.2)
+		var old_speed := 1.0 if gaining_star else 1.1
+		var new_speed := 1.1 if gaining_star else 1.0
+		var expected := WarMarches.SPEED * (0.3 * old_speed + 0.2 * new_speed)
+		near(host.marches._units[0].distance, expected, "authority applies morale speed at the exact threshold change")
+		near(replica.marches._units[0].distance, expected, "replica matches movement before and after morale threshold change")
 
 	fresh(host)
 	host.by_id[0].kind = 1; host.by_id[0].level = 4

@@ -10,7 +10,6 @@ const MAX_EXTRAPOLATION := 1.0
 const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5, 9]}
 const FIRE := preload("res://scripts/block_war/war_fire_state.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 var _order_cache: Dictionary = {}
 var _shot_serial := 1
 var _objects: Dictionary = {}
@@ -20,7 +19,7 @@ var _installed_order_rows: Dictionary = {}
 var _presentation_rows: Array[Array] = []
 var _field_geometry: Dictionary = {}
 var _last_state: Dictionary = {}
-var _environment_timelines: Dictionary[int, Array] = {}
+var _environment_speeds := PackedFloat64Array()
 
 static func v3(value: Vector3) -> Array:
 	return [value.x, value.y, value.z]
@@ -168,14 +167,6 @@ static func diff(previous: Dictionary, current: Dictionary, force: bool = false)
 	var speed_changed: bool = changes.has("fields") or removed.has("fields")
 	for key: String in changes.get("factions", {}):
 		if previous.get("factions", {}).has(key) and previous.factions[key][5] != current.factions[key][5]:
-			speed_changed = true
-	for key: String in changes.get("buildings", {}):
-		var next: Array = current.buildings[key]
-		if not previous.get("buildings", {}).has(key):
-			speed_changed = speed_changed or int(next[1]) == 2
-			continue
-		var old: Array = previous.buildings[key]
-		if (int(old[1]) == 2 or int(next[1]) == 2) and (old[0] != next[0] or old[1] != next[1] or absf(float(old[8]) - float(next[8])) > 0.00001):
 			speed_changed = true
 	if speed_changed:
 		changes["units"] = current.units.duplicate(false)
@@ -468,7 +459,8 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		game.morale._idle_seconds[f] = float(row[6])
 		game.morale._next_decay_at[f] = float(row[7])
 	game.sync_environment_bonuses()
-	var environment_changed := _build_environment_timelines(game, state)
+	var environment_changed: bool = _environment_speeds != game.marches.environment_speed
+	_environment_speeds = game.marches.environment_speed.duplicate()
 	var orders_changed := false
 	for key: String in state.orders:
 		if _installed_order_rows.get(key) == state.orders[key]: continue
@@ -614,41 +606,10 @@ func _set_field_clock(game: Node, state: Dictionary, now: float, discard_expired
 		zones[id].remaining = remaining(row[4], now)
 		if discard_expired and zones[id].remaining <= 0.0: zones.erase(id)
 
-func _build_environment_timelines(game: Node, state: Dictionary) -> bool:
-	# Ownership/type changes arrive with fresh unit anchors. The only predictable
-	# future forge-speed boundary is an existing disruption's absolute deadline.
-	var previous := _environment_timelines
-	_environment_timelines = {}
-	for faction: int in game.faction_count:
-		var active := 0
-		var deadlines: Array[float] = []
-		for row: Array in state.buildings.values():
-			if int(row[0]) != faction or int(row[1]) != 2: continue
-			if float(row[8]) <= 0.0: active += 1
-			else: deadlines.append(float(row[8]))
-		deadlines.sort()
-		var timeline: Array = [{"at": 0.0, "speed": game.morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(active)}]
-		for at: float in deadlines:
-			active += 1
-			timeline.append({"at": at, "speed": game.morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(active)})
-		_environment_timelines[faction] = timeline
-	return previous != _environment_timelines
-
 func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, at_time: float) -> void:
 	if unit.pending_departure or seconds <= 0.0: return
-	var cursor := at_time
-	var finish := at_time + seconds
-	for boundary: Dictionary in _environment_timelines[unit.order.faction]:
-		if float(boundary.at) <= cursor:
-			game.marches.environment_speed[unit.order.faction] = float(boundary.speed)
-			continue
-		if float(boundary.at) >= finish: break
-		_move_visual_section(game, unit, float(boundary.at) - cursor, cursor)
-		cursor = float(boundary.at)
-		game.marches.environment_speed[unit.order.faction] = float(boundary.speed)
-	_move_visual_section(game, unit, finish - cursor, cursor)
-
-func _move_visual_section(game: Node, unit: WarMarches.MarchUnit, seconds: float, at_time: float) -> void:
+	# Morale changes arrive with authoritative movement anchors. Skill expiry and
+	# field crossings are integrated by movement_distance for each soldier.
 	_set_field_clock(game, _last_state, at_time, false)
 	var step: float = game.marches.movement_distance(unit, seconds)
 	unit.distance = minf(unit.order.length - 0.001, unit.distance + step)

@@ -478,7 +478,7 @@ func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarch
 			var target: WarBuilding = game.by_id[unit.order.target_id]
 			if game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 6.0) >= unit.order.length - unit.distance:
 				engaged += unit.order.strength
-		return engaged * (attack_lost + defense_lost + game.COMBAT_RULES.FORGE_SPEED_PER_BUILDING) * 2.0
+		return engaged * (attack_lost + defense_lost) * 2.0
 	var exposed := 0
 	for unit: WarMarches.MarchUnit in visible:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction) or not game.FACTIONS.allied(unit.order.faction, faction):
