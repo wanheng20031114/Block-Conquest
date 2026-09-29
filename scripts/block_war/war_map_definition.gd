@@ -10,6 +10,8 @@ extends Resource
 @export_file("*.res") var routes_path := "res://data/block_war/routes/rift.res"
 @export_multiline var description := "两道溪谷与四座石桥，围绕中央据点展开争夺。"
 @export var half_size := Vector2(40, 28)
+# Full rendered X/Z bounds include the surrounding woodland, beyond playable half_size.
+@export var camera_bounds := Rect2(-60, -54, 120, 108)
 @export var ground_color := Color("799077")
 @export var water_regions: Array[Rect2] = []
 @export var mountain_regions: Array[Rect2] = []

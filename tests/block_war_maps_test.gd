@@ -15,6 +15,18 @@ func check(value: bool, label: String) -> void:
 		failures.append(label)
 		printerr("FAIL ", label)
 
+func camera_view_inside_map() -> bool:
+	var viewport: Rect2 = game.camera.get_viewport().get_visible_rect()
+	game.camera.force_update_transform()
+	for height: float in [0.0, -1.18]:
+		var bounds: Rect2 = game.map.definition.camera_bounds
+		bounds = bounds.grow(-2.0 if height == 0.0 else 0.0).grow(0.03)
+		for corner: Vector2 in [viewport.position, Vector2(viewport.end.x, viewport.position.y), viewport.end, Vector2(viewport.position.x, viewport.end.y)]:
+			var hit: Variant = Plane(Vector3.UP, height).intersects_ray(game.camera.project_ray_origin(corner), game.camera.project_ray_normal(corner))
+			if hit == null or not bounds.has_point(Vector2(hit.x, hit.z)):
+				return false
+	return true
+
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
 	var session := root.get_node("Session")
@@ -52,7 +64,7 @@ func _run() -> void:
 			check(central.size() >= 2 and game.map.get_building_distance(game.buildings[10], game.buildings[11]) < 35.0, "baked central route avoids the two-bridge detour")
 			check(not central.is_empty() and Array(central).all(func(point: Vector3): return absf(point.x) < 7.0), "baked central route stays on the central island")
 		game.camera_rig.focus_at(Vector3(1000, 0, -1000), true)
-		check(game.camera_rig.position == Vector3(definition.half_size.x - 6, 0, -definition.half_size.y + 5), "camera bounds follow the map's true size")
+		check(camera_view_inside_map(), "camera bounds keep the entire viewport inside this map's rendered terrain")
 		check(game._valid_ground_skill_target(Vector3(definition.half_size.x - 1, 0, 0)), "skills reach the edges of every map size")
 		check(not game._valid_ground_skill_target(Vector3(definition.half_size.x + 1, 0, 0)), "skills cannot target outside the battlefield")
 		var missing := 0

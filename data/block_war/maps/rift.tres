@@ -12,6 +12,7 @@ scene_path = "res://scenes/block_war/map.tscn"
 routes_path = "res://data/block_war/routes/rift.res"
 description = "四座石桥围绕中央塔台，两处内湾收紧谷心。近岸据点更紧凑，抢桥与绕后可以同时展开。"
 half_size = Vector2(36, 26)
+camera_bounds = Rect2(-60, -54, 120, 108)
 ground_color = Color(0.36, 0.465, 0.2, 1)
 water_regions = Array[Rect2]([Rect2(-14, -54, 5, 108), Rect2(9, -54, 5, 108), Rect2(-9, -4, 2, 8), Rect2(7, -4, 2, 8)])
 mountain_regions = Array[Rect2]([])

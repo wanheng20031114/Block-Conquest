@@ -12,6 +12,7 @@ scene_path = "res://scenes/block_war/maps/ridges.tscn"
 routes_path = "res://data/block_war/routes/ridges.res"
 description = "两道长岩脊和两处侧峰围成分叉谷口。外圈山道适合包抄，中央工坊则能连通两翼的支援。"
 half_size = Vector2(54, 40)
+camera_bounds = Rect2(-78, -64, 156, 128)
 ground_color = Color(0.38, 0.47, 0.215, 1)
 water_regions = Array[Rect2]([])
 mountain_regions = Array[Rect2]([Rect2(-5, -30, 10, 17), Rect2(-5, 13, 10, 17), Rect2(-28, -5, 8, 10), Rect2(20, -5, 8, 10)])

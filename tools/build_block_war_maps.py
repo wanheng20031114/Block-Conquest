@@ -101,9 +101,20 @@ def scene_path(layout):
     return "res://scenes/block_war/map.tscn" if layout["id"] == "rift" else f'res://scenes/block_war/maps/{layout["id"]}.tscn'
 
 
+def terrain_axes(layout):
+    # Match the authored Land partition, including the outer woodland apron.
+    # Water endpoints can extend farther than half_size + 24 (the rift map).
+    hx, hz = layout["half"]
+    xs = sorted({-hx - 24, hx + 24} | {r[0] + d for r in layout["water"] for d in (0, r[2])})
+    zs = sorted({-hz - 24, hz + 24} | {r[1] + d for r in layout["water"] for d in (0, r[3])})
+    return xs, zs
+
+
 def write_definition(layout):
     items = layout["buildings"]
     positions = ", ".join(str(v) for x, z, *_ in items for v in (x, 0, z))
+    xs, zs = terrain_axes(layout)
+    camera_bounds = (xs[0], zs[0], xs[-1] - xs[0], zs[-1] - zs[0])
     text = f'''[gd_resource type="Resource" script_class="WarMapDefinition" format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="script"]
@@ -118,6 +129,7 @@ scene_path = "{scene_path(layout)}"
 routes_path = "res://data/block_war/routes/{layout['id']}.res"
 description = "{layout['description']}"
 half_size = {vec(layout['half'], 'Vector2')}
+camera_bounds = {vec(camera_bounds, 'Rect2')}
 ground_color = {vec((*layout['color'], 1), 'Color')}
 water_regions = {rects(layout['water'])}
 mountain_regions = {rects(layout['mountains'])}
@@ -160,8 +172,7 @@ shader_parameter/bridge_regions = PackedVector4Array({', '.join(str(v) for regio
 
     # Land ends at the conservative navigation boundary. Authored grass lips
     # extend into forbidden water, never exposing water beneath a valid route.
-    xs = sorted({-hx - 24, hx + 24} | {r[0] + d for r in layout["water"] for d in (0, r[2])})
-    zs = sorted({-hz - 24, hz + 24} | {r[1] + d for r in layout["water"] for d in (0, r[3])})
+    xs, zs = terrain_axes(layout)
     for ix, (left, right) in enumerate(zip(xs, xs[1:])):
         for iz, (top, bottom) in enumerate(zip(zs, zs[1:])):
             x, z = (left + right) / 2, (top + bottom) / 2

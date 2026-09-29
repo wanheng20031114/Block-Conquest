@@ -12,6 +12,7 @@ scene_path = "res://scenes/block_war/maps/rivers.tscn"
 routes_path = "res://data/block_war/routes/rivers.res"
 description = "六座宽桥串起三条战线，河湾把中央平原收成两段狭长前哨。抢下中桥，可在上下战线之间快速转兵。"
 half_size = Vector2(54, 40)
+camera_bounds = Rect2(-78, -64, 156, 128)
 ground_color = Color(0.36, 0.465, 0.2, 1)
 water_regions = Array[Rect2]([Rect2(-15, -60, 6, 120), Rect2(9, -60, 6, 120), Rect2(-9, -17, 2, 10), Rect2(-9, 7, 2, 10), Rect2(7, -17, 2, 10), Rect2(7, 7, 2, 10)])
 mountain_regions = Array[Rect2]([])

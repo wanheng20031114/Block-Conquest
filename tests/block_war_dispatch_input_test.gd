@@ -227,15 +227,17 @@ func _run() -> void:
 	before = game.marches.incoming_for(enemy.building_id, 0)
 	button(point(enemy), false)
 	check(game.marches.incoming_for(enemy.building_id, 0) == before + 40, "map release after hovering UI uses the release position and sends troops")
-	# Put a real neutral pick area behind Skill0. GUI protection must reject the
+	# Put a real neutral pick area behind Skill1. GUI protection must reject the
 	# underlying building, not merely succeed because no building was underneath.
-	var covered: Node3D = game.by_id[12]
-	var skill: Button = game.hud.get_node("UI/Skills/Row/Skill0")
+	# The southern house can overlap the HUD while the full camera stays on-map.
+	var covered: Node3D = game.by_id[11]
+	var skill: Button = game.hud.get_node("UI/Skills/Row/Skill1")
+	game.camera_rig.zoom_by(-8.0)
+	game.camera_rig._process(1.0)
 	var ui_screen := skill.get_global_rect().get_center()
 	var delta := point(covered) - ui_screen
 	var units_per_pixel: float = game.camera.size / root.get_visible_rect().size.y
-	game.camera_rig.position += Vector3(delta.x * units_per_pixel, 0, delta.y * units_per_pixel / absf(sin(game.camera.rotation.x)))
-	game.camera_rig.destination = game.camera_rig.position
+	game.camera_rig.focus_at(game.camera_rig.position + Vector3(delta.x * units_per_pixel, 0, delta.y * units_per_pixel / absf(sin(game.camera.rotation.x))), true)
 	await frames()
 	check(point(covered).distance_to(ui_screen) < 1.0 and game.pick_building(ui_screen) == covered, "UI overlap fixture contains a real underlying building")
 	motion(point(home))

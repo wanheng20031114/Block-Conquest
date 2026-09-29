@@ -282,6 +282,7 @@ func _ready() -> void:
 	hud.ui_sound_requested.connect(audio.play_ui)
 	get_window().focus_exited.connect(_on_focus_exited)
 	camera_rig.maximum_zoom = maxf(95.0, map.definition.half_size.y * 2.1)
+	camera_rig.configure_bounds(map.definition.camera_bounds)
 	var home: Node3D
 	for building: Node3D in buildings:
 		if building.faction == local_faction:

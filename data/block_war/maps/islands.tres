@@ -12,6 +12,7 @@ scene_path = "res://scenes/block_war/maps/islands.tscn"
 routes_path = "res://data/block_war/routes/islands.res"
 description = "三座纵向岛屿与八座宽桥连接三条战线。两岸内凹水湾分开集结区，沿岛心转兵可迅速支援队友。"
 half_size = Vector2(76, 54)
+camera_bounds = Rect2(-100, -78, 200, 156)
 ground_color = Color(0.36, 0.465, 0.2, 1)
 water_regions = Array[Rect2]([Rect2(-25, -76, 7, 152), Rect2(18, -76, 7, 152), Rect2(-18, -23, 36, 7), Rect2(-18, 16, 36, 7), Rect2(-29, -13, 4, 6), Rect2(-29, 7, 4, 6), Rect2(25, -13, 4, 6), Rect2(25, 7, 4, 6)])
 mountain_regions = Array[Rect2]([])

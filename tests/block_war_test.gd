@@ -14,6 +14,18 @@ func check(condition: bool, label: String) -> void:
 		failures.append(label)
 		printerr("FAIL ", label)
 
+func camera_view_inside_map() -> bool:
+	var viewport: Rect2 = game.camera.get_viewport().get_visible_rect()
+	game.camera.force_update_transform()
+	for height: float in [0.0, -1.18]:
+		var bounds: Rect2 = game.map.definition.camera_bounds
+		bounds = bounds.grow(-2.0 if height == 0.0 else 0.0).grow(0.03)
+		for corner: Vector2 in [viewport.position, Vector2(viewport.end.x, viewport.position.y), viewport.end, Vector2(viewport.position.x, viewport.end.y)]:
+			var hit: Variant = Plane(Vector3.UP, height).intersects_ray(game.camera.project_ray_origin(corner), game.camera.project_ray_normal(corner))
+			if hit == null or not bounds.has_point(Vector2(hit.x, hit.z)):
+				return false
+	return true
+
 func reset_match() -> void:
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
 	await scene_changed
@@ -120,11 +132,22 @@ func run() -> void:
 	game.simulate(10.0)
 	check(home.kind == 0 and home.population == 50.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
 	game.camera_rig.focus_at(Vector3(999, 0, -999), true)
-	check(game.camera_rig.position == Vector3(30, 0, -21), "camera panning stays inside the compact rift battlefield bounds")
+	check(camera_view_inside_map(), "instant focus keeps every viewport corner over the rendered battlefield")
 	game.camera_rig.zoom_by(999)
-	check(game.camera_rig.zoom_target == 95.0, "zoom upper bound")
+	var zoom_stayed_inside := true
+	for frame: int in 60:
+		game.camera_rig._process(0.05)
+		zoom_stayed_inside = camera_view_inside_map() and zoom_stayed_inside
+	check(zoom_stayed_inside and absf(game.camera.size - game.camera_rig.zoom_target) < 0.03, "zoom upper bound fits the map throughout the transition")
+	game.camera_rig.zoom_by(-999)
+	for frame: int in 60:
+		game.camera_rig._process(0.05)
+	game.camera_rig.focus_at(Vector3.ZERO, true)
+	var before_drag: Vector3 = game.camera_rig.destination
 	game.camera_rig.drag_by(Vector2(200, 50))
-	check(game.camera_rig.destination.x < 30.0, "middle mouse camera movement uses native camera projection")
+	for frame: int in 60:
+		game.camera_rig._process(0.05)
+	check(game.camera_rig.destination.x < before_drag.x and camera_view_inside_map(), "middle mouse camera movement pans while keeping the full view inside the map")
 	await reset_match()
 	game.ai_enabled = true
 	game.ai_clock = 0.0

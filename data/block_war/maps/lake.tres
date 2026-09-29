@@ -12,6 +12,7 @@ scene_path = "res://scenes/block_war/maps/lake.tscn"
 routes_path = "res://data/block_war/routes/lake.res"
 description = "十字湖湾伸向两侧工坊，南北回廊形成两条完整包抄线。贴湖争夺前哨，也能沿林缘调兵。"
 half_size = Vector2(36, 28)
+camera_bounds = Rect2(-60, -52, 120, 104)
 ground_color = Color(0.36, 0.465, 0.2, 1)
 water_regions = Array[Rect2]([Rect2(-8, -11, 16, 22), Rect2(-12, -4, 4, 8), Rect2(8, -4, 4, 8)])
 mountain_regions = Array[Rect2]([])
