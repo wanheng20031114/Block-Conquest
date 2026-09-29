@@ -66,7 +66,7 @@ func _run() -> void:
 	check_button_text(current_scene.get_node("%Next"))
 	check_button_text(current_scene.get_node("%Back"))
 	check_button_text(current_scene.get_node("%Animal0"))
-	check(current_scene.get_node("%Animal3").disabled and current_scene.get_node("%Animal4").disabled, "unreleased commanders remain disabled")
+	check(current_scene.get_node("%Animal3").disabled and not current_scene.get_node("%Animal4").disabled, "unreleased commanders remain disabled")
 	change_scene_to_file("res://scenes/block_war/map_select.tscn")
 	await scene_changed
 	await capture("03_map")

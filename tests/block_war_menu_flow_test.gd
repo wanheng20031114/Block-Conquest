@@ -58,7 +58,7 @@ func _run() -> void:
 	check(current_scene.scene_file_path.ends_with("commander_select.tscn"), "lobby enters animal selection first")
 	var picker := current_scene
 	check(picker.get_node("%AnimalName").text == "松鼠", "species name has no nickname or title")
-	for i: int in [3, 4]:
+	for i: int in [3]:
 		var locked: Button = picker.get_node("%%Animal%d" % i)
 		check(locked.is_visible_in_tree() and locked.disabled and locked.focus_mode == Control.FOCUS_NONE, "locked animal %d is visible but excluded from mouse and keyboard selection" % i)
 		click(locked)
@@ -66,6 +66,11 @@ func _run() -> void:
 		check(locked.get_node("Content/Status/Availability").text == "尚未开放", "locked status uses words as well as color")
 	picker._select(3)
 	check(session.block_war_commander == &"squirrel", "selection boundary rejects unimplemented profiles")
+	click(picker.get_node("%Animal4"))
+	await settle()
+	check(session.block_war_commander == &"fox" and picker.get_node("%AnimalName").text == "狐狸", "fox is playable")
+	for i: int in 4:
+		check(picker.get_node("%%SkillName%d" % i).text == RULES.FOX_NAMES[i], "fox menu skill %d" % i)
 	click(picker.get_node("%Animal5"))
 	await settle()
 	check(session.block_war_commander == &"frog" and picker.get_node("%AnimalName").text == "青蛙", "noncontiguous frog roster slot is playable")
@@ -97,6 +102,8 @@ func _run() -> void:
 	await scene_changed
 	await settle()
 	check(current_scene.scene_file_path.ends_with("map_select.tscn"), "confirmation enters battlefield selection")
+	click(current_scene.get_node("%OpponentCommander4"))
+	check(session.block_war_opponent_commander == &"fox", "fox can be chosen as computer opponent")
 	click(current_scene.get_node("%OpponentCommander3"))
 	check(session.block_war_opponent_commander == &"frog", "frog can be chosen as computer opponent")
 	click(current_scene.get_node("%OpponentCommander2"))

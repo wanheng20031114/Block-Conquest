@@ -3,7 +3,7 @@
   "generator": "tools/build_war_audio.py",
   "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
   "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
-  "events": 34,
+  "events": 38,
   "files": [
     {
       "file": "war_select_01.wav",
@@ -1232,6 +1232,102 @@
           "sha256": "caf7a7cb9b25cda4bd487c1d12d18b74a34bb18c816fd67277cf3c8d7ef32a3a",
           "license": "CC0-1.0",
           "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+        }
+      ]
+    },
+    {
+      "file": "war_fox_bomb_01.wav",
+      "description": "Immediate feather-like fall with a compact wooden/soft thump at the 180 ms bomb contact",
+      "seconds": 0.48,
+      "active_rms_db": -19.5,
+      "true_peak_db": -8.65,
+      "bytes": 46124,
+      "sha256": "f4da244f04527f7fd853c05fa9d7d47dc191e2a3927e8aa96fc57162e945b1e0",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/impactSoft_heavy_003.ogg",
+          "sha256": "d00286a2dc62ee5cb4d42bf56120e7050a855f69e655fc1294410aadd337eba3",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "weapons_apparel/arrow-feathers-02.wav",
+          "sha256": "5e2974eade6ba7238642a5993114d46d10fd28912e044cacebff0b9e18c0b4e2",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library"
+        }
+      ]
+    },
+    {
+      "file": "war_fox_steal_01.wav",
+      "description": "One damped bright bell drawn across a short soft cloth gesture; no melody",
+      "seconds": 0.48,
+      "active_rms_db": -21.22,
+      "true_peak_db": -5.01,
+      "bytes": 46124,
+      "sha256": "7c54d49ac55e2b8bab19d0a249fff4143d781f27e79d471ace33aa68ef51bb2a",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/impactBell_heavy_002.ogg",
+          "sha256": "a4171ed1a4a17fb858a38de1c59b5b42e50d8f046c525706c0e3ac8671f189f5",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "kenney_rpg/cloth2.ogg",
+          "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        }
+      ]
+    },
+    {
+      "file": "war_fox_convert_01.wav",
+      "description": "Brief flag cloth snap and quiet fastening contact, without a triumphant jingle",
+      "seconds": 0.34,
+      "active_rms_db": -20.5,
+      "true_peak_db": -3.24,
+      "bytes": 32684,
+      "sha256": "072c3e8b591b9a4795a430e5dc76e315258d02f5729f743e4aac184666913ab2",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_rpg/cloth2.ogg",
+          "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        },
+        {
+          "path": "kenney_rpg/metalLatch.ogg",
+          "sha256": "ba9ba60b172b3ebc131a940f25793cd2e207aca7af73dc80d637277f060f1708",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/rpg-audio"
+        }
+      ]
+    },
+    {
+      "file": "war_fox_panic_01.wav",
+      "description": "Two compact low wooden warning knocks and a short outward cloth rush",
+      "seconds": 0.54,
+      "active_rms_db": -19.63,
+      "true_peak_db": -4.38,
+      "bytes": 51884,
+      "sha256": "7cd9bc47f839a93f0e9dd717a3a55484eb03b03b167aee232b20fb43eed39a19",
+      "processing": "Trim, boundary fades, small variant rate change where noted, linear gain/true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/impactWood_medium_002.ogg",
+          "sha256": "3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "weapons_apparel/arrow-feathers-03.wav",
+          "sha256": "e55532c884b4dadc4c7fead111b6cf4f14886aad602f1778bb747dd5ade355e3",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library"
         }
       ]
     },

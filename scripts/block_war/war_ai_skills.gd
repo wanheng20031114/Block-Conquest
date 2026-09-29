@@ -24,6 +24,9 @@ func take_turn(game: Node3D) -> void:
 	# Short marches can finish between six-second decisions. Rabbit's instant
 	# squad selection needs a chance to act after the preceding turn's dispatch.
 	next_decision = game.elapsed + (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP)
+	if game.faction_skills[faction].commander == SKILL_RULES.FOX:
+		_fox_turn(game)
+		return
 	if game.faction_skills[faction].commander == SKILL_RULES.FROG:
 		_frog_turn(game)
 		return
@@ -80,6 +83,59 @@ func take_turn(game: Node3D) -> void:
 			best = {"index": 3, "score": fire.score, "target": null, "at": fire.at}
 	if best.index in [1, 3]:
 		game.cast_ground_skill(best.index, best.at, faction)
+	elif best.index >= 0:
+		game.cast_skill(best.index, best.target, faction)
+
+func _fox_turn(game: Node3D) -> void:
+	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
+	for building: WarBuilding in game.buildings:
+		if game.FACTIONS.allied(building.faction, faction):
+			continue
+		var estimate: float = INFORMATION.garrison_estimate(game, building, faction)
+		if game.can_cast_skill(0, faction) and not game.bear.is_invulnerable(building.building_id):
+			var score := minf(SKILL_RULES.FOX_BOMB_CAP, floorf(estimate * 0.5)) * (0.65 if building.faction < 0 else 1.0)
+			if score > best.score:
+				best = {"index": 0, "score": score, "target": building, "at": Vector3.ZERO}
+		if game.can_cast_skill(1, faction):
+			var amount: float = game.FOX_SKILLS.stolen_stars(game, building.faction, faction)
+			var score := amount * 29.0
+			if amount >= 0.35 and score > best.score:
+				best = {"index": 1, "score": score, "target": building, "at": Vector3.ZERO}
+		if game.can_cast_skill(3, faction) and game.FACTIONS.hostile(building.faction, faction) and not game.bear.is_invulnerable(building.building_id) and not game.FOX_SKILLS.panic_routes(game, building).is_empty():
+			# Emptying an irrelevant rear building merely redistributes enemy troops.
+			# Prefer a defended destination we are already approaching.
+			var incoming := 0
+			for unit: WarMarches.MarchUnit in game.marches._units:
+				if unit.order.faction == faction and unit.order.target_id == building.building_id and unit.is_exposed() and game.marches.movement_distance(unit, 8.0) >= unit.order.length - unit.distance:
+					incoming += 1
+			var score := minf(estimate * 0.65, 60.0)
+			if incoming >= 5 and estimate >= 30 and score > best.score:
+				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
+	if game.can_cast_skill(2, faction):
+		var cells: Dictionary[Vector2i, Dictionary] = {}
+		var known: Array[WarMarches.MarchUnit] = []
+		for unit: WarMarches.MarchUnit in game.marches._units:
+			if not unit.is_exposed() or not game.FACTIONS.hostile(unit.order.faction, faction) or not INFORMATION.is_unit_known(game, unit, faction):
+				continue
+			known.append(unit)
+			var cell := Vector2i(floori(unit.position.x / 3.0), floori(unit.position.z / 3.0))
+			if not cells.has(cell):
+				cells[cell] = {"sum": Vector3.ZERO, "count": 0}
+			cells[cell].sum += unit.position
+			cells[cell].count += 1
+		var keys := cells.keys()
+		keys.sort_custom(func(a: Vector2i, b: Vector2i): return cells[a].count > cells[b].count)
+		for key: Vector2i in keys.slice(0, 20):
+			var at: Vector3 = game.map.definition.surface_point(cells[key].sum / float(cells[key].count))
+			var count := 0
+			for unit: WarMarches.MarchUnit in known:
+				if Vector2(unit.position.x - at.x, unit.position.z - at.z).length_squared() <= pow(SKILL_RULES.FOX_CONVERT_RADIUS, 2):
+					count += 1
+			var score := count * 2.2
+			if count >= 6 and score > best.score:
+				best = {"index": 2, "score": score, "target": null, "at": at}
+	if best.index == 2:
+		game.cast_ground_skill(2, best.at, faction)
 	elif best.index >= 0:
 		game.cast_skill(best.index, best.target, faction)
 

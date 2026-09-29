@@ -459,6 +459,11 @@ func has_marchers() -> bool:
 func hit_target(unit: MarchUnit, impulse: Vector3, tower_shot: bool = false) -> bool:
 	if not unit.alive:
 		return false
+	if FACTIONS.allied(unit.order.faction, unit.intercepted_by):
+		# Recruitment can change allegiance while an already fired shot is flying.
+		unit.reserved = false
+		unit.intercepted_by = -1
+		return false
 	if tower_shot and not tower_can_target(unit):
 		unit.reserved = false
 		unit.intercepted_by = -1

@@ -164,7 +164,7 @@ func _run() -> void:
 	if not _check(current_scene.scene_file_path == CODEX, "native menu click opens the codex"):
 		_finish()
 		return
-	_check(_control("Entries").item_count == 4, "all four heroes are unlocked from first visit")
+	_check(_control("Entries").item_count == 5, "all five heroes are unlocked from first visit")
 	_check(current_scene.category == 0 and _control("Heroes").button_pressed, "hero category is selected initially")
 
 	for row: int in CATALOG.HEROES.size():
@@ -218,7 +218,7 @@ func _run() -> void:
 	_check(not demo.playing, "empty results stop the hidden demonstration")
 	await _capture("search_empty")
 	await _search("")
-	_check(_control("Entries").item_count == 4 and demo.playing, "clearing search restores all heroes and playback")
+	_check(_control("Entries").item_count == CATALOG.HEROES.size() and demo.playing, "clearing search restores all heroes and playback")
 
 	_click("Guides")
 	await _frames(10)

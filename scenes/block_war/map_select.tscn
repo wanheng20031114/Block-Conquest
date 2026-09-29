@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/rabbit.png" id="rabbit"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/bear.png" id="bear"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/frog.png" id="frog"]
+[ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/fox.png" id="fox"]
 
 [sub_resource type="ShaderMaterial" id="Background"]
 shader = ExtResource("backdrop")
@@ -485,6 +486,28 @@ mouse_default_cursor_shape = 2
 text = "青蛙"
 toggle_mode = true
 icon = ExtResource("frog")
+expand_icon = true
+icon_alignment = 1
+vertical_icon_alignment = 0
+texture_filter = 1
+theme_override_constants/icon_max_width = 36
+theme_override_constants/h_separation = 1
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("SmallNormal")
+theme_override_styles/hover = SubResource("SmallHover")
+theme_override_styles/pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="OpponentCommander4" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Opponents"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 66)
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "狐狸"
+toggle_mode = true
+icon = ExtResource("fox")
 expand_icon = true
 icon_alignment = 1
 vertical_icon_alignment = 0

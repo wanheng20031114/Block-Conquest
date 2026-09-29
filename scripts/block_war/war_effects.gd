@@ -21,6 +21,7 @@ func configure_surface(definition: WarMapDefinition) -> void:
 	$Rabbit.configure_surface(definition)
 	$Frog.configure_surface(definition)
 	$Bear.configure_surface(definition)
+	$Fox.configure_surface(definition)
 	for fire: WarFireWave in $FireWaves.get_children():
 		fire.configure_surface(definition)
 
@@ -141,6 +142,7 @@ func tick(delta: float) -> void:
 	sync_fire_states(get_parent().fire_states)
 
 func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dictionary, marches: WarMarches) -> void:
+	$Fox.advance(delta)
 	_skill_time += delta
 	_skill_emission += delta
 	var emit := _skill_emission >= 0.12
@@ -219,6 +221,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			_wind_offset = (_wind_offset + 48) % active.size()
 
 func set_running(value: bool) -> void:
+	$Fox.set_running(value)
 	$Frog.set_running(value)
 	$Bear.set_running(value)
 	$Rabbit.set_running(value)

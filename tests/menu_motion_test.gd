@@ -132,7 +132,7 @@ func _check_commander(session: Node, resolution: Vector2i) -> void:
 	_click(picker.get_node("%Animal0"))
 	check(is_equal_approx(picker.get_node("%Portrait").modulate.a, 1.0), "reselecting the commander does not restart its fade")
 	check(not picker.get_node("%Portrait").get_meta(UIMotion.PANEL_META).active, "reselecting the commander creates no new portrait animation")
-	for index: int in [3, 4]:
+	for index: int in [3]:
 		var locked: Button = picker.get_node("%%Animal%d" % index)
 		_click(locked)
 		locked.mouse_entered.emit()

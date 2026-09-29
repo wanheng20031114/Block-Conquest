@@ -66,6 +66,24 @@ func stars(faction: int) -> float:
 		return float(whole)
 	return whole + (value - THRESHOLDS[whole]) / (THRESHOLDS[whole + 1] - THRESHOLDS[whole])
 
+static func points_for_stars(value: float) -> float:
+	value = clampf(value, 0.0, 5.0)
+	var whole := mini(4, floori(value))
+	return lerpf(THRESHOLDS[whole], THRESHOLDS[whole + 1], value - whole)
+
+func transfer_stars(source: int, recipient: int, maximum: float = 1.0) -> float:
+	assert(source != recipient and maximum >= 0.0)
+	var before_source := stars(source)
+	var before_recipient := stars(recipient)
+	var amount := minf(maximum, minf(before_source, 5.0 - before_recipient))
+	if amount > 0.0:
+		# A star is one segment of the displayed gauge, not a fixed 500 points.
+		# Convert both sides independently so high-level stars cannot create more
+		# than one star for a low-level recipient, or overdraw a nearly empty donor.
+		adjust(source, points_for_stars(before_source - amount) - points(source))
+		adjust(recipient, points_for_stars(before_recipient + amount) - points(recipient))
+	return amount
+
 func attack(faction: int) -> float:
 	return 1.0 if faction < 0 else 1.0 + 0.05 * level(faction)
 

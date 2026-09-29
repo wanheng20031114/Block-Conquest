@@ -25,6 +25,7 @@ var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
 const FROG_SKILLS := preload("res://scripts/block_war/war_frog_skills.gd")
+const FOX_SKILLS := preload("res://scripts/block_war/war_fox_skills.gd")
 const FIRE_STATE := preload("res://scripts/block_war/war_fire_state.gd")
 const SURRENDER := preload("res://scripts/block_war/war_surrender.gd")
 var bear := BEAR_SKILLS.new()
@@ -98,6 +99,7 @@ var _closing: bool = false
 var recall_preview: Array[Dictionary] = []
 var rush_preview: Array[WarMarches.MarchUnit] = []
 var frog_preview: Array[WarMarches.MarchUnit] = []
+var fox_preview: Array[WarMarches.MarchUnit] = []
 var _recall_preview_center := Vector3.INF
 var _rabbit_preview_time := -1.0
 
@@ -762,6 +764,9 @@ func _update_skill_drag(screen: Vector2, refresh_preview: bool = false) -> void:
 		elif armed_skill == 2:
 			_refresh_rabbit_preview(refresh_preview)
 			valid = not recall_preview.is_empty()
+	if faction_skills[local_faction].commander == SKILL_RULES.FOX and armed_skill == 2:
+		fox_preview = FOX_SKILLS.conversion_targets(self, ground_skill_target, local_faction)
+		valid = not fox_preview.is_empty()
 	hud.set_skill_drag_target(valid, screen)
 	overlay.queue_redraw()
 
@@ -790,6 +795,7 @@ func _cancel_skill_drag() -> void:
 	recall_preview = []
 	rush_preview = []
 	frog_preview = []
+	fox_preview = []
 	_recall_preview_center = Vector3.INF
 	_rabbit_preview_time = -1.0
 
@@ -799,6 +805,8 @@ func skill_is_ground(index: int, faction: int = -2) -> bool:
 
 func skill_radius(index: int, faction: int = -2) -> float:
 	faction = local_faction if faction == -2 else faction
+	if faction_skills[faction].commander == SKILL_RULES.FOX:
+		return SKILL_RULES.FOX_CONVERT_RADIUS
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		return SKILL_RULES.FROG_RADII[index]
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
@@ -845,6 +853,8 @@ func _valid_skill_target(index: int, target: Node3D, faction: int = -2) -> bool:
 	faction = local_faction if faction == -2 else faction
 	if target == null:
 		return false
+	if faction_skills[faction].commander == SKILL_RULES.FOX:
+		return FOX_SKILLS.valid_target(self, index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		return FROG_SKILLS.valid_target(self, index, target, faction)
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
@@ -871,7 +881,9 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		return false
 	if not _valid_skill_target(index, target, faction):
 		if faction == local_faction:
-			if faction_skills[faction].commander == SKILL_RULES.FROG:
+			if faction_skills[faction].commander == SKILL_RULES.FOX:
+				hud.notify(["选择有驻军、未处于无敌保护的敌方或中立建筑", "选择仍有士气的敌方建筑；自己的士气须未满", "拖至有敌军的地面区域后松手", "选择有同阵营避难建筑、未处于无敌保护的敌方建筑"][index])
+			elif faction_skills[faction].commander == SKILL_RULES.FROG:
 				hud.notify("选择未处于无敌保护的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
 			elif faction_skills[faction].commander == SKILL_RULES.BEAR:
 				hud.notify(["选择正在升级或转换的己方建筑", "拖至战场地面后松手", "选择附近 18 米内有己方支援建筑的据点", "选择尚未无敌的己方建筑"][index])
@@ -881,8 +893,10 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
-	if faction_skills[faction].commander in [SKILL_RULES.BEAR, SKILL_RULES.FROG]:
-		if faction_skills[faction].commander == SKILL_RULES.FROG:
+	if faction_skills[faction].commander in [SKILL_RULES.BEAR, SKILL_RULES.FROG, SKILL_RULES.FOX]:
+		if faction_skills[faction].commander == SKILL_RULES.FOX:
+			FOX_SKILLS.cast(self, index, target, faction)
+		elif faction_skills[faction].commander == SKILL_RULES.FROG:
 			FROG_SKILLS.strike(self, target, faction)
 		else:
 			bear.cast(self, index, target, faction)
@@ -930,6 +944,17 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 			audio.play_ui(&"war_denied")
 		return false
 	var center: Vector3 = map.definition.surface_point(at)
+	if faction_skills[faction].commander == SKILL_RULES.FOX:
+		if FOX_SKILLS.convert(self, center, faction) == 0:
+			if faction == local_faction:
+				hud.notify("范围内没有可招降的敌方行军部队")
+			return false
+		world_effects.get_node("Fox").release(index, faction, center)
+		_commit_skill(index, faction)
+		_present_skill(index, faction, center)
+		audio.play_world(&"war_fox_convert", center)
+		update_hud()
+		return true
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		if marches.apply_frog_field(index, faction, center) == 0:
 			if faction == local_faction:

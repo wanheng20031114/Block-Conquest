@@ -5,6 +5,7 @@ const RELEASES := {
 	&"rabbit": [&"war_rabbit_dash", &"war_rabbit_seal", &"war_rabbit_recall", &"war_rabbit_burrow"],
 	&"bear": [&"war_bear_toolbox", &"war_bear_stomp", &"war_bear_link", &"war_bear_ward"],
 	&"frog": [&"war_frog_mist", &"war_frog_float", &"war_frog_cloak", &"war_frog_strike"],
+	&"fox": [&"war_fox_bomb", &"war_fox_steal", &"war_fox_convert", &"war_fox_panic"],
 }
 const CENTER := Vector3(-22, 0, 10)
 
@@ -45,7 +46,10 @@ func _run() -> void:
 	for commander: StringName in RELEASES:
 		for index: int in 4:
 			await setup(commander)
-			var target: WarBuilding = enemy() if (commander == &"frog" or (commander == &"rabbit" and index == 1)) else home()
+			var target: WarBuilding = enemy() if (commander in [&"frog", &"fox"] or (commander == &"rabbit" and index == 1)) else home()
+			if commander == &"fox":
+				game.morale.adjust(target.faction, 1000)
+				game.buildings[3].faction = target.faction
 			if commander == &"bear":
 				if index == 0:
 					target.begin_construction(-1, 10)

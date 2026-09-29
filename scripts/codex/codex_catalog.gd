@@ -4,12 +4,17 @@ extends RefCounted
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
 const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
-const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog"]
+const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog", &"fox"]
 
 
 static func hero_profile(id: StringName) -> Dictionary:
 	assert(id in HEROES)
 	var profiles: Dictionary = {
+		&"fox": {
+			"title": RULES.name_for(id), "subtitle": "诡计与阵线瓦解",
+			"summary": "投弹削弱据点，偷取敌方士气，招降行军并驱散驻军。",
+			"note": "招降永久改变阵营；恐慌保留逃兵原阵营，不会消灭这些士兵。",
+		},
 		&"squirrel": {
 			"title": RULES.name_for(id),
 			"subtitle": "增援与均衡作战",
@@ -41,6 +46,7 @@ static func hero_profile(id: StringName) -> Dictionary:
 static func skill_summary(id: StringName, index: int) -> String:
 	assert(id in HEROES and index >= 0 and index < 4)
 	match id:
+		&"fox": return RULES.description(index, id)
 		&"squirrel":
 			return [
 				"为自己或盟友的住宅额外征召士兵，每秒 %d 人，持续 %d 秒。征召可超过自然产兵上限。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
@@ -75,6 +81,7 @@ static func skill_summary(id: StringName, index: int) -> String:
 static func skill_target(id: StringName, index: int) -> String:
 	assert(id in HEROES and index >= 0 and index < 4)
 	var targets: Dictionary = {
+		&"fox": ["敌方或中立建筑", "有士气的敌方英雄所属建筑", "敌方行军部队", "有同阵营避难建筑的敌方据点"],
 		&"squirrel": ["自己或盟友住宅", "地面区域", "自己或盟友建筑", "地面区域"],
 		&"rabbit": ["自己的行军部队", "敌方建筑", "所有阵营的行军部队", "自己的建筑"],
 		&"bear": ["自己正在施工的建筑", "地面区域", "自己的建筑", "自己的建筑"],

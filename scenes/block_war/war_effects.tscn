@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/block_war/fox_effects.tscn" id="fox"]
+
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_effects.tscn" id="rabbit"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/bear_effects.tscn" id="bear"]
 
@@ -275,3 +277,5 @@ cast_shadow = 0
 [node name="Bear" parent="." instance=ExtResource("bear")]
 
 [node name="Frog" parent="." instance=ExtResource("frog")]
+
+[node name="Fox" parent="." instance=ExtResource("fox")]

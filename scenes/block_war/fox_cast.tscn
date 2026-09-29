@@ -1,0 +1,178 @@
+[gd_scene format=3]
+[ext_resource type="Script" path="res://scripts/block_war/war_fox_cast.gd" id="script"]
+[ext_resource type="Shader" path="res://assets/models/block_war/fox_wave.gdshader" id="wave"]
+[ext_resource type="Shader" path="res://assets/models/block_war/fox_flag.gdshader" id="flag"]
+[ext_resource type="Shader" path="res://assets/models/block_war/fox_impact.gdshader" id="impact"]
+[sub_resource type="ShaderMaterial" id="ImpactMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("impact")
+[sub_resource type="SphereMesh" id="ImpactMesh"]
+resource_local_to_scene = true
+material = SubResource("ImpactMaterial")
+radius = 1.0
+height = 1.45
+radial_segments = 12
+rings = 6
+[sub_resource type="StandardMaterial3D" id="Iron"]
+albedo_color = Color(0.20, 0.24, 0.25, 1)
+metallic = 0.35
+roughness = 0.32
+[sub_resource type="StandardMaterial3D" id="Brass"]
+albedo_color = Color(0.92, 0.62, 0.27, 1)
+metallic = 0.6
+roughness = 0.27
+[sub_resource type="StandardMaterial3D" id="Wick"]
+albedo_color = Color(0.42, 0.29, 0.16, 1)
+roughness = 0.9
+[sub_resource type="StandardMaterial3D" id="Ember"]
+albedo_color = Color(1, 0.69, 0.22, 1)
+emission_enabled = true
+emission = Color(1, 0.46, 0.08, 1)
+emission_energy_multiplier = 2.0
+[sub_resource type="StandardMaterial3D" id="Gold"]
+albedo_color = Color(1, 0.80, 0.3, 1)
+metallic = 0.5
+roughness = 0.27
+emission_enabled = true
+emission = Color(0.70, 0.32, 0.05, 1)
+emission_energy_multiplier = 0.65
+[sub_resource type="StandardMaterial3D" id="AlarmInk"]
+albedo_color = Color(0.90, 0.37, 0.18, 1)
+roughness = 0.45
+emission_enabled = true
+emission = Color(0.38, 0.10, 0.03, 1)
+[sub_resource type="SphereMesh" id="BombBody"]
+material = SubResource("Iron")
+radius = 0.78
+height = 1.56
+radial_segments = 12
+rings = 6
+[sub_resource type="TorusMesh" id="Band"]
+material = SubResource("Brass")
+inner_radius = 0.75
+outer_radius = 0.80
+rings = 12
+ring_segments = 4
+[sub_resource type="CylinderMesh" id="Collar"]
+material = SubResource("Brass")
+top_radius = 0.18
+bottom_radius = 0.23
+height = 0.23
+radial_segments = 8
+[sub_resource type="CylinderMesh" id="Fuse"]
+material = SubResource("Wick")
+top_radius = 0.055
+bottom_radius = 0.055
+height = 0.42
+radial_segments = 5
+[sub_resource type="SphereMesh" id="Spark"]
+material = SubResource("Ember")
+radius = 0.13
+height = 0.26
+radial_segments = 6
+rings = 3
+[sub_resource type="CylinderMesh" id="Pole"]
+material = SubResource("Wick")
+top_radius = 0.07
+bottom_radius = 0.09
+height = 2.2
+radial_segments = 6
+[sub_resource type="ShaderMaterial" id="FlagMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("flag")
+[sub_resource type="PlaneMesh" id="FlagMesh"]
+resource_local_to_scene = true
+material = SubResource("FlagMaterial")
+size = Vector2(1.55, 1.0)
+orientation = 2
+subdivide_width = 10
+[sub_resource type="BoxMesh" id="AlarmBar"]
+material = SubResource("AlarmInk")
+size = Vector3(0.23, 0.85, 0.24)
+[sub_resource type="BoxMesh" id="AlarmDot"]
+material = SubResource("AlarmInk")
+size = Vector3(0.24, 0.24, 0.24)
+[sub_resource type="ShaderMaterial" id="WaveMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("wave")
+[sub_resource type="PlaneMesh" id="WaveMesh"]
+resource_local_to_scene = true
+material = SubResource("WaveMaterial")
+size = Vector2(2, 2)
+subdivide_width = 47
+subdivide_depth = 47
+[node name="FoxCast" type="Node3D"]
+visible = false
+script = ExtResource("script")
+[node name="Bomb" type="Node3D" parent="."]
+[node name="Impact" type="MeshInstance3D" parent="."]
+mesh = SubResource("ImpactMesh")
+cast_shadow = 0
+[node name="Body" type="MeshInstance3D" parent="Bomb"]
+mesh = SubResource("BombBody")
+[node name="Band" type="MeshInstance3D" parent="Bomb"]
+mesh = SubResource("Band")
+rotation = Vector3(0, 0, 0.28)
+[node name="Collar" type="MeshInstance3D" parent="Bomb"]
+position = Vector3(0, 0.78, 0)
+mesh = SubResource("Collar")
+[node name="Fuse" type="MeshInstance3D" parent="Bomb"]
+position = Vector3(0.09, 1.06, 0)
+rotation = Vector3(0, 0, -0.4)
+mesh = SubResource("Fuse")
+[node name="Spark" type="MeshInstance3D" parent="Bomb"]
+position = Vector3(0.18, 1.26, 0)
+mesh = SubResource("Spark")
+cast_shadow = 0
+[node name="Star" type="CSGPolygon3D" parent="."]
+polygon = PackedVector2Array(0, 0.88, -0.24, 0.30, -0.84, 0.28, -0.37, -0.14, -0.52, -0.76, 0, -0.41, 0.52, -0.76, 0.37, -0.14, 0.84, 0.28, 0.24, 0.30)
+depth = 0.18
+material = SubResource("Gold")
+cast_shadow = 0
+[node name="Flag" type="Node3D" parent="."]
+rotation = Vector3(0, -0.3, 0)
+[node name="Pole" type="MeshInstance3D" parent="Flag"]
+position = Vector3(-0.7, 1.1, 0)
+mesh = SubResource("Pole")
+[node name="Cloth" type="MeshInstance3D" parent="Flag"]
+position = Vector3(0.075, 1.55, 0)
+mesh = SubResource("FlagMesh")
+[node name="Finial" type="MeshInstance3D" parent="Flag"]
+position = Vector3(-0.7, 2.23, 0)
+mesh = SubResource("Spark")
+[node name="Alarm" type="Node3D" parent="."]
+rotation = Vector3(-0.2, -0.3, 0)
+[node name="Mark0" type="Node3D" parent="Alarm"]
+position = Vector3(-0.88, 0, 0)
+rotation = Vector3(0, 0, 0.264)
+[node name="Bar" type="MeshInstance3D" parent="Alarm/Mark0"]
+position = Vector3(0, 0.70, 0)
+mesh = SubResource("AlarmBar")
+cast_shadow = 0
+[node name="Dot" type="MeshInstance3D" parent="Alarm/Mark0"]
+mesh = SubResource("AlarmDot")
+cast_shadow = 0
+[node name="Mark1" type="Node3D" parent="Alarm"]
+position = Vector3(0, 0.2, 0)
+rotation = Vector3(0, 0, 0.0)
+[node name="Bar" type="MeshInstance3D" parent="Alarm/Mark1"]
+position = Vector3(0, 0.70, 0)
+mesh = SubResource("AlarmBar")
+cast_shadow = 0
+[node name="Dot" type="MeshInstance3D" parent="Alarm/Mark1"]
+mesh = SubResource("AlarmDot")
+cast_shadow = 0
+[node name="Mark2" type="Node3D" parent="Alarm"]
+position = Vector3(0.88, 0, 0)
+rotation = Vector3(0, 0, -0.264)
+[node name="Bar" type="MeshInstance3D" parent="Alarm/Mark2"]
+position = Vector3(0, 0.70, 0)
+mesh = SubResource("AlarmBar")
+cast_shadow = 0
+[node name="Dot" type="MeshInstance3D" parent="Alarm/Mark2"]
+mesh = SubResource("AlarmDot")
+cast_shadow = 0
+[node name="Wave" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.10, 0)
+mesh = SubResource("WaveMesh")
+cast_shadow = 0

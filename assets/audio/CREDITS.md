@@ -1,6 +1,6 @@
 # 中世纪音效来源与修改说明
 
-原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 34 类、52 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；新增来源和署名见本文按日期排列的记录。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
+原模式运行库由 81 份保留原样的 CC0 音源和项目自制数字合成层构成，生成 22 类、56 个 WAV 变体。积木战争当前为 38 类、56 个专用 WAV，使用 CC0 与 CC BY 3.0 素材；新增来源和署名见本文按日期排列的记录。以下三组原有 CC0 素材下载于 2026-09-08；没有使用 Sonniss 或付费素材。
 
 积木战争的 Suno 背景音乐独立记录在 [block_war/music/CREDITS.md](block_war/music/CREDITS.md)，不属于此处的 CC0 音效库。
 
@@ -68,3 +68,16 @@ Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dr
 再次下载并按原清单核对两个压缩包的 SHA-256，从 Kenney RPG Audio 原包额外保留 `cloth2.ogg`、`metalLatch.ogg`，从 rubberduck 的 80 CC0 RPG SFX 原包保留 `chain_01.ogg`、`creature_slime_02.ogg`、`blade_01.ogg`。原始文件不作修改，新增哈希记录在 `sources.json`。其他素材复用已保留的木材、铃声、落地、碎石、羽毛和软物接触源。湿润气泡是对作者 slime 成品音效的剪辑，不能称为真实水滴录音。
 
 每个新技能最多使用两种材料，进行短裁切、4 ms 能量窗口起音对齐、85 Hz 高通、克制的低通、少量变速、自然衰减和边界淡化；不新增旋律、混响、持续蜂鸣或饱和处理。成品为 48 kHz 单声道 PCM16，原生导入保留 PCM、不归一化、不循环。`tools/build_war_audio.py --new-commanders` 可只重建八个新声音而保留已认可的内容，来源逐个记在 `block_war/audio_manifest.json`。响度与试听见 [角色技能音效检查](../../docs/commander_audio_review.md)。
+
+## 2026-09-29：狐狸的四个技能释放音
+
+新增 `war_fox_bomb/steal/convert/panic`，每项一个 48 kHz 单声道 PCM16 成品；之前 52 个战役 WAV、UI 点击、两首 BGM 与混音总线保持不变。仅复用已保留且已核验的 CC0 原件，没有新增第三方下载或音源许可。
+
+| 事件 | 实际采样材料 | 编辑 |
+| --- | --- | --- |
+| 投弹 | Vehicle 的 `arrow-feathers-02.wav`；Kenney Impact 的 `impactSoft_heavy_003.ogg` | 短气流先起，0.18 秒接柔软重击，总长 0.48 秒 |
+| 偷星 | Kenney Impact 的 `impactBell_heavy_002.ogg`；Kenney RPG 的 `cloth2.ogg` | 单次铃音自然衰减与轻布料，总长 0.48 秒，无旋律 |
+| 招降 | Kenney RPG 的 `cloth2.ogg`、`metalLatch.ogg` | 布料为主、锁扣轻衬，总长 0.34 秒 |
+| 恐慌 | Kenney Impact 的 `impactWood_medium_002.ogg`；Vehicle 的 `arrow-feathers-03.wav` | 同一木敲短重复一次，配气流，总长 0.54 秒 |
+
+采用能量窗口起音对齐、85 Hz 高通、柔和低通、短包络及边界淡化，按活动区 RMS 和真峰值设置增益；不新增合成振荡器、混响或饱和。`tools/build_war_audio.py --fox` 可单独复现，不改已认可的其他音效。每个原件、发布页、许可及成品哈希记录在 `block_war/audio_manifest.json`；原生总线采集、压力测试和可试听片段见[狐狸验收记录](../../docs/block_war_fox_review.md)。

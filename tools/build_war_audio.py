@@ -63,6 +63,10 @@ EVENTS = [
     ("frog_float", 1, "Combat", 1, 5, 0, 6),
     ("frog_cloak", 1, "Combat", -1, 5, 0, 6),
     ("frog_strike", 1, "Combat", 2, 6, 0, 6),
+    ("fox_bomb", 1, "Combat", 0, 5, 0, 6),
+    ("fox_steal", 1, "Combat", -1, 5, 0, 6),
+    ("fox_convert", 1, "Combat", 0, 5, 0, 6),
+    ("fox_panic", 1, "Combat", 1, 6, 0, 6),
     ("projectile_hit", 2, "Combat", -3, 3, 120, 3),
     ("victory", 1, "UI", -4, 7, 1200, 1),
     ("defeat", 1, "UI", -4, 7, 1200, 1),
@@ -100,6 +104,10 @@ DESCRIPTIONS = {
     "frog_float": "Rounded wet bubble from a CC0 slime effect with a light upward cloth gesture",
     "frog_cloak": "Brief soft fabric/feather sweep that disappears quickly; no tracking or looping sound",
     "frog_strike": "Immediate blade sweep and compact soft impact together; no windup or cannon explosion",
+    "fox_bomb": "Immediate feather-like fall with a compact wooden/soft thump at the 180 ms bomb contact",
+    "fox_steal": "One damped bright bell drawn across a short soft cloth gesture; no melody",
+    "fox_convert": "Brief flag cloth snap and quiet fastening contact, without a triumphant jingle",
+    "fox_panic": "Two compact low wooden warning knocks and a short outward cloth rush",
     "projectile_hit": "Soft impact and a restrained equipment contact at the projectile collision",
     "victory": "Four rising recorded bell strikes with flag and equipment rustle",
     "defeat": "Falling armour and two low fading bell strikes",
@@ -109,7 +117,8 @@ DESCRIPTIONS = {
 # cues take the transparent editing path; no saturation or heavy pitch warping.
 REFINED = set("select drag ratio order denied cancel pause resume skill_command skill_drum skill_shield skill_breach rabbit_dash rabbit_seal rabbit_recall rabbit_burrow projectile_hit".split())
 NEW_COMMANDERS = set("bear_toolbox bear_stomp bear_link bear_ward frog_mist frog_float frog_cloak frog_strike".split())
-REFINED |= NEW_COMMANDERS
+FOX = set("fox_bomb fox_steal fox_convert fox_panic".split())
+REFINED |= NEW_COMMANDERS | FOX
 
 
 def rms_active(samples):
@@ -222,7 +231,7 @@ def refined(name, n):
     if name == "rabbit_burrow":
         return mix(.78, [(clip(f"rubberduck_rpg/stones_0{n + 1}.ogg", .72), 0, .75),
                          (clip("kenney_rpg/dropLeather.ogg", .3), 0, .25)])
-    if name in NEW_COMMANDERS:
+    if name in NEW_COMMANDERS | FOX:
         # Keep real source texture. Gentle band limiting, short envelopes and
         # at most two materials; no oscillator, saturation, reverb or pre-roll.
         def soft(path, seconds, cutoff=5200, rate=1.0):
@@ -238,6 +247,20 @@ def refined(name, n):
         if name == "bear_toolbox":
             return mix(.32, [(soft("kenney_impact/impactWood_medium_002.ogg", .17), 0, .80),
                              (soft("kenney_rpg/metalLatch.ogg", .23, 4300), .04, .23)])
+        if name == "fox_bomb":
+            return mix(.48, [(soft("weapons_apparel/arrow-feathers-02.wav", .19, 3700), 0, .26),
+                             (soft("kenney_impact/impactSoft_heavy_003.ogg", .29, 3100, .94), .18, .95)])
+        if name == "fox_steal":
+            bell = soft("kenney_impact/impactBell_heavy_002.ogg", .46, 3800, 1.05)
+            bell *= np.exp(-np.arange(len(bell)) / (SR * .12))
+            return mix(.48, [(bell, 0, .65), (soft("kenney_rpg/cloth2.ogg", .30, 3300), .03, .22)])
+        if name == "fox_convert":
+            return mix(.34, [(soft("kenney_rpg/cloth2.ogg", .31, 3900), 0, .80),
+                             (soft("kenney_rpg/metalLatch.ogg", .17, 3400), .02, .18)])
+        if name == "fox_panic":
+            knock = soft("kenney_impact/impactWood_medium_002.ogg", .17, 3000, .92)
+            return mix(.54, [(knock, 0, .65), (knock, .13, .47),
+                             (soft("weapons_apparel/arrow-feathers-03.wav", .38, 3600), .04, .30)])
         if name == "bear_stomp":
             return mix(.52, [(soft("weapons_apparel/boots-leather-jump-01.wav", .40, 2600, .94), 0, 1.0),
                              (soft("rubberduck_rpg/stones_02.ogg", .40, 3400), .024, .22)])
@@ -324,6 +347,7 @@ def export(name, samples, description):
     target_db = -22.0 if event in {"select", "drag", "ratio", "cancel", "pause", "resume"} else -19.5
     target_db = {"select": -24.0, "drag": -26.0, "order": -22.0}.get(event, target_db)
     target_db = {"bear_ward": -18.5, "frog_mist": -21.0, "frog_cloak": -22.0}.get(event, target_db)
+    target_db = {"fox_bomb": -19.5, "fox_steal": -21.0, "fox_convert": -20.5, "fox_panic": -19.5}.get(event, target_db)
     if not transparent:
         samples = filt(samples, 60, "highpass")
         samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
@@ -356,9 +380,10 @@ def export(name, samples, description):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--new-commanders", action="store_true", help="Build only bear/frog WAVs, preserving all approved existing audio")
+    parser.add_argument("--fox", action="store_true", help="Build only fox WAVs; retain all approved audio byte-for-byte")
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    previous = json.loads((OUT / "audio_manifest.json").read_text(encoding="utf-8")) if args.new_commanders else None
+    previous = json.loads((OUT / "audio_manifest.json").read_text(encoding="utf-8")) if args.new_commanders or args.fox else None
     retained = {item["file"]: item for item in previous["files"]} if previous else {}
     files = []
     bank = ['extends RefCounted', '## Licensed source edits; attribution is retained in assets/audio/CREDITS.md.',
@@ -368,7 +393,7 @@ def main():
         for index in range(count):
             USED.clear()
             filename = f"war_{name}_{index+1:02}"
-            if args.new_commanders and name not in NEW_COMMANDERS:
+            if (args.fox and name not in FOX) or (args.new_commanders and name not in NEW_COMMANDERS):
                 entry = retained[filename + ".wav"]
                 assert hashlib.sha256((OUT / entry["file"]).read_bytes()).hexdigest() == entry["sha256"]
                 files.append(entry)

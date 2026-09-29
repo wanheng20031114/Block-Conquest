@@ -49,7 +49,7 @@ func _ready() -> void:
 
 
 func configure(next_commander: StringName, next_skill_index: int) -> void:
-	assert(next_commander in [&"squirrel", &"rabbit", &"bear", &"frog"])
+	assert(next_commander in [&"squirrel", &"rabbit", &"bear", &"frog", &"fox"])
 	assert(next_skill_index >= 0 and next_skill_index < 4)
 	commander = next_commander
 	skill_index = next_skill_index
@@ -138,6 +138,41 @@ func _render_demo() -> void:
 		&"rabbit": _rabbit()
 		&"bear": _bear()
 		&"frog": _frog()
+		&"fox": _fox()
+
+func _fox() -> void:
+	var released := progress >= 0.38
+	away_count.show()
+	match skill_index:
+		0:
+			_place(skill_icon, _right - Vector2(0, lerpf(84, 22, _phase(0.26, 0.38))), Vector2(38, 38))
+			skill_icon.visible = progress < 0.42
+			away_count.text = "敌方 · %d" % (30 if released else 60)
+			away.modulate = FOE.lerp(Color.WHITE, sin(_phase(0.38, 0.46) * PI) * 0.7)
+			_label("−30 人" if released else "投下炸弹")
+			caption.text = "削减 50% 当前驻军，最多 30 人，不直接占领"
+		1:
+			_place(skill_icon, _right.lerp(_left, _phase(0.35, 0.63)) - Vector2(0, 52 + sin(_phase(0.35, 0.63) * PI) * 15), Vector2(38, 38))
+			home_count.text = "己方 · %d 星" % (2 if progress > 0.63 else 1)
+			away_count.text = "敌方 · %d 星" % (1 if released else 2)
+			caption.text = "借敌方建筑找到所属英雄，最多转移 1 星士气"
+		2:
+			away_count.hide()
+			_march(enemies, _phase(0.06, 0.90), true)
+			range_ring.visible = progress > 0.30 and progress < 0.53
+			for unit: TextureRect in enemies:
+				unit.modulate = FRIEND if released else FOE
+			_label("归己方指挥" if released else "圈住敌军")
+			caption.text = "部队原地变更阵营，保留阵型与原路线"
+		3:
+			home.modulate = FOE
+			$Legend.text = "橙 · 同属敌方的两座建筑"
+			home_count.text = "敌方 · %d" % (60 if progress > 0.83 else 20)
+			away_count.text = "敌方 · %d" % (10 if released else 50)
+			if released and progress < 0.83:
+				_march(enemies, _phase(0.38, 0.83), true)
+			_label("40 人逃离" if released else "令驻军恐慌")
+			caption.text = "80% 驻军逃向较近的同阵营建筑，距离不限"
 
 
 func _march(units: Array[TextureRect], fraction: float, from_right: bool = false, lift: float = 0.0) -> void:

@@ -724,7 +724,10 @@ func _play_presentation(event: Dictionary) -> void:
 				if skill == 0: game.world_effects.get_node("Bear").toolbox(faction, at)
 				elif skill == 1: game.world_effects.get_node("Bear").stomp(faction, at)
 			elif commander == "frog": game.world_effects.get_node("Frog").release(skill, faction, at)
-			var audio_names := {"squirrel": ["war_skill_command", "war_skill_drum", "war_skill_shield", "war_skill_breach"], "rabbit": ["war_rabbit_dash", "war_rabbit_seal", "war_rabbit_recall", "war_rabbit_burrow"], "bear": ["war_bear_toolbox", "war_bear_stomp", "war_bear_link", "war_bear_ward"], "frog": ["war_frog_mist", "war_frog_float", "war_frog_cloak", "war_frog_strike"]}
+			elif commander == "fox":
+				if skill != 2 and (not Snapshot._integer(payload.get("target"), 0, 2147483647) or not game.by_id.has(int(payload.target))): return
+				game.world_effects.get_node("Fox").release(skill, faction, at, int(payload.get("target", -1)))
+			var audio_names := {"squirrel": ["war_skill_command", "war_skill_drum", "war_skill_shield", "war_skill_breach"], "rabbit": ["war_rabbit_dash", "war_rabbit_seal", "war_rabbit_recall", "war_rabbit_burrow"], "bear": ["war_bear_toolbox", "war_bear_stomp", "war_bear_link", "war_bear_ward"], "frog": ["war_frog_mist", "war_frog_float", "war_frog_cloak", "war_frog_strike"], "fox": ["war_fox_bomb", "war_fox_steal", "war_fox_convert", "war_fox_panic"]}
 			if audio_names.has(commander): game.audio.play_world(StringName(audio_names[commander][skill]), at)
 		"tunnel":
 			if not Snapshot._integer(payload.get("faction"), 0, game.faction_count - 1) or not Snapshot._integer(payload.get("count"), 1, 50) or not Snapshot._number(payload.get("dig_duration")): return

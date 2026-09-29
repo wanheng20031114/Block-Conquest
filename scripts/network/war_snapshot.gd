@@ -335,7 +335,7 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			if not _row(row, 8) or row[0] not in ["haste", "slow", "weak"] or not _integer(row[1], 0, game.faction_count - 1) or not _vector(row[2]): return false
 			for i: int in [3, 4, 5, 6]:
 				if not _nonnegative(row[i]): return false
-			return float(row[3]) > 0 and float(row[3]) < 1000 and float(row[5]) > 0 and float(row[6]) > 0 and float(row[6]) <= 100 and row[7] in ["squirrel", "rabbit", "bear", "frog"]
+			return float(row[3]) > 0 and float(row[3]) < 1000 and float(row[5]) > 0 and float(row[6]) > 0 and float(row[6]) <= 100 and row[7] in ["squirrel", "rabbit", "bear", "frog", "fox"]
 		"links":
 			if not _row(row, 6) or not _building_id(row[0], game) or not _building_id(row[1], game) or int(row[0]) == int(row[1]) or not _integer(row[2], 0, game.faction_count - 1): return false
 			return _nonnegative(row[3]) and _integer(row[4], 0, MAX_ID) and _nonnegative(row[5]) and float(row[5]) <= 1.0
@@ -352,7 +352,7 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 	return false
 
 static func valid_account(row: Variant, game: Node) -> bool:
-	if not _row(row, 10) or row[0] not in ["squirrel", "rabbit", "bear", "frog"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
+	if not _row(row, 10) or row[0] not in ["squirrel", "rabbit", "bear", "frog", "fox"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
 	if not _number(row[9]) or float(row[9]) < RULES.ENERGY_REGEN or float(row[9]) > RULES.ENERGY_REGEN + RULES.energy_tower_bonus(game.buildings.size()): return false
 	for index: int in [2, 3]:
 		if not _row(row[index], 4): return false
