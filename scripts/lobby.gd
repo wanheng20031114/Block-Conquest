@@ -13,6 +13,7 @@ func _ready() -> void:
 	%Version.text = "v%s" % ProjectSettings.get_setting("application/config/version")
 	%BlockWarMode.pressed.connect(_start)
 	%OnlineMode.pressed.connect(_start_online)
+	%Tutorial.pressed.connect(_start_tutorial)
 	%Codex.pressed.connect(_open_codex)
 	%Settings.pressed.connect(session.settings.open_menu)
 	%Quit.pressed.connect(_quit)
@@ -26,6 +27,9 @@ func _ready() -> void:
 	if session.get_meta("codex_return_focus", false):
 		session.remove_meta("codex_return_focus")
 		%Codex.grab_focus(true)
+	if session.get_meta("tutorial_return_focus", false):
+		session.remove_meta("tutorial_return_focus")
+		%Tutorial.grab_focus(true)
 	if OS.get_cmdline_user_args().has("--block-war") and not session.get_meta("block_war_cli_consumed", false):
 		session.set_meta("block_war_cli_consumed", true)
 		_start.call_deferred(true)
@@ -57,6 +61,14 @@ func _start_online() -> void:
 	if session.start_online() != OK:
 		_set_presentation_active(true)
 		_show_error("联机大厅暂时无法打开，请检查游戏文件后重试。")
+
+func _start_tutorial() -> void:
+	if session.settings.is_open() or session.transition.busy:
+		return
+	_set_presentation_active(false)
+	if session.start_tutorial() != OK:
+		_set_presentation_active(true)
+		_show_error("入门教程暂时无法打开，请检查游戏文件后重试。")
 
 func _set_presentation_active(value: bool) -> void:
 	_presentation_active = value

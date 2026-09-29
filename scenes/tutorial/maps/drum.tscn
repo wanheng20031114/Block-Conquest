@@ -1,0 +1,258 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tutorial/tutorial_map.gd" id="map"]
+[ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]
+[ext_resource type="PackedScene" path="res://scenes/tutorial/tutorial_woodland.tscn" id="woodland"]
+[ext_resource type="Shader" path="res://assets/block_war/environment/map_ground.gdshader" id="ground"]
+[ext_resource type="Texture2D" path="res://assets/block_war/environment/meadow_noise.tres" id="noise"]
+
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/canopy_oak.tscn" id="canopy_oak"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/silver_birch.tscn" id="silver_birch"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/wind_pine.tscn" id="wind_pine"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/weeping_willow.tscn" id="weeping_willow"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/hazel_thicket.tscn" id="hazel_thicket"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/moss_boulder.tscn" id="moss_boulder"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/meadow_tuft_combined.res" id="meadow_tuft"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/daisies_combined.res" id="daisies"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/bluebells_combined.res" id="bluebells"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/fern_patch_combined.res" id="fern_patch"]
+
+[sub_resource type="Resource" id="MapDefinition"]
+resource_local_to_scene = true
+script = ExtResource("definition")
+map_id = "tutorial_drum"
+title = "疾行小径"
+scene_path = "res://scenes/tutorial/maps/drum.tscn"
+routes_path = ""
+description = "松鼠教官的专门练习场。"
+half_size = Vector2(32, 24)
+camera_bounds = Rect2(-64, -54, 128, 108)
+building_positions = PackedVector3Array(-13, 0, 4, 13, 0, 4)
+building_kinds = PackedInt32Array(0, 0)
+building_factions = PackedInt32Array(0, 0)
+
+[sub_resource type="ShaderMaterial" id="Meadow"]
+resource_local_to_scene = true
+shader = ExtResource("ground")
+shader_parameter/meadow_noise = ExtResource("noise")
+shader_parameter/half_size = Vector2(32, 24)
+shader_parameter/meadow = Color(0.375, 0.465, 0.209, 1)
+shader_parameter/site_count = 2
+shader_parameter/sites = PackedVector2Array(-13, 4, 13, 4)
+shader_parameter/path_count = 3
+shader_parameter/paths = PackedVector4Array(-13, 4, -6, 5, -6, 5, 5, 4, 5, 4, 13, 4)
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+size = Vector2(148, 132)
+
+[node name="Map" type="Node3D"]
+script = ExtResource("map")
+definition = SubResource("MapDefinition")
+water_paths = Array[NodePath]([])
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("GroundMesh")
+material_override = SubResource("Meadow")
+
+[node name="Nature" type="Node3D" parent="."]
+
+[node name="Woodland" parent="Nature" instance=ExtResource("woodland")]
+
+[node name="GardenTree00" parent="Nature" instance=ExtResource("silver_birch")]
+position = Vector3(-22.000, 0, -10.000)
+rotation = Vector3(0, 4.193, 0)
+scale = Vector3(1.000, 1.000, 1.000)
+metadata/route_radius = 0.6
+
+[node name="GardenFern00" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-20.800, -0.012, -10.300)
+rotation = Vector3(0, 3.863, 0)
+scale = Vector3(0.660, 0.660, 0.660)
+mesh = ExtResource("fern_patch")
+
+[node name="GardenFlowers00" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-23.500, -0.012, -9.000)
+rotation = Vector3(0, 4.555, 0)
+scale = Vector3(0.550, 0.550, 0.550)
+mesh = ExtResource("daisies")
+
+[node name="GardenTree01" parent="Nature" instance=ExtResource("silver_birch")]
+position = Vector3(-8.000, 0, -12.000)
+rotation = Vector3(0, 3.519, 0)
+scale = Vector3(0.800, 0.800, 0.800)
+metadata/route_radius = 0.6
+
+[node name="GardenFern01" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-6.800, -0.012, -12.300)
+rotation = Vector3(0, 5.974, 0)
+scale = Vector3(0.660, 0.660, 0.660)
+mesh = ExtResource("fern_patch")
+
+[node name="GardenFlowers01" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-9.500, -0.012, -11.000)
+rotation = Vector3(0, 3.711, 0)
+scale = Vector3(0.550, 0.550, 0.550)
+mesh = ExtResource("daisies")
+
+[node name="GardenTree02" parent="Nature" instance=ExtResource("silver_birch")]
+position = Vector3(10.000, 0, -12.000)
+rotation = Vector3(0, 0.067, 0)
+scale = Vector3(0.920, 0.920, 0.920)
+metadata/route_radius = 0.6
+
+[node name="GardenFern02" type="MeshInstance3D" parent="Nature"]
+position = Vector3(11.200, -0.012, -12.300)
+rotation = Vector3(0, 3.010, 0)
+scale = Vector3(0.660, 0.660, 0.660)
+mesh = ExtResource("fern_patch")
+
+[node name="GardenFlowers02" type="MeshInstance3D" parent="Nature"]
+position = Vector3(8.500, -0.012, -11.000)
+rotation = Vector3(0, 2.664, 0)
+scale = Vector3(0.550, 0.550, 0.550)
+mesh = ExtResource("daisies")
+
+[node name="GardenTree03" parent="Nature" instance=ExtResource("silver_birch")]
+position = Vector3(24.000, 0, -9.000)
+rotation = Vector3(0, 3.541, 0)
+scale = Vector3(0.870, 0.870, 0.870)
+metadata/route_radius = 0.6
+
+[node name="GardenFern03" type="MeshInstance3D" parent="Nature"]
+position = Vector3(25.200, -0.012, -9.300)
+rotation = Vector3(0, 1.288, 0)
+scale = Vector3(0.660, 0.660, 0.660)
+mesh = ExtResource("fern_patch")
+
+[node name="GardenFlowers03" type="MeshInstance3D" parent="Nature"]
+position = Vector3(22.500, -0.012, -8.000)
+rotation = Vector3(0, 5.458, 0)
+scale = Vector3(0.550, 0.550, 0.550)
+mesh = ExtResource("daisies")
+
+[node name="GardenTree04" parent="Nature" instance=ExtResource("hazel_thicket")]
+position = Vector3(-22.000, 0, 14.000)
+rotation = Vector3(0, 0.058, 0)
+scale = Vector3(0.650, 0.650, 0.650)
+metadata/route_radius = 0.8
+
+[node name="GardenFern04" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-20.800, -0.012, 13.700)
+rotation = Vector3(0, 2.244, 0)
+scale = Vector3(0.660, 0.660, 0.660)
+mesh = ExtResource("fern_patch")
+
+[node name="GardenFlowers04" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-23.500, -0.012, 15.000)
+rotation = Vector3(0, 3.601, 0)
+scale = Vector3(0.550, 0.550, 0.550)
+mesh = ExtResource("daisies")
+
+[node name="GardenTree05" parent="Nature" instance=ExtResource("moss_boulder")]
+position = Vector3(22.000, 0, 14.000)
+rotation = Vector3(0, 0.654, 0)
+scale = Vector3(0.750, 0.750, 0.750)
+metadata/route_radius = 1.0
+
+[node name="GardenFern05" type="MeshInstance3D" parent="Nature"]
+position = Vector3(23.200, -0.012, 13.700)
+rotation = Vector3(0, 4.431, 0)
+scale = Vector3(0.660, 0.660, 0.660)
+mesh = ExtResource("fern_patch")
+
+[node name="GardenFlowers05" type="MeshInstance3D" parent="Nature"]
+position = Vector3(20.500, -0.012, 15.000)
+rotation = Vector3(0, 0.685, 0)
+scale = Vector3(0.550, 0.550, 0.550)
+mesh = ExtResource("daisies")
+
+[node name="MeadowCover00" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-15.554, -0.012, -0.280)
+rotation = Vector3(0, 5.048, 0)
+scale = Vector3(0.682, 0.682, 0.682)
+mesh = ExtResource("meadow_tuft")
+
+[node name="MeadowCover01" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-5.782, -0.012, -5.232)
+rotation = Vector3(0, 2.171, 0)
+scale = Vector3(0.635, 0.635, 0.635)
+mesh = ExtResource("daisies")
+
+[node name="MeadowCover02" type="MeshInstance3D" parent="Nature"]
+position = Vector3(5.412, -0.012, -6.972)
+rotation = Vector3(0, 0.650, 0)
+scale = Vector3(0.523, 0.523, 0.523)
+mesh = ExtResource("bluebells")
+
+[node name="MeadowCover03" type="MeshInstance3D" parent="Nature"]
+position = Vector3(16.454, -0.012, 13.053)
+rotation = Vector3(0, 2.569, 0)
+scale = Vector3(0.697, 0.697, 0.697)
+mesh = ExtResource("fern_patch")
+
+[node name="MeadowCover04" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-2.826, -0.012, 14.636)
+rotation = Vector3(0, 3.207, 0)
+scale = Vector3(0.675, 0.675, 0.675)
+mesh = ExtResource("meadow_tuft")
+
+[node name="MeadowCover05" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-15.415, -0.012, 17.447)
+rotation = Vector3(0, 0.340, 0)
+scale = Vector3(0.506, 0.506, 0.506)
+mesh = ExtResource("daisies")
+
+[node name="MeadowCover06" type="MeshInstance3D" parent="Nature"]
+position = Vector3(25.246, -0.012, 0.713)
+rotation = Vector3(0, 2.164, 0)
+scale = Vector3(0.636, 0.636, 0.636)
+mesh = ExtResource("bluebells")
+
+[node name="MeadowCover07" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-26.868, -0.012, -15.340)
+rotation = Vector3(0, 5.851, 0)
+scale = Vector3(0.514, 0.514, 0.514)
+mesh = ExtResource("fern_patch")
+
+[node name="MeadowCover08" type="MeshInstance3D" parent="Nature"]
+position = Vector3(5.277, -0.012, 18.440)
+rotation = Vector3(0, 0.980, 0)
+scale = Vector3(0.463, 0.463, 0.463)
+mesh = ExtResource("meadow_tuft")
+
+[node name="MeadowCover09" type="MeshInstance3D" parent="Nature"]
+position = Vector3(-25.494, -0.012, 16.954)
+rotation = Vector3(0, 5.427, 0)
+scale = Vector3(0.635, 0.635, 0.635)
+mesh = ExtResource("daisies")
+
+[node name="MeadowCover10" type="MeshInstance3D" parent="Nature"]
+position = Vector3(25.327, -0.012, 18.615)
+rotation = Vector3(0, 1.000, 0)
+scale = Vector3(0.476, 0.476, 0.476)
+mesh = ExtResource("bluebells")
+
+[node name="MeadowCover11" type="MeshInstance3D" parent="Nature"]
+position = Vector3(16.549, -0.012, -17.597)
+rotation = Vector3(0, 5.278, 0)
+scale = Vector3(0.459, 0.459, 0.459)
+mesh = ExtResource("fern_patch")
+
+[node name="Buildings" type="Node3D" parent="."]
+
+[node name="Home" parent="Buildings" instance=ExtResource("building")]
+position = Vector3(-13, 0, 4)
+building_id = 0
+faction = 0
+kind = 0
+population = 42.0
+level = 1
+
+[node name="Target" parent="Buildings" instance=ExtResource("building")]
+position = Vector3(13, 0, 4)
+building_id = 1
+faction = 0
+kind = 0
+population = 6.0
+level = 1

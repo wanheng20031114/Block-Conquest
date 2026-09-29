@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="environment"]
+
+[node name="MapStudio" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-49, -38, 0)
+light_color = Color(1, 0.955, 0.83, 1)
+light_energy = 1.06
+shadow_enabled = true
+directional_shadow_max_distance = 90.0
+shadow_bias = 0.035
+shadow_normal_bias = 0.7
+shadow_blur = 1.1
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 60, 50.86)
+rotation_degrees = Vector3(-52, 0, 0)
+projection = 1
+size = 45.0
+near = 0.1
+far = 180.0
+current = true

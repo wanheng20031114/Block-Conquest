@@ -21,7 +21,7 @@ script = ExtResource("script")
 
 [node name="MenuEntrance" type="Node" parent="."]
 script = ExtResource("entrance")
-sections = Array[NodePath]([NodePath("Margin/Column/Body/Welcome/Brand"), NodePath("Margin/Column/Body/Welcome/Menu/BlockWarMode"), NodePath("Margin/Column/Body/Welcome/Menu/OnlineMode"), NodePath("Margin/Column/Body/Welcome/Menu/Codex"), NodePath("Margin/Column/Body/Welcome/Menu/Settings"), NodePath("Margin/Column/Body/Welcome/Menu/Quit"), NodePath("Margin/Column/Footer")])
+sections = Array[NodePath]([NodePath("Margin/Column/Body/Welcome/Brand"), NodePath("Margin/Column/Body/Welcome/Menu/BlockWarMode"), NodePath("Margin/Column/Body/Welcome/Menu/OnlineMode"), NodePath("Margin/Column/Body/Welcome/Menu/Tutorial"), NodePath("Margin/Column/Body/Welcome/Menu/Codex"), NodePath("Margin/Column/Body/Welcome/Menu/Settings"), NodePath("Margin/Column/Body/Welcome/Menu/Quit"), NodePath("Margin/Column/Footer")])
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -109,6 +109,16 @@ layout_mode = 2
 custom_minimum_size = Vector2(400, 66)
 mouse_default_cursor_shape = 2
 text = "多人联机    →"
+theme_override_font_sizes/font_size = 25
+metadata/ui_sound = &"order"
+metadata/ui_motion_hover_scale = 1.018
+
+[node name="Tutorial" type="Button" parent="Margin/Column/Body/Welcome/Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(400, 66)
+mouse_default_cursor_shape = 2
+text = "入门教程    →"
 theme_override_font_sizes/font_size = 25
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.018

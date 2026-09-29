@@ -1,0 +1,1184 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/canopy_oak.tscn" id="canopy_oak"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/silver_birch.tscn" id="silver_birch"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/wind_pine.tscn" id="wind_pine"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/weeping_willow.tscn" id="weeping_willow"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/hazel_thicket.tscn" id="hazel_thicket"]
+[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/moss_boulder.tscn" id="moss_boulder"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/meadow_tuft_combined.res" id="meadow_tuft"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/daisies_combined.res" id="daisies"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/bluebells_combined.res" id="bluebells"]
+[ext_resource type="ArrayMesh" path="res://assets/models/block_war/nature/fern_patch_combined.res" id="fern_patch"]
+
+[node name="Woodland" type="Node3D"]
+
+[node name="BorderTree000" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-60.917, 0, -27.648)
+rotation = Vector3(0, 0.859, 0)
+scale = Vector3(0.715, 0.715, 0.715)
+
+[node name="BorderFern000" type="MeshInstance3D" parent="."]
+position = Vector3(-59.517, -0.012, -28.448)
+rotation = Vector3(0, 0.994, 0)
+scale = Vector3(0.732, 0.732, 0.732)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree001" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-53.373, 0, -30.330)
+rotation = Vector3(0, 4.082, 0)
+scale = Vector3(0.964, 0.964, 0.964)
+
+[node name="BorderTree002" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-45.791, 0, -30.829)
+rotation = Vector3(0, 0.254, 0)
+scale = Vector3(1.103, 1.103, 1.103)
+
+[node name="BorderTree003" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-36.468, 0, -29.948)
+rotation = Vector3(0, 0.599, 0)
+scale = Vector3(1.202, 1.202, 1.202)
+
+[node name="BorderFern003" type="MeshInstance3D" parent="."]
+position = Vector3(-35.068, -0.012, -30.748)
+rotation = Vector3(0, 4.563, 0)
+scale = Vector3(0.893, 0.893, 0.893)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree004" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-32.029, 0, -30.120)
+rotation = Vector3(0, 4.337, 0)
+scale = Vector3(0.861, 0.861, 0.861)
+
+[node name="BorderTree005" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-23.436, 0, -30.837)
+rotation = Vector3(0, 2.216, 0)
+scale = Vector3(1.140, 1.140, 1.140)
+
+[node name="BorderTree006" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-15.370, 0, -30.583)
+rotation = Vector3(0, 0.684, 0)
+scale = Vector3(1.094, 1.094, 1.094)
+
+[node name="BorderFern006" type="MeshInstance3D" parent="."]
+position = Vector3(-13.970, -0.012, -31.383)
+rotation = Vector3(0, 5.205, 0)
+scale = Vector3(0.905, 0.905, 0.905)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree007" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-8.976, 0, -28.806)
+rotation = Vector3(0, 3.704, 0)
+scale = Vector3(0.954, 0.954, 0.954)
+
+[node name="BorderTree008" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(0.036, 0, -29.766)
+rotation = Vector3(0, 5.414, 0)
+scale = Vector3(0.752, 0.752, 0.752)
+
+[node name="BorderTree009" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(6.760, 0, -30.100)
+rotation = Vector3(0, 6.213, 0)
+scale = Vector3(0.849, 0.849, 0.849)
+
+[node name="BorderFern009" type="MeshInstance3D" parent="."]
+position = Vector3(8.160, -0.012, -30.900)
+rotation = Vector3(0, 1.509, 0)
+scale = Vector3(0.828, 0.828, 0.828)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree010" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(13.438, 0, -29.154)
+rotation = Vector3(0, 3.701, 0)
+scale = Vector3(1.235, 1.235, 1.235)
+
+[node name="BorderTree011" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(19.723, 0, -30.450)
+rotation = Vector3(0, 5.280, 0)
+scale = Vector3(1.193, 1.193, 1.193)
+
+[node name="BorderTree012" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(30.119, 0, -29.284)
+rotation = Vector3(0, 0.751, 0)
+scale = Vector3(0.908, 0.908, 0.908)
+
+[node name="BorderFern012" type="MeshInstance3D" parent="."]
+position = Vector3(31.519, -0.012, -30.084)
+rotation = Vector3(0, 2.878, 0)
+scale = Vector3(0.900, 0.900, 0.900)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree013" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(37.552, 0, -28.520)
+rotation = Vector3(0, 5.236, 0)
+scale = Vector3(0.781, 0.781, 0.781)
+
+[node name="BorderTree014" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(43.648, 0, -28.297)
+rotation = Vector3(0, 0.051, 0)
+scale = Vector3(0.863, 0.863, 0.863)
+
+[node name="BorderTree015" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(51.844, 0, -27.383)
+rotation = Vector3(0, 1.027, 0)
+scale = Vector3(0.742, 0.742, 0.742)
+
+[node name="BorderFern015" type="MeshInstance3D" parent="."]
+position = Vector3(53.244, -0.012, -28.183)
+rotation = Vector3(0, 0.926, 0)
+scale = Vector3(0.782, 0.782, 0.782)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree016" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(58.556, 0, -29.097)
+rotation = Vector3(0, 0.716, 0)
+scale = Vector3(0.980, 0.980, 0.980)
+
+[node name="BorderTree017" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-58.079, 0, 28.474)
+rotation = Vector3(0, 5.822, 0)
+scale = Vector3(1.219, 1.219, 1.219)
+
+[node name="BorderTree018" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-54.083, 0, 29.713)
+rotation = Vector3(0, 4.579, 0)
+scale = Vector3(1.150, 1.150, 1.150)
+
+[node name="BorderFern018" type="MeshInstance3D" parent="."]
+position = Vector3(-52.683, -0.012, 28.913)
+rotation = Vector3(0, 6.192, 0)
+scale = Vector3(0.830, 0.830, 0.830)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree019" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-43.254, 0, 28.880)
+rotation = Vector3(0, 0.566, 0)
+scale = Vector3(1.244, 1.244, 1.244)
+
+[node name="BorderTree020" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-37.102, 0, 29.544)
+rotation = Vector3(0, 4.356, 0)
+scale = Vector3(1.217, 1.217, 1.217)
+
+[node name="BorderTree021" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-30.457, 0, 30.543)
+rotation = Vector3(0, 1.721, 0)
+scale = Vector3(0.911, 0.911, 0.911)
+
+[node name="BorderFern021" type="MeshInstance3D" parent="."]
+position = Vector3(-29.057, -0.012, 29.743)
+rotation = Vector3(0, 1.105, 0)
+scale = Vector3(0.882, 0.882, 0.882)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree022" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-23.562, 0, 27.078)
+rotation = Vector3(0, 2.112, 0)
+scale = Vector3(0.764, 0.764, 0.764)
+
+[node name="BorderTree023" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-16.129, 0, 29.504)
+rotation = Vector3(0, 1.707, 0)
+scale = Vector3(0.783, 0.783, 0.783)
+
+[node name="BorderTree024" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-7.714, 0, 30.306)
+rotation = Vector3(0, 4.138, 0)
+scale = Vector3(1.184, 1.184, 1.184)
+
+[node name="BorderFern024" type="MeshInstance3D" parent="."]
+position = Vector3(-6.314, -0.012, 29.506)
+rotation = Vector3(0, 0.550, 0)
+scale = Vector3(0.657, 0.657, 0.657)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree025" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-2.995, 0, 29.313)
+rotation = Vector3(0, 2.929, 0)
+scale = Vector3(0.869, 0.869, 0.869)
+
+[node name="BorderTree026" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(6.081, 0, 28.057)
+rotation = Vector3(0, 5.663, 0)
+scale = Vector3(0.810, 0.810, 0.810)
+
+[node name="BorderTree027" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(14.164, 0, 27.492)
+rotation = Vector3(0, 2.228, 0)
+scale = Vector3(1.239, 1.239, 1.239)
+
+[node name="BorderFern027" type="MeshInstance3D" parent="."]
+position = Vector3(15.564, -0.012, 26.692)
+rotation = Vector3(0, 3.858, 0)
+scale = Vector3(0.686, 0.686, 0.686)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree028" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(20.298, 0, 28.277)
+rotation = Vector3(0, 0.530, 0)
+scale = Vector3(1.052, 1.052, 1.052)
+
+[node name="BorderTree029" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(27.919, 0, 28.188)
+rotation = Vector3(0, 0.459, 0)
+scale = Vector3(1.124, 1.124, 1.124)
+
+[node name="BorderTree030" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(34.624, 0, 29.400)
+rotation = Vector3(0, 3.493, 0)
+scale = Vector3(1.076, 1.076, 1.076)
+
+[node name="BorderFern030" type="MeshInstance3D" parent="."]
+position = Vector3(36.024, -0.012, 28.600)
+rotation = Vector3(0, 4.120, 0)
+scale = Vector3(0.865, 0.865, 0.865)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree031" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(44.452, 0, 27.985)
+rotation = Vector3(0, 5.871, 0)
+scale = Vector3(1.057, 1.057, 1.057)
+
+[node name="BorderTree032" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(49.162, 0, 30.936)
+rotation = Vector3(0, 1.217, 0)
+scale = Vector3(1.187, 1.187, 1.187)
+
+[node name="BorderTree033" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(58.559, 0, 29.354)
+rotation = Vector3(0, 1.133, 0)
+scale = Vector3(0.923, 0.923, 0.923)
+
+[node name="BorderFern033" type="MeshInstance3D" parent="."]
+position = Vector3(59.959, -0.012, 28.554)
+rotation = Vector3(0, 4.746, 0)
+scale = Vector3(0.736, 0.736, 0.736)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree034" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-59.158, 0, -37.392)
+rotation = Vector3(0, 1.234, 0)
+scale = Vector3(0.713, 0.713, 0.713)
+
+[node name="BorderTree035" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-54.520, 0, -36.478)
+rotation = Vector3(0, 2.180, 0)
+scale = Vector3(0.961, 0.961, 0.961)
+
+[node name="BorderTree036" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-46.798, 0, -39.340)
+rotation = Vector3(0, 3.869, 0)
+scale = Vector3(0.707, 0.707, 0.707)
+
+[node name="BorderFern036" type="MeshInstance3D" parent="."]
+position = Vector3(-45.398, -0.012, -40.140)
+rotation = Vector3(0, 4.618, 0)
+scale = Vector3(0.911, 0.911, 0.911)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree037" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-39.803, 0, -39.446)
+rotation = Vector3(0, 0.227, 0)
+scale = Vector3(0.857, 0.857, 0.857)
+
+[node name="BorderTree038" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-30.744, 0, -36.602)
+rotation = Vector3(0, 3.870, 0)
+scale = Vector3(1.205, 1.205, 1.205)
+
+[node name="BorderTree039" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-23.429, 0, -39.548)
+rotation = Vector3(0, 1.187, 0)
+scale = Vector3(1.074, 1.074, 1.074)
+
+[node name="BorderFern039" type="MeshInstance3D" parent="."]
+position = Vector3(-22.029, -0.012, -40.348)
+rotation = Vector3(0, 6.138, 0)
+scale = Vector3(0.854, 0.854, 0.854)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree040" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-16.201, 0, -39.191)
+rotation = Vector3(0, 1.694, 0)
+scale = Vector3(1.258, 1.258, 1.258)
+
+[node name="BorderTree041" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-9.710, 0, -39.016)
+rotation = Vector3(0, 0.856, 0)
+scale = Vector3(1.114, 1.114, 1.114)
+
+[node name="BorderTree042" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-0.146, 0, -39.935)
+rotation = Vector3(0, 2.401, 0)
+scale = Vector3(0.967, 0.967, 0.967)
+
+[node name="BorderFern042" type="MeshInstance3D" parent="."]
+position = Vector3(1.254, -0.012, -40.735)
+rotation = Vector3(0, 0.039, 0)
+scale = Vector3(0.811, 0.811, 0.811)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree043" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(5.828, 0, -36.901)
+rotation = Vector3(0, 3.196, 0)
+scale = Vector3(0.827, 0.827, 0.827)
+
+[node name="BorderTree044" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(13.287, 0, -36.513)
+rotation = Vector3(0, 0.770, 0)
+scale = Vector3(0.833, 0.833, 0.833)
+
+[node name="BorderTree045" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(22.998, 0, -39.236)
+rotation = Vector3(0, 5.102, 0)
+scale = Vector3(0.756, 0.756, 0.756)
+
+[node name="BorderFern045" type="MeshInstance3D" parent="."]
+position = Vector3(24.398, -0.012, -40.036)
+rotation = Vector3(0, 2.907, 0)
+scale = Vector3(0.839, 0.839, 0.839)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree046" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(27.692, 0, -37.798)
+rotation = Vector3(0, 0.505, 0)
+scale = Vector3(0.891, 0.891, 0.891)
+
+[node name="BorderTree047" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(35.227, 0, -36.379)
+rotation = Vector3(0, 4.825, 0)
+scale = Vector3(0.926, 0.926, 0.926)
+
+[node name="BorderTree048" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(43.437, 0, -38.546)
+rotation = Vector3(0, 4.895, 0)
+scale = Vector3(0.843, 0.843, 0.843)
+
+[node name="BorderFern048" type="MeshInstance3D" parent="."]
+position = Vector3(44.837, -0.012, -39.346)
+rotation = Vector3(0, 5.866, 0)
+scale = Vector3(0.647, 0.647, 0.647)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree049" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(49.580, 0, -39.113)
+rotation = Vector3(0, 3.924, 0)
+scale = Vector3(1.069, 1.069, 1.069)
+
+[node name="BorderTree050" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(58.940, 0, -36.260)
+rotation = Vector3(0, 1.109, 0)
+scale = Vector3(0.781, 0.781, 0.781)
+
+[node name="BorderTree051" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-58.318, 0, 37.018)
+rotation = Vector3(0, 6.112, 0)
+scale = Vector3(1.068, 1.068, 1.068)
+
+[node name="BorderFern051" type="MeshInstance3D" parent="."]
+position = Vector3(-56.918, -0.012, 36.218)
+rotation = Vector3(0, 0.654, 0)
+scale = Vector3(0.818, 0.818, 0.818)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree052" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-53.185, 0, 37.799)
+rotation = Vector3(0, 4.060, 0)
+scale = Vector3(0.741, 0.741, 0.741)
+
+[node name="BorderTree053" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-44.687, 0, 37.874)
+rotation = Vector3(0, 4.841, 0)
+scale = Vector3(0.987, 0.987, 0.987)
+
+[node name="BorderTree054" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-37.997, 0, 36.241)
+rotation = Vector3(0, 5.436, 0)
+scale = Vector3(0.904, 0.904, 0.904)
+
+[node name="BorderFern054" type="MeshInstance3D" parent="."]
+position = Vector3(-36.597, -0.012, 35.441)
+rotation = Vector3(0, 0.574, 0)
+scale = Vector3(0.840, 0.840, 0.840)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree055" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-30.924, 0, 38.166)
+rotation = Vector3(0, 1.589, 0)
+scale = Vector3(0.995, 0.995, 0.995)
+
+[node name="BorderTree056" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-20.855, 0, 39.590)
+rotation = Vector3(0, 1.408, 0)
+scale = Vector3(1.175, 1.175, 1.175)
+
+[node name="BorderTree057" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-16.631, 0, 36.379)
+rotation = Vector3(0, 2.913, 0)
+scale = Vector3(0.716, 0.716, 0.716)
+
+[node name="BorderFern057" type="MeshInstance3D" parent="."]
+position = Vector3(-15.231, -0.012, 35.579)
+rotation = Vector3(0, 1.216, 0)
+scale = Vector3(0.643, 0.643, 0.643)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree058" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-6.713, 0, 39.021)
+rotation = Vector3(0, 2.102, 0)
+scale = Vector3(0.892, 0.892, 0.892)
+
+[node name="BorderTree059" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(1.367, 0, 36.742)
+rotation = Vector3(0, 1.504, 0)
+scale = Vector3(0.731, 0.731, 0.731)
+
+[node name="BorderTree060" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(8.157, 0, 39.227)
+rotation = Vector3(0, 1.705, 0)
+scale = Vector3(0.712, 0.712, 0.712)
+
+[node name="BorderFern060" type="MeshInstance3D" parent="."]
+position = Vector3(9.557, -0.012, 38.427)
+rotation = Vector3(0, 2.645, 0)
+scale = Vector3(0.919, 0.919, 0.919)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree061" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(12.446, 0, 38.471)
+rotation = Vector3(0, 4.691, 0)
+scale = Vector3(1.131, 1.131, 1.131)
+
+[node name="BorderTree062" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(19.272, 0, 38.174)
+rotation = Vector3(0, 4.442, 0)
+scale = Vector3(0.789, 0.789, 0.789)
+
+[node name="BorderTree063" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(29.176, 0, 38.810)
+rotation = Vector3(0, 2.008, 0)
+scale = Vector3(1.144, 1.144, 1.144)
+
+[node name="BorderFern063" type="MeshInstance3D" parent="."]
+position = Vector3(30.576, -0.012, 38.010)
+rotation = Vector3(0, 5.973, 0)
+scale = Vector3(0.701, 0.701, 0.701)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree064" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(34.666, 0, 39.719)
+rotation = Vector3(0, 0.935, 0)
+scale = Vector3(0.748, 0.748, 0.748)
+
+[node name="BorderTree065" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(42.736, 0, 37.457)
+rotation = Vector3(0, 3.703, 0)
+scale = Vector3(1.111, 1.111, 1.111)
+
+[node name="BorderTree066" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(52.709, 0, 38.391)
+rotation = Vector3(0, 1.076, 0)
+scale = Vector3(1.041, 1.041, 1.041)
+
+[node name="BorderFern066" type="MeshInstance3D" parent="."]
+position = Vector3(54.109, -0.012, 37.591)
+rotation = Vector3(0, 4.799, 0)
+scale = Vector3(0.639, 0.639, 0.639)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree067" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(58.012, 0, 39.811)
+rotation = Vector3(0, 1.975, 0)
+scale = Vector3(1.108, 1.108, 1.108)
+
+[node name="BorderTree068" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-59.330, 0, -47.783)
+rotation = Vector3(0, 2.144, 0)
+scale = Vector3(1.018, 1.018, 1.018)
+
+[node name="BorderTree069" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-51.476, 0, -46.926)
+rotation = Vector3(0, 3.475, 0)
+scale = Vector3(0.705, 0.705, 0.705)
+
+[node name="BorderFern069" type="MeshInstance3D" parent="."]
+position = Vector3(-50.076, -0.012, -47.726)
+rotation = Vector3(0, 2.471, 0)
+scale = Vector3(0.723, 0.723, 0.723)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree070" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-43.278, 0, -46.558)
+rotation = Vector3(0, 4.118, 0)
+scale = Vector3(0.882, 0.882, 0.882)
+
+[node name="BorderTree071" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-37.367, 0, -48.313)
+rotation = Vector3(0, 4.187, 0)
+scale = Vector3(1.259, 1.259, 1.259)
+
+[node name="BorderTree072" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-32.499, 0, -48.398)
+rotation = Vector3(0, 6.237, 0)
+scale = Vector3(1.112, 1.112, 1.112)
+
+[node name="BorderFern072" type="MeshInstance3D" parent="."]
+position = Vector3(-31.099, -0.012, -49.198)
+rotation = Vector3(0, 2.645, 0)
+scale = Vector3(0.852, 0.852, 0.852)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree073" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-25.048, 0, -48.242)
+rotation = Vector3(0, 3.657, 0)
+scale = Vector3(0.876, 0.876, 0.876)
+
+[node name="BorderTree074" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-17.289, 0, -45.955)
+rotation = Vector3(0, 0.436, 0)
+scale = Vector3(1.114, 1.114, 1.114)
+
+[node name="BorderTree075" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-7.184, 0, -48.899)
+rotation = Vector3(0, 0.330, 0)
+scale = Vector3(1.056, 1.056, 1.056)
+
+[node name="BorderFern075" type="MeshInstance3D" parent="."]
+position = Vector3(-5.784, -0.012, -49.699)
+rotation = Vector3(0, 0.470, 0)
+scale = Vector3(0.846, 0.846, 0.846)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree076" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-1.926, 0, -45.814)
+rotation = Vector3(0, 5.277, 0)
+scale = Vector3(0.770, 0.770, 0.770)
+
+[node name="BorderTree077" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(7.139, 0, -48.615)
+rotation = Vector3(0, 1.291, 0)
+scale = Vector3(1.058, 1.058, 1.058)
+
+[node name="BorderTree078" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(15.970, 0, -48.216)
+rotation = Vector3(0, 3.695, 0)
+scale = Vector3(0.729, 0.729, 0.729)
+
+[node name="BorderFern078" type="MeshInstance3D" parent="."]
+position = Vector3(17.370, -0.012, -49.016)
+rotation = Vector3(0, 2.623, 0)
+scale = Vector3(0.864, 0.864, 0.864)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree079" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(20.491, 0, -46.260)
+rotation = Vector3(0, 2.239, 0)
+scale = Vector3(1.108, 1.108, 1.108)
+
+[node name="BorderTree080" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(26.752, 0, -46.860)
+rotation = Vector3(0, 1.166, 0)
+scale = Vector3(0.838, 0.838, 0.838)
+
+[node name="BorderTree081" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(37.318, 0, -47.472)
+rotation = Vector3(0, 4.801, 0)
+scale = Vector3(1.053, 1.053, 1.053)
+
+[node name="BorderFern081" type="MeshInstance3D" parent="."]
+position = Vector3(38.718, -0.012, -48.272)
+rotation = Vector3(0, 1.237, 0)
+scale = Vector3(0.691, 0.691, 0.691)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree082" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(42.276, 0, -47.068)
+rotation = Vector3(0, 1.798, 0)
+scale = Vector3(0.978, 0.978, 0.978)
+
+[node name="BorderTree083" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(51.085, 0, -47.793)
+rotation = Vector3(0, 3.857, 0)
+scale = Vector3(0.979, 0.979, 0.979)
+
+[node name="BorderTree084" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(57.696, 0, -45.224)
+rotation = Vector3(0, 4.932, 0)
+scale = Vector3(0.866, 0.866, 0.866)
+
+[node name="BorderFern084" type="MeshInstance3D" parent="."]
+position = Vector3(59.096, -0.012, -46.024)
+rotation = Vector3(0, 3.973, 0)
+scale = Vector3(0.674, 0.674, 0.674)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree085" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-60.114, 0, 45.592)
+rotation = Vector3(0, 1.954, 0)
+scale = Vector3(0.709, 0.709, 0.709)
+
+[node name="BorderTree086" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-50.889, 0, 48.445)
+rotation = Vector3(0, 2.304, 0)
+scale = Vector3(0.706, 0.706, 0.706)
+
+[node name="BorderTree087" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-47.083, 0, 47.127)
+rotation = Vector3(0, 1.860, 0)
+scale = Vector3(1.136, 1.136, 1.136)
+
+[node name="BorderFern087" type="MeshInstance3D" parent="."]
+position = Vector3(-45.683, -0.012, 46.327)
+rotation = Vector3(0, 1.925, 0)
+scale = Vector3(0.711, 0.711, 0.711)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree088" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-38.040, 0, 47.318)
+rotation = Vector3(0, 1.239, 0)
+scale = Vector3(0.805, 0.805, 0.805)
+
+[node name="BorderTree089" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-28.663, 0, 47.881)
+rotation = Vector3(0, 3.495, 0)
+scale = Vector3(1.093, 1.093, 1.093)
+
+[node name="BorderTree090" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-21.961, 0, 48.174)
+rotation = Vector3(0, 4.211, 0)
+scale = Vector3(0.816, 0.816, 0.816)
+
+[node name="BorderFern090" type="MeshInstance3D" parent="."]
+position = Vector3(-20.561, -0.012, 47.374)
+rotation = Vector3(0, 0.968, 0)
+scale = Vector3(0.707, 0.707, 0.707)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree091" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-15.287, 0, 48.610)
+rotation = Vector3(0, 6.025, 0)
+scale = Vector3(1.178, 1.178, 1.178)
+
+[node name="BorderTree092" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-9.868, 0, 47.688)
+rotation = Vector3(0, 3.081, 0)
+scale = Vector3(0.798, 0.798, 0.798)
+
+[node name="BorderTree093" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(0.416, 0, 48.489)
+rotation = Vector3(0, 3.241, 0)
+scale = Vector3(0.830, 0.830, 0.830)
+
+[node name="BorderFern093" type="MeshInstance3D" parent="."]
+position = Vector3(1.816, -0.012, 47.689)
+rotation = Vector3(0, 3.437, 0)
+scale = Vector3(0.664, 0.664, 0.664)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree094" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(7.413, 0, 47.142)
+rotation = Vector3(0, 4.769, 0)
+scale = Vector3(0.920, 0.920, 0.920)
+
+[node name="BorderTree095" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(15.378, 0, 46.119)
+rotation = Vector3(0, 5.269, 0)
+scale = Vector3(1.131, 1.131, 1.131)
+
+[node name="BorderTree096" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(20.710, 0, 46.456)
+rotation = Vector3(0, 1.880, 0)
+scale = Vector3(1.094, 1.094, 1.094)
+
+[node name="BorderFern096" type="MeshInstance3D" parent="."]
+position = Vector3(22.110, -0.012, 45.656)
+rotation = Vector3(0, 3.904, 0)
+scale = Vector3(0.674, 0.674, 0.674)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree097" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(27.944, 0, 47.630)
+rotation = Vector3(0, 3.209, 0)
+scale = Vector3(0.772, 0.772, 0.772)
+
+[node name="BorderTree098" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(37.309, 0, 47.388)
+rotation = Vector3(0, 5.599, 0)
+scale = Vector3(0.829, 0.829, 0.829)
+
+[node name="BorderTree099" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(43.370, 0, 46.875)
+rotation = Vector3(0, 0.682, 0)
+scale = Vector3(0.720, 0.720, 0.720)
+
+[node name="BorderFern099" type="MeshInstance3D" parent="."]
+position = Vector3(44.770, -0.012, 46.075)
+rotation = Vector3(0, 5.671, 0)
+scale = Vector3(0.948, 0.948, 0.948)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree100" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(51.716, 0, 46.365)
+rotation = Vector3(0, 1.785, 0)
+scale = Vector3(0.720, 0.720, 0.720)
+
+[node name="BorderTree101" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(59.099, 0, 47.287)
+rotation = Vector3(0, 2.966, 0)
+scale = Vector3(0.999, 0.999, 0.999)
+
+[node name="BorderTree102" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-37.625, 0, -23.149)
+rotation = Vector3(0, 5.511, 0)
+scale = Vector3(0.731, 0.731, 0.731)
+
+[node name="BorderFern102" type="MeshInstance3D" parent="."]
+position = Vector3(-36.225, -0.012, -23.949)
+rotation = Vector3(0, 0.417, 0)
+scale = Vector3(0.770, 0.770, 0.770)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree103" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-38.947, 0, -18.594)
+rotation = Vector3(0, 0.350, 0)
+scale = Vector3(1.199, 1.199, 1.199)
+
+[node name="BorderTree104" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-38.777, 0, -9.968)
+rotation = Vector3(0, 3.293, 0)
+scale = Vector3(0.700, 0.700, 0.700)
+
+[node name="BorderTree105" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-36.782, 0, -2.476)
+rotation = Vector3(0, 3.674, 0)
+scale = Vector3(1.039, 1.039, 1.039)
+
+[node name="BorderFern105" type="MeshInstance3D" parent="."]
+position = Vector3(-35.382, -0.012, -3.276)
+rotation = Vector3(0, 3.535, 0)
+scale = Vector3(0.941, 0.941, 0.941)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree106" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-36.203, 0, 3.135)
+rotation = Vector3(0, 2.555, 0)
+scale = Vector3(1.016, 1.016, 1.016)
+
+[node name="BorderTree107" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-36.127, 0, 10.980)
+rotation = Vector3(0, 1.524, 0)
+scale = Vector3(0.829, 0.829, 0.829)
+
+[node name="BorderTree108" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-36.323, 0, 18.766)
+rotation = Vector3(0, 3.884, 0)
+scale = Vector3(0.982, 0.982, 0.982)
+
+[node name="BorderFern108" type="MeshInstance3D" parent="."]
+position = Vector3(-34.923, -0.012, 17.966)
+rotation = Vector3(0, 1.884, 0)
+scale = Vector3(0.731, 0.731, 0.731)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree109" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-36.172, 0, 25.173)
+rotation = Vector3(0, 6.262, 0)
+scale = Vector3(1.098, 1.098, 1.098)
+
+[node name="BorderTree110" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(-45.168, 0, -25.853)
+rotation = Vector3(0, 1.863, 0)
+scale = Vector3(1.084, 1.084, 1.084)
+
+[node name="BorderTree111" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-46.540, 0, -16.309)
+rotation = Vector3(0, 1.123, 0)
+scale = Vector3(0.861, 0.861, 0.861)
+
+[node name="BorderFern111" type="MeshInstance3D" parent="."]
+position = Vector3(-45.140, -0.012, -17.109)
+rotation = Vector3(0, 6.220, 0)
+scale = Vector3(0.659, 0.659, 0.659)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree112" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-47.280, 0, -9.348)
+rotation = Vector3(0, 3.469, 0)
+scale = Vector3(1.065, 1.065, 1.065)
+
+[node name="BorderTree113" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-47.001, 0, -2.282)
+rotation = Vector3(0, 4.157, 0)
+scale = Vector3(0.977, 0.977, 0.977)
+
+[node name="BorderTree114" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-48.443, 0, 5.472)
+rotation = Vector3(0, 5.720, 0)
+scale = Vector3(0.720, 0.720, 0.720)
+
+[node name="BorderFern114" type="MeshInstance3D" parent="."]
+position = Vector3(-47.043, -0.012, 4.672)
+rotation = Vector3(0, 4.805, 0)
+scale = Vector3(0.817, 0.817, 0.817)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree115" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-46.660, 0, 12.580)
+rotation = Vector3(0, 5.876, 0)
+scale = Vector3(0.811, 0.811, 0.811)
+
+[node name="BorderTree116" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-45.255, 0, 18.034)
+rotation = Vector3(0, 2.740, 0)
+scale = Vector3(0.771, 0.771, 0.771)
+
+[node name="BorderTree117" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-46.491, 0, 25.430)
+rotation = Vector3(0, 0.901, 0)
+scale = Vector3(1.227, 1.227, 1.227)
+
+[node name="BorderFern117" type="MeshInstance3D" parent="."]
+position = Vector3(-45.091, -0.012, 24.630)
+rotation = Vector3(0, 5.169, 0)
+scale = Vector3(0.623, 0.623, 0.623)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree118" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-56.548, 0, -22.516)
+rotation = Vector3(0, 3.533, 0)
+scale = Vector3(0.874, 0.874, 0.874)
+
+[node name="BorderTree119" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-57.940, 0, -18.445)
+rotation = Vector3(0, 5.550, 0)
+scale = Vector3(0.754, 0.754, 0.754)
+
+[node name="BorderTree120" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-57.059, 0, -11.762)
+rotation = Vector3(0, 1.676, 0)
+scale = Vector3(0.852, 0.852, 0.852)
+
+[node name="BorderFern120" type="MeshInstance3D" parent="."]
+position = Vector3(-55.659, -0.012, -12.562)
+rotation = Vector3(0, 0.115, 0)
+scale = Vector3(0.803, 0.803, 0.803)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree121" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-56.435, 0, -3.857)
+rotation = Vector3(0, 1.953, 0)
+scale = Vector3(1.167, 1.167, 1.167)
+
+[node name="BorderTree122" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(-56.827, 0, 3.995)
+rotation = Vector3(0, 2.223, 0)
+scale = Vector3(0.929, 0.929, 0.929)
+
+[node name="BorderTree123" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(-57.309, 0, 11.028)
+rotation = Vector3(0, 4.950, 0)
+scale = Vector3(1.163, 1.163, 1.163)
+
+[node name="BorderFern123" type="MeshInstance3D" parent="."]
+position = Vector3(-55.909, -0.012, 10.228)
+rotation = Vector3(0, 3.596, 0)
+scale = Vector3(0.850, 0.850, 0.850)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree124" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-56.050, 0, 19.653)
+rotation = Vector3(0, 4.984, 0)
+scale = Vector3(0.717, 0.717, 0.717)
+
+[node name="BorderTree125" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(-58.352, 0, 23.603)
+rotation = Vector3(0, 4.851, 0)
+scale = Vector3(0.905, 0.905, 0.905)
+
+[node name="BorderTree126" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(36.799, 0, -25.138)
+rotation = Vector3(0, 1.002, 0)
+scale = Vector3(1.094, 1.094, 1.094)
+
+[node name="BorderFern126" type="MeshInstance3D" parent="."]
+position = Vector3(38.199, -0.012, -25.938)
+rotation = Vector3(0, 1.761, 0)
+scale = Vector3(0.888, 0.888, 0.888)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree127" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(36.916, 0, -17.380)
+rotation = Vector3(0, 1.611, 0)
+scale = Vector3(1.142, 1.142, 1.142)
+
+[node name="BorderTree128" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(38.270, 0, -11.472)
+rotation = Vector3(0, 4.298, 0)
+scale = Vector3(1.244, 1.244, 1.244)
+
+[node name="BorderTree129" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(36.220, 0, -1.241)
+rotation = Vector3(0, 4.426, 0)
+scale = Vector3(1.042, 1.042, 1.042)
+
+[node name="BorderFern129" type="MeshInstance3D" parent="."]
+position = Vector3(37.620, -0.012, -2.041)
+rotation = Vector3(0, 3.686, 0)
+scale = Vector3(0.725, 0.725, 0.725)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree130" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(35.107, 0, 5.429)
+rotation = Vector3(0, 1.276, 0)
+scale = Vector3(1.212, 1.212, 1.212)
+
+[node name="BorderTree131" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(38.307, 0, 12.435)
+rotation = Vector3(0, 3.787, 0)
+scale = Vector3(1.004, 1.004, 1.004)
+
+[node name="BorderTree132" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(35.161, 0, 16.488)
+rotation = Vector3(0, 2.234, 0)
+scale = Vector3(0.979, 0.979, 0.979)
+
+[node name="BorderFern132" type="MeshInstance3D" parent="."]
+position = Vector3(36.561, -0.012, 15.688)
+rotation = Vector3(0, 4.921, 0)
+scale = Vector3(0.759, 0.759, 0.759)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree133" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(37.038, 0, 26.072)
+rotation = Vector3(0, 4.818, 0)
+scale = Vector3(0.918, 0.918, 0.918)
+
+[node name="BorderTree134" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(46.344, 0, -24.878)
+rotation = Vector3(0, 2.818, 0)
+scale = Vector3(1.081, 1.081, 1.081)
+
+[node name="BorderTree135" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(45.962, 0, -18.292)
+rotation = Vector3(0, 0.642, 0)
+scale = Vector3(0.911, 0.911, 0.911)
+
+[node name="BorderFern135" type="MeshInstance3D" parent="."]
+position = Vector3(47.362, -0.012, -19.092)
+rotation = Vector3(0, 3.825, 0)
+scale = Vector3(0.859, 0.859, 0.859)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree136" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(47.931, 0, -10.718)
+rotation = Vector3(0, 2.071, 0)
+scale = Vector3(0.990, 0.990, 0.990)
+
+[node name="BorderTree137" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(47.639, 0, -4.993)
+rotation = Vector3(0, 4.515, 0)
+scale = Vector3(1.042, 1.042, 1.042)
+
+[node name="BorderTree138" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(47.357, 0, 4.066)
+rotation = Vector3(0, 3.943, 0)
+scale = Vector3(0.864, 0.864, 0.864)
+
+[node name="BorderFern138" type="MeshInstance3D" parent="."]
+position = Vector3(48.757, -0.012, 3.266)
+rotation = Vector3(0, 1.765, 0)
+scale = Vector3(0.925, 0.925, 0.925)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree139" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(46.632, 0, 12.440)
+rotation = Vector3(0, 3.275, 0)
+scale = Vector3(0.906, 0.906, 0.906)
+
+[node name="BorderTree140" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(47.965, 0, 17.131)
+rotation = Vector3(0, 3.952, 0)
+scale = Vector3(0.758, 0.758, 0.758)
+
+[node name="BorderTree141" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(45.353, 0, 24.060)
+rotation = Vector3(0, 3.120, 0)
+scale = Vector3(1.082, 1.082, 1.082)
+
+[node name="BorderFern141" type="MeshInstance3D" parent="."]
+position = Vector3(46.753, -0.012, 23.260)
+rotation = Vector3(0, 2.481, 0)
+scale = Vector3(0.872, 0.872, 0.872)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree142" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(55.221, 0, -25.741)
+rotation = Vector3(0, 3.374, 0)
+scale = Vector3(1.210, 1.210, 1.210)
+
+[node name="BorderTree143" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(58.867, 0, -18.341)
+rotation = Vector3(0, 3.508, 0)
+scale = Vector3(0.800, 0.800, 0.800)
+
+[node name="BorderTree144" parent="." instance=ExtResource("canopy_oak")]
+position = Vector3(57.030, 0, -9.379)
+rotation = Vector3(0, 1.336, 0)
+scale = Vector3(0.941, 0.941, 0.941)
+
+[node name="BorderFern144" type="MeshInstance3D" parent="."]
+position = Vector3(58.430, -0.012, -10.179)
+rotation = Vector3(0, 0.288, 0)
+scale = Vector3(0.921, 0.921, 0.921)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree145" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(56.217, 0, -2.158)
+rotation = Vector3(0, 5.750, 0)
+scale = Vector3(0.738, 0.738, 0.738)
+
+[node name="BorderTree146" parent="." instance=ExtResource("silver_birch")]
+position = Vector3(55.676, 0, 4.812)
+rotation = Vector3(0, 6.252, 0)
+scale = Vector3(0.907, 0.907, 0.907)
+
+[node name="BorderTree147" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(58.413, 0, 11.287)
+rotation = Vector3(0, 4.547, 0)
+scale = Vector3(0.745, 0.745, 0.745)
+
+[node name="BorderFern147" type="MeshInstance3D" parent="."]
+position = Vector3(59.813, -0.012, 10.487)
+rotation = Vector3(0, 5.393, 0)
+scale = Vector3(0.901, 0.901, 0.901)
+mesh = ExtResource("fern_patch")
+
+[node name="BorderTree148" parent="." instance=ExtResource("wind_pine")]
+position = Vector3(58.346, 0, 16.533)
+rotation = Vector3(0, 5.029, 0)
+scale = Vector3(1.053, 1.053, 1.053)
+
+[node name="BorderTree149" parent="." instance=ExtResource("hazel_thicket")]
+position = Vector3(56.666, 0, 25.767)
+rotation = Vector3(0, 0.940, 0)
+scale = Vector3(0.822, 0.822, 0.822)
+
+[node name="BorderStone00" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(30.855, 0, -1.638)
+rotation = Vector3(0, 2.977, 0)
+scale = Vector3(1.049, 1.049, 1.049)
+
+[node name="BorderStone01" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(33.101, 0, 4.735)
+rotation = Vector3(0, 5.420, 0)
+scale = Vector3(0.808, 0.808, 0.808)
+
+[node name="BorderStone02" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(28.566, 0, 12.143)
+rotation = Vector3(0, 6.148, 0)
+scale = Vector3(0.988, 0.988, 0.988)
+
+[node name="BorderStone03" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(21.195, 0, 19.214)
+rotation = Vector3(0, 6.201, 0)
+scale = Vector3(1.036, 1.036, 1.036)
+
+[node name="BorderStone04" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(18.370, 0, 22.539)
+rotation = Vector3(0, 2.670, 0)
+scale = Vector3(0.593, 0.593, 0.593)
+
+[node name="BorderStone05" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(6.132, 0, 25.360)
+rotation = Vector3(0, 5.788, 0)
+scale = Vector3(1.013, 1.013, 1.013)
+
+[node name="BorderStone06" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-1.442, 0, 25.447)
+rotation = Vector3(0, 3.966, 0)
+scale = Vector3(0.995, 0.995, 0.995)
+
+[node name="BorderStone07" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-8.653, 0, 25.010)
+rotation = Vector3(0, 2.942, 0)
+scale = Vector3(0.913, 0.913, 0.913)
+
+[node name="BorderStone08" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-14.694, 0, 24.468)
+rotation = Vector3(0, 1.773, 0)
+scale = Vector3(1.062, 1.062, 1.062)
+
+[node name="BorderStone09" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-21.615, 0, 19.207)
+rotation = Vector3(0, 1.414, 0)
+scale = Vector3(0.789, 0.789, 0.789)
+
+[node name="BorderStone10" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-27.374, 0, 13.797)
+rotation = Vector3(0, 4.116, 0)
+scale = Vector3(0.588, 0.588, 0.588)
+
+[node name="BorderStone11" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-31.889, 0, 5.190)
+rotation = Vector3(0, 0.981, 0)
+scale = Vector3(0.705, 0.705, 0.705)
+
+[node name="BorderStone12" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-30.874, 0, 2.168)
+rotation = Vector3(0, 5.478, 0)
+scale = Vector3(0.916, 0.916, 0.916)
+
+[node name="BorderStone13" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-29.787, 0, -7.286)
+rotation = Vector3(0, 0.392, 0)
+scale = Vector3(0.770, 0.770, 0.770)
+
+[node name="BorderStone14" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-29.180, 0, -14.028)
+rotation = Vector3(0, 3.367, 0)
+scale = Vector3(0.593, 0.593, 0.593)
+
+[node name="BorderStone15" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-20.872, 0, -18.162)
+rotation = Vector3(0, 4.461, 0)
+scale = Vector3(0.569, 0.569, 0.569)
+
+[node name="BorderStone16" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-13.367, 0, -22.034)
+rotation = Vector3(0, 5.178, 0)
+scale = Vector3(0.643, 0.643, 0.643)
+
+[node name="BorderStone17" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(-7.602, 0, -26.701)
+rotation = Vector3(0, 1.213, 0)
+scale = Vector3(1.060, 1.060, 1.060)
+
+[node name="BorderStone18" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(0.723, 0, -26.421)
+rotation = Vector3(0, 6.224, 0)
+scale = Vector3(0.842, 0.842, 0.842)
+
+[node name="BorderStone19" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(9.982, 0, -24.347)
+rotation = Vector3(0, 0.083, 0)
+scale = Vector3(0.950, 0.950, 0.950)
+
+[node name="BorderStone20" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(15.459, 0, -22.978)
+rotation = Vector3(0, 0.694, 0)
+scale = Vector3(0.661, 0.661, 0.661)
+
+[node name="BorderStone21" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(23.979, 0, -16.049)
+rotation = Vector3(0, 5.583, 0)
+scale = Vector3(0.639, 0.639, 0.639)
+
+[node name="BorderStone22" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(27.924, 0, -15.194)
+rotation = Vector3(0, 4.282, 0)
+scale = Vector3(1.021, 1.021, 1.021)
+
+[node name="BorderStone23" parent="." instance=ExtResource("moss_boulder")]
+position = Vector3(31.665, 0, -7.833)
+rotation = Vector3(0, 3.869, 0)
+scale = Vector3(0.825, 0.825, 0.825)

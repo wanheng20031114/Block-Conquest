@@ -6,6 +6,10 @@ const LOBBY_SCENE := "res://scenes/lobby.tscn"
 const COMMANDER_SCENE := "res://scenes/block_war/commander_select.tscn"
 const BATTLE_SCENE := "res://scenes/block_war/block_war.tscn"
 const ONLINE_SCENE := "res://scenes/network/war_room.tscn"
+const TUTORIAL_MENU_SCENE := "res://scenes/tutorial/tutorial_menu.tscn"
+const TUTORIAL_BATTLE_SCENE := "res://scenes/tutorial/tutorial_battle.tscn"
+const TUTORIAL_CATALOG := preload("res://scripts/tutorial/tutorial_catalog.gd")
+var tutorial_lesson_id: String = "basics"
 var block_war_map_id := "rift"
 var block_war_commander: StringName = &"squirrel"
 var block_war_opponent_commander: StringName = &"squirrel"
@@ -34,6 +38,20 @@ func start_war(direct_launch: bool = false) -> Error:
 func start_online() -> Error:
 	_online_active = true
 	return change_scene(ONLINE_SCENE)
+
+func start_tutorial(lesson_id: String = "") -> Error:
+	if transition.busy:
+		return ERR_BUSY
+	if not lesson_id.is_empty() and not TUTORIAL_CATALOG.IDS.has(lesson_id):
+		return ERR_INVALID_PARAMETER
+	get_tree().paused = false
+	_online_active = false
+	_pending_online_scene = ""
+	_online_battle_requested = false
+	online.disconnect_relay()
+	if not lesson_id.is_empty():
+		tutorial_lesson_id = lesson_id
+	return change_scene(TUTORIAL_MENU_SCENE if lesson_id.is_empty() else TUTORIAL_BATTLE_SCENE)
 
 func back_to_online_room() -> void:
 	if transition.busy:
