@@ -95,10 +95,11 @@ func _run() -> void:
 		ai._reserves[building.building_id] = 0.0
 	var source: WarBuilding = game.by_id[0]
 	source.population = 310.0
-	check(ai._conquest(game, false).is_empty(), "AI rejects a wave that only satisfies the old static estimate")
-	source.population = 500.0
 	var plan: Dictionary = ai._conquest(game, false)
-	check(not plan.is_empty() and plan.source == source and plan.target == target and plan.percent == 75, "AI attacks after gathering enough troops for changing morale")
+	check(not plan.is_empty() and plan.source == source and plan.target == target, "AI uses public garrison estimates with the morale combat model")
+	target.population = 1.0
+	var sparse_plan: Dictionary = ai._conquest(game, false)
+	check(not sparse_plan.is_empty() and sparse_plan.percent == plan.percent and sparse_plan.score == plan.score, "hidden garrison changes cannot alter the planned wave or score")
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_MORALE_AI ", checks, " checks; ", failures.size(), " failures")
 	quit(0 if failures.is_empty() else 1)

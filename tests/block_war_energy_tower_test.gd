@@ -209,6 +209,32 @@ func ai_development() -> void:
 	set_building(4, 1, 2, 100.0)
 	var strategy: RefCounted = game.AI_STRATEGY.new(1)
 	strategy.take_turn(game)
+	for building: WarBuilding in game.buildings:
+		check(building.conversion_target != 3, "low energy at one decision does not trigger an investment")
+	# Observe legal repeated spending over a full window before asking the real
+	# development policy to choose and pay for its first tower.
+	game.marches.clear()
+	for id: int in [2, 4]:
+		game.by_id[id].population = 100.0
+	var state: RefCounted = game.faction_skills[1]
+	state.commander = &"squirrel"
+	state.energy = 100.0
+	state.cooldowns.fill(0.0)
+	strategy = game.AI_STRATEGY.new(1)
+	strategy._economy.observe(game)
+	# Step beyond the exact boundary: fire's substeps can sum to just below 30.
+	for time: int in range(3, 34, 3):
+		game.simulate(3.0)
+		strategy._economy.observe(game)
+		var energy_before: float = state.energy
+		if time == 3:
+			check(game.cast_ground_skill(3, game.by_id[0].global_position, 1), "AI economy history starts with a paid ultimate")
+		elif time == 6:
+			check(game.cast_skill(0, game.by_id[1], 1), "AI economy history includes paid recruitment")
+		elif time == 18:
+			check(game.cast_ground_skill(1, game.by_id[1].global_position, 1), "AI economy history includes a paid support spell")
+		strategy._economy.record_spending(game.elapsed, maxf(0.0, energy_before - state.energy))
+	strategy.take_turn(game)
 	var conversions := 0
 	for building: WarBuilding in game.buildings:
 		if building.conversion_target == 3:

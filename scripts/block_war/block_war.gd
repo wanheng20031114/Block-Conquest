@@ -1225,22 +1225,23 @@ func _finish_match(winner: int) -> void:
 func update_hud() -> void:
 	if not is_node_ready():
 		return
-	var faction_totals: Array[int] = []
+	var faction_buildings: Array[int] = []
 	var morale_stars: Array[float] = []
 	var faction_names: Array[String] = []
-	# One population census serves all six factions and both team totals. Keep
-	# fractions until the final team floor, matching the simulation's accounting.
-	var populations := PackedFloat64Array()
-	populations.resize(FACTIONS.COLORS.size())
+	# Only our alliance's population is public. The shared color bar measures
+	# visible territory, so neither its width nor a total reveals enemy garrisons.
+	faction_buildings.resize(faction_count)
+	faction_buildings.fill(0)
+	var player_population := 0.0
 	for unit: WarMarches.MarchUnit in marches._units:
-		populations[unit.order.faction] += 1.0
+		if FACTIONS.allied(unit.order.faction, local_faction):
+			player_population += 1.0
 	for building: WarBuilding in buildings:
-		if building.faction >= 0: populations[building.faction] += building.available_population
-	var team_populations := PackedFloat64Array([0.0, 0.0])
-	for faction: int in populations.size():
-		team_populations[faction % 2] += populations[faction]
+		if building.faction >= 0:
+			faction_buildings[building.faction] += 1
+			if FACTIONS.allied(building.faction, local_faction):
+				player_population += building.available_population
 	for faction: int in faction_count:
-		faction_totals.append(floori(populations[faction]))
 		morale_stars.append(morale.stars(faction))
 		faction_names.append(faction_name(faction))
 	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺增攻 · 能量塔恢复技力"
@@ -1263,8 +1264,8 @@ func update_hud() -> void:
 			if FACTIONS.allied(selected.faction, local_faction) and selected.faction != local_faction:
 				detail += " · 增援抵达后归队友指挥"
 	var selected_population_known: bool = selected != null and selected.is_population_visible()
-	hud.update_state({"player_total": floori(team_populations[local_team]), "enemy_total": floori(team_populations[1 - local_team]), "time": elapsed,
-		"faction_count": faction_count, "faction_totals": faction_totals, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
+	hud.update_state({"player_total": floori(player_population), "time": elapsed,
+		"faction_count": faction_count, "faction_buildings": faction_buildings, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
 		"online": not match_config.is_empty(), "enemy_role": _enemy_role(),
 		"global_paused": match_paused, "local_surrendered": has_surrendered(local_faction),
 		"can_match_pause": can_request_match_control(local_faction), "can_surrender": can_request_match_control(local_faction),

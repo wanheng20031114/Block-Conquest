@@ -1,5 +1,5 @@
 extends Control
-## Six authored seats keep every player's population and morale visibly paired.
+## Public territory shares pair each faction's buildings with its morale.
 
 const FACTIONS = preload("res://scripts/block_war/war_factions.gd")
 const ORDER: Array[int] = [0, 2, 4, 1, 3, 5]
@@ -7,7 +7,7 @@ const ROW_WIDTH: float = 92.0
 const ROW_GAP: float = 8.0
 const ROW_TOP: float = 24.0
 var _faction_count: int = 0
-var _has_population: bool = false
+var _has_buildings: bool = false
 var _weights := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _targets := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _balance_tween: Tween
@@ -20,7 +20,7 @@ func _ready() -> void:
 	resized.connect(_layout)
 	_layout()
 
-func update_factions(totals: Array, morale: Array, count: int, local_faction: int = 0, names: Array = []) -> void:
+func update_factions(building_counts: Array, morale: Array, count: int, local_faction: int = 0, names: Array = []) -> void:
 	_order = [local_faction]
 	for faction: int in ORDER:
 		if faction != local_faction and FACTIONS.allied(faction, local_faction):
@@ -30,14 +30,15 @@ func update_factions(totals: Array, morale: Array, count: int, local_faction: in
 			_order.append(faction)
 	var total: float = 0.0
 	for faction: int in count:
-		total += float(totals[faction])
-	_has_population = total > 0.0
+		total += float(building_counts[faction])
+	_has_buildings = total > 0.0
 	var targets := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 	for faction: int in count:
-		targets[faction] = float(totals[faction]) / total if _has_population else 1.0 / float(count)
+		targets[faction] = float(building_counts[faction]) / total if _has_buildings else 1.0 / float(count)
 		var row: HBoxContainer = get_node("Stars/Faction%d" % faction)
 		var full_stars: int = floori(float(morale[faction]))
 		row.tooltip_text = "%s · %d 星\n攻击 +%d%% · 防御 +%d%% · 移速 +%d%%" % [names[faction] if names.size() == count else FACTIONS.NAMES[faction], full_stars, full_stars * 5, full_stars * 25, full_stars * 10]
+		row.tooltip_text += "\n%d 处据点 · 顶部色带表示据点占比\n己方数字为联盟总兵力，敌方总兵力未知" % int(building_counts[faction])
 		if full_stars < 5:
 			var next_star_percent: float = floorf((float(morale[faction]) - full_stars) * 1000.0) / 10.0
 			row.tooltip_text += "\n下颗星充能 %.1f%%" % next_star_percent
@@ -72,7 +73,7 @@ func _layout() -> void:
 		var segment: ColorRect = get_node("Segments/Faction%d" % faction)
 		var row: Control = get_node("Stars/Faction%d" % faction)
 		var leader: Line2D = get_node("Leaders/Faction%d" % faction)
-		segment.visible = faction < _faction_count and _has_population
+		segment.visible = faction < _faction_count and _has_buildings
 		row.visible = faction < _faction_count
 		leader.hide()
 		if faction >= _faction_count:

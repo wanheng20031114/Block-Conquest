@@ -114,9 +114,8 @@ func update_state(state: Dictionary) -> void:
 		_enemy_commander = state.enemy_commander
 		$UI/Enemy/Icon.texture = SKILL_RULES.PORTRAITS[_enemy_commander]
 	var player_total: int = int(state.player_total)
-	var enemy_total: int = int(state.enemy_total)
 	%PlayerTotal.text = str(player_total)
-	%EnemyTotal.text = str(enemy_total)
+	%EnemyTotal.text = "未知"
 	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
 	$UI/Player/Name.text = SKILL_RULES.name_for(commander)
 	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else SKILL_RULES.name_for(_enemy_commander)
@@ -125,7 +124,7 @@ func update_state(state: Dictionary) -> void:
 	%EnemyTotal.add_theme_color_override("font_color", preload("res://scripts/block_war/war_factions.gd").COLORS[1 - local_faction % 2])
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	%Balance.update_factions(state.faction_totals, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
+	%Balance.update_factions(state.faction_buildings, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
 		_percentage_buttons[index].disabled = _global_paused or _local_surrendered or _finished

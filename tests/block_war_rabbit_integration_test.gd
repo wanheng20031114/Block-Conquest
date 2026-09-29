@@ -244,11 +244,14 @@ func _ai_decisions() -> void:
 	ai = ai_setup()
 	game.faction_skills[0].commander = &"squirrel"
 	home().kind = 0
+	home().level = 4
 	home().population = 5.0
+	for index: int in [0, 2, 3]:
+		game.faction_skills[1].cooldowns[index] = 100.0
 	check(game.cast_skill(0, home()), "player recruitment creates meaningful suppression target")
 	game.request_skill(1)
 	ai.take_turn(game)
-	near(home().disruption_remaining, 6.0, "rabbit AI seals active recruitment")
+	near(home().disruption_remaining, 6.0, "rabbit AI seals a publicly developed residence without reading its recruitment clock")
 	check(game.armed_skill == 1 and game.selected == home(), "AI cast preserves player's held gesture and selection")
 	near(game.energy, 70.0, "AI cannot spend player energy")
 	near(game.faction_skills[1].energy, 75.0, "AI pays W cost")
@@ -296,9 +299,12 @@ func _ai_decisions() -> void:
 	ai.take_turn(game)
 	check(game.faction_skills[1].cooldowns[2] == 0.0 and game.faction_skills[1].energy == 100.0, "AI rejects a mixed circle whose retreat would recall forty allies merely to repel eight enemies")
 	check(game.marches.incoming_for(home().building_id, 1) == 40 and game.marches.incoming_for(enemy().building_id, 0) == 8, "declining a harmful recall preserves both original marches")
-	for burning: bool in [false, true]:
+	# Identical public targets give identical plans even when their hidden
+	# garrisons differ. Actual combat still applies that unknown resistance.
+	for scenario: Dictionary in [{"burning": false, "population": 8.0}, {"burning": false, "population": 1000.0}, {"burning": true, "population": 1000.0}]:
 		await reset()
 		ai = ai_setup()
+		var burning: bool = scenario.burning
 		var attack := {}
 		for building: WarBuilding in game.buildings:
 			var candidate: Dictionary = game.RABBIT_SKILLS.burrow_plan(game, enemy(), building, 100)
@@ -308,7 +314,8 @@ func _ai_decisions() -> void:
 		check(not attack.is_empty(), "AI tunnel setup has a useful target")
 		if attack.is_empty():
 			continue
-		attack.target.population = 8.0
+		check(game.FACTIONS.hostile(attack.target.faction, 1), "tunnel fixture targets a hidden enemy garrison")
+		attack.target.population = scenario.population
 		if burning:
 			game.world_effects.start_fire(attack.exit, 4.5, 0)
 		ai.take_turn(game)
@@ -316,14 +323,16 @@ func _ai_decisions() -> void:
 			near(game.faction_skills[1].energy, 100.0, "AI refuses a visibly burning exit")
 			check(game.marches.total_for(1) == 0, "unsafe tunnel sends no passengers")
 		else:
-			near(game.faction_skills[1].energy, 35.0, "AI pays R cost for useful capture")
+			near(game.faction_skills[1].energy, 35.0, "AI pays R for the same public opportunity regardless of hidden garrison size")
 			check(game.marches.total_for(1) == 50 and attack.source.queued_population == 50, "AI enchants its source and reserves fifty through an ordinary order")
 			near(attack.source.population, 100.0, "AI source keeps soldiers inside during digging")
 			check(attack.source.burrow_remaining == 0.0, "AI command consumes its prepared tunnel once")
 	await reset()
 	ai = ai_setup()
+	for building: WarBuilding in game.buildings:
+		building.faction = 1
 	ai.take_turn(game)
-	near(game.faction_skills[1].energy, 100.0, "AI holds skills when the battlefield offers no useful target")
+	near(game.faction_skills[1].energy, 100.0, "AI holds skills when only safe allied buildings are present")
 
 func _selector() -> void:
 	await game.prepare_shutdown()

@@ -70,12 +70,12 @@ func _run() -> void:
 	game.morale.adjust(5, 2000.0)
 	game.update_hud()
 	check(game.hud.get_node("%ForgeBonus").text == "你的攻击  +15%", "HUD uses local morale rather than first player's morale")
-	check(game.hud.get_node("%Balance")._order == [5, 1, 3, 0, 2, 4], "own faction and teammates lead the population bar")
+	check(game.hud.get_node("%Balance")._order == [5, 1, 3, 0, 2, 4], "own faction and teammates lead the territory bar")
 	check(game.hud.get_node("UI/Enemy/Role").text == "1 名玩家 · 2 名电脑", "enemy panel identifies human and bot mixture")
 	check(game.hud.get_node("%Balance").get_node("Stars/Faction5").tooltip_text.begins_with("Seat 5（你）"), "morale tooltip labels local seat")
 	for faction: int in 6: game.by_id[faction].population = 0.4
 	game.update_hud()
-	check(game.hud.get_node("%PlayerTotal").text == "1" and game.hud.get_node("%EnemyTotal").text == "1", "team HUD sums fractional garrisons before taking the floor")
+	check(game.hud.get_node("%PlayerTotal").text == "1" and game.hud.get_node("%EnemyTotal").text == "未知", "team HUD preserves known fractional totals and hides enemy population")
 	check(game.total_for(5) == 0 and game.team_total_for(5) == 1, "individual floor and aggregate team floor remain distinct")
 	for faction: int in 6: game.by_id[faction].population = 60.0
 

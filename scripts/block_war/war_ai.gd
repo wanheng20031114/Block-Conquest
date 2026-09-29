@@ -6,9 +6,12 @@ const ATTACK_INTERVAL := 15.0
 const EXPANSION_INTERVAL := 6.0
 const FRONT_DISTANCE := 30.0
 const SKILL_TACTICS := preload("res://scripts/block_war/war_ai_skills.gd")
+const INFORMATION := preload("res://scripts/block_war/war_ai_information.gd")
+const ECONOMY := preload("res://scripts/block_war/war_ai_economy.gd")
 
 var faction := 1
 var _skills: RefCounted
+var _economy: RefCounted
 var _next_attack_at := 0.0
 var _next_expansion_at := 0.0
 var _reserves: Dictionary = {}
@@ -19,16 +22,20 @@ var _departure_delays: Dictionary[Vector2i, float] = {}
 func _init(controlled_faction: int = 1) -> void:
 	faction = controlled_faction
 	_skills = SKILL_TACTICS.new(faction)
+	_economy = ECONOMY.new(faction)
 
 func take_turn(game: Node3D) -> void:
 	if game.finished or game.is_rule_paused():
 		return
+	_economy.observe(game)
+	var energy_before: float = game.faction_skills[faction].energy
 	_skills.take_turn(game)
+	_economy.record_spending(game.elapsed, maxf(0.0, energy_before - game.faction_skills[faction].energy))
 	_reserves.clear()
 	_departure_delays.clear()
 	# No simulation runs within one decision. Count each soldier once instead
 	# of rescanning all armies for every candidate source/target combination.
-	var incoming: Dictionary[Vector2i, int] = game.marches.snapshot_incoming()
+	var incoming: Dictionary[Vector2i, int] = INFORMATION.snapshot_incoming(game, faction)
 	_incoming_teams.clear()
 	for key: Vector2i in incoming:
 		var totals: Vector2i = _incoming_teams.get(key.x, Vector2i.ZERO)
@@ -44,7 +51,7 @@ func take_turn(game: Node3D) -> void:
 			homes += int(building.kind == 0 or building.conversion_target == 0)
 			constructing += int(building.is_constructing)
 		var reserve := _base_reserve(game, building)
-		reserve += game.incoming_damage_for(building, incoming)
+		reserve += INFORMATION.incoming_damage(game, building, incoming, faction)
 		_reserves[building.building_id] = reserve
 		# Guards already committed to an exit queue will not remain to defend here.
 		if reserve > building.available_population + _incoming_for(building.building_id, faction):
@@ -61,7 +68,7 @@ func take_turn(game: Node3D) -> void:
 	if game.elapsed >= _next_attack_at and game.marches.team_total_for(faction) <= game.team_total_for(faction) * 0.35:
 		var attack := _conquest(game, false)
 		var economy_score: float = maxf(development.get("score", -INF), expansion.get("score", -INF))
-		var ahead: bool = homes >= 3 and game.team_total_for(faction) >= game.team_total_for(1 - faction % 2) * 1.25
+		var ahead: bool = homes >= 3 and INFORMATION.team_strength(game, faction, faction) >= INFORMATION.team_strength(game, 1 - faction % 2, faction) * 1.25
 		if not attack.is_empty() and (economy_score == -INF or (ahead and attack.score > economy_score)):
 			game.issue_order(attack.source, attack.target, attack.percent, faction)
 			_next_attack_at = game.elapsed + ATTACK_INTERVAL
@@ -145,11 +152,11 @@ func _development(game: Node3D, homes: int, constructing: int) -> Dictionary:
 			score = 90.0
 			if _enemy_distance(game, building) >= FRONT_DISTANCE:
 				reserve = 0.0
-		elif building.kind == 2 and homes >= 2 and game.forge_count(faction) > 1 and game.energy_tower_count(faction) < 2:
-			# Keep an attack forge; a spare workshop can support repeated spell use.
+		elif building.kind == 2:
+			# Demand, paid construction and the retained forge are planned together.
 			kind = 3
 			cost = game.CONVERSION_COST
-			score = 16.0 if game.faction_skills[faction].energy < 65.0 else 0.0
+			score = _economy.tower_score(game, building, homes, reserve, _enemy_distance(game, building), false)
 		elif building.level >= building.max_level:
 			continue
 		elif building.kind == 0:
@@ -191,11 +198,13 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 				if not _departure_delays.has(departure):
 					_departure_delays[departure] = game.marches.estimate_arrival_time(source.building_id, 0.0, count, faction)
 				var arrival: float = distance / game.marches.base_speed(faction) + _departure_delays[departure]
-				var defenders := target.population
+				var defenders: float = INFORMATION.garrison_estimate(game, target, faction)
 				if not neutral:
-					# Reinforcements, growth and fortifications all belong to the defender.
+					# Only exposed reinforcements and publicly known production inform
+					# this estimate. Hidden garrisons can surprise an attacking army.
+					var growth := minf(maxf(0.0, target.capacity - defenders), target.production_rate * maxf(0.0, arrival - target.disruption_remaining))
 					defenders += _incoming_for(target.building_id, target.faction)
-					defenders += minf(maxf(0.0, target.capacity - target.population), target.production_rate * arrival)
+					defenders += growth
 				required = _assault_losses(game, target, defenders)
 				required = required * (1.0 if neutral else 1.35) + (6.0 if neutral else 10.0)
 				if count < required:

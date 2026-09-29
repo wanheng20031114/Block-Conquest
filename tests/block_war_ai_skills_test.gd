@@ -194,6 +194,47 @@ func _run() -> void:
 	game.marches.clear()
 	expose(0, 7, Vector3(-3, 0, 2), Vector3(28, 0, 2), 0)
 	check(TACTICS.new(1)._fire_target(game, visible_units()).is_empty(), "computer does not waste seventy energy on scattered small patrols")
+	await _known_skill_targets()
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_AI_SKILLS checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)
+
+func _known_skill_targets() -> void:
+	# The same real formation must become actionable only after it is visible.
+	# Exercise each commander's decision path, not just the shared predicate.
+	for profile: Dictionary in [{"commander": &"squirrel", "skill": 2}, {"commander": &"bear", "skill": 3}, {"commander": &"frog", "skill": 0}, {"commander": &"rabbit", "skill": 2}]:
+		for hidden: String in ["cloaked", "queued"]:
+			await reset_match()
+			game.elapsed = 20.0
+			game.faction_skills[1].commander = profile.commander
+			game.faction_skills[1].cooldowns.fill(100.0)
+			game.faction_skills[1].cooldowns[profile.skill] = 0.0
+			game.by_id[1].population = 10.0
+			var route := PackedVector3Array([game.by_id[1].global_position + Vector3(-6, 0, 0), game.by_id[1].global_position])
+			if hidden == "queued":
+				game.marches.queue_departure(0, 1, 0, 24, route)
+			else:
+				game.marches.send(0, 1, 0, 24, route)
+				for unit: WarMarches.MarchUnit in game.marches._units:
+					unit.distance = 0.0
+					unit.cloaked = true
+					game.marches._update_pose(unit)
+			TACTICS.new(1).take_turn(game)
+			check(game.faction_skills[1].cooldowns[profile.skill] == 0.0 and game.faction_skills[1].energy == 100.0, "%s ignores %s enemy formation when choosing a skill" % [profile.commander, hidden])
+			game.marches.clear()
+			game.marches.send(0, 1, 0, 24, route)
+			for unit: WarMarches.MarchUnit in game.marches._units:
+				unit.distance = 0.0
+				game.marches._update_pose(unit)
+			TACTICS.new(1).take_turn(game)
+			check(game.faction_skills[1].cooldowns[profile.skill] > 0.0, "%s can act once that formation is exposed" % profile.commander)
+			near(game.faction_skills[1].energy, 100.0 - game.SKILL_RULES.costs_for(profile.commander)[profile.skill], "%s still pays the ordinary skill cost" % profile.commander)
+	await reset_match()
+	expose(0, 24, Vector3(-3, 0, 2), Vector3(28, 0, 2), 0)
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		unit.cloaked = true
+	check(TACTICS.new(1)._fire_target(game, visible_units()).is_empty(), "fire cannot target a dense but cloaked enemy formation")
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		unit.cloaked = false
+	game.marches.queue_departure(3, 1, 3, 1, PackedVector3Array([Vector3(8, 0, 2), Vector3(-15, 0, 2)]))
+	check(TACTICS.new(1)._fire_target(game, visible_units()).is_empty(), "known allied doorway queue still prevents friendly fire")

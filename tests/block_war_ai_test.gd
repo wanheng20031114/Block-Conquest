@@ -47,6 +47,14 @@ func _fixture() -> void:
 	game.by_id[1].faction = 1
 	game.by_id[1].population = 60.0
 
+func _expose_hostile_orders() -> void:
+	# Threat tests begin after the hostile formation crosses its doorway.
+	# Merely issuing a hidden queued order must no longer warn the AI.
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if unit.order.faction == 0:
+			game.marches._depart(unit)
+			unit.distance = maxf(0.1, unit.distance)
+
 func _run() -> void:
 	create_timer(120.0, true, false, true).timeout.connect(func(): quit(3))
 	await _load_match()
@@ -101,6 +109,7 @@ func _run() -> void:
 	second.population = 80.0
 	game.by_id[0].population = 40.0
 	game.issue_order(game.by_id[0], home, 75)
+	_expose_hostile_orders()
 	game._ai_turn()
 	check(game.marches.incoming_for(1, 1) == 20 and second.available_population == 60.0 and second.population == 80.0, "a threatened residence receives reserved reinforcements before any development")
 	check(home.population == 18.0 and not home.is_constructing, "incoming attackers prevent investment or dispatch from the endangered home")
@@ -115,6 +124,7 @@ func _run() -> void:
 	second.population = 40.0
 	game.by_id[0].population = 100.0
 	game.issue_order(game.by_id[0], home, 100)
+	_expose_hostile_orders()
 	game._ai_turn()
 	check(game.marches.incoming_for(1, 1) == 20 and second.available_population == 20.0 and second.population == 40.0, "partial relief reserves a legal safe percentage even when the full deficit is unaffordable")
 	game._ai_turn()
@@ -134,8 +144,10 @@ func _run() -> void:
 	game.by_id[0].kind = 2
 	game.by_id[0].population = 10.0
 	game.by_id[2].faction = 0
+	game.by_id[2].level = 4 # Publicly strong donor is not a cheaper alternate target.
 	game.by_id[2].population = 100.0
 	game.issue_order(game.by_id[2], game.by_id[0], 50)
+	_expose_hostile_orders()
 	game._ai_turn()
 	check(game.marches.total_for(1) == 0, "hostile reinforcements are included when evaluating a seemingly empty forge")
 	game.marches.clear()
@@ -147,6 +159,7 @@ func _run() -> void:
 	home.population = 80.0
 	game.by_id[5].population = 5.0
 	game.issue_order(game.by_id[0], game.by_id[5], 25)
+	_expose_hostile_orders()
 	game._ai_turn()
 	check(game.marches.incoming_for(5, 1) == 0, "neutral land contested by an arriving player army is not treated as a free expansion")
 	game.marches.clear()
@@ -163,17 +176,17 @@ func _run() -> void:
 
 	_fixture()
 	home.level = 4
-	home.population = 80.0
+	home.population = 60.0
 	game.by_id[0].kind = 2
-	# With the planner's margin: 30 / .75 * 1.35 + 10 = 64 troops
-	# under the wall, versus 50.5 after expiry; this home can dispatch at most 60.
+	# The public forge estimate is 20: 20 / .75 * 1.35 + 10 = 46
+	# under the wall, versus 37 after expiry; this home can dispatch at most 45.
 	game.by_id[0].population = 30.0
 	game.shields[0] = 10.0
 	game._ai_turn()
 	check(game.marches.total_for(1) == 0, "shield defense prevents an understrength assault")
 	game.shields.clear()
 	game._ai_turn()
-	check(game.marches.incoming_for(0, 1) == 60, "the same army attacks once the shield expires and the exchange is favorable")
+	check(game.marches.incoming_for(0, 1) == 45, "the same army attacks once the shield expires and the estimated exchange is favorable")
 
 	_fixture()
 	home.level = 4
@@ -222,6 +235,7 @@ func _run() -> void:
 	_fixture()
 	home.faction = -1
 	home.population = 1000.0
+	game.by_id[0].level = 4 # Public fortification keeps this a consolidation scenario.
 	second.faction = 1
 	second.level = 4
 	second.population = 80.0

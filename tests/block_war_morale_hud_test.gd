@@ -19,7 +19,7 @@ func check(value: bool, label: String) -> void:
 
 func sample(totals: Array, morale: Array) -> Dictionary:
 	var state := {"commander": &"squirrel", "enemy_commander": &"rabbit", "player_total": 0, "enemy_total": 0,
-		"faction_totals": totals, "morale_stars": morale, "faction_count": totals.size(),
+		"faction_buildings": totals, "morale_stars": morale, "faction_count": totals.size(),
 		"map_title": "裂谷交汇", "map_mode": "%dv%d" % [totals.size() / 2, totals.size() / 2], "team_size": totals.size() / 2,
 		"time": 126, "percentage": 50, "forges": 0, "selected_owned": false, "selected_level": 0,
 		"selected_available_population": 0, "upgrade_cost": 10, "selected_max_level": 4, "construction_remaining": 0.0,
@@ -82,9 +82,9 @@ func verify(totals: Array, morale: Array, label: String) -> void:
 		check(row.tooltip_text.contains("%d 星" % floori(float(morale[faction]))) and row.tooltip_text.contains("防御 +%d%%" % (floori(float(morale[faction])) * 25)), label + " tooltip uses complete star bonuses %d" % faction)
 		check(row.mouse_filter == Control.MOUSE_FILTER_PASS and not hud.is_pointer_blocked(row.get_global_rect().get_center()), label + " morale hover preserves battlefield input %d" % faction)
 		if population > 0.0:
-			check(absf(segment.position.x - right) < 0.1 and absf(segment.size.x / balance.size.x - float(totals[faction]) / population) < 0.001, label + " exact population share %d" % faction)
+			check(absf(segment.position.x - right) < 0.1 and absf(segment.size.x / balance.size.x - float(totals[faction]) / population) < 0.001, label + " exact public building share %d" % faction)
 		else:
-			check(not segment.visible, label + " zero population leaves neutral bar %d" % faction)
+			check(not segment.visible, label + " zero owned buildings leaves neutral bar %d" % faction)
 		right += segment.size.x
 		var rect := Rect2(row.position, row.size * row.scale)
 		check(rect.position.x >= -0.1 and rect.end.x <= balance.size.x + 0.1, label + " row stays inside bar %d" % faction)
