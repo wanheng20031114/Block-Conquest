@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/block_war/war_balance.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/morale_row.tscn" id="row"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/public_skill_row.tscn" id="skills"]
 
 [node name="Balance" type="Control"]
 offset_right = 896.0
@@ -90,4 +91,32 @@ layout_mode = 0
 layout_mode = 0
 
 [node name="Faction5" parent="Stars" instance=ExtResource("row")]
+layout_mode = 0
+
+[node name="Skills" type="Control" parent="."]
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Faction0" parent="Skills" instance=ExtResource("skills")]
+visible = false
+layout_mode = 0
+
+[node name="Faction1" parent="Skills" instance=ExtResource("skills")]
+visible = false
+layout_mode = 0
+
+[node name="Faction2" parent="Skills" instance=ExtResource("skills")]
+visible = false
+layout_mode = 0
+
+[node name="Faction3" parent="Skills" instance=ExtResource("skills")]
+visible = false
+layout_mode = 0
+
+[node name="Faction4" parent="Skills" instance=ExtResource("skills")]
+visible = false
+layout_mode = 0
+
+[node name="Faction5" parent="Skills" instance=ExtResource("skills")]
+visible = false
 layout_mode = 0

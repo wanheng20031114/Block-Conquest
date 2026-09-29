@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_public_skill_row.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/public_skill_icon.tscn" id="icon"]
+
+[node name="Skills" type="HBoxContainer"]
+offset_right = 92.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_constants/separation = 4
+script = ExtResource("script")
+
+[node name="Skill0" parent="." instance=ExtResource("icon")]
+layout_mode = 2
+
+[node name="Skill1" parent="." instance=ExtResource("icon")]
+layout_mode = 2
+
+[node name="Skill2" parent="." instance=ExtResource("icon")]
+layout_mode = 2
+
+[node name="Skill3" parent="." instance=ExtResource("icon")]
+layout_mode = 2

@@ -12,6 +12,7 @@ var _weights := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _targets := PackedFloat32Array([0, 0, 0, 0, 0, 0])
 var _balance_tween: Tween
 var _order: Array[int] = ORDER.duplicate()
+var _local_faction: int = 0
 
 func _ready() -> void:
 	for faction: int in 6:
@@ -21,6 +22,7 @@ func _ready() -> void:
 	_layout()
 
 func update_factions(building_counts: Array, morale: Array, count: int, local_faction: int = 0, names: Array = []) -> void:
+	_local_faction = local_faction
 	_order = [local_faction]
 	for faction: int in ORDER:
 		if faction != local_faction and FACTIONS.allied(faction, local_faction):
@@ -58,6 +60,10 @@ func update_factions(building_counts: Array, morale: Array, count: int, local_fa
 		_balance_tween.tween_method(_blend_weights.bind(_weights.duplicate(), targets), 0.0, 1.0, 0.28)
 	_layout()
 
+func update_skills(commanders: Array, statuses: Array, names: Array, active: Array) -> void:
+	for faction: int in _faction_count:
+		get_node("Skills/Faction%d" % faction).update_skills(commanders[faction], statuses[faction], names[faction], active[faction])
+
 func _blend_weights(weight: float, start: PackedFloat32Array, target: PackedFloat32Array) -> void:
 	for faction: int in 6:
 		_weights[faction] = lerpf(start[faction], target[faction], weight)
@@ -75,6 +81,7 @@ func _layout() -> void:
 		var leader: Line2D = get_node("Leaders/Faction%d" % faction)
 		segment.visible = faction < _faction_count and _has_buildings
 		row.visible = faction < _faction_count
+		get_node("Skills/Faction%d" % faction).visible = faction < _faction_count and _faction_count > 2 and faction != _local_faction
 		leader.hide()
 		if faction >= _faction_count:
 			continue
@@ -100,6 +107,9 @@ func _layout() -> void:
 		var row: Control = get_node("Stars/Faction%d" % seats[index])
 		row.scale = Vector2.ONE * scale_factor
 		row.position = Vector2(packed_centers[index] - half_width, ROW_TOP).round()
+		var skills: Control = get_node("Skills/Faction%d" % seats[index])
+		skills.scale = row.scale
+		skills.position = Vector2(row.position.x, ROW_TOP + 22.0)
 		if absf(packed_centers[index] - centers[index]) > 4.0:
 			var leader: Line2D = get_node("Leaders/Faction%d" % seats[index])
 			leader.points = PackedVector2Array([Vector2(centers[index], 17), Vector2(centers[index], 19), Vector2(packed_centers[index], ROW_TOP - 2)])

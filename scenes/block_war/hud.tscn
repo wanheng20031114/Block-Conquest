@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/block_war/debug_panel.tscn" id="debug_panel"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/percentage_button.tscn" id="percentage_button"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/war_balance.tscn" id="balance"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/public_skill_row.tscn" id="public_skills"]
 [ext_resource type="PackedScene" path="res://scenes/network/online_confirm.tscn" id="online_confirm"]
 
 [ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="body"]
@@ -814,6 +815,15 @@ theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
 horizontal_alignment = 2
+
+[node name="Skills" parent="UI/Enemy" instance=ExtResource("public_skills")]
+visible = false
+layout_mode = 0
+offset_left = 58.0
+offset_top = 54.0
+offset_right = 150.0
+offset_bottom = 74.0
+scale = Vector2(1.4, 1.4)
 
 
 [node name="Percentages" type="Control" parent="UI"]

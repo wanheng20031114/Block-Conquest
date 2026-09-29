@@ -7,6 +7,9 @@ var balance: Control
 var checks: int = 0
 var failures: Array[String] = []
 var output: String = ""
+const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+const COMMANDERS: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog", &"fox", &"squirrel"]
 
 func _initialize() -> void:
 	_run.call_deferred()
@@ -17,8 +20,9 @@ func check(value: bool, label: String) -> void:
 		failures.append(label)
 		printerr("FAIL ", label)
 
-func sample(totals: Array, morale: Array) -> Dictionary:
-	var state := {"commander": &"squirrel", "enemy_commander": &"rabbit", "player_total": 0, "enemy_total": 0,
+func sample(totals: Array, morale: Array, local_faction: int = 0) -> Dictionary:
+	var state := {"commander": COMMANDERS[local_faction], "enemy_commander": COMMANDERS[1 - local_faction % 2], "player_total": 0, "enemy_total": 0,
+		"local_faction": local_faction, "faction_commanders": [], "faction_skill_statuses": [], "faction_skill_active": [], "faction_names": [],
 		"faction_buildings": totals, "morale_stars": morale, "faction_count": totals.size(),
 		"map_title": "裂谷交汇", "map_mode": "%dv%d" % [totals.size() / 2, totals.size() / 2], "team_size": totals.size() / 2,
 		"time": 126, "percentage": 50, "forges": 0, "selected_owned": false, "selected_level": 0,
@@ -27,14 +31,100 @@ func sample(totals: Array, morale: Array) -> Dictionary:
 		"armed_skill": -1, "energy": 60.0, "cooldowns": [0.0, 0.0, 0.0, 0.0], "skill_durations": [0.0, 0.0, 0.0, 0.0],
 		"energy_costs": [30, 30, 35, 70], "energy_max": 100.0, "energy_regen": 2.0, "energy_tower_count": 0}
 	for faction: int in totals.size():
-		state["player_total" if faction % 2 == 0 else "enemy_total"] += int(totals[faction])
+		state["player_total" if faction % 2 == local_faction % 2 else "enemy_total"] += int(totals[faction])
+		state.faction_commanders.append(COMMANDERS[faction])
+		state.faction_skill_statuses.append([faction % 3, (faction + 1) % 3, (faction + 2) % 3, 2])
+		state.faction_skill_active.append(true)
+		state.faction_names.append(FACTIONS.NAMES[faction])
 	return state
 
 func capture(label: String) -> void:
-	if output.is_empty():
+	if output.is_empty() or DisplayServer.get_name() == "headless":
 		return
 	await RenderingServer.frame_post_draw
 	check(root.get_texture().get_image().save_png(output.path_join(label + ".png")) == OK, "capture " + label)
+
+func verify_skill_row(row: Control, commander: StringName, statuses: Array, active: bool, label: String) -> void:
+	check(row.get_child_count() == 4, label + " four authored skill slots")
+	check(row.find_children("*", "Label", true, false).is_empty() and row.find_children("*", "Range", true, false).is_empty(), label + " public row contains no numeric or proportional cooldown controls")
+	var icons := SKILL_RULES.icons_for(commander)
+	var names := SKILL_RULES.names_for(commander)
+	for index: int in 4:
+		var slot: Control = row.get_child(index)
+		var icon: TextureRect = slot.get_node("Icon")
+		var status: int = statuses[index]
+		check(icon.texture == icons[index] and icon.visible, label + " correct complete icon %d" % index)
+		check(slot.get_node("Cooling").visible == (status == 0), label + " cooling mask %d" % index)
+		check(slot.get_node("ReadyLight").visible == (status == 2 and active), label + " glow requires cooldown and energy %d" % index)
+		check(is_equal_approx(icon.modulate.a, 0.38 if status == 0 else 1.0), label + " insufficient energy retains full icon %d" % index)
+		var status_text: String = ["冷却中", "冷却完成 · 技力不足", "可以施放"][status] if active else "当前无法施放"
+		check(slot.tooltip_text.ends_with(" · " + names[index] + "\n" + status_text), label + " tooltip reveals only skill and categorical status %d" % index)
+		check(slot.mouse_filter == Control.MOUSE_FILTER_PASS and not hud.is_pointer_blocked(slot.get_global_rect().get_center()), label + " skill hover preserves battlefield input %d" % index)
+		for child: Control in slot.get_children():
+			check(child.mouse_filter == Control.MOUSE_FILTER_IGNORE, label + " decorative controls ignore input %d/%s" % [index, child.name])
+
+func verify_public_skills() -> void:
+	var enemy_row: Control = hud.get_node("UI/Enemy/Skills")
+	for commander: StringName in SKILL_RULES.PORTRAITS:
+		for statuses: Array in [[2, 2, 2, 2], [0, 1, 2, 0], [1, 2, 0, 1], [2, 0, 1, 2]]:
+			var state := sample([100, 100], [1.5, 2.75])
+			state.faction_commanders[1] = commander
+			state.faction_skill_statuses[1] = statuses
+			hud.update_state(state)
+			verify_skill_row(enemy_row, commander, statuses, true, "duel %s %s" % [commander, str(statuses)])
+	var inactive := sample([100, 100], [1.5, 2.75])
+	inactive.faction_skill_statuses[1] = [2, 2, 2, 2]
+	inactive.faction_skill_active[1] = false
+	hud.update_state(inactive)
+	verify_skill_row(enemy_row, &"rabbit", [2, 2, 2, 2], false, "surrender or pause removes all ready lights")
+	inactive.faction_skill_active[1] = true
+	hud.update_state(inactive)
+	verify_skill_row(enemy_row, &"rabbit", [2, 2, 2, 2], true, "resume restores all ready lights")
+	for local_faction: int in 2:
+		var state := sample([100, 100], [1.5, 2.75], local_faction)
+		state.online = true
+		state.faction_names = ["测试玩家甲", "测试玩家乙"]
+		hud.update_state(state)
+		check(enemy_row.visible and not hud.get_node("UI/Enemy/Role").visible, "duel replaces role text with skill row")
+		check(hud.get_node("UI/Enemy/Name").text == state.faction_names[1 - local_faction], "duel maps opposite online seat name %d" % local_faction)
+		verify_skill_row(enemy_row, state.faction_commanders[1 - local_faction], state.faction_skill_statuses[1 - local_faction], true, "duel local seat %d" % local_faction)
+		for faction: int in 6:
+			check(not balance.get_node("Skills/Faction%d" % faction).visible, "duel hides top skill rows %d" % faction)
+	await capture("08_duel_public_skills")
+	for dimensions: Vector2i in [Vector2i(1600, 900), Vector2i(1280, 720), Vector2i(960, 540)]:
+		root.size = dimensions
+		await process_frame
+		for count: int in [4, 6]:
+			for local_faction: int in count:
+				var totals: Array = [1, 900, 2, 8, 1, 500].slice(0, count)
+				var state := sample(totals, [1.5, 2.75, 0.0, 4.1, 5.0, 3.25].slice(0, count), local_faction)
+				hud.update_state(state)
+				await create_timer(0.3).timeout
+				var label := "%dx%d %d seats local %d" % [dimensions.x, dimensions.y, count, local_faction]
+				check(not enemy_row.visible and hud.get_node("UI/Enemy/Role").visible, label + " alliance summary shows no misleading skill row")
+				var shown_rects: Array[Rect2] = []
+				for faction: int in 6:
+					var row: Control = balance.get_node("Skills/Faction%d" % faction)
+					check(row.visible == (faction < count and faction != local_faction), label + " exact other-player visibility %d" % faction)
+					if not row.visible:
+						continue
+					verify_skill_row(row, state.faction_commanders[faction], state.faction_skill_statuses[faction], true, label + " faction %d" % faction)
+					var rect: Rect2 = row.get_global_rect()
+					var stars: Rect2 = balance.get_node("Stars/Faction%d" % faction).get_global_rect()
+					var bar: Rect2 = balance.get_global_rect()
+					check(absf(rect.position.x - stars.position.x) < 0.1 and rect.position.y >= stars.end.y, label + " skill row directly below matching morale %d" % faction)
+					check(rect.position.x >= bar.position.x - 0.1 and rect.end.x <= bar.end.x + 0.1, label + " skill row fits balance width %d" % faction)
+					check(rect.end.y <= hud.get_node("%Time").get_global_rect().position.y, label + " time stays below skill row %d" % faction)
+					for previous: Rect2 in shown_rects:
+						check(not rect.intersects(previous), label + " player skill rows never overlap %d" % faction)
+					shown_rects.append(rect)
+				if local_faction == count - 1:
+					await capture("09_public_%dx%d_%d_players" % [dimensions.x, dimensions.y, count])
+	# Returning to a duel must also remove stale multiplayer indicators.
+	hud.update_state(sample([100, 100], [0.0, 0.0]))
+	check(enemy_row.visible, "returning from team match restores duel skill row")
+	for faction: int in 6:
+		check(not balance.get_node("Skills/Faction%d" % faction).visible, "returning to duel clears stale top row %d" % faction)
 
 func verify_permanent_bonuses() -> void:
 	# Combat numbers now live in the optional debug panel. Their full rule/source
@@ -124,6 +214,7 @@ func _run() -> void:
 	check(hud.get_node("%Time").get_global_rect().position.y > stars_bottom and hud.get_node("%MapTitle").get_global_rect().position.y >= hud.get_node("%Time").get_global_rect().end.y, "existing time and map labels stay below all stars")
 	hud.notify("气势提升")
 	check(hud.get_node("%Toast").get_global_rect().position.y >= hud.get_node("%MapTitle").get_global_rect().end.y, "revealing toast does not cover top information")
+	await verify_public_skills()
 	hud.queue_free()
 	await process_frame
 	print("MORALE_HUD_RESULTS ", JSON.stringify({"checks": checks, "failures": failures}))

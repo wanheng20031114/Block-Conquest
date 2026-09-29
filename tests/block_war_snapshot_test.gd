@@ -420,7 +420,7 @@ func _energy_towers() -> void:
 		check(not Snapshot.valid_account(account, host), "invalid energy recovery rate is rejected: %s" % str(rate))
 	var legacy_account: Array = state.factions["0"].duplicate(true)
 	legacy_account.pop_back()
-	check(not Snapshot.valid_account(legacy_account, host), "legacy private account without recovery rate is rejected")
+	check(not Snapshot.valid_account(legacy_account, host), "legacy private account without public skill states is rejected")
 
 	# The reliable rate change also anchors energy, even when optional motion
 	# anchors are dropped and the local display has different building state.

@@ -1,13 +1,13 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 4
+const SCHEMA := 5
 const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "combat_remainders", "fires"]
 const UNIT_SIZE := 14
 const MAX_ID := 2147483647
 const MAX_RECORDS := 65536
 const MAX_TIME := 1000000000.0
 const MAX_EXTRAPOLATION := 1.0
-const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5, 9]}
+const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5, 9, 10]}
 const FIRE := preload("res://scripts/block_war/war_fire_state.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var _order_cache: Dictionary = {}
@@ -52,7 +52,7 @@ func capture(game: Node, tick: int) -> Dictionary:
 			cooldown.append(deadline(now, skill.cooldowns[index]))
 			duration.append(deadline(now, skill.durations[index]))
 		state.factions[str(f)] = [str(skill.commander), skill.energy, cooldown, duration, skill.recruit_target_id,
-			game.morale._points[f], game.morale._idle_seconds[f], game.morale._next_decay_at[f], now, game.energy_regen_for(f)]
+			game.morale._points[f], game.morale._idle_seconds[f], game.morale._next_decay_at[f], now, game.energy_regen_for(f), game.public_skill_statuses_for(f)]
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		var order := unit.order
 		var oid := str(order.order_id)
@@ -199,7 +199,7 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 		# Natural growth is extrapolated; damage and paid construction are facts.
 		return float(next[3]) < float(old[3]) - 0.000001
 	if group == "factions":
-		if old[0] != next[0] or old[4] != next[4] or old[5] != next[5] or absf(float(old[9]) - float(next[9])) > 0.00001: return true
+		if old[0] != next[0] or old[4] != next[4] or old[5] != next[5] or old[10] != next[10] or absf(float(old[9]) - float(next[9])) > 0.00001: return true
 		for array_index: int in [2, 3]:
 			for i: int in 4:
 				if absf(float(old[array_index][i]) - float(next[array_index][i])) > 0.00001: return true
@@ -358,7 +358,7 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 	return false
 
 static func valid_account(row: Variant, game: Node) -> bool:
-	if not _row(row, 10) or row[0] not in ["squirrel", "rabbit", "bear", "frog", "fox"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
+	if not _row(row, 11) or row[0] not in ["squirrel", "rabbit", "bear", "frog", "fox"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
 	for index: int in [2, 3]:
 		if not _row(row[index], 4): return false
 		for value: Variant in row[index]:
@@ -368,6 +368,9 @@ static func valid_account(row: Variant, game: Node) -> bool:
 		if not _nonnegative(row[i]): return false
 	var natural_rate: float = RULES.natural_energy_regen(float(row[8]))
 	if not _number(row[9]) or float(row[9]) < natural_rate or float(row[9]) > natural_rate + RULES.energy_tower_bonus(game.buildings.size()): return false
+	if not _row(row[10], 4): return false
+	for status: Variant in row[10]:
+		if not _integer(status, 0, 2): return false
 	return float(row[5]) <= game.MORALE.MAX_POINTS
 
 static func energy_at(row: Array, until: float) -> float:
@@ -461,6 +464,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		var skill: RefCounted = game.faction_skills[f]
 		skill.commander = StringName(row[0])
 		skill.energy = energy_at(row, now) if f == game.local_faction else float(row[1])
+		skill.public_statuses.assign(row[10])
 		for i: int in 4:
 			skill.cooldowns[i] = remaining(row[2][i], now)
 			skill.durations[i] = remaining(row[3][i], now)

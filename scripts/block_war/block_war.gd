@@ -35,6 +35,8 @@ class SkillState extends RefCounted:
 	var commander: StringName = &"squirrel"
 	var energy: float = SKILL_RULES.ENERGY_INITIAL
 	var cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	# Remote accounts publish only these states, never energy or countdowns.
+	var public_statuses: Array[int] = [1, 1, 1, 1]
 	var durations: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var recruit_target_id := -1
 
@@ -838,6 +840,16 @@ func _clear_building_burrow(building: WarBuilding) -> void:
 		faction_skills[building.faction].durations[3] = 0.0
 	building.clear_burrow()
 
+func public_skill_statuses_for(faction: int) -> Array[int]:
+	var state := faction_skills[faction]
+	if not is_authority() and faction != local_faction:
+		return state.public_statuses.duplicate()
+	var statuses: Array[int] = []
+	var costs := SKILL_RULES.costs_for(state.commander)
+	for index: int in 4:
+		statuses.append(0 if state.cooldowns[index] > 0.0 else (2 if state.energy >= costs[index] else 1))
+	return statuses
+
 func can_cast_skill(index: int, faction: int = -2) -> bool:
 	faction = local_faction if faction == -2 else faction
 	return index >= 0 and index < 4 and faction >= 0 and faction < faction_count and not has_surrendered(faction) and not is_rule_paused() and not finished and faction_skills[faction].cooldowns[index] <= 0.0 and faction_skills[faction].energy >= SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
@@ -1289,6 +1301,9 @@ func update_hud() -> void:
 	var faction_buildings: Array[int] = []
 	var morale_stars: Array[float] = []
 	var faction_names: Array[String] = []
+	var faction_commanders: Array[StringName] = []
+	var faction_skill_statuses: Array = []
+	var faction_skill_active: Array[bool] = []
 	# Only our alliance's population is public. The shared color bar measures
 	# visible territory, so neither its width nor a total reveals enemy garrisons.
 	faction_buildings.resize(faction_count)
@@ -1305,6 +1320,9 @@ func update_hud() -> void:
 	for faction: int in faction_count:
 		morale_stars.append(morale.stars(faction))
 		faction_names.append(faction_name(faction))
+		faction_commanders.append(faction_skills[faction].commander)
+		faction_skill_statuses.append(public_skill_statuses_for(faction))
+		faction_skill_active.append(not finished and not is_rule_paused() and not has_surrendered(faction))
 	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺强化军团 · 能量塔恢复技力"
 	if selected != null:
 		match selected.kind:
@@ -1327,6 +1345,7 @@ func update_hud() -> void:
 	var selected_population_known: bool = selected != null and selected.is_population_visible()
 	hud.update_state({"player_total": floori(player_population), "time": elapsed,
 		"faction_count": faction_count, "faction_buildings": faction_buildings, "morale_stars": morale_stars, "faction_names": faction_names, "local_faction": local_faction,
+		"faction_commanders": faction_commanders, "faction_skill_statuses": faction_skill_statuses, "faction_skill_active": faction_skill_active,
 		"online": not match_config.is_empty(), "enemy_role": _enemy_role(),
 		"global_paused": match_paused, "local_surrendered": has_surrendered(local_faction),
 		"can_match_pause": can_request_match_control(local_faction), "can_surrender": can_request_match_control(local_faction),
