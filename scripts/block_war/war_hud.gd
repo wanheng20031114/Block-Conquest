@@ -120,6 +120,11 @@ func update_state(state: Dictionary) -> void:
 	var player_total: int = int(state.player_total)
 	%PlayerTotal.text = str(player_total)
 	%EnemyTotal.text = "未知"
+	# Ink sits directly on the faction colors; an empty rail has a dark surface.
+	var has_territory: bool = state.faction_buildings.any(func(count: int) -> bool: return count > 0)
+	var count_ink := Color(0.055, 0.12, 0.095) if has_territory else Color(0.99, 1, 0.97)
+	%PlayerTotal.add_theme_color_override("font_color", count_ink)
+	%EnemyTotal.add_theme_color_override("font_color", count_ink)
 	%MapTitle.text = "%s · %s" % [state.map_title, state.map_mode]
 	$UI/Player/Name.text = SKILL_RULES.name_for(commander)
 	$UI/Enemy/Name.text = "敌方联盟" if state.team_size > 1 else SKILL_RULES.name_for(_enemy_commander)

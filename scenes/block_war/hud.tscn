@@ -518,21 +518,6 @@ bg_color = Color(0, 0, 0, 0)
 border_width_bottom = 2
 border_color = Color(1, 0.83, 0.43, 1)
 
-[sub_resource type="StyleBoxFlat" id="ArmyCount"]
-content_margin_left = 10.0
-content_margin_right = 10.0
-bg_color = Color(0.045, 0.09, 0.075, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.94, 1, 0.91, 0.3)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-corner_detail = 8
-
 [sub_resource type="StyleBoxFlat" id="ActionPressed"]
 bg_color = Color(0, 0, 0, 0)
 border_width_bottom = 3
@@ -590,21 +575,20 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 8.0
-offset_top = -2.0
-offset_right = 88.0
-offset_bottom = 26.0
+offset_left = 14.0
+offset_top = 0.0
+offset_right = 110.0
+offset_bottom = 24.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.99, 1, 0.97, 1)
+theme_override_colors/font_color = Color(0.055, 0.12, 0.095, 1)
 text = "60"
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_colors/font_shadow_color = Color(1, 1, 0.91, 0.2)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 1
-horizontal_alignment = 1
+horizontal_alignment = 0
 vertical_alignment = 1
-theme_override_styles/normal = SubResource("ArmyCount")
 
 
 [node name="EnemyTotal" type="Label" parent="UI/Top"]
@@ -614,21 +598,20 @@ anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
-offset_left = -88.0
-offset_top = -2.0
-offset_right = -8.0
-offset_bottom = 26.0
+offset_left = -110.0
+offset_top = 0.0
+offset_right = -14.0
+offset_bottom = 24.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.99, 1, 0.97, 1)
+theme_override_colors/font_color = Color(0.055, 0.12, 0.095, 1)
 text = "60"
-horizontal_alignment = 1
+horizontal_alignment = 2
 theme_override_fonts/font = ExtResource("numbers")
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_colors/font_shadow_color = Color(1, 1, 0.91, 0.2)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 1
 vertical_alignment = 1
-theme_override_styles/normal = SubResource("ArmyCount")
 
 
 [node name="Time" type="Label" parent="UI/Top"]
