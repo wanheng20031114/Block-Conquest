@@ -59,19 +59,14 @@ func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 			game.audio.play_world(&"war_bear_link", target.global_position)
 		3:
 			wards[target.building_id] = {"faction": faction, "remaining": RULES.BEAR_DURATIONS[3], "shot_clock": RULES.BEAR_ORB_INTERVAL, "pulse": 0.0}
-			game.marches.blocked_destinations[target.building_id] = faction
 			fire_orb(game, target)
 			game.audio.play_world(&"war_bear_ward", target.global_position)
 	game.world_effects.get_node("Bear").sync(self, game.marches, game.by_id, 0.0)
 
-func is_invulnerable(id: int) -> bool:
-	return wards.has(id)
-
 func apply_damage(game: Node3D, target: WarBuilding, damage: float, combat_damage: bool = false, whole_target_loss: bool = false) -> float:
 	# Settle both garrisons here so energy follows actual casualties, including
-	# transferred damage, overkill and a ward that absorbs without losing troops.
-	if is_invulnerable(target.building_id):
-		return 0.0
+	# transferred damage and overkill. Defense is applied by the damage source
+	# before sharing; direct population effects retain their existing rules.
 	var id := target.building_id
 	var accrued: float = damage + damage_remainders.get(id, 0.0)
 	var combat_accrued: float = (damage if combat_damage else 0.0) + combat_damage_remainders.get(id, 0.0)
@@ -96,13 +91,12 @@ func apply_damage(game: Node3D, target: WarBuilding, damage: float, combat_damag
 			var previous_support := ceili(float(link.settled) * 0.5)
 			link.settled += whole
 			var shared := ceili(float(link.settled) * 0.5) - previous_support
-			var absorbed := shared if is_invulnerable(support.building_id) else mini(shared, floori(support.population))
-			if not is_invulnerable(support.building_id):
-				support.population -= absorbed
-				game._restore_combat_energy(support.faction, float(absorbed) * combat_fraction)
-				if support.queued_population > floori(support.population):
-					game.marches.trim_departures(support.building_id, support.faction, floori(support.population))
-				support.refresh_visual()
+			var absorbed := mini(shared, floori(support.population))
+			support.population -= absorbed
+			game._restore_combat_energy(support.faction, float(absorbed) * combat_fraction)
+			if support.queued_population > floori(support.population):
+				game.marches.trim_departures(support.building_id, support.faction, floori(support.population))
+			support.refresh_visual()
 			if absorbed > 0:
 				link.pulse = 1.0
 			target_damage = float(whole - absorbed)
@@ -135,7 +129,6 @@ func clear_building(game: Node3D, id: int) -> void:
 	wards.erase(id)
 	damage_remainders.erase(id)
 	combat_damage_remainders.erase(id)
-	game.marches.blocked_destinations.erase(id)
 
 func step_limit() -> float:
 	var limit := 0.05 if not shots.is_empty() else INF
@@ -160,21 +153,20 @@ func advance(game: Node3D, delta: float) -> void:
 		if ward.remaining < 0.000001 or game.by_id[id].faction != ward.faction:
 			game.faction_skills[ward.faction].durations[3] = 0.0
 			wards.erase(id)
-			game.marches.blocked_destinations.erase(id)
 		elif ward.shot_clock < 0.000001:
 			ward.shot_clock += RULES.BEAR_ORB_INTERVAL
 			fire_orb(game, game.by_id[id])
 	game.world_effects.get_node("Bear").sync(self, game.marches, game.by_id, delta)
 
 func fire_orb(game: Node3D, building: WarBuilding) -> void:
-	var targets: Array[WarMarches.MarchUnit] = game.marches.acquire_targets(building.global_position, building.faction, RULES.BEAR_ORB_RANGE, 1, true)
+	var targets: Array[WarMarches.MarchUnit] = game.marches.acquire_targets(building.global_position, building.faction, RULES.BEAR_ORB_RANGE, RULES.BEAR_ORB_TARGETS, true)
 	if targets.is_empty():
 		return
-	var target := targets[0]
 	var origin := building.global_position + Vector3(0, 6.1, 0)
-	shots.append({"target": target, "origin": origin, "position": origin, "previous": origin,
-		"to": target.position + Vector3.UP * 0.65, "age": 0.0, "duration": clampf(origin.distance_to(target.position) / 38.0, 0.09, 0.42)})
-	game.presentation_event.emit("bear_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": game._vector_values(origin), "to": game._vector_values(target.position + Vector3.UP * 0.65), "duration": shots[-1].duration})
+	for target: WarMarches.MarchUnit in targets:
+		shots.append({"target": target, "origin": origin, "position": origin, "previous": origin,
+			"to": target.position + Vector3.UP * 0.65, "age": 0.0, "duration": clampf(origin.distance_to(target.position) / 38.0, 0.09, 0.42)})
+		game.presentation_event.emit("bear_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": game._vector_values(origin), "to": game._vector_values(target.position + Vector3.UP * 0.65), "duration": shots[-1].duration})
 	wards[building.building_id].pulse = 1.0
 
 func tick_projectiles(game: Node3D, delta: float) -> void:

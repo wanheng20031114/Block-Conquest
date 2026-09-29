@@ -130,7 +130,7 @@ func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 	var missing: float = threats.get(target.building_id, 0.0) - target.available_population - reinforcements.get(target.building_id, 0) + 6.0 if allied else 0.0
 	if allied and (missing <= 0.0 or threats.get(target.building_id, 0.0) < 8.0):
 		return {}
-	if not allied and (reinforcements.get(target.building_id, 0) > 0 or game.bear.is_invulnerable(target.building_id)):
+	if not allied and reinforcements.get(target.building_id, 0) > 0:
 		return {}
 	if target.faction < 0:
 		for attacker: int in game.faction_count:
@@ -261,7 +261,7 @@ func _pig_drop_target(game: Node3D) -> Dictionary:
 				friendly_loss += loss
 			elif game.FACTIONS.hostile(building.faction, faction):
 				enemy_loss += loss
-		# Unlike fire this also halves buildings, even wards; all allied seats
+		# Unlike fire this halves buildings regardless of defense; all allied seats
 		# are real collateral. Hidden enemy garrisons never enter this estimate.
 		var score := enemy_loss - friendly_loss * 2.0
 		if score >= 24.0 and (best.is_empty() or score > best.score):
@@ -274,7 +274,7 @@ func _fox_turn(game: Node3D) -> void:
 		if game.FACTIONS.allied(building.faction, faction):
 			continue
 		var estimate: float = INFORMATION.garrison_estimate(game, building, faction)
-		if game.can_cast_skill(0, faction) and not game.bear.is_invulnerable(building.building_id):
+		if game.can_cast_skill(0, faction):
 			var score := minf(SKILL_RULES.FOX_BOMB_CAP, floorf(estimate * 0.5)) * (0.65 if building.faction < 0 else 1.0)
 			if score > best.score:
 				best = {"index": 0, "score": score, "target": building, "at": Vector3.ZERO}
@@ -283,7 +283,7 @@ func _fox_turn(game: Node3D) -> void:
 			var score := amount * 29.0
 			if amount >= 0.35 and score > best.score:
 				best = {"index": 1, "score": score, "target": building, "at": Vector3.ZERO}
-		if game.can_cast_skill(3, faction) and game.FACTIONS.hostile(building.faction, faction) and not game.bear.is_invulnerable(building.building_id) and not game.FOX_SKILLS.panic_routes(game, building).is_empty():
+		if game.can_cast_skill(3, faction) and game.FACTIONS.hostile(building.faction, faction) and not game.FOX_SKILLS.panic_routes(game, building).is_empty():
 			# Emptying an irrelevant rear building merely redistributes enemy troops.
 			# Prefer a defended destination we are already approaching.
 			var incoming := 0
@@ -364,7 +364,7 @@ func _frog_turn(game: Node3D) -> void:
 	for building: WarBuilding in game.buildings:
 		if game.FACTIONS.allied(building.faction, faction):
 			candidates.append(game.map.definition.surface_point(building.global_position))
-		elif game.can_cast_skill(3, faction) and not game.bear.is_invulnerable(building.building_id):
+		elif game.can_cast_skill(3, faction):
 			# Target choice uses the public garrison estimate. The paid cast path
 			# still rejects a truly empty, level-one target without charging us.
 			var loss := floori(INFORMATION.garrison_estimate(game, building, faction) * SKILL_RULES.FROG_STRIKE_FRACTION)
@@ -407,7 +407,7 @@ func _bear_turn(game: Node3D) -> void:
 		# defensive window. Prefer an approaching gate or exposure to our guns.
 		var value := 0.0
 		var remaining := unit.order.length - unit.distance
-		if target.faction == faction and remaining > 1.0 and remaining < game.marches.movement_distance(unit, 4.0) and not game.bear.is_invulnerable(target.building_id):
+		if target.faction == faction and remaining > 1.0 and remaining < game.marches.movement_distance(unit, 4.0):
 			value = 1.0
 		for tower: WarBuilding in game.buildings:
 			if tower.faction == faction and tower.kind == 1 and tower.disruption_remaining <= 0.0 and _xz(tower.global_position).distance_to(_xz(unit.position)) < game.tower_range(tower):
@@ -429,7 +429,7 @@ func _bear_turn(game: Node3D) -> void:
 			var score := 45.0 + minf(45.0, danger) + (25.0 if danger > building.population else 0.0)
 			if score > best.score:
 				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
-		if game.can_cast_skill(2, faction) and game._valid_skill_target(2, building, faction) and danger >= 8.0 and not game.bear.is_invulnerable(building.building_id):
+		if game.can_cast_skill(2, faction) and game._valid_skill_target(2, building, faction) and danger >= 8.0:
 			var support: WarBuilding = game.bear.partner(game, building)
 			var spare: float = support.population - threats.get(support.building_id, 0.0)
 			if spare >= ceili(danger * 0.5) and danger > building.population * 0.5:

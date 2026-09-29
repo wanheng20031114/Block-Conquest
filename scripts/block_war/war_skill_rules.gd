@@ -38,15 +38,17 @@ const BURROW_DIG_SPEED := 45.0
 const BURROW_BATCH_INTERVAL := 0.16
 const BURROW_EXIT_DISTANCE := 3.0
 const BEAR := &"bear"
-const BEAR_NAMES: Array[String] = ["工具箱", "重重跺脚", "链式防守", "不落堡垒"]
+const BEAR_NAMES: Array[String] = ["工具箱", "重重跺脚", "链式防守", "震庭威慑"]
 const BEAR_COSTS: Array[float] = [25.0, 25.0, 30.0, 70.0]
 const BEAR_COOLDOWNS: Array[float] = [30.0, 30.0, 35.0, 70.0]
 const BEAR_DURATIONS: Array[float] = [0.0, 4.0, 8.0, 5.0]
 const BEAR_SLOW_RADIUS := 4.5
 const BEAR_SLOW_MULTIPLIER := 0.4
 const BEAR_LINK_RADIUS := 18.0
-const BEAR_ORB_RANGE := 12.0
+const BEAR_WARD_DEFENSE := 1.0
+const BEAR_ORB_RANGE := 18.0
 const BEAR_ORB_INTERVAL := 0.5
+const BEAR_ORB_TARGETS := 3
 const FROG := &"frog"
 const FROG_NAMES: Array[String] = ["弱化雾气", "浮力薄隔", "隐身", "致命打击"]
 const FROG_COSTS: Array[float] = [20.0, 30.0, 20.0, 90.0]
@@ -172,24 +174,24 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 		][index]
 	if commander == FOX:
 		return [
-			"向敌方或中立建筑投下炸弹。\n损失当前驻军的 50%，最多 30 人，向下取整。\n不直接占领；无敌可阻挡，链式防守可分担。",
+			"向敌方或中立建筑投下炸弹。\n损失当前驻军的 50%，最多 30 人，向下取整。\n无视防御，不直接占领；链式防守可分担。",
 			"拖至敌方建筑，偷取其所属英雄最多 1 星士气。\n不足 1 星时按实际数量转移，自己最多 5 星。\n对方无士气或自己已满时不消耗技力。",
 			"招降半径 3 米内当前的敌方行军部队。\n永久归自己指挥，保留位置、阵型及行军路线。\n进入己方建筑增援，进入敌方建筑则进攻。",
-			"使敌方建筑内 80% 的驻军逃走，向下取整。\n逃兵保持原阵营，分赴较近的最多 3 座同阵营建筑。\n距离不限；无去处或目标无敌时无法施放。"
+			"使敌方建筑内 80% 的驻军逃走，向下取整。\n逃兵保持原阵营，分赴较近的最多 3 座同阵营建筑。\n距离不限；无去处时无法施放。"
 		][index]
 	if commander == FROG:
 		return [
 			"展开半径 3.5 米的薄雾，持续 3 秒。\n接触的敌军攻击 -20%，持续至入城。\n炮塔无法攻击雾内士兵；增援人数不变。",
 			"使半径 3.5 米内当前的双方士兵滞空 3 秒。\n无法移动，也不会被炮塔命中。\n落地后继续原路线，其他技能仍可影响。",
 			"半径 4.5 米内当前的己方士兵隐身。\n仅留下极淡轮廓，持续至进入建筑。\n炮塔无法攻击；仍会被火攻和法术击中。",
-			"敌方或中立建筑损失当前驻军的 80%，降至 1 级。\n损失按整个人口计算，打断施工，不直接占领。\n无敌可阻挡，链式防守不分担。"
+			"敌方或中立建筑损失当前驻军的 80%，降至 1 级。\n损失按整个人口计算，打断施工，不直接占领。\n无视防御，链式防守不分担。"
 		][index]
 	if commander == BEAR:
 		return [
 			"拖至正在升级或转换的己方建筑。\n立即完工，返还本次消耗人口的 50%。",
 			"拖至地面，展开半径 4.5 米的震地区域。\n圈内敌军减速 60%，持续 4 秒。\n友军不受影响，离开后恢复速度。",
 			"连接 18 米内最近的另一座己方建筑，持续 8 秒。\n支援方分担一半驻军伤害，奇数多承担 1 人。\n支援兵力不足或一端失守时断开。",
-			"己方建筑无敌 5 秒，敌军在外围等待交战。\n上方法术球立即开火，优先打击远处敌兵。\n射程 12 米，每 0.5 秒击杀 1 人。"
+			"己方建筑防御 +%d%%，持续 %d 秒。\n头顶法球立即开火，优先攻击范围内最远的敌兵。\n射程 %d 米，每 %.1f 秒攻击最多 %d 人。" % [roundi(BEAR_WARD_DEFENSE * 100.0), BEAR_DURATIONS[3], BEAR_ORB_RANGE, BEAR_ORB_INTERVAL, BEAR_ORB_TARGETS]
 		][index]
 	if commander == RABBIT:
 		return [

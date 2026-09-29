@@ -123,7 +123,7 @@ func _case(label: String) -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://.local/client-motion"))
 	FileAccess.open("res://.local/client-motion/%s-%s-%s.json" % [variant, mode, label], FileAccess.WRITE).store_string(JSON.stringify({"metrics": metrics,
 		"columns": ["frame", "unit_id", "wall_time", "host_time", "client_time", "clock_sample", "render_input_x", "render_input_gait", "dx", "dphase", "event_seq"], "trace": trace}))
-	if label == "clean": await _gate_standing()
+	if label == "clean": await _ward_arrival()
 	if impaired: _pause_and_recover()
 	await host.prepare_shutdown(); await replica.prepare_shutdown()
 	host.free(); replica.free(); host_wire.free(); client_wire.free()
@@ -204,35 +204,47 @@ func _sample() -> Dictionary:
 	if readback_enabled and mesh.visible_instance_count != slot: readback_errors += 1
 	return result
 
-func _gate_standing() -> void:
-	# A real ward blocks an enemy soldier at the destination without removing it.
+func _ward_arrival() -> void:
+	# The defense ward permits normal entry. Presentation approaches the doorway,
+	# then waits only for the authoritative arrival fact to consume the soldier.
 	host.marches.clear()
+	host.morale.configure(host.faction_count)
+	host.shields.clear()
+	host.by_id[1].population = 100.0
 	host.marches.send(0, 1, 0, 1, host.map.get_building_route(host.by_id[0], host.by_id[1]))
 	var soldier: WarMarches.MarchUnit = host.marches._units[0]
 	soldier.distance = soldier.order.length - 0.12
 	soldier.gait = 42.0
 	host.marches._update_pose(soldier)
 	host.bear.wards[1] = {"faction": 1, "remaining": 2.0, "shot_clock": 3.0, "pulse": 0.0}
-	host.marches.blocked_destinations[1] = 1
 	tracked.assign([soldier.unit_id])
 	authority._publish_step(0.0); flush()
 	client.process(0.0)
 	if readback_enabled: await RenderingServer.frame_post_draw
-	var stopped: WarMarches.MarchUnit = client.codec._objects[str(soldier.unit_id)]
-	var position: Vector3 = replica.marches._presentation_position(stopped)
-	var gait: float = stopped.gait + stopped.presentation_gait_offset
-	var stayed_still := true
+	var displayed: WarMarches.MarchUnit = client.codec._objects[str(soldier.unit_id)]
+	# Installation may already extrapolate the new anchor toward the doorway.
+	var distance := soldier.distance
+	var gait := soldier.gait
 	var errors_before := readback_errors
-	for _frame: int in 30:
+	# A newly published sample can be ahead of the buffered display clock.
+	# Let the replica reach that anchor before measuring its forward prediction.
+	var frames_to_arrival := ceili(maxf(0.1, host.elapsed - replica.elapsed + 0.1) / FRAME)
+	for _frame: int in frames_to_arrival:
 		client.codec.present(replica, client._view, FRAME)
 		if readback_enabled: await RenderingServer.frame_post_draw
 		_sample()
-		stayed_still = stayed_still and replica.marches._presentation_position(stopped).distance_to(position) < 0.0001
-		stayed_still = stayed_still and absf(stopped.gait + stopped.presentation_gait_offset - gait) < 0.0001
-	check(replica.marches.blocked_destinations.has(1) and stopped.alive and sampled_visible_count == 1, "ward retains the living soldier at the actual destination gate")
-	check(stayed_still, "soldier blocked at the gate freezes position and walking gait for every frame")
-	if readback_enabled: check(readback_errors == errors_before, "stationary gate pose and gait reach the real MultiMesh unchanged")
-	print("CLIENT_MOTION_GATE ", JSON.stringify({"variant": variant, "readback": readback_enabled, "stationary": stayed_still, "gait_before": gait, "gait_after": stopped.gait + stopped.presentation_gait_offset}))
+	check(replica.bear.wards.has(1) and displayed.alive and sampled_visible_count == 1, "ward prediction preserves the soldier until an authoritative arrival")
+	check(displayed.distance > distance + 0.10 and displayed.gait + displayed.presentation_gait_offset > gait, "defense ward advances through the old gate limit: distance %.6f -> %.6f, gait %.6f -> %.6f" % [distance, displayed.distance, gait, displayed.gait + displayed.presentation_gait_offset])
+	check(is_equal_approx(replica.skill_defense_bonus(replica.by_id[1]), 1.0), "client mirrors the active defense bonus")
+	if readback_enabled: check(readback_errors == errors_before, "advancing doorway pose and gait reach the real MultiMesh unchanged")
+	host.simulate(0.1)
+	check(not soldier.alive and host.marches._units.is_empty(), "authority settles entry during the defense ward")
+	check(is_equal_approx(host.by_id[1].population, 99.5), "ward halves ordinary arrival damage instead of rejecting it")
+	authority._publish_step(0.0); flush()
+	client.process(0.0)
+	check(replica.marches._units.is_empty() and not client.codec._objects.has(str(soldier.unit_id)), "arrival fact removes the displayed soldier exactly once")
+	check(is_equal_approx(replica.by_id[1].population, host.by_id[1].population), "authoritative ward damage reaches the replica")
+	print("CLIENT_MOTION_WARD_ARRIVAL ", JSON.stringify({"variant": variant, "readback": readback_enabled, "host_population": host.by_id[1].population, "replica_population": replica.by_id[1].population}))
 
 func _drain_network() -> void:
 	for _round: int in 200:

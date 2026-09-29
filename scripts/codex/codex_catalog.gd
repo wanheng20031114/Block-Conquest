@@ -72,14 +72,14 @@ static func skill_summary(id: StringName, index: int) -> String:
 				"立即完成自己建筑的升级或改建，返还本次消耗人口的 50%。",
 				"建立半径 %.1f 米的震地区域，持续 %d 秒。区域内敌军移速降低 %d%%，离开后恢复，盟友不受影响。" % [RULES.BEAR_SLOW_RADIUS, RULES.BEAR_DURATIONS[1], roundi((1.0 - RULES.BEAR_SLOW_MULTIPLIER) * 100.0)],
 				"连接 %d 米内最近的另一座自己的建筑，由其分担目标所受驻军伤害的一半，持续 %d 秒。支援兵力耗尽或一端失守时解除。" % [RULES.BEAR_LINK_RADIUS, RULES.BEAR_DURATIONS[2]],
-				"使自己的建筑无敌 %d 秒，敌军在外围等待。法术球优先攻击 %d 米内较远的敌兵，每 %.1f 秒击杀 1 人。" % [RULES.BEAR_DURATIONS[3], RULES.BEAR_ORB_RANGE, RULES.BEAR_ORB_INTERVAL],
+				"使自己的建筑防御提高 %d%%，持续 %d 秒。法术球立即开火，每 %.1f 秒攻击 %d 米内最多 %d 名敌兵，优先选择最远目标。" % [roundi(RULES.BEAR_WARD_DEFENSE * 100.0), RULES.BEAR_DURATIONS[3], RULES.BEAR_ORB_INTERVAL, RULES.BEAR_ORB_RANGE, RULES.BEAR_ORB_TARGETS],
 			][index]
 		&"frog":
 			return [
 				"建立半径 %.1f 米的薄雾，持续 %d 秒。接触的敌军攻击降低 %d%%，持续至入城；炮塔无法攻击雾内士兵。" % [RULES.FROG_RADII[0], RULES.FROG_DURATIONS[0], roundi(RULES.FROG_WEAKNESS * 100.0)],
 				"使半径 %.1f 米内当前的双方士兵滞空 %d 秒。期间无法移动，也不会被炮塔命中；落地后继续原路线。" % [RULES.FROG_RADII[1], RULES.FROG_DURATIONS[1]],
 				"使施放时半径 %.1f 米内的自有士兵隐身，持续至进入建筑。可避开炮塔攻击，仍会受到火焰和法术伤害。" % RULES.FROG_RADII[2],
-				"移除敌方或中立建筑当前驻军的 %d%%，按整个人口计算，降至 1 级并中断施工。不会直接占领；无敌可阻挡，链式防守无法分担。" % roundi(RULES.FROG_STRIKE_FRACTION * 100.0),
+				"移除敌方或中立建筑当前驻军的 %d%%，按整个人口计算，降至 1 级并中断施工。不会直接占领；不受防御减免，链式防守无法分担。" % roundi(RULES.FROG_STRIKE_FRACTION * 100.0),
 			][index]
 	return ""
 

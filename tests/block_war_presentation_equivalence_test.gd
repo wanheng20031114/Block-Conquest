@@ -245,7 +245,6 @@ func _seed_host() -> void:
 	host.morale.adjust(0, 500.0)
 	host.bear.links[2] = {"target": 2, "support": 4, "faction": 2, "remaining": 0.7, "settled": 3, "pulse": 0.8}
 	host.bear.wards[3] = {"faction": 3, "remaining": 0.36, "shot_clock": 0.5, "pulse": 0.5}
-	host.marches.blocked_destinations[3] = 3
 	var target: WarMarches.MarchUnit = host.marches._units[4]
 	target.reserved = true
 	target.intercepted_by = 1
@@ -280,7 +279,7 @@ func _compare(label: String) -> void:
 		check(actual[group] == expected[group], label + ": exact " + group)
 	check(actual == expected and Snapshot.digest(actual) == Snapshot.digest(expected), label + ": full capture and digest")
 	check(Snapshot.digest(state) == state_digest and Snapshot.digest(old_reader._last_state) == state_digest, label + ": canonical input remains unchanged")
-	check(_fields(optimized) == _fields(reference), label + ": live field clocks and blocking state")
+	check(_fields(optimized) == _fields(reference), label + ": live field clocks and skill defense state")
 	check(_shots(optimized) == _shots(reference), label + ": projectile trails tracking and references")
 	check(optimized.effects == reference.effects, label + ": presentation effect lifetimes")
 	check(_meshes(optimized.marches, ["Militia", "CloakedMilitia"]) == _meshes(reference.marches, ["Militia", "CloakedMilitia"]), label + ": rendered soldier transforms and shader data")
@@ -305,7 +304,7 @@ func _distances(game: Node3D) -> Dictionary:
 	return rows
 
 func _fields(game: Node3D) -> Array:
-	return [game.marches.haste_zones, game.marches.slow_zones, game.marches.weak_zones, game.shields, game.marches.blocked_destinations, game.marches.environment_speed]
+	return [game.marches.haste_zones, game.marches.slow_zones, game.marches.weak_zones, game.shields, game.bear.wards, game.marches.environment_speed]
 
 func _shots(game: Node3D) -> Array:
 	var rows: Array = []

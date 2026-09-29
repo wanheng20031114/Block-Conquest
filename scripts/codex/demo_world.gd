@@ -98,8 +98,12 @@ func _setup_example() -> void:
 			assert(started)
 			cast_at = 1.2
 			caption = "住宅正在升级，施放万能工具箱。"
-		elif demo_skill in [2, 3]:
+		elif demo_skill == 2:
 			cast_at = 1.3
+		elif demo_skill == 3:
+			away.population = 120.0
+			cast_at = 1.3
+			caption = "敌军接近，强化建筑防御并召出法术球。"
 	elif demo_commander == &"frog":
 		if demo_skill == 0:
 			home.kind = 1
@@ -186,7 +190,7 @@ func _outcome_caption() -> String:
 	match demo_commander:
 		&"squirrel": return ["持续征召，住宅驻军增加。", "己方行军进入疾行区域后提速。", "防护罩降低建筑受到的伤害。", "火焰灼烧行军部队，同时削减范围内的驻军。"][demo_skill]
 		&"rabbit": return ["冲刺随选中的士兵移动，持续至增益到期。", "敌方炮塔停止射击，停工结束后恢复。", "范围内双方行军返回各自出发建筑。", "下次派兵先掘地，再逐排从目标附近出洞。"][demo_skill]
-		&"bear": return ["升级立即完成，并返还一半施工人口。", "敌方行军在震地区域内减速。", "相连建筑分担驻军伤亡。", "己方建筑获得无敌保护，并发射法术球。"][demo_skill]
+		&"bear": return ["升级立即完成，并返还一半施工人口。", "敌方行军在震地区域内减速。", "相连建筑分担驻军伤亡。", "建筑防御提高，法术球每轮攻击最多三名敌兵。"][demo_skill]
 		&"frog": return ["敌军获得持续虚弱，薄雾同时遮挡炮塔射击。", "选中的双方士兵滞空，落地后继续行军。", "己方士兵隐身，避开炮塔攻击直至入城。", "敌方驻军按比例减少，建筑降至一级。"][demo_skill]
 		&"fox": return ["炸弹削减敌方驻军。", "敌方士气转移至己方，双方星级随之变化。", "选中的敌军归属转为己方，沿原路线行军。", "敌方驻军离开据点，前往同阵营避难建筑。"][demo_skill]
 		&"pig": return ["下次派兵获得冲锋，增益随士兵持续至入城。", "下次派兵从空中直线抵达，最多运送三十人。", "下次派兵缩短逐排间隔，最多派出六十人。", "空投砸伤落点附近的部队，并减缓敌军。"][demo_skill]

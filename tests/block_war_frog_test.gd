@@ -274,13 +274,14 @@ func _run() -> void:
 	near(target.population, 20, "linked target still loses its full80")
 	near(support.population, 100, "linked support loses nobody to R")
 	refill(1)
-	check(game.cast_skill(3, target, 1), "bear invulnerability active")
+	check(game.cast_skill(3, target, 1), "bear defensive ward active")
 	refill()
 	target.level = 3
-	check(not game.cast_skill(3, target), "invulnerability blocks full R cast")
-	near(target.population, 20, "blocked R does not remove population")
-	check(target.level == 3, "blocked R does not downgrade")
-	near(game.energy, 100, "blocked R costs no energy")
+	game.shields[target.building_id] = 10.0
+	check(game.cast_skill(3, target), "frog R remains legal against ward plus shield")
+	near(target.population, 4, "percentage strike bypasses both temporary defense bonuses")
+	check(target.level == 1, "defensive ward does not prevent the strike's downgrade")
+	near(game.energy, 10, "successful defended-target strike pays ninety energy")
 	await reset()
 	target = game.buildings[1]
 	target.faction = 1

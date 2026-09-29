@@ -28,7 +28,7 @@ func _select(index: int, animate: bool = true) -> void:
 	%AnimalName.text = RULES.name_for(commander)
 	%Next.text = "就选%s   →" % RULES.name_for(commander)
 	%Personality.text = {0: "稳稳扎营，也能一鼓作气。", 1: "跑得轻快，打个出其不意。", 2: "修好小屋，举盾守住大家。", 3: "整整队，下一波就起飞。", 4: "借一颗星，让对面乱了阵脚。", 5: "呼一口雾，藏好下一步。"}[index]
-	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 无敌守护", 3: "冲锋 · 飞行 · 密集出兵 · 重击", 4: "投弹 · 窃星 · 招降 · 恐慌", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
+	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 震庭威慑", 3: "冲锋 · 飞行 · 密集出兵 · 重击", 4: "投弹 · 窃星 · 招降 · 恐慌", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
 	var summaries := PackedStringArray([
 		"每秒增援 %d 人，持续 %d 秒。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
 		"区域内自己的部队提速 %d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
@@ -41,7 +41,7 @@ func _select(index: int, animate: bool = true) -> void:
 		"建筑待命 %d 秒，下次派兵经兔洞突袭。" % RULES.BURROW_READY_DURATION,
 	])
 	if commander == RULES.BEAR:
-		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军减速 60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "建筑无敌 5 秒，法术球优先攻击远处敌兵。"])
+		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军减速 60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "建筑防御 +100%，持续 5 秒；法球优先攻击远处敌兵。"])
 	elif commander == RULES.FROG:
 		summaries = PackedStringArray(["薄雾遮挡炮塔，敌军虚弱 -20% 至入城。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己军隐身至入城，避开炮塔的攻击。", "削减当前驻军 80%，建筑降至 1 级。"])
 	elif commander == RULES.FOX:

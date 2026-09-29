@@ -62,25 +62,26 @@ func _run() -> void:
 				expose(1, 6, CENTER, CENTER + Vector3(30, 0, 0), home().building_id)
 				game.marches.tick(0.3)
 			var aim: Vector2 = game.camera.unproject_position(CENTER) if game.skill_is_ground(index) else screen(target)
-			var code: int = [KEY_Q, KEY_W, KEY_E, KEY_R][index]
 			var expected: StringName = RELEASES[commander][index]
-			key(code, true)
+			# Pointer release includes its coordinates on inactive private desktops;
+			# it does not require moving the user's physical operating-system cursor.
+			mouse(icon(index), true)
 			motion(aim)
 			check(release_count() == 0, "%s held gesture has no premature spell" % expected)
 			mouse(aim, true, MOUSE_BUTTON_RIGHT)
-			key(code, false)
+			mouse(aim, false)
 			check(release_count() == 0 and is_equal_approx(game.energy, 100), "%s canceled gesture has no cast cue or payment" % expected)
 			clear_sounds()
-			key(code, true)
+			mouse(icon(index), true)
 			motion(aim)
-			key(code, false)
+			mouse(aim, false)
 			check(game.cooldowns[index] > 0 and heard(expected) == 1 and release_count() == 1, "%s native release plays exactly once in its cast frame" % expected)
 			if heard(expected) == 1:
 				var event: Dictionary = sounds.filter(func(item: Dictionary): return item.kind == expected)[0]
 				var at: Vector3 = CENTER if game.skill_is_ground(index) else target.global_position
 				check(event.spatial and event.position.distance_to(at) < 0.12, "%s is spatial at the effect" % expected)
-			key(code, true)
-			key(code, false)
+			mouse(icon(index), true)
+			mouse(aim, false)
 			check(heard(expected) == 1, "%s cooldown rejection cannot duplicate the release" % expected)
 	# Exercise the actual AI decision code, with only the requested skill ready.
 	for commander: StringName in [&"bear", &"frog"]:
@@ -108,8 +109,10 @@ func _run() -> void:
 			check(game.faction_skills[1].cooldowns[index] > 0 and heard(expected) == 1 and release_count() == 1, "%s AI pays and emits its own release exactly once" % expected)
 	await setup(&"frog")
 	check(not game.cast_ground_skill(1, CENTER) and not game.cast_ground_skill(2, CENTER) and release_count() == 0, "empty float/cloak have no success sound")
-	game.bear.wards[enemy().building_id] = {"remaining": 5.0, "faction": 1}
-	check(not game.cast_skill(3, enemy()) and release_count() == 0, "invulnerable target rejects lethal strike without success audio")
+	game.faction_skills[1].commander = &"bear"
+	check(game.cast_skill(3, enemy(), 1), "enemy establishes a real defensive ward")
+	clear_sounds()
+	check(game.cast_skill(3, enemy()) and heard(&"war_frog_strike") == 1 and release_count() == 1, "strike against a defended target succeeds with one release cue")
 	await setup(&"bear")
 	check(not game.cast_skill(0, home()) and release_count() == 0, "idle building rejects toolbox without success audio")
 	# Shared event gates must not swallow a second faction's legal simultaneous cast.

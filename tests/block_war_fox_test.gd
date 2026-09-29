@@ -27,7 +27,6 @@ func reset() -> void:
 	game.marches.clear()
 	game.projectiles.clear()
 	game.bear.links.clear(); game.bear.wards.clear(); game.bear.shots.clear(); game.bear.damage_remainders.clear()
-	game.marches.blocked_destinations.clear()
 	game.morale.configure(game.faction_count)
 	game.elapsed = 0.0
 	game.finished = false
@@ -97,8 +96,13 @@ func _run() -> void:
 	near(target.population, 32, "21 damage keeps 10 at target")
 	near(game.by_id[3].population, 29, "support takes 11")
 	refill(); game.bear.wards[1] = {"faction": 1, "remaining": 5.0, "shot_clock": 0.5, "pulse": 0.0}
-	check(not game.cast_skill(0, target), "invulnerability rejects bomb")
-	check(not game.cast_skill(3, target), "invulnerability rejects panic")
+	check(game.cast_skill(0, target), "warded target remains vulnerable to proportional bomb damage")
+	near(target.population, 24, "ward does not reduce the bomb before ordinary link sharing")
+	near(game.by_id[3].population, 21, "linked support pays its full assigned bomb share")
+	refill()
+	check(game.cast_skill(3, target), "warded target remains vulnerable to panic")
+	near(target.population, 5, "panic still removes floor eighty percent of the warded garrison")
+	check(game.marches.total_for(1) == 19, "all nineteen displaced soldiers are real friendly refugees")
 	reset()
 	game.morale.adjust(1, 8000)
 	check(game.cast_skill(1, target), "steal via building owner")

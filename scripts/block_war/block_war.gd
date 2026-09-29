@@ -569,7 +569,10 @@ func defense_bonus(building: Node3D) -> float:
 	return tower + COMBAT_RULES.forge_defense_bonus(forge_count(building.faction))
 
 func skill_defense_bonus(building: Node3D) -> float:
-	return SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
+	var bonus: float = SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
+	if bear.wards.has(building.building_id) and bear.wards[building.building_id].remaining > 0.0:
+		bonus += SKILL_RULES.BEAR_WARD_DEFENSE
+	return bonus
 
 func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 0.0) -> float:
 	# Buildings and morale share one additive group; skills form a separate group.
@@ -930,11 +933,11 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 			if faction_skills[faction].commander == SKILL_RULES.PIG:
 				hud.notify("选择尚未获得此待命效果的自己的建筑" if index < 3 else "拖至战场地面后松手")
 			elif faction_skills[faction].commander == SKILL_RULES.FOX:
-				hud.notify(["选择有驻军、未处于无敌保护的敌方或中立建筑", "选择仍有士气的敌方建筑；自己的士气须未满", "拖至有敌军的地面区域后松手", "选择有同阵营避难建筑、未处于无敌保护的敌方建筑"][index])
+				hud.notify(["选择有驻军的敌方或中立建筑", "选择仍有士气的敌方建筑；自己的士气须未满", "拖至有敌军的地面区域后松手", "选择有同阵营避难建筑的敌方建筑"][index])
 			elif faction_skills[faction].commander == SKILL_RULES.FROG:
-				hud.notify("选择未处于无敌保护的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
+				hud.notify("选择有驻军、可降级或正在施工的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
 			elif faction_skills[faction].commander == SKILL_RULES.BEAR:
-				hud.notify(["选择正在升级或转换的己方建筑", "拖至战场地面后松手", "选择附近 18 米内有己方支援建筑的据点", "选择尚未无敌的己方建筑"][index])
+				hud.notify(["选择正在升级或转换的己方建筑", "拖至战场地面后松手", "选择附近 18 米内有己方支援建筑的据点", "选择尚未获得震庭威慑的己方建筑"][index])
 			elif faction_skills[faction].commander == SKILL_RULES.RABBIT:
 				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择有行军部队的地面区域", "选择尚未获得兔洞待命的自己的建筑"][index])
 			else:

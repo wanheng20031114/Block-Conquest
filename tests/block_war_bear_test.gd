@@ -181,7 +181,7 @@ func _run() -> void:
 	game.cast_skill(3, b)
 	game._on_unit_arrived(a.building_id, 1, 21.0)
 	near(a.population, 90, "E+R target still takes its own integer half")
-	near(b.population, 100, "invulnerable support absorbs its assigned integer half")
+	near(b.population, 89, "warded support pays its assigned half without applying defense a second time")
 	game._on_unit_arrived(a.building_id, 1, 500.0)
 	check(a.faction == 1 and game.bear.links.is_empty(), "capture clears link immediately")
 	await reset()
@@ -197,8 +197,8 @@ func _run() -> void:
 	game.cast_skill(3, a)
 	game.world_effects.start_fire(a.global_position, 4.5, 1)
 	game._tick_fire_buildings()
-	near(a.population, 88, "invulnerability blocks fire garrison damage")
-	near(b.population, 87, "blocked fire does not spill into support")
+	near(a.population, 82, "ward halves the next fire hit before integer link sharing")
+	near(b.population, 81, "warded target shares the reduced fire damage with support")
 
 	await reset()
 	var center := Vector3(-22, 0, 10)
@@ -225,28 +225,9 @@ func _run() -> void:
 		game.marches.tick(0.05)
 	near(game.marches._units[0].distance, long_distance, "slow/haste/rush entry, exit and expiry independent of frame size")
 
-	await reset()
-	buildings = pair()
-	a = buildings[0]
-	game.marches.send(1, a.building_id, 1, 1, PackedVector3Array([a.global_position + Vector3(4, 0, 0), a.global_position + Vector3(40, 0, 0)]))
-	game.marches.send(1, a.building_id, 1, 1, PackedVector3Array([a.global_position + Vector3(10, 0, 0), a.global_position + Vector3(40, 0, 0)]))
-	var distant: WarMarches.MarchUnit = game.marches._units[1]
-	check(game.cast_skill(3, a), "R casts on own building")
-	check(game.bear.shots.size() == 1 and game.bear.shots[0].target == distant, "orb immediately reserves farther enemy")
-	game._on_unit_arrived(a.building_id, 1, 500.0)
-	near(a.population, 100, "R prevents direct damage and capture")
-	game.simulate(0.45)
-	check(not distant.alive, "actual orb projectile hits reserved soldier")
-	game.marches.clear()
-	# Restore the active ward's arrival barrier after clearing the fixture march.
-	game.marches.blocked_destinations[a.building_id] = 0
-	game.marches.send(1, a.building_id, 1, 30, PackedVector3Array([a.global_position + Vector3(5, 0, 0), a.global_position + Vector3(2.5, 0, 0)]))
-	game.simulate(4.55)
-	check(not game.bear.is_invulnerable(a.building_id), "R ends at five seconds")
-	near(a.population, 100, "arriving enemies wait outside instead of being consumed")
-	check(game.marches.total_for(1) > 0, "waiting enemies remain real exposed soldiers")
-	game.simulate(0.2)
-	check(a.population < 100, "surviving enemies resume attacks after R")
+	await _ward_defense_checks()
+	await _ward_projectile_checks()
+	await _ward_arrival_checks()
 
 	for ability: int in 4:
 		await reset()
@@ -288,8 +269,105 @@ func _run() -> void:
 	check(game.bear.links.has(a.building_id), "native E release connects buildings")
 	refill()
 	drag_skill(3, aim)
-	check(game.bear.is_invulnerable(a.building_id), "native R release protects the picked building")
+	check(game.bear.wards.has(a.building_id) and is_equal_approx(game.skill_defense_bonus(a), 1.0), "native R release raises the picked building's skill defense")
 	check(game.armed_skill == -1 and not game.hud.get_node("%SkillDrag").visible, "release clears held icon without lingering aim state")
 	await game.prepare_shutdown()
 	print("Bear checks: %d, failures: %d" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+func _ward_defense_checks() -> void:
+	await reset()
+	var a := pair()[0]
+	check(RULES.names_for(&"bear")[3] == "震庭威慑", "R uses its revised name")
+	check(game.cast_skill(3, a), "R casts on own building")
+	near(game.energy, 30.0, "R keeps its seventy-energy cost")
+	near(game.cooldowns[3], 70.0, "R keeps its seventy-second cooldown")
+	near(game.active_durations[3], 5.0, "R lasts five seconds")
+	near(game.defense_bonus(a), 0.0, "ward does not enter the environment defense group")
+	near(game.skill_defense_bonus(a), 1.0, "ward grants plus one skill defense")
+	near(game.combat_multiplier(1, a), 0.5, "ward halves otherwise unmodified incoming melee")
+	game._on_unit_arrived(a.building_id, 1, 20.0)
+	near(a.population, 90.0, "ordinary attackers inflict reduced damage during R")
+	game.shields[a.building_id] = 10.0
+	near(game.skill_defense_bonus(a), 1.25, "ward and shield add inside the skill group")
+	near(game.combat_multiplier(1, a), 1.0 / 2.25, "combined defenses divide by 2.25 rather than multiply 2 by 1.25")
+	game._on_unit_arrived(a.building_id, 1, 22.5)
+	near(a.population, 80.0, "actual shield-plus-ward casualties use the additive skill group")
+	game.set_paused(true)
+	game.simulate(2.0)
+	near(game.bear.wards[a.building_id].remaining, 5.0, "pause freezes ward expiration")
+	game.set_paused(false)
+	game.simulate(4.999)
+	check(game.bear.wards.has(a.building_id), "ward remains active immediately before five seconds")
+	game.simulate(0.001)
+	check(not game.bear.wards.has(a.building_id), "ward expires at five seconds")
+	near(game.active_durations[3], 0.0, "expiration clears the R HUD timer")
+	near(game.skill_defense_bonus(a), 0.25, "ward expiration preserves the longer shield")
+	near(game.combat_multiplier(1, a), 1.0 / 1.25, "expired ward no longer reduces incoming damage")
+	await reset()
+	a = pair()[0]
+	a.population = 10.0
+	check(game.cast_skill(3, a), "capture fixture starts with an active ward")
+	game.shields[a.building_id] = 10.0
+	game._on_unit_arrived(a.building_id, 1, 30.0)
+	check(a.faction == 1, "a defended building can be captured during the ward")
+	near(a.population, 7.5, "capture survivors account for the combined 2.25 defense divisor")
+	check(not game.bear.wards.has(a.building_id) and not game.shields.has(a.building_id), "capture clears both temporary defenses")
+	near(game.skill_defense_bonus(a), 0.0, "new owner inherits no old-owner skill defense")
+	near(game.faction_skills[0].durations[3], 0.0, "capture clears the previous owner's R timer")
+
+func _orb_soldier(building: WarBuilding, distance: float, faction: int = 1) -> WarMarches.MarchUnit:
+	var at := building.global_position + Vector3(distance, 0, 0)
+	game.marches.send(1, building.building_id, faction, 1, PackedVector3Array([at, at + Vector3(40, 0, 0)]))
+	return game.marches._units[-1]
+
+func _ward_projectile_checks() -> void:
+	await reset()
+	var a := pair()[0]
+	var near_unit := _orb_soldier(a, 4.0)
+	var middle := _orb_soldier(a, 10.0)
+	var far_unit := _orb_soldier(a, 16.0)
+	var boundary := _orb_soldier(a, 18.0)
+	var outside := _orb_soldier(a, 18.01)
+	var own := _orb_soldier(a, 17.9, 0)
+	var ally := _orb_soldier(a, 17.8, 2)
+	var pending := _orb_soldier(a, 17.7)
+	pending.spawn_delay = 1.0
+	check(game.cast_skill(3, a), "R accepts a populated projectile fixture")
+	check(game.bear.shots.size() == 3, "release immediately fires three projectiles at most")
+	var first: Array[WarMarches.MarchUnit] = []
+	for shot: Dictionary in game.bear.shots:
+		first.append(shot.target)
+	check(first == [boundary, far_unit, middle], "first volley takes the three farthest legal targets including exactly eighteen meters")
+	check(not outside.reserved and not near_unit.reserved, "outside eighteen meters and the fourth-nearest unit stay unreserved")
+	check(not own.reserved and not ally.reserved and not pending.reserved, "friendly, allied and unexposed soldiers are excluded")
+	game.bear.advance(game, 0.499)
+	check(game.bear.shots.size() == 3, "no second volley before half a second")
+	game.bear.advance(game, 0.001)
+	check(game.bear.shots.size() == 4 and game.bear.shots[-1].target == near_unit, "half-second volley takes only the remaining legal target")
+	var extras: Array[WarMarches.MarchUnit] = []
+	for distance: float in [6.0, 8.0, 9.0]:
+		extras.append(_orb_soldier(a, distance))
+	game.bear.advance(game, 0.5)
+	check(game.bear.shots.size() == 7, "next half-second fires another complete three-target volley")
+	var targeted := {}
+	for shot: Dictionary in game.bear.shots:
+		check(not targeted.has(shot.target.unit_id), "outstanding projectiles never reserve the same soldier twice")
+		targeted[shot.target.unit_id] = true
+	game.bear.tick_projectiles(game, 0.5)
+	check(not boundary.alive and not far_unit.alive and not middle.alive and not near_unit.alive, "real projectiles kill all four original reserved enemies")
+	for unit: WarMarches.MarchUnit in extras:
+		check(not unit.alive, "subsequent volley also resolves real projectile damage")
+	check(outside.alive and own.alive and ally.alive and pending.alive, "untargeted soldiers survive every volley")
+	check(game.bear.shots.is_empty(), "resolved projectiles leave no stale shot reservations")
+
+func _ward_arrival_checks() -> void:
+	await reset()
+	var a := pair()[0]
+	check(game.cast_skill(3, a), "arrival fixture activates R before any enemy is exposed")
+	for index: int in 30:
+		game.marches.send(1, a.building_id, 1, 1, PackedVector3Array([a.global_position + Vector3(1, 0, 0), a.global_position + Vector3(0.2, 0, 0)]))
+	game.simulate(0.3)
+	check(game.bear.wards.has(a.building_id), "arrivals resolve while the ward remains active")
+	check(game.marches.total_for(1) == 0, "real incoming soldiers enter immediately without waiting outside")
+	near(a.population, 85.0, "thirty real arrivals inflict fifteen garrison casualties during R")

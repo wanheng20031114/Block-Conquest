@@ -198,7 +198,6 @@ func _seed(at_time: float, count: int) -> void:
 	host.bear.links.clear()
 	host.bear.wards.clear()
 	host.bear.shots.clear()
-	host.marches.blocked_destinations.clear()
 	host.shields.clear()
 	host.morale.configure(host.faction_count)
 	host.elapsed = at_time

@@ -26,7 +26,7 @@ func fresh(game: Node3D) -> void:
 	game.marches.clear()
 	game.projectiles.clear(); game.fire_states.clear()
 	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.shots.clear()
-	game.marches.blocked_destinations.clear(); game.shields.clear()
+	game.shields.clear()
 	game.morale.configure(game.faction_count)
 	game.elapsed = 0.0; game.finished = false; game._local_menu = false
 	for b: WarBuilding in game.buildings:
@@ -66,7 +66,6 @@ func _run() -> void:
 	host.bear.links[2] = {"target": 2, "support": 4, "faction": 2, "remaining": 5.5, "settled": 21, "pulse": 0.7}
 	host.bear.damage_remainders[2] = 0.375
 	host.bear.wards[3] = {"faction": 3, "remaining": 2.0, "shot_clock": 0.25, "pulse": 1.0}
-	host.marches.blocked_destinations[3] = 3
 	var route := PackedVector3Array([Vector3.ZERO, Vector3(30, 0, 0)])
 	host.marches.send(4, 1, 4, 1, route, 0.625)
 	var troop: WarMarches.MarchUnit = host.marches._units[-1]
@@ -97,6 +96,7 @@ func _run() -> void:
 	check(replica_events == 0, "install emits no skill damage construction or casualty facts")
 	check(replica.by_id[0].queued_population == host.by_id[0].queued_population and replica.by_id[0].population == 70.0, "hidden departure reservations do not pre-deduct displayed garrison")
 	check(replica.bear.links[2].settled == 21 and replica.bear.damage_remainders[2] == 0.375, "bear cumulative split and fractional debt survive")
+	near(replica.skill_defense_bonus(replica.by_id[3]), 1.0, "replicated bear ward adds one hundred percent skill defense")
 	check(replica.fire_states[0].effect_id == fire.effect_id and replica.fire_states[0].hit_buildings.has(1), "fire identity and per-building hit ledger survive")
 	check(replica.projectiles[0].target == replica.bear.shots[0].target and replica.projectiles[0].target.unit_id == troop.unit_id, "both projectile kinds share stable restored soldier references")
 	check(reader._objects[str(troop.unit_id)].cloaked and reader._objects[str(troop.unit_id)].weakened, "persistent frog flags survive snapshots")
@@ -112,6 +112,31 @@ func _run() -> void:
 	reader._draw_shots(replica, 1.0)
 	check(replica.projectiles.is_empty() and replica.bear.shots.is_empty(), "both remote projectile visuals expire without reliable deletion")
 	check(shot_target.alive and state.shots.size() == 2 and replica_events == 0, "visual expiry cannot inflict damage or alter the reliable mirror")
+	reader.present(replica, state, 2.01)
+	check(not replica.bear.wards.has(3), "display clock removes the expired defense ward before another reliable packet")
+	near(replica.skill_defense_bonus(replica.by_id[3]), 0.0, "expired replica ward no longer grants skill defense")
+	reader.install(replica, state, float(state.time) + 2.01)
+	check(not replica.bear.wards.has(3), "late snapshot installation cannot revive an expired defense ward")
+	check(Snapshot.digest(state) == Snapshot.digest(decoded) and replica_events == 0, "ward expiry leaves the canonical snapshot and gameplay events untouched")
+
+	fresh(host)
+	host.faction_skills[0].commander = &"bear"
+	host.faction_skills[0].energy = 100.0
+	var fortress: WarBuilding = host.by_id[0]
+	for index: int in 3:
+		var origin := fortress.global_position + Vector3(6.0 + index * 4.0, 0, 0)
+		host.marches.send(1, 0, 1, 1, PackedVector3Array([origin, origin + Vector3(30, 0, 0)]))
+	check(host.cast_skill(3, fortress, 0) and host.bear.shots.size() == 3, "real defense ward cast launches three separate orb projectiles")
+	var volley: Dictionary = JSON.parse_string(JSON.stringify(writer.capture(host, 18), "", true, true))
+	check(Snapshot.valid(volley, replica) and volley.shots.size() == 3, "three-target orb volley survives the actual wire representation")
+	reader.install(replica, volley)
+	var restored_targets := {}
+	for shot: Dictionary in replica.bear.shots:
+		var target: WarMarches.MarchUnit = shot.target
+		restored_targets[target.unit_id] = true
+		check(target == reader._objects[str(target.unit_id)] and target.reserved, "each restored orb retains its own reserved live target")
+	check(replica.bear.shots.size() == 3 and restored_targets.size() == 3, "restored volley contains three distinct targets without aliasing")
+	check(Snapshot.digest(Snapshot.new().capture(replica, 18)) == Snapshot.digest(volley) and replica_events == 0, "multi-orb restoration preserves canonical facts without applying hits")
 
 	fresh(host)
 	var previous := writer.capture(host, 20)

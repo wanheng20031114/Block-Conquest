@@ -29,9 +29,9 @@ static func panic_routes(game: Node3D, target: WarBuilding) -> Array[Dictionary]
 
 static func valid_target(game: Node3D, index: int, target: WarBuilding, faction: int) -> bool:
 	match index:
-		0: return not FACTIONS.allied(target.faction, faction) and not game.bear.is_invulnerable(target.building_id) and bomb_loss(target) > 0
+		0: return not FACTIONS.allied(target.faction, faction) and bomb_loss(target) > 0
 		1: return stolen_stars(game, target.faction, faction) > 0.000001
-		3: return FACTIONS.hostile(target.faction, faction) and not game.bear.is_invulnerable(target.building_id) and panic_count(target) > 0 and not panic_routes(game, target).is_empty()
+		3: return FACTIONS.hostile(target.faction, faction) and panic_count(target) > 0 and not panic_routes(game, target).is_empty()
 	return false
 
 static func conversion_targets(game: Node3D, center: Vector3, faction: int) -> Array[WarMarches.MarchUnit]:

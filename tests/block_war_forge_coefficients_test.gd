@@ -21,6 +21,8 @@ func reset() -> void:
 	game.marches.clear()
 	game.projectiles.clear()
 	game.shields.clear()
+	game.bear.wards.clear()
+	game.bear.shots.clear()
 	game.finished = false
 	game.morale.configure(game.faction_count)
 	for building: WarBuilding in game.buildings:
@@ -85,6 +87,22 @@ func _run() -> void:
 	near(game.combat_multiplier(0, defender, 0.8), mixed, "environment and skills each sum internally and then multiply")
 	game._on_unit_arrived(1, 0, 10.0, 0.8)
 	near(defender.population, 100.0 - 10.0 * mixed, "actual casualties use both coefficient groups")
+	# Casting the ward cannot move its defense into the permanent environment
+	# denominator or multiply it separately from the existing shield.
+	game.morale.configure(game.faction_count)
+	game.morale.adjust(0, 1000.0)
+	game.morale.adjust(1, 2000.0)
+	game.faction_skills[1].commander = &"bear"
+	game.faction_skills[1].energy = 100.0
+	game.faction_skills[1].cooldowns.fill(0.0)
+	check(game.cast_skill(3, defender, 1), "mixed environment fixture casts the real bear ward")
+	near(game.defense_bonus(defender), 0.85, "tower and forge remain in their own environment group")
+	near(game.skill_defense_bonus(defender), 1.25, "shield and ward sum within the skill group")
+	var ward_mixed := 1.6 / 2.45 * 1.8 / 2.25
+	near(game.combat_multiplier(0, defender, 0.8), ward_mixed, "morale forge tower and both skills preserve independent coefficient groups")
+	var before_ward_hit := defender.population
+	game._on_unit_arrived(1, 0, 10.0, 0.8)
+	near(defender.population, before_ward_hit - 10.0 * ward_mixed, "actual warded casualties use the full grouped formula")
 	reset()
 	var first := forge(2, 0)
 	forge(3, 0)

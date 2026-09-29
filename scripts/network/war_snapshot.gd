@@ -542,10 +542,6 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 		if not state.orders.has(key):
 			_orders.erase(key); _installed_order_rows.erase(key)
 	_install_fields(game, state, now)
-	game.marches.blocked_destinations.clear()
-	for key: String in state.wards:
-		if remaining(state.wards[key][1], now) > 0:
-			game.marches.blocked_destinations[int(key)] = int(state.wards[key][0])
 	# Preserve expired fields until all older motion anchors have integrated their
 	# remaining active interval. Their historical deadlines stay in this view.
 	var units: Array[WarMarches.MarchUnit] = []
@@ -602,16 +598,16 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 	if _render_pending and not defer_render:
 		game.marches._render()
 		_render_pending = false
-	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear(); game.marches.blocked_destinations.clear()
+	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear()
 	for key: String in state.links:
 		var row: Array = state.links[key]
 		var pulse := _pulse_at(_link_pulses, key, row, 5, float(state.time), now, 3.0)
 		game.bear.links[int(key)] = {"target": int(row[0]), "support": int(row[1]), "faction": int(row[2]), "remaining": remaining(row[3], now), "settled": int(row[4]), "pulse": pulse}
 	for key: String in state.wards:
 		var row: Array = state.wards[key]
+		if remaining(row[1], now) <= 0.0: continue
 		var pulse := _pulse_at(_ward_pulses, key, row, 3, float(state.time), now, 5.0)
 		game.bear.wards[int(key)] = {"faction": int(row[0]), "remaining": remaining(row[1], now), "shot_clock": remaining(row[2], now), "pulse": pulse}
-		if remaining(row[1], now) > 0: game.marches.blocked_destinations[int(key)] = int(row[0])
 	for key: String in _link_pulses.keys():
 		if not state.links.has(key): _link_pulses.erase(key)
 	for key: String in _ward_pulses.keys():
@@ -703,8 +699,6 @@ func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, _
 	var step: float = game.marches.movement_distance(unit, seconds)
 	var previous_distance := unit.distance
 	unit.distance = minf(unit.order.length - 0.001, unit.distance + step)
-	if game.marches.blocked_destinations.has(unit.order.target_id) and game.FACTIONS.hostile(unit.order.faction, game.marches.blocked_destinations[unit.order.target_id]):
-		unit.distance = minf(unit.distance, unit.order.length - 0.12)
 	unit.gait += maxf(0.0, unit.distance - previous_distance) * 7.0
 	unit.spawn_delay = maxf(0.0, unit.spawn_delay - seconds)
 	unit.rush_remaining = maxf(0.0, unit.rush_remaining - seconds)
@@ -812,10 +806,10 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 		if game.shields[key] <= 0: game.shields.erase(key)
 	for link: Dictionary in game.bear.links.values():
 		link.remaining = maxf(0.0, link.remaining - delta); link.pulse = maxf(0.0, link.pulse - delta * 3)
-	for id: int in game.bear.wards:
+	for id: int in game.bear.wards.keys():
 		var ward: Dictionary = game.bear.wards[id]
 		ward.remaining = maxf(0.0, ward.remaining - delta); ward.pulse = maxf(0.0, ward.pulse - delta * 5)
-		if ward.remaining <= 0: game.marches.blocked_destinations.erase(id)
+		if ward.remaining <= 0: game.bear.wards.erase(id)
 	for fire: RefCounted in game.fire_states: fire.age += delta
 	for index: int in range(game.effects.size() - 1, -1, -1):
 		game.effects[index].life -= delta

@@ -82,7 +82,6 @@ var map_definition := WarMapDefinition.new()
 var haste_zones: Dictionary[int, Dictionary] = {}
 var slow_zones: Dictionary[int, Dictionary] = {}
 var weak_zones: Dictionary[int, Dictionary] = {}
-var blocked_destinations: Dictionary[int, int] = {}
 var _departure_sequence := 0
 var _next_order_id := 1
 var _next_unit_id := 1
@@ -347,10 +346,6 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		var unit := _units[index]
 		var concealed_time := minf(delta, unit.spawn_delay)
 		var step := movement_distance(unit, delta)
-		# A protected destination holds hostile soldiers visibly outside its gate.
-		# They remain exposed to projectiles/fire and resume when protection ends.
-		if blocked_destinations.has(unit.order.target_id) and FACTIONS.hostile(unit.order.faction, blocked_destinations[unit.order.target_id]):
-			step = minf(step, maxf(0.0, unit.order.length - 0.12 - unit.distance))
 		if not unit.weakened and _touches_mist(unit, delta, step):
 			unit.weakened = true
 		# Sample the buff at contact, including an arrival before its expiry within
@@ -878,7 +873,6 @@ func clear() -> void:
 	haste_zones.clear()
 	slow_zones.clear()
 	weak_zones.clear()
-	blocked_destinations.clear()
 	_multimesh.visible_instance_count = 0
 	_cloaked_mesh.visible_instance_count = 0
 

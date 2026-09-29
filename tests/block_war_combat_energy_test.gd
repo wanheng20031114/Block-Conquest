@@ -224,11 +224,11 @@ func linked_losses() -> void:
 	near(energy_for(1), 14.2, "exhausting support cannot duplicate or omit casualties")
 	pair = linked_pair()
 	game.faction_skills[1].energy = 100.0
-	check(game.cast_skill(3, pair[1], 1), "support can become invulnerable")
+	check(game.cast_skill(3, pair[1], 1), "support can receive the defensive ward")
 	game.faction_skills[1].energy = 10.0
 	game._on_unit_arrived(1, 0, 21.0)
-	near(pair[1].population, 100.0, "invulnerable support absorbs damage without deaths")
-	near(energy_for(1), 12.0, "absorbed damage grants no casualty energy")
+	near(pair[1].population, 89.0, "warded support still loses its assigned eleven soldiers")
+	near(energy_for(1), 14.2, "all twenty-one real linked casualties grant energy exactly once")
 	pair = linked_pair()
 	game.bear.apply_damage(game, pair[0], 0.5)
 	near(energy_for(1), 10.0, "fractional spell damage has no settled casualty")
