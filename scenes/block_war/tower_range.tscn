@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="Gradient" id="Edge"]
+offsets = PackedFloat32Array(0, 0.966, 0.975, 0.98, 0.985, 0.994, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0.12, 1, 1, 1, 1, 1, 1, 1, 0.12, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="Ring"]
+gradient = SubResource("Edge")
+width = 1024
+height = 1024
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="AttackRange" type="Decal"]
+visible = false
+position = Vector3(0, 0.025, 0)
+size = Vector3(22.44898, 0.15, 22.44898)
+texture_albedo = SubResource("Ring")
+modulate = Color(0.9, 0.87, 0.66, 0)
+upper_fade = 0.0
+lower_fade = 0.0
+normal_fade = 0.8

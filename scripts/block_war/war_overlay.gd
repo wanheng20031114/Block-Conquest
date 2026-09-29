@@ -14,6 +14,8 @@ var _hint_rect := Rect2()
 @onready var hint_label: Label = $DispatchText
 
 func _process(delta: float) -> void:
+	for building: WarBuilding in game.buildings:
+		building.set_attack_range_emphasis(building == game.selected or building == game.hovered, game.armed_skill >= 0)
 	hint_label.visible = game._match_ready and game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0
 	if hint_label.visible:
 		_hint_time += delta
@@ -75,8 +77,6 @@ func _draw() -> void:
 					_draw_skill_number(game.hovered.construction_cost / 2, camera.unproject_position(game.hovered.global_position + Vector3(3, 2, 0)))
 				elif game.armed_skill == 3:
 					_ring(game.hovered.global_position, game.SKILL_RULES.BEAR_ORB_RANGE, Color(0.94, 0.77, 0.43, 0.48), 1.5)
-	if game.selected != null and game.selected.kind == 1:
-		_ring(game.selected.global_position, game.tower_range(game.selected), Color(1.0, 0.81, 0.43, 0.35), 1.5)
 	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:
 		var points := PackedVector2Array()
 		var color := dispatch_route_color()

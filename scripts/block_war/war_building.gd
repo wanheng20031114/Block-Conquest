@@ -48,6 +48,8 @@ var production_rate: float:
 var max_level: int:
 	get:
 		return [4, 3, 1, 1][kind]
+var attack_range: float:
+	get: return 9.0 + level * 2.0
 var upgrade_cost: int:
 	get:
 		return level * (10 if kind == 0 else 30) if level < max_level else 0
@@ -90,6 +92,7 @@ const SMITHY_SMOKE_X := [-0.6888, -0.6888, -0.9594]
 @onready var _population_label: Label3D = $PopulationLabel
 @onready var _kind_label: Label3D = $KindLabel
 @onready var _selection: MeshInstance3D = $SelectionRing
+@onready var _attack_range: Decal = $AttackRange
 @onready var _construction_particles: Array[GPUParticles3D] = [$Construction/Dust, $Construction/Chips, $Construction/Complete]
 var _selection_tween: Tween
 var _selection_body_tween: Tween
@@ -102,6 +105,8 @@ var _last_level := -1
 var _visual_time := 0.0
 var _visual_paused := false
 var _recoil_tween: Tween
+var _range_emphasis := 0.14
+var _range_alpha := 0.0
 
 
 func _ready() -> void:
@@ -119,12 +124,28 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_attack_range(delta)
 	if _visual_paused:
 		return
 	_visual_time += delta
 	_team_material.set_shader_parameter("visual_time", _visual_time)
 	if kind == 2:
 		_fire_material.set_shader_parameter("visual_time", _visual_time)
+
+
+func set_attack_range_emphasis(focused: bool, skill_preview: bool) -> void:
+	_range_emphasis = 0.02 if skill_preview else (0.3 if focused else 0.14)
+
+
+func _update_attack_range(delta: float) -> void:
+	# Presentation remains responsive when paused. Neutral or disrupted towers
+	# cannot shoot; paid construction keeps the old, still-active tower range.
+	var target := _range_emphasis if kind == 1 and faction >= 0 and disruption_remaining <= 0.0 else 0.0
+	var alpha := move_toward(_range_alpha, target, delta * 1.8)
+	if alpha == _range_alpha: return
+	_range_alpha = alpha
+	_attack_range.visible = alpha > 0.001
+	_attack_range.modulate.a = alpha
 
 
 func set_visual_paused(value: bool) -> void:
@@ -288,6 +309,11 @@ func is_population_visible() -> bool:
 func refresh_visual() -> void:
 	if level != _last_level or kind != _last_kind:
 		_apply_level_visuals()
+		# The gradient peaks at 0.98 of its radius; its fine line marks the exact
+		# combat radius, with feathering on both sides. The shallow native decal
+		# follows the land/bridge surface without painting roofs or low water.
+		var diameter := attack_range * 2.0 / 0.98
+		_attack_range.size = Vector3(diameter, 0.15, diameter)
 	if faction != _last_faction:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
 		var cloth_color := color.lerp(Color("c1a674"), 0.12)

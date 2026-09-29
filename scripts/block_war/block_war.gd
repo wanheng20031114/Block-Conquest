@@ -712,7 +712,7 @@ func _tick_fire_buildings() -> void:
 				building.refresh_visual()
 
 func tower_range(building: Node3D) -> float:
-	return 9.0 + building.level * 2.0
+	return building.attack_range
 
 func tower_interval(building: Node3D) -> float:
 	return maxf(0.55, 1.5 - 0.3 * (building.level - 1))

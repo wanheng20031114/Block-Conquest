@@ -1,10 +1,11 @@
-[gd_scene load_steps=59 format=3]
+[gd_scene load_steps=60 format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_building.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/construction.tscn" id="construction"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_seal.tscn" id="rabbit_seal"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/rabbit_burrow_ready.tscn" id="rabbit_ready"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/energy_tower.tscn" id="energy_tower"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/tower_range.tscn" id="attack_range"]
 [ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/surface.gdshader" id="surface_shader"]
 [ext_resource type="Shader" path="res://assets/models/block_war/architecture/flag.gdshader" id="flag_shader"]
@@ -164,6 +165,8 @@ size = Vector2(3.35, 3.35)
 
 [node name="WarBuilding" type="Node3D"]
 script = ExtResource("script")
+
+[node name="AttackRange" parent="." instance=ExtResource("attack_range")]
 
 [node name="Visual" type="Node3D" parent="."]
 
