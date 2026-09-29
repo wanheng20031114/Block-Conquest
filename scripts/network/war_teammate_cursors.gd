@@ -91,7 +91,7 @@ func tick(delta: float) -> void:
 		if not active or not bool(peer.visible) or _clock - float(peer.received) > EXPIRY or game._local_menu:
 			pointer.hide()
 			continue
-		peer.point = (peer.point as Vector3).lerp(peer.target, 1.0 - exp(-24.0 * delta))
+		peer.point = game.map.definition.surface_point((peer.point as Vector3).lerp(peer.target, 1.0 - exp(-24.0 * delta)))
 		var world: Vector3 = peer.point
 		if game.camera.is_position_behind(world):
 			pointer.hide()
@@ -108,8 +108,8 @@ func tick(delta: float) -> void:
 	var present: bool = active and can_share and _mouse_inside and get_window().has_focus() and not game._local_menu and not game.hud.is_pointer_over_hud(screen) and Rect2(Vector2.ZERO, view_size).has_point(screen)
 	var point := Vector2.ZERO
 	if present:
-		var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(game.camera.project_ray_origin(screen), game.camera.project_ray_normal(screen))
-		present = hit != null
+		var hit: Vector3 = game.map.definition.ray_ground(game.camera.project_ray_origin(screen), game.camera.project_ray_normal(screen))
+		present = hit.is_finite()
 		if present:
 			point = Vector2(hit.x, hit.z)
 			var half_size: Vector2 = game.map.definition.half_size
@@ -150,6 +150,7 @@ func _receive(sender: int, payload: Dictionary) -> void:
 	var half_size: Vector2 = game.map.definition.half_size
 	if not point.is_finite() or absf(point.x) > half_size.x or absf(point.z) > half_size.y:
 		return
+	point = game.map.definition.surface_point(point)
 	var new_presence: bool = not bool(peer.visible) or _clock - float(peer.received) > EXPIRY or epoch > int(peer.epoch)
 	peer.seq = seq
 	peer.epoch = epoch

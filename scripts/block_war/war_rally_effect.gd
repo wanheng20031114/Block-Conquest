@@ -4,6 +4,9 @@ const DURATION := 1.8
 var age := DURATION + 1.0
 var running := true
 
+func configure_surface(definition: WarMapDefinition) -> void:
+	WarSurfaceEffects.configure($Waves.material_override, definition)
+
 func start(at: Vector3, radius: float, faction: int) -> void:
 	position = at
 	age = 0.0

@@ -11,7 +11,18 @@ var _skill_time := 0.0
 var _skill_emission := 0.0
 var _wind_offset := 0
 var _mote_serial := 0
+var map_definition := WarMapDefinition.new()
 const EMIT_FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_ROTATION_SCALE | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
+
+func configure_surface(definition: WarMapDefinition) -> void:
+	map_definition = definition
+	WarSurfaceEffects.configure($RecruitRings.multimesh.mesh.material, definition)
+	WarSurfaceEffects.configure($HasteFields.multimesh.mesh.material, definition)
+	$Rabbit.configure_surface(definition)
+	$Frog.configure_surface(definition)
+	$Bear.configure_surface(definition)
+	for fire: WarFireWave in $FireWaves.get_children():
+		fire.configure_surface(definition)
 
 func _ready() -> void:
 	$Shield.multimesh.instance_count = 6
@@ -96,7 +107,7 @@ func _render_deaths() -> void:
 		var heading: Vector3 = death.heading
 		var basis := Basis(Vector3.UP, atan2(-heading.x, -heading.z)) * Basis(Vector3.RIGHT, -fall * PI * 0.48)
 		basis = basis.scaled(Vector3.ONE * WarMarches.MODEL_SCALE * (1.0 - 0.35 * progress))
-		var at: Vector3 = death.at + death.impulse * 0.45 * fall + Vector3(0, 0.08, 0)
+		var at := WarSurfaceEffects.offset_point(map_definition, death.at, death.impulse * 0.45 * fall + Vector3(0, 0.08, 0))
 		mesh.set_instance_transform(index, Transform3D(basis, at))
 		var color := WarMarches.FACTION_COLORS[death.faction].srgb_to_linear()
 		color.a = progress
@@ -155,7 +166,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				_mote_serial += 1
 				var angle := _mote_serial * 2.399963
 				var radial := Vector3(cos(angle), 0, sin(angle))
-				var at := building.global_position + radial * (2.5 + 0.35 * sin(angle * 3.0)) + Vector3(0, 0.3, 0)
+				var at := WarSurfaceEffects.offset_point(map_definition, building.global_position, radial * (2.5 + 0.35 * sin(angle * 3.0)) + Vector3(0, 0.3, 0))
 				var basis := Basis(Vector3.UP, angle) * Basis(Vector3.FORWARD, sin(angle) * 0.6)
 				$RecruitMotes.emit_particle(Transform3D(basis, at), -radial * 0.22 + Vector3(0, 1.1 + sin(angle) * 0.3, 0), Color("b48b35").srgb_to_linear(), Color(), EMIT_FLAGS)
 	rings.visible_instance_count = count
@@ -171,7 +182,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			for mote: int in 3:
 				_mote_serial += 1
 				var angle := _mote_serial * 2.399963
-				var at := building.global_position + Vector3(cos(angle) * 3.17, 0.15, sin(angle) * 3.17)
+				var at := WarSurfaceEffects.offset_point(map_definition, building.global_position, Vector3(cos(angle) * 3.17, 0.15, sin(angle) * 3.17))
 				$ShieldMotes.emit_particle(Transform3D(Basis.IDENTITY, at), Vector3(0, 1.4, 0), Color("a2c6b9").srgb_to_linear(), Color(), EMIT_FLAGS)
 	walls.visible_instance_count = count
 	var fields: MultiMesh = $HasteFields.multimesh
@@ -189,7 +200,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				_mote_serial += 1
 				var angle := _mote_serial * 2.399963
 				var radial := Vector3(cos(angle), 0, sin(angle))
-				var at: Vector3 = zone.at + radial * zone.radius * (0.35 + 0.55 * absf(sin(angle * 2.7))) + Vector3(0, 0.18, 0)
+				var at := WarSurfaceEffects.offset_point(map_definition, zone.at, radial * zone.radius * (0.35 + 0.55 * absf(sin(angle * 2.7))) + Vector3(0, 0.18, 0))
 				var wind := Vector3(-radial.z, 0.14, radial.x)
 				$HasteMotes.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), wind * 0.8, Color("c0d8a4").srgb_to_linear(), Color(), EMIT_FLAGS)
 	fields.visible_instance_count = count
@@ -203,7 +214,7 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 			for index: int in mini(48, active.size()):
 				var unit := active[(_wind_offset + index) % active.size()]
 				var basis := Basis.looking_at(unit.heading)
-				var at := unit.position + Vector3(0, 0.13, 0) - unit.heading * 0.4
+				var at := WarSurfaceEffects.offset_point(map_definition, unit.position, Vector3(0, 0.13, 0) - unit.heading * 0.4)
 				$HasteTrails.emit_particle(Transform3D(basis, at), -unit.heading * 1.4, Color("e0e8d1"), Color(), EMIT_FLAGS)
 			_wind_offset = (_wind_offset + 48) % active.size()
 

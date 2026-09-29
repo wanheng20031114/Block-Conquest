@@ -37,7 +37,7 @@ static func burrow_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 	for index: int in range(full.size() - 2, -1, -1):
 		var segment := full[index + 1].distance_to(full[index])
 		if segment >= remaining:
-			tail.append(full[index + 1].move_toward(full[index], remaining))
+			tail.append(game.map.definition.surface_point(full[index + 1].move_toward(full[index], remaining)))
 			break
 		remaining -= segment
 		tail.append(full[index])

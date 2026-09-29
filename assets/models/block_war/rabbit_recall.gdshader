@@ -1,10 +1,18 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
+#include "res://assets/models/block_war/ground_surface.gdshaderinc"
 
 uniform float visual_time = 0.0;
 uniform vec4 wave_color : source_color = vec4(0.73, 0.95, 0.86, 1.0);
 
+void vertex() {
+	terrain_clearance = 0.12;
+	terrain_world = ground_effect_world(VERTEX, MODEL_MATRIX, terrain_clearance);
+	VERTEX = (inverse(MODEL_MATRIX) * vec4(terrain_world, 1.0)).xyz;
+}
+
 void fragment() {
+	if (ground_effect_gap(terrain_world, terrain_clearance)) { discard; }
 	vec2 p = UV * 2.0 - 1.0;
 	float radius = length(p);
 	float waves = 0.0;

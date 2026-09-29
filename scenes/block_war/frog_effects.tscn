@@ -10,6 +10,9 @@
 resource_local_to_scene = true
 shader = ExtResource("mist")
 [sub_resource type="PlaneMesh" id="MistPlane"]
+resource_local_to_scene = true
+subdivide_width = 63
+subdivide_depth = 63
 material = SubResource("MistMaterial")
 size = Vector2(2, 2)
 [sub_resource type="MultiMesh" id="Mist"]
@@ -17,7 +20,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-90, -2, -70, 180, 16, 140)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("MistPlane")
 
 [sub_resource type="ShaderMaterial" id="FloatMaterial"]
@@ -33,7 +36,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-90, -2, -70, 180, 16, 140)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("BubbleMesh")
 
 [sub_resource type="ShaderMaterial" id="SweepMaterial"]
@@ -46,7 +49,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-90, -2, -70, 180, 16, 140)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("SweepPlane")
 
 [sub_resource type="Gradient" id="Fade"]
@@ -90,7 +93,7 @@ cast_shadow = 0
 emitting = false
 amount = 384
 lifetime = 0.9
-visibility_aabb = AABB(-90, -2, -70, 180, 16, 140)
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("PuffProcess")
 draw_pass_1 = SubResource("PuffMesh")
 cast_shadow = 0
@@ -98,7 +101,7 @@ cast_shadow = 0
 emitting = false
 amount = 256
 lifetime = 0.6
-visibility_aabb = AABB(-90, -2, -70, 180, 16, 140)
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("FleckProcess")
 draw_pass_1 = SubResource("LeafMesh")
 cast_shadow = 0

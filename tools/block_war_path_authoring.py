@@ -1,5 +1,6 @@
 """Deliberate road spines, with short settlement approaches on dry ground."""
 import math
+from block_war_height_authoring import surface_segment_clear
 
 
 def author_paths(layout):
@@ -48,10 +49,41 @@ def author_paths(layout):
             line((side * 46, -38), (side * 47, -21), (side * 43, 0),
                  (side * 47, 21), (side * 46, 41))
         line((-60, 2), (-38, 0), (38, 0), (60, 2))
+    elif map_id == "terraces":
+        line((-35, 0), (0, 0), (35, 0))
+        line((0, -27), (0, 0), (0, 27))
+        for z in (-26, 26):
+            line((-33, z), (0, z), (33, z))
+        for side in (-1, 1):
+            line((side * 33, -26), (side * 33, 0), (side * 33, 26))
+    elif map_id == "switchback":
+        for z in (-27, 27):
+            line((-44, z), (-10, z), (10, z), (44, z))
+        line((0, -30), (0, -18), (0, 0), (0, 18), (0, 30))
+        for side in (-1, 1):
+            line((side * 43, -40), (side * 43, 0), (side * 43, 40))
+            line((side * 43, 0), (side * 28, 0))
+        for z in (-40, 40):
+            line((-43, z), (0, z), (43, z))
+    elif map_id == "crown":
+        for z in (-26, 0, 26):
+            line((-65, z), (-28, z))
+            line((28, z), (65, z))
+        for side in (-1, 1):
+            line((side * 62, -33), (side * 62, 0), (side * 62, 33))
+            line((side * 28, -28), (side * 28, 0), (side * 28, 28))
+        for z in (-28, 28):
+            line((-28, z), (0, z), (28, z))
+        line((0, -28), (0, 0), (0, 28))
+        for side in (-1, 1):
+            line((side * 12, -13), (side * 12, 0), (side * 12, 14))
+            line((0, 0), (side * 12, 0))
     else:
         raise ValueError(f"No road plan for {map_id}")
 
     def clear(segment):
+        if not surface_segment_clear(layout, segment):
+            return False
         x1, z1, x2, z2 = segment
         steps = max(1, math.ceil(math.hypot(x2 - x1, z2 - z1) * 2))
         for i in range(steps + 1):

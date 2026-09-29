@@ -3,6 +3,7 @@ extends SceneTree
 
 const P := preload("res://scripts/network/war_protocol.gd")
 const Rooms := preload("res://server/war_relay_rooms.gd")
+const CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 var relay: RefCounted
 var output: Array[Dictionary] = []
 var closed: Array[int] = []
@@ -71,6 +72,7 @@ func messages(op: String, peer: int = -1) -> Array[Dictionary]:
 
 func _run() -> void:
 	_codec()
+	_elevated_map_rooms()
 	_rooms()
 	_barriers()
 	_routing()
@@ -103,12 +105,23 @@ func _codec() -> void:
 	check(P.nickname("\n\t熊盾\u202e\u2066\r") == "熊盾", "nicknames strip controls and bidi overrides")
 	check(P.nickname(" ") == "指挥官" and P.nickname("熊".repeat(30)).length() == 20, "nickname fallback and length are bounded")
 	check(P.valid_code("ABC234") and not P.valid_code("ABC01I") and not P.valid_code("ABC23"), "room code alphabet and size validated")
-	check(P.MAP_SEATS == {"rift": 2, "lake": 2, "rivers": 4, "ridges": 4, "islands": 6, "highland": 6}, "all six authored maps keep fixed seat counts")
+	check(P.MAP_SEATS.size() == CATALOG.MAPS.size(), "relay map roster covers the entire authored catalog")
+	for definition: Resource in CATALOG.MAPS:
+		check(P.MAP_SEATS.get(definition.map_id) == definition.team_size * 2, "relay seat count matches the authored teams for " + definition.map_id)
 	check(P.valid_match_channel("anchors", 4, false) and not P.valid_match_channel("anchors", 2, true), "anchors require unsequenced correction channel")
 	check(P.valid_match_channel("snapshot_chunk", 5, true) and P.valid_match_channel("command_result", 1, true), "snapshot and control channels are distinct")
 	var precise := {"state": [0.3333333333333333, 13.1234567891011, 0.000000000123456789, 4096.0, 1.0]}
 	check(JSON.stringify(precise, "", true, true) == JSON.stringify(P.decode(P.encode(precise)), "", true, true), "wire roundtrip preserves exact canonical floating-point digest")
 	check(P.decode(P.encode({"id": 4096})).id is float, "JSON integers decode as numeric floats; state digest must normalize numeric types")
+
+func _elevated_map_rooms() -> void:
+	for map_id: String in ["terraces", "switchback", "crown"]:
+		reset()
+		var room := make_room(map_id, [11])
+		var definition: Resource = CATALOG.find_map(map_id)
+		check(room.map_id == map_id and room.slots.size() == definition.team_size * 2, "host can create a room for elevated battlefield " + map_id)
+		start(room)
+		check(room.phase == "match" and room.map_id == map_id, "elevated battlefield passes the native room load barrier " + map_id)
 
 func _rooms() -> void:
 	reset()

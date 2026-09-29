@@ -6,6 +6,11 @@ var time := 0.0
 var dust_clock := 0.0
 var serial := 0
 var cuts: Array[Dictionary] = []
+var map_definition := WarMapDefinition.new()
+
+func configure_surface(definition: WarMapDefinition) -> void:
+	map_definition = definition
+	WarSurfaceEffects.configure($Mist.multimesh.mesh.material, definition)
 
 func _ready() -> void:
 	$Mist.multimesh.instance_count = 18
@@ -20,11 +25,11 @@ func release(index: int, _faction: int, at: Vector3) -> void:
 		var a := float(i) * 2.399963
 		var radial := Vector3(cos(a), 0.0, sin(a))
 		if index == 0:
-			$Puffs.emit_particle(Transform3D(Basis.IDENTITY, at + radial * (0.4 + 2.5 * sqrt(float(i) / count)) + Vector3.UP * 0.35), radial * 0.16 + Vector3.UP * 0.18, Color("b5c4a7"), Color(), EMIT)
+			var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * (0.4 + 2.5 * sqrt(float(i) / count)) + Vector3.UP * 0.35)
+			$Puffs.emit_particle(Transform3D(Basis.IDENTITY, origin), radial * 0.16 + Vector3.UP * 0.18, Color("b5c4a7"), Color(), EMIT)
 		else:
 			var fraction := (float(i) + 0.5) / count
-			var origin := at + radial * RULES.FROG_RADII[index] * sqrt(fraction) * 0.82
-			origin.y += 0.22
+			var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * RULES.FROG_RADII[index] * sqrt(fraction) * 0.82 + Vector3.UP * 0.22)
 			var velocity := radial * 0.20 + Vector3.UP * (0.95 if index == 1 else 0.25)
 			if index == 3:
 				# Fragments follow the cut through the house instead of forming a
@@ -56,7 +61,7 @@ func sync(marches: WarMarches, delta: float) -> void:
 			for i: int in 3:
 				serial += 1
 				var a := serial * 2.399963
-				var p: Vector3 = zone.at + Vector3(cos(a), 0.2, sin(a)) * zone.radius * 0.6
+				var p := WarSurfaceEffects.offset_point(map_definition, zone.at, Vector3(cos(a), 0.2, sin(a)) * zone.radius * 0.6)
 				$Puffs.emit_particle(Transform3D(Basis.IDENTITY, p), Vector3(0.12, 0.14, 0.03), Color("b5c4a7"), Color(), EMIT)
 	$Mist.multimesh.visible_instance_count = slot
 	var bubbles: MultiMesh = $Bubbles.multimesh

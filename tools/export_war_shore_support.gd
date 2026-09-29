@@ -6,7 +6,7 @@ extends SceneTree
 
 func _initialize() -> void:
 	var output: Dictionary = {}
-	for map_id: String in ["rift", "lake", "rivers", "islands", "highland"]:
+	for map_id: String in ["rift", "lake", "rivers", "islands", "highland", "crown"]:
 		var path := "res://assets/block_war/environment/maps/%s_bank_grass.res" % map_id
 		var mesh: Mesh = load(path)
 		var values: Array[float] = []

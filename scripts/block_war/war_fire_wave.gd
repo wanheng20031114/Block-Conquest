@@ -13,8 +13,15 @@ var radius := 4.5
 var faction := 0
 var effect_id := 0
 
+func configure_surface(definition: WarMapDefinition) -> void:
+	WarSurfaceEffects.configure($Ground.material_override, definition)
+	for particles: GPUParticles3D in [$Flames, $Sparks, $Smoke]:
+		WarSurfaceEffects.configure(particles.draw_pass_1.material, definition)
+
 func start(at: Vector3, reach: float, caster: int = 0) -> void:
 	position = at
+	for particles: GPUParticles3D in [$Flames, $Sparks, $Smoke]:
+		particles.draw_pass_1.material.set_shader_parameter("emitter_surface_height", at.y)
 	radius = reach
 	faction = caster
 	age = 0.0

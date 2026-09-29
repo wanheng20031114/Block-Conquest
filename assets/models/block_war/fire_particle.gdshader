@@ -1,6 +1,8 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
+#include "res://assets/models/block_war/terrain_height.gdshaderinc"
 uniform float visual_time = 0.0;
+uniform float emitter_surface_height = 0.0;
 varying float flame_seed;
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -12,7 +14,11 @@ float noise(vec2 p) {
 }
 void vertex() {
 	flame_seed = fract(sin(float(INSTANCE_ID) * 12.9898) * 43758.5453);
-	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0] * length(MODEL_MATRIX[0].xyz), INV_VIEW_MATRIX[1] * length(MODEL_MATRIX[1].xyz), INV_VIEW_MATRIX[2] * length(MODEL_MATRIX[2].xyz), MODEL_MATRIX[3]);
+	vec4 origin = MODEL_MATRIX[3];
+	if (terrain_zone_count > 0) {
+		origin.y += terrain_height(origin.xz) - emitter_surface_height;
+	}
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0] * length(MODEL_MATRIX[0].xyz), INV_VIEW_MATRIX[1] * length(MODEL_MATRIX[1].xyz), INV_VIEW_MATRIX[2] * length(MODEL_MATRIX[2].xyz), origin);
 }
 void fragment() {
 	float h = 1.0 - UV.y;

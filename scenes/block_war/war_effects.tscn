@@ -24,7 +24,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-60, -3, -45, 120, 12, 90)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = ExtResource("militia")
 
 [sub_resource type="StandardMaterial3D" id="BallMaterial"]
@@ -45,7 +45,7 @@ rings = 6
 resource_local_to_scene = true
 transform_format = 1
 visible_instance_count = 0
-custom_aabb = AABB(-60, -3, -45, 120, 12, 90)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("BallMesh")
 
 [sub_resource type="ShaderMaterial" id="shield_material"]
@@ -64,7 +64,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-90, -1, -70, 180, 12, 140)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("shield_mesh")
 
 [sub_resource type="ShaderMaterial" id="RecruitMaterial"]
@@ -72,6 +72,9 @@ resource_local_to_scene = true
 shader = ExtResource("recruit_ground")
 
 [sub_resource type="PlaneMesh" id="RecruitMesh"]
+resource_local_to_scene = true
+subdivide_width = 63
+subdivide_depth = 63
 material = SubResource("RecruitMaterial")
 size = Vector2(7.4, 7.4)
 
@@ -80,7 +83,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-90, -1, -70, 180, 12, 140)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("RecruitMesh")
 
 [sub_resource type="Gradient" id="SkillFade"]
@@ -92,6 +95,9 @@ resource_local_to_scene = true
 shader = ExtResource("haste_ground")
 
 [sub_resource type="PlaneMesh" id="HasteGroundMesh"]
+resource_local_to_scene = true
+subdivide_width = 63
+subdivide_depth = 63
 material = SubResource("HasteGroundMaterial")
 size = Vector2(2, 2)
 
@@ -100,7 +106,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-90, -1, -70, 180, 12, 140)
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("HasteGroundMesh")
 
 [sub_resource type="GradientTexture1D" id="SkillFadeRamp"]
@@ -230,7 +236,7 @@ cast_shadow = 0
 emitting = false
 amount = 512
 lifetime = 1.1
-visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("RecruitProcess")
 draw_pass_1 = SubResource("RecruitMote")
 cast_shadow = 0
@@ -239,7 +245,7 @@ cast_shadow = 0
 emitting = false
 amount = 512
 lifetime = 1.0
-visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("ShieldProcess")
 draw_pass_1 = SubResource("ShieldMote")
 cast_shadow = 0
@@ -248,7 +254,7 @@ cast_shadow = 0
 emitting = false
 amount = 512
 lifetime = 0.5
-visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("HasteProcess")
 draw_pass_1 = SubResource("HasteMesh")
 cast_shadow = 0
@@ -261,7 +267,7 @@ cast_shadow = 0
 emitting = false
 amount = 192
 lifetime = 0.9
-visibility_aabb = AABB(-90, -1, -70, 180, 12, 140)
+visibility_aabb = AABB(-90, -3, -70, 180, 26, 140)
 process_material = SubResource("HasteMoteProcess")
 draw_pass_1 = SubResource("HasteMote")
 cast_shadow = 0

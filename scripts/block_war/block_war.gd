@@ -281,6 +281,8 @@ func _ready() -> void:
 	hud.convert_requested.connect(convert_selected)
 	hud.ui_sound_requested.connect(audio.play_ui)
 	get_window().focus_exited.connect(_on_focus_exited)
+	marches.map_definition = map.definition
+	world_effects.configure_surface(map.definition)
 	camera_rig.maximum_zoom = maxf(95.0, map.definition.half_size.y * 2.1)
 	camera_rig.configure_bounds(map.definition.camera_bounds)
 	var home: Node3D
@@ -915,7 +917,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 			hud.notify("请选择战场内的地面 · 右键取消")
 			audio.play_ui(&"war_denied")
 		return false
-	var center := Vector3(at.x, 0.0, at.z)
+	var center: Vector3 = map.definition.surface_point(at)
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		if marches.apply_frog_field(index, faction, center) == 0:
 			if faction == local_faction:
@@ -996,8 +998,8 @@ func _valid_ground_skill_target(at: Vector3) -> bool:
 func skill_ground_at(screen: Vector2) -> Vector3:
 	if not get_viewport().get_visible_rect().has_point(screen) or hud.is_pointer_blocked(screen):
 		return Vector3.INF
-	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(screen), camera.project_ray_normal(screen))
-	if hit == null or not _valid_ground_skill_target(hit):
+	var hit: Vector3 = map.definition.ray_ground(camera.project_ray_origin(screen), camera.project_ray_normal(screen))
+	if not _valid_ground_skill_target(hit):
 		return Vector3.INF
 	return hit
 
@@ -1090,7 +1092,7 @@ func execute_network_command(faction: int, command: Dictionary) -> Dictionary:
 		"skill_ground":
 			if not _integer_fields(command, ["skill"]) or typeof(command.get("x")) not in [TYPE_INT, TYPE_FLOAT] or typeof(command.get("z")) not in [TYPE_INT, TYPE_FLOAT]:
 				return {"accepted": false, "reason": "invalid_command"}
-			accepted = cast_ground_skill(int(command.skill), Vector3(float(command.x), 0.0, float(command.z)), faction)
+			accepted = cast_ground_skill(int(command.skill), map.definition.surface_point(Vector3(float(command.x), 0.0, float(command.z))), faction)
 		_:
 			return {"accepted": false, "reason": "invalid_command"}
 	return {"accepted": accepted, "reason": "" if accepted else "rule_rejected", "count": count}

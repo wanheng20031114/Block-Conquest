@@ -226,5 +226,6 @@ func _ring(center: Vector3, radius: float, color: Color, width: float) -> void:
 	var points := PackedVector2Array()
 	for index: int in 65:
 		var angle: float = index * TAU / 64.0
-		points.append(game.camera.unproject_position(center + Vector3(cos(angle) * radius, 0.15, sin(angle) * radius)))
+		var at: Vector3 = game.map.definition.surface_point(center + Vector3(cos(angle) * radius, 0, sin(angle) * radius))
+		points.append(game.camera.unproject_position(at + Vector3.UP * 0.15))
 	draw_polyline(points, color, width, true)

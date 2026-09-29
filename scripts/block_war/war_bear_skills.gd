@@ -23,7 +23,8 @@ func partner(game: Node3D, target: WarBuilding) -> WarBuilding:
 	for candidate: WarBuilding in game.buildings:
 		if candidate == target or candidate.faction != target.faction or candidate.population < 1.0 or participates(candidate.building_id):
 			continue
-		var squared := target.global_position.distance_squared_to(candidate.global_position)
+		var offset := target.global_position - candidate.global_position
+		var squared := Vector2(offset.x, offset.z).length_squared()
 		if squared <= distance and (closest == null or squared < distance or candidate.building_id < closest.building_id):
 			distance = squared
 			closest = candidate

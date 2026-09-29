@@ -6,6 +6,11 @@ var time := 0.0
 var tool_ages: Array[float] = [2, 2, 2, 2, 2, 2]
 var emission_clock := 0.0
 var serial := 0
+var map_definition := WarMapDefinition.new()
+
+func configure_surface(definition: WarMapDefinition) -> void:
+	map_definition = definition
+	WarSurfaceEffects.configure($Ground.multimesh.mesh.material, definition)
 
 func _ready() -> void:
 	for path: String in ["Ground", "Wards", "Orbs", "OrbBands"]:
@@ -16,18 +21,20 @@ func _ready() -> void:
 func toolbox(faction: int, at: Vector3) -> void:
 	tool_ages[faction] = 0.0
 	var tool: Node3D = $Tools.get_child(faction)
-	tool.position = at + Vector3(2.2, 0.18, 0.65)
+	tool.position = WarSurfaceEffects.offset_point(map_definition, at, Vector3(2.2, 0.18, 0.65))
 	tool.show()
 	for i: int in 15:
 		var a := i * 2.399963
-		$Dust.emit_particle(Transform3D(Basis.IDENTITY, at + Vector3(cos(a), 0.2, sin(a)) * 2.3), Vector3(cos(a) * 0.6, 1.3, sin(a) * 0.6), Color("c99c60"), Color(), EMIT)
+		var origin := WarSurfaceEffects.offset_point(map_definition, at, Vector3(cos(a), 0.2, sin(a)) * 2.3)
+		$Dust.emit_particle(Transform3D(Basis.IDENTITY, origin), Vector3(cos(a) * 0.6, 1.3, sin(a) * 0.6), Color("c99c60"), Color(), EMIT)
 
 func stomp(_faction: int, at: Vector3) -> void:
 	for i: int in 48:
 		var a := i * 2.399963
 		var r := 1.0 + 3.2 * sqrt(float(i) / 48.0)
 		var radial := Vector3(cos(a), 0, sin(a))
-		$Dust.emit_particle(Transform3D(Basis.IDENTITY, at + radial * r + Vector3.UP * 0.12), radial * 0.8 + Vector3.UP * (0.6 + float(i % 3) * 0.2), Color("bdaa76"), Color(), EMIT)
+		var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * r + Vector3.UP * 0.12)
+		$Dust.emit_particle(Transform3D(Basis.IDENTITY, origin), radial * 0.8 + Vector3.UP * (0.6 + float(i % 3) * 0.2), Color("bdaa76"), Color(), EMIT)
 
 func spark(at: Vector3) -> void:
 	for i: int in 8:
@@ -61,7 +68,7 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 		if emit:
 			serial += 1
 			var angle := serial * 2.399963
-			var p: Vector3 = zone.at + Vector3(cos(angle), 0.03, sin(angle)) * zone.radius * 0.92
+			var p := WarSurfaceEffects.offset_point(map_definition, zone.at, Vector3(cos(angle), 0.03, sin(angle)) * zone.radius * 0.92)
 			$Dust.emit_particle(Transform3D(Basis.IDENTITY, p), Vector3.UP * 0.2, Color("b9a679"), Color(), EMIT)
 	fields.visible_instance_count = count
 	var chains: MultiMesh = $Chains.multimesh
@@ -76,6 +83,8 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 		for i: int in pieces:
 			var t := float(i) / float(pieces - 1)
 			var at := a.lerp(b, t) - Vector3.UP * sin(t * PI) * 0.45
+			if not map_definition.height_zones.is_empty():
+				at.y = maxf(at.y, map_definition.surface_height(Vector2(at.x, at.z)) + 0.45)
 			var basis := Basis.looking_at(heading) * Basis(Vector3.FORWARD, PI * 0.5 if i % 2 == 0 else 0.0)
 			chains.set_instance_transform(count, Transform3D(basis, at))
 			var glint := exp(-pow((t - (1.0 - float(link.pulse)) * 1.5) * 8.0, 2.0)) if link.pulse > 0.0 else 0.0

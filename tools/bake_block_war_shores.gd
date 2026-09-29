@@ -13,7 +13,7 @@ extends SceneTree
 ## https://docs.godotengine.org/en/stable/classes/class_geometry2d.html
 
 const OUTPUT := "res://assets/block_war/environment/maps/"
-const MAP_IDS := ["rift", "lake", "rivers", "ridges", "islands", "highland"]
+const MAP_IDS := ["rift", "lake", "rivers", "ridges", "islands", "highland", "crown"]
 const SHORE_STEP := 0.5
 const WATER_STEP := 0.75
 const WATER_HEIGHT := -1.18
@@ -23,6 +23,8 @@ const CORNER_RADIUS := 3.2
 func _initialize() -> void:
 	assert(DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT)) == OK)
 	for map_id: String in MAP_IDS:
+		if not OS.get_cmdline_user_args().is_empty() and map_id not in OS.get_cmdline_user_args():
+			continue
 		var definition: WarMapDefinition = load("res://data/block_war/maps/%s.tres" % map_id)
 		if definition.water_regions.is_empty():
 			continue

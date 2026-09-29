@@ -31,23 +31,38 @@ func _click(button: Button) -> void:
 		root.push_input(event, true)
 
 func _run() -> void:
-	create_timer(90.0, true, false, true).timeout.connect(func(): quit(3))
+	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
 	var session := root.get_node("Session")
+	for size_class: int in 3:
+		var count := 0
+		for definition: Resource in CATALOG.MAPS:
+			count += int(definition.size_class == size_class)
+		check(count == 3, "each battle size offers three authored maps")
 	for index: int in CATALOG.MAPS.size():
 		var definition: Resource = CATALOG.MAPS[index]
+		var size_maps: Array[Resource] = []
+		for candidate: Resource in CATALOG.MAPS:
+			if candidate.size_class == definition.size_class:
+				size_maps.append(candidate)
+		var slot := size_maps.find(definition)
 		change_scene_to_file("res://scenes/block_war/map_select.tscn")
 		await scene_changed
 		await _settle()
 		var picker := current_scene
 		_click(picker.get_node("%%Size%d" % definition.size_class))
 		await _settle()
-		_click(picker.get_node("%%Map%d" % (index % 2)))
+		_click(picker.get_node("%%Map%d" % slot))
 		await _settle()
 		check(picker.selected == definition, "size and map clicks select %s" % definition.map_id)
 		check(picker.get_node("%Preview").definition == definition, "the preview follows the chosen map")
 		check(picker.get_node("%Start").text.contains(definition.mode_label()), "start shows the selected team size")
-		_click(picker.get_node("%%Map%d" % (index % 2)))
-		check(picker.get_node("%%Map%d" % (index % 2)).button_pressed, "clicking the selected map keeps a selection")
+		for button_index: int in size_maps.size():
+			var button: Button = picker.get_node("%%Map%d" % button_index)
+			check(button.visible and button.text == size_maps[button_index].title and button.button_pressed == (button_index == slot), "all three map buttons show the selected size and only one remains pressed")
+		if not definition.height_zones.is_empty():
+			check(picker.get_node("%TerrainInfo").text.contains("高地土坡"), "selecting a raised battlefield exposes its terrain type")
+		_click(picker.get_node("%%Map%d" % slot))
+		check(picker.get_node("%%Map%d" % slot).button_pressed, "clicking the selected map keeps a selection")
 		_click(picker.get_node("%Start"))
 		await scene_changed
 		await _settle()

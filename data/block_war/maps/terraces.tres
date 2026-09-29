@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="WarMapDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_map_definition.gd" id="script"]
+
+[ext_resource type="Script" path="res://scripts/block_war/war_height_zone.gd" id="height_zone"]
+
+[sub_resource type="Resource" id="Height0"]
+script = ExtResource("height_zone")
+region = Rect2(-12, -12, 24, 24)
+start_height = 4.5
+end_height = 4.5
+axis = 0
+
+[sub_resource type="Resource" id="Height1"]
+script = ExtResource("height_zone")
+region = Rect2(-26, -6, 14, 12)
+start_height = 0.0
+end_height = 4.5
+axis = 0
+
+[sub_resource type="Resource" id="Height2"]
+script = ExtResource("height_zone")
+region = Rect2(12, -6, 14, 12)
+start_height = 4.5
+end_height = 0.0
+axis = 0
+
+[sub_resource type="Resource" id="Height3"]
+script = ExtResource("height_zone")
+region = Rect2(-6, -24, 12, 12)
+start_height = 0.0
+end_height = 4.5
+axis = 1
+
+[sub_resource type="Resource" id="Height4"]
+script = ExtResource("height_zone")
+region = Rect2(-6, 12, 12, 12)
+start_height = 4.5
+end_height = 0.0
+axis = 1
+
+[resource]
+script = ExtResource("script")
+map_id = "terraces"
+title = "叠翠台地"
+size_class = 0
+team_size = 1
+scene_path = "res://scenes/block_war/maps/terraces.tscn"
+routes_path = "res://data/block_war/routes/terraces.res"
+description = "四条宽土坡通向中央台地，坡顶炮塔控制近路。沿南北低地绕行，可以避开正面争坡并抢占两翼工坊。"
+half_size = Vector2(44, 32)
+camera_bounds = Rect2(-68, -56, 136, 112)
+ground_color = Color(0.36, 0.465, 0.2, 1)
+water_regions = Array[Rect2]([])
+mountain_regions = Array[Rect2]([])
+bridges = Array[Rect2]([])
+height_zones = Array[ExtResource("height_zone")]([SubResource("Height0"), SubResource("Height1"), SubResource("Height2"), SubResource("Height3"), SubResource("Height4")])
+building_positions = PackedVector3Array(-34, 0.0, 0, 34, 0.0, 0, -33, 0.0, -20, 33, 0.0, -20, -33, 0.0, 20, 33, 0.0, 20, -18, 0.0, -23, 18, 0.0, -23, -18, 0.0, 23, 18, 0.0, 23, 0, 4.5, 0)
+building_kinds = PackedInt32Array(0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1)
+building_factions = PackedInt32Array(0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1)

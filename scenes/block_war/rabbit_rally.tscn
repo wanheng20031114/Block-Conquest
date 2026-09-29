@@ -9,6 +9,8 @@ resource_local_to_scene = true
 shader = ExtResource("recall")
 
 [sub_resource type="PlaneMesh" id="WavesMesh"]
+subdivide_width = 63
+subdivide_depth = 63
 size = Vector2(2, 2)
 
 [sub_resource type="StandardMaterial3D" id="Earth"]
@@ -90,6 +92,7 @@ size = Vector3(0.35, 0.18, 0.22)
 script = ExtResource("script")
 
 [node name="Waves" type="MeshInstance3D" parent="."]
+extra_cull_margin = 10.0
 visible = false
 position = Vector3(0, 0.12, 0)
 mesh = SubResource("WavesMesh")

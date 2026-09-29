@@ -10,6 +10,15 @@ var emission := 0.0
 var serial := 0
 var soldier_offset := 0
 var running := true
+var map_definition := WarMapDefinition.new()
+
+func configure_surface(definition: WarMapDefinition) -> void:
+	map_definition = definition
+	WarSurfaceEffects.configure($RushBursts.multimesh.mesh.material, definition)
+	for rally: Node3D in $Rallies.get_children():
+		rally.configure_surface(definition)
+	for tunnel: Node3D in $Tunnels.get_children():
+		tunnel.map_definition = definition
 
 func _ready() -> void:
 	$RushBursts.multimesh.instance_count = WarMarches.FACTION_COLORS.size()
@@ -32,7 +41,7 @@ func start_rush(faction: int, center: Vector3, radius: float) -> void:
 	for index: int in 18:
 		var angle := float(index) * TAU / 18.0
 		var radial := Vector3(cos(angle), 0, sin(angle))
-		var at := center + radial * radius * 0.48 + Vector3.UP * 0.16
+		var at := WarSurfaceEffects.offset_point(map_definition, center, radial * radius * 0.48 + Vector3.UP * 0.16)
 		$RushStreaks.emit_particle(Transform3D(Basis.looking_at(radial), at), radial * 5.0, RUSH_COLOR.srgb_to_linear(), Color(), FLAGS)
 
 func return_dust(at: Vector3, direction: Vector3) -> void:
@@ -60,7 +69,7 @@ func _draw_rush_bursts() -> void:
 		var burst: Dictionary = rush_bursts[faction]
 		mesh.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * burst.radius), burst.at + Vector3.UP * 0.085))
 		mesh.set_instance_custom_data(count, Color(RUSH_COLOR.srgb_to_linear(), 1.0 - burst.remaining / RUSH_BURST_DURATION))
-		var burst_bounds := AABB(burst.at - Vector3(burst.radius, 0, burst.radius), Vector3(burst.radius * 2, 1, burst.radius * 2))
+		var burst_bounds := AABB(Vector3(burst.at.x - burst.radius, -1, burst.at.z - burst.radius), Vector3(burst.radius * 2, 18, burst.radius * 2))
 		bounds = burst_bounds if count == 0 else bounds.merge(burst_bounds)
 		count += 1
 	mesh.visible_instance_count = count
@@ -91,7 +100,7 @@ func update_rush(delta: float, marches: WarMarches) -> void:
 		serial += 1
 		var sideways := Vector3(-unit.heading.z, 0, unit.heading.x)
 		var offset := 0.20 if serial % 2 == 0 else -0.20
-		var at := unit.position - unit.heading * 0.52 + sideways * offset + Vector3.UP * 0.27
+		var at := WarSurfaceEffects.offset_point(map_definition, unit.position, -unit.heading * 0.52 + sideways * offset + Vector3.UP * 0.27)
 		$RushStreaks.emit_particle(Transform3D(Basis.looking_at(unit.heading), at), -unit.heading * 1.1, RUSH_COLOR.srgb_to_linear(), Color(), FLAGS)
 	soldier_offset = (soldier_offset + 48) % runners.size()
 

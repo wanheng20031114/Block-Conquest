@@ -17,10 +17,10 @@ func check(value: bool, label: String) -> void:
 func near(actual: float, expected: float, label: String) -> void:
 	check(absf(actual - expected) < 0.002, "%s actual=%s expected=%s" % [label, actual, expected])
 
-func reset() -> void:
+func reset(map_id: String = "rift") -> void:
 	if game != null:
 		await game.prepare_shutdown()
-	root.get_node("Session").block_war_map_id = "rift"
+	root.get_node("Session").block_war_map_id = map_id
 	root.get_node("Session").block_war_commander = &"rabbit"
 	root.get_node("Session").block_war_opponent_commander = &"squirrel"
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")

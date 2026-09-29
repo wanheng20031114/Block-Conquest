@@ -3,13 +3,16 @@
 [ext_resource type="Script" path="res://scripts/block_war/war_fire_wave.gd" id="script"]
 [ext_resource type="Shader" path="res://assets/models/block_war/fire_ground.gdshader" id="ground"]
 [ext_resource type="Shader" path="res://assets/models/block_war/fire_particle.gdshader" id="flame"]
-[ext_resource type="Shader" path="res://assets/models/block_war/architecture/smoke.gdshader" id="smoke"]
+[ext_resource type="Shader" path="res://assets/models/block_war/fire_smoke.gdshader" id="smoke"]
+[ext_resource type="Shader" path="res://assets/models/block_war/fire_spark.gdshader" id="spark"]
 
 [sub_resource type="ShaderMaterial" id="GroundMaterial"]
 resource_local_to_scene = true
 shader = ExtResource("ground")
 
 [sub_resource type="PlaneMesh" id="GroundMesh"]
+subdivide_width = 63
+subdivide_depth = 63
 size = Vector2(2, 2)
 
 [sub_resource type="Gradient" id="Fade"]
@@ -44,14 +47,9 @@ scale_min = 0.65
 scale_max = 1.35
 color_ramp = SubResource("FadeRamp")
 
-[sub_resource type="StandardMaterial3D" id="SparkMaterial"]
-shading_mode = 0
-transparency = 1
-vertex_color_use_as_albedo = true
-albedo_color = Color(1, 0.48, 0.08, 1)
-emission_enabled = true
-emission = Color(1, 0.24, 0.02, 1)
-emission_energy_multiplier = 1.8
+[sub_resource type="ShaderMaterial" id="SparkMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("spark")
 
 [sub_resource type="ParticleProcessMaterial" id="AfterfireProcess"]
 resource_local_to_scene = true
@@ -70,6 +68,7 @@ scale_max = 0.65
 color_ramp = SubResource("FadeRamp")
 
 [sub_resource type="BoxMesh" id="SparkMesh"]
+resource_local_to_scene = true
 material = SubResource("SparkMaterial")
 size = Vector3(0.045, 0.15, 0.045)
 
@@ -88,10 +87,12 @@ gravity = Vector3(0, -1.0, 0)
 color_ramp = SubResource("FadeRamp")
 
 [sub_resource type="ShaderMaterial" id="SmokeMaterial"]
+resource_local_to_scene = true
 shader = ExtResource("smoke")
 shader_parameter/opacity = 0.32
 
 [sub_resource type="QuadMesh" id="SmokeMesh"]
+resource_local_to_scene = true
 material = SubResource("SmokeMaterial")
 size = Vector2(1.2, 1.2)
 
@@ -115,6 +116,7 @@ visible = false
 script = ExtResource("script")
 
 [node name="Ground" type="MeshInstance3D" parent="."]
+extra_cull_margin = 10.0
 position = Vector3(0, 0.055, 0)
 mesh = SubResource("GroundMesh")
 material_override = SubResource("GroundMaterial")
@@ -127,7 +129,7 @@ emitting = false
 amount = 180
 lifetime = 0.48
 randomness = 0.35
-visibility_aabb = AABB(-6, -1, -6, 12, 7, 12)
+visibility_aabb = AABB(-8, -10, -8, 16, 24, 16)
 process_material = SubResource("FlameProcess")
 draw_pass_1 = SubResource("FlameMesh")
 cast_shadow = 0
@@ -139,7 +141,7 @@ emitting = false
 amount = 88
 lifetime = 0.65
 randomness = 0.5
-visibility_aabb = AABB(-7, -1, -7, 14, 8, 14)
+visibility_aabb = AABB(-8, -10, -8, 16, 24, 16)
 process_material = SubResource("SparkProcess")
 draw_pass_1 = SubResource("SparkMesh")
 cast_shadow = 0
@@ -151,7 +153,7 @@ emitting = false
 amount = 64
 lifetime = 0.45
 randomness = 0.5
-visibility_aabb = AABB(-6, -1, -6, 12, 6, 12)
+visibility_aabb = AABB(-8, -10, -8, 16, 24, 16)
 process_material = SubResource("AfterfireProcess")
 draw_pass_1 = SubResource("FlameMesh")
 cast_shadow = 0
@@ -163,7 +165,7 @@ emitting = false
 amount = 36
 lifetime = 0.85
 randomness = 0.4
-visibility_aabb = AABB(-6, -1, -6, 12, 7, 12)
+visibility_aabb = AABB(-8, -10, -8, 16, 24, 16)
 process_material = SubResource("SmokeProcess")
 draw_pass_1 = SubResource("SmokeMesh")
 cast_shadow = 0

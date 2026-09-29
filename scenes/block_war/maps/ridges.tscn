@@ -539,6 +539,7 @@ water_paths = Array[NodePath]([])
 [node name="Buildings" type="Node3D" parent="."]
 
 [node name="Land0_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, 0)
 scale = Vector3(156, 3.2, 128)
 mesh = SubResource("Cube")

@@ -1,13 +1,19 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
+#include "res://assets/models/block_war/ground_surface.gdshaderinc"
 
 varying vec4 burst_data;
 
 void vertex() {
+	terrain_clearance = 0.085;
+	terrain_world = ground_effect_world(VERTEX, MODEL_MATRIX, terrain_clearance);
+	VERTEX = (inverse(MODEL_MATRIX) * vec4(terrain_world, 1.0)).xyz;
+
 	burst_data = INSTANCE_CUSTOM;
 }
 
 void fragment() {
+	if (ground_effect_gap(terrain_world, terrain_clearance)) { discard; }
 	vec2 p = UV * 2.0 - 1.0;
 	float radius = length(p);
 	float angle = atan(p.y, p.x);

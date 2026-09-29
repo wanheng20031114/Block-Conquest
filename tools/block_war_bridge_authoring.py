@@ -75,8 +75,10 @@ def author_bridges(layout):
         return f"{parent}/{name}"
 
     def mesh(name, parent, asset, position=(0, 0, 0), scale=(1, 1, 1), material="Limestone", rotation=0.0):
+        receiver = 'layers = 524289\n' if asset in ("stone_bridge_deck", "stone_bridge_paving") else ''
         nodes.append(
             f'[node name="{name}" type="MeshInstance3D" parent="{parent}"]\n'
+            f'{receiver}'
             f'position = {_vector(position)}\nrotation = {_vector((0, rotation, 0))}\n'
             f'scale = {_vector(scale)}\nmesh = ExtResource("bridge_mesh_{asset}")\n'
             f'material_override = SubResource("bridge_{material}")'

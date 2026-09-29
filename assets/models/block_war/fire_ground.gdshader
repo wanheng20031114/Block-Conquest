@@ -1,10 +1,18 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded, shadows_disabled;
+#include "res://assets/models/block_war/ground_surface.gdshaderinc"
 uniform float age = 0.0;
 uniform float expansion_time = 0.28;
 uniform float ignition_ratio = 0.1;
 
+void vertex() {
+	terrain_clearance = 0.055;
+	terrain_world = ground_effect_world(VERTEX, MODEL_MATRIX, terrain_clearance);
+	VERTEX = (inverse(MODEL_MATRIX) * vec4(terrain_world, 1.0)).xyz;
+}
+
 void fragment() {
+	if (ground_effect_gap(terrain_world, terrain_clearance)) { discard; }
 	vec2 p = UV * 2.0 - 1.0;
 	float r = length(p);
 	float edge = mix(ignition_ratio, 1.0, clamp(age / expansion_time, 0.0, 1.0));

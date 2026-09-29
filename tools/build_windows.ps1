@@ -52,7 +52,7 @@ function Invoke-OwnedGodot([string[]]$EngineArgs, [int]$TimeoutSeconds = 300) {
 $exportLog = Join-Path $logRoot 'windows-export.engine.log'
 Invoke-OwnedGodot @('--headless', '--path', ('"' + $projectRoot + '"'), '--log-file', ('"' + $exportLog + '"'), $exportMode, '"Windows Desktop"', ('"' + $exportTarget + '"'))
 if (Select-String -LiteralPath $exportLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Export log contains errors.' }
-# Run all six maps from the exported PCK, then release audio and return home.
+# Run every catalog map from the exported PCK, then release audio and return home.
 $smokeLog = Join-Path $logRoot 'windows-package.engine.log'
 $smokeRoot = Join-Path $logRoot 'package-isolated'
 New-Item -ItemType Directory -Path $smokeRoot -Force | Out-Null

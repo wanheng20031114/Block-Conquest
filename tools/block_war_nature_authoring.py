@@ -10,6 +10,7 @@ from collections import defaultdict
 import math
 import random
 from war_nature_placement import ShoreSupport
+from block_war_height_authoring import height_at, supported_footprint
 
 
 NATURE = "res://assets/models/block_war/nature/"
@@ -23,6 +24,9 @@ PALETTES = {
     "ridges": ("wind_pine", "wind_pine", "silver_birch", "canopy_oak"),
     "islands": ("canopy_oak", "silver_birch", "wind_pine", "canopy_oak"),
     "highland": ("wind_pine", "silver_birch", "wind_pine", "canopy_oak"),
+    "terraces": ("silver_birch", "canopy_oak", "silver_birch", "canopy_oak"),
+    "switchback": ("wind_pine", "wind_pine", "silver_birch", "canopy_oak"),
+    "crown": ("canopy_oak", "wind_pine", "silver_birch", "canopy_oak"),
 }
 
 
@@ -80,6 +84,8 @@ def author_nature(layout, paths):
         return not any(_inside(rect, x, z, radius) for rect in exclusions)
 
     def clear_site(x, z, footprint, road_gap=3.4, yard=7.2, allow_mountain=False):
+        if not supported_footprint(layout, x, z, footprint + 0.3):
+            return False
         if not on_land(x, z, footprint, allow_mountain):
             return False
         if any(_inside(rect, x, z, footprint + 3.0) for rect in bridges):
@@ -92,6 +98,7 @@ def author_nature(layout, paths):
         nonlocal sequence
         sequence += 1
         scale = tuple(size * component for component in proportions)
+        y += height_at(layout, x, z)
         node = (f'[node name="nature_{label}_{sequence:04d}" parent="Nature" instance=ExtResource("nature_{species}")]\n'
                 f'position = {_vector((x, y, z))}\nrotation = {_vector((tilt[0], yaw, tilt[1]))}\nscale = {_vector(scale)}')
         if radius > 0 and abs(x) - radius < hx and abs(z) - radius < hz and not any(_inside(rect, x, z) for rect in mountains):
@@ -101,14 +108,14 @@ def author_nature(layout, paths):
     def groundcover(species, x, z, size, yaw, y=-0.015, shoreline=False):
         # Flowers and grass are low decoration, never navigation obstacles.
         supported = any(_inside(rect, x, z, -0.12) for rect in waters) if shoreline else on_land(x, z, 0.12)
-        if not supported or any(_inside(rect, x, z, 0.35) for rect in bridges):
+        if not supported or any(_inside(rect, x, z, 0.35) for rect in bridges) or not supported_footprint(layout, x, z, size * 0.65, 0.25):
             return
         if any(math.hypot(x - b[0], z - b[1]) < 3.6 for b in buildings):
             return
         if any(_distance_to_path(x, z, segment) < 1.6 for segment in paths):
             return
         cell = (species, math.floor(x / 32), math.floor(z / 32))
-        batches[cell].append((x, y, z, size, yaw))
+        batches[cell].append((x, y + height_at(layout, x, z), z, size, yaw))
 
     def flower_pair(species, x, z, size, yaw):
         for sign in (-1, 1):
@@ -352,16 +359,41 @@ def author_nature(layout, paths):
                 if (step + road_index) % 4 == 0:
                     flower_pair("daisies", x + nx * 0.5, z + nz * 0.5, 0.57, road_index)
 
+    # Small scree pockets sit against inaccessible cliff feet. Their entire
+    # footprint remains within the already forbidden formation-clearance strip,
+    # so these authored details do not introduce invisible route blockers.
+    cliff_sites = []
+    for (rx, rz, width, depth), *_ in layout.get("heights", []):
+        edges = ((rx, rz, rx + width, rz, 0, -1), (rx + width, rz, rx + width, rz + depth, 1, 0),
+                 (rx + width, rz + depth, rx, rz + depth, 0, 1), (rx, rz + depth, rx, rz, -1, 0))
+        for ax, az, bx, bz, nx, nz in edges:
+            count = max(1, int(math.hypot(bx - ax, bz - az) / 9))
+            for index in range(count):
+                t = (index + 0.48) / count
+                x, z = ax + (bx - ax) * t, az + (bz - az) * t
+                if x < 1.0 or height_at(layout, x - nx * .03, z - nz * .03) - height_at(layout, x + nx * .03, z + nz * .03) < 1.1:
+                    continue
+                px, pz = x + nx * .85, z + nz * .85
+                if not clear_site(px, pz, .42, road_gap=2.6, yard=5.0):
+                    continue
+                if any(math.hypot(px - ox, pz - oz) < 3.0 for ox, oz in cliff_sites):
+                    continue
+                cliff_sites.append((px, pz))
+                for sign in (-1, 1):
+                    scene("moss_boulder", sign * px, pz, .38, sign * (index * 1.37 + .4), "CliffScree", y=-.035, proportions=(1.25, .70, .85))
+                    groundcover("fern_patch", sign * (px + nz * .48), pz - nx * .48, .44, index * .91)
+
     for (species, cell_x, cell_z), instances in sorted(batches.items()):
         identifier = f"nature_cover_{species}_{cell_x}_{cell_z}".replace("-", "n")
         buffer = []
         for x, y, z, size, yaw in instances:
             cosine, sine = math.cos(yaw) * size, math.sin(yaw) * size
             buffer.extend((cosine, 0, sine, x, 0, size, 0, y, -sine, 0, cosine, z))
+        cover_height = max(5.0, max(item[1] for item in instances) + 3.0)
         resources.append(f'[sub_resource type="MultiMesh" id="{identifier}"]\n'
                          f'transform_format = 1\ninstance_count = {len(instances)}\n'
                          f'mesh = ExtResource("nature_{species}_mesh")\n'
-                         f'custom_aabb = AABB({cell_x * 32 - 2}, -1, {cell_z * 32 - 2}, 36, 5, 36)\n'
+                         f'custom_aabb = AABB({cell_x * 32 - 2}, -1, {cell_z * 32 - 2}, 36, {cover_height:g}, 36)\n'
                          f'buffer = PackedFloat32Array({", ".join(f"{value:.6f}" for value in buffer)})')
         nodes.append(f'[node name="{identifier}" type="MultiMeshInstance3D" parent="Nature"]\n'
                      f'multimesh = SubResource("{identifier}")\nmaterial_override = ExtResource("nature_grass_material")\ncast_shadow = 0')

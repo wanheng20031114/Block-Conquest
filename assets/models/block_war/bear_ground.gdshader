@@ -1,9 +1,16 @@
 shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
+#include "res://assets/models/block_war/ground_surface.gdshaderinc"
 uniform float visual_time = 0.0;
 varying vec4 effect;
-void vertex() { effect = INSTANCE_CUSTOM; }
+void vertex() {
+	terrain_clearance = 0.095;
+	terrain_world = ground_effect_world(VERTEX, MODEL_MATRIX, terrain_clearance);
+	VERTEX = (inverse(MODEL_MATRIX) * vec4(terrain_world, 1.0)).xyz;
+	effect = INSTANCE_CUSTOM;
+}
 void fragment() {
+	if (ground_effect_gap(terrain_world, terrain_clearance)) { discard; }
     vec2 p = (UV - 0.5) * 2.0;
     float r = length(p);
     float angle = atan(p.y, p.x);

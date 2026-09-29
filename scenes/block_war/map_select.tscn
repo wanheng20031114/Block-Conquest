@@ -216,7 +216,7 @@ theme_override_font_sizes/font_size = 30
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-text = "01 / 06"
+text = "01 / 09"
 theme_override_colors/font_color = Color(0.79, 0.83, 0.70, 1)
 theme_override_font_sizes/font_size = 17
 vertical_alignment = 1
@@ -242,7 +242,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 24)
 mouse_filter = 2
-text = "悬停据点查看归属与类型 · 带编号的据点为各玩家出生点"
+text = "悬停据点或地形查看详情 · 带编号的据点为各玩家出生点"
 theme_override_colors/font_color = Color(0.86, 0.85, 0.65, 1)
 theme_override_font_sizes/font_size = 15
 horizontal_alignment = 1
@@ -250,7 +250,7 @@ horizontal_alignment = 1
 [node name="BuildingLegend" type="Label" parent="Margin/Column/Content/Overview/OverviewColumn"]
 layout_mode = 2
 mouse_filter = 2
-text = "⌂ 住宅     ▥ 炮塔     ◆ 铁匠铺     ≋ 水域     ▲ 山地     ═ 桥梁"
+text = "⌂ 住宅   ▥ 炮塔   ◆ 铁匠铺   ≋ 水域   ▲ 山地   ═ 桥梁   ▱ 台地   ↗ 土坡"
 theme_override_colors/font_color = Color(0.78, 0.83, 0.73, 1)
 theme_override_font_sizes/font_size = 15
 horizontal_alignment = 1
@@ -271,7 +271,7 @@ theme_override_styles/panel = SubResource("Details")
 
 [node name="DetailsColumn" type="VBoxContainer" parent="Margin/Column/Content/Details"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
 [node name="SizeHeading" type="Label" parent="Margin/Column/Content/Details/DetailsColumn"]
 layout_mode = 2
@@ -336,7 +336,7 @@ theme_override_constants/separation = 8
 [node name="Map0" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 46)
 mouse_default_cursor_shape = 2
 text = "裂谷交汇"
 toggle_mode = true
@@ -351,9 +351,24 @@ metadata/ui_motion_hover_scale = 1.01
 [node name="Map1" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 46)
 mouse_default_cursor_shape = 2
 text = "湖心迂回"
+toggle_mode = true
+alignment = 0
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("SmallNormal")
+theme_override_styles/hover = SubResource("SmallHover")
+theme_override_styles/pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="Map2" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+mouse_default_cursor_shape = 2
+text = "叠翠台地"
 toggle_mode = true
 alignment = 0
 theme_override_font_sizes/font_size = 21

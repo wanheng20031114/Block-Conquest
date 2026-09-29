@@ -267,8 +267,10 @@ func _tower_losses(game: Node3D, source: WarBuilding, target: WarBuilding, count
 			var route: PackedVector3Array = game.map.get_building_route(source, target)
 			var length := 0.0
 			var radius: float = game.tower_range(tower)
+			var tower_at := Vector2(tower.global_position.x, tower.global_position.z)
 			for index: int in range(1, route.size()):
-				if tower.global_position.distance_to(route[index - 1].lerp(route[index], 0.5)) <= radius:
+				var midpoint := route[index - 1].lerp(route[index], 0.5)
+				if tower_at.distance_to(Vector2(midpoint.x, midpoint.z)) <= radius:
 					length += route[index - 1].distance_to(route[index])
 			_tower_exposure[key] = length
 		var exposed_length := _tower_exposure[key]

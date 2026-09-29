@@ -121,6 +121,8 @@ func get_building_distance(source: WarBuilding, target: WarBuilding) -> float:
 func get_return_route(from: Vector3, source: WarBuilding, destination: WarBuilding) -> PackedVector3Array:
 	# Join the saved surface guide, including from a tunnel's exit. Reversing it
 	# keeps distant returns on authored bridges without a new global navigation grid.
+	if not definition.height_zones.is_empty():
+		from = definition.surface_point(from)
 	if from.distance_to(source.global_position) <= 8.0:
 		return get_recall_route(from, source)
 	var guide := get_building_route(source, destination)
@@ -146,15 +148,17 @@ func get_return_route(from: Vector3, source: WarBuilding, destination: WarBuildi
 	for index: int in range(segment - 1, -1, -1):
 		if route[-1].distance_to(guide[index]) > 0.01:
 			route.append(guide[index])
-	return route
+	return _surface_route(route)
 
 
 func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
+	if not definition.height_zones.is_empty():
+		from = definition.surface_point(from)
 	var finish := target.march_perimeter_towards(from)
 	if from.distance_to(finish) < 0.02:
 		finish = from.move_toward(target.global_position, 0.04)
 	if _recall_segment_clear(from, finish, target):
-		return PackedVector3Array([from, finish])
+		return _surface_route(PackedVector3Array([from, finish]))
 	# Individual returners need only soldier-width clearance. Cache a small native
 	# AStar graph around each destination; the authored terrain/buildings are static.
 	if not _recall_navigation.has(target.building_id):
@@ -164,6 +168,8 @@ func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
 		for x: int in range(-10, 11):
 			for z: int in range(-10, 11):
 				var point := target.global_position + Vector3(x, 0, z) * 0.8
+				if not definition.height_zones.is_empty():
+					point = definition.surface_point(point)
 				if point.distance_to(target.global_position) < 2.5 or not _recall_point_clear(point, target):
 					continue
 				var id := graph.get_available_point_id()
@@ -199,12 +205,16 @@ func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
 			next -= 1
 		route.append(raw[next])
 		anchor = next
-	return route
+	return _surface_route(route)
 
 
 func _recall_point_clear(point: Vector3, target: WarBuilding) -> bool:
+	if not definition.height_zones.is_empty():
+		point = definition.surface_point(point)
 	for offset: Vector3 in [Vector3.ZERO, Vector3(0.25, 0, 0), Vector3(-0.25, 0, 0), Vector3(0, 0, 0.25), Vector3(0, 0, -0.25)]:
 		if not is_walkable(point + offset):
+			return false
+		if not _surface_segment_clear(point, point + offset):
 			return false
 	for building: WarBuilding in $Buildings.get_children():
 		var radius := 2.30 if building == target else WarBuilding.MARCH_PERIMETER_RADIUS
@@ -214,6 +224,8 @@ func _recall_point_clear(point: Vector3, target: WarBuilding) -> bool:
 
 
 func _recall_segment_clear(from: Vector3, to: Vector3, target: WarBuilding) -> bool:
+	if not _surface_segment_clear(from, to):
+		return false
 	var steps := maxi(1, ceili(from.distance_to(to) / 0.25))
 	for index: int in range(steps + 1):
 		if not _recall_point_clear(from.lerp(to, float(index) / steps), target):
@@ -259,7 +271,35 @@ func _shape_route(corridor: PackedVector3Array) -> PackedVector3Array:
 		for point: int in range(1, arc.size()):
 			result.append(arc[point])
 	_append_flow_span(result, corridor[-1], corridor.size() == 2, true)
+	return _surface_route(result)
+
+
+func _surface_route(route: PackedVector3Array) -> PackedVector3Array:
+	# Preserve the exact authored guides of the original flat maps.
+	if definition.height_zones.is_empty() or route.size() < 2:
+		return route
+	var result := PackedVector3Array([definition.surface_point(route[0])])
+	for index: int in range(1, route.size()):
+		var from := Vector2(route[index - 1].x, route[index - 1].z)
+		var to := Vector2(route[index].x, route[index].z)
+		var cuts: PackedFloat32Array = definition.surface_breakpoints(from, to)
+		for part: int in range(1, cuts.size()):
+			var start_xz := from.lerp(to, cuts[part - 1])
+			var end_xz := from.lerp(to, cuts[part])
+			var start: Vector3 = definition.surface_point(Vector3(start_xz.x, 0, start_xz.y))
+			var finish: Vector3 = definition.surface_point(Vector3(end_xz.x, 0, end_xz.y))
+			var steps := maxi(1, ceili(start.distance_to(finish) / ROUTE_SAMPLE_STEP))
+			for step: int in range(1, steps + 1):
+				var point: Vector3 = definition.surface_point(start.lerp(finish, float(step) / steps))
+				if point.distance_squared_to(result[-1]) > 0.00000001:
+					result.append(point)
 	return result
+
+
+func _surface_segment_clear(from: Vector3, to: Vector3) -> bool:
+	if definition.height_zones.is_empty():
+		return true
+	return definition.surface_segment_walkable(Vector2(from.x, from.z), Vector2(to.x, to.z))
 
 
 func _append_flow_span(route: PackedVector3Array, end: Vector3, leaving: bool, arriving: bool) -> void:
@@ -301,6 +341,8 @@ func _curve_clear(points: PackedVector3Array) -> bool:
 	# unchecked interpolation is allowed to cut across a bank, trunk or wall.
 	for index: int in points.size():
 		if not _is_route_point_clear(points[index]):
+			return false
+		if index > 0 and not _surface_segment_clear(points[index - 1], points[index]):
 			return false
 		if index > 0 and not _is_route_point_clear((points[index - 1] + points[index]) * 0.5):
 			return false
@@ -363,6 +405,8 @@ func _building_segment_clear(from: Vector3, to: Vector3, source: WarBuilding, ta
 
 
 func _is_route_point_clear(point: Vector3, leaving: Vector3 = Vector3.INF, arriving: Vector3 = Vector3.INF) -> bool:
+	if not definition.height_zones.is_empty():
+		point = definition.surface_point(point)
 	if not _has_clearance(point):
 		return false
 	for building_position: Vector3 in _building_positions:
@@ -383,11 +427,17 @@ func _has_clearance(point: Vector3) -> bool:
 	for offset: Vector3 in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1), Vector3(1, 0, 1), Vector3(-1, 0, 1), Vector3(1, 0, -1), Vector3(-1, 0, -1)]:
 		if not _is_terrain_walkable(point + offset * FORMATION_CLEARANCE):
 			return false
+		# Endpoint heights alone miss a cliff running through the formation.
+		if not _surface_segment_clear(point, point + offset * FORMATION_CLEARANCE):
+			return false
 	return true
 
 
 func _segment_clear(from: Vector3, to: Vector3, leaving: Vector3 = Vector3.INF, arriving: Vector3 = Vector3.INF) -> bool:
-	var steps := maxi(1, ceili(from.distance_to(to) / 0.5))
+	if not _surface_segment_clear(from, to):
+		return false
+	var sample_step := 0.5 if definition.height_zones.is_empty() else ROUTE_SAMPLE_STEP
+	var steps := maxi(1, ceili(from.distance_to(to) / sample_step))
 	for index in range(steps + 1):
 		if not _is_route_point_clear(from.lerp(to, float(index) / float(steps)), leaving, arriving):
 			return false
@@ -403,6 +453,8 @@ func _build_navigation() -> void:
 	for x in range(-ceili(definition.half_size.x / GRID_STEP) + 1, ceili(definition.half_size.x / GRID_STEP)):
 		for z in range(-ceili(definition.half_size.y / GRID_STEP) + 1, ceili(definition.half_size.y / GRID_STEP)):
 			var point := Vector3(x * GRID_STEP, 0, z * GRID_STEP)
+			if not definition.height_zones.is_empty():
+				point = definition.surface_point(point)
 			if not _is_route_point_clear(point):
 				continue
 			var point_id := _navigation.get_available_point_id()

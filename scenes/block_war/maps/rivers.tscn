@@ -536,220 +536,257 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])
 [node name="Buildings" type="Node3D" parent="."]
 
 [node name="Land0_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, -62)
 scale = Vector3(63, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land0_1" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, -38.5)
 scale = Vector3(63, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land0_2" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, -12)
 scale = Vector3(63, 3.2, 10)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land0_3" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, 0)
 scale = Vector3(63, 3.2, 14)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land0_4" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, 12)
 scale = Vector3(63, 3.2, 10)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land0_5" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, 38.5)
 scale = Vector3(63, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land0_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-46.5, -1.6, 62)
 scale = Vector3(63, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land1_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-12, -1.6, -62)
 scale = Vector3(6, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land1_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-12, -1.6, 62)
 scale = Vector3(6, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land2_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-8, -1.6, -62)
 scale = Vector3(2, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land2_1" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-8, -1.6, -38.5)
 scale = Vector3(2, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land2_3" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-8, -1.6, 0)
 scale = Vector3(2, 3.2, 14)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land2_5" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-8, -1.6, 38.5)
 scale = Vector3(2, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land2_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(-8, -1.6, 62)
 scale = Vector3(2, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, -62)
 scale = Vector3(14, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_1" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, -38.5)
 scale = Vector3(14, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_2" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, -12)
 scale = Vector3(14, 3.2, 10)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_3" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, 0)
 scale = Vector3(14, 3.2, 14)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_4" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, 12)
 scale = Vector3(14, 3.2, 10)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_5" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, 38.5)
 scale = Vector3(14, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land3_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(0, -1.6, 62)
 scale = Vector3(14, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land4_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(8, -1.6, -62)
 scale = Vector3(2, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land4_1" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(8, -1.6, -38.5)
 scale = Vector3(2, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land4_3" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(8, -1.6, 0)
 scale = Vector3(2, 3.2, 14)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land4_5" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(8, -1.6, 38.5)
 scale = Vector3(2, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land4_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(8, -1.6, 62)
 scale = Vector3(2, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land5_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(12, -1.6, -62)
 scale = Vector3(6, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land5_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(12, -1.6, 62)
 scale = Vector3(6, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_0" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, -62)
 scale = Vector3(63, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_1" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, -38.5)
 scale = Vector3(63, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_2" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, -12)
 scale = Vector3(63, 3.2, 10)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_3" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, 0)
 scale = Vector3(63, 3.2, 14)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_4" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, 12)
 scale = Vector3(63, 3.2, 10)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_5" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, 38.5)
 scale = Vector3(63, 3.2, 43)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="Land6_6" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 position = Vector3(46.5, -1.6, 62)
 scale = Vector3(63, 3.2, 4)
 mesh = SubResource("Cube")
 material_override = SubResource("Ground")
 
 [node name="ShoreGrass" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 mesh = ExtResource("shore_bank_grass")
 material_override = SubResource("Ground")
 
 [node name="ShoreRock" type="MeshInstance3D" parent="Terrain"]
+layers = 524289
 mesh = ExtResource("shore_bank_stone")
 material_override = ExtResource("shore_rock_material")
 
@@ -762,6 +799,7 @@ position = Vector3(-12, 0, -23)
 rotation = Vector3(0, 0, 0)
 
 [node name="StoneDeck" type="MeshInstance3D" parent="Bridges/Bridge0"]
+layers = 524289
 position = Vector3(0, -0.16, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -769,6 +807,7 @@ mesh = ExtResource("bridge_mesh_stone_bridge_deck")
 material_override = SubResource("bridge_Recess")
 
 [node name="DressedPaving0_0" type="MeshInstance3D" parent="Bridges/Bridge0"]
+layers = 524289
 position = Vector3(0, 0.009, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -892,6 +931,7 @@ position = Vector3(-12, 0, 0)
 rotation = Vector3(0, 0, 0)
 
 [node name="StoneDeck" type="MeshInstance3D" parent="Bridges/Bridge1"]
+layers = 524289
 position = Vector3(0, -0.16, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -899,6 +939,7 @@ mesh = ExtResource("bridge_mesh_stone_bridge_deck")
 material_override = SubResource("bridge_Recess")
 
 [node name="DressedPaving0_0" type="MeshInstance3D" parent="Bridges/Bridge1"]
+layers = 524289
 position = Vector3(0, 0.009, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1022,6 +1063,7 @@ position = Vector3(-12, 0, 23)
 rotation = Vector3(0, 0, 0)
 
 [node name="StoneDeck" type="MeshInstance3D" parent="Bridges/Bridge2"]
+layers = 524289
 position = Vector3(0, -0.16, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1029,6 +1071,7 @@ mesh = ExtResource("bridge_mesh_stone_bridge_deck")
 material_override = SubResource("bridge_Recess")
 
 [node name="DressedPaving0_0" type="MeshInstance3D" parent="Bridges/Bridge2"]
+layers = 524289
 position = Vector3(0, 0.009, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1152,6 +1195,7 @@ position = Vector3(12, 0, -23)
 rotation = Vector3(0, 0, 0)
 
 [node name="StoneDeck" type="MeshInstance3D" parent="Bridges/Bridge3"]
+layers = 524289
 position = Vector3(0, -0.16, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1159,6 +1203,7 @@ mesh = ExtResource("bridge_mesh_stone_bridge_deck")
 material_override = SubResource("bridge_Recess")
 
 [node name="DressedPaving0_0" type="MeshInstance3D" parent="Bridges/Bridge3"]
+layers = 524289
 position = Vector3(0, 0.009, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1282,6 +1327,7 @@ position = Vector3(12, 0, 0)
 rotation = Vector3(0, 0, 0)
 
 [node name="StoneDeck" type="MeshInstance3D" parent="Bridges/Bridge4"]
+layers = 524289
 position = Vector3(0, -0.16, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1289,6 +1335,7 @@ mesh = ExtResource("bridge_mesh_stone_bridge_deck")
 material_override = SubResource("bridge_Recess")
 
 [node name="DressedPaving0_0" type="MeshInstance3D" parent="Bridges/Bridge4"]
+layers = 524289
 position = Vector3(0, 0.009, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1412,6 +1459,7 @@ position = Vector3(12, 0, 23)
 rotation = Vector3(0, 0, 0)
 
 [node name="StoneDeck" type="MeshInstance3D" parent="Bridges/Bridge5"]
+layers = 524289
 position = Vector3(0, -0.16, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)
@@ -1419,6 +1467,7 @@ mesh = ExtResource("bridge_mesh_stone_bridge_deck")
 material_override = SubResource("bridge_Recess")
 
 [node name="DressedPaving0_0" type="MeshInstance3D" parent="Bridges/Bridge5"]
+layers = 524289
 position = Vector3(0, 0.009, 0)
 rotation = Vector3(0, 0, 0)
 scale = Vector3(1, 1, 1.25)

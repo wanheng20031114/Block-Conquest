@@ -2,7 +2,7 @@ extends RefCounted
 ## Wire data is bounded JSON, never Variant object deserialization or remote RPC.
 
 const VERSION := 1
-const RELEASE := "1.2.0"
+const RELEASE := "1.3.0"
 const PORT := 42300
 const TLS_NAME := "block-conquest-relay"
 const CHANNEL_COUNT := 6
@@ -17,7 +17,8 @@ const MAX_CONTROL_BYTES := 4096
 const MAX_CURSOR_BYTES := 1024
 const MAX_DATAGRAM_BYTES := 1200
 const MAX_PLAYERS := 6
-const MAP_SEATS := {"rift": 2, "lake": 2, "rivers": 4, "ridges": 4, "islands": 6, "highland": 6}
+const MAP_SEATS := {"rift": 2, "lake": 2, "rivers": 4, "ridges": 4, "islands": 6, "highland": 6,
+	"terraces": 2, "switchback": 4, "crown": 6}
 const COMMANDERS := ["squirrel", "rabbit", "bear", "frog"]
 const HOST_KINDS := ["events", "anchors", "digest", "snapshot_begin", "snapshot_chunk", "snapshot_end", "command_result", "time", "finished"]
 const CLIENT_KINDS := ["ack", "resync"]

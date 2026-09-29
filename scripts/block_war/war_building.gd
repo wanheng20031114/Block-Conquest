@@ -313,10 +313,10 @@ func refresh_visual() -> void:
 	if level != _last_level or kind != _last_kind:
 		_apply_level_visuals()
 		# The stroke sits at 0.98 of the texture radius and marks the exact
-		# combat radius, with feathering on both sides. The shallow native decal
-		# follows the land/bridge surface without painting roofs or low water.
+		# combat radius, with feathering on both sides. Preserve the scene's
+		# projection height; its cull mask restricts the decal to terrain.
 		var diameter := attack_range * 2.0 / 0.98
-		_attack_range.size = Vector3(diameter, 0.15, diameter)
+		_attack_range.size = Vector3(diameter, _attack_range.size.y, diameter)
 	if faction != _last_faction:
 		var color: Color = NEUTRAL_COLOR if faction < 0 else FACTION_COLORS[faction]
 		var cloth_color := color.lerp(Color("c1a674"), 0.12)

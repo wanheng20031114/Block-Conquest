@@ -66,6 +66,8 @@ class MarchUnit extends RefCounted:
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 @onready var _cloaked_mesh: MultiMesh = $CloakedMilitia.multimesh
 var _units: Array[MarchUnit] = []
+# Standalone simulation fixtures have a flat surface until a battle configures it.
+var map_definition := WarMapDefinition.new()
 var haste_zones: Dictionary[int, Dictionary] = {}
 var slow_zones: Dictionary[int, Dictionary] = {}
 var weak_zones: Dictionary[int, Dictionary] = {}
@@ -333,6 +335,8 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 				var contact := fire_contact(before, unit.position, fire, emerged, arrived)
 				if contact >= 0.0:
 					unit.position = before.lerp(unit.position, inverse_lerp(emerged, arrived, contact))
+					if not map_definition.height_zones.is_empty():
+						unit.position = map_definition.surface_point(unit.position)
 					_defeat(index, (unit.position - fire.center).normalized(), true, int(fire.get("faction", -1)))
 					burned = true
 					break
@@ -438,7 +442,7 @@ func acquire_targets(center: Vector3, attacking_faction: int, radius: float, cou
 				continue
 			if tower_shot and not tower_can_target(unit):
 				continue
-			var distance_squared := unit.position.distance_squared_to(center)
+			var distance_squared := Vector2(unit.position.x - center.x, unit.position.z - center.z).length_squared()
 			if distance_squared <= radius_squared and ((farthest and distance_squared > nearest_distance) or (not farthest and distance_squared <= nearest_distance)):
 				nearest_distance = distance_squared
 				nearest = index
@@ -805,9 +809,21 @@ func _formation_position(order: MarchOrder, distance: float, lane: float, headin
 	# of sampled guide points. Broad curves stay wide; tight turns gather the files.
 	var approach := center - order.sample(maxf(0.0, distance - 1.2))
 	var departure := order.sample(minf(order.length, distance + 1.2)) - center
+	approach.y = 0.0
+	departure.y = 0.0
 	var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
 	var corner_width := lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
-	return center + sideways * lane * gate_width * corner_width
+	var point := center + sideways * lane * gate_width * corner_width
+	return point if map_definition.height_zones.is_empty() else map_definition.surface_point(point)
+
+func _presentation_position(unit: MarchUnit) -> Vector3:
+	var at := unit.position + unit.presentation_offset
+	if not map_definition.height_zones.is_empty():
+		# Network correction may slide a body across a ramp or terrace edge.
+		# Preserve spell levitation, but never interpolate terrain height in air.
+		var lift := unit.position.y - map_definition.surface_height(Vector2(unit.position.x, unit.position.z))
+		at = map_definition.surface_point(at) + Vector3.UP * lift
+	return at + Vector3(0, 0.035, 0)
 
 func _render() -> void:
 	var slot := 0
@@ -819,7 +835,7 @@ func _render() -> void:
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)
 		var mesh := _cloaked_mesh if unit.cloaked else _multimesh
 		var index := cloaked_slot if unit.cloaked else slot
-		mesh.set_instance_transform(index, Transform3D(basis, unit.position + unit.presentation_offset + Vector3(0, 0.035, 0)))
+		mesh.set_instance_transform(index, Transform3D(basis, _presentation_position(unit)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		color.a = -(unit.gait + 1.0) if unit.rush_remaining > 0.0 else unit.gait
 		mesh.set_instance_custom_data(index, color)

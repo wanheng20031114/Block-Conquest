@@ -14,6 +14,7 @@ var tint := Color.WHITE
 var exit_opened := false
 var active := false
 var running := true
+var map_definition := WarMapDefinition.new()
 
 func start(faction: int, from: Vector3, to: Vector3, direction: Vector3, count: int, digging_seconds: float) -> void:
 	reset()
@@ -33,7 +34,7 @@ func start(faction: int, from: Vector3, to: Vector3, direction: Vector3, count: 
 	$Digging/Mound.show()
 	var span := entrance.distance_to(exit) + 4.0
 	for particles: GPUParticles3D in [$Digging/Dust, $Digging/Clods]:
-		particles.visibility_aabb = AABB(Vector3(-span, -2, -span), Vector3(span * 2, 8, span * 2))
+		particles.visibility_aabb = AABB(Vector3(-span, -10, -span), Vector3(span * 2, 24, span * 2))
 		particles.restart()
 		particles.emitting = true
 	tick(0.0)
@@ -52,7 +53,8 @@ func tick(delta: float) -> void:
 		$Exit.tick(delta)
 	var digging := age < dig_duration
 	var progress := clampf(age / dig_duration, 0.0, 1.0)
-	$Digging.position = entrance.lerp(exit, progress)
+	var digging_at := entrance.lerp(exit, progress)
+	$Digging.position = digging_at if map_definition.height_zones.is_empty() else map_definition.surface_point(digging_at)
 	$Digging/Mound.position.y = 0.1 + absf(sin(age * 55.0)) * 0.12
 	$Digging/Mound.rotation.z = sin(age * 42.0) * 0.12
 	$Digging/Mound.visible = digging

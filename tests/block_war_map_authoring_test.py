@@ -287,8 +287,9 @@ class RoadAuthoringTest(unittest.TestCase):
     def setUpClass(cls):
         cls.maps = [(layout, author_paths(layout)) for layout in layouts()]
 
-    def test_all_six_road_plans_fit_the_shader_and_have_valid_segments(self):
-        self.assertEqual(len(self.maps), 6)
+    def test_all_road_plans_fit_the_shader_and_have_valid_segments(self):
+        self.assertEqual({layout["id"] for layout, _ in self.maps},
+                         {"rift", "lake", "rivers", "ridges", "islands", "highland", "terraces", "switchback", "crown"})
         for layout, paths in self.maps:
             with self.subTest(map=layout["id"]):
                 self.assertGreater(len(paths), 0)

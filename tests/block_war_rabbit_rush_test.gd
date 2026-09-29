@@ -23,7 +23,7 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _snapshot_and_expiry() -> void:
-	await reset()
+	await reset("rivers") # This scenario needs a real allied commander in seat 2.
 	check(not game.cast_ground_skill(0, CENTER), "empty rush is rejected")
 	check(game.energy == 100.0 and game.cooldowns[0] == 0.0, "empty rush spends neither energy nor cooldown")
 	var finish := CENTER + Vector3(80, 0, 0)
@@ -31,7 +31,6 @@ func _snapshot_and_expiry() -> void:
 	var boundary := soldier(0, CENTER - Vector3(0, 0, 3.6), finish, enemy().building_id)
 	var outside := soldier(0, CENTER - Vector3(0, 0, 3.61), finish, enemy().building_id)
 	var hostile := soldier(1, CENTER, finish, home().building_id)
-	game.buildings[2].faction = 2
 	var ally := soldier(2, CENTER, finish, enemy().building_id)
 	var queued := soldier(0, CENTER, finish, enemy().building_id)
 	queued.distance = -1.0
@@ -153,9 +152,8 @@ func _real_population() -> void:
 	near(first.rush_remaining, 8.0, "reapplying rush does not stack its duration")
 	game.marches.tick(3.0)
 	near(target.population, 97.0, "selected soldier deals two damage without stacking, while the unselected rank deals one")
-	await reset()
+	await reset("rivers")
 	var ally: WarBuilding = game.buildings[2]
-	ally.faction = 2
 	ally.kind = 2
 	ally.population = 10.0
 	soldier(0, CENTER, CENTER + Vector3(3, 0, 0), ally.building_id)

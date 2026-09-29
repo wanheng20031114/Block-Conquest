@@ -7,13 +7,14 @@ var selected: Resource
 var _maps: Array[Resource] = []
 var _launching := false
 @onready var session: Node = get_node("/root/Session")
+@onready var _map_buttons: Array[Button] = [%Map0, %Map1, %Map2]
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = true
 	for index: int in 3:
 		get_node("%%Size%d" % index).pressed.connect(_select_size.bind(index))
-	for index: int in 2:
-		get_node("%%Map%d" % index).pressed.connect(_select_map.bind(index))
+	for index: int in _map_buttons.size():
+		_map_buttons[index].pressed.connect(_select_map.bind(index))
 	%Start.pressed.connect(_start)
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
@@ -42,8 +43,9 @@ func _select_size(size_class: int) -> void:
 	for index: int in 3:
 		get_node("%%Size%d" % index).set_pressed_no_signal(index == size_class)
 	var selected_index := maxi(0, _maps.find(selected))
-	for index: int in 2:
-		var button: Button = get_node("%%Map%d" % index)
+	assert(_maps.size() == _map_buttons.size(), "Each battlefield size has one authored button per map.")
+	for index: int in _map_buttons.size():
+		var button: Button = _map_buttons[index]
 		button.text = _maps[index].title
 		button.tooltip_text = _maps[index].description
 	_select_map(selected_index)
@@ -52,8 +54,8 @@ func _select_map(index: int) -> void:
 	var changed: bool = selected != _maps[index]
 	selected = _maps[index]
 	session.block_war_map_id = selected.map_id
-	for i: int in 2:
-		get_node("%%Map%d" % i).set_pressed_no_signal(i == index)
+	for i: int in _map_buttons.size():
+		_map_buttons[i].set_pressed_no_signal(i == index)
 	%MapName.text = selected.title
 	%MapNumber.text = "%02d / %02d" % [CATALOG.MAPS.find(selected) + 1, CATALOG.MAPS.size()]
 	%MapInfo.text = "%s   ·   %d × %d 米   ·   %d 座据点" % [selected.mode_label(), selected.half_size.x * 2, selected.half_size.y * 2, selected.building_positions.size()]
@@ -64,6 +66,8 @@ func _select_map(index: int) -> void:
 		terrain.append("山地隘口")
 	if not selected.bridges.is_empty():
 		terrain.append("桥梁连接")
+	if not selected.height_zones.is_empty():
+		terrain.append("高地土坡")
 	%TerrainInfo.text = " · ".join(terrain)
 	var spawns: Array[String] = ["① 你", "② 敌方一"]
 	if selected.team_size >= 2:
