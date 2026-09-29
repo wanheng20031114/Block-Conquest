@@ -1136,8 +1136,37 @@ func _toolbox_can_restore_population(building: WarBuilding) -> bool:
 	if building.population + floori(float(building.construction_cost) / 2.0) < 1.0: return false
 	# Waiting for energy/cooldown is a real recovery path only while the paid
 	# receipt still exists. Natural completion consumes it before a new command.
-	var energy_wait := maxf(0.0, (SKILL_RULES.BEAR_COSTS[0] - state.energy) / energy_regen_for(building.faction))
-	return maxf(state.cooldowns[0], energy_wait) < building.construction_remaining
+	var deadline := building.construction_remaining
+	if state.cooldowns[0] >= deadline: return false
+	if state.energy >= SKILL_RULES.BEAR_COSTS[0]: return true
+	# Known tower restorations/conversions can change regeneration before this
+	# receipt expires. Integrate only those authored building clocks, preserving
+	# the diminishing bonus for the number of simultaneously active towers.
+	var changes: Dictionary[float, int] = {0.0: 0, deadline: 0}
+	for supply: WarBuilding in buildings:
+		if supply.faction != building.faction: continue
+		var start := supply.disruption_remaining
+		var end := deadline
+		if supply.kind == 3:
+			if supply.is_constructing and supply.conversion_target >= 0:
+				end = minf(end, supply.construction_remaining)
+		elif supply.is_constructing and supply.conversion_target == 3:
+			start = maxf(start, supply.construction_remaining)
+		else:
+			continue
+		if start >= end: continue
+		changes[start] = changes.get(start, 0) + 1
+		changes[end] = changes.get(end, 0) - 1
+	var times := changes.keys()
+	times.sort()
+	var count := 0
+	var previous := 0.0
+	var energy_at_completion := state.energy + ENERGY_REGEN * deadline
+	for time: float in times:
+		energy_at_completion += SKILL_RULES.energy_tower_bonus(count) * (time - previous)
+		count += changes[time]
+		previous = time
+	return energy_at_completion > SKILL_RULES.BEAR_COSTS[0]
 
 func _check_victory() -> void:
 	if finished:

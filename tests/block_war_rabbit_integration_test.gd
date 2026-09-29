@@ -327,27 +327,32 @@ func _ai_decisions() -> void:
 
 func _selector() -> void:
 	await game.prepare_shutdown()
-	change_scene_to_file("res://scenes/block_war/commander_select.tscn")
+	var session := root.get_node("Session")
+	check(session.change_scene("res://scenes/block_war/commander_select.tscn") == OK, "selector uses the normal covered scene transition")
 	await scene_changed
-	await process_frame
+	await session.transition.completed
 	var animal: Button = current_scene.get_node("%Animal0")
 	mouse(animal.get_global_rect().get_center(), true)
 	mouse(animal.get_global_rect().get_center(), false)
-	change_scene_to_file("res://scenes/block_war/map_select.tscn")
+	var next: Button = current_scene.get_node("%Next")
+	mouse(next.get_global_rect().get_center(), true)
+	mouse(next.get_global_rect().get_center(), false)
 	await scene_changed
-	await process_frame
+	await session.transition.completed
 	var picker := current_scene
 	for path: String in ["%OpponentCommander1"]:
 		var at: Vector2 = picker.get_node(path).get_global_rect().get_center()
 		mouse(at, true)
 		mouse(at, false)
-	var session := root.get_node("Session")
 	check(session.block_war_commander == &"squirrel" and session.block_war_opponent_commander == &"rabbit", "selector changes sides independently through native clicks")
-	change_scene_to_file("res://scenes/block_war/block_war.tscn")
+	var start: Button = picker.get_node("%Start")
+	mouse(start.get_global_rect().get_center(), true)
+	mouse(start.get_global_rect().get_center(), false)
 	await scene_changed
 	game = current_scene
 	game.set_process(false)
 	check(game.faction_skills[0].commander == &"squirrel" and game.faction_skills[1].commander == &"rabbit", "selected sides reach match")
+	await session.transition.completed
 	game.restart()
 	await scene_changed
 	game = current_scene

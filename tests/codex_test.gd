@@ -240,7 +240,17 @@ func _run() -> void:
 	for index: int in guides.size():
 		var entry: Dictionary = guides[index]
 		await _search(entry.title)
-		_check(_control("Entries").item_count == 1 and current_scene.guide_index == index, "mechanic is searchable: " + entry.title)
+		# Titles also match other guides' tags and summaries. Select the exact
+		# result through native input instead of requiring a unique search hit.
+		var entries: ItemList = _control("Entries")
+		var matching_row := -1
+		for row: int in entries.item_count:
+			if entries.get_item_text(row) == entry.title:
+				matching_row = row
+		if not _check(matching_row >= 0, "mechanic appears in search results: " + entry.title):
+			continue
+		await _hero_row(matching_row)
+		_check(current_scene.guide_index == index, "native result selection opens the searched mechanic: " + entry.title)
 		_check(_control("DetailTitle").text == entry.title, "correct mechanic is displayed: " + entry.title)
 		for name: String in ["Book", "PageContent", "GuidePage", "GuideScroll", "GuideTip"]:
 			_fits(name, entry.title)

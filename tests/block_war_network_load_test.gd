@@ -3,6 +3,8 @@ extends SceneTree
 const Relay := preload("res://server/war_relay_server.gd")
 const Online := preload("res://scripts/network/war_online.gd")
 const P := preload("res://scripts/network/war_protocol.gd")
+const TLSFixture := preload("res://tests/network_tls_fixture.gd")
+var tls := TLSFixture.new()
 var server: Node
 var clients: Array[Node] = []
 var events: Dictionary = {}
@@ -31,6 +33,7 @@ func until(predicate: Callable, description: String, timeout: float = 15.0) -> b
 
 func client(index: int, port: int) -> Node:
 	var value := Online.new()
+	value.certificate_path = tls.certificate_path
 	value.content_hash = "load-fixture"
 	root.add_child(value)
 	value.match_message.connect(func(_sender: int, kind: String, _payload: Dictionary):
@@ -45,10 +48,15 @@ func client(index: int, port: int) -> Node:
 
 func _run() -> void:
 	create_timer(60, true, false, true).timeout.connect(func(): _finish(3))
+	var certificate_error := tls.create("load")
+	check(certificate_error == OK, "load test creates its own local DTLS identity")
+	if certificate_error != OK: return _finish()
 	server = Relay.new()
 	server.model.content_hash = "load-fixture"
 	root.add_child(server)
-	check(server.start("127.0.0.1", 0, "res://.local/network/relay-private.key", "res://scripts/network/relay_trust.crt") == OK, "six-player relay starts with validated trust")
+	var start_error: Error = server.start("127.0.0.1", 0, tls.key_path, tls.certificate_path)
+	check(start_error == OK, "six-player relay starts with validated trust")
+	if start_error != OK: return _finish()
 	var port: int = server.connection.get_local_port()
 	for index: int in 7: client(index, port)
 	if not await until(func(): return clients.all(func(value: Node): return value.connection_state == "connected"), "seven independent encrypted connections complete handshake"): return _finish()
@@ -121,5 +129,6 @@ func _finish(code: int = -1) -> void:
 		server.stop()
 		server.free()
 		server = null
+	check(tls.cleanup() == OK, "load test removes its local TLS files after shutdown")
 	print("BLOCK_WAR_NETWORK_LOAD checks=%d failures=%d" % [checks, failures])
 	quit(code if code >= 0 else (0 if failures == 0 else 1))

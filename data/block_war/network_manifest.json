@@ -49,7 +49,7 @@
     "scenes/block_war/soldier_hit.tscn": "1223200cc50f705ef82ae5e1555ca55703b8231aa055599ee42a8d57dbdac7a0",
     "scenes/block_war/war_balance.tscn": "51ceaa80ab38b3d8c388154484a9745f07d7af50ad850571ae8c959696ded44f",
     "scenes/block_war/war_effects.tscn": "f6c6589889d1e667373963432aa8e0e800a9dbccb160c86455639222c79a542c",
-    "scripts/block_war/block_war.gd": "986da00c52272fbefeccd2e81fd1e8baa6ff73de8d2ec19a3210fd90806274dd",
+    "scripts/block_war/block_war.gd": "0455e8ad6ea07955a44d8940d1173e9ab1a31be9e8719e7afc5ae1b66212dcc0",
     "scripts/block_war/war_ai.gd": "53712cdfab53427917e5805abe178de5ff99d802bec9de26be72fafaa8206efb",
     "scripts/block_war/war_ai_skills.gd": "13ece1a4671e8bf8f3884a19a1098298af17813700a5a4c7586cbf7a24067236",
     "scripts/block_war/war_audio.gd": "353be46fcfe0cf5ccb3a78e91ff67e6cb6464305e551e566285e1a7ca6e7891b",

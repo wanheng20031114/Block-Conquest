@@ -23,6 +23,7 @@ func _run() -> void:
 	game.configure_match(config(), 105)
 	_shield_boundaries()
 	_toolbox_stalemates()
+	_toolbox_energy_boundaries()
 	await game.prepare_shutdown()
 	print("RULE_BOUNDARIES checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)
@@ -101,3 +102,41 @@ func _toolbox_stalemates() -> void:
 	game.by_id[1].faction = -1
 	game._check_victory()
 	check(game.finished and game.winner_team == 0, "elimination takes priority over a potential toolbox refund")
+	home = _exhausted_bear()
+	game.simulate(10.0 + 1.0 / 30.0)
+	check(game.finished and game.winner_team == -1 and not home.is_constructing,
+		"declining the toolbox only postpones the draw until natural completion consumes its receipt")
+
+func _toolbox_energy_boundaries() -> void:
+	for recovery: String in ["disruption_ends", "energy_conversion_finishes"]:
+		var home := _exhausted_bear()
+		var supply: WarBuilding = game.by_id[2]
+		supply.faction = 0
+		if recovery == "disruption_ends":
+			supply.begin_disruption(1.0)
+		else:
+			supply.kind = 2; supply.population = 20.0
+			check(game.begin_building_construction(supply, 3, 0), "spare forge pays for energy conversion")
+			supply.construction_remaining = 1.0
+		game.faction_skills[0].energy = 5.0
+		game._check_victory()
+		check(not game.finished, "scheduled energy recovery preserves a real toolbox window: " + recovery)
+		# One second at +2, then +2.5: Q becomes affordable at 8.2 seconds,
+		# before the empty tower completes its ten-second upgrade.
+		game.simulate(8.3)
+		check(home.is_constructing and game.cast_skill(0, home, 0) and home.population == 15.0,
+			"predicted energy recovery permits the actual paid cast: " + recovery)
+	var home := _exhausted_bear()
+	var supply: WarBuilding = game.by_id[2]
+	supply.faction = 0; supply.population = 20.0
+	check(game.begin_building_construction(supply, 2, 0), "energy tower pays for conversion away from energy production")
+	supply.construction_remaining = 1.0
+	game.faction_skills[0].energy = 4.0
+	game._check_victory()
+	check(game.finished and game.winner_team == -1, "temporary current energy bonus cannot promise an impossible refund")
+	home = _exhausted_bear()
+	supply = game.by_id[2]
+	supply.faction = 2
+	game.faction_skills[0].energy = 5.0
+	game._check_victory()
+	check(game.finished and game.winner_team == -1, "a teammate's energy tower does not fund this commander's refund")

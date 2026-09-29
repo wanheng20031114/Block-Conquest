@@ -5,7 +5,8 @@ extends SceneTree
 const Relay := preload("res://server/war_relay_server.gd")
 const Online := preload("res://scripts/network/war_online.gd")
 const P := preload("res://scripts/network/war_protocol.gd")
-const DIRECTORY := "res://.local/network-tests"
+const TLSFixture := preload("res://tests/network_tls_fixture.gd")
+var tls := TLSFixture.new()
 var server: Node
 var clients: Array[Node] = []
 var inbox: Array[Dictionary] = []
@@ -15,7 +16,7 @@ var errors: Array[String] = []
 var failures: Array[String] = []
 var checks := 0
 var test_content := "native-test-content"
-var test_certificate := DIRECTORY + "/test-relay.crt"
+var test_certificate := ""
 var endpoint: Dictionary = {}
 
 func _initialize() -> void:
@@ -37,13 +38,6 @@ func until(predicate: Callable, description: String, seconds: float = 8.0) -> bo
 func pause(seconds: float) -> void:
 	await create_timer(seconds, true, false, true).timeout
 
-func _certificate() -> bool:
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIRECTORY))
-	var crypto := Crypto.new()
-	var key := crypto.generate_rsa(2048)
-	var certificate := crypto.generate_self_signed_certificate(key, "CN=%s,O=Block Conquest Local Test,C=JP" % P.TLS_NAME, "20240101000000", "20400101000000")
-	return key.save(DIRECTORY + "/test-relay.key") == OK and certificate.save(DIRECTORY + "/test-relay.crt") == OK
-
 func client(name: String) -> Node:
 	var value := Online.new()
 	value.name = name
@@ -64,11 +58,16 @@ func _run() -> void:
 	var endpoint_file := OS.get_environment("BLOCK_CONQUEST_NETWORK_TEST_ENDPOINT")
 	var port := 0
 	if endpoint_file.is_empty():
-		check(_certificate(), "local-only DTLS certificate created")
+		var certificate_error := tls.create("native")
+		check(certificate_error == OK, "local-only DTLS certificate created")
+		if certificate_error != OK: return _finish()
+		test_certificate = tls.certificate_path
 		server = Relay.new()
 		server.model.content_hash = test_content
 		root.add_child(server)
-		check(server.start("127.0.0.1", 0, DIRECTORY + "/test-relay.key", DIRECTORY + "/test-relay.crt") == OK, "native encrypted relay binds an ephemeral UDP port")
+		var start_error: Error = server.start("127.0.0.1", 0, tls.key_path, tls.certificate_path)
+		check(start_error == OK, "native encrypted relay binds an ephemeral UDP port")
+		if start_error != OK: return _finish()
 		port = server.connection.get_local_port()
 	else:
 		endpoint = JSON.parse_string(FileAccess.get_file_as_string(endpoint_file))
@@ -226,3 +225,4 @@ func _cleanup() -> void:
 		server.stop()
 		server.free()
 		server = null
+	check(tls.cleanup() == OK, "local TLS fixture files are removed after transports stop")

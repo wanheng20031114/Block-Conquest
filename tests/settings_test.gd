@@ -84,6 +84,14 @@ func _run() -> void:
 			key(KEY_TAB, reverse)
 			confined = confined and root.gui_get_focus_owner() in [settings.menu.get_node("%KeepDisplay"), settings.menu.get_node("%RevertDisplay")]
 		check(confined, "display confirmation traps native " + ("Shift Tab" if reverse else "Tab"))
+	var display_actions: Array[Control] = [settings.menu.get_node("%KeepDisplay"), settings.menu.get_node("%RevertDisplay")]
+	var arrows_confined := true
+	for action: Control in display_actions:
+		for arrow: int in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]:
+			action.grab_focus()
+			key(arrow)
+			arrows_confined = arrows_confined and root.gui_get_focus_owner() in display_actions
+	check(arrows_confined, "display confirmation keeps every directional key inside its two actions")
 	paused = true
 	settings.display_timer.start(0.05)
 	await create_timer(0.12, true, false, true).timeout

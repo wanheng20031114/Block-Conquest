@@ -66,12 +66,20 @@ func _settings_focus_checks(origin: Button, context: String) -> void:
 				var focus := root.gui_get_focus_owner()
 				confined = confined and focus != null and settings.menu.is_ancestor_of(focus)
 			check(confined, context + " native " + ("Shift Tab" if reverse else "Tab") + " remains inside " + page)
-	settings.menu.get_node("%Done").grab_focus()
-	var arrows_confined := true
-	for arrow: int in [KEY_DOWN, KEY_RIGHT, KEY_UP, KEY_LEFT]:
-		key(arrow)
-		arrows_confined = arrows_confined and settings.menu.is_ancestor_of(root.gui_get_focus_owner())
-	check(arrows_confined, context + " directional focus also remains inside native scope")
+		var arrows_confined := true
+		var navigated := 0
+		for control: Control in settings.menu.find_children("*", "Control", true, false):
+			if not control.is_visible_in_tree() or control.get_focus_mode_with_override() != Control.FOCUS_ALL:
+				continue
+			if control is BaseButton and control.disabled:
+				continue
+			for arrow: int in [KEY_DOWN, KEY_RIGHT, KEY_UP, KEY_LEFT]:
+				control.grab_focus()
+				key(arrow)
+				var focus := root.gui_get_focus_owner()
+				arrows_confined = arrows_confined and focus != null and settings.menu.is_ancestor_of(focus)
+				navigated += 1
+		check(navigated > 0 and arrows_confined, context + " every " + page + " control keeps directional focus inside settings")
 	key(KEY_ESCAPE)
 	check(not settings.is_open() and root.gui_get_focus_owner() == origin, context + " closing settings restores its original trigger focus")
 	check(current_scene.get_instance_id() == original_scene, context + " keyboard settings navigation preserves the original scene")
