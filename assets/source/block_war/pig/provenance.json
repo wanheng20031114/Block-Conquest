@@ -10,11 +10,14 @@
   "verified_against_upstream": "2026-09-29",
   "local_source": "noto_emoji_u1f416.svg",
   "runtime_asset": "assets/ui/block_war/commanders/pig.png",
-  "source_modifications": [],
+  "source_modifications": [
+    "Runtime rendition adapted from the original Google pig using built-in image_gen; archived source SVG remains unchanged",
+    "Light pixel steps; original four-legged pose, silhouette, face, tail and palette preserved"
+  ],
   "processing": [
-    "Original Google SVG retained unchanged in source archive; no longer used as the runtime portrait",
-    "New pixel-art character generated from a text brief using built-in image_gen on 2026-09-29",
-    "Native 1254 by 1254 RGBA PNG copied byte-for-byte; alpha preserved, no RGB-based background extraction or resizing",
+    "Original SVG rendered with Godot Image.load_svg_from_string at scale 4.5 into the 576x576 native-alpha reference noto_emoji_u1f416.png",
+    "Built-in image_gen edited that reference on 2026-09-30 using pixel_prompt.txt",
+    "Selected 1254x1254 RGBA output copied byte-for-byte; generated native alpha preserved, no color-based background removal or resampling",
     "Hero selection, map opponents, encyclopedia, HUD and giant-pig effect share the new texture"
   ],
   "distribution_notices": [
@@ -25,18 +28,16 @@
   "reference_project": "Bot Jump's provenance and original SVG archive; no modified Bot Jump images reused",
   "generated_runtime": {
     "tool": "OpenAI built-in image_gen",
-    "date": "2026-09-29",
+    "date": "2026-09-30",
     "prompt_file": "pixel_prompt.txt",
-    "sha256": "df123e3256ce8d30f0069539cb51624c013608d61c71d2020547b94092074fca",
+    "sha256": "5450c3e6ec82966f9137124abbb5bfc34307f3b0409234a6dd71418eec581f02",
     "width": 1254,
     "height": 1254,
     "mode": "RGBA",
-    "image_inputs": [],
-    "visual_style_references": [
-      "assets/ui/block_war/commanders/rabbit.png",
-      "assets/ui/block_war/commanders/bear.png",
-      "assets/ui/block_war/commanders/fox.png"
+    "image_inputs": [
+      "noto_emoji_u1f416.png"
     ],
-    "design_changes": "New standing pink pig with blue waistcoat, cream neckerchief, belt, curled tail and chunky chocolate pixel outlines. Existing hero portraits were inspected to formulate the text prompt."
+    "image_input_sha256": "03ae1565651032c1fca8ba63a7bf12428b50d654e7b7aa6041c3a774b80c1aa2",
+    "design_changes": "Faithful light pixel-art adaptation of original Google Noto Emoji pig; retain four-legged pose, bean-shaped body, charcoal eyes, coral snout, magenta ear lines, pink far leg and curled tail. No clothing or humanoid redesign."
   }
 }
