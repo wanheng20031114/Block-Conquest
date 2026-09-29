@@ -16,11 +16,13 @@ func play(kind: StringName) -> void:
 
 func bind_buttons(container: Node) -> void:
 	for button: BaseButton in container.find_children("*", "BaseButton", true, false):
-		button.pressed.connect(_on_button_pressed.bind(button))
+		# Match the native press animation; pressed can wait for release and run
+		# scene-loading callbacks first. The action itself still commits on release.
+		button.button_down.connect(_on_button_down.bind(button))
 		if button is OptionButton:
 			button.item_selected.connect(func(_index: int): play(&"select"))
 
-func _on_button_pressed(button: BaseButton) -> void:
+func _on_button_down(button: BaseButton) -> void:
 	play(StringName(button.get_meta(&"ui_sound", &"select")))
 
 func stop_all() -> void:

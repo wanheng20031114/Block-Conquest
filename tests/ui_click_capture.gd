@@ -1,5 +1,5 @@
 extends SceneTree
-## Silent native mix capture for the menu click; no windows or saved preferences.
+## Native mix capture and button timing; no windows or saved preferences.
 var capture := AudioEffectCapture.new()
 var checks := 0
 var failures: Array[String] = []
@@ -78,6 +78,7 @@ func _run() -> void:
 	check(peak(capture.get_buffer(capture.get_frames_available())) < 0.00001, "UI bus mute suppresses the new click")
 	AudioServer.set_bus_mute(ui, false)
 	feedback.stop_all()
+	await _button_response_checks(feedback)
 	AudioServer.remove_bus_effect(0, slot)
 	settings._apply_values(original, false)
 	report["checks"] = checks
@@ -87,3 +88,75 @@ func _run() -> void:
 	report_file.close()
 	print("UI_CLICK_CAPTURE checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)
+
+func _mouse(at: Vector2, down: bool) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	root.push_input(motion, true)
+	var event := InputEventMouseButton.new()
+	event.position = at
+	event.global_position = at
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+	event.pressed = down
+	root.push_input(event, true)
+
+func _key(down: bool, echo := false) -> void:
+	var event := InputEventKey.new()
+	event.keycode = KEY_ENTER
+	event.physical_keycode = KEY_ENTER
+	event.pressed = down
+	event.echo = echo
+	root.push_input(event, true)
+
+func _button_response_checks(feedback: Node) -> void:
+	# Exercise authored controls through native input: calling play() directly
+	# cannot detect feedback that incorrectly waits for release or scene loading.
+	root.size = Vector2i(1600, 900)
+	var session: Node = root.get_node("Session")
+	var previous: StringName = session.block_war_commander
+	session.block_war_commander = &"squirrel"
+	var menu: Control = load("res://scenes/block_war/commander_select.tscn").instantiate()
+	root.add_child(menu)
+	await create_timer(0.6).timeout
+	var pick: Button = menu.get_node("%Animal1")
+	feedback.stop_all()
+	clicks = 0
+	capture.clear_buffer()
+	_mouse(pick.get_global_rect().get_center(), true)
+	check(clicks == 1, "mouse down requests feedback in the input frame")
+	check(session.block_war_commander == &"squirrel", "press feedback does not commit the button action early")
+	await create_timer(0.18).timeout
+	check(peak(capture.get_buffer(capture.get_frames_available())) > 0.005, "native audio is mixed while the mouse is still held")
+	_mouse(pick.get_global_rect().get_center(), false)
+	check(clicks == 1 and session.block_war_commander == &"rabbit", "release commits exactly once without a second sound")
+	feedback.stop_all()
+	clicks = 0
+	pick = menu.get_node("%Animal2")
+	_mouse(pick.get_global_rect().get_center(), true)
+	_mouse(Vector2(4, 4), false)
+	check(clicks == 1 and session.block_war_commander == &"rabbit", "dragging away keeps press feedback but cancels the action")
+	feedback.stop_all()
+	clicks = 0
+	pick.disabled = true
+	_mouse(pick.get_global_rect().get_center(), true)
+	_mouse(pick.get_global_rect().get_center(), false)
+	check(clicks == 0, "disabled controls never sound")
+	pick.disabled = false
+	pick.grab_focus()
+	_key(true)
+	check(clicks == 1 and session.block_war_commander == &"rabbit", "keyboard press sounds before its release action")
+	await create_timer(0.10).timeout
+	_key(true, true)
+	check(clicks == 1, "key repeat cannot retrigger press feedback")
+	_key(false)
+	check(clicks == 1 and session.block_war_commander == &"bear", "keyboard release commits without duplicate feedback")
+	feedback.stop_all()
+	clicks = 0
+	pick.set_pressed_no_signal(false)
+	pick.set_pressed_no_signal(true)
+	check(clicks == 0, "restoring toggle state stays silent")
+	menu.queue_free()
+	session.block_war_commander = previous
+	await process_frame
