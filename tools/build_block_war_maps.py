@@ -87,11 +87,12 @@ def layouts():
                      + mirrored([68], [-10, 10], population=12)))
     # Wide, deliberately placed earth ramps are the only ways across cliff edges.
     maps.append(dict(common, id="terraces", title="叠翠台地", half=(44, 32),
-                     description="四条宽土坡通向中央台地，坡顶炮塔控制近路。沿南北低地绕行，可以避开正面争坡并抢占两翼工坊。",
+                     description="四条宽土坡通向中央台地，四座高地住宅环绕坡顶炮塔。先占住宅稳住前线，或沿南北低地绕行，抢占两翼工坊。",
                      terrain=True,
                      buildings=starts(34, [0]) + mirrored([33], [-20, 20])
                      + mirrored([18], [-23, 23], 2, 20) + [building(0, 0, 1, population=36)]
-                     + mirrored([35.5], [-10, 10], population=12)))
+                     + mirrored([35.5], [-10, 10], population=12)
+                     + mirrored([8], [-7], population=18) + mirrored([6.75], [7.25], population=18)))
     maps.append(dict(medium, id="switchback", title="盘山双关", half=(54, 44), color=(0.37, 0.465, 0.215),
                      description="南北两座台地由二段土坡连接八米高的山脊要塞。可以沿坡逐层推进，也能走山脚与外沿山道换线包抄。",
                      terrain=True,
