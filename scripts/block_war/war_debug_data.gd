@@ -54,5 +54,7 @@ static func capture(game: Node3D) -> Dictionary:
 		"buildings": counts, "forges_active": forges, "energy_towers_active": game.energy_tower_count(faction),
 		"garrison": garrison, "marching": marching, "queued": queued, "army_total": garrison + marching,
 		"energy": game.faction_skills[faction].energy, "energy_max": game.ENERGY_MAX, "energy_regen": game.energy_regen_for(faction),
+		"energy_natural_regen": game.SKILL_RULES.natural_energy_regen(game.elapsed),
+		"combat_energy_per_loss": game.SKILL_RULES.combat_energy_per_loss(game.morale.stars(faction)),
 		"selected": selected, "fps": fps, "frame_ms": 1000.0 / fps if fps > 0.0 else 0.0, "sim_time": game.elapsed,
 	}

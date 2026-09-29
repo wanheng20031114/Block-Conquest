@@ -374,19 +374,19 @@ func _energy_towers() -> void:
 	var soldier: WarMarches.MarchUnit = host.marches._units[0]
 	var state := writer.capture(host, 1500)
 	check(state.schema == Snapshot.SCHEMA and Snapshot.valid(state, host), "current schema validates energy towers and smithy-to-energy construction")
-	near(state.factions["0"][9], 2.5, "own energy tower rate is captured without the allied faction's tower")
-	near(state.factions["1"][9], 2.0, "enemy faction without a tower retains its own baseline rate")
+	near(state.factions["0"][9], 1.5, "own energy tower rate is captured without the allied faction's tower")
+	near(state.factions["1"][9], 1.0, "enemy faction without a tower retains its own baseline rate")
 	var decoded: Dictionary = JSON.parse_string(JSON.stringify(state, "", true, true))
 	reader.install(replica, decoded, 10.4)
 	check(replica.by_id[0].kind == 3 and replica.by_id[0].level == 1, "energy building type and sole level survive snapshot installation")
 	check(replica.by_id[5].kind == 2 and replica.by_id[5].conversion_target == 3, "in-progress conversion retains the original smithy function")
 	check(replica.marches._units[0].order.energy_origin, "issued energy origin survives JSON snapshot installation")
-	near(replica.faction_skills[0].energy, 51.0, "late snapshot projects energy using the captured faction rate")
+	near(replica.faction_skills[0].energy, 50.6, "late snapshot projects energy using the captured faction rate")
 	reader.present(replica, decoded, 0.2)
-	near(replica.faction_skills[0].energy, 51.5, "frame presentation continues the captured energy rate")
+	near(replica.faction_skills[0].energy, 50.9, "frame presentation continues the captured energy rate")
 	near(replica.faction_skills[1].energy, 50.0, "presentation never accrues another faction's private energy")
 	var private_view := Snapshot.for_player(state, 0)
-	check(private_view.factions["2"][1] == 0.0 and private_view.factions["2"][9] == 2.5, "energy privacy filtering preserves the public per-faction rate")
+	check(private_view.factions["2"][1] == 0.0 and private_view.factions["2"][9] == 1.5, "energy privacy filtering preserves the public per-faction rate")
 
 	# Changing an origin after dispatch must not retroactively change an order.
 	host.by_id[0].kind = 0
@@ -414,7 +414,7 @@ func _energy_towers() -> void:
 	check(not Snapshot.valid_record("orders", order, host), "numeric energy provenance cannot pass as a Boolean")
 	order.pop_back()
 	check(not Snapshot.valid_record("orders", order, host), "legacy march order without provenance is rejected")
-	for rate: Variant in [NAN, INF, "2.5", -1.0, 1.9, 1000.0]:
+	for rate: Variant in [NAN, INF, "1.5", -1.0, 0.9, 1000.0]:
 		var account: Array = state.factions["0"].duplicate(true)
 		account[9] = rate
 		check(not Snapshot.valid_account(account, host), "invalid energy recovery rate is rejected: %s" % str(rate))
@@ -431,17 +431,17 @@ func _energy_towers() -> void:
 	host.by_id[2].faction = 0
 	host.faction_skills[0].energy = 60.0
 	var before := writer.capture(host, 1600)
-	near(before.factions["0"][9], 2.75, "two own towers use the diminishing rate in the wire account")
+	near(before.factions["0"][9], 1.75, "two own towers use the diminishing rate in the wire account")
 	host.by_id[0].begin_disruption(5.0)
 	var after := writer.capture(host, 1601)
 	var delta := Snapshot.diff(before, after)
 	check(delta.set.get("factions", {}).has("0"), "tower disruption reliably re-anchors the owning faction's energy")
-	near(after.factions["0"][9], 2.5, "disrupted tower contributes no recovery")
+	near(after.factions["0"][9], 1.5, "disrupted tower contributes no recovery")
 	check(not Snapshot.same_structure("factions", before.factions["0"], after.factions["0"]), "older optional anchors cannot overwrite a new recovery rate")
 	Snapshot.apply_delta(before, delta)
 	check(Snapshot.valid(before, replica), "recovery-rate change and building disruption apply as one valid fact")
 	reader.install(replica, before, 40.4)
-	near(replica.faction_skills[0].energy, 61.0, "reconnect installation uses the new absolute energy and rate baseline")
+	near(replica.faction_skills[0].energy, 60.6, "reconnect installation uses the new absolute energy and rate baseline")
 	var network := NetworkMatch.new()
 	network.game = replica
 	network._account = after.factions["0"].duplicate(true)
@@ -453,7 +453,7 @@ func _energy_towers() -> void:
 	network._applied = 2
 	for b: WarBuilding in replica.buildings: b.kind = 0
 	network._apply_account()
-	near(replica.faction_skills[0].energy, 61.0, "private account prediction uses its own captured rate despite local tower changes")
+	near(replica.faction_skills[0].energy, 60.6, "private account prediction uses its own captured rate despite local tower changes")
 	host.by_id[0].clear_disruption()
 	var resumed := writer.capture(host, 1602)
 	check(Snapshot.diff(after, resumed).set.get("factions", {}).has("0"), "disruption expiry reliably restores the tower recovery rate")

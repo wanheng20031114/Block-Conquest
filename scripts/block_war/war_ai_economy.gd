@@ -48,7 +48,8 @@ func tower_score(game: Node3D, building: WarBuilding, homes: int, reserve: float
 	var recent_spending := 0.0
 	for payment: Vector2 in _recent_spending:
 		recent_spending += payment.y
-	if recent_spending < SKILL_RULES.ENERGY_REGEN * OBSERVATION_SECONDS or homes < 2 or under_attack:
+	var natural_income := SKILL_RULES.natural_energy_between(game.elapsed - OBSERVATION_SECONDS, OBSERVATION_SECONDS)
+	if recent_spending < natural_income or homes < 2 or under_attack:
 		return 0.0
 	if building.faction != faction or building.kind != 2 or building.is_constructing:
 		return 0.0

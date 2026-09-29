@@ -33,7 +33,7 @@ var bear := BEAR_SKILLS.new()
 
 class SkillState extends RefCounted:
 	var commander: StringName = &"squirrel"
-	var energy := 30.0
+	var energy: float = SKILL_RULES.ENERGY_INITIAL
 	var cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var durations: Array[float] = [0.0, 0.0, 0.0, 0.0]
 	var recruit_target_id := -1
@@ -336,6 +336,8 @@ func simulate(delta: float) -> void:
 	while remaining > 0.0 and not finished:
 		sync_environment_bonuses()
 		var step := remaining
+		if elapsed < SKILL_RULES.ENERGY_ACCELERATION_TIME:
+			step = minf(step, SKILL_RULES.ENERGY_ACCELERATION_TIME - elapsed)
 		if ai_enabled:
 			step = minf(step, maxf(ai_clock, 0.000001))
 		if marches.has_marchers() or not projectiles.is_empty() or world_effects.has_fire():
@@ -357,11 +359,12 @@ func simulate(delta: float) -> void:
 func _simulate_step(delta: float) -> void:
 	sync_environment_bonuses()
 	morale.begin_step()
+	var natural_energy := SKILL_RULES.natural_energy_between(elapsed, delta)
 	elapsed += delta
 	var recruiting := _tick_recruitment(delta)
 	for faction: int in faction_count:
 		var state := faction_skills[faction]
-		state.energy = minf(ENERGY_MAX, state.energy + energy_regen_for(faction) * delta)
+		state.energy = minf(ENERGY_MAX, state.energy + natural_energy + SKILL_RULES.energy_tower_bonus(energy_tower_count(faction)) * delta)
 		for index: int in 4:
 			state.cooldowns[index] = maxf(0.0, state.cooldowns[index] - delta)
 			state.durations[index] = maxf(0.0, state.durations[index] - delta)
@@ -535,7 +538,7 @@ func energy_tower_count(faction: int) -> int:
 	return count
 
 func energy_regen_for(faction: int) -> float:
-	return ENERGY_REGEN + SKILL_RULES.energy_tower_bonus(energy_tower_count(faction))
+	return SKILL_RULES.natural_energy_regen(elapsed) + SKILL_RULES.energy_tower_bonus(energy_tower_count(faction))
 
 func attack_bonus(faction: int) -> float:
 	return COMBAT_RULES.forge_attack_bonus(forge_count(faction))
@@ -572,9 +575,18 @@ func _on_unit_defeated(at: Vector3, heading: Vector3, faction: int, impulse: Vec
 	world_effects.casualty(at, heading, faction, impulse, burning)
 	presentation_event.emit("casualty", {"at": _vector_values(at), "heading": _vector_values(heading), "faction": faction, "impulse": _vector_values(impulse), "burning": burning})
 
+func _restore_combat_energy(faction: int, losses: float) -> void:
+	# Population and morale remain fractional; a neutral garrison has no account.
+	if faction < 0 or losses <= 0.0:
+		return
+	var state := faction_skills[faction]
+	state.energy = minf(ENERGY_MAX, state.energy + losses * SKILL_RULES.combat_energy_per_loss(morale.stars(faction)))
+
 func _record_attacker_losses(faction: int, defender: int, losses: float) -> void:
 	if losses <= 0.0:
 		return
+	# Sample the loss owner's current tier before this exchange changes morale.
+	_restore_combat_energy(faction, losses)
 	morale.adjust(faction, -MORALE.ATTACKER_LOSS_PENALTY * losses)
 	if FACTIONS.hostile(faction, defender):
 		morale.adjust(defender, MORALE.KILL_REWARD * losses)
@@ -608,15 +620,13 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 		target.population += strength
 		audio.play_world(&"war_reinforce", target.global_position)
 	else:
+		var defending_population: float = target.population
 		var original_damage: float = strength * combat_multiplier(faction, target, unit_attack_bonus)
-		var damage: float = bear.damage_for(self, target, original_damage)
-		if target.population + 0.00001 >= damage:
-			target.population = maxf(0.0, target.population - damage)
+		var damage: float = bear.apply_damage(self, target, original_damage, true)
+		if defending_population + 0.00001 >= damage:
 			_record_attacker_losses(faction, target.faction, strength)
-			if target.queued_population > floori(target.population):
-				marches.trim_departures(target_id, target.faction, floori(target.population))
 		else:
-			var survivors: float = clampf(strength * (damage - target.population) / maxf(original_damage, 0.000001), 0.0, strength)
+			var survivors: float = clampf(strength * (damage - defending_population) / maxf(original_damage, 0.000001), 0.0, strength)
 			var previous_faction: int = target.faction
 			var captured_level: int = target.level
 			_record_attacker_losses(faction, previous_faction, strength - survivors)
@@ -725,10 +735,7 @@ func _tick_fire_buildings() -> void:
 			if offset.length() <= fire.front(fire.age):
 				fire.hit_buildings[building.building_id] = true
 				# Fire retains its independent base damage and morale attack scaling.
-				var damage := bear.damage_for(self, building, IMPACT_DAMAGE * morale.attack(fire.faction) / (morale.defense(building.faction) + defense_bonus(building)) / (1.0 + skill_defense_bonus(building)))
-				building.population = maxf(0.0, building.population - damage)
-				if building.queued_population > floori(building.population):
-					marches.trim_departures(building.building_id, building.faction, floori(building.population))
+				bear.apply_damage(self, building, IMPACT_DAMAGE * morale.attack(fire.faction) / (morale.defense(building.faction) + defense_bonus(building)) / (1.0 + skill_defense_bonus(building)))
 				building.refresh_visual()
 
 func tower_range(building: Node3D) -> float:
@@ -1204,7 +1211,7 @@ func _toolbox_can_restore_population(building: WarBuilding) -> bool:
 	times.sort()
 	var count := 0
 	var previous := 0.0
-	var energy_at_completion := state.energy + ENERGY_REGEN * deadline
+	var energy_at_completion := state.energy + SKILL_RULES.natural_energy_between(elapsed, deadline)
 	for time: float in times:
 		energy_at_completion += SKILL_RULES.energy_tower_bonus(count) * (time - previous)
 		count += changes[time]

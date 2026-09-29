@@ -59,9 +59,7 @@ static func convert(game: Node3D, center: Vector3, faction: int) -> int:
 static func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 	match index:
 		0:
-			var loss := floori(game.bear.damage_for(game, target, bomb_loss(target)) + 0.000001)
-			target.population = maxf(0.0, target.population - loss)
-			game.marches.trim_departures(target.building_id, target.faction, floori(target.population))
+			game.bear.apply_damage(game, target, bomb_loss(target), false, true)
 		1:
 			game.morale.transfer_stars(target.faction, faction, stolen_stars(game, target.faction, faction))
 		3:

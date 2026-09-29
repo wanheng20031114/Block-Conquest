@@ -1,7 +1,7 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 3
-const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "fires"]
+const SCHEMA := 4
+const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "combat_remainders", "fires"]
 const UNIT_SIZE := 14
 const MAX_ID := 2147483647
 const MAX_RECORDS := 65536
@@ -88,6 +88,8 @@ func capture(game: Node, tick: int) -> Dictionary:
 		state.wards[str(id)] = [ward.faction, deadline(now, ward.remaining), deadline(now, ward.shot_clock), ward.pulse]
 	for id: int in game.bear.damage_remainders:
 		state.remainders[str(id)] = game.bear.damage_remainders[id]
+	for id: int in game.bear.combat_damage_remainders:
+		state.combat_remainders[str(id)] = game.bear.combat_damage_remainders[id]
 	for shots: Array in [game.projectiles, game.bear.shots]:
 		for shot: Dictionary in shots:
 			_shot_serial = maxi(_shot_serial, int(shot.get("network_id", 0)) + 1)
@@ -202,7 +204,7 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 			for i: int in 4:
 				if absf(float(old[array_index][i]) - float(next[array_index][i])) > 0.00001: return true
 		# Public rows redact both energy values to zero. Private accounts also
-		# publish earned capture energy immediately, beyond passive regeneration.
+		# publish earned combat/capture energy immediately, beyond regeneration.
 		return (float(old[1]) > 0.0 or float(next[1]) > 0.0) and absf(float(next[1]) - energy_at(old, float(next[8]))) > 0.00001
 	if group == "links":
 		for i: int in [0, 1, 2, 4]:
@@ -255,13 +257,15 @@ static func valid(state: Dictionary, game: Node) -> bool:
 			if group == "fields":
 				if not key is String or key != str(row[0]) + ":" + str(int(row[1])): return false
 			elif not _id(key): return false
-			elif group in ["buildings", "wards", "remainders", "links"]:
+			elif group in ["buildings", "wards", "remainders", "combat_remainders", "links"]:
 				if not game.by_id.has(int(key)): return false
 			elif group == "factions":
 				if int(key) >= game.faction_count: return false
 			elif int(key) < 1: return false
 			if group == "units" and not state.orders.has(str(int(row[0]))): return false
 			if group == "links" and int(key) != int(row[0]): return false
+	for key: String in state.combat_remainders:
+		if not state.remainders.has(key) or float(state.combat_remainders[key]) <= 0.0 or float(state.combat_remainders[key]) > float(state.remainders[key]): return false
 	if not _row(state.get("counters"), 4): return false
 	for i: int in 4:
 		if not _integer(state.counters[i], 0 if i == 2 else 1, MAX_ID): return false
@@ -343,7 +347,7 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			return _nonnegative(row[3]) and _integer(row[4], 0, MAX_ID) and _nonnegative(row[5]) and float(row[5]) <= 1.0
 		"wards":
 			return _row(row, 4) and _integer(row[0], 0, game.faction_count - 1) and _nonnegative(row[1]) and _nonnegative(row[2]) and _nonnegative(row[3]) and float(row[3]) <= 1.0
-		"remainders": return _nonnegative(row) and float(row) < 1.000001
+		"remainders", "combat_remainders": return _nonnegative(row) and float(row) < 1.000001
 		"shots":
 			return _row(row, 7) and row[0] in ["tower", "orb"] and _integer(row[1], 1, MAX_ID) and _vector(row[2]) and _vector(row[3]) and _number(row[4]) and absf(float(row[4])) <= MAX_TIME and _number(row[5]) and float(row[5]) > 0 and float(row[5]) <= 10 and row[6] is bool
 		"fires":
@@ -355,7 +359,6 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 
 static func valid_account(row: Variant, game: Node) -> bool:
 	if not _row(row, 10) or row[0] not in ["squirrel", "rabbit", "bear", "frog", "fox"] or not _nonnegative(row[1]) or float(row[1]) > 100: return false
-	if not _number(row[9]) or float(row[9]) < RULES.ENERGY_REGEN or float(row[9]) > RULES.ENERGY_REGEN + RULES.energy_tower_bonus(game.buildings.size()): return false
 	for index: int in [2, 3]:
 		if not _row(row[index], 4): return false
 		for value: Variant in row[index]:
@@ -363,12 +366,17 @@ static func valid_account(row: Variant, game: Node) -> bool:
 	if not _integer(row[4], -1, MAX_ID) or (int(row[4]) >= 0 and not game.by_id.has(int(row[4]))): return false
 	for i: int in [5, 6, 7, 8]:
 		if not _nonnegative(row[i]): return false
+	var natural_rate: float = RULES.natural_energy_regen(float(row[8]))
+	if not _number(row[9]) or float(row[9]) < natural_rate or float(row[9]) > natural_rate + RULES.energy_tower_bonus(game.buildings.size()): return false
 	return float(row[5]) <= game.MORALE.MAX_POINTS
 
 static func energy_at(row: Array, until: float) -> float:
-	# The Host re-anchors energy, timestamp and rate together on every rate
-	# change. Never integrate an older account through a client's current towers.
-	return clampf(float(row[1]) + float(row[9]) * maxf(0.0, until - float(row[8])), 0.0, RULES.ENERGY_MAX)
+	# Tower income belongs to the Host anchor; the known 100-second boundary
+	# can be integrated exactly even before the next account packet arrives.
+	var start: float = float(row[8])
+	var duration: float = maxf(0.0, until - start)
+	var tower_rate: float = float(row[9]) - RULES.natural_energy_regen(start)
+	return clampf(float(row[1]) + RULES.natural_energy_between(start, duration) + tower_rate * duration, 0.0, RULES.ENERGY_MAX)
 
 static func _building_id(value: Variant, game: Node) -> bool:
 	return _integer(value, 0, MAX_ID) and game.by_id.has(int(value))
@@ -536,7 +544,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 	game.marches._next_order_id = int(state.counters[0]); game.marches._next_unit_id = int(state.counters[1]); game.marches._departure_sequence = int(state.counters[2])
 	game.marches._ensure_capacity(units.size())
 	if units_changed: game.marches._render()
-	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.marches.blocked_destinations.clear()
+	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear(); game.marches.blocked_destinations.clear()
 	for key: String in state.links:
 		var row: Array = state.links[key]
 		game.bear.links[int(key)] = {"target": int(row[0]), "support": int(row[1]), "faction": int(row[2]), "remaining": remaining(row[3], now), "settled": int(row[4]), "pulse": float(row[5])}
@@ -545,6 +553,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		game.bear.wards[int(key)] = {"faction": int(row[0]), "remaining": remaining(row[1], now), "shot_clock": remaining(row[2], now), "pulse": float(row[3])}
 		if remaining(row[1], now) > 0: game.marches.blocked_destinations[int(key)] = int(row[0])
 	for key: String in state.remainders: game.bear.damage_remainders[int(key)] = float(state.remainders[key])
+	for key: String in state.combat_remainders: game.bear.combat_damage_remainders[int(key)] = float(state.combat_remainders[key])
 	_install_shots(game, state, now)
 	_install_fire(game, state, now)
 	game.world_effects.update_skills(0.0, game.faction_skills, game.shields, game.by_id, game.marches)
@@ -600,7 +609,8 @@ func _install_fields(game: Node, state: Dictionary, now: float) -> void:
 		_field_geometry = geometry
 
 func _set_field_clock(game: Node, state: Dictionary, now: float, discard_expired: bool) -> void:
-	for row: Array in state.fields.values():
+	for key: String in state.fields:
+		var row: Array = state.fields[key]
 		if row[0] == "shield": continue
 		var zones: Dictionary = game.marches.get(str(row[0]) + "_zones")
 		var id := int(row[1])
@@ -608,11 +618,11 @@ func _set_field_clock(game: Node, state: Dictionary, now: float, discard_expired
 		zones[id].remaining = remaining(row[4], now)
 		if discard_expired and zones[id].remaining <= 0.0: zones.erase(id)
 
-func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, at_time: float) -> void:
+func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, _at_time: float) -> void:
 	if unit.pending_departure or seconds <= 0.0: return
 	# Morale changes arrive with authoritative movement anchors. Skill expiry and
-	# field crossings are integrated by movement_distance for each soldier.
-	_set_field_clock(game, _last_state, at_time, false)
+	# field crossings are integrated by movement_distance for each soldier. The
+	# caller sets the shared field clock once per frame, or per historical anchor.
 	var step: float = game.marches.movement_distance(unit, seconds)
 	unit.distance = minf(unit.order.length - 0.001, unit.distance + step)
 	if game.marches.blocked_destinations.has(unit.order.target_id) and game.FACTIONS.hostile(unit.order.faction, game.marches.blocked_destinations[unit.order.target_id]):
@@ -659,6 +669,7 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 	game.elapsed += delta
 	var marches: WarMarches = game.marches
 	var smoothing := exp(-delta / 0.08)
+	_set_field_clock(game, _last_state, before, false)
 	for index: int in marches._units.size():
 		var unit: WarMarches.MarchUnit = marches._units[index]
 		var row: Array = _presentation_rows[index]
@@ -672,7 +683,10 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 	marches._render()
 	for f: int in game.faction_count:
 		var skill: RefCounted = game.faction_skills[f]
-		if f == game.local_faction: skill.energy = minf(game.ENERGY_MAX, skill.energy + float(_last_state.factions[str(f)][9]) * delta)
+		if f == game.local_faction:
+			var account: Array = _last_state.factions[str(f)]
+			var tower_rate: float = float(account[9]) - RULES.natural_energy_regen(float(account[8]))
+			skill.energy = minf(game.ENERGY_MAX, skill.energy + RULES.natural_energy_between(before, delta) + tower_rate * delta)
 		for i: int in 4:
 			skill.cooldowns[i] = maxf(0.0, skill.cooldowns[i] - delta)
 			skill.durations[i] = maxf(0.0, skill.durations[i] - delta)

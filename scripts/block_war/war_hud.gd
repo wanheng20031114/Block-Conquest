@@ -148,7 +148,8 @@ func update_state(state: Dictionary) -> void:
 		%SkillDrag.get_node("Icon").texture = _skill_buttons[armed].get_node("Icon").texture
 	var energy: float = float(state.energy)
 	%EnergyBar.value = energy
-	%EnergyBar.tooltip_text = "%d / %d 技力\n当前恢复 +%.2f / 秒 · %d 座有效能量塔\n技力与能量塔收益按玩家独立计算。" % [floori(energy), int(state.energy_max), float(state.energy_regen), int(state.energy_tower_count)]
+	var combat_regen: float = SKILL_RULES.combat_energy_per_loss(float(state.morale_stars[local_faction]))
+	%EnergyBar.tooltip_text = "%.2f / %d 技力\n当前恢复 +%.2f / 秒 · %d 座有效能量塔\n自然恢复：前 %d 秒 +%d / 秒，之后 +%d / 秒\n建筑交战每损失 1 人：当前 +%.2f 技力\n士气低于 3 / 3 至不足 5 / 5 星：+0.20 / +0.15 / +0.10\n技能直接杀伤、路上伤亡不计；收益按玩家独立计算。" % [energy, int(state.energy_max), float(state.energy_regen), int(state.energy_tower_count), SKILL_RULES.ENERGY_ACCELERATION_TIME, SKILL_RULES.ENERGY_REGEN, SKILL_RULES.ENERGY_LATE_REGEN, combat_regen]
 	for index: int in 4:
 		var button: Button = _skill_buttons[index]
 		var cooldown: float = float(state.cooldowns[index])

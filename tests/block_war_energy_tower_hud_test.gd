@@ -113,7 +113,7 @@ func _run() -> void:
 	_check(home.kind == 3 and not home.is_constructing and home.max_level == 1, "paid conversion installs the fixed-level energy tower")
 	_check(not hud.get_node("%Upgrade").visible and not energy_button.visible, "completed energy tower has no upgrade or self-conversion")
 	_check(conversions[0].visible and conversions[1].visible and conversions[2].visible, "completed energy tower can convert back to each original building")
-	_check(hud.get_node("%EnergyBar").tooltip_text.contains("+2.50 / 秒") and hud.get_node("%EnergyBar").tooltip_text.contains("1 座有效能量塔"), "energy tooltip shows the first tower's actual recovery rate")
+	_check(hud.get_node("%EnergyBar").tooltip_text.contains("+1.50 / 秒") and hud.get_node("%EnergyBar").tooltip_text.contains("1 座有效能量塔"), "energy tooltip shows the first tower's actual recovery rate")
 	await _capture("01_completed_tower")
 	var second: WarBuilding = game.by_id[3]
 	second.kind = 3
@@ -122,11 +122,22 @@ func _run() -> void:
 	second.refresh_visual()
 	game.update_hud()
 	var energy_bar: ProgressBar = hud.get_node("%EnergyBar")
-	_check(energy_bar.tooltip_text.contains("+2.75 / 秒") and energy_bar.tooltip_text.contains("2 座有效能量塔") and energy_bar.tooltip_text.contains("玩家独立"), "energy tooltip updates the actual second marginal bonus and independent ownership")
+	_check(energy_bar.tooltip_text.contains("+1.75 / 秒") and energy_bar.tooltip_text.contains("2 座有效能量塔") and energy_bar.tooltip_text.contains("玩家独立"), "energy tooltip updates the actual second marginal bonus and independent ownership")
 	_check(energy_bar.mouse_filter != Control.MOUSE_FILTER_IGNORE, "the energy strip accepts native tooltip hover")
 	_move(energy_bar.get_global_rect().get_center())
 	await _frames(24)
 	await _capture("02_energy_tooltip")
+	for bracket: Array in [[2.999, "0.20"], [3.0, "0.15"], [4.999, "0.15"], [5.0, "0.10"]]:
+		game.morale.adjust(0, game.MORALE.points_for_stars(bracket[0]) - game.morale.points(0))
+		game.update_hud()
+		_check(energy_bar.tooltip_text.contains("当前 +%s 技力" % bracket[1]), "tooltip follows fractional morale bracket: %s" % bracket[0])
+	game.elapsed = 100.0
+	game.energy = 75.15
+	game.update_hud()
+	_check(energy_bar.tooltip_text.contains("75.15 / 100") and energy_bar.tooltip_text.contains("+2.75 / 秒"), "tooltip preserves fractional energy and switches the natural rate at one hundred seconds")
+	_move(energy_bar.get_global_rect().get_center() + Vector2(4, 0))
+	await _frames(24)
+	await _capture("03_combat_energy_late")
 	await game.prepare_shutdown()
 	change_scene_to_file("res://scenes/codex/codex.tscn")
 	await scene_changed

@@ -193,9 +193,9 @@ static func guides() -> Array[Dictionary]:
 			"id": &"skills", "title": "技力与施法", "tag": "指挥官技能",
 			"summary": "技力决定施法资源，冷却限制技能使用频率。",
 			"sections": [
-				{"title": "技力恢复", "body": "每局初始技力为 30 点，基础每秒恢复 %d 点，上限 %d 点。能量塔可提高恢复速度；悬停技力条可查看当前恢复率。四项技能共用技力，各自独立冷却。" % [RULES.ENERGY_REGEN, RULES.ENERGY_MAX]},
-				{"title": "瞄准与释放", "body": "拖动技能图标，或按住 Q、W、E、R 瞄准，松手施放。不同技能需要指定建筑、士兵或地面区域。"},
-				{"title": "取消施法", "body": "右键可以取消瞄准。取消或无效施放不扣除技力，也不进入冷却；电脑遵循相同的技力与冷却规则。"},
+				{"title": "自然恢复", "body": "开局 %d 点技力，上限 %d 点。前 %d 秒自然恢复 %d 点/秒，之后 %d 点/秒；暂停不计时。能量塔额外加速恢复，悬停技力条可查看当前数值。" % [RULES.ENERGY_INITIAL, RULES.ENERGY_MAX, RULES.ENERGY_ACCELERATION_TIME, RULES.ENERGY_REGEN, RULES.ENERGY_LATE_REGEN]},
+				{"title": "战损回能", "body": "建筑交战中，己方每实际损失 1 人回复技力：战前士气低于 3 星为 0.2，3 至不足 5 星为 0.15，5 星为 0.1。攻守均计，包含进攻中立和链式分担；技能直接杀伤、路上伤亡不计。"},
+				{"title": "施法与取消", "body": "四项技能共用技力、独立冷却。拖动图标或按住 Q/W/E/R 瞄准，松手施放，右键取消。取消或无效施放不扣技力、不进冷却；电脑遵循相同规则。"},
 			],
 			"tip": "查看技能的目标与作用范围，避免对友军造成误伤。",
 			"icon": preload("res://assets/ui/block_war/skill_muster.svg"),

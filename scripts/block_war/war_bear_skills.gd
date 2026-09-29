@@ -8,6 +8,8 @@ var shots: Array[Dictionary] = []
 # Sub-unit attack coefficients accrue until a whole casualty can be settled.
 # On unlink, the next ordinary hit settles any outstanding fraction normally.
 var damage_remainders: Dictionary[int, float] = {}
+# The ordinary-combat portion of each pending fraction, separate from spells.
+var combat_damage_remainders: Dictionary[int, float] = {}
 
 func participates(id: int) -> bool:
 	for link: Dictionary in links.values():
@@ -65,37 +67,60 @@ func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 func is_invulnerable(id: int) -> bool:
 	return wards.has(id)
 
-func damage_for(game: Node3D, target: WarBuilding, damage: float) -> float:
+func apply_damage(game: Node3D, target: WarBuilding, damage: float, combat_damage: bool = false, whole_target_loss: bool = false) -> float:
+	# Settle both garrisons here so energy follows actual casualties, including
+	# transferred damage, overkill and a ward that absorbs without losing troops.
 	if is_invulnerable(target.building_id):
 		return 0.0
 	var id := target.building_id
 	var accrued: float = damage + damage_remainders.get(id, 0.0)
-	if not links.has(id):
+	var combat_accrued: float = (damage if combat_damage else 0.0) + combat_damage_remainders.get(id, 0.0)
+	var combat_fraction := combat_accrued / accrued if accrued > 0.0 else 0.0
+	var target_damage := accrued
+	var settled_link := false
+	if links.has(id):
+		var link := links[id]
+		var support: WarBuilding = game.by_id[link.support]
+		if target.faction != link.faction or support.faction != link.faction or support.population < 1.0:
+			_end_link(game, id)
+		else:
+			settled_link = true
+			var whole := floori(accrued + 0.000001)
+			damage_remainders[id] = maxf(0.0, accrued - whole)
+			var combat_remaining: float = damage_remainders[id] * combat_fraction
+			if combat_remaining > 0.0:
+				combat_damage_remainders[id] = combat_remaining
+			else:
+				combat_damage_remainders.erase(id)
+			# Cumulative ceil-half keeps the existing integer casualty distribution.
+			var previous_support := ceili(float(link.settled) * 0.5)
+			link.settled += whole
+			var shared := ceili(float(link.settled) * 0.5) - previous_support
+			var absorbed := shared if is_invulnerable(support.building_id) else mini(shared, floori(support.population))
+			if not is_invulnerable(support.building_id):
+				support.population -= absorbed
+				game._restore_combat_energy(support.faction, float(absorbed) * combat_fraction)
+				if support.queued_population > floori(support.population):
+					game.marches.trim_departures(support.building_id, support.faction, floori(support.population))
+				support.refresh_visual()
+			if absorbed > 0:
+				link.pulse = 1.0
+			target_damage = float(whole - absorbed)
+			if support.population < 1.0:
+				_end_link(game, id)
+	# An ended/exhausted link still owes its last sub-unit fraction. Clear only
+	# when this hit actually settled the unrounded total outside a valid link.
+	if not settled_link:
 		damage_remainders.erase(id)
-		return accrued
-	var link := links[id]
-	var support: WarBuilding = game.by_id[link.support]
-	if target.faction != link.faction or support.faction != link.faction or support.population < 1.0:
-		_end_link(game, id)
-		damage_remainders.erase(id)
-		return accrued
-	var whole := floori(accrued + 0.000001)
-	damage_remainders[id] = maxf(0.0, accrued - whole)
-	# Cumulative ceil-half gives 21 -> 11/10 even when 21 arrives one at a time.
-	var previous_support := ceili(float(link.settled) * 0.5)
-	link.settled += whole
-	var shared := ceili(float(link.settled) * 0.5) - previous_support
-	var absorbed := shared if is_invulnerable(support.building_id) else mini(shared, floori(support.population))
-	if not is_invulnerable(support.building_id):
-		support.population -= absorbed
-		if support.queued_population > floori(support.population):
-			game.marches.trim_departures(support.building_id, support.faction, floori(support.population))
-		support.refresh_visual()
-	if absorbed > 0:
-		link.pulse = 1.0
-	if support.population < 1.0:
-		_end_link(game, id)
-	return float(whole - absorbed)
+		combat_damage_remainders.erase(id)
+	if whole_target_loss:
+		target_damage = floorf(target_damage + 0.000001)
+	var loss := minf(target.population, target_damage)
+	target.population = maxf(0.0, target.population - loss)
+	game._restore_combat_energy(target.faction, loss * combat_fraction)
+	if target.queued_population > floori(target.population):
+		game.marches.trim_departures(id, target.faction, floori(target.population))
+	return target_damage
 
 func _end_link(game: Node3D, id: int) -> void:
 	game.faction_skills[links[id].faction].durations[2] = 0.0
@@ -109,6 +134,7 @@ func clear_building(game: Node3D, id: int) -> void:
 		game.faction_skills[wards[id].faction].durations[3] = 0.0
 	wards.erase(id)
 	damage_remainders.erase(id)
+	combat_damage_remainders.erase(id)
 	game.marches.blocked_destinations.erase(id)
 
 func step_limit() -> float:

@@ -119,7 +119,7 @@ func _run() -> void:
 			if a[index] != b[index]:
 				print("FIRST_DIFF ", index, " HOST ", a.substr(maxi(0,index-60),160), " CLIENT ", b.substr(maxi(0,index-60),160)); break
 	check(replica.local_faction == 2 and host.local_faction == 5, "arbitrary host and client seats retained")
-	check(replica.faction_skills[2].energy == 30.0 and replica.faction_skills[5].energy == 0.0, "only local private account restored")
+	check(replica.faction_skills[2].energy == 20.0 and replica.faction_skills[5].energy == 0.0, "only local private account restored")
 	check(host_wire.recovered.has(102), "completed snapshot acknowledged on command channel")
 
 	var source: WarBuilding = host.by_id[2]

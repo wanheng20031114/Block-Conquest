@@ -8,7 +8,10 @@ const COSTS: Array[float] = [30.0, 30.0, 35.0, 70.0]
 const COOLDOWNS: Array[float] = [35.0, 28.0, 45.0, 70.0]
 const DURATIONS: Array[float] = [6.0, 8.0, 8.0, 0.0]
 const ENERGY_MAX := 100.0
-const ENERGY_REGEN := 2.0
+const ENERGY_INITIAL := 20.0
+const ENERGY_REGEN := 1.0
+const ENERGY_LATE_REGEN := 2.0
+const ENERGY_ACCELERATION_TIME := 100.0
 const ENERGY_TOWER_BONUSES: Array[float] = [0.5, 0.25, 0.15]
 const ENERGY_TOWER_LATER_BONUS := 0.1
 const ENERGY_CAPTURE_REWARD := 10.0
@@ -69,6 +72,18 @@ const BEAR_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_b
 const FROG_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_frog_mist.svg"), preload("res://assets/ui/block_war/skill_frog_float.svg"), preload("res://assets/ui/block_war/skill_frog_cloak.svg"), preload("res://assets/ui/block_war/skill_frog_strike.svg")]
 const FOX_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_fox_bomb.svg"), preload("res://assets/ui/block_war/skill_fox_steal.svg"), preload("res://assets/ui/block_war/skill_fox_convert.svg"), preload("res://assets/ui/block_war/skill_fox_panic.svg")]
 const PORTRAITS := {&"squirrel": preload("res://assets/ui/block_war/commanders/squirrel.png"), RABBIT: preload("res://assets/ui/block_war/commanders/rabbit.png"), BEAR: preload("res://assets/ui/block_war/commanders/bear.png"), FROG: preload("res://assets/ui/block_war/commanders/frog.png"), FOX: preload("res://assets/ui/block_war/commanders/fox.png")}
+
+static func natural_energy_regen(elapsed: float) -> float:
+	return ENERGY_REGEN if elapsed < ENERGY_ACCELERATION_TIME else ENERGY_LATE_REGEN
+
+static func natural_energy_between(start_time: float, duration: float) -> float:
+	var early_seconds := clampf(ENERGY_ACCELERATION_TIME - start_time, 0.0, duration)
+	return early_seconds * ENERGY_REGEN + (duration - early_seconds) * ENERGY_LATE_REGEN
+
+static func combat_energy_per_loss(morale_stars: float) -> float:
+	if morale_stars >= 5.0:
+		return 0.1
+	return 0.15 if morale_stars >= 3.0 else 0.2
 
 static func energy_tower_bonus(count: int) -> float:
 	var bonus := 0.0

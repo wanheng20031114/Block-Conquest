@@ -35,7 +35,7 @@ func reset_match(full_energy: bool = true) -> void:
 	game.camera_rig.keyboard_pan = false
 	game.camera_rig.set_process(false)
 	for state in game.faction_skills:
-		near(state.energy, 30.0, "Every new commander starts with thirty energy")
+		near(state.energy, 20.0, "Every new commander starts with twenty energy")
 	if full_energy:
 		game.energy = 100.0
 		game.update_hud()
@@ -115,17 +115,17 @@ func _run() -> void:
 
 
 func _energy_and_cooldowns() -> void:
-	near(game.energy, 30.0, "New match starts with thirty shared energy")
+	near(game.energy, 20.0, "New match starts with twenty shared energy")
 	check(game.SKILL_ENERGY_COSTS == [30.0, 30.0, 35.0, 70.0], "Squirrel Q/W/E/R expose their balanced energy costs")
 	game.simulate(0.25)
-	near(game.energy, 30.5, "Opening energy regenerates from thirty")
+	near(game.energy, 20.25, "Opening energy regenerates from twenty")
 	game.energy = 100.0
 	game.simulate(0.25)
 	near(game.energy, 100.0, "Regeneration cannot exceed the energy cap")
 	game.energy = 20.0
 	game.simulate(0.125)
-	near(game.energy, 20.25, "Energy regenerates continuously at two per second")
-	game.simulate(50.0)
+	near(game.energy, 20.125, "Opening energy regenerates continuously at one per second")
+	game.simulate(80.0)
 	near(game.energy, 100.0, "Long simulation step clamps regenerated energy")
 	var home: Node3D = game.by_id[0]
 	home.population = home.capacity
@@ -146,7 +146,7 @@ func _energy_and_cooldowns() -> void:
 	near(game.energy, 0.0, "E consumes exactly its cost without going negative")
 	check(game.shields.has(home.building_id), "E still creates the residence shield")
 	game.simulate(1.0)
-	near(game.energy, 2.0, "Energy regeneration continues while all three skills cool")
+	near(game.energy, 1.0, "Energy regeneration continues while all three skills cool")
 	check(game.cooldowns == [34.0, 27.0, 44.0, 0.0], "Each cooldown advances independently by elapsed time")
 	near(home.population, original_population + 4.0, "Q continues alongside W and E")
 	var before_cooldowns: Array = game.cooldowns.duplicate()
@@ -155,7 +155,7 @@ func _energy_and_cooldowns() -> void:
 	var before_population: float = home.population
 	game.set_paused(true)
 	game.simulate(12.0)
-	near(game.energy, 2.0, "Pause freezes energy regeneration")
+	near(game.energy, 1.0, "Pause freezes energy regeneration")
 	near(home.population, before_population, "Pause freezes continuous recruitment")
 	near(game.elapsed, before_time, "Pause freezes match time")
 	check(game.cooldowns == before_cooldowns and game.active_durations == before_durations, "Pause freezes cooldowns and active skill durations")
@@ -265,7 +265,7 @@ func _recruitment_interruption() -> void:
 	home.population = 0.0
 	game._on_unit_arrived(home.building_id, 1, 1.0)
 	check(home.faction == 1 and game.active_durations[0] == 0.0, "Actual enemy capture immediately cancels the recruitment period")
-	near(game.energy, 72.0, "Capture does not refund energy already spent")
+	near(game.energy, 71.0, "Capturing an empty garrison does not refund energy already spent")
 	near(game.cooldowns[0], 34.0, "Capture does not reset Q cooldown")
 	home.population = 0.0
 	game._on_unit_arrived(home.building_id, 0, 1.0)
@@ -281,7 +281,7 @@ func _recruitment_interruption() -> void:
 	check(home.kind == 0 and home.is_constructing and game.active_durations[0] == 6.0, "Conversion keeps the residence and its recruitment during construction")
 	game.simulate(2.0)
 	near(home.population, 188.0, "Conversion costs twenty and the original Q continues recruiting")
-	near(game.energy, 74.0, "Conversion preserves the original Q payment and normal regeneration")
+	near(game.energy, 72.0, "Conversion preserves the original Q payment and normal regeneration")
 	game.simulate(6.0)
 	game.cooldowns[0] = 0.0
 	game.energy = 100.0
@@ -428,9 +428,9 @@ func _native_selection_and_hud() -> void:
 	var r: Button = game.hud.get_node("UI/Skills/Row/Skill3")
 	var ghost: Control = game.hud.get_node("%SkillDrag")
 	var energy_bar: ProgressBar = game.hud.get_node("%EnergyBar")
-	near(energy_bar.value, 30.0, "HUD initially exposes thirty shared energy")
-	check(q.hint.energy.contains("30 / 100"), "hover hints show the real initial energy")
-	check(not q.disabled and not w.disabled and e.disabled and r.disabled, "Opening energy enables only affordable skills")
+	near(energy_bar.value, 20.0, "HUD initially exposes twenty shared energy")
+	check(q.hint.energy.contains("20 / 100"), "hover hints show the real initial energy")
+	check(q.disabled and w.disabled and e.disabled and r.disabled, "Opening energy cannot yet fund any squirrel skill")
 	game.energy = 100.0
 	game.update_hud()
 	await _native_skill_hint(q)
@@ -546,7 +546,7 @@ func _native_selection_and_hud() -> void:
 	game.energy = 29.5
 	game.update_hud()
 	check(w.disabled, "W remains visibly unavailable below thirty energy")
-	game.simulate(0.25)
+	game.simulate(0.5)
 	game.update_hud()
 	check(not w.disabled, "Regeneration makes W available at its exact cost")
 	var w_at := w.get_global_rect().get_center()

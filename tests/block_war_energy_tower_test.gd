@@ -53,7 +53,7 @@ func set_building(id: int, owner: int, kind: int, population: float = 80.0) -> W
 	return building
 
 func regeneration() -> void:
-	var rates: Array[float] = [2.0, 2.5, 2.75, 2.9, 3.0, 3.1, 3.2]
+	var rates: Array[float] = [1.0, 1.5, 1.75, 1.9, 2.0, 2.1, 2.2]
 	for count: int in rates.size():
 		fixture()
 		for index: int in count:
@@ -61,16 +61,16 @@ func regeneration() -> void:
 		near(game.energy_regen_for(0), rates[count], "marginal tower bonuses at count %d" % count)
 		game.simulate(0.5)
 		near(game.energy, 10.0 + rates[count] * 0.5, "fractional time accrues exact energy at count %d" % count)
-		near(game.faction_skills[1].energy, 11.0, "enemy does not share this player's towers")
-		near(game.faction_skills[2].energy, 11.0, "ally does not share this player's towers")
+		near(game.faction_skills[1].energy, 10.5, "enemy does not share this player's towers")
+		near(game.faction_skills[2].energy, 10.5, "ally does not share this player's towers")
 	fixture()
 	var tower := set_building(2, 0, 3)
 	set_building(3, 2, 3)
 	set_building(4, 2, 3)
 	set_building(5, 1, 3)
-	near(game.energy_regen_for(0), 2.5, "local player has one own tower")
-	near(game.energy_regen_for(2), 2.75, "ally separately has two towers")
-	near(game.energy_regen_for(1), 2.5, "enemy separately has one tower")
+	near(game.energy_regen_for(0), 1.5, "local player has one own tower")
+	near(game.energy_regen_for(2), 1.75, "ally separately has two towers")
+	near(game.energy_regen_for(1), 1.5, "enemy separately has one tower")
 	near(game.attack_bonus(0), 0.0, "energy tower grants no forge attack bonus")
 	near(tower.production_rate, 0.0, "energy tower produces no soldiers")
 	game.energy = 99.8
@@ -84,17 +84,17 @@ func regeneration() -> void:
 	game.set_process(false)
 	tower.faction = 1
 	tower.refresh_visual()
-	near(game.energy_regen_for(0), 2.0, "losing a tower immediately removes its bonus")
-	near(game.energy_regen_for(1), 2.75, "capturing a tower recomputes its new owner's marginal bonus")
+	near(game.energy_regen_for(0), 1.0, "losing a tower immediately removes its bonus")
+	near(game.energy_regen_for(1), 1.75, "capturing a tower recomputes its new owner's marginal bonus")
 	fixture()
 	tower = set_building(2, 0, 3)
 	tower.begin_disruption(0.75)
 	game.simulate(1.0)
-	near(game.energy, 12.125, "one long tick integrates the exact seal expiry")
-	near(game.energy_regen_for(0), 2.5, "seal expiry restores the tower bonus")
+	near(game.energy, 11.125, "one long tick integrates the exact seal expiry")
+	near(game.energy_regen_for(0), 1.5, "seal expiry restores the tower bonus")
 	set_building(3, 0, 3)
 	tower.begin_disruption(2.0)
-	near(game.energy_regen_for(0), 2.5, "one active tower still receives the first marginal bonus")
+	near(game.energy_regen_for(0), 1.5, "one active tower still receives the first marginal bonus")
 
 func conversions() -> void:
 	for kind: int in [0, 1, 3]:
@@ -107,14 +107,14 @@ func conversions() -> void:
 	check(not game.begin_building_construction(forge, 3, 1), "another player cannot pay for this tower")
 	check(game.begin_building_construction(forge, 3, 0), "only a forge accepts the paid energy conversion")
 	near(forge.population, 60.0, "energy conversion uses the existing twenty-soldier cost")
-	near(game.energy_regen_for(0), 2.0, "unfinished tower grants no bonus")
+	near(game.energy_regen_for(0), 1.0, "unfinished tower grants no bonus")
 	near(game.attack_bonus(0), 0.3, "forge keeps its attack bonus during construction")
 	game.simulate(10.0)
 	check(forge.kind == 3 and forge.level == 1 and not forge.is_constructing, "conversion completes into a level-one energy tower")
-	near(game.energy, 30.0, "completion grants no retroactive regeneration")
+	near(game.energy, 20.0, "completion grants no retroactive regeneration")
 	near(game.attack_bonus(0), 0.0, "completed tower replaces the forge bonus")
 	game.simulate(1.0)
-	near(game.energy, 32.5, "completed tower increases subsequent regeneration")
+	near(game.energy, 21.5, "completed tower increases subsequent regeneration")
 	check(not game.begin_building_construction(forge, -1, 0), "energy tower cannot upgrade")
 	check(forge.max_level == 1 and forge.upgrade_cost == 0, "energy tower has no upgrade tier or cost")
 	for target_kind: int in [0, 1, 2]:
@@ -122,9 +122,9 @@ func conversions() -> void:
 		var tower := set_building(0, 0, 3)
 		check(game.begin_building_construction(tower, target_kind, 0), "energy tower can convert back to kind %d" % target_kind)
 		game.simulate(10.0)
-		near(game.energy, 35.0, "outgoing conversion retains the energy bonus until completion")
+		near(game.energy, 25.0, "outgoing conversion retains the energy bonus until completion")
 		check(tower.kind == target_kind and tower.level == 1, "reverse conversion installs the requested base building")
-		near(game.energy_regen_for(0), 2.0, "outgoing conversion removes the completed tower's bonus")
+		near(game.energy_regen_for(0), 1.0, "outgoing conversion removes the completed tower's bonus")
 	fixture()
 	forge = set_building(0, 0, 2, 19.0)
 	check(not game.begin_building_construction(forge, 3, 0), "nineteen available soldiers cannot fund a tower")
@@ -132,7 +132,7 @@ func conversions() -> void:
 	check(game.begin_building_construction(forge, 3, 0), "forge can begin the energy conversion after reinforcements")
 	game._on_unit_arrived(0, 1, 100.0)
 	check(forge.faction == 1 and forge.kind == 2 and not forge.is_constructing, "capture cancels unfinished energy conversion and retains forge type")
-	near(game.energy_regen_for(1), 2.0, "unfinished captured tower adds no regeneration")
+	near(game.energy_regen_for(1), 1.0, "unfinished captured tower adds no regeneration")
 
 func capture_rewards() -> void:
 	for count: int in [0, 1, 4]:
@@ -153,10 +153,11 @@ func capture_rewards() -> void:
 	fixture()
 	set_building(2, 1, 0, 10.0)
 	game._on_unit_arrived(2, 0, 1.0, 0.0, true)
-	near(game.energy, 10.0, "enemy damage without capture earns no energy")
+	near(game.energy, 10.2, "a fallen attacker earns combat energy but no tower capture reward")
+	near(game.faction_skills[1].energy, 10.2, "the defender independently recovers energy for its lost garrison")
 	set_building(2, 1, 0, 0.0)
 	game._on_unit_arrived(2, 0, 1.0)
-	near(game.energy, 10.0, "ordinary soldiers receive no energy reward")
+	near(game.energy, 10.2, "an ordinary survivor capturing an empty building adds no capture reward")
 	game.energy = 96.0
 	set_building(2, 1, 0, 0.0)
 	game._on_unit_arrived(2, 0, 1.0, 0.0, true)
@@ -166,7 +167,7 @@ func capture_rewards() -> void:
 	game._on_unit_arrived(2, 1, 1.0, 0.0, true)
 	near(game.faction_skills[1].energy, 20.0, "enemy commander receives its own capture reward")
 	near(game.energy, 10.0, "enemy capture never rewards the local player")
-	near(game.energy_regen_for(1), 2.5, "captured energy tower supplies its new owner")
+	near(game.energy_regen_for(1), 1.5, "captured energy tower supplies its new owner")
 
 func march_provenance() -> void:
 	for tunnel: bool in [false, true]:
@@ -222,17 +223,17 @@ func ai_development() -> void:
 	state.cooldowns.fill(0.0)
 	strategy = game.AI_STRATEGY.new(1)
 	strategy._economy.observe(game)
-	# Step beyond the exact boundary: fire's substeps can sum to just below 30.
+	# Include a complete observation window at the normal decision cadence.
 	for time: int in range(3, 34, 3):
 		game.simulate(3.0)
 		strategy._economy.observe(game)
 		var energy_before: float = state.energy
 		if time == 3:
-			check(game.cast_ground_skill(3, game.by_id[0].global_position, 1), "AI economy history starts with a paid ultimate")
+			check(game.cast_ground_skill(1, game.by_id[1].global_position, 1), "AI economy history starts with a paid support spell")
 		elif time == 6:
 			check(game.cast_skill(0, game.by_id[1], 1), "AI economy history includes paid recruitment")
-		elif time == 18:
-			check(game.cast_ground_skill(1, game.by_id[1].global_position, 1), "AI economy history includes a paid support spell")
+		elif time == 9:
+			check(game.cast_skill(2, game.by_id[1], 1), "AI economy history includes a paid shield")
 		strategy._economy.record_spending(game.elapsed, maxf(0.0, energy_before - state.energy))
 	strategy.take_turn(game)
 	var conversions := 0

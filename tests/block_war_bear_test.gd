@@ -76,7 +76,7 @@ func _run() -> void:
 	await reset()
 	check(game.faction_skills[0].commander == RULES.BEAR, "bear reaches battle")
 	game.energy = 30.0
-	check(game.can_cast_skill(0), "Q available at starting energy")
+	check(game.can_cast_skill(0), "Q available from the funded thirty-energy fixture")
 	for i: int in 4:
 		check(game.skill_is_ground(i) == (i == 1), "bear target kind %d" % i)
 		check(game.hud.get_node("UI/Skills/Row/Skill%d/Icon" % i).texture == RULES.BEAR_ICONS[i], "bottom icon %d" % i)

@@ -88,6 +88,7 @@ func run() -> void:
 	check(is_zero_approx(game.attack_bonus(0)) and is_equal_approx(game.attack_bonus(1), 0.3), "forge benefit transfers immediately with ownership")
 	forge.faction = -1
 	game.cooldowns.fill(0.0)
+	game.energy = game.ENERGY_MAX # Fund the independent Q/E skill checks.
 	var before: float = home.population
 	check(game.cast_skill(0, home) and home.population == before and game.active_durations[0] == 6.0, "recruit starts six seconds of gradual militia growth")
 	check(game.cooldowns[0] == 35.0 and game.cooldowns[1] == 0.0 and game.cooldowns[2] == 0.0 and game.cooldowns[3] == 0.0, "skills have independent cooldowns")

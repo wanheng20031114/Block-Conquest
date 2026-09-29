@@ -59,9 +59,10 @@ func observe_trace(policy: RefCounted, casts: Dictionary, seconds: int = 30) -> 
 	var state: RefCounted = game.faction_skills[1]
 	var costs: Array[float] = RULES.costs_for(state.commander)
 	var cooldowns: Array[float] = RULES.cooldowns_for(state.commander)
+	var started_at: float = game.elapsed
 	for time: int in range(3, seconds + 1, 3):
-		game.elapsed = float(time)
-		state.energy = minf(RULES.ENERGY_MAX, state.energy + RULES.ENERGY_REGEN * 3.0)
+		state.energy = minf(RULES.ENERGY_MAX, state.energy + RULES.natural_energy_between(game.elapsed, 3.0))
+		game.elapsed = started_at + float(time)
 		for index: int in state.cooldowns.size():
 			state.cooldowns[index] = maxf(0.0, state.cooldowns[index] - 3.0)
 		policy.observe(game)
@@ -74,7 +75,7 @@ func observe_trace(policy: RefCounted, casts: Dictionary, seconds: int = 30) -> 
 
 func prepare_demand() -> RefCounted:
 	var policy := fixture()
-	observe_trace(policy, {3: 3, 6: 0, 18: 1})
+	observe_trace(policy, {3: 1, 6: 0, 9: 2})
 	return policy
 
 func score(policy: RefCounted, building_id: int = 2, distance: float = 60.0) -> float:
@@ -90,10 +91,11 @@ func demand_history() -> void:
 	check(game.faction_skills[1].energy < ECONOMY.LOW_ENERGY, "one expensive ultimate leaves the test below the low-energy threshold")
 	check(score(policy) == 0.0, "one expensive ultimate does not prove sustained demand")
 	policy = fixture(&"frog", 20.0)
+	game.elapsed = 100.0
 	observe_trace(policy, {3: 0, 24: 0})
-	check(score(policy) == 0.0, "cheap repeated casts covered by base regeneration do not buy a tower")
+	check(score(policy) == 0.0, "cheap repeated casts covered by late base regeneration do not buy a tower")
 	policy = fixture()
-	observe_trace(policy, {3: 3, 6: 0, 18: 1}, 27)
+	observe_trace(policy, {3: 1, 6: 0, 9: 2}, 27)
 	check(score(policy) == 0.0, "investment waits for a complete observation window")
 	for repeat: int in 20:
 		policy.observe(game)

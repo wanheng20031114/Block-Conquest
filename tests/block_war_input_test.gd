@@ -134,7 +134,7 @@ func run() -> void:
 	game = current_scene
 	check(game.scene_file_path == "res://scenes/block_war/block_war.tscn", "native start click enters the selected battlefield")
 	check(not root.use_taa, "war mode avoids temporal ghosting on population badges")
-	check(game.energy == 30.0, "native start opens with thirty energy")
+	check(game.energy == 20.0, "native start opens with twenty energy")
 	while root.get_node("Session").transition.busy:
 		await process_frame
 	game.ai_enabled = false
@@ -213,7 +213,7 @@ func run() -> void:
 	game.ai_enabled = false
 	while root.get_node("Session").transition.busy:
 		await process_frame
-	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == 30.0, "restart resets match, cooldowns and energy to thirty")
+	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == 20.0, "restart resets match, cooldowns and energy to twenty")
 	game.exit_to_lobby()
 	await scene_changed
 	while root.get_node("Session").transition.busy:

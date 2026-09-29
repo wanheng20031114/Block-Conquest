@@ -82,7 +82,7 @@ func _toolbox_stalemates() -> void:
 		game._check_victory()
 		check(not game.finished, "refunded soldiers keep the battle playable")
 	var home := _exhausted_bear()
-	game.faction_skills[0].energy = 24.0
+	game.faction_skills[0].energy = 24.5
 	game.faction_skills[0].cooldowns[0] = 0.6
 	game._check_victory()
 	check(not game.finished, "energy and cooldown becoming ready before construction ends preserve recovery")
@@ -118,12 +118,12 @@ func _toolbox_energy_boundaries() -> void:
 			supply.kind = 2; supply.population = 20.0
 			check(game.begin_building_construction(supply, 3, 0), "spare forge pays for energy conversion")
 			supply.construction_remaining = 1.0
-		game.faction_skills[0].energy = 5.0
+		game.faction_skills[0].energy = 12.0
 		game._check_victory()
 		check(not game.finished, "scheduled energy recovery preserves a real toolbox window: " + recovery)
-		# One second at +2, then +2.5: Q becomes affordable at 8.2 seconds,
+		# One second at +1, then +1.5: Q becomes affordable at nine seconds,
 		# before the empty tower completes its ten-second upgrade.
-		game.simulate(8.3)
+		game.simulate(9.1)
 		check(home.is_constructing and game.cast_skill(0, home, 0) and home.population == 15.0,
 			"predicted energy recovery permits the actual paid cast: " + recovery)
 	var home := _exhausted_bear()
@@ -131,12 +131,12 @@ func _toolbox_energy_boundaries() -> void:
 	supply.faction = 0; supply.population = 20.0
 	check(game.begin_building_construction(supply, 2, 0), "energy tower pays for conversion away from energy production")
 	supply.construction_remaining = 1.0
-	game.faction_skills[0].energy = 4.0
+	game.faction_skills[0].energy = 14.0
 	game._check_victory()
 	check(game.finished and game.winner_team == -1, "temporary current energy bonus cannot promise an impossible refund")
 	home = _exhausted_bear()
 	supply = game.by_id[2]
 	supply.faction = 2
-	game.faction_skills[0].energy = 5.0
+	game.faction_skills[0].energy = 15.0
 	game._check_victory()
 	check(game.finished and game.winner_team == -1, "a teammate's energy tower does not fund this commander's refund")
