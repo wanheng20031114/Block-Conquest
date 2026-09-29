@@ -258,8 +258,10 @@ func _receive(message: Dictionary, channel: int, now: int) -> void:
 		"welcome":
 			_hello = true
 			_reconnect_deadline = 0
-			_set_state("connected")
 			_flush_intent()
+			# A connected listener may create and immediately send a new intent.
+			# Flush only the pre-handshake intent before notifying that listener.
+			_set_state("connected")
 		"member":
 			_hello = true
 			_token = message.token
@@ -272,7 +274,9 @@ func _receive(message: Dictionary, channel: int, now: int) -> void:
 			_install_room(message.room)
 			if not match_config.is_empty() and previous_match != str(match_config.match_id):
 				match_preparing.emit(match_config)
-			elif room.get("phase") == "loading" and not match_config.is_empty() and _loaded_match_id == str(match_config.match_id):
+			elif room.get("phase") in ["loading", "host_lost"] and not match_config.is_empty() and _loaded_match_id == str(match_config.match_id):
+				# Host loss can wrap loading when we reconnect first. Relay retains
+				# this completion until Host returns and ignores it outside loading.
 				loaded()
 		"room": _install_room(message.room)
 		"preparing":

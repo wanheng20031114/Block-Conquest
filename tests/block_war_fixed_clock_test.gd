@@ -7,6 +7,9 @@ const TOTAL_TICKS := DURATION * 30
 class ScheduledAuthority extends "res://scripts/network/war_network_match.gd":
 	var checkpoints: Dictionary = {}
 	var command_sequence := 0
+	var peak_host_morale := 0.0
+	var saw_host_construction := false
+	var saw_host_completion := false
 	var scheduled := {
 		1: {"type": "upgrade", "building": 5},
 		2: {"type": "skill_building", "skill": 0, "target": 5},
@@ -23,6 +26,11 @@ class ScheduledAuthority extends "res://scripts/network/war_network_match.gd":
 		super._drain_commands()
 	func _publish_step(delta: float) -> void:
 		super._publish_step(delta)
+		# Coverage is historical: the paid upgrade's morale can legitimately
+		# decay back to zero before this twenty-second run ends.
+		peak_host_morale = maxf(peak_host_morale, game.morale.points(5))
+		saw_host_construction = saw_host_construction or game.by_id[5].is_constructing
+		saw_host_completion = saw_host_completion or game.by_id[5].level > 1
 		if _tick % 30 == 0:
 			checkpoints[_tick] = rule_digest()
 	func rule_digest() -> String:
@@ -33,7 +41,14 @@ class ScheduledAuthority extends "res://scripts/network/war_network_match.gd":
 		state["ai"] = {}
 		for faction: int in game._bot_factions:
 			var brain: RefCounted = game._ai_by_faction[faction]
-			state.ai[str(faction)] = [brain._next_attack_at, brain._next_expansion_at, brain._skills.next_decision]
+			var economy: RefCounted = brain._economy
+			var spending: Array = []
+			for payment: Vector2 in economy._recent_spending:
+				spending.append([payment.x, payment.y])
+			state.ai[str(faction)] = {"next_attack": brain._next_attack_at,
+				"next_expansion": brain._next_expansion_at, "next_skill": brain._skills.next_decision,
+				"economy": [economy._observed_since, economy._last_observed_at,
+					economy._last_energy_low, economy._low_energy_seconds, spending]}
 		return Snapshot.digest(state)
 
 func configuration() -> Dictionary:
@@ -105,9 +120,18 @@ func run_case(label: String, fps: int) -> Dictionary:
 	for result: Dictionary in clock._command_results.values(): accepted += int(result.accepted)
 	check(accepted == 4, label + " accepts four legal actions and rejects foreign-seat dispatch")
 	check(host_wire.invalid_packets == 0, label + " emits valid wire messages throughout AI play")
-	check(host.marches._next_order_id > 4 and host.morale.points(5) > 0, label + " actually exercises AI marches, construction and morale")
+	check(host.marches._next_order_id > 4 and clock.peak_host_morale > 0.0 and clock.saw_host_construction and clock.saw_host_completion,
+		label + " actually exercises AI marches, paid construction, completion and morale during the run")
+	var economy: RefCounted = host._ai_by_faction[0]._economy
+	check(economy._last_observed_at > economy._observed_since and economy._observed_since >= 0.0,
+		label + " samples evolving AI energy demand history")
+	var before_history := clock.rule_digest()
+	var low_energy_seconds: float = economy._low_energy_seconds
+	economy._low_energy_seconds += 0.5
+	check(clock.rule_digest() != before_history, label + " digest detects a future investment decision changing without visible state changes")
+	economy._low_energy_seconds = low_energy_seconds
 	var result := {"final": clock.rule_digest(), "commands": Codec.digest(clock._command_results), "checkpoints": clock.checkpoints.duplicate()}
-	print("FIXED_CLOCK_CASE mode=", label, " tick=", clock._tick, " simulation_seconds=", host.elapsed, " commands=", clock._command_results.size(), " orders=", host.marches._next_order_id - 1, " digest=", result.final)
+	print("FIXED_CLOCK_CASE mode=", label, " tick=", clock._tick, " simulation_seconds=", host.elapsed, " commands=", clock._command_results.size(), " orders=", host.marches._next_order_id - 1, " peak_morale=", clock.peak_host_morale, " final_morale=", host.morale.points(5), " digest=", result.final)
 	await host.prepare_shutdown()
 	host.free()
 	host_wire.free()

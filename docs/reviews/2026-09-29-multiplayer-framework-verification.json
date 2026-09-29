@@ -1,0 +1,243 @@
+{
+  "date": "2026-09-29",
+  "base_commit": "6613a67e1da8830b597c566a6de5dc2874b84f81",
+  "engine": "Godot 4.7.2 stable Windows x64",
+  "scope": "Local host-authoritative multiplayer framework audit; no public Relay deployment",
+  "test_count": 14,
+  "checks": 2379,
+  "failures": 0,
+  "tests": [
+    {
+      "script": "tests/block_war_snapshot_test.gd",
+      "checks": 1341,
+      "failures": 0,
+      "summary": "BLOCK_WAR_SNAPSHOT checks=1341 failures=0",
+      "local_log": ".local/multiplayer-review/block_war_snapshot_test.engine.log",
+      "log_sha256": "496927996b194f334e356cdf80097d40cf7b34109a34f12fa602648014d71323",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_height_replication_test.gd",
+      "checks": 210,
+      "failures": 0,
+      "summary": "BLOCK_WAR_HEIGHT_REPLICATION maps=3 checks=210 failures=0",
+      "local_log": ".local/multiplayer-review/block_war_height_replication_test.engine.log",
+      "log_sha256": "45ea6cb5da7fd7671347b6d7c34ba4f8a4cfab598bd5ae50d8d9994c1095eb4d",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_replication_test.gd",
+      "checks": 45,
+      "failures": 0,
+      "summary": "REPLICATION checks=45 failures=0 reliable_bytes=13912 resyncs=1",
+      "local_log": ".local/multiplayer-review/block_war_replication_test.engine.log",
+      "log_sha256": "523bf17e8d955d276af4c8b0c22d2058623107eb2743844d931ddb3718587874",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_match_control_replication_test.gd",
+      "checks": 45,
+      "failures": 0,
+      "summary": "MATCH_CONTROL_REPLICATION checks=45 failures=0 resyncs={ \"recovery\": 1 }",
+      "local_log": ".local/multiplayer-review/block_war_match_control_replication_test.engine.log",
+      "log_sha256": "24e2c5a8d82562e55f91689684d7b0a93827fa7630f3293f3f98978f67cc948a",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_replication_load_test.gd",
+      "checks": 10,
+      "failures": 0,
+      "summary": "REPLICATION_LOAD checks=10 failures=0 soldiers=4096 frames=120 recovery_ms=235.268 pair_cpu_mean_ms=66.868125 pair_cpu_p95_ms=91.798 pair_cpu_p99_ms=162.604 pair_cpu_max_ms=163.027 anchor_bytes_per_second=208780 anchor_packets_per_second=304 largest_datagram=759",
+      "local_log": ".local/multiplayer-review/block_war_replication_load_test.engine.log",
+      "log_sha256": "8831c4d2f2be406073b1a87bcd429e9647b89b04a1a0f8a391e8d81e4b56758c",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_replication_morale_test.gd",
+      "checks": 12,
+      "failures": 0,
+      "summary": "REPLICATION_MORALE checks=12 failures=0",
+      "local_log": ".local/multiplayer-review/block_war_replication_morale_test.engine.log",
+      "log_sha256": "024fe0eacc839f98b9d55de7ed0b4b7cbd71120606c8d784c3775823a6bba03f",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_room_handshake_test.gd",
+      "checks": 26,
+      "failures": 0,
+      "summary": "ROOM HANDSHAKE: 26 checks, 0 failures",
+      "local_log": ".local/multiplayer-review/block_war_room_handshake_test.engine.log",
+      "log_sha256": "ea1bf532f9a707e33b0e2c15cd79e7349df00cceb116049fd15f5efd9efa8a8a",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_online_ui_test.gd",
+      "checks": 105,
+      "failures": 0,
+      "summary": "ONLINE_UI_TEST checks=105 failures=0",
+      "local_log": ".local/multiplayer-review/block_war_online_ui_test.engine.log",
+      "log_sha256": "9b8cc71b7b70dfbcb1cedb9efa62c56bce3259e1016d0d76188991fb1813c113",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_multiplayer_core_test.gd",
+      "checks": 70,
+      "failures": 0,
+      "summary": "BLOCK_WAR_MULTIPLAYER_CORE checks=70 failures=0",
+      "local_log": ".local/multiplayer-review/block_war_multiplayer_core_test.engine.log",
+      "log_sha256": "4036e053b038af82b114138af2e7f8fb013e361633fc2c8998c09dbf18f38c45",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_fixed_clock_test.gd",
+      "checks": 193,
+      "failures": 0,
+      "summary": "FIXED_CLOCK checks=193 failures=0 factions=6 bots=5 target_tick=600 frame_rates=[10,30,120]",
+      "local_log": ".local/multiplayer-review/block_war_fixed_clock_recheck.engine.log",
+      "log_sha256": "5b6171c2edaf8a98ed09d8b2df360176a9509ecbe2e379cd99ebd0be2b67b3b7",
+      "note": "Final recheck log supersedes the original 181-check run with six obsolete end-of-run morale assertions; historical coverage and AI economy state now checked."
+    },
+    {
+      "script": "tests/block_war_native_network_test.gd",
+      "checks": 66,
+      "failures": 0,
+      "summary": "BLOCK_WAR_NATIVE_NETWORK checks=66 failures=0",
+      "local_log": ".local/multiplayer-framework/network/block_war_native_network_test.engine.log",
+      "log_sha256": "e67e76b0775d9ad6db9c01a8aca2b8f8022e41b41fc843bbb5bc54bd8eaddab9",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_relay_test.gd",
+      "checks": 214,
+      "failures": 0,
+      "summary": "BLOCK_WAR_RELAY checks=214 failures=0",
+      "local_log": ".local/multiplayer-framework/network/block_war_relay_test.engine.log",
+      "log_sha256": "22a2e9f6881e5524ece6d0bd581a2866fb068eaa9bf9e66853dd677cf8267003",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_network_load_test.gd",
+      "checks": 33,
+      "failures": 0,
+      "summary": "BLOCK_WAR_NETWORK_LOAD checks=33 failures=0",
+      "local_log": ".local/multiplayer-framework/network/block_war_network_load_test.engine.log",
+      "log_sha256": "0f6fdc83a46a61c92820f5f2383fbef1b6445080f9f63c405b79eaa4b6863c6b",
+      "exit_code": 0,
+      "process_exited": true
+    },
+    {
+      "script": "tests/block_war_network_security_test.gd",
+      "checks": 9,
+      "failures": 0,
+      "summary": "BLOCK_WAR_NETWORK_SECURITY checks=9 failures=0 expected_native_tls_rejections=2",
+      "local_log": ".local/multiplayer-framework/network/block_war_network_security_test.engine.log",
+      "log_sha256": "073035f432633a88281637ac1823ca4e6d3ffb8a2616d11e11cd7f4329c6f68c",
+      "exit_code": 0,
+      "process_exited": true
+    }
+  ],
+  "additional_probe": {
+    "name": "coordinator_lifetime",
+    "checks": 9,
+    "failures": 0,
+    "local_log": ".local/multiplayer-review/coordinator_lifetime_probe.engine.log",
+    "scenarios": [
+      "started host",
+      "started client",
+      "loading host"
+    ],
+    "result": "WeakRef invalid after shutdown/free; five Online signal connections each drop from one to zero; signals can be emitted again"
+  },
+  "static_validation": {
+    "runtime_source_files": 225,
+    "boundary_reference_failures": 0,
+    "changed_tracked_files_diff_check": "passed"
+  },
+  "manifest": {
+    "source": "HEAD tree with only the three reviewed runtime scripts overlaid; original builder run on isolated inputs",
+    "base_commit": "6613a67e1da8830b597c566a6de5dc2874b84f81",
+    "files": 119,
+    "changed_inputs": [
+      "scripts/network/war_online.gd",
+      "scripts/network/war_room.gd",
+      "scripts/network/war_snapshot.gd"
+    ],
+    "sha256": "60441d7e70fb96677062e072f7328881e5c27ad9afa337d3be56854a0c34cdad",
+    "original_builder_check": "passed",
+    "concurrent_work": "Uncommitted map edits excluded from this commit fingerprint; no stash/reset or overwrite of that work"
+  },
+  "morale_combat_regression": {
+    "before": {
+      "summary": "REPLICATION_MORALE_LOAD soldiers=4096 combat_ticks=30 whole_army_updates=30 raw_rule_bytes=12779875 max_backlog_bytes=1459992 cpu_ms=2363.628",
+      "local_log": ".local/multiplayer-review/morale-before.engine.log"
+    },
+    "after": {
+      "summary": "REPLICATION_MORALE_LOAD soldiers=4096 combat_ticks=30 whole_army_updates=0 raw_rule_bytes=11071 max_backlog_bytes=0 cpu_ms=1526.929",
+      "local_log": ".local/multiplayer-review/block_war_replication_morale_test.engine.log"
+    }
+  },
+  "load_benchmark": {
+    "soldiers": 4096,
+    "sample_frames": 120,
+    "environment": "One local headless process with Host and one replica; in-memory serialized transport; no GPU or public RTT",
+    "stages": {
+      "host_simulate_publish": {
+        "mean_ms": 34.8314416666667,
+        "p95_ms": 36.379,
+        "p99_ms": 85.251,
+        "max_ms": 86.1
+      },
+      "client_receive": {
+        "mean_ms": 1.92435,
+        "p95_ms": 3.676,
+        "p99_ms": 50.762,
+        "max_ms": 51.068
+      },
+      "client_present": {
+        "mean_ms": 30.0994416666667,
+        "p95_ms": 53.03,
+        "p99_ms": 53.849,
+        "max_ms": 54.036
+      },
+      "host_receive": {
+        "mean_ms": 0.00545833333333,
+        "p95_ms": 0.006,
+        "p99_ms": 0.069,
+        "max_ms": 0.072
+      }
+    },
+    "recovery_ms": 235.268,
+    "anchor_bytes_per_second": 208780,
+    "anchor_packets_per_second": 304,
+    "largest_anchor_datagram_bytes": 759,
+    "anchor_accounting": "Includes fixed test encapsulation estimate"
+  },
+  "diagnostics": [
+    "Engine logs report failure to read the Windows root certificate store in this environment.",
+    "Security rejection tests intentionally produce native TLS diagnostics; assertion success is not an error-free-log claim."
+  ],
+  "limitations": [
+    "Enemy precise population and hidden orders remain observable in normal client replicas.",
+    "No public-network, cross-device, multiple-full-room, GPU or ENet reassembly memory stress tests.",
+    "4096-soldier measurements do not establish stable 30 TPS or 60 FPS."
+  ],
+  "process_cleanup": {
+    "verified_with": "Win32_Process CIM command-line query",
+    "remaining_task_godot_or_runner_processes": 0,
+    "preserved": [
+      "User Godot editor PID 33464",
+      "Editor-launched lobby PID 43728"
+    ]
+  }
+}

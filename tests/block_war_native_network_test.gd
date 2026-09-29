@@ -195,7 +195,17 @@ func _run() -> void:
 	host._peer.peer_disconnect()
 	host._connection.flush()
 	await until(func(): return ally.connection_state == "host_lost" and enemy.connection_state == "host_lost", "native Host disconnect suspends the loading barrier before the last guest finishes")
+	# Both transports can fail while a scene loads. The guest may recover first
+	# into host_lost and must replay its completion before Host releases loading.
+	enemy.auto_reconnect = false
+	enemy._peer.peer_disconnect()
+	enemy._connection.flush()
+	await until(func(): return enemy.connection_state == "disconnected", "unfinished guest disconnects while the Host is also offline")
 	enemy.loaded()
+	check(enemy._loaded_match_id == str(enemy.match_config.match_id), "overlapping disconnects retain the guest's offline load completion")
+	enemy.auto_reconnect = true
+	check(enemy._open() == OK, "guest restores its own transport before the Host")
+	await until(func(): return enemy.connection_state == "host_lost" and enemy._hello, "guest membership resumes inside the suspended loading phase")
 	await pause(2.0)
 	check(ally.connection_state == "host_lost" and enemy.connection_state == "host_lost", "guest loading acknowledgement cannot start a native match without its Host")
 	host.auto_reconnect = true

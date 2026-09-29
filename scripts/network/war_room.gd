@@ -67,12 +67,13 @@ func _request(action: String) -> void:
 	_request_clock = 0.0
 	%Message.text = "正在创建房间…" if action == "create" else "正在加入房间…"
 	_set_entry_busy(true)
-	if online.connection_state == "connected":
-		_send_pending()
-	else:
+	if online.connection_state != "connected":
 		var error: Error = online.connect_relay()
 		if error != OK:
 			_error("暂时无法连接联机服务，请稍后重试。")
+			return
+	# Queue once at the user action. Online owns handshake and reconnect retries.
+	_send_pending()
 
 func _send_pending() -> void:
 	if _pending_action == "create":
@@ -214,8 +215,6 @@ func _copy_code() -> void:
 func _state_changed(state: String) -> void:
 	var labels := {"disconnected": "尚未连接", "connecting": "连接中…", "connected": "联机服务已连接", "room": "已连接", "loading": "载入战场…", "match": "对局进行中", "host_lost": "等待房主重连…", "reconnecting": "正在重新连接…"}
 	%Connection.text = str(labels.get(state, "连接中…"))
-	if state == "connected" and not _pending_action.is_empty():
-		_send_pending()
 	if state in ["reconnecting", "host_lost", "disconnected"] and not online.room.is_empty():
 		_refresh(online.room)
 		%RoomHint.text = "连接中断，正在尝试恢复。请稍候…"

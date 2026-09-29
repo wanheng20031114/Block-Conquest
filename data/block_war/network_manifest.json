@@ -115,12 +115,12 @@
     "scripts/block_war/war_terrain_surface.gd": "0e222822e5bfb6ee962e0d1d9402a4fce7ff6c29fcb1bdd8e33546cfa158ca74",
     "scripts/block_war/war_tunnel_effect.gd": "622c2e5e51ce341f561b9b1de86af0da16775f7c69616553302b6f3adda744c0",
     "scripts/network/war_network_match.gd": "785a382ab2a43bbaa7a0ac004247563850028dc25632b941f49385a16e85929c",
-    "scripts/network/war_online.gd": "24a103652c074606211e0052a81f204b5492bbd465cd02e60c2362be656c4f1a",
+    "scripts/network/war_online.gd": "e3d5ef08056a764ccf36c1d98902ab3838bf0bb0c2b4f641bc8368c6e15f80dd",
     "scripts/network/war_protocol.gd": "a855c5e72a8bdb05ed4dffa624894ad2ff6a623f1d195315812947a60a8641d7",
     "scripts/network/war_remote_pointer.gd": "b7c31ca56f79b762862e5c6f90bca44c12c88018014fb5cec353dee7e917709f",
-    "scripts/network/war_room.gd": "6a279789792e52617c1f25015b292f22b9e3698327bbb8c0c089ca39310a18a0",
+    "scripts/network/war_room.gd": "276f62a72d487f84618481e2d448aa67a4d6ac58ff82d3896a02f4b531fcec5f",
     "scripts/network/war_room_slot.gd": "c798d4a800d44cb413c9be8cb04edddb6aa3e48cba40754fc64fcc424c47ef6f",
-    "scripts/network/war_snapshot.gd": "c078f9e9b5cf8650bb0bcb38c529a1828a57679474188c5242b2a3fbe988c1bc",
+    "scripts/network/war_snapshot.gd": "8cece6daf86c4266639992f435c7433ea33ec0a966d1f566c49181b75cd83b86",
     "scripts/network/war_teammate_cursors.gd": "5b7bb353ab64bb07cec9fe7e6ae5ba4021e07d9cdd78a3c43a4a89407e57ad20"
   }
 }

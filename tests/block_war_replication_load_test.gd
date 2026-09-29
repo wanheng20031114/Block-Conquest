@@ -1,5 +1,6 @@
 extends "res://tests/block_war_replication_test.gd"
 ## A 4096-soldier restore while reliable combat facts overtake bulk data.
+const SAMPLE_FRAMES := 120
 var cpu_stages: Dictionary = {}
 
 func boundary(delta: float = Coordinator.STEP, loss: bool = false) -> void:
@@ -18,9 +19,13 @@ func boundary(delta: float = Coordinator.STEP, loss: bool = false) -> void:
 
 func _record_cpu(stage: String, begun: int) -> void:
 	var milliseconds := float(Time.get_ticks_usec() - begun) / 1000.0
-	if not cpu_stages.has(stage): cpu_stages[stage] = [0.0, 0.0]
-	cpu_stages[stage][0] += milliseconds
-	cpu_stages[stage][1] = maxf(cpu_stages[stage][1], milliseconds)
+	if not cpu_stages.has(stage): cpu_stages[stage] = []
+	cpu_stages[stage].append(milliseconds)
+
+func percentile(samples: Array, fraction: float) -> float:
+	var sorted := samples.duplicate()
+	sorted.sort()
+	return sorted[clampi(ceili(sorted.size() * fraction) - 1, 0, sorted.size() - 1)]
 
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
@@ -88,18 +93,23 @@ func _run() -> void:
 	host_wire.sent.clear()
 	var elapsed_cpu := 0.0
 	var max_cpu := 0.0
-	for frame: int in 30:
+	var frame_samples: Array[float] = []
+	for frame: int in SAMPLE_FRAMES:
 		begun = Time.get_ticks_usec()
 		boundary(Coordinator.STEP, frame % 2 == 0)
 		var cpu := float(Time.get_ticks_usec() - begun) / 1000.0
 		elapsed_cpu += cpu
 		max_cpu = maxf(max_cpu, cpu)
+		frame_samples.append(cpu)
 	flush()
 	check(Codec.digest(client._mirror) == Codec.digest(authority._published), "4096 moving soldiers preserve canonical agreement across actual simulation")
 	check(host_wire.invalid_packets == 0 and client_wire.invalid_packets == 0, "large battle never emits an oversized or invalid message")
-	print("REPLICATION_LOAD checks=", checks, " failures=", failures.size(), " soldiers=4096 recovery_ms=", recovery_ms, " pair_cpu_mean_ms=", elapsed_cpu / 30.0, " pair_cpu_max_ms=", max_cpu, " anchor_bytes_per_second=", wire_bytes * 2, " anchor_packets_per_second=", packets * 2, " largest_datagram=", largest)
+	print("REPLICATION_LOAD checks=", checks, " failures=", failures.size(), " soldiers=4096 frames=", SAMPLE_FRAMES, " recovery_ms=", recovery_ms, " pair_cpu_mean_ms=", elapsed_cpu / SAMPLE_FRAMES, " pair_cpu_p95_ms=", percentile(frame_samples, 0.95), " pair_cpu_p99_ms=", percentile(frame_samples, 0.99), " pair_cpu_max_ms=", max_cpu, " anchor_bytes_per_second=", wire_bytes * 2, " anchor_packets_per_second=", packets * 2, " largest_datagram=", largest)
 	for stage: String in cpu_stages:
-		print("REPLICATION_CPU stage=", stage, " mean_ms=", cpu_stages[stage][0] / 30.0, " max_ms=", cpu_stages[stage][1])
+		var samples: Array = cpu_stages[stage]
+		var total := 0.0
+		for value: float in samples: total += value
+		print("REPLICATION_CPU stage=", stage, " mean_ms=", total / samples.size(), " p95_ms=", percentile(samples, 0.95), " p99_ms=", percentile(samples, 0.99), " max_ms=", percentile(samples, 1.0))
 	await host.prepare_shutdown()
 	await replica.prepare_shutdown()
 	host.free()

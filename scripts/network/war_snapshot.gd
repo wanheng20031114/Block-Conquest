@@ -166,7 +166,9 @@ static func diff(previous: Dictionary, current: Dictionary, force: bool = false)
 	# This avoids integrating an old movement anchor through a newly known field.
 	var speed_changed: bool = changes.has("fields") or removed.has("fields")
 	for key: String in changes.get("factions", {}):
-		if previous.get("factions", {}).has(key) and previous.factions[key][5] != current.factions[key][5]:
+		# Morale points change on every kill and idle decay; movement changes
+		# only at whole-star thresholds. Keep point updates as small facts.
+		if previous.get("factions", {}).has(key) and WarMorale._level_for(float(previous.factions[key][5])) != WarMorale._level_for(float(current.factions[key][5])):
 			speed_changed = true
 	if speed_changed:
 		changes["units"] = current.units.duplicate(false)
