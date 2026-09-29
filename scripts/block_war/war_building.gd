@@ -312,7 +312,7 @@ func is_population_visible() -> bool:
 func refresh_visual() -> void:
 	if level != _last_level or kind != _last_kind:
 		_apply_level_visuals()
-		# The gradient peaks at 0.98 of its radius; its fine line marks the exact
+		# The stroke sits at 0.98 of the texture radius and marks the exact
 		# combat radius, with feathering on both sides. The shallow native decal
 		# follows the land/bridge surface without painting roofs or low water.
 		var diameter := attack_range * 2.0 / 0.98
@@ -328,6 +328,7 @@ func refresh_visual() -> void:
 		$Visual/EnergyTower/Core/Glow.set_instance_shader_parameter("team_tint", color)
 		$Visual/Tower/Gun/Barrel/BarrelBands.set_instance_shader_parameter("team_color", cloth_color)
 		$OwnershipRing.material_override.albedo_color = Color(color, 0.82)
+		_attack_range.modulate = Color(color, _range_alpha)
 		_population_label.modulate = Color("34382e")
 		_kind_label.modulate = color.lightened(0.3)
 		_last_faction = faction

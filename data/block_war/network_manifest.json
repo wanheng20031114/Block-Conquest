@@ -59,7 +59,7 @@
     "scripts/block_war/war_balance.gd": "95ff2718a5756737cd2e1b50a4591d9e89160fa9e9ee73a3d7c2504c4ae16406",
     "scripts/block_war/war_bear_effects.gd": "bcad386c751d0a21b72d4972199735ce7f0ffca7d19b8a3696bed9879093a089",
     "scripts/block_war/war_bear_skills.gd": "d581e89e52f69c40d441583e08310004e50e7d256537ca93158ff92a60533268",
-    "scripts/block_war/war_building.gd": "14bb9fde59f5c0a4175a86ea0d43b0efd06c8e7d734b4c4471b5a6183c3341b6",
+    "scripts/block_war/war_building.gd": "d5cb2d6e58749afe4e9d11b243eb7bc1ff31b82325c7b39efda0dabefc0f885f",
     "scripts/block_war/war_burrow_effect.gd": "64753086875f0516bb20e0d3f3e107f04cba0833ee81399407e4e0802aac82b6",
     "scripts/block_war/war_burrow_ready_effect.gd": "1faeec7398841dee6a0c8ce188a70e3e9d36a2d156789469b1f34b09738ac23e",
     "scripts/block_war/war_commander_select.gd": "2b0a0b617a4ec6897c3807357db38752adc0e83d30f0fbb76d8e80dd00f8204a",
