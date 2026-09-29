@@ -18,23 +18,24 @@ SR = 48000
 
 
 def design_click():
-    t = np.arange(round(0.048 * SR)) / SR
-    # A single contact: broad, rapidly damped friction with a faint low body.
+    t = np.arange(round(0.028 * SR)) / SR
+    # Concentrate the contact in the first few milliseconds so it feels crisp,
+    # not merely free of leading silence. Keep a small, rapidly damped body.
     # Fixed seed keeps exports reproducible; there is no pitch sweep or echo.
     noise = np.random.default_rng(927).standard_normal(len(t))
-    contact = signal.sosfilt(signal.butter(2, [300, 3200], btype="bandpass", fs=SR, output="sos"), noise)
-    contact *= (-np.expm1(-t / 0.00035)) ** 2 * np.exp(-t / 0.010)
-    body = np.sin(2 * np.pi * 740 * t) * (-np.expm1(-t / 0.0004)) * np.exp(-t / 0.006)
-    x = contact + 0.2 * body
-    x = signal.sosfilt(signal.butter(3, 4200, fs=SR, output="sos"), x)
-    x = signal.sosfilt(signal.butter(2, 170, btype="highpass", fs=SR, output="sos"), x)
-    x[:24] *= np.sin(np.linspace(0, np.pi / 2, 24)) ** 2
-    x[-240:] *= np.cos(np.linspace(0, np.pi / 2, 240)) ** 2
-    # Short-event energy, with explicit silence padding to 50 ms. A streaming
-    # LUFS target is unsuitable for a 48 ms transient.
-    x *= 10 ** (-20.5 / 20) / np.sqrt(np.sum(x * x) / (0.05 * SR))
+    contact = signal.sosfilt(signal.butter(2, [450, 4500], btype="bandpass", fs=SR, output="sos"), noise)
+    contact *= -np.expm1(-t / 0.00007) * np.exp(-t / 0.0052)
+    body = np.sin(2 * np.pi * 950 * t) * (-np.expm1(-t / 0.00005)) * np.exp(-t / 0.0034)
+    x = contact + 0.18 * body
+    x = signal.sosfilt(signal.butter(2, 6000, fs=SR, output="sos"), x)
+    x = signal.sosfilt(signal.butter(2, 200, btype="highpass", fs=SR, output="sos"), x)
+    x[:4] *= np.sin(np.linspace(0, np.pi / 2, 4)) ** 2
+    x[-144:] *= np.cos(np.linspace(0, np.pi / 2, 144)) ** 2
+    # Keep short-event energy close to the previous click, while concentrating
+    # it earlier. The 50 ms window includes silence; it is not a LUFS target.
+    x *= 10 ** (-21.25 / 20) / np.sqrt(np.sum(x * x) / (0.05 * SR))
     peak = np.max(np.abs(signal.resample_poly(x, 4, 1)))
-    x *= min(1.0, 10 ** (-4.5 / 20) / peak)
+    x *= min(1.0, 10 ** (-3.0 / 20) / peak)
     x[0] = x[-1] = 0.0
     return np.round(x * 32767).astype("<i2")
 
@@ -48,6 +49,8 @@ def build_menu_click():
         writer.setframerate(SR)
         writer.writeframes(pcm.tobytes())
     x = pcm.astype(float) / 32768.0
+    energy = x * x
+    cumulative = np.cumsum(energy) / np.sum(energy)
     return {
         "file": "../ui/soft_click.wav",
         "source": "Project-original deterministic contact synthesis; no third-party samples",
@@ -55,11 +58,13 @@ def build_menu_click():
         "format": "48 kHz mono PCM16 WAV",
         "duration_seconds": len(pcm) / SR,
         "sha256": hashlib.sha256(OUTPUT.read_bytes()).hexdigest(),
-        "processing": "48 ms dry contact, rounded onset, damped low body, 4.2 kHz low-pass, boundary fades; no reverb, sweep or saturation",
+        "processing": "28 ms dry contact, 70 us attack, 5.2 ms contact decay, 3.4 ms body decay, 6 kHz low-pass, boundary fades; no reverb, sweep or saturation",
         "license": "LicenseRef-Project-Original",
         "gain_db": -8.0,
         "rms_50ms_dbfs": round(float(20 * np.log10(np.sqrt(np.sum(x * x) / (0.05 * SR)))), 2),
         "true_peak_dbtp": round(float(20 * np.log10(np.max(np.abs(signal.resample_poly(x, 4, 1))))), 2),
+        "energy_first_3ms_percent": round(float(np.sum(energy[:round(0.003 * SR)]) / np.sum(energy) * 100), 2),
+        "energy_90pct_ms": round(float(np.searchsorted(cumulative, 0.90) / SR * 1000), 3),
     }
 
 
