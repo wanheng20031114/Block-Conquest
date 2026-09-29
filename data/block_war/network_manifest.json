@@ -50,7 +50,7 @@
     "scenes/block_war/tower_range.tscn": "b545d05195a1fbf0d6b14dca5ce00c76644082b51edb3bd5a22ada67dd5072a1",
     "scenes/block_war/war_balance.tscn": "51ceaa80ab38b3d8c388154484a9745f07d7af50ad850571ae8c959696ded44f",
     "scenes/block_war/war_effects.tscn": "f6c6589889d1e667373963432aa8e0e800a9dbccb160c86455639222c79a542c",
-    "scripts/block_war/block_war.gd": "0ef5b85cf0cc24b8f6458830dc9f52fa7e016993707c754e77951d8e09000d51",
+    "scripts/block_war/block_war.gd": "5e39ea5382412fc01a666b85fe61021b5212155088d2fa28ec9aa7e8c28eb0b1",
     "scripts/block_war/war_ai.gd": "4308fc722d424cb2316684a6c1fa12b13d9c06cae150cff3bf4ba59a1facfb20",
     "scripts/block_war/war_ai_economy.gd": "068fa1388ea63dc40df7867d066d824da83b505d5a1028c9c5334ee3caa562ce",
     "scripts/block_war/war_ai_information.gd": "e17894034fcce3c7162607c918940ad6effd56bab5cb1c36f41b6fe6406ac363",

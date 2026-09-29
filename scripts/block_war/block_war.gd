@@ -1354,6 +1354,16 @@ func clamp_to_map(point: Vector3) -> Vector3:
 	return Vector3(clampf(point.x, -limits.x, limits.x), 0.0, clampf(point.z, -limits.y, limits.y))
 
 func _input(event: InputEvent) -> void:
+	# Settings persist across scenes, including a host starting while a guest
+	# is editing preferences. The native GUI still receives these events.
+	if get_node("/root/Session/Settings").is_open():
+		return
+	if event is InputEventMouseMotion and camera_rig.dragging and not _local_menu:
+		camera_rig.drag_by(event.relative)
+		if armed_skill >= 0:
+			_update_skill_drag(event.position)
+		get_viewport().set_input_as_handled()
+		return
 	if armed_skill >= 0:
 		if event is InputEventMouseMotion:
 			_update_skill_drag(event.position)
@@ -1385,12 +1395,9 @@ func _input(event: InputEvent) -> void:
 				audio.play_ui(&"war_select")
 			_cancel_drag()
 			get_viewport().set_input_as_handled()
-	if event is InputEventMouseMotion and camera_rig.dragging and not _local_menu:
-		camera_rig.drag_by(event.relative)
-		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _local_menu or finished:
+	if _local_menu or finished or get_node("/root/Session/Settings").is_open():
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE and selected != null:
 		camera_rig.focus_at(selected.global_position)
