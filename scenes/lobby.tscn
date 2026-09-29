@@ -156,5 +156,5 @@ alignment = 2
 [node name="Version" type="Label" parent="Margin/Column/Footer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "v1.3.0"
+text = "v1.3.1"
 theme_type_variation = &"MenuMuted"

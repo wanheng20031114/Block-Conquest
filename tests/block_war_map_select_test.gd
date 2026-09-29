@@ -59,7 +59,7 @@ func _run() -> void:
 		for button_index: int in size_maps.size():
 			var button: Button = picker.get_node("%%Map%d" % button_index)
 			check(button.visible and button.text == size_maps[button_index].title and button.button_pressed == (button_index == slot), "all three map buttons show the selected size and only one remains pressed")
-		if not definition.height_zones.is_empty():
+		if definition.has_elevation():
 			check(picker.get_node("%TerrainInfo").text.contains("高地土坡"), "selecting a raised battlefield exposes its terrain type")
 		_click(picker.get_node("%%Map%d" % slot))
 		check(picker.get_node("%%Map%d" % slot).button_pressed, "clicking the selected map keeps a selection")

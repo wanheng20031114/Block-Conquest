@@ -7,13 +7,20 @@ rather than asserting particular node names, scales, or serialized offsets.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import redirect_stdout
+import io
 import itertools
+import json
 import math
 from pathlib import Path
 import re
 import struct
 import sys
+import tempfile
 import unittest
+from unittest.mock import patch
+
+import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +28,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 from block_war_bridge_authoring import author_bridges
 from block_war_path_authoring import author_paths
 from build_block_war_maps import layouts
+import block_war_height_authoring as height_authoring
+import build_natural_terrain as terrain_baker
 
 
 @dataclass
@@ -221,8 +230,62 @@ def inside_region(region, point):
     return x + 1e-7 < point[0] < x + width - 1e-7 and z + 1e-7 < point[1] < z + depth - 1e-7
 
 
-def terrain_allows(layout, point):
+class TerrainGeometry:
+    """Read the mesh baker's RF vertices, independently of CPU height queries."""
+
+    def __init__(self, directory, map_id):
+        self.meta = json.loads((directory / (map_id + ".json")).read_text(encoding="utf-8"))
+        self.width, self.depth = self.meta["width"], self.meta["depth"]
+        self.step = self.meta["cell_size"]
+        data = (directory / (map_id + ".rf")).read_bytes()
+        self.heights = struct.unpack(f"<{self.width * self.depth}f", data)
+
+    def face_at(self, point):
+        gx, gz = ((point[i] - self.meta["origin"][i]) / self.step for i in (0, 1))
+        x, z = min(math.floor(gx), self.width - 2), min(math.floor(gz), self.depth - 2)
+        corners = ((x, z), (x + 1, z), (x, z + 1)) if gx + gz <= x + z + 1 else (
+            (x + 1, z), (x + 1, z + 1), (x, z + 1))
+        return tuple((self.meta["origin"][0] + ix * self.step,
+                      self.heights[iz * self.width + ix],
+                      self.meta["origin"][1] + iz * self.step) for ix, iz in corners)
+
+    @staticmethod
+    def slope(face):
+        a, b, c = face
+        first, second = [b[i] - a[i] for i in range(3)], [c[i] - a[i] for i in range(3)]
+        normal = tuple(first[(i + 1) % 3] * second[(i + 2) % 3]
+                       - first[(i + 2) % 3] * second[(i + 1) % 3] for i in range(3))
+        return math.hypot(normal[0], normal[2]) / abs(normal[1])
+
+    def crossed_faces(self, segment):
+        """Visit every face interval, including crossings shorter than a probe step.
+
+        In grid coordinates all mesh edges lie on an integer x, z or x+z line.
+        Split at that complete line arrangement instead of the author's fixed
+        distance probes, and measure each plane from its actual vertex normal.
+        """
+        ax, az, bx, bz = segment
+        start = ((ax - self.meta["origin"][0]) / self.step,
+                 (az - self.meta["origin"][1]) / self.step)
+        finish = ((bx - self.meta["origin"][0]) / self.step,
+                  (bz - self.meta["origin"][1]) / self.step)
+        cuts = {0.0, 1.0}
+        for low, high in zip((*start, sum(start)), (*finish, sum(finish))):
+            if abs(high - low) > 1e-10:
+                cuts.update((edge - low) / (high - low)
+                            for edge in range(math.floor(min(low, high)) + 1, math.ceil(max(low, high))))
+        ordered = sorted(cuts)
+        for low, high in zip(ordered, ordered[1:]):
+            if high - low > 1e-10:
+                t = (low + high) / 2
+                point = (ax + (bx - ax) * t, az + (bz - az) * t)
+                yield point, self.face_at(point)
+
+
+def terrain_allows(layout, point, terrain=None):
     if abs(point[0]) > layout["half"][0] + 1e-7 or abs(point[1]) > layout["half"][1] + 1e-7:
+        return False
+    if terrain is not None and terrain.slope(terrain.face_at(point)) > 0.5001:
         return False
     if any(region[0] - 1e-7 <= point[0] <= region[0] + region[2] + 1e-7
            and region[1] - 1e-7 <= point[1] <= region[1] + region[3] + 1e-7
@@ -285,7 +348,22 @@ def bridge_union_span(bridge, bridges, axis):
 class RoadAuthoringTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.maps = [(layout, author_paths(layout)) for layout in layouts()]
+        # Generate reproducible fixtures from the saved Curve2D sources. The
+        # production helpers' machine-local .local cache may be absent or stale.
+        definitions = layouts()
+        cls.terrains = {}
+        with tempfile.TemporaryDirectory(prefix="block-war-authoring-") as temporary:
+            directory = Path(temporary)
+            fields = {}
+            with patch.object(terrain_baker, "OUT", directory), redirect_stdout(io.StringIO()):
+                for layout in definitions:
+                    if layout.get("terrain"):
+                        terrain_baker.bake(layout)
+                        terrain = TerrainGeometry(directory, layout["id"])
+                        cls.terrains[layout["id"]] = terrain
+                        fields[layout["id"]] = (terrain.meta, np.load(directory / (layout["id"] + ".npy")))
+            with patch.object(height_authoring, "field", side_effect=fields.__getitem__):
+                cls.maps = [(layout, author_paths(layout)) for layout in definitions]
 
     def test_all_road_plans_fit_the_shader_and_have_valid_segments(self):
         self.assertEqual({layout["id"] for layout, _ in self.maps},
@@ -306,6 +384,26 @@ class RoadAuthoringTest(unittest.TestCase):
                 with self.subTest(map=layout["id"], road=index):
                     for point in segment_samples(segment, regions):
                         self.assertTrue(terrain_allows(layout, point), f"Road {segment} enters forbidden terrain at {point}")
+
+    def test_full_elevated_road_lengths_cross_only_walkable_triangle_faces(self):
+        self.assertEqual(set(self.terrains), {"terraces", "switchback", "crown"})
+        for layout, paths in self.maps:
+            terrain = self.terrains.get(layout["id"])
+            if terrain is None:
+                continue
+            saw_lowland, saw_ramp, saw_plateau = False, False, False
+            for index, segment in enumerate(paths):
+                with self.subTest(map=layout["id"], road=index):
+                    for point, face in terrain.crossed_faces(segment):
+                        slope = terrain.slope(face)
+                        self.assertLessEqual(slope, 0.5001,
+                                             f"Road {segment} crosses a cliff face at {point}, gradient={slope}")
+                        saw_lowland |= max(vertex[1] for vertex in face) < 0.001
+                        saw_ramp |= slope > 0.05
+                        saw_plateau |= slope < 0.001 and min(vertex[1] for vertex in face) > 1.0
+            with self.subTest(map=layout["id"]):
+                self.assertTrue(saw_lowland and saw_ramp and saw_plateau,
+                                "Roads must actually cover the lowland, ascent and raised settlement")
 
     def test_every_bridge_centerline_and_both_approaches_have_a_road(self):
         for layout, paths in self.maps:
@@ -332,7 +430,7 @@ class RoadAuthoringTest(unittest.TestCase):
             for x, z, *_ in layout["buildings"]:
                 actual_door = (x + door[0], z + door[2])
                 with self.subTest(map=layout["id"], doorway=actual_door):
-                    self.assertTrue(terrain_allows(layout, actual_door))
+                    self.assertTrue(terrain_allows(layout, actual_door, self.terrains.get(layout["id"])))
                     self.assertLessEqual(distance_to_road(actual_door, paths), 1.5,
                                          "Front courtyard cannot connect an entrance over 1.5m from the road")
 

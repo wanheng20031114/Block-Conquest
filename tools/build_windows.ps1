@@ -49,6 +49,21 @@ function Invoke-OwnedGodot([string[]]$EngineArgs, [int]$TimeoutSeconds = 300) {
         $owned.Dispose()
     }
 }
+# Refresh the native script-class and import registries before packing. A source
+# removed since the last editor scan must not survive in the exported class cache.
+$importLog = Join-Path $logRoot 'windows-import.engine.log'
+Invoke-OwnedGodot @('--headless', '--editor', '--path', ('"' + $projectRoot + '"'), '--log-file', ('"' + $importLog + '"'), '--import')
+if (Select-String -LiteralPath $importLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Native resource import contains errors.' }
+# Godot's text-to-binary resource export cache can retain a removed exported
+# property type even when the .tres text itself did not change. Rebuild that
+# generated cache so old flat maps cannot reference deleted terrain scripts.
+$exportCache = Join-Path $projectRoot '.godot/exported'
+if (Test-Path -LiteralPath $exportCache) {
+    $resolvedCache = (Resolve-Path -LiteralPath $exportCache).Path
+    $expectedCache = [System.IO.Path]::GetFullPath((Join-Path $projectRoot '.godot/exported'))
+    if ($resolvedCache -ne $expectedCache -or (Get-Item -LiteralPath $resolvedCache).LinkType) { throw 'Unexpected export cache location.' }
+    Remove-Item -LiteralPath $resolvedCache -Recurse -Force
+}
 $exportLog = Join-Path $logRoot 'windows-export.engine.log'
 Invoke-OwnedGodot @('--headless', '--path', ('"' + $projectRoot + '"'), '--log-file', ('"' + $exportLog + '"'), $exportMode, '"Windows Desktop"', ('"' + $exportTarget + '"'))
 if (Select-String -LiteralPath $exportLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Export log contains errors.' }

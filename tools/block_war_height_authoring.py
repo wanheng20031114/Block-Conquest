@@ -1,47 +1,44 @@
-"""Shared offline surface sampling for authored uplands, roads and planting."""
+"""Offline queries of exactly the same saved triangulated field as Godot."""
+from functools import lru_cache
+from pathlib import Path
+import json
 import math
+import numpy as np
 
+ROOT=Path(__file__).resolve().parents[1]
 
-def height_at(layout, x, z):
-    height = 0.0
-    for (rx, rz, width, depth), start, end, axis in layout.get("heights", []):
-        if rx - 1e-7 <= x <= rx + width + 1e-7 and rz - 1e-7 <= z <= rz + depth + 1e-7:
-            t = (x - rx) / width if axis == 0 else (z - rz) / depth
-            height = max(height, start + (end - start) * max(0.0, min(1.0, t)))
-    return height
+@lru_cache(maxsize=3)
+def field(map_id):
+    base=ROOT/'.local/natural-terrain'
+    meta=json.loads((base/(map_id+'.json')).read_text(encoding='utf-8'))
+    return meta,np.load(base/(map_id+'.npy'))
 
+def triangle(layout,x,z):
+    meta,grid=field(layout['id'])
+    u=(x-meta['origin'][0])/meta['cell_size']
+    v=(z-meta['origin'][1])/meta['cell_size']
+    if not 0<=u<=meta['width']-1 or not 0<=v<=meta['depth']-1: return (0,0,0)
+    ix=min(int(u),meta['width']-2); iz=min(int(v),meta['depth']-2)
+    u-=ix;v-=iz
+    a,b,c,d=(float(grid[iz,ix]),float(grid[iz,ix+1]),float(grid[iz+1,ix]),float(grid[iz+1,ix+1]))
+    step=meta['cell_size']
+    if u+v<=1: return a+(b-a)*u+(c-a)*v,(b-a)/step,(c-a)/step
+    return d+(c-d)*(1-u)+(b-d)*(1-v),(d-c)/step,(d-b)/step
 
-def supported_footprint(layout, x, z, radius, tolerance=0.15):
-    center = height_at(layout, x, z)
-    return all(abs(height_at(layout, x + dx * radius, z + dz * radius) - center) <= tolerance
-               for dx, dz in ((-1, -1), (-1, 1), (1, -1), (1, 1), (0, -1), (0, 1), (-1, 0), (1, 0)))
+def height_at(layout,x,z):
+    return triangle(layout,x,z)[0] if layout.get('terrain') else 0.0
 
+def supported_footprint(layout,x,z,radius,tolerance=.15):
+    center=height_at(layout,x,z)
+    return all(abs(height_at(layout,x+dx*radius,z+dz*radius)-center)<=tolerance
+               for dx,dz in ((-1,-1),(-1,1),(1,-1),(1,1),(0,-1),(0,1),(-1,0),(1,0)))
 
-def surface_segment_clear(layout, segment):
-    """Split at exact zone borders, rejecting jumps instead of stepping over cliffs."""
-    if not layout.get("heights"):
-        return True
-    ax, az, bx, bz = segment
-    length = math.hypot(bx - ax, bz - az)
-    if length < 1e-6:
-        return True
-    cuts = {0.0, 1.0}
-    for (x, z, w, d), *_ in layout["heights"]:
-        for a, delta, edges in ((ax, bx - ax, (x, x + w)), (az, bz - az, (z, z + d))):
-            if abs(delta) > 1e-8:
-                cuts.update((edge - a) / delta for edge in edges if 0 < (edge - a) / delta < 1)
-    cuts = sorted(cuts)
-    for t in cuts:
-        epsilon = min(1e-5, 0.0001 / length)
-        low, high = max(0, t - epsilon), min(1, t + epsilon)
-        before = height_at(layout, ax + (bx - ax) * low, az + (bz - az) * low)
-        after = height_at(layout, ax + (bx - ax) * high, az + (bz - az) * high)
-        if abs(after - before) > 0.001:
-            return False
-    for low, high in zip(cuts, cuts[1:]):
-        a, b = low + (high - low) * 0.001, high - (high - low) * 0.001
-        first = height_at(layout, ax + (bx - ax) * a, az + (bz - az) * a)
-        last = height_at(layout, ax + (bx - ax) * b, az + (bz - az) * b)
-        if abs(last - first) > length * (b - a) * 0.5 + 0.001:
-            return False
+def surface_segment_clear(layout,segment):
+    if not layout.get('terrain'): return True
+    ax,az,bx,bz=segment
+    distance=math.hypot(bx-ax,bz-az)
+    steps=max(1,math.ceil(distance/.15))
+    for i in range(steps+1):
+        _,dx,dz=triangle(layout,ax+(bx-ax)*i/steps,az+(bz-az)*i/steps)
+        if math.hypot(dx,dz)>.5001: return False
     return True

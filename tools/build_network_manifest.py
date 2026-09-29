@@ -29,6 +29,7 @@ def manifest() -> dict:
         ("scripts/network", "*.gd"),
         ("data/block_war/maps", "*.tres"),
         ("data/block_war/routes", "*.res"),
+        ("data/block_war/terrain", "*.res"),
         ("scenes/block_war", "*.tscn"),
     ):
         files.update((ROOT / folder).rglob(pattern))

@@ -1,0 +1,38 @@
+{
+  "release": "1.3.1",
+  "engine": "4.7.2.stable",
+  "date": "2026-09-29",
+  "terrain_resolution_m": 0.5,
+  "route_pairs": 370,
+  "native_geometry": {
+    "checks": 1171,
+    "failures": 0
+  },
+  "height_routes_by_map": {
+    "terraces": 695,
+    "switchback": 1057,
+    "crown": 1697
+  },
+  "gpu_surface": 213,
+  "height_replication": 210,
+  "camera_bounds": 2611,
+  "map_preview": 904,
+  "map_select": 114,
+  "offline_authoring_tests": 11,
+  "gameplay_regression": 8334,
+  "packaged_smoke": 102,
+  "public_dtls": 60,
+  "public_maps": 67,
+  "pck_sha256": "ac1e45f6a2b6f79477e438eaf9a9f9d11453cee24dc2c5742e806d2a12f77a7c",
+  "zip_sha256": "b44806a1b0990c22ae987767b0c3b522e95a1becd7696b5f3354852422585b73",
+  "manifest_sha256": "d195884a33a412a6a32dee21a77da4ed01e451a36b7795a350d6b72fd98655b2",
+  "relay_release": "80fdbb9629edb81d",
+  "final_pack_visuals": ".local/natural-pack-visual",
+  "final_pack_visual_log": "BlockWarReview_3e366fda2b4945af89d0980f47634c9f.log",
+  "resolved_findings": [
+    "内坡院坪过渡导致编队肩部过陡，延后坡道抬升起点",
+    "预览高度标签被据点遮挡，调整文字位置",
+    "资源导出缓存保留已删除类型，构建刷新原生导入及生成缓存"
+  ],
+  "final_failures": 0
+}

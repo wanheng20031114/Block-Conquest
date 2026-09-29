@@ -121,7 +121,7 @@ func get_building_distance(source: WarBuilding, target: WarBuilding) -> float:
 func get_return_route(from: Vector3, source: WarBuilding, destination: WarBuilding) -> PackedVector3Array:
 	# Join the saved surface guide, including from a tunnel's exit. Reversing it
 	# keeps distant returns on authored bridges without a new global navigation grid.
-	if not definition.height_zones.is_empty():
+	if definition.has_elevation():
 		from = definition.surface_point(from)
 	if from.distance_to(source.global_position) <= 8.0:
 		return get_recall_route(from, source)
@@ -152,7 +152,7 @@ func get_return_route(from: Vector3, source: WarBuilding, destination: WarBuildi
 
 
 func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
-	if not definition.height_zones.is_empty():
+	if definition.has_elevation():
 		from = definition.surface_point(from)
 	var finish := target.march_perimeter_towards(from)
 	if from.distance_to(finish) < 0.02:
@@ -168,7 +168,7 @@ func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
 		for x: int in range(-10, 11):
 			for z: int in range(-10, 11):
 				var point := target.global_position + Vector3(x, 0, z) * 0.8
-				if not definition.height_zones.is_empty():
+				if definition.has_elevation():
 					point = definition.surface_point(point)
 				if point.distance_to(target.global_position) < 2.5 or not _recall_point_clear(point, target):
 					continue
@@ -209,7 +209,7 @@ func get_recall_route(from: Vector3, target: WarBuilding) -> PackedVector3Array:
 
 
 func _recall_point_clear(point: Vector3, target: WarBuilding) -> bool:
-	if not definition.height_zones.is_empty():
+	if definition.has_elevation():
 		point = definition.surface_point(point)
 	for offset: Vector3 in [Vector3.ZERO, Vector3(0.25, 0, 0), Vector3(-0.25, 0, 0), Vector3(0, 0, 0.25), Vector3(0, 0, -0.25)]:
 		if not is_walkable(point + offset):
@@ -276,7 +276,7 @@ func _shape_route(corridor: PackedVector3Array) -> PackedVector3Array:
 
 func _surface_route(route: PackedVector3Array) -> PackedVector3Array:
 	# Preserve the exact authored guides of the original flat maps.
-	if definition.height_zones.is_empty() or route.size() < 2:
+	if not definition.has_elevation() or route.size() < 2:
 		return route
 	var result := PackedVector3Array([definition.surface_point(route[0])])
 	for index: int in range(1, route.size()):
@@ -297,7 +297,7 @@ func _surface_route(route: PackedVector3Array) -> PackedVector3Array:
 
 
 func _surface_segment_clear(from: Vector3, to: Vector3) -> bool:
-	if definition.height_zones.is_empty():
+	if not definition.has_elevation():
 		return true
 	return definition.surface_segment_walkable(Vector2(from.x, from.z), Vector2(to.x, to.z))
 
@@ -405,7 +405,7 @@ func _building_segment_clear(from: Vector3, to: Vector3, source: WarBuilding, ta
 
 
 func _is_route_point_clear(point: Vector3, leaving: Vector3 = Vector3.INF, arriving: Vector3 = Vector3.INF) -> bool:
-	if not definition.height_zones.is_empty():
+	if definition.has_elevation():
 		point = definition.surface_point(point)
 	if not _has_clearance(point):
 		return false
@@ -436,7 +436,7 @@ func _has_clearance(point: Vector3) -> bool:
 func _segment_clear(from: Vector3, to: Vector3, leaving: Vector3 = Vector3.INF, arriving: Vector3 = Vector3.INF) -> bool:
 	if not _surface_segment_clear(from, to):
 		return false
-	var sample_step := 0.5 if definition.height_zones.is_empty() else ROUTE_SAMPLE_STEP
+	var sample_step := 0.5 if not definition.has_elevation() else ROUTE_SAMPLE_STEP
 	var steps := maxi(1, ceili(from.distance_to(to) / sample_step))
 	for index in range(steps + 1):
 		if not _is_route_point_clear(from.lerp(to, float(index) / float(steps)), leaving, arriving):
@@ -453,7 +453,7 @@ func _build_navigation() -> void:
 	for x in range(-ceili(definition.half_size.x / GRID_STEP) + 1, ceili(definition.half_size.x / GRID_STEP)):
 		for z in range(-ceili(definition.half_size.y / GRID_STEP) + 1, ceili(definition.half_size.y / GRID_STEP)):
 			var point := Vector3(x * GRID_STEP, 0, z * GRID_STEP)
-			if not definition.height_zones.is_empty():
+			if definition.has_elevation():
 				point = definition.surface_point(point)
 			if not _is_route_point_clear(point):
 				continue

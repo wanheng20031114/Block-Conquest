@@ -87,27 +87,19 @@ def layouts():
     # Wide, deliberately placed earth ramps are the only ways across cliff edges.
     maps.append(dict(common, id="terraces", title="叠翠台地", half=(44, 32),
                      description="四条宽土坡通向中央台地，坡顶炮塔控制近路。沿南北低地绕行，可以避开正面争坡并抢占两翼工坊。",
-                     heights=[((-12, -12, 24, 24), 4.5, 4.5, 0),
-                              ((-26, -6, 14, 12), 0, 4.5, 0), ((12, -6, 14, 12), 4.5, 0, 0),
-                              ((-6, -24, 12, 12), 0, 4.5, 1), ((-6, 12, 12, 12), 4.5, 0, 1)],
+                     terrain=True,
                      buildings=starts(34, [0]) + mirrored([33], [-20, 20])
                      + mirrored([18], [-23, 23], 2, 20) + [building(0, 0, 1, population=36)]))
     maps.append(dict(medium, id="switchback", title="盘山双关", half=(54, 44), color=(0.37, 0.465, 0.215),
                      description="南北两座台地由二段土坡连接八米高的山脊要塞。可以沿坡逐层推进，也能走山脚与外沿山道换线包抄。",
-                     heights=[((-18, -36, 36, 18), 4.5, 4.5, 0), ((-18, 18, 36, 18), 4.5, 4.5, 0),
-                              ((-8, -6, 16, 12), 8, 8, 0), ((-6, -18, 12, 12), 4.5, 8, 1),
-                              ((-6, 6, 12, 12), 8, 4.5, 1)]
-                     + [((x, z, 16, 12), a, b, 0) for x, a, b in [(-34, 0, 4.5), (18, 4.5, 0)] for z in (-33, 21)],
+                     terrain=True,
                      buildings=starts(43, [-27, 27]) + mirrored([42], [-9, 9])
                      + mirrored([28], [0], 2, 20) + mirrored([10], [-27, 27], 0, 24)
                      + [building(0, 0, 1, population=42)]))
     maps.append(dict(large, id="crown", title="云冠盆地", half=(76, 58), color=(0.355, 0.455, 0.22),
                      description="环形高地围住林间盆地，六处外坡连接三条战线，两处内坡通向腹地。夺取坡顶哨塔，或借盆地工坊组织跨线支援。",
                      water=[(-12, -58, 24, 10), (-12, 48, 24, 10)],
-                     heights=[((-36, -36, 72, 16), 5, 5, 0), ((-36, 20, 72, 16), 5, 5, 0),
-                              ((-36, -20, 16, 40), 5, 5, 0), ((20, -20, 16, 40), 5, 5, 0),
-                              ((-6, -20, 12, 12), 5, 0, 1), ((-6, 8, 12, 12), 0, 5, 1)]
-                     + [((x, z, 16, 12), a, b, 0) for x, a, b in [(-52, 0, 5), (36, 5, 0)] for z in (-32, -6, 20)],
+                     terrain=True,
                      buildings=starts(64, [-30, 0, 30]) + mirrored([62], [-16, 16])
                      + mirrored([18], [-28, 28], 1, 28) + mirrored([28], [0], 0, 24)
                      + mirrored([12], [-11, 11], 0, 18) + [building(0, 0, 2, population=30)]))
@@ -141,14 +133,11 @@ def terrain_axes(layout):
 def write_definition(layout):
     items = layout["buildings"]
     positions = ", ".join(str(v) for x, z, *_ in items for v in (x, height_at(layout, x, z), z))
-    heights = layout.get("heights", [])
     height_resources = ''
     height_property = ''
-    if heights:
-        height_resources = '[ext_resource type="Script" path="res://scripts/block_war/war_height_zone.gd" id="height_zone"]\n\n'
-        for index, (region, start, end, axis) in enumerate(heights):
-            height_resources += f'[sub_resource type="Resource" id="Height{index}"]\nscript = ExtResource("height_zone")\nregion = {vec(region, "Rect2")}\nstart_height = {float(start)}\nend_height = {float(end)}\naxis = {axis}\n\n'
-        height_property = 'height_zones = Array[ExtResource("height_zone")]([' + ', '.join(f'SubResource("Height{i}")' for i in range(len(heights))) + '])\n'
+    if layout.get("terrain"):
+        height_resources = f'[ext_resource type="Resource" path="res://data/block_war/terrain/{layout["id"]}.res" id="terrain"]\n\n'
+        height_property = 'terrain = ExtResource("terrain")\n'
     xs, zs = terrain_axes(layout)
     camera_bounds = (xs[0], zs[0], xs[-1] - xs[0], zs[-1] - zs[0])
     text = f'''[gd_resource type="Resource" script_class="WarMapDefinition" format=3]
@@ -195,6 +184,7 @@ shader = ExtResource("ground_shader")
 shader_parameter/meadow_noise = ExtResource("noise")
 shader_parameter/half_size = {vec((hx, hz), 'Vector2')}
 shader_parameter/meadow = {vec((*layout['color'], 1), 'Color')}
+shader_parameter/natural_terrain = {str(bool(layout.get('terrain'))).lower()}
 shader_parameter/site_count = {len(items)}
 shader_parameter/sites = PackedVector2Array({', '.join(str(v) for b in [b[:2] for b in items] + [(0, 0)] * (64 - len(items)) for v in b)})
 shader_parameter/path_count = {len(paths)}
@@ -212,7 +202,7 @@ shader_parameter/bridge_regions = PackedVector4Array({', '.join(str(v) for regio
     for ix, (left, right) in enumerate(zip(xs, xs[1:])):
         for iz, (top, bottom) in enumerate(zip(zs, zs[1:])):
             x, z = (left + right) / 2, (top + bottom) / 2
-            if not any(inside(r, x, z) for r in layout["water"]):
+            if not layout.get("terrain") and not any(inside(r, x, z) for r in layout["water"]):
                 nodes.append(f'[node name="Land{ix}_{iz}" type="MeshInstance3D" parent="Terrain"]\nlayers = 524289\nposition = {vec((x, -1.6, z))}\nscale = {vec((right - left, 3.2, bottom - top))}\nmesh = SubResource("Cube")\nmaterial_override = SubResource("Ground")')
     if layout["water"]:
         externals.append(f'[ext_resource type="Shader" path="{ENV}map_water.gdshader" id="water_shader"]')
@@ -228,11 +218,9 @@ shader_parameter/bridge_regions = PackedVector4Array({', '.join(str(v) for regio
             override = f'\nmaterial_override = {material}'
             receiver = '\nlayers = 524289' if layer != 'water' else ''
             nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="Terrain"]{receiver}\nmesh = ExtResource("shore_{layer}"){override}')
-    if layout.get("heights"):
-        externals.append(f'[ext_resource type="Material" path="{ENV}upland_cliff.tres" id="cliff_material"]')
-        for layer, material in (("upland", 'SubResource("Ground")'), ("cliffs", 'ExtResource("cliff_material")')):
-            externals.append(f'[ext_resource type="ArrayMesh" path="{ENV}maps/{layout["id"]}_{layer}.res" id="{layer}"]')
-            nodes.append(f'[node name="{layer.title()}" type="MeshInstance3D" parent="Terrain"]\nlayers = 524289\nmesh = ExtResource("{layer}")\nmaterial_override = {material}')
+    if layout.get("terrain"):
+        externals.append(f'[ext_resource type="ArrayMesh" path="{ENV}maps/{layout["id"]}_upland.res" id="upland"]')
+        nodes.append('[node name="Upland" type="MeshInstance3D" parent="Terrain"]\nlayers = 524289\nmesh = ExtResource("upland")\nmaterial_override = SubResource("Ground")')
     ext, sub, children = author_bridges(layout)
     externals.extend(ext)
     resources.extend(sub)

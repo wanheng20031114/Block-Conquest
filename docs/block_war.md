@@ -241,6 +241,7 @@ Godot --path . --script res://tests/block_war_combat_visual.gd --fixed-fps 60
 
 ```text
 python tools/build_block_war_maps.py --definitions-only
+python tools/build_natural_terrain.py
 Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_war_heights.gd
 Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_war_shores.gd
 Godot --headless --audio-driver Dummy --path . --script res://tools/export_war_shore_support.gd
@@ -248,10 +249,12 @@ python tools/build_block_war_maps.py
 Godot --headless --audio-driver Dummy --path . --script res://tools/bake_block_war_routes.gd
 ```
 
-先保存布局定义并烘焙高地与岸线，导出真实岸坡的支撑面，再生成九张可直接在编辑器调整的原生场景及对应地图定义，最后保存 `data/block_war/routes/*.res`。裂谷地图仍保存为 `map.tscn`，使用相同构建流程。地图专项可追加 `-- islands` 等地图 ID 单独检查；高地 GPU 检查使用 `tests/block_war_heights_visual.gd`，输出路径由独立桌面验证工具指定。
+高地的编辑源是 `tools/terrain/*.tres` 中的原生 `Curve2D`：闭合曲线定义台地与盆地，开放曲线定义土坡中线及两端宽度。保存曲线后，Python 离线生成 0.5 米精度的浮点高度场，再由 Godot 保存原生网格和高度资源。`author_natural_terrain_sources.py` 仅用于明确重置初始控制点，普通重建不运行它，以免覆盖编辑器中的曲线修改。
 
-新增地图：叠翠台地（1v1，四坡争夺中央炮塔）、盘山双关（2v2，4.5 米台地接入 8 米山脊要塞）、云冠盆地（3v3，六外坡与两内坡串联环形高地）。土坡可通行，陡崖不可跨越；高度本身不增加伤害或射程。建筑、道路、编队、地面选点与效果共享地图定义中的 `WarHeightZone`，技能与炮塔范围以水平距离计算。高地路线保留坡脚与坡顶折点，编队横向展开后逐兵贴地；双方使用同一条可反转的保存路线。
+再烘焙岸线、导出真实岸坡的支撑面，生成九张可直接在编辑器调整的原生场景及对应地图定义，最后保存 `data/block_war/routes/*.res`。裂谷地图仍保存为 `map.tscn`，使用相同构建流程。地图专项可追加 `-- islands` 等地图 ID 单独检查；高地 GPU 检查使用 `tests/block_war_heights_visual.gd`，输出路径由独立桌面验证工具指定。
 
-1.3.0 的制作细节、正式包实机截图与专项验证见 [高地与土坡战场记录](art/block_war_height_maps.md)。
+新增地图：叠翠台地（1v1，四坡争夺中央炮塔）、盘山双关（2v2，4.5 米台地接入 8 米山脊要塞）、云冠盆地（3v3，六外坡与两内坡串联环形高地）。土坡可通行，陡崖不可跨越；高度本身不增加伤害或射程。建筑、道路、编队、地面选点与效果共享地图定义中的 `WarTerrainSurface`。网格、CPU 高度和 RF 着色器纹理采用相同的三角形划分，鼠标选地与通行检查沿真实三角面求交；技能与炮塔范围仍以水平距离计算。编队横向展开后逐兵贴地；双方使用同一条可反转的保存路线。高度资源字节参与多人兼容性指纹。
+
+1.3.1 的制作细节、正式包实机截图与专项验证见 [高地与土坡战场记录](art/block_war_height_maps.md)。
 
 需要重建基础自然素材时，使用安装了 numpy、trimesh、shapely 的 Python 执行 `tools/build_war_nature.py`，再通过 Godot 执行 `tools/build_war_nature.gd`（原生网格/LOD）与 `tools/bake_war_map_details.gd`（桥梁基础网格），最后执行上面的统一地图构建流程。运行时直接加载保存的 `.tscn` / `.res`，不生成景观节点。`dress_war_map.py` 属于旧裂谷布局的历史制作工具，当前九图使用 `build_block_war_maps.py`。岩石支撑、树林疏密检查见 [环境制作规范](art/block_war_environment_direction.md)。

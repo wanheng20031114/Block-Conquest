@@ -83,7 +83,7 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 		for i: int in pieces:
 			var t := float(i) / float(pieces - 1)
 			var at := a.lerp(b, t) - Vector3.UP * sin(t * PI) * 0.45
-			if not map_definition.height_zones.is_empty():
+			if map_definition.has_elevation():
 				at.y = maxf(at.y, map_definition.surface_height(Vector2(at.x, at.z)) + 0.45)
 			var basis := Basis.looking_at(heading) * Basis(Vector3.FORWARD, PI * 0.5 if i % 2 == 0 else 0.0)
 			chains.set_instance_transform(count, Transform3D(basis, at))

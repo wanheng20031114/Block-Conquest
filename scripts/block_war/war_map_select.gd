@@ -66,7 +66,7 @@ func _select_map(index: int) -> void:
 		terrain.append("山地隘口")
 	if not selected.bridges.is_empty():
 		terrain.append("桥梁连接")
-	if not selected.height_zones.is_empty():
+	if selected.has_elevation():
 		terrain.append("高地土坡")
 	%TerrainInfo.text = " · ".join(terrain)
 	var spawns: Array[String] = ["① 你", "② 敌方一"]

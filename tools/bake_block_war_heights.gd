@@ -1,106 +1,72 @@
 extends SceneTree
-## Offline native meshes: flat building seats, planar earth ramps and layered cliff faces.
-## The exact same authored zones supply navigation, input picking and surface effects.
-## https://docs.godotengine.org/en/stable/classes/class_surfacetool.html
+## Save spline-authored data as native Resource, RF texture and ArrayMesh.
+## https://docs.godotengine.org/en/stable/classes/class_arraymesh.html
 
+const INPUT := "res://.local/natural-terrain/"
 const OUTPUT := "res://assets/block_war/environment/maps/"
 
 func _initialize() -> void:
 	for map_id: String in ["terraces", "switchback", "crown"]:
-		if not OS.get_cmdline_user_args().is_empty() and map_id not in OS.get_cmdline_user_args():
-			continue
-		var definition: WarMapDefinition = load("res://data/block_war/maps/%s.tres" % map_id)
-		_bake(definition)
+		if not OS.get_cmdline_user_args().is_empty() and map_id not in OS.get_cmdline_user_args(): continue
+		_bake(map_id)
 	quit()
 
-func _surface() -> SurfaceTool:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	return surface
-
-func _triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, outward: Vector3, tint: Color) -> void:
-	var normal := (b - a).cross(c - a)
-	if normal.length_squared() < 0.0000001:
-		return
-	if normal.dot(outward) > 0.0:
-		var swap := b
-		b = c
-		c = swap
-	for point: Vector3 in [a, b, c]:
-		surface.set_color(tint)
-		surface.add_vertex(point)
-
-func _quad(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, normal: Vector3, tint: Color) -> void:
-	_triangle(surface, a, b, c, normal, tint)
-	_triangle(surface, a, c, d, normal, tint)
-
-func _finish(surface: SurfaceTool, path: String) -> void:
-	surface.generate_normals()
-	surface.index()
-	assert(ResourceSaver.save(surface.commit(), path, ResourceSaver.FLAG_COMPRESS) == OK)
-
-func _height(zone: WarHeightZone, point: Vector2) -> float:
-	var t := (point.x - zone.region.position.x) / zone.region.size.x if zone.axis == 0 else (point.y - zone.region.position.y) / zone.region.size.y
-	return lerpf(zone.start_height, zone.end_height, clampf(t, 0.0, 1.0))
-
-func _vertex(zone: WarHeightZone, point: Vector2) -> Vector3:
-	return Vector3(point.x, _height(zone, point), point.y)
-
-func _bake(definition: WarMapDefinition) -> void:
-	var top := _surface()
-	var cliffs := _surface()
-	for zone: WarHeightZone in definition.height_zones:
-		var rect := zone.region
-		var corners: Array[Vector2] = [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
-		_quad(top, _vertex(zone, corners[0]), _vertex(zone, corners[1]), _vertex(zone, corners[2]), _vertex(zone, corners[3]), Vector3.UP, Color.WHITE)
-		for edge: int in 4:
-			var start := corners[edge]
-			var end := corners[(edge + 1) % 4]
-			var direction := end - start
-			var length := direction.length()
-			var outward := Vector2(direction.y, -direction.x).normalized()
-			var cuts: Array[float] = [0.0, 1.0]
-			for index: int in range(1, ceili(length)):
-				cuts.append(float(index) / ceili(length))
-			# Adjacent ramps can occupy only part of a cliff: split exactly at mouths.
-			for neighbor: WarHeightZone in definition.height_zones:
-				for point: Vector2 in [neighbor.region.position, neighbor.region.end]:
-					var t := (point.x - start.x) / direction.x if absf(direction.x) > 0.01 else (point.y - start.y) / direction.y
-					if t > 0.0 and t < 1.0 and not cuts.has(t):
-						cuts.append(t)
-			cuts.sort()
-			for index: int in range(1, cuts.size()):
-				var a := start.lerp(end, cuts[index - 1])
-				var b := start.lerp(end, cuts[index])
-				var middle := (a + b) * 0.5
-				var adjacent := definition.surface_height(middle + outward * 0.01)
-				if _height(zone, middle) - adjacent < 0.01:
-					continue
-				var low_a := definition.surface_height(a.lerp(middle, 0.001) + outward * 0.01)
-				var low_b := definition.surface_height(b.lerp(middle, 0.001) + outward * 0.01)
-				_cliff_strip(cliffs, a, b, low_a, low_b, _height(zone, a), _height(zone, b), outward, cuts[index - 1], cuts[index])
-	_finish(top, OUTPUT + definition.map_id + "_upland.res")
-	_finish(cliffs, OUTPUT + definition.map_id + "_cliffs.res")
-	print("HEIGHTS_BAKED ", definition.map_id, " zones=", definition.height_zones.size())
-
-func _cliff_strip(surface: SurfaceTool, a: Vector2, b: Vector2, low_a: float, low_b: float, high_a: float, high_b: float, outward: Vector2, ta: float, tb: float) -> void:
-	var levels: Array[float] = [0.0, 0.15, 0.39, 0.68, 0.94, 1.0]
-	var relief: Array[float] = [0.04, 0.17, 0.08, 0.13, 0.06, 0.0]
-	var colors: Array[Color] = [Color("686c50"), Color("878163"), Color("79795b"), Color("99906b"), Color("657b42")]
-	var normal := Vector3(outward.x, 0, outward.y)
-	for band: int in range(levels.size() - 1):
-		var vertices: Array[Vector3] = []
-		for pair: Vector2i in [Vector2i(0, band), Vector2i(1, band), Vector2i(1, band + 1), Vector2i(0, band + 1)]:
-			var point := a if pair.x == 0 else b
-			var t := ta if pair.x == 0 else tb
-			var h := lerpf(low_a if pair.x == 0 else low_b, high_a if pair.x == 0 else high_b, levels[pair.y])
-			# Uneven sediment bands share seam vertices, without moving the actual
-			# walkable top or the foot. This avoids a stack-of-boxes cliff face.
-			var depth := (high_a - low_a) if pair.x == 0 else (high_b - low_b)
-			h += sin(point.x * 0.87 + point.y * 0.53 + pair.y * 1.1) * 0.13 * minf(1.0, depth / 2.0) * sin(PI * levels[pair.y])
-			# Taper relief at corners. Every neighboring strip shares identical seams.
-			var offset := relief[pair.y] * sin(PI * t) * (0.85 + 0.15 * sin(point.x * 0.73 + point.y * 0.61))
-			point += outward * offset
-			vertices.append(Vector3(point.x, h, point.y))
-		var tint := colors[band].lightened(0.045 * sin((a.x + b.x) * 0.31 + (a.y + b.y) * 0.19))
-		_quad(surface, vertices[0], vertices[1], vertices[2], vertices[3], normal, tint)
+func _bake(map_id: String) -> void:
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(INPUT + map_id + ".json"))
+	var bytes := FileAccess.get_file_as_bytes(INPUT + map_id + ".rf")
+	var field := WarTerrainSurface.new()
+	field.origin = Vector2(meta.origin[0], meta.origin[1])
+	field.cell_size = meta.cell_size
+	field.width = int(meta.width)
+	field.depth = int(meta.depth)
+	field.heights = bytes.to_float32_array()
+	field.max_height = meta.max_height
+	for i: int in range(0, meta.ramp_guides.size(), 4):
+		field.ramp_guides.append(Vector4(meta.ramp_guides[i], meta.ramp_guides[i+1], meta.ramp_guides[i+2], meta.ramp_guides[i+3]))
+	for i: int in range(0, meta.labels.size(), 3):
+		field.label_positions.append(Vector3(meta.labels[i],meta.labels[i+1],meta.labels[i+2]))
+	field.height_texture = ImageTexture.create_from_image(Image.create_from_data(field.width, field.depth, false, Image.FORMAT_RF, bytes))
+	var preview := Image.create(field.width, field.depth, false, Image.FORMAT_RGBA8)
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	vertices.resize(field.width * field.depth)
+	normals.resize(vertices.size())
+	for z: int in field.depth:
+		for x: int in field.width:
+			var index := z * field.width + x
+			var h := field.heights[index]
+			var dx := (field.heights[z * field.width + mini(x+1,field.width-1)] - field.heights[z * field.width + maxi(x-1,0)]) / (field.cell_size * (1.0 if x in [0,field.width-1] else 2.0))
+			var dz := (field.heights[mini(z+1,field.depth-1)*field.width+x] - field.heights[maxi(z-1,0)*field.width+x]) / (field.cell_size * (1.0 if z in [0,field.depth-1] else 2.0))
+			vertices[index] = Vector3(field.origin.x + x * field.cell_size, h, field.origin.y + z * field.cell_size)
+			normals[index] = Vector3(-dx,1,-dz).normalized()
+			var shade := clampf(normals[index].dot(Vector3(-0.5, 1, -0.6).normalized()), 0.15, 1.0)
+			var ink := Color("abb88a").lerp(Color("829d71"), h / maxf(field.max_height,1.0))
+			ink = ink.darkened((1.0-shade)*0.38)
+			ink.a = smoothstep(0.01,0.35,h)
+			preview.set_pixel(x,z,ink)
+	field.preview_texture = ImageTexture.create_from_image(preview)
+	DirAccess.make_dir_recursive_absolute("res://data/block_war/terrain")
+	assert(ResourceSaver.save(field,"res://data/block_war/terrain/" + map_id + ".res",ResourceSaver.FLAG_COMPRESS) == OK)
+	var indices := PackedInt32Array()
+	for z: int in range(field.depth-1):
+		for x: int in range(field.width-1):
+			var point := field.origin + Vector2(x+0.5,z+0.5) * field.cell_size
+			var water := false
+			for rect: Array in meta.water:
+				if Rect2(rect[0],rect[1],rect[2],rect[3]).has_point(point): water = true
+			if water: continue
+			var a := z*field.width+x
+			var b := a+1
+			var c := a+field.width
+			var d := c+1
+			# Godot clockwise front faces, with the shared CPU/GPU b--c diagonal.
+			indices.append_array(PackedInt32Array([a,b,c,b,d,c]))
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX]=vertices
+	arrays[Mesh.ARRAY_NORMAL]=normals
+	arrays[Mesh.ARRAY_INDEX]=indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	assert(ResourceSaver.save(mesh,OUTPUT+map_id+"_upland.res",ResourceSaver.FLAG_COMPRESS)==OK)
+	print("NATURAL_TERRAIN_BAKED ",map_id," grid=",field.width,"x",field.depth," triangles=",indices.size()/3)

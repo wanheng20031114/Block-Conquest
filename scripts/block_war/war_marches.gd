@@ -335,7 +335,7 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 				var contact := fire_contact(before, unit.position, fire, emerged, arrived)
 				if contact >= 0.0:
 					unit.position = before.lerp(unit.position, inverse_lerp(emerged, arrived, contact))
-					if not map_definition.height_zones.is_empty():
+					if map_definition.has_elevation():
 						unit.position = map_definition.surface_point(unit.position)
 					_defeat(index, (unit.position - fire.center).normalized(), true, int(fire.get("faction", -1)))
 					burned = true
@@ -814,11 +814,11 @@ func _formation_position(order: MarchOrder, distance: float, lane: float, headin
 	var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
 	var corner_width := lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
 	var point := center + sideways * lane * gate_width * corner_width
-	return point if map_definition.height_zones.is_empty() else map_definition.surface_point(point)
+	return point if not map_definition.has_elevation() else map_definition.surface_point(point)
 
 func _presentation_position(unit: MarchUnit) -> Vector3:
 	var at := unit.position + unit.presentation_offset
-	if not map_definition.height_zones.is_empty():
+	if map_definition.has_elevation():
 		# Network correction may slide a body across a ramp or terrace edge.
 		# Preserve spell levitation, but never interpolate terrain height in air.
 		var lift := unit.position.y - map_definition.surface_height(Vector2(unit.position.x, unit.position.z))

@@ -30,14 +30,60 @@ func check(value: bool, message: String) -> void:
 func near(actual: float, expected: float, message: String) -> void:
 	check(absf(actual - expected) < 0.002, "%s: %.4f / %.4f" % [message, actual, expected])
 
+func _synthetic_surface(origin: Vector2, width: int, depth: int, heights: PackedFloat32Array) -> WarTerrainSurface:
+	var surface := WarTerrainSurface.new()
+	surface.origin = origin
+	surface.cell_size = 0.5
+	surface.width = width
+	surface.depth = depth
+	surface.heights = heights
+	for height: float in heights:
+		surface.max_height = maxf(surface.max_height, height)
+	# Fixtures create their texture once; production maps load the offline bake.
+	var image := Image.create_from_data(width, depth, false, Image.FORMAT_RF, heights.to_byte_array())
+	surface.height_texture = ImageTexture.create_from_image(image)
+	return surface
+
+func _triangle_samples() -> void:
+	var surface := _synthetic_surface(Vector2(-1, -1), 2, 2, PackedFloat32Array([0, 2, 4, 10]))
+	near(surface.sample(Vector2(-0.875, -0.875)), 1.5, "lower triangle uses the a/b/c plane")
+	near(surface.sample(Vector2(-0.625, -0.625)), 6.5, "upper triangle uses the d/c/b plane instead of bilinear filtering")
+	near(surface.sample(Vector2(-0.875, -0.625)), 3.5, "the b-to-c diagonal joins both planes continuously")
+	near(surface.sample(Vector2(-0.5, -0.875)), 4.0, "the inclusive final column samples the last full cell")
+	near(surface.sample(Vector2(-0.625, -0.5)), 8.5, "the inclusive final row samples the last full cell")
+	near(surface.sample(Vector2(-1.01, -0.75)), 0.0, "outside the baked field returns base ground")
+	near(surface.height_texture.get_image().get_pixel(1, 1).r, 10.0, "RF textures preserve actual metres above one")
+
+func _gpu_triangle_samples() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var definition := WarMapDefinition.new()
+	definition.terrain = _synthetic_surface(Vector2(-1, -1), 2, 2, PackedFloat32Array([0, 2, 4, 10]))
+	var viewport: SubViewport = load("res://tests/block_war_surface_probe.tscn").instantiate()
+	root.add_child(viewport)
+	var material: ShaderMaterial = viewport.get_node("Sample").material
+	WarSurfaceEffects.configure(material, definition)
+	for point: Vector2 in [Vector2(-0.875, -0.875), Vector2(-0.625, -0.625), Vector2(-0.875, -0.625), Vector2(-0.5, -0.875), Vector2(-0.625, -0.5), Vector2(-0.5, -0.5), Vector2(-1.01, -0.75)]:
+		material.set_shader_parameter("probe_point", point)
+		await process_frame
+		await RenderingServer.frame_post_draw
+		var actual := viewport.get_texture().get_image().get_pixel(4, 4).r
+		near(actual, definition.surface_height(point), "GPU texelFetch agrees with the CPU triangular plane at " + str(point))
+	WarSurfaceEffects.configure(material, WarMapDefinition.new())
+	material.set_shader_parameter("probe_point", Vector2(-0.5, -0.5))
+	await process_frame
+	await RenderingServer.frame_post_draw
+	near(viewport.get_texture().get_image().get_pixel(4, 4).r, 0.0, "GPU disables height sampling after switching to flat terrain")
+	viewport.free()
+
 func _march_surface() -> void:
 	var definition := WarMapDefinition.new()
-	var zone := WarHeightZone.new()
-	zone.region = Rect2(-20, -20, 40, 40)
-	zone.start_height = 0
-	zone.end_height = 8
-	zone.axis = 1
-	definition.height_zones = [zone]
+	var heights := PackedFloat32Array()
+	heights.resize(81 * 81)
+	for z: int in 81:
+		for x: int in 81:
+			heights[z * 81 + x] = float(z) * 0.1
+	definition.terrain = _synthetic_surface(Vector2(-20, -20), 81, 81, heights)
 	var marches: WarMarches = load("res://scenes/block_war/marches.tscn").instantiate()
 	root.add_child(marches)
 	marches.map_definition = definition
@@ -97,10 +143,10 @@ func _materials() -> void:
 		for path: String in ["Flames", "Sparks", "Smoke"]:
 			materials.append(fire.get_node(path).draw_pass_1.material)
 	for material: ShaderMaterial in materials:
-		check(int(material.get_shader_parameter("terrain_zone_count")) == definition.height_zones.size(), "all authored ground and fire materials receive the match's zone count")
-		var regions: PackedVector4Array = material.get_shader_parameter("terrain_regions")
-		var profiles: PackedVector3Array = material.get_shader_parameter("terrain_profiles")
-		check(regions.size() == WarSurfaceEffects.MAX_ZONES and profiles.size() == WarSurfaceEffects.MAX_ZONES, "complete native uniform arrays reach every effect instance")
+		check(bool(material.get_shader_parameter("terrain_enabled")) == definition.has_elevation(), "all authored ground and fire materials enable the match's height field")
+		check(material.get_shader_parameter("terrain_heights") == definition.terrain.height_texture, "all effects use the offline baked RF texture")
+		check(material.get_shader_parameter("terrain_size") == Vector2i(definition.terrain.width, definition.terrain.depth) and material.get_shader_parameter("terrain_origin") == definition.terrain.origin, "shader texel coordinates use the same grid origin and dimensions")
+		near(material.get_shader_parameter("terrain_cell_size"), definition.terrain.cell_size, "effect texel spacing agrees with the surface mesh")
 	var tower: WarBuilding = game.buildings[0]
 	tower.kind = 1
 	for tier: int in [1, 2, 3]:
@@ -113,19 +159,26 @@ func _scene_material_isolation() -> void:
 	var scene: PackedScene = load("res://scenes/block_war/war_effects.tscn")
 	var elevated: Node3D = scene.instantiate()
 	var flat: Node3D = scene.instantiate()
-	var definition: WarMapDefinition = load("res://data/block_war/maps/switchback.tres")
+	var definition := WarMapDefinition.new()
+	definition.terrain = _synthetic_surface(Vector2(-1, -1), 2, 2, PackedFloat32Array([0, 2, 4, 10]))
 	elevated.configure_surface(definition)
-	flat.configure_surface(load("res://data/block_war/maps/rift.tres"))
+	flat.configure_surface(WarMapDefinition.new())
 	for path: String in ["RecruitRings", "HasteFields", "Rabbit/RushBursts", "Bear/Ground", "Frog/Mist"]:
 		var high_material: ShaderMaterial = elevated.get_node(path).multimesh.mesh.material
 		var flat_material: ShaderMaterial = flat.get_node(path).multimesh.mesh.material
 		check(high_material != flat_material, "separate battle scenes own their nested ground material: " + path)
-		check(int(high_material.get_shader_parameter("terrain_zone_count")) == definition.height_zones.size() and int(flat_material.get_shader_parameter("terrain_zone_count")) == 0, "configuring a flat battle cannot erase an elevated battle's zones: " + path)
+		check(bool(high_material.get_shader_parameter("terrain_enabled")) and not bool(flat_material.get_shader_parameter("terrain_enabled")), "configuring a flat battle cannot disable an elevated battle's height field: " + path)
+		check(high_material.get_shader_parameter("terrain_heights") == definition.terrain.height_texture and flat_material.get_shader_parameter("terrain_heights") == null, "separate maps never replace each other's height texture: " + path)
+	# Reconfiguration also releases the previous map texture without creating one.
+	elevated.configure_surface(WarMapDefinition.new())
+	var reset: ShaderMaterial = elevated.get_node("RecruitRings").multimesh.mesh.material
+	check(not bool(reset.get_shader_parameter("terrain_enabled")) and reset.get_shader_parameter("terrain_heights") == null, "returning to a flat map disables and clears the height field")
 	elevated.free()
 	flat.free()
 
 func _ground_commands() -> void:
-	var top := Vector3(0, 8, 0)
+	var top: Vector3 = game.map.definition.surface_point(Vector3.ZERO)
+	var low: Vector3 = game.map.definition.surface_point(Vector3(20, 0, 0))
 	game.camera_rig.focus_at(top, true)
 	var screen: Vector2 = game.camera.unproject_position(top)
 	var picked: Vector3 = game.skill_ground_at(screen)
@@ -137,19 +190,19 @@ func _ground_commands() -> void:
 	check(result.accepted, "an XZ-only ground command is accepted on a high plateau")
 	check(game.fire_states.size() == 1, "the command creates exactly one authoritative fire")
 	if not game.fire_states.is_empty():
-		near(game.fire_states[0].global_position.y, 8.0, "network commands reconstruct height from the selected map")
+		near(game.fire_states[0].global_position.y, top.y, "network commands reconstruct height from the selected map")
 	var waves: Node3D = game.world_effects.get_node("FireWaves")
 	var first: WarFireWave = waves.get_child(0)
-	game.start_fire(Vector3(20, 0, 0), 4.5, 0)
+	game.start_fire(low, 4.5, 0)
 	game.world_effects.sync_fire_states(game.fire_states)
 	var second: WarFireWave = waves.get_child(1)
-	near(first.get_node("Flames").draw_pass_1.material.get_shader_parameter("emitter_surface_height"), 8.0, "starting a low fire does not overwrite a high fire's material")
-	near(second.get_node("Flames").draw_pass_1.material.get_shader_parameter("emitter_surface_height"), 0.0, "each fire owns its source height")
+	near(first.get_node("Flames").draw_pass_1.material.get_shader_parameter("emitter_surface_height"), top.y, "starting a low fire does not overwrite a high fire's material")
+	near(second.get_node("Flames").draw_pass_1.material.get_shader_parameter("emitter_surface_height"), low.y, "each fire owns its source height")
 	for path: String in ["Flames", "Sparks", "Smoke"]:
 		check(first.get_node(path).draw_pass_1.material != second.get_node(path).draw_pass_1.material, "scene-local fire materials stay independent: " + path)
-		near(first.get_node(path).draw_pass_1.material.get_shader_parameter("emitter_surface_height"), 8.0, "all high fire layers retain their own source height: " + path)
+		near(first.get_node(path).draw_pass_1.material.get_shader_parameter("emitter_surface_height"), top.y, "all high fire layers retain their own source height: " + path)
 	var rabbit: Node3D = game.world_effects.get_node("Rabbit")
-	rabbit.start_tunnel(0, top, Vector3(0, 4.5, -27), Vector3.FORWARD, 6, 1.0)
+	rabbit.start_tunnel(0, top, game.map.definition.surface_point(Vector3(0, 0, -27)), Vector3.FORWARD, 6, 1.0)
 	rabbit.tick(0.5)
 	var digging: Vector3 = rabbit.get_node("Tunnels").get_child(0).get_node("Digging").position
 	near(digging.y, game.map.definition.surface_height(Vector2(digging.x, digging.z)), "the burrow's moving mound stays on the actual slope")
@@ -161,18 +214,25 @@ func _cursor_surface() -> void:
 	cursors.configure(game, connection)
 	var payload := {"world_x": 0.0, "world_z": 0.0, "visible": true, "pressed": false, "cursor_seq": 1, "presence_epoch": 1}
 	cursors._receive(15, payload)
-	near(cursors._peers[15].point.y, 8.0, "remote cursor XZ is placed on the summit")
+	near(cursors._peers[15].point.y, game.map.definition.surface_height(Vector2.ZERO), "remote cursor XZ is placed on the summit")
 	payload.world_x = 20.0
 	payload.cursor_seq = 2
 	cursors._receive(15, payload)
-	near(cursors._peers[15].target.y, 0.0, "remote cursor target follows the lower terrace")
+	near(cursors._peers[15].target.y, game.map.definition.surface_height(Vector2(20, 0)), "remote cursor target follows the lower ground")
 	cursors.tick(0.02)
 	var point: Vector3 = cursors._peers[15].point
 	near(point.y, game.map.definition.surface_height(Vector2(point.x, point.z)), "cursor smoothing does not float across a cliff")
 
 func _run() -> void:
 	create_timer(60.0, true, false, true).timeout.connect(func(): quit(3))
+	_triangle_samples()
+	await _gpu_triangle_samples()
 	_march_surface()
+	_scene_material_isolation()
+	if "--synthetic-only" in OS.get_cmdline_user_args():
+		print("BLOCK_WAR_SURFACE_RUNTIME_SYNTHETIC checks=", checks, " failures=", failures.size())
+		quit(0 if failures.is_empty() else 1)
+		return
 	var session := root.get_node("Session")
 	var previous_map: String = session.block_war_map_id
 	session.block_war_map_id = "switchback"
@@ -184,7 +244,6 @@ func _run() -> void:
 	game.ai_enabled = false
 	game.audio.muted = true
 	_materials()
-	_scene_material_isolation()
 	_ground_commands()
 	_cursor_surface()
 	await game.prepare_shutdown()

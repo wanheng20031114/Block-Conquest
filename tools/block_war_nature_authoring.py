@@ -10,7 +10,7 @@ from collections import defaultdict
 import math
 import random
 from war_nature_placement import ShoreSupport
-from block_war_height_authoring import height_at, supported_footprint
+from block_war_height_authoring import field, height_at, supported_footprint, triangle
 
 
 NATURE = "res://assets/models/block_war/nature/"
@@ -359,29 +359,128 @@ def author_nature(layout, paths):
                 if (step + road_index) % 4 == 0:
                     flower_pair("daisies", x + nx * 0.5, z + nz * 0.5, 0.57, road_index)
 
-    # Small scree pockets sit against inaccessible cliff feet. Their entire
-    # footprint remains within the already forbidden formation-clearance strip,
-    # so these authored details do not introduce invisible route blockers.
-    cliff_sites = []
-    for (rx, rz, width, depth), *_ in layout.get("heights", []):
-        edges = ((rx, rz, rx + width, rz, 0, -1), (rx + width, rz, rx + width, rz + depth, 1, 0),
-                 (rx + width, rz + depth, rx, rz + depth, 0, 1), (rx, rz + depth, rx, rz, -1, 0))
-        for ax, az, bx, bz, nx, nz in edges:
-            count = max(1, int(math.hypot(bx - ax, bz - az) / 9))
-            for index in range(count):
-                t = (index + 0.48) / count
-                x, z = ax + (bx - ax) * t, az + (bz - az) * t
-                if x < 1.0 or height_at(layout, x - nx * .03, z - nz * .03) - height_at(layout, x + nx * .03, z + nz * .03) < 1.1:
+    # Rock appears in separated seams and pockets on the baked cliff faces.
+    # This stream is independent of trees/shorelines and never alters obstacles.
+    if layout.get("terrain"):
+        meta, grid = field(map_id)
+        step = meta["cell_size"]
+        origin_x, origin_z = meta["origin"]
+        cliff_rng = random.Random(732419 + sum((i + 1) * ord(c) for i, c in enumerate(map_id)))
+        patch_phase = cliff_rng.uniform(0, math.tau)
+        cliff_sites, cliff_rocks = [], []
+
+        def cliff_clear(x, z, radius):
+            return (x > radius + .3 and x + radius < hx and abs(z) + radius < hz
+                    and all(on_land(sign * x, z, radius) for sign in (-1, 1))
+                    and all(math.hypot(sign * x - b[0], z - b[1]) >= 6.1 + radius
+                            for sign in (-1, 1) for b in buildings)
+                    and all(_distance_to_path(sign * x, z, path) >= 2.8 + radius
+                            for sign in (-1, 1) for path in obstacle_paths)
+                    and all(not _inside(bridge, sign * x, z, 3.0 + radius)
+                            for sign in (-1, 1) for bridge in bridges))
+
+        def polygons_overlap(a, b):
+            # Separating axes test: a narrow walkable triangle cannot hide
+            # between footprint samples or beneath a diagonal edge of a rock.
+            for polygon in (a, b):
+                for index, start in enumerate(polygon):
+                    end = polygon[(index + 1) % len(polygon)]
+                    nx, nz = start[1] - end[1], end[0] - start[0]
+                    first = [px * nx + pz * nz for px, pz in a]
+                    second = [px * nx + pz * nz for px, pz in b]
+                    if max(first) < min(second) or max(second) < min(first):
+                        return False
+            return True
+
+        def steep_footprint(x, z, size, yaw, proportions):
+            # Conservative bounds of the existing moss_boulder mesh, with no
+            # pitch/roll. Flat slabs reuse that mesh with a lower Y proportion.
+            rx, rz = 1.04 * size * proportions[0], .83 * size * proportions[2]
+            cosine, sine = math.cos(yaw), math.sin(yaw)
+            corners = [(x + u * cosine + v * sine, z - u * sine + v * cosine)
+                       for u, v in ((-rx, -rz), (rx, -rz), (rx, rz), (-rx, rz))]
+            min_x = math.floor((min(p[0] for p in corners) - origin_x) / step)
+            max_x = math.floor((max(p[0] for p in corners) - origin_x) / step)
+            min_z = math.floor((min(p[1] for p in corners) - origin_z) / step)
+            max_z = math.floor((max(p[1] for p in corners) - origin_z) / step)
+            if min_x < 0 or min_z < 0 or max_x >= meta["width"] - 1 or max_z >= meta["depth"] - 1:
+                return False
+            for iz in range(min_z, max_z + 1):
+                for ix in range(min_x, max_x + 1):
+                    px, pz = origin_x + ix * step, origin_z + iz * step
+                    a, b, c, d = (float(grid[iz, ix]), float(grid[iz, ix + 1]),
+                                  float(grid[iz + 1, ix]), float(grid[iz + 1, ix + 1]))
+                    for vertices, dx, dz in (
+                            (((px, pz), (px + step, pz), (px, pz + step)), b - a, c - a),
+                            (((px + step, pz), (px + step, pz + step), (px, pz + step)), d - c, d - b)):
+                        if math.hypot(dx, dz) / step <= .5001 and polygons_overlap(corners, vertices):
+                            return False
+            return True
+
+        candidates = []
+        for iz in range(1, meta["depth"] - 1, 3):
+            for ix in range(1, meta["width"] - 1, 3):
+                x = origin_x + ix * step + cliff_rng.uniform(-.24, .24)
+                z = origin_z + iz * step + cliff_rng.uniform(-.24, .24)
+                if not 1.5 < x < hx - 1 or abs(z) >= hz - 1:
                     continue
-                px, pz = x + nx * .85, z + nz * .85
-                if not clear_site(px, pz, .42, road_gap=2.6, yard=5.0):
+                # Broad coherent gaps, rather than a constant-spacing stone rim.
+                patch = math.sin(x * .27 + z * .19 + patch_phase) + .55 * math.cos(z * .31 - x * .13)
+                height, dx, dz = triangle(layout, x, z)
+                slope = math.hypot(dx, dz)
+                if patch > -.05 and height > .45 and slope > .85 and cliff_clear(x, z, .45):
+                    candidates.append((x, z, dx / slope, dz / slope))
+        cliff_rng.shuffle(candidates)
+        budget = 12 if hx <= 40 else 18 if hx <= 60 else 26
+        for x, z, nx, nz in candidates:
+            if len(cliff_sites) >= budget:
+                break
+            if any(math.hypot(x - ox, z - oz) < gap for ox, oz, gap in cliff_sites):
+                continue
+            tx, tz = -nz, nx
+            yaw = math.atan2(-tz, tx)
+            planned = []
+            # One taller embedded tooth, one shelf and one or two broken chips.
+            parts = ((0.0, 0.0, cliff_rng.uniform(.66, .88), (1.25, 1.35, .55)),
+                     (cliff_rng.uniform(-1.65, -1.15), .08, cliff_rng.uniform(.45, .62), (1.35, .58, .64)),
+                     (cliff_rng.uniform(1.15, 1.7), -.08, cliff_rng.uniform(.36, .53), (1.12, .86, .70)))
+            if cliff_rng.random() < .45:
+                parts += ((cliff_rng.uniform(-.5, .6), -.45, .30, (1.2, .60, .70)),)
+            for along, outward, size, proportions in parts:
+                px, pz = x + tx * along - nx * outward, z + tz * along - nz * outward
+                rotation = yaw + cliff_rng.uniform(-.14, .14)
+                radius = size * math.hypot(1.04 * proportions[0], .83 * proportions[2])
+                # Even the conservative bounding circle fits inside the 2.1m
+                # formation exclusion. The stronger triangle test below keeps
+                # the entire visible footprint off every traversable ramp face.
+                if radius > 1.45 or not cliff_clear(px, pz, radius):
                     continue
-                if any(math.hypot(px - ox, pz - oz) < 3.0 for ox, oz in cliff_sites):
+                if any(math.hypot(px - ox, pz - oz) < .72 * (radius + old_radius)
+                       for ox, oz, old_radius in cliff_rocks):
                     continue
-                cliff_sites.append((px, pz))
+                if not all(steep_footprint(sign * px, pz, size, rotation * sign, proportions) for sign in (-1, 1)):
+                    continue
+                planned.append((px, pz, size, rotation, proportions, radius))
+            if len(planned) < 2:
+                continue
+            cliff_sites.append((x, z, cliff_rng.uniform(6.5, 9.5)))
+            for px, pz, size, rotation, proportions, radius in planned:
+                cliff_rocks.append((px, pz, radius))
                 for sign in (-1, 1):
-                    scene("moss_boulder", sign * px, pz, .38, sign * (index * 1.37 + .4), "CliffScree", y=-.035, proportions=(1.25, .70, .85))
-                    groundcover("fern_patch", sign * (px + nz * .48), pz - nx * .48, .44, index * .91)
+                    scene("moss_boulder", sign * px, pz, size, rotation * sign, "CliffCluster",
+                          y=-.40 * size * proportions[1], proportions=proportions, radius=0.0)
+            # A few small ferns take root at the lower shoulder, not a green
+            # necklace around the whole hill. Their roots stay near the rock.
+            if len(cliff_sites) == 1 or cliff_rng.random() < .42:
+                px, pz, *_ = min(planned, key=lambda part: height_at(layout, part[0], part[1]))
+                _, dx, dz = triangle(layout, px, pz)
+                slope = math.hypot(dx, dz)
+                for distance in (.45, .85, 1.2, 1.55, 1.75):
+                    fx, fz = px - dx / slope * distance, pz - dz / slope * distance
+                    if cliff_clear(fx, fz, .24) and all(supported_footprint(layout, sign * fx, fz, .24, .18) for sign in (-1, 1)):
+                        for sign in (-1, 1):
+                            groundcover("fern_patch", sign * fx, fz, .34, sign * yaw)
+                        break
 
     for (species, cell_x, cell_z), instances in sorted(batches.items()):
         identifier = f"nature_cover_{species}_{cell_x}_{cell_z}".replace("-", "n")

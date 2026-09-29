@@ -54,7 +54,7 @@ func tick(delta: float) -> void:
 	var digging := age < dig_duration
 	var progress := clampf(age / dig_duration, 0.0, 1.0)
 	var digging_at := entrance.lerp(exit, progress)
-	$Digging.position = digging_at if map_definition.height_zones.is_empty() else map_definition.surface_point(digging_at)
+	$Digging.position = digging_at if not map_definition.has_elevation() else map_definition.surface_point(digging_at)
 	$Digging/Mound.position.y = 0.1 + absf(sin(age * 55.0)) * 0.12
 	$Digging/Mound.rotation.z = sin(age * 42.0) * 0.12
 	$Digging/Mound.visible = digging

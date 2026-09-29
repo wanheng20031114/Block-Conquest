@@ -2,9 +2,9 @@ extends "res://tests/block_war_replication_test.gd"
 ## Real authored uplands through the serialized Host/replica snapshot and event stream.
 
 const CASES: Array[Dictionary] = [
-	{"id": "terraces", "seats": 2, "summit": 10, "height": 4.5, "ramp": Rect2(-26, -6, 14, 12), "ramp_height": 4.5, "plateau": Rect2(-12, -12, 24, 24), "fire": Vector3(8, 4.5, 8)},
-	{"id": "switchback", "seats": 4, "summit": 14, "height": 8.0, "ramp": Rect2(-34, -33, 16, 12), "ramp_height": 4.5, "plateau": Rect2(-8, -6, 16, 12), "fire": Vector3(6, 8, 3.5)},
-	{"id": "crown", "seats": 6, "summit": 10, "height": 5.0, "ramp": Rect2(-52, -32, 16, 12), "ramp_height": 5.0, "plateau": Rect2(-36, -36, 72, 16), "fire": Vector3(0, 5, -28)},
+	{"id": "terraces", "seats": 2, "summit": 10, "height": 4.5},
+	{"id": "switchback", "seats": 4, "summit": 14, "height": 8.0},
+	{"id": "crown", "seats": 6, "summit": 10, "height": 5.0},
 ]
 const EPSILON := 0.002
 var scenario: Dictionary
@@ -80,7 +80,9 @@ func _seed_real_battle() -> void:
 	for step: int in 600:
 		host.simulate(0.1)
 		for unit: WarMarches.MarchUnit in host.marches._units:
-			if unit.is_exposed() and (scenario.ramp as Rect2).grow(-0.8).has_point(Vector2(unit.position.x, unit.position.z)) and unit.position.y > 0.8:
+			var xz := Vector2(unit.position.x, unit.position.z)
+			var gradient: float = host.map.definition.terrain.gradient_at(xz).length()
+			if unit.is_exposed() and gradient > 0.05 and gradient <= 0.5 and unit.position.y > 0.8:
 				ramp_unit = unit
 				break
 		if ramp_unit != null:
@@ -92,13 +94,46 @@ func _seed_real_battle() -> void:
 		host.faction_skills[faction].energy = 100.0
 	verify(host.execute_network_command(0, {"type": "skill_ground", "skill": 1, "x": field_center.x, "z": field_center.z}).accepted, "XZ-only haste command creates a real field on the ramp")
 	verify(host.execute_network_command(1, {"type": "skill_ground", "skill": 1, "x": field_center.x, "z": field_center.z}).accepted, "real frog cast suspends the ascending soldiers")
-	var high_fire: Vector3 = scenario.fire
+	var high_fire := _high_fire_point(ramp_unit.order.curve, summit.global_position)
+	verify(high_fire.is_finite(), "real terrain has elevated ground clear of the battle route for the high fire")
+	assert(high_fire.is_finite())
 	verify(host.execute_network_command(0, {"type": "skill_ground", "skill": 3, "x": high_fire.x, "z": high_fire.z}).accepted, "XZ-only fire command reconstructs the real high surface")
 	var half_size: Vector2 = host.map.definition.half_size
 	host.start_fire(Vector3(-half_size.x + 3, 0, half_size.y - 3), 4.5, 0)
 	host.simulate(0.25)
 	verify(host.fire_states.size() == 2, "initial state contains simultaneous high and low fire effects")
 	verify(ramp_unit.levitation_remaining > 0 and ramp_unit.position.y > field_center.y + 1.5, "snapshot includes nonzero levitation relative to a nonzero ramp height")
+
+func _high_fire_point(route: Curve3D, summit: Vector3) -> Vector3:
+	var surface: WarTerrainSurface = host.map.definition.terrain
+	var playable := Rect2(-host.map.definition.half_size, host.map.definition.half_size * 2.0)
+	var selected := Vector3.INF
+	var highest := 0.8
+	for z: int in range(0, surface.depth, 4):
+		for x: int in range(0, surface.width, 4):
+			var world := surface.origin + Vector2(x, z) * surface.cell_size
+			if not playable.has_point(world) or surface.gradient_at(world).length() > 0.03:
+				continue
+			var height := surface.heights[z * surface.width + x]
+			if height <= highest:
+				continue
+			var at := Vector3(world.x, height, world.y)
+			if world.distance_to(Vector2(summit.x, summit.z)) <= 8.0 or not _clear_of_fire_route(world, route):
+				continue
+			selected = at
+			highest = height
+	return selected
+
+func _clear_of_fire_route(at: Vector2, route: Curve3D) -> bool:
+	# Fire hits in XZ even across elevations. Keep its radius plus formation
+	# clearance away from every projected route segment, not the 3D curve.
+	for index: int in range(1, route.point_count):
+		var from := route.get_point_position(index - 1)
+		var to := route.get_point_position(index)
+		var closest := Geometry2D.get_closest_point_to_segment(at, Vector2(from.x, from.z), Vector2(to.x, to.z))
+		if at.distance_squared_to(closest) <= 49.0:
+			return false
+	return true
 
 func _incremental_and_recovery() -> void:
 	var before_sequence: int = client._applied
@@ -175,7 +210,8 @@ func _verify_synchronized(stage: String, exact_positions: bool) -> void:
 		for index: int in mini(first.point_count, second.point_count):
 			var point: Vector3 = first.get_point_position(index)
 			routes_match = routes_match and point.distance_to(second.get_point_position(index)) < EPSILON
-			if point.y > 0.1 and point.y < float(scenario.ramp_height) - 0.1:
+			var gradient: float = host.map.definition.terrain.gradient_at(Vector2(point.x, point.z)).length()
+			if point.y > 0.1 and gradient > 0.03 and gradient <= 0.5001:
 				slope_points += 1
 	verify(routes_match and slope_points > 0, stage + " preserves every XYZ route point including interior slope samples")
 	if exact_positions:
@@ -187,28 +223,39 @@ func _verify_surface(stage: String) -> void:
 	var ramp_checks := 0
 	var grounded := true
 	var display_grounded := true
-	var ramp: Rect2 = scenario.ramp
+	var surface: WarTerrainSurface = replica.map.definition.terrain
 	for unit: WarMarches.MarchUnit in replica.marches._units:
 		if not unit.is_exposed():
 			continue
 		var xz := Vector2(unit.position.x, unit.position.z)
-		var ground: float = replica.map.definition.surface_height(xz)
-		if ramp.has_point(xz):
-			# These three west ramps have independently authored, known X gradients.
-			var expected: float = (unit.position.x - ramp.position.x) / ramp.size.x * float(scenario.ramp_height)
-			grounded = grounded and absf(ground - expected) < EPSILON
-			ground = expected
+		var ground := _triangle_height(surface, xz)
+		grounded = grounded and absf(replica.map.definition.surface_height(xz) - ground) < EPSILON
+		var gradient := surface.gradient_at(xz).length()
+		if ground > 0.1 and gradient > 0.03 and gradient <= 0.5001:
 			ramp_checks += 1
-		elif (scenario.plateau as Rect2).has_point(xz):
-			grounded = grounded and absf(ground - float(scenario.height)) < EPSILON
-			ground = float(scenario.height)
 		var lift := unit.position.y - ground
 		grounded = grounded and (lift >= -EPSILON and lift < 1.8 if unit.levitation_remaining > 0 else absf(lift) < EPSILON)
 		var drawn: Vector3 = replica.marches._presentation_position(unit)
-		var display_height: float = replica.map.definition.surface_height(Vector2(drawn.x, drawn.z))
+		var display_height := _triangle_height(surface, Vector2(drawn.x, drawn.z))
 		display_grounded = display_grounded and absf(drawn.y - display_height - lift - 0.035) < EPSILON
-	verify(ramp_checks > 0 and grounded, stage + " checks nonempty ramp occupants against an independent height formula")
+	verify(ramp_checks > 0 and grounded, stage + " checks real slope occupants against independently reconstructed mesh triangles")
 	verify(display_grounded, stage + " keeps client smoothing on the surface while preserving spell lift")
+
+func _triangle_height(surface: WarTerrainSurface, world: Vector2) -> float:
+	# Solve the plane of the authored mesh triangle independently of sample().
+	var grid := (world - surface.origin) / surface.cell_size
+	if grid.x < 0 or grid.y < 0 or grid.x > surface.width - 1 or grid.y > surface.depth - 1:
+		return 0.0
+	var cell := Vector2i(mini(floori(grid.x), surface.width - 2), mini(floori(grid.y), surface.depth - 2))
+	var corners: Array[Vector2i] = [cell, cell + Vector2i.RIGHT, cell + Vector2i.DOWN]
+	if grid.x - cell.x + grid.y - cell.y > 1.0:
+		corners[0] = cell + Vector2i.ONE
+	var points: Array[Vector3] = []
+	for corner: Vector2i in corners:
+		var xz := surface.origin + Vector2(corner) * surface.cell_size
+		points.append(Vector3(xz.x, surface.heights[corner.y * surface.width + corner.x], xz.y))
+	var normal := (points[1] - points[0]).cross(points[2] - points[0])
+	return points[0].y - (normal.x * (world.x - points[0].x) + normal.z * (world.y - points[0].z)) / normal.y
 
 func _verify_effects(stage: String) -> void:
 	verify(replica.marches.haste_zones.has(0) and (replica.marches.haste_zones[0].at as Vector3).distance_to(field_center) < EPSILON, stage + " restores the actual elevated haste field")
@@ -232,5 +279,10 @@ func _verify_effects(stage: String) -> void:
 			for layer: String in ["Flames", "Sparks", "Smoke"]:
 				var material: ShaderMaterial = visual.get_node(layer).draw_pass_1.material
 				fires_match = fires_match and absf(float(material.get_shader_parameter("emitter_surface_height")) - original.global_position.y) < EPSILON
-				fires_match = fires_match and int(material.get_shader_parameter("terrain_zone_count")) == replica.map.definition.height_zones.size()
+				var surface: WarTerrainSurface = replica.map.definition.terrain
+				fires_match = fires_match and bool(material.get_shader_parameter("terrain_enabled"))
+				fires_match = fires_match and material.get_shader_parameter("terrain_heights") == surface.height_texture
+				fires_match = fires_match and material.get_shader_parameter("terrain_origin") == surface.origin
+				fires_match = fires_match and is_equal_approx(float(material.get_shader_parameter("terrain_cell_size")), surface.cell_size)
+				fires_match = fires_match and material.get_shader_parameter("terrain_size") == Vector2i(surface.width, surface.depth)
 	verify(fires_match and visible_fires == 2, stage + " installs visible native fire nodes with independent surface heights and terrain uniforms")

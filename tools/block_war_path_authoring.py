@@ -114,5 +114,6 @@ def author_paths(layout):
         if length > 1.0:
             paths.append(segment)
     assert len(paths) <= 64, (map_id, len(paths))
-    assert all(clear(segment) for segment in paths), (map_id, "road crosses forbidden terrain")
+    blocked = [segment for segment in paths if not clear(segment)]
+    assert not blocked, (map_id, "road crosses forbidden terrain", blocked)
     return paths

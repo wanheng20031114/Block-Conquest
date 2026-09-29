@@ -38,6 +38,12 @@ func _run() -> void:
 		game.map.set_visual_paused(true)
 		frame_at(Vector3.ZERO, game.camera_rig.maximum_zoom)
 		await capture(map_id + "_overview")
+		if OS.get_cmdline_user_args().has("--terrain-only"):
+			var ledge := Vector3(11, 0, 9) if map_id == "terraces" else Vector3(15, 0, -16) if map_id == "switchback" else Vector3(-27, 0, 21)
+			frame_at(ledge, 34.0)
+			await capture(map_id + "_terrain_detail")
+			await game.prepare_shutdown()
+			continue
 		var target: WarBuilding = game.buildings[-1] if map_id != "crown" else game.buildings[14]
 		var source: WarBuilding = game.buildings[0] if map_id != "crown" else game.buildings[2]
 		var route: PackedVector3Array = game.map.get_building_route(source, target)

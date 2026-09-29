@@ -86,11 +86,11 @@ func _run() -> void:
 			_move(preview.global_position + preview.building_screen_position(neutral_index))
 			await _settle()
 			check(preview.hovered_building == neutral_index and picker.get_node("%Inspection").text.contains("中立"), "neutral hover shows its actual ownership")
-			if not definition.height_zones.is_empty():
+			if definition.has_elevation():
 				await _check_height_preview(picker, preview, definition)
 			_move(picker.get_node("%Back").get_global_rect().get_center())
 			await _settle()
-			check(preview.hovered_building == -1 and preview.hovered_height_zone == -1 and picker.get_node("%Inspection").text.contains("悬停"), "leaving the map clears the last building or terrain inspection")
+			check(preview.hovered_building == -1 and not preview.hovered_terrain and picker.get_node("%Inspection").text.contains("悬停"), "leaving the map clears the last building or terrain inspection")
 			if capture:
 				await RenderingServer.frame_post_draw
 				var output_path := capture_directory.path_join("%s-%d.png" % [definition.map_id, resolution.x])
@@ -101,49 +101,33 @@ func _run() -> void:
 
 func _check_height_preview(picker: Control, preview: Control, definition: Resource) -> void:
 	var bounds: Rect2 = preview.map_rect()
-	for wanted_slope: bool in [false, true]:
-		var sample: Dictionary = {}
-		for zone_index: int in definition.height_zones.size():
-			var zone: Resource = definition.height_zones[zone_index]
-			if (not is_equal_approx(zone.start_height, zone.end_height)) != wanted_slope:
-				continue
-			for u: float in [0.1, 0.3, 0.5, 0.7, 0.9]:
-				for v: float in [0.1, 0.3, 0.5, 0.7, 0.9]:
-					var world: Vector2 = zone.region.position + zone.region.size * Vector2(u, v)
-					var screen: Vector2 = bounds.position + (world + definition.half_size) * bounds.size / (definition.half_size * 2.0)
-					var free := bounds.has_point(screen)
-					for building: int in definition.building_positions.size():
-						free = free and screen.distance_to(preview.building_screen_position(building)) > 24.0
-					if free:
-						sample = {"screen": screen, "zone": zone_index}
-						break
-				if not sample.is_empty():
-					break
-			if not sample.is_empty():
-				break
-		var terrain_name := "土坡" if wanted_slope else "台地"
-		check(not sample.is_empty(), "%s has an inspectable %s outside building hit areas" % [definition.map_id, terrain_name])
-		if sample.is_empty():
+	var surface: WarTerrainSurface = definition.terrain
+	check(surface.preview_texture.get_size() == Vector2(surface.width, surface.depth), "%s preview uses the same complete height grid" % definition.map_id)
+	check(surface.bounds().encloses(Rect2(-definition.half_size, definition.half_size * 2.0)), "height texture covers the playable crop")
+	for guide: Vector4 in surface.ramp_guides:
+		check(surface.sample(Vector2(guide.z, guide.w)) > surface.sample(Vector2(guide.x, guide.y)), "preview ramp arrow points uphill on the actual ground")
+	for terrain_name: String in ["台地", "土坡", "陡崖"]:
+		var sample := _terrain_sample(preview, definition, terrain_name)
+		check(sample.is_finite(), "%s has an inspectable %s outside building hit areas" % [definition.map_id, terrain_name])
+		if not sample.is_finite():
 			continue
 		var pointer := {"at": Vector2.INF}
 		var capture_pointer := func(event: InputEvent) -> void:
 			if event is InputEventMouseMotion:
 				pointer.at = event.position
 		preview.gui_input.connect(capture_pointer)
-		_move((preview.global_position + sample.screen).round())
+		_move((preview.global_position + sample).round())
 		await _settle()
 		preview.gui_input.disconnect(capture_pointer)
 		var text: String = picker.get_node("%Inspection").text
-		check(preview.hovered_building == -1 and preview.hovered_height_zone == sample.zone, "native terrain hover selects the authored height region")
+		check(preview.hovered_building == -1 and preview.hovered_terrain, "native terrain hover inspects the continuous heightfield")
 		# Native input uses viewport pixels; derive the expected elevation from
 		# the delivered GUI event rather than the ideal fractional test sample.
 		check(pointer.at.is_finite(), "native terrain hover delivers local pointer coordinates")
 		var world: Vector2 = (pointer.at - bounds.position) * definition.half_size * 2.0 / bounds.size - definition.half_size
-		var zone: WarHeightZone = definition.height_zones[sample.zone]
-		var ratio := (world.x - zone.region.position.x) / zone.region.size.x if zone.axis == 0 else (world.y - zone.region.position.y) / zone.region.size.y
-		var expected_height := lerpf(zone.start_height, zone.end_height, clampf(ratio, 0.0, 1.0))
+		var expected_height := _triangle_height(surface, world)
 		var displayed_height := text.get_slice("海拔 ", 1).get_slice(" 米", 0).to_float()
-		check(text.contains(terrain_name) and text.contains("海拔 ") and absf(displayed_height - expected_height) <= 0.051, "%s %s inspection reports actual pointer elevation %.3f: %s" % [definition.map_id, terrain_name, expected_height, text])
+		check(text.contains(terrain_name) and text.contains("海拔 ") and absf(displayed_height - expected_height) <= 0.051, "%s %s inspection reports actual pointer elevation %.3f: %s (requested %s, delivered %s)" % [definition.map_id, terrain_name, expected_height, text, sample, pointer.at])
 	var elevated := -1
 	for building: int in definition.building_positions.size():
 		if definition.building_positions[building].y > 0.1:
@@ -153,8 +137,49 @@ func _check_height_preview(picker: Control, preview: Control, definition: Resour
 	if elevated >= 0:
 		_move(preview.global_position + preview.building_screen_position(elevated))
 		await _settle()
-		check(preview.hovered_building == elevated and preview.hovered_height_zone == -1, "building inspection takes priority over the raised terrain beneath it")
+		check(preview.hovered_building == elevated and not preview.hovered_terrain, "building inspection takes priority over the raised terrain beneath it")
 		check(picker.get_node("%Inspection").text.contains("海拔 %.1f 米" % definition.building_positions[elevated].y), "elevated building inspection uses its authored Y coordinate")
+
+func _terrain_sample(preview: Control, definition: Resource, wanted: String) -> Vector2:
+	var bounds: Rect2 = preview.map_rect()
+	# Search actual preview pixels, including curved cliff edges. Check the full
+	# two-pixel neighborhood so input rounding cannot cross a triangle boundary.
+	for y: int in range(ceili(bounds.position.y) + 2, floori(bounds.end.y) - 2, 2):
+		for x: int in range(ceili(bounds.position.x) + 2, floori(bounds.end.x) - 2, 2):
+			var screen := Vector2(x, y)
+			var free := true
+			for building: int in definition.building_positions.size():
+				if screen.distance_to(preview.building_screen_position(building)) <= 24.0:
+					free = false
+					break
+			if not free:
+				continue
+			for offset: Vector2 in [Vector2.ZERO, Vector2(-2, -2), Vector2(0, -2), Vector2(2, -2), Vector2(-2, 0), Vector2(2, 0), Vector2(-2, 2), Vector2(0, 2), Vector2(2, 2)]:
+				var world: Vector2 = (screen + offset - bounds.position) * definition.half_size * 2.0 / bounds.size - definition.half_size
+				var height: float = definition.surface_height(world)
+				var gradient: float = definition.terrain.gradient_at(world).length()
+				var category := "台地" if gradient <= 0.03 else ("土坡" if gradient <= 0.5001 else "陡崖")
+				if height <= 0.1 or category != wanted:
+					free = false
+					break
+			if free:
+				return screen
+	return Vector2.INF
+
+func _triangle_height(surface: WarTerrainSurface, world: Vector2) -> float:
+	# Reconstruct the selected mesh triangle as a plane; do not call the product
+	# sampler or reuse its interpolation weights for the expected elevation.
+	var grid := (world - surface.origin) / surface.cell_size
+	var cell := Vector2i(mini(floori(grid.x), surface.width - 2), mini(floori(grid.y), surface.depth - 2))
+	var corners: Array[Vector2i] = [cell, cell + Vector2i.RIGHT, cell + Vector2i.DOWN]
+	if grid.x - cell.x + grid.y - cell.y > 1.0:
+		corners[0] = cell + Vector2i.ONE
+	var points: Array[Vector3] = []
+	for corner: Vector2i in corners:
+		var xz := surface.origin + Vector2(corner) * surface.cell_size
+		points.append(Vector3(xz.x, surface.heights[corner.y * surface.width + corner.x], xz.y))
+	var normal := (points[1] - points[0]).cross(points[2] - points[0])
+	return points[0].y - (normal.x * (world.x - points[0].x) + normal.z * (world.y - points[0].z)) / normal.y
 
 func _check_shorelines() -> void:
 	var regions: Array[Rect2] = [Rect2(0, 0, 30, 10), Rect2(0, 10, 10, 10), Rect2(20, 10, 10, 10), Rect2(0, 20, 30, 10), Rect2(25, 5, 15, 8)]

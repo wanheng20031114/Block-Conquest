@@ -10,7 +10,7 @@ const PAPER := Color("eee8cf")
 const DEFAULT_HINT := "悬停据点或地形查看详情 · 带编号的据点为各玩家出生点"
 var definition: Resource
 var hovered_building := -1
-var hovered_height_zone := -1
+var hovered_terrain := false
 var local_faction := 0
 var seat_names: Dictionary = {}
 var _paper := StyleBoxFlat.new()
@@ -54,48 +54,41 @@ func _gui_input(event: InputEvent) -> void:
 		if candidate < distance:
 			distance = candidate
 			closest = i
-	var zone_index := -1
+	var terrain_hover := false
 	var inspection := DEFAULT_HINT
 	if closest < 0:
 		var bounds := map_rect()
 		if bounds.has_point(event.position):
 			var world: Vector2 = (event.position - bounds.position) * definition.half_size * 2.0 / bounds.size - definition.half_size
-			zone_index = _height_zone_at(world)
-			if zone_index >= 0:
-				var zone: WarHeightZone = definition.height_zones[zone_index]
-				inspection = "%s · 海拔 %.1f 米" % ["台地" if is_equal_approx(zone.start_height, zone.end_height) else "土坡", zone.height_at(world)]
+			if definition.has_elevation():
+				var height: float = definition.surface_height(world)
+				if height > 0.05:
+					var gradient: float = definition.terrain.gradient_at(world).length()
+					var terrain_name := "台地" if gradient <= 0.03 else "土坡"
+					if gradient > WarMapDefinition.MAX_WALKABLE_GRADIENT + WarTerrainSurface.HEIGHT_EPSILON:
+						terrain_name = "陡崖"
+					terrain_hover = true
+					inspection = "%s · 海拔 %.1f 米" % [terrain_name, height]
 	else:
 		var faction: int = definition.building_factions[closest]
 		var owner_name: String = "中立" if faction < 0 else str(seat_names.get(faction, FACTIONS.NAMES[faction]))
 		inspection = "%s · %s%s" % [owner_name, KIND_NAMES[definition.building_kinds[closest]], " · 出生据点" if faction >= 0 else " · 可争夺"]
-		if not definition.height_zones.is_empty():
+		if definition.has_elevation():
 			inspection += " · 海拔 %.1f 米" % definition.building_positions[closest].y
-	if closest == hovered_building and zone_index == hovered_height_zone and inspection == _inspection_text:
+	if closest == hovered_building and terrain_hover == hovered_terrain and inspection == _inspection_text:
 		return
 	hovered_building = closest
-	hovered_height_zone = zone_index
+	hovered_terrain = terrain_hover
 	_inspection_text = inspection
 	inspected.emit(inspection)
 	queue_redraw()
 
 func _clear_inspection() -> void:
 	hovered_building = -1
-	hovered_height_zone = -1
+	hovered_terrain = false
 	_inspection_text = DEFAULT_HINT
 	inspected.emit(DEFAULT_HINT)
 	queue_redraw()
-
-func _height_zone_at(world: Vector2) -> int:
-	var selected := -1
-	var highest := -INF
-	for index: int in definition.height_zones.size():
-		var zone: WarHeightZone = definition.height_zones[index]
-		if zone.contains(world):
-			var height := zone.height_at(world)
-			if height > highest:
-				highest = height
-				selected = index
-	return selected
 
 func _region_rect(region: Rect2, bounds: Rect2) -> Rect2:
 	var factor: Vector2 = bounds.size / (definition.half_size * 2.0)
@@ -109,11 +102,8 @@ func _draw() -> void:
 	draw_style_box(_paper, bounds.grow(12))
 	var ground: Color = definition.ground_color.lerp(Color("c5cd9e"), 0.78)
 	draw_rect(bounds, ground)
-	var height_scale := 1.0
-	for zone: WarHeightZone in definition.height_zones:
-		height_scale = maxf(height_scale, maxf(zone.start_height, zone.end_height))
-	for index: int in definition.height_zones.size():
-		_draw_height_zone(definition.height_zones[index], bounds, height_scale, index == hovered_height_zone)
+	if definition.has_elevation():
+		_draw_terrain(bounds)
 	# Grid spacing is in world metres and stays inside the playable rectangle.
 	var factor: float = bounds.size.x / (definition.half_size.x * 2.0)
 	for x: int in range(int(ceil(-definition.half_size.x / 10.0)), int(ceil(definition.half_size.x / 10.0))):
@@ -138,43 +128,34 @@ func _draw() -> void:
 	for i: int in definition.building_positions.size():
 		_draw_building(i)
 
-func _draw_height_zone(zone: WarHeightZone, bounds: Rect2, height_scale: float, hovered: bool) -> void:
-	var rectangle := _region_rect(zone.region, bounds)
-	if not rectangle.has_area():
-		return
-	var plateau := is_equal_approx(zone.start_height, zone.end_height)
-	var bands := 1 if plateau else 6
-	for band: int in bands:
-		var portion := rectangle
-		if zone.axis == 0:
-			portion.size.x /= bands
-			portion.position.x += portion.size.x * band
-		else:
-			portion.size.y /= bands
-			portion.position.y += portion.size.y * band
-		var height := lerpf(zone.start_height, zone.end_height, (float(band) + 0.5) / bands)
-		var color := Color("c4cca3").lerp(Color("8da379"), clampf(height / height_scale, 0.0, 1.0))
-		draw_rect(portion, color)
-	draw_rect(rectangle.grow(-0.7), Color("647e60"), false, 1.1, true)
-	if hovered:
-		draw_rect(rectangle.grow(-1.8), Color("fff0bf"), false, 2.0, true)
-	if plateau:
-		if rectangle.size.x >= 30.0 and rectangle.size.y >= 20.0:
-			var height_label := ("%.1f" % zone.start_height).trim_suffix(".0") + "m"
-			draw_string(get_theme_default_font(), rectangle.position + Vector2(5, 14), height_label, HORIZONTAL_ALIGNMENT_LEFT, rectangle.size.x - 10.0, 12, INK)
-		return
-	# The arrow points uphill; its axis comes from the authored ramp, never from
-	# the rectangle's longest side. Color bands retain the paper-map appearance.
-	var direction := Vector2.RIGHT if zone.axis == 0 else Vector2.DOWN
-	direction *= signf(zone.end_height - zone.start_height)
-	var span: float = (rectangle.size.x if zone.axis == 0 else rectangle.size.y) * 0.6
-	var start := rectangle.get_center() - direction * span * 0.5
-	var tip := rectangle.get_center() + direction * span * 0.5
-	var head := minf(5.0, span * 0.28)
-	var side := direction.orthogonal()
-	draw_line(start, tip, INK, 1.6, true)
-	draw_line(tip, tip - direction * head + side * head * 0.65, INK, 1.6, true)
-	draw_line(tip, tip - direction * head - side * head * 0.65, INK, 1.6, true)
+func _draw_terrain(bounds: Rect2) -> void:
+	var surface: WarTerrainSurface = definition.terrain
+	var playable := Rect2(-definition.half_size, definition.half_size * 2.0)
+	# The preview uses the same vertex grid as the world. Pixel centers are the
+	# authored sample positions; camera-only terrain is cropped out of the map.
+	var source := Rect2((playable.position - surface.origin) / surface.cell_size + Vector2(0.5, 0.5), playable.size / surface.cell_size)
+	draw_texture_rect_region(surface.preview_texture, bounds, source)
+	var factor: Vector2 = bounds.size / playable.size
+	for guide: Vector4 in surface.ramp_guides:
+		var uphill_start := Vector2(guide.x, guide.y)
+		var uphill_end := Vector2(guide.z, guide.w)
+		if not playable.has_point(uphill_start) or not playable.has_point(uphill_end):
+			continue
+		var start := bounds.position + (uphill_start - playable.position) * factor
+		var tip := bounds.position + (uphill_end - playable.position) * factor
+		var direction := (tip - start).normalized()
+		var head := minf(5.0, start.distance_to(tip) * 0.28)
+		var side := direction.orthogonal()
+		draw_line(start, tip, INK, 1.6, true)
+		draw_line(tip, tip - direction * head + side * head * 0.65, INK, 1.6, true)
+		draw_line(tip, tip - direction * head - side * head * 0.65, INK, 1.6, true)
+	for label: Vector3 in surface.label_positions:
+		var world := Vector2(label.x, label.z)
+		if not playable.has_point(world):
+			continue
+		var at := bounds.position + (world - playable.position) * factor + Vector2(8, -13)
+		var height_label := ("%.1f" % label.y).trim_suffix(".0") + "m"
+		draw_string(get_theme_default_font(), at, height_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, INK)
 
 func _draw_water(rectangle: Rect2) -> void:
 	if not rectangle.has_area():

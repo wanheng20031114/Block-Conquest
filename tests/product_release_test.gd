@@ -18,14 +18,28 @@ func _run() -> void:
 	var session: Node = root.get_node("Session")
 	check(ProjectSettings.get_setting("application/config/name") == "积木战争", "standalone product identity")
 	check(not session.has_node("RelayClient") and not session.has_node("Rogue"), "standalone session")
-	check(ProjectSettings.get_setting("application/config/version") == "1.3.0", "multiplayer release version")
+	check(ProjectSettings.get_setting("application/config/version") == "1.3.1", "multiplayer release version")
 	check(InputMap.has_action("pause") and InputMap.action_get_events("pause").any(func(event: InputEvent): return event is InputEventKey and event.physical_keycode == KEY_F3), "packaged native pause action maps F3")
 	check(session.has_node("Online"), "packaged native multiplayer service")
 	var protocol: Script = load("res://scripts/network/war_protocol.gd")
 	var catalog: Script = load("res://scripts/block_war/war_map_catalog.gd")
 	check(protocol.content_hash().length() == 64, "packaged compatibility fingerprint")
 	for map_id: String in ["terraces", "switchback", "crown"]:
-		check(catalog.find_map(map_id) != null, "packaged catalog includes elevated battlefield " + map_id)
+		var definition: Resource = catalog.find_map(map_id)
+		check(definition != null, "packaged catalog includes elevated battlefield " + map_id)
+		if definition == null:
+			continue
+		check(definition.has_elevation(), map_id + " includes its native terrain resource")
+		if not definition.has_elevation():
+			continue
+		var surface: Resource = definition.terrain
+		check(surface.width > 1 and surface.depth > 1 and surface.heights.size() == surface.width * surface.depth and surface.max_height > 0.0, map_id + " includes the complete elevated vertex grid")
+		check(surface.height_texture != null and surface.preview_texture != null, map_id + " includes both embedded terrain textures")
+		if surface.height_texture != null and surface.preview_texture != null:
+			var size := Vector2(surface.width, surface.depth)
+			check(surface.height_texture.get_size() == size and surface.preview_texture.get_size() == size, map_id + " packaged terrain textures match the vertex grid")
+			var height_image: Image = surface.height_texture.get_image()
+			check(height_image != null and height_image.get_format() == Image.FORMAT_RF, map_id + " preserves metre-valued RF height data")
 	var certificate := X509Certificate.new()
 	check(certificate.load("res://scripts/network/relay_trust.crt") == OK, "packaged DTLS trust certificate")
 	check(not FileAccess.file_exists("res://server/war_relay_server.gd") and not FileAccess.file_exists("res://server/war_relay_server.gdc"), "server implementation excluded from client")

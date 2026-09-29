@@ -5,14 +5,14 @@ varying float terrain_clearance;
 
 vec3 ground_effect_world(vec3 vertex, mat4 model, float clearance) {
 	vec3 world = (model * vec4(vertex, 1.0)).xyz;
-	if (terrain_zone_count > 0) {
+	if (terrain_enabled) {
 		world.y = terrain_height(world.xz) + clearance;
 	}
 	return world;
 }
 
 bool ground_effect_gap(vec3 world, float clearance) {
-	// A subdivided plane follows ramps exactly. Remove interpolated triangles
-	// crossing cliff edges instead of painting a floating ramp between tiers.
-	return terrain_zone_count > 0 && abs(world.y - clearance - terrain_height(world.xz)) > 0.08;
+	// Effect planes use their own grid. Clip any chord that cuts across a steep
+	// terrain bend, rather than leaving a floating patch above the baked surface.
+	return terrain_enabled && abs(world.y - clearance - terrain_height(world.xz)) > 0.08;
 }
