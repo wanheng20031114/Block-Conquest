@@ -132,8 +132,6 @@ func update_state(state: Dictionary) -> void:
 		$UI/Enemy/Skills.update_skills(state.faction_commanders[enemy_faction], state.faction_skill_statuses[enemy_faction], state.faction_names[enemy_faction], state.faction_skill_active[enemy_faction])
 		if bool(state.get("online", false)):
 			$UI/Enemy/Name.text = state.faction_names[enemy_faction]
-	%PlayerTotal.add_theme_color_override("font_color", preload("res://scripts/block_war/war_factions.gd").COLORS[local_faction])
-	%EnemyTotal.add_theme_color_override("font_color", preload("res://scripts/block_war/war_factions.gd").COLORS[1 - local_faction % 2])
 	var seconds: int = int(state.time)
 	%Time.text = "%02d:%02d" % [seconds / 60, seconds % 60]
 	%Balance.update_factions(state.faction_buildings, state.morale_stars, int(state.faction_count), local_faction, state.get("faction_names", []))
@@ -142,10 +140,10 @@ func update_state(state: Dictionary) -> void:
 		_public_skill_layout_count = int(state.faction_count)
 		# Team matches put each other player's icons below their morale row.
 		var skill_row_space: float = 0.0 if duel else 24.0
-		%Time.position.y = 42.0 + skill_row_space
-		%MapTitle.position.y = 61.0 + skill_row_space
-		%Toast.position.y = 100.0 + skill_row_space
-		%MatchStatus.position.y = 104.0 + skill_row_space
+		%Time.position.y = 54.0 + skill_row_space
+		%MapTitle.position.y = 75.0 + skill_row_space
+		%Toast.position.y = 124.0 + skill_row_space
+		%MatchStatus.position.y = 128.0 + skill_row_space
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
 		_percentage_buttons[index].disabled = _global_paused or _local_surrendered or _finished

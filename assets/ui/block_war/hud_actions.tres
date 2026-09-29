@@ -1,0 +1,93 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="Font" path="res://assets/ui/medieval/fonts/body.tres" id="body"]
+
+[sub_resource type="StyleBoxFlat" id="Normal"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.98, 0.99, 0.96, 0.98)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+shadow_color = Color(0.025, 0.07, 0.045, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="Hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.94, 1, 0.9, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+shadow_color = Color(0.57, 1, 0.35, 0.34)
+shadow_size = 9
+
+[sub_resource type="StyleBoxFlat" id="Pressed"]
+content_margin_left = 16.0
+content_margin_top = 9.0
+content_margin_right = 16.0
+content_margin_bottom = 7.0
+bg_color = Color(0.79, 0.9, 0.77, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+shadow_color = Color(0.57, 1, 0.35, 0.2)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="Disabled"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.74, 0.79, 0.74, 0.88)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.57, 0.87, 0.42, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+shadow_color = Color(0.57, 1, 0.35, 0.2)
+shadow_size = 5
+
+[resource]
+default_font = ExtResource("body")
+default_font_size = 17
+Button/colors/font_color = Color(0.14, 0.23, 0.18, 1)
+Button/colors/font_hover_color = Color(0.1, 0.2, 0.13, 1)
+Button/colors/font_pressed_color = Color(0.1, 0.2, 0.13, 1)
+Button/colors/font_hover_pressed_color = Color(0.1, 0.2, 0.13, 1)
+Button/colors/font_focus_color = Color(0.1, 0.2, 0.13, 1)
+Button/colors/font_disabled_color = Color(0.34, 0.41, 0.36, 1)
+Button/colors/font_outline_color = Color(0, 0, 0, 0)
+Button/constants/outline_size = 0
+Button/font_sizes/font_size = 17
+Button/fonts/font = ExtResource("body")
+Button/styles/normal = SubResource("Normal")
+Button/styles/hover = SubResource("Hover")
+Button/styles/pressed = SubResource("Pressed")
+Button/styles/hover_pressed = SubResource("Pressed")
+Button/styles/disabled = SubResource("Disabled")
+Button/styles/focus = SubResource("Focus")

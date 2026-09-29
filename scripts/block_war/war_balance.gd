@@ -5,7 +5,8 @@ const FACTIONS = preload("res://scripts/block_war/war_factions.gd")
 const ORDER: Array[int] = [0, 2, 4, 1, 3, 5]
 const ROW_WIDTH: float = 92.0
 const ROW_GAP: float = 8.0
-const ROW_TOP: float = 24.0
+const BAR_HEIGHT: float = 24.0
+const ROW_TOP: float = 34.0
 var _faction_count: int = 0
 var _has_buildings: bool = false
 var _weights := PackedFloat32Array([0, 0, 0, 0, 0, 0])
@@ -17,6 +18,7 @@ var _local_faction: int = 0
 func _ready() -> void:
 	for faction: int in 6:
 		get_node("Segments/Faction%d" % faction).color = FACTIONS.COLORS[faction]
+		get_node("Glows/Faction%d" % faction).modulate = FACTIONS.COLORS[faction]
 		get_node("Leaders/Faction%d" % faction).default_color = Color(FACTIONS.COLORS[faction], 0.6)
 	resized.connect(_layout)
 	_layout()
@@ -77,9 +79,11 @@ func _layout() -> void:
 	var cursor: float = 0.0
 	for faction: int in _order:
 		var segment: ColorRect = get_node("Segments/Faction%d" % faction)
+		var glow: Panel = get_node("Glows/Faction%d" % faction)
 		var row: Control = get_node("Stars/Faction%d" % faction)
 		var leader: Line2D = get_node("Leaders/Faction%d" % faction)
-		segment.visible = faction < _faction_count and _has_buildings
+		segment.visible = faction < _faction_count and _has_buildings and _weights[faction] > 0.0
+		glow.visible = segment.visible
 		row.visible = faction < _faction_count
 		get_node("Skills/Faction%d" % faction).visible = faction < _faction_count and _faction_count > 2 and faction != _local_faction
 		leader.hide()
@@ -87,7 +91,9 @@ func _layout() -> void:
 			continue
 		var width: float = size.x * _weights[faction]
 		segment.position = Vector2(cursor, 0.0)
-		segment.size = Vector2(width, 16.0)
+		segment.size = Vector2(width, BAR_HEIGHT)
+		glow.position = segment.position
+		glow.size = segment.size
 		seats.append(faction)
 		centers.append(cursor + width * 0.5)
 		cursor += width
@@ -112,5 +118,5 @@ func _layout() -> void:
 		skills.position = Vector2(row.position.x, ROW_TOP + 22.0)
 		if absf(packed_centers[index] - centers[index]) > 4.0:
 			var leader: Line2D = get_node("Leaders/Faction%d" % seats[index])
-			leader.points = PackedVector2Array([Vector2(centers[index], 17), Vector2(centers[index], 19), Vector2(packed_centers[index], ROW_TOP - 2)])
+			leader.points = PackedVector2Array([Vector2(centers[index], BAR_HEIGHT + 1), Vector2(centers[index], BAR_HEIGHT + 3), Vector2(packed_centers[index], ROW_TOP - 2)])
 			leader.show()
