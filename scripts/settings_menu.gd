@@ -39,6 +39,11 @@ func _ready() -> void:
 
 func refresh(values: Dictionary) -> void:
 	_refreshing = true
+	%DebugShortcut.text = "未绑定"
+	for event: InputEvent in InputMap.action_get_events("debug"):
+		if event is InputEventKey:
+			%DebugShortcut.text = OS.get_keycode_string(event.get_physical_keycode_with_modifiers() if event.physical_keycode != 0 else event.get_keycode_with_modifiers())
+			break
 	draft = values.duplicate(true)
 	%WindowMode.select(int(draft.window_mode))
 	_resolutions = [Vector2i(1280,720), Vector2i(1600,900), Vector2i(1920,1080), Vector2i(2560,1440)]

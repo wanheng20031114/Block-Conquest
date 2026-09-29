@@ -13,10 +13,11 @@ signal exit_requested()
 signal upgrade_requested()
 signal convert_requested(kind: int)
 signal ui_sound_requested(kind: StringName)
+signal debug_refresh_requested()
+signal debug_visibility_changed(visible: bool)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 const BUILDING_NAMES := WarBuilding.KIND_NAMES
 
 var _paused: bool = false
@@ -73,8 +74,8 @@ func _ready() -> void:
 	_online_menu = not online.match_config.is_empty()
 	if _online_menu:
 		_configure_online_menu(online)
-	%HintClose.pressed.connect(func(): UIMotion.dismiss(%QuickHint))
-	%HintClose.pressed.connect(func(): ui_sound_requested.emit(&"war_cancel"))
+	%DebugPanel.close_requested.connect(set_debug_visible.bind(false))
+	%DebugRefresh.timeout.connect(func(): debug_refresh_requested.emit())
 	%Upgrade.pressed.connect(func(): upgrade_requested.emit())
 	%ConvertHouse.pressed.connect(func(): convert_requested.emit(0))
 	%ConvertTower.pressed.connect(func(): convert_requested.emit(1))
@@ -86,6 +87,7 @@ func _ready() -> void:
 		_pointer_blockers.append(panel)
 	_pointer_blockers.append(%Selection)
 	_pointer_blockers.append(%EnergyBar)
+	_pointer_blockers.append(%DebugPanel)
 	UIMotion.bind_buttons($UI)
 	var panels: Array[Control] = [%Top, %Player, %Enemy, %Percentages, %Skills]
 	for index: int in panels.size():
@@ -129,13 +131,6 @@ func update_state(state: Dictionary) -> void:
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
 		_percentage_buttons[index].disabled = _global_paused or _local_surrendered or _finished
-	var forges := int(state.forges)
-	var stars := floori(float(state.morale_stars[local_faction]))
-	var forge_attack: int = roundi(COMBAT_RULES.forge_attack_bonus(forges) * 100.0)
-	var forge_defense: int = roundi(COMBAT_RULES.forge_defense_bonus(forges) * 100.0)
-	var morale_defense: int = roundi(stars * WarMorale.DEFENSE_PER_STAR * 100.0)
-	%ForgeBonus.text = "攻 +%d%% · 防 +%d%%\n移速 +%d%%" % [forge_attack + stars * 5, forge_defense + morale_defense, stars * 10]
-	%ForgeBonus.tooltip_text = "你的全军常驻加成\n铁匠铺 %d 座：攻击 +%d%% · 防御 +%d%%\n士气 %d 星：攻击 +%d%% · 防御 +%d%% · 移速 +%d%%\n同类常驻加成相加，仅属于本玩家。\n炮塔守备与临时技能另行结算。" % [forges, forge_attack, forge_defense, stars, stars * 5, morale_defense, stars * 10]
 	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
@@ -411,12 +406,37 @@ func is_pointer_over_hud(screen: Vector2) -> bool:
 	# still permit ordinary battlefield input according to is_pointer_blocked.
 	if is_pointer_blocked(screen):
 		return true
-	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %QuickHint, %Toast, %OnlineStatus, %MatchStatus]:
+	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %Toast, %OnlineStatus, %MatchStatus]:
 		if control.is_visible_in_tree():
 			var local := control.get_global_transform_with_canvas().affine_inverse() * screen
 			if Rect2(Vector2.ZERO, control.size).has_point(local):
 				return true
 	return false
+
+func debug_visible() -> bool:
+	return %DebugPanel.visible
+
+func _debug_shortcut() -> String:
+	for event: InputEvent in InputMap.action_get_events("debug"):
+		if event is InputEventKey:
+			return OS.get_keycode_string(event.get_physical_keycode_with_modifiers() if event.physical_keycode != 0 else event.get_keycode_with_modifiers())
+	return "未绑定"
+
+func toggle_debug_panel() -> void:
+	set_debug_visible(not debug_visible())
+
+func set_debug_visible(value: bool) -> void:
+	if debug_visible() == value:
+		return
+	%DebugPanel.visible = value
+	if value:
+		%DebugPanel.set_shortcut(_debug_shortcut())
+		%DebugRefresh.start()
+	else:
+		%DebugRefresh.stop()
+	debug_visibility_changed.emit(value)
+	if value:
+		debug_refresh_requested.emit()
 
 func help_visible() -> bool:
 	return %HelpOverlay.visible
@@ -437,6 +457,7 @@ func _request_skill(index: int, from_keyboard: bool) -> void:
 		skill_requested.emit(index, from_keyboard)
 
 func _open_help() -> void:
+	_update_help_controls()
 	_help_from_pause = _paused
 	if not _paused:
 		pause_requested.emit()
@@ -446,6 +467,12 @@ func _open_help() -> void:
 	%HelpOverlay.show()
 	%HelpClose.grab_focus(true)
 	UIMotion.reveal(%HelpCard, Vector2(0, 20))
+
+func _update_help_controls() -> void:
+	if _online_menu:
+		%HelpCard.get_node("Detail4").text = "屏幕边缘或中键拖动来移动镜头；滚轮缩放。\nEsc 只打开本地菜单；%s 暂停或继续整场对局。\n参战真人均可暂停，投降后可观战；%s 开关数据面板。" % [_pause_shortcut(), _debug_shortcut()]
+	else:
+		%HelpCard.get_node("Detail4").text = "铁匠铺提供全军攻防，士气提高攻防与移速；炮塔守备为 25%% / 40%% / 60%% / 70%%。\n同类常驻加成相加，攻防相除；技能独立结算。按 %s 开关数据面板。" % _debug_shortcut()
 
 func _close_help() -> void:
 	%HelpOverlay.hide()
@@ -478,7 +505,7 @@ func _configure_online_menu(online: Node) -> void:
 	%PauseExit.text = "离开对局"
 	%ResultExit.text = "离开房间"
 	%Exit.tooltip_text = "联机对局菜单"
-	%HelpCard.get_node("Detail4").text = "屏幕边缘或中键拖动来移动镜头；滚轮缩放。\nEsc 只打开本地菜单；%s 暂停或继续整场对局。\n仍参战的真人均可暂停或继续；投降后可留场观战。" % _pause_shortcut()
+	_update_help_controls()
 	_refresh_match_menu()
 
 func _pause_shortcut() -> String:
@@ -608,6 +635,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if get_node("/root/Session/Settings").is_open():
 		return
+	if event.is_action_pressed("debug"):
+		if not %HelpOverlay.visible:
+			toggle_debug_panel()
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("pause"):
 		_request_match_pause()
 		get_viewport().set_input_as_handled()
@@ -620,6 +652,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_close_help()
 		else:
 			_open_help()
+		get_viewport().set_input_as_handled()
+		return
+	if code == KEY_ESCAPE and debug_visible() and not %HelpOverlay.visible:
+		set_debug_visible(false)
 		get_viewport().set_input_as_handled()
 		return
 	if code == KEY_ESCAPE:

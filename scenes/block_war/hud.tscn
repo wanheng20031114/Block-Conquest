@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_hud.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/debug_panel.tscn" id="debug_panel"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/percentage_button.tscn" id="percentage_button"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/war_balance.tscn" id="balance"]
 [ext_resource type="PackedScene" path="res://scenes/network/online_confirm.tscn" id="online_confirm"]
@@ -740,27 +741,6 @@ mouse_filter = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1,0.78,0.37,1)
 text = "榛果 · 松鼠"
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-
-
-[node name="ForgeBonus" type="Label" parent="UI/Player"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 95.0
-offset_top = 50.0
-offset_right = 282.0
-offset_bottom = 86.0
-mouse_filter = 1
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.91,0.88,0.74,1)
-text = "攻 +0% · 防 +0%
-移速 +0%"
 theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
@@ -1660,60 +1640,6 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
 
 
-[node name="QuickHint" type="Control" parent="UI"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -370.0
-offset_top = -125.0
-offset_right = -12.0
-offset_bottom = -99.0
-mouse_filter = 2
-
-
-[node name="Content" type="Label" parent="UI/QuickHint"]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 323.0
-offset_bottom = 24.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.96, 0.94, 0.84, 1)
-text = "1–4 比例 · 拖动时滚轮调兵 · F1 玩法"
-theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 2
-horizontal_alignment = 2
-
-
-[node name="HintClose" type="Button" parent="UI/QuickHint"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 330.0
-offset_top = 0.0
-offset_right = 352.0
-offset_bottom = 24.0
-mouse_filter = 0
-text = "×"
-mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("Empty")
-theme_override_styles/hover = SubResource("Empty")
-theme_override_styles/pressed = SubResource("Empty")
-theme_override_colors/font_color = Color(0.96,0.94,0.84,1)
-
 [node name="Toast" type="PanelContainer" parent="UI"]
 unique_name_in_owner = true
 layout_mode = 0
@@ -1893,204 +1819,6 @@ custom_minimum_size = Vector2(0, 56)
 text = "返回大厅"
 mouse_default_cursor_shape = 2
 metadata/ui_motion_hover_scale = 1.01
-
-[node name="HelpOverlay" type="ColorRect" parent="UI"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-visible = false
-color = Color(0.79,0.86,0.79,0.94)
-theme = ExtResource("campaign_theme")
-
-[node name="HelpCard" type="Panel" parent="UI/HelpOverlay"]
-unique_name_in_owner = true
-layout_mode = 1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -620.0
-offset_top = -377.0
-offset_right = 620.0
-offset_bottom = 377.0
-
-[node name="Eyebrow" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 26.0
-offset_right = 1044.0
-offset_bottom = 56.0
-text = "积木战争  /  战场手册"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-
-[node name="Title" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 68.0
-offset_right = 1164.0
-offset_bottom = 130.0
-text = "小小伙伴，也能指挥大军。"
-mouse_filter = 2
-theme_type_variation = &"MenuTitle"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 40
-
-[node name="Divider144" type="HSeparator" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 144.0
-offset_right = 1196.0
-offset_bottom = 152.0
-mouse_filter = 2
-
-[node name="Heading0" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 179.0
-offset_right = 594.0
-offset_bottom = 217.0
-text = "01  拖一条线，出发"
-mouse_filter = 2
-theme_type_variation = &"MenuHeading"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 26
-
-[node name="Detail0" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 226.0
-offset_right = 584.0
-offset_bottom = 329.0
-text = "从自己的建筑拖向目标，松手派兵。\n进攻敌方与中立据点，增援盟友。\n1 / 2 / 3 / 4 切换比例；拖动时滚轮也能调兵。"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="Heading1" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 658.0
-offset_top = 179.0
-offset_right = 1208.0
-offset_bottom = 217.0
-text = "02  看准地形"
-mouse_filter = 2
-theme_type_variation = &"MenuHeading"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 26
-
-[node name="Detail1" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 658.0
-offset_top = 226.0
-offset_right = 1198.0
-offset_bottom = 329.0
-text = "部队会沿地形行军，跨越沟壑需要走桥。\n提防炮塔和火焰，双方行军部队可以互相穿行。\n占领敌方全部据点并消灭援军，就能获胜。"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="Heading2" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 354.0
-offset_right = 594.0
-offset_bottom = 392.0
-text = "03  经营据点"
-mouse_filter = 2
-theme_type_variation = &"MenuHeading"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 26
-
-[node name="Detail2" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 401.0
-offset_right = 584.0
-offset_bottom = 504.0
-text = "住宅自动产兵；升级提高产速与停产人口。\n仅铁匠铺可改建能量塔，后者不产兵、不可升级。\n改建花费 20 人，施工 10 秒；失守会中断施工。"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 658.0
-offset_top = 354.0
-offset_right = 1208.0
-offset_bottom = 392.0
-text = "04  用好四个技能"
-mouse_filter = 2
-theme_type_variation = &"MenuHeading"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 26
-
-[node name="Detail3" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 658.0
-offset_top = 401.0
-offset_right = 1198.0
-offset_bottom = 504.0
-text = "拖动图标，或按住 Q / W / E / R 瞄准，松手施放。\n能量塔加快技力恢复；悬停技力条查看当前恢复率。\n右键或无效落点取消，不扣技力；火攻不分敌我。"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 530.0
-offset_right = 1196.0
-offset_bottom = 568.0
-text = "05  攻防与视野"
-mouse_filter = 2
-theme_type_variation = &"MenuHeading"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 26
-
-[node name="Detail4" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 577.0
-offset_right = 1164.0
-offset_bottom = 680.0
-text = "铁匠铺提供全军攻防，士气提高攻防与移速；炮塔守备为 25% / 40% / 60% / 70%。\n同类常驻加成相加，攻防相除；技能独立结算。悬停头像下方数值查看详情。"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="HelpClose" type="Button" parent="UI/HelpOverlay/HelpCard"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 946.0
-offset_top = 655.0
-offset_right = 1190.0
-offset_bottom = 711.0
-text = "返回   Esc"
-mouse_default_cursor_shape = 2
-metadata/ui_motion_hover_scale = 1.01
-theme_type_variation = &"MenuPrimary"
-
-[node name="AudioCredits" type="Label" parent="UI/HelpOverlay/HelpCard"]
-layout_mode = 0
-offset_left = 44.0
-offset_top = 716.0
-offset_right = 1196.0
-offset_bottom = 740.0
-text = "音效：David McKee / ViRiX、dklon · CC BY 3.0 · soundcloud.com/virix · creativecommons.org/licenses/by/3.0"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 11
-tooltip_text = "素材经裁切、剪辑与音量调整。完整来源与许可见 assets/audio/CREDITS.md。"
 
 [node name="ResultOverlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true
@@ -2306,6 +2034,212 @@ theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 autowrap_mode = 2
 mouse_filter = 2
+
+[node name="DebugPanel" parent="UI" instance=ExtResource("debug_panel")]
+unique_name_in_owner = true
+
+[node name="DebugRefresh" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.25
+
+[node name="HelpOverlay" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+top_level = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+color = Color(0.79,0.86,0.79,0.94)
+theme = ExtResource("campaign_theme")
+
+[node name="HelpCard" type="Panel" parent="UI/HelpOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = -377.0
+offset_right = 620.0
+offset_bottom = 377.0
+
+[node name="Eyebrow" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 26.0
+offset_right = 1044.0
+offset_bottom = 56.0
+text = "积木战争  /  战场手册"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+
+[node name="Title" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 68.0
+offset_right = 1164.0
+offset_bottom = 130.0
+text = "小小伙伴，也能指挥大军。"
+mouse_filter = 2
+theme_type_variation = &"MenuTitle"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 40
+
+[node name="Divider144" type="HSeparator" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 144.0
+offset_right = 1196.0
+offset_bottom = 152.0
+mouse_filter = 2
+
+[node name="Heading0" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 179.0
+offset_right = 594.0
+offset_bottom = 217.0
+text = "01  拖一条线，出发"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
+
+[node name="Detail0" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 226.0
+offset_right = 584.0
+offset_bottom = 329.0
+text = "从自己的建筑拖向目标，松手派兵。\n进攻敌方与中立据点，增援盟友。\n1 / 2 / 3 / 4 切换比例；拖动时滚轮也能调兵。"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="Heading1" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 658.0
+offset_top = 179.0
+offset_right = 1208.0
+offset_bottom = 217.0
+text = "02  看准地形"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
+
+[node name="Detail1" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 658.0
+offset_top = 226.0
+offset_right = 1198.0
+offset_bottom = 329.0
+text = "部队会沿地形行军，跨越沟壑需要走桥。\n提防炮塔和火焰，双方行军部队可以互相穿行。\n占领敌方全部据点并消灭援军，就能获胜。"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="Heading2" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 354.0
+offset_right = 594.0
+offset_bottom = 392.0
+text = "03  经营据点"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
+
+[node name="Detail2" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 401.0
+offset_right = 584.0
+offset_bottom = 504.0
+text = "住宅自动产兵；升级提高产速与停产人口。\n仅铁匠铺可改建能量塔，后者不产兵、不可升级。\n改建花费 20 人，施工 10 秒；失守会中断施工。"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="Heading3" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 658.0
+offset_top = 354.0
+offset_right = 1208.0
+offset_bottom = 392.0
+text = "04  用好四个技能"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
+
+[node name="Detail3" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 658.0
+offset_top = 401.0
+offset_right = 1198.0
+offset_bottom = 504.0
+text = "拖动图标，或按住 Q / W / E / R 瞄准，松手施放。\n能量塔加快技力恢复；悬停技力条查看当前恢复率。\n右键或无效落点取消，不扣技力；火攻不分敌我。"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="Heading4" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 530.0
+offset_right = 1196.0
+offset_bottom = 568.0
+text = "05  攻防与视野"
+mouse_filter = 2
+theme_type_variation = &"MenuHeading"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
+
+[node name="Detail4" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 577.0
+offset_right = 1164.0
+offset_bottom = 680.0
+text = "铁匠铺提供全军攻防，士气提高攻防与移速；炮塔守备为 25% / 40% / 60% / 70%。\n同类常驻加成相加，攻防相除；技能独立结算。按 F4 开关数据面板。"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="HelpClose" type="Button" parent="UI/HelpOverlay/HelpCard"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 946.0
+offset_top = 655.0
+offset_right = 1190.0
+offset_bottom = 711.0
+text = "返回   Esc"
+mouse_default_cursor_shape = 2
+metadata/ui_motion_hover_scale = 1.01
+theme_type_variation = &"MenuPrimary"
+
+[node name="AudioCredits" type="Label" parent="UI/HelpOverlay/HelpCard"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 716.0
+offset_right = 1196.0
+offset_bottom = 740.0
+text = "音效：David McKee / ViRiX、dklon · CC BY 3.0 · soundcloud.com/virix · creativecommons.org/licenses/by/3.0"
+mouse_filter = 2
+theme_type_variation = &"MenuMuted"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+tooltip_text = "素材经裁切、剪辑与音量调整。完整来源与许可见 assets/audio/CREDITS.md。"
 
 [node name="OnlineConfirm" parent="UI" instance=ExtResource("online_confirm")]
 unique_name_in_owner = true

@@ -580,7 +580,7 @@ text = "保留设置"
 [node name="Hotkeys" type="VBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="Row0" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys"]
 layout_mode = 2
@@ -698,3 +698,17 @@ text = "派兵"
 [node name="Key" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/Row8"]
 layout_mode = 2
 text = "左键从己方据点拖至目标据点"
+
+[node name="Row9" type="HBoxContainer" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys"]
+layout_mode = 2
+custom_minimum_size = Vector2(0,30)
+
+[node name="Label" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/Row9"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "数据面板"
+
+[node name="DebugShortcut" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/Row9"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "F4"

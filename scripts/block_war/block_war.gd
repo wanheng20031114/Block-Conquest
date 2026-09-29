@@ -21,6 +21,7 @@ const AI_STRATEGY := preload("res://scripts/block_war/war_ai.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const MAP_CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 const MORALE := preload("res://scripts/block_war/war_morale.gd")
+const DEBUG_DATA := preload("res://scripts/block_war/war_debug_data.gd")
 var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
@@ -272,6 +273,8 @@ func _ready() -> void:
 	marches.unit_departed.connect(_on_unit_departed)
 	world_effects.get_node("Rabbit").tunnel_opened.connect(func(at: Vector3): audio.play_world(&"war_rabbit_burrow", at))
 	marches.unit_defeated.connect(_on_unit_defeated)
+	hud.debug_refresh_requested.connect(refresh_debug_panel)
+	hud.debug_visibility_changed.connect(_on_debug_visibility_changed)
 	hud.percentage_changed.connect(set_percentage)
 	hud.skill_requested.connect(request_skill)
 	hud.pause_requested.connect(set_paused.bind(true))
@@ -1262,6 +1265,17 @@ func _finish_match(winner: int) -> void:
 	presentation_event.emit("result", {"winner": winner})
 	update_hud()
 
+func refresh_debug_panel() -> void:
+	if hud.debug_visible():
+		hud.get_node("%DebugPanel").update_data(DEBUG_DATA.capture(self))
+
+func _on_debug_visibility_changed(visible: bool) -> void:
+	if visible:
+		_cancel_drag()
+		_cancel_skill_drag()
+		camera_rig.dragging = false
+		update_hud()
+
 func update_hud() -> void:
 	if not is_node_ready():
 		return
@@ -1327,6 +1341,7 @@ func update_hud() -> void:
 		"conversion_target": selected.conversion_target if selected != null else -1,
 		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": CONVERSION_COST,
 		"can_upgrade": selected != null and selected.faction == local_faction and not selected.is_constructing and selected.level < selected.max_level and selected.available_population >= selected.upgrade_cost})
+	refresh_debug_panel()
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:

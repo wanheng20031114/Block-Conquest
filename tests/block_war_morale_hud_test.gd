@@ -37,28 +37,11 @@ func capture(label: String) -> void:
 	check(root.get_texture().get_image().save_png(output.path_join(label + ".png")) == OK, "capture " + label)
 
 func verify_permanent_bonuses() -> void:
-	var bonus: Label = hud.get_node("%ForgeBonus")
-	for example: Array in [[0, 0.0, 0, 0, 0], [0, 0.9999, 0, 0, 0], [0, 5.0, 25, 100, 50], [1, 0.0, 30, 15, 0], [1, 4.9999, 50, 95, 40], [1, 5.0, 55, 115, 50], [2, 0.0, 50, 25, 0], [3, 0.0, 70, 35, 0], [4, 0.0, 80, 40, 0], [7, 5.0, 105, 140, 50]]:
-		var state := sample([10, 10], [example[1], 0.0])
-		state.forges = example[0]
-		hud.update_state(state)
-		check(bonus.text == "攻 +%d%% · 防 +%d%%\n移速 +%d%%" % [example[2], example[3], example[4]], "forge %d adds combat only; movement uses complete stars from %s" % [example[0], example[1]])
-		check(bonus.tooltip_text.contains("铁匠铺 %d 座" % example[0]) and bonus.tooltip_text.contains("士气 %d 星" % floori(float(example[1]))), "tooltip separates forge and morale sources")
-		for source: String in bonus.tooltip_text.split("\n"):
-			if source.begins_with("铁匠铺 "):
-				check(not source.contains("移速 +"), "forge tooltip never advertises a movement bonus")
-			if source.begins_with("士气 "):
-				check(source.contains("移速 +%d%%" % example[4]), "morale tooltip explains the entire permanent movement bonus")
-		for line: String in bonus.text.split("\n"):
-			check(bonus.get_theme_font("font").get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, bonus.get_theme_font_size("font_size")).x <= bonus.size.x, "permanent bonus text fits existing portrait column")
-	check(bonus.mouse_filter == Control.MOUSE_FILTER_PASS and not hud.is_pointer_blocked(bonus.get_global_rect().get_center()), "bonus tooltip preserves battlefield input")
-	var team_state := sample([10, 10, 10, 10], [5.0, 0.0, 0.0, 0.0])
-	team_state.commander = &"rabbit"
-	team_state.forges = 1
-	team_state.skill_durations[0] = 4.0
-	hud.update_state(team_state)
-	check(bonus.text == "攻 +55% · 防 +115%\n移速 +50%", "team label shows own permanent bonuses without forge speed or temporary rabbit buff")
-	check(bonus.tooltip_text.begins_with("你的全军常驻加成") and bonus.tooltip_text.contains("炮塔守备与临时技能另行结算"), "tooltip identifies local ownership and bonus scope")
+	# Combat numbers now live in the optional debug panel. Their full rule/source
+	# matrix is exercised against the actual simulation in debug_panel_test.
+	check(not hud.has_node("UI/Player/ForgeBonus"), "portrait column no longer contains permanent combat text")
+	check(not hud.has_node("UI/QuickHint"), "persistent shortcut text and its close button are removed")
+	check(not hud.debug_visible(), "optional debug information starts hidden")
 
 func verify_near_full_stars() -> void:
 	var row: Control = balance.get_node("Stars/Faction1")
