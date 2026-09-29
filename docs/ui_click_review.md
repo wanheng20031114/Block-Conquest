@@ -1,44 +1,55 @@
-# UI 点击音效：2026-09-30
+# UI 点击音效：2026-09-28
 
-普通按钮、分类切换、选人和下拉选项使用 `assets/audio/ui/soft_click.wav`。当前版本是一声更紧凑的轻敲：强化接触瞬间，缩短软尾音，保持较弱的低频主体和受控高频。开始／确认、返回、滑条、建筑选择、派兵、技能与 BGM 的素材没有更换。
+普通按钮、分类切换、选人和下拉选项改用新制作的 `assets/audio/ui/soft_click.wav`。手感是一次迅速收住的轻敲；开始／确认、返回、滑条、建筑选择、派兵、技能与 BGM 没有更换。
 
-## 触发时机与听感
+## 保留原音色的约束
 
-`UIFeedback` 在原生 `button_down` 时播放，跟随按压动画。按钮业务仍使用原有的 `pressed`；普通按钮在松开时确认，按住后移出不会执行操作。松开和键盘重复事件不会重复发声，下拉菜单的 `item_selected` 保留选项确认音。
+用户要求只缩短输入到出音的等待，不改变音调、音色、音量或尾音。已撤回 28 ms 瞬态重做，恢复本页描述的原始 48 ms WAV、原生成器和播放器增益；文件 SHA-256 为 `aadf40f7b44d9f56c7552c33a3684d93c5c945f428fba3041a34f23b7f87299f`。下面的按下触发修复保留。
 
-此前将声音从松开提前到按下，只消除了输入层的等待。旧 WAV 虽然很早出现非零采样，声音能量仍分布得较散；这不足以证明听起来利落。本次重做瞬态包络与频谱，把更多能量集中在最初几毫秒，缩短主体衰减。没有通过整体加大音量替代音色处理。
+已排查但不采用的改动：当前设备的默认 WASAPI 周期为 10 ms，请求 5 ms 时返回 `AUDCLNT_E_ENGINE_PERIODICITY_LOCKED` 并回退至约 22 ms；直接减小设置值反而更慢。Godot 4.6.3 的 Windows 消息泵在处理完消息后立即刷新输入缓存，关闭输入累计不能证明省去一帧，且增加鼠标事件处理量，因此也不做全局修改。
 
-| 素材指标 | 旧版 | 当前 |
-| --- | --- | --- |
-| 长度 | 48 ms | 28 ms |
-| 前 3 ms 能量占比 | 36.05% | 66.76% |
-| 累计 50% 能量位置 | 4.813 ms | 1.792 ms |
-| 累计 90% 能量位置 | 11.979 ms | 5.500 ms |
-| 累计 99% 能量位置 | 22.750 ms | 11.750 ms |
-| 50 ms RMS | −21.26 dBFS | −21.94 dBFS |
-| 4 倍过采样真峰值 | −4.50 dBTP | −3.00 dBTP |
-| 6 kHz 以上功率占比 | 0.13% | 2.26% |
+现有验证确认按下时同步请求播放，并在按住期间产生原生混音；它不是声卡／耳机的端到端延迟测量。剩余出音延迟需要结合具体按钮和实际播放环境继续定位，不能用波形起音数据替代这个结论。
 
-播放器维持 −8 dB，默认 Master 维持 50%。当前起音更集中但总能量略低，减少连续点击的疲劳感。波形首尾归零，保留很短的边界淡入／淡出，避免裁切爆点；没有混响、扫频或回声。
+## 2026-09-30：修复按键反馈迟钝
 
-## 原生音频链路检查
+迟钝来自 `UIFeedback` 绑定了 `BaseButton.pressed`：普通按钮要等鼠标或键盘松开才播放，而按压动画从按下就开始。部分菜单还先注册业务回调，随后才注册音效；切页业务中的同步资源加载可能进一步推迟播放请求。
 
-在当前设备及用户安装的 Godot 4.6.3 上，默认 WASAPI 输出周期报告为 10 ms。16 次静音采样中，从播放请求到首次观察到主总线含声混音为 6.9–13.9 ms；该值包含主线程轮询粒度，且不包含声卡、扬声器或耳机延迟，不能当成端到端测量。
+现改为 `button_down` 触发声音，让音效与按压动画同步。按钮业务仍沿用原生的松开确认，按住后移出按钮不会执行操作；松开也不会再次播放。下拉菜单的 `item_selected` 保留选项确认音，禁用按钮和程序恢复选中状态保持静音。
 
-临时把请求输出延迟设为 5 ms，WASAPI 返回 `0x88890028`，回退到 1056 帧、约 22 ms 的旧接口缓冲；回退后的 `get_output_latency()` 还报告 0。因此没有把这个设置写入项目。Master 的 HardLimiter 约 2 ms 前瞻保留，其 120 ms release 是恢复时间，并非额外起音等待。
+实际 WAV 的 2%／10% 峰值起音分别为 0.208／0.292 ms，绝对峰值在 1.500 ms，50%／90%／99% 累计能量位置为 4.813／11.979／22.750 ms。没有可感知的前导静音，因此保留素材和音量，避免裁掉边界淡入产生爆点。55 ms 触发间隔只丢弃过密请求，不会将声音排队延迟。
 
-## 制作、验证与试听
+`tests/ui_click_capture.gd` 新增真实菜单鼠标／键盘输入和按住期间的原生混音检查。修复前可复现按住 180 ms 仍无声音；修复后 Godot 4.7.2、Dummy 输出的 21 项检查全部通过，覆盖按下即发声、松开确认且不重响、移出取消、键盘长按、禁用按钮、静音、快速点击和有限尾音。该检查验证游戏内请求及混音时序，不代表实测声卡／耳机的端到端延迟。
 
-`tools/build_ui_click.py` 固定随机种子构建项目原创声音：450–4500 Hz 接触噪声、70 μs 攻击、5.2 ms 衰减，混入 3.4 ms 衰减的弱主体，最后 6 kHz 低通。48 kHz 单声道 PCM16 导入，不压缩、不归一化、不自动裁边、不循环。短点击使用 50 ms 能量和真峰值检查，不套用音乐平台的整体 LUFS 目标。
+## 参考与制作
 
-Godot 4.6.3 原生混音和鼠标／键盘的 21 项检查通过：按下即请求播放，按住时已有混音输出，松开确认且不重响，移出取消、禁用、静音、连点及有限尾音均正常。构建可重复，音频清单中的其他条目保持一致。
+- [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds)：官方提供 100 个 CC0 界面声音。分析了项目已有的 `click_001` 和 `click_002` 的短接触结构作为设计参考，未复制其音频。
+- [微软 Sound 指南](https://learn.microsoft.com/en-us/windows/apps/develop/ui/sound)：Invoke 对应明确点击或按键操作；同类操作保持相同语义。延续项目已有的点击触发，没有增加悬停声音。
+- [Firaxis《文明 VII》音频访谈](https://www.asoundeffect.com/civilization-vii-game-audio/)：重复耐受性与信号强度需要结合使用频率设计；高频触发音保持短促、减少复杂音调，以较低频率的主体配合克制的高频细节。
 
-试听来自 Godot 实际混音，应用记录到的默认 Master 50%，没有额外归一化。试听和声学指标供判断音色；最终手感仍需在实际点击时确认。
+本次原创设计由 `tools/build_ui_click.py` 生成。一次带限的接触噪声配合很弱的低频共振，快速衰减，削去尖锐高频；没有旋律、混响、扫频、饱和或延迟。固定随机种子保证成品可重复构建。Godot 按 PCM16 导入，关闭压缩、自动归一化、裁边和循环。
 
-- [前后对比：先三声旧版，停顿后三声新版](audio/ui_click/comparison.wav)
-- [新版：三次间隔点击，再六次快速点击](audio/ui_click/preview.wav)
-- [测量记录](audio/ui_click/measurements.json)
+## 响度与验证
 
-运行 `python tools/build_ui_click.py` 重建素材；重新导入后，使用 Godot 的 `--headless --audio-driver Dummy --path . --script res://tests/ui_click_capture.gd -- res://.local/ui-click-capture` 参数进行原生检查。
+| 项目 | 结果 |
+| --- | --- |
+| 素材长度 | 48 ms |
+| 素材起音（峰值的 2% 阈值） | 0.208 ms，不代表系统输入到扬声器延迟 |
+| 累计 99% 声音能量位置 | 22.75 ms |
+| 素材 50 ms RMS | -21.26 dBFS；原点击为 -18.57 dBFS |
+| 素材 4 倍过采样真峰值 | -4.50 dBTP |
+| 播放器／默认总音量 | -8 dB／50%，均保持原值 |
+| 默认游戏混音的 50 ms RMS／真峰值 | -35.26 dBFS／-18.52 dBTP |
 
-参考：[Godot 音频同步](https://docs.godotengine.org/en/stable/tutorials/audio/sync_with_audio.html)、[输出延迟设置](https://docs.godotengine.org/en/stable/classes/class_projectsettings.html#class-projectsettings-property-audio-driver-output-latency)、[原生音频采样](https://docs.godotengine.org/en/stable/classes/class_audioeffectcapture.html)。最初材质设计参考 [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds) 的短接触结构和[微软声音指南](https://learn.microsoft.com/en-us/windows/apps/develop/ui/sound) 的明确操作反馈，成品不包含这些第三方采样。
+短点击使用 50 ms 能量和真峰值检查，没有套用音乐平台的整体 LUFS 目标。仅替换普通 UI 点击，原有 44 个战役音效文件及清单内容均保持一致。
+
+Godot 4.6.3 无头模式、Dummy 音频输出完成原生混音采样，全程没有扬声器外放或系统输入。`tests/ui_click_capture.gd` 的 11 项检查通过，包括真实资源导入、UI 总线路由、9 次独立点击、同帧 200 个请求只响一次、静音和有限尾音。现有 `tests/block_war_audio_feedback_test.gd` 的 39 项触发检查通过。另检查了确定性构建、波形首尾归零、短起音、峰值和未修改素材的哈希。
+
+试听是 Godot 实际输出：先 3 次间隔点击，再 6 次快速点击，已乘以记录到的默认 Master 50%，没有另外放大或归一化。主观听感仍以玩家试听为准。
+
+[试听](audio/ui_click/preview.wav) · [测量记录](audio/ui_click/measurements.json)
+
+```powershell
+python tools/build_ui_click.py
+# 在编辑器导入新音源后，用 Dummy 输出进行原生检查：
+& 'C:/Program Files/Godot/Godot_console.exe' --headless --audio-driver Dummy --path . --script res://tests/ui_click_capture.gd -- res://.local/ui-click-capture
+```

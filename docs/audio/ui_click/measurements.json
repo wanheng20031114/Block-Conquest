@@ -1,78 +1,32 @@
 {
-  "date": "2026-09-30",
-  "format": "48 kHz mono PCM16 source; stereo native mix preview",
-  "source": {
-    "duration_ms": 28.0,
-    "onset_2pct_peak_ms": 0.083,
-    "energy_first_3ms_percent": 66.76,
-    "energy_percentile_ms": {
-      "50": 1.792,
-      "90": 5.5,
-      "99": 11.75
-    },
-    "rms_50ms_dbfs": -21.94,
-    "true_peak_dbtp": -3.0,
-    "power_centroid_hz": 2204.8,
-    "power_above_6khz_percent": 2.26
-  },
-  "previous_source": {
-    "duration_ms": 48.0,
-    "onset_2pct_peak_ms": 0.208,
-    "energy_first_3ms_percent": 36.04,
-    "energy_percentile_ms": {
-      "50": 4.812,
-      "90": 11.979,
-      "99": 22.75
-    },
-    "rms_50ms_dbfs": -21.26,
-    "true_peak_dbtp": -4.5,
-    "power_centroid_hz": 1811.9,
-    "power_above_6khz_percent": 0.13
-  },
+  "format": "48 kHz mono PCM16",
+  "duration_ms": 48,
+  "onset_ms": 0.208,
+  "energy_99_percent_ms": 22.75,
+  "source_true_peak_dbtp": -4.5,
+  "source_max_50ms_rms_dbfs": -21.26,
+  "spectral_centroid_hz": 1647,
+  "energy_above_6khz_percent": 0.08,
+  "source_dc_mean": -0.00010909,
+  "reference_old_source_50ms_rms_dbfs": -18.57,
   "native_capture": {
-    "checks": 21,
+    "checks": 11,
     "clicks": 9,
     "failures": [],
     "frames": 122880,
     "master_db": -6.02059984207153,
     "mix_rate": 44100.0,
-    "peak_before_master": 0.281747758388519,
+    "peak_before_master": 0.236869245767593,
     "player_db": -8.0
   },
   "preview": {
     "file": "preview.wav",
-    "normalization": false,
     "master_percent": 50,
+    "normalization": false,
+    "max_50ms_rms_dbfs": -35.26,
+    "true_peak_dbtp": -18.52,
     "sequence": "3 spaced clicks, then 6 quick clicks"
   },
-  "comparison": {
-    "file": "comparison.wav",
-    "normalization": false,
-    "sequence": "3 previous clicks, pause, 3 current clicks"
-  },
-  "driver_probe": {
-    "driver": "WASAPI",
-    "driver_reported_output_ms": 9.99999977648258,
-    "note": "Request to first observed Master mix block containing sound, polled at 1000 fps; excludes device and speaker latency, includes poll quantization. Master output was muted.",
-    "samples": [
-      6.888,
-      6.888,
-      6.89,
-      6.897,
-      6.898,
-      6.901,
-      6.91,
-      6.912,
-      6.917,
-      13.786,
-      13.788,
-      13.788,
-      13.799,
-      13.8,
-      13.8,
-      13.867
-    ]
-  },
-  "builder_is_deterministic": true,
-  "other_audio_manifest_entries_unchanged": true
+  "retained_war_files": 44,
+  "builder_is_deterministic": true
 }

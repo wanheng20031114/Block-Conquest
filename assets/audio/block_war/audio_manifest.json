@@ -1445,14 +1445,12 @@
     "source": "Project-original deterministic contact synthesis; no third-party samples",
     "generator": "tools/build_ui_click.py",
     "format": "48 kHz mono PCM16 WAV",
-    "duration_seconds": 0.028,
-    "sha256": "87449796201fc0af3b47c351df6a7690a92858e0ace3a033c9cea656cc065e1e",
-    "processing": "28 ms dry contact, 70 us attack, 5.2 ms contact decay, 3.4 ms body decay, 6 kHz low-pass, boundary fades; no reverb, sweep or saturation",
+    "duration_seconds": 0.048,
+    "sha256": "aadf40f7b44d9f56c7552c33a3684d93c5c945f428fba3041a34f23b7f87299f",
+    "processing": "48 ms dry contact, rounded onset, damped low body, 4.2 kHz low-pass, boundary fades; no reverb, sweep or saturation",
     "license": "LicenseRef-Project-Original",
     "gain_db": -8.0,
-    "rms_50ms_dbfs": -21.94,
-    "true_peak_dbtp": -3.0,
-    "energy_first_3ms_percent": 66.76,
-    "energy_90pct_ms": 5.5
+    "rms_50ms_dbfs": -21.26,
+    "true_peak_dbtp": -4.5
   }
 }
