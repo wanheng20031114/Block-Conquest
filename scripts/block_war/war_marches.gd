@@ -75,6 +75,8 @@ class MarchUnit extends RefCounted:
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 @onready var _cloaked_mesh: MultiMesh = $CloakedMilitia.multimesh
 var _units: Array[MarchUnit] = []
+var _render_batch_depth := 0
+var _render_pending := false
 # Standalone simulation fixtures have a flat surface until a battle configures it.
 var map_definition := WarMapDefinition.new()
 var haste_zones: Dictionary[int, Dictionary] = {}
@@ -761,6 +763,8 @@ func movement_distance(unit: MarchUnit, delta: float) -> float:
 	return queued_step + step + _movement_segment(unit, start + step, delta - rushing, 1.0 + charge, maxf(0.0, zone_time - rushing), concealed_time + rushing)
 
 func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float, time_offset: float = 0.0) -> float:
+	if delta == 0.0:
+		return 0.0
 	if not slow_zones.is_empty():
 		return _movement_with_fields(unit, from_distance, delta, multiplier, zone_time, time_offset)
 	# Different skill sources add their percentages within the skill group.
@@ -944,14 +948,30 @@ func _formation_position(order: MarchOrder, distance: float, lane: float, headin
 
 func _presentation_position(unit: MarchUnit) -> Vector3:
 	var at := unit.position + unit.presentation_offset
-	if map_definition.has_elevation() and not unit.order.airborne:
+	if map_definition.has_elevation() and not unit.order.airborne and unit.presentation_offset != Vector3.ZERO:
 		# Network correction may slide a body across a ramp or terrace edge.
 		# Preserve spell levitation, but never interpolate terrain height in air.
+		# Without a correction, the existing pose already has the surface/lift.
 		var lift := unit.position.y - map_definition.surface_height(Vector2(unit.position.x, unit.position.z))
 		at = map_definition.surface_point(at) + Vector3.UP * lift
 	return at + Vector3(0, 0.035, 0)
 
+func begin_render_batch() -> void:
+	# Synchronous scopes only: always pair the outermost end before returning
+	# or awaiting. Rules/signals still run immediately; only mesh writes wait.
+	_render_batch_depth += 1
+
+func end_render_batch() -> void:
+	assert(_render_batch_depth > 0, "Unpaired march render batch.")
+	_render_batch_depth -= 1
+	if _render_batch_depth == 0 and _render_pending:
+		_render()
+
 func _render() -> void:
+	if _render_batch_depth > 0:
+		_render_pending = true
+		return
+	_render_pending = false
 	var slot := 0
 	var cloaked_slot := 0
 	for unit: MarchUnit in _units:

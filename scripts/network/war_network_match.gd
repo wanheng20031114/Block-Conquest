@@ -169,6 +169,7 @@ func process(delta: float) -> void:
 	if game.finished: return
 	if online.is_host:
 		_set_transport_paused(false)
+		game.marches.begin_render_batch()
 		if game.match_paused:
 			# Control requests still run while paused; simulation, AI, cooldowns
 			# and delayed departures do not accrue wall-clock debt.
@@ -188,6 +189,7 @@ func process(delta: float) -> void:
 					break
 				game.simulate(STEP)
 				_publish_step(STEP)
+		game.marches.end_render_batch()
 		_since_time += delta
 		if _since_time >= ANCHOR_INTERVAL:
 			_since_time = 0.0

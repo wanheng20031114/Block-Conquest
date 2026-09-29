@@ -336,6 +336,7 @@ func simulate(delta: float) -> void:
 	# Integrate up to each completion before applying the next level's rules.
 	# Long frames and multiple simultaneous builds keep the same production as
 	# small steps, including a recruitment skill crossing the completion time.
+	marches.begin_render_batch()
 	var remaining := delta
 	while remaining > 0.0 and not finished:
 		sync_environment_bonuses()
@@ -360,6 +361,7 @@ func simulate(delta: float) -> void:
 				step = minf(step, building.disruption_remaining)
 		_simulate_step(step)
 		remaining = maxf(0.0, remaining - step)
+	marches.end_render_batch()
 
 func _simulate_step(delta: float) -> void:
 	sync_environment_bonuses()

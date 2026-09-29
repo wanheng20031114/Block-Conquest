@@ -24,7 +24,8 @@ func _run() -> void:
 	game.ai_enabled = false
 	game.audio.muted = true
 	for building: WarBuilding in game.buildings:
-		building.kind = 2
+		# Keep population stationary without the forge's faction defense bonus.
+		building.kind = 3
 		building.population = 100.0
 	var target: WarBuilding = game.by_id[1]
 	target.position = Vector3.ZERO
