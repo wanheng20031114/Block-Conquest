@@ -478,9 +478,13 @@ func _apply_view() -> void:
 				records.erase(key)
 				_anchor_versions.erase(name + ":" + key)
 			else: _view[name][key] = records[key]
-	codec.install(game, _view, float(_mirror.time) if _mirror.match_control.paused else maxf(game.elapsed, float(_mirror.time)))
+	var control_changed: bool = codec.install(game, _view, float(_mirror.time) if _mirror.match_control.paused else maxf(game.elapsed, float(_mirror.time)), true)
 	_view_dirty = false
 	_apply_account()
+	# HUD ready/cooldown edges must only observe the complete public + private
+	# state, never the redacted zeros carried by a public snapshot or anchor.
+	if control_changed: game.sync_match_control_presentation()
+	else: game.update_hud()
 	for event: Dictionary in _queued_visuals: _play_presentation(event)
 	_queued_visuals.clear()
 

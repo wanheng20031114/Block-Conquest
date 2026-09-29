@@ -487,8 +487,10 @@ static func same_structure(group: String, first: Array, second: Array) -> bool:
 		elif first[index] != second[index]: return false
 	return true
 
-func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
+func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: bool = false) -> bool:
 	# Caller validates once before an atomic install. No gameplay signal is emitted.
+	# Public replicas retain local private fields and defer UI/control presentation
+	# until the coordinator applies the account at the same reliable boundary.
 	var now: float = float(state.time) if at_time < 0.0 else at_time
 	var surrendered: Array[int] = []
 	surrendered.assign(state.match_control.surrendered)
@@ -504,10 +506,11 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		var row: Array = state.factions[key]
 		var skill: RefCounted = game.faction_skills[f]
 		skill.commander = StringName(row[0])
-		skill.energy = energy_at(row, now) if f == game.local_faction else float(row[1])
+		if not public_view or f != game.local_faction:
+			skill.energy = energy_at(row, now) if f == game.local_faction else float(row[1])
+			for i: int in 4: skill.cooldowns[i] = remaining(row[2][i], now)
 		skill.public_statuses.assign(row[10])
 		for i: int in 4:
-			skill.cooldowns[i] = remaining(row[2][i], now)
 			skill.durations[i] = remaining(row[3][i], now)
 		skill.recruit_target_id = int(row[4])
 		game.morale._points[f] = float(row[5])
@@ -606,8 +609,10 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 	game.world_effects.update_skills(0.0, game.faction_skills, game.shields, game.by_id, game.marches)
 	game.world_effects.get_node("Bear").sync(game.bear, game.marches, game.by_id, 0.0)
 	game.world_effects.get_node("Frog").sync(game.marches, 0.0)
-	if control_changed: game.sync_match_control_presentation()
-	game.update_hud()
+	if not public_view:
+		if control_changed: game.sync_match_control_presentation()
+		game.update_hud()
+	return control_changed
 
 func _present_buildings(game: Node, state: Dictionary, now: float) -> void:
 	for key: String in state.buildings:
