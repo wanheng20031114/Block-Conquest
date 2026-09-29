@@ -1,0 +1,1794 @@
+{
+  "rules_baseline_commit": "4eacf7e",
+  "gameplay_changes_in_this_review": false,
+  "synthetic": {
+    "assumptions": [
+      "Synthetic resource audit; runtime combat, target value and win rates are not modeled.",
+      "Start after 100 match seconds at 100 energy; all cooldowns initially ready; observe 300 seconds.",
+      "All enabled skills always have valid targets, are cast immediately when ready and affordable.",
+      "Compare all fixed skill priorities; best fixed priority is not a globally optimal policy.",
+      "Casualty rates/morale are fixed scenario inputs; tower capture rewards are excluded.",
+      "Overflow differs from all-four-on-cooldown time; disabled situational skills remain ready."
+    ],
+    "scenario_counts": {
+      "continuous": 180,
+      "bursts": 5,
+      "situational": 9
+    },
+    "profiles": {
+      "squirrel": {
+        "costs": [
+          30.0,
+          30.0,
+          35.0,
+          70.0
+        ],
+        "cooldowns": [
+          35.0,
+          28.0,
+          45.0,
+          70.0
+        ],
+        "all_skill_cost_sum": 165.0,
+        "maximum_spending_per_second": 3.706349206349206
+      },
+      "rabbit": {
+        "costs": [
+          20.0,
+          25.0,
+          20.0,
+          65.0
+        ],
+        "cooldowns": [
+          20.0,
+          30.0,
+          26.0,
+          70.0
+        ],
+        "all_skill_cost_sum": 130.0,
+        "maximum_spending_per_second": 3.531135531135531
+      },
+      "bear": {
+        "costs": [
+          25.0,
+          25.0,
+          30.0,
+          70.0
+        ],
+        "cooldowns": [
+          30.0,
+          30.0,
+          35.0,
+          70.0
+        ],
+        "all_skill_cost_sum": 150.0,
+        "maximum_spending_per_second": 3.5238095238095237
+      },
+      "frog": {
+        "costs": [
+          20.0,
+          30.0,
+          20.0,
+          90.0
+        ],
+        "cooldowns": [
+          20.0,
+          32.0,
+          26.0,
+          100.0
+        ],
+        "all_skill_cost_sum": 160.0,
+        "maximum_spending_per_second": 3.606730769230769
+      },
+      "fox": {
+        "costs": [
+          25.0,
+          40.0,
+          60.0,
+          80.0
+        ],
+        "cooldowns": [
+          35.0,
+          50.0,
+          65.0,
+          85.0
+        ],
+        "all_skill_cost_sum": 205.0,
+        "maximum_spending_per_second": 3.378539107950873
+      }
+    },
+    "thresholds": [
+      {
+        "commander": "squirrel",
+        "towers": 0,
+        "passive_rate": 2.0,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 8.53174603174603,
+          "0.15": 11.375661375661375,
+          "0.1": 17.06349206349206
+        }
+      },
+      {
+        "commander": "squirrel",
+        "towers": 1,
+        "passive_rate": 2.5,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 6.03174603174603,
+          "0.15": 8.042328042328041,
+          "0.1": 12.06349206349206
+        }
+      },
+      {
+        "commander": "squirrel",
+        "towers": 2,
+        "passive_rate": 2.75,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 4.78174603174603,
+          "0.15": 6.375661375661374,
+          "0.1": 9.56349206349206
+        }
+      },
+      {
+        "commander": "rabbit",
+        "towers": 0,
+        "passive_rate": 2.0,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 7.655677655677655,
+          "0.15": 10.207570207570207,
+          "0.1": 15.31135531135531
+        }
+      },
+      {
+        "commander": "rabbit",
+        "towers": 1,
+        "passive_rate": 2.5,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 5.155677655677655,
+          "0.15": 6.874236874236874,
+          "0.1": 10.31135531135531
+        }
+      },
+      {
+        "commander": "rabbit",
+        "towers": 2,
+        "passive_rate": 2.75,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 3.905677655677655,
+          "0.15": 5.207570207570207,
+          "0.1": 7.81135531135531
+        }
+      },
+      {
+        "commander": "bear",
+        "towers": 0,
+        "passive_rate": 2.0,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 7.619047619047619,
+          "0.15": 10.158730158730158,
+          "0.1": 15.238095238095237
+        }
+      },
+      {
+        "commander": "bear",
+        "towers": 1,
+        "passive_rate": 2.5,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 5.119047619047619,
+          "0.15": 6.825396825396825,
+          "0.1": 10.238095238095237
+        }
+      },
+      {
+        "commander": "bear",
+        "towers": 2,
+        "passive_rate": 2.75,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 3.8690476190476186,
+          "0.15": 5.158730158730158,
+          "0.1": 7.738095238095237
+        }
+      },
+      {
+        "commander": "frog",
+        "towers": 0,
+        "passive_rate": 2.0,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 8.033653846153845,
+          "0.15": 10.711538461538462,
+          "0.1": 16.06730769230769
+        }
+      },
+      {
+        "commander": "frog",
+        "towers": 1,
+        "passive_rate": 2.5,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 5.533653846153845,
+          "0.15": 7.378205128205128,
+          "0.1": 11.06730769230769
+        }
+      },
+      {
+        "commander": "frog",
+        "towers": 2,
+        "passive_rate": 2.75,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 4.283653846153845,
+          "0.15": 5.711538461538461,
+          "0.1": 8.56730769230769
+        }
+      },
+      {
+        "commander": "fox",
+        "towers": 0,
+        "passive_rate": 2.0,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 6.892695539754365,
+          "0.15": 9.190260719672487,
+          "0.1": 13.78539107950873
+        }
+      },
+      {
+        "commander": "fox",
+        "towers": 1,
+        "passive_rate": 2.5,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 4.392695539754365,
+          "0.15": 5.856927386339154,
+          "0.1": 8.78539107950873
+        }
+      },
+      {
+        "commander": "fox",
+        "towers": 2,
+        "passive_rate": 2.75,
+        "losses_per_second_to_exceed_ceiling": {
+          "0.2": 3.1426955397543654,
+          "0.15": 4.190260719672487,
+          "0.1": 6.285391079508731
+        }
+      }
+    ],
+    "selected_continuous": [
+      {
+        "commander": "squirrel",
+        "towers": 2,
+        "coefficient": 0.2,
+        "losses_per_second": 5,
+        "income_per_second": 3.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            9,
+            11,
+            7,
+            5
+          ],
+          "income": 1125.0,
+          "spent": 1195.0,
+          "overflow": 17.5,
+          "ending_energy": 12.5,
+          "full_seconds": 4.666667,
+          "all_four_cooling_seconds": 273.333333,
+          "energy_at_least_80_all_four_cooling_seconds": 23.666667
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          17.5,
+          20.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          21.333333,
+          37.333333
+        ]
+      },
+      {
+        "commander": "rabbit",
+        "towers": 2,
+        "coefficient": 0.2,
+        "losses_per_second": 5,
+        "income_per_second": 3.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            1,
+            3,
+            0,
+            2
+          ],
+          "casts": [
+            15,
+            10,
+            12,
+            5
+          ],
+          "income": 1125.0,
+          "spent": 1115.0,
+          "overflow": 40.0,
+          "ending_energy": 70.0,
+          "full_seconds": 10.666667,
+          "all_four_cooling_seconds": 292.0,
+          "energy_at_least_80_all_four_cooling_seconds": 57.333333
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          40.0,
+          60.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          57.333333,
+          76.666667
+        ]
+      },
+      {
+        "commander": "bear",
+        "towers": 2,
+        "coefficient": 0.2,
+        "losses_per_second": 5,
+        "income_per_second": 3.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            3,
+            1,
+            2
+          ],
+          "casts": [
+            10,
+            10,
+            9,
+            5
+          ],
+          "income": 1125.0,
+          "spent": 1120.0,
+          "overflow": 47.5,
+          "ending_energy": 57.5,
+          "full_seconds": 12.666667,
+          "all_four_cooling_seconds": 286.666667,
+          "energy_at_least_80_all_four_cooling_seconds": 53.666667
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          47.5,
+          67.5
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          53.333333,
+          57.333333
+        ]
+      },
+      {
+        "commander": "frog",
+        "towers": 2,
+        "coefficient": 0.2,
+        "losses_per_second": 5,
+        "income_per_second": 3.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            2,
+            1,
+            3
+          ],
+          "casts": [
+            15,
+            10,
+            12,
+            3
+          ],
+          "income": 1125.0,
+          "spent": 1110.0,
+          "overflow": 20.0,
+          "ending_energy": 95.0,
+          "full_seconds": 5.333333,
+          "all_four_cooling_seconds": 276.666667,
+          "energy_at_least_80_all_four_cooling_seconds": 52.0
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          20.0,
+          57.5
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          52.0,
+          65.333333
+        ]
+      },
+      {
+        "commander": "fox",
+        "towers": 1,
+        "coefficient": 0.2,
+        "losses_per_second": 2,
+        "income_per_second": 2.9,
+        "best_of_fixed_priorities": {
+          "priority": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "casts": [
+            9,
+            6,
+            3,
+            4
+          ],
+          "income": 870.0,
+          "spent": 965.0,
+          "overflow": 0.0,
+          "ending_energy": 5.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 139.137931,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          0.0,
+          0.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          5.689655
+        ]
+      },
+      {
+        "commander": "fox",
+        "towers": 1,
+        "coefficient": 0.2,
+        "losses_per_second": 5,
+        "income_per_second": 3.5,
+        "best_of_fixed_priorities": {
+          "priority": [
+            1,
+            2,
+            0,
+            3
+          ],
+          "casts": [
+            9,
+            6,
+            5,
+            3
+          ],
+          "income": 1050.0,
+          "spent": 1005.0,
+          "overflow": 45.0,
+          "ending_energy": 100.0,
+          "full_seconds": 12.857143,
+          "all_four_cooling_seconds": 241.428571,
+          "energy_at_least_80_all_four_cooling_seconds": 42.857143
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          45.0,
+          70.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          30.714286,
+          44.285714
+        ]
+      },
+      {
+        "commander": "fox",
+        "towers": 1,
+        "coefficient": 0.2,
+        "losses_per_second": 10,
+        "income_per_second": 4.5,
+        "best_of_fixed_priorities": {
+          "priority": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "casts": [
+            9,
+            6,
+            5,
+            4
+          ],
+          "income": 1350.0,
+          "spent": 1085.0,
+          "overflow": 290.0,
+          "ending_energy": 75.0,
+          "full_seconds": 64.444444,
+          "all_four_cooling_seconds": 258.888889,
+          "energy_at_least_80_all_four_cooling_seconds": 107.777778
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          290.0,
+          340.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          107.222222,
+          117.222222
+        ]
+      },
+      {
+        "commander": "fox",
+        "towers": 2,
+        "coefficient": 0.2,
+        "losses_per_second": 5,
+        "income_per_second": 3.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "casts": [
+            9,
+            6,
+            5,
+            4
+          ],
+          "income": 1125.0,
+          "spent": 1085.0,
+          "overflow": 106.25,
+          "ending_energy": 33.75,
+          "full_seconds": 28.333333,
+          "all_four_cooling_seconds": 249.333333,
+          "energy_at_least_80_all_four_cooling_seconds": 68.666667
+        },
+        "fixed_priority_count": 24,
+        "overflow_range": [
+          106.25,
+          130.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          55.0,
+          72.0
+        ]
+      }
+    ],
+    "situational": [
+      {
+        "commander": "bear",
+        "reason": "no_construction_for_q",
+        "enabled": [
+          1,
+          2,
+          3
+        ],
+        "towers": 0,
+        "maximum_spending_per_second": 2.6904761904761907,
+        "income_per_second": 2.0,
+        "best_of_fixed_priorities": {
+          "priority": [
+            2,
+            3,
+            1
+          ],
+          "casts": [
+            0,
+            9,
+            8,
+            3
+          ],
+          "income": 600.0,
+          "spent": 675.0,
+          "overflow": 0.0,
+          "ending_energy": 25.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 6,
+        "overflow_range": [
+          0.0,
+          0.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "bear",
+        "reason": "no_construction_for_q",
+        "enabled": [
+          1,
+          2,
+          3
+        ],
+        "towers": 1,
+        "maximum_spending_per_second": 2.6904761904761907,
+        "income_per_second": 2.5,
+        "best_of_fixed_priorities": {
+          "priority": [
+            1,
+            3,
+            2
+          ],
+          "casts": [
+            0,
+            10,
+            8,
+            5
+          ],
+          "income": 750.0,
+          "spent": 840.0,
+          "overflow": 0.0,
+          "ending_energy": 10.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 6,
+        "overflow_range": [
+          0.0,
+          0.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "bear",
+        "reason": "no_construction_for_q",
+        "enabled": [
+          1,
+          2,
+          3
+        ],
+        "towers": 2,
+        "maximum_spending_per_second": 2.6904761904761907,
+        "income_per_second": 2.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            0,
+            10,
+            9,
+            5
+          ],
+          "income": 825.0,
+          "spent": 870.0,
+          "overflow": 12.5,
+          "ending_energy": 42.5,
+          "full_seconds": 4.545455,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 6,
+        "overflow_range": [
+          12.5,
+          22.5
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "fox",
+        "reason": "w_has_no_transferable_morale",
+        "enabled": [
+          0,
+          2,
+          3
+        ],
+        "towers": 0,
+        "maximum_spending_per_second": 2.5785391079508724,
+        "income_per_second": 2.0,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            3,
+            2
+          ],
+          "casts": [
+            8,
+            0,
+            4,
+            3
+          ],
+          "income": 600.0,
+          "spent": 680.0,
+          "overflow": 0.0,
+          "ending_energy": 20.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 6,
+        "overflow_range": [
+          0.0,
+          0.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "fox",
+        "reason": "w_has_no_transferable_morale",
+        "enabled": [
+          0,
+          2,
+          3
+        ],
+        "towers": 1,
+        "maximum_spending_per_second": 2.5785391079508724,
+        "income_per_second": 2.5,
+        "best_of_fixed_priorities": {
+          "priority": [
+            3,
+            0,
+            2
+          ],
+          "casts": [
+            9,
+            0,
+            4,
+            4
+          ],
+          "income": 750.0,
+          "spent": 785.0,
+          "overflow": 15.0,
+          "ending_energy": 50.0,
+          "full_seconds": 6.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 6,
+        "overflow_range": [
+          15.0,
+          15.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "fox",
+        "reason": "w_has_no_transferable_morale",
+        "enabled": [
+          0,
+          2,
+          3
+        ],
+        "towers": 2,
+        "maximum_spending_per_second": 2.5785391079508724,
+        "income_per_second": 2.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            2,
+            3
+          ],
+          "casts": [
+            9,
+            0,
+            5,
+            4
+          ],
+          "income": 825.0,
+          "spent": 845.0,
+          "overflow": 71.25,
+          "ending_energy": 8.75,
+          "full_seconds": 25.909091,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 6,
+        "overflow_range": [
+          71.25,
+          71.25
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "fox",
+        "reason": "w_unavailable_and_r_has_no_refuge",
+        "enabled": [
+          0,
+          2
+        ],
+        "towers": 0,
+        "maximum_spending_per_second": 1.6373626373626373,
+        "income_per_second": 2.0,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            2
+          ],
+          "casts": [
+            9,
+            0,
+            5,
+            0
+          ],
+          "income": 600.0,
+          "spent": 525.0,
+          "overflow": 80.0,
+          "ending_energy": 95.0,
+          "full_seconds": 40.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 2,
+        "overflow_range": [
+          80.0,
+          80.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "fox",
+        "reason": "w_unavailable_and_r_has_no_refuge",
+        "enabled": [
+          0,
+          2
+        ],
+        "towers": 1,
+        "maximum_spending_per_second": 1.6373626373626373,
+        "income_per_second": 2.5,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            2
+          ],
+          "casts": [
+            9,
+            0,
+            5,
+            0
+          ],
+          "income": 750.0,
+          "spent": 525.0,
+          "overflow": 225.0,
+          "ending_energy": 100.0,
+          "full_seconds": 90.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 2,
+        "overflow_range": [
+          225.0,
+          225.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "commander": "fox",
+        "reason": "w_unavailable_and_r_has_no_refuge",
+        "enabled": [
+          0,
+          2
+        ],
+        "towers": 2,
+        "maximum_spending_per_second": 1.6373626373626373,
+        "income_per_second": 2.75,
+        "best_of_fixed_priorities": {
+          "priority": [
+            0,
+            2
+          ],
+          "casts": [
+            9,
+            0,
+            5,
+            0
+          ],
+          "income": 825.0,
+          "spent": 525.0,
+          "overflow": 300.0,
+          "ending_energy": 100.0,
+          "full_seconds": 109.090909,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "fixed_priority_count": 2,
+        "overflow_range": [
+          300.0,
+          300.0
+        ],
+        "high_energy_all_four_cooling_range_seconds": [
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "candidate_cooldowns_not_applied": [
+      {
+        "hero": "fox",
+        "changed_slot": 0,
+        "new_cooldown": 30,
+        "enabled": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "income": 2.75,
+        "old": {
+          "priority": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            9,
+            6,
+            3,
+            3
+          ],
+          "income": 825.0,
+          "spent": 885.0,
+          "overflow": 0.0,
+          "ending_energy": 40.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 90.454545,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "candidate": {
+          "priority": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            10,
+            6,
+            3,
+            3
+          ],
+          "income": 825.0,
+          "spent": 910.0,
+          "overflow": 0.0,
+          "ending_energy": 15.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 72.272727,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        }
+      },
+      {
+        "hero": "fox",
+        "changed_slot": 0,
+        "new_cooldown": 30,
+        "enabled": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "income": 3.5,
+        "old": {
+          "priority": [
+            1,
+            2,
+            0,
+            3
+          ],
+          "casts": [
+            9,
+            6,
+            5,
+            3
+          ],
+          "income": 1050.0,
+          "spent": 1005.0,
+          "overflow": 45.0,
+          "ending_energy": 100.0,
+          "full_seconds": 12.857143,
+          "all_four_cooling_seconds": 241.428571,
+          "energy_at_least_80_all_four_cooling_seconds": 42.857143
+        },
+        "candidate": {
+          "priority": [
+            1,
+            0,
+            2,
+            3
+          ],
+          "casts": [
+            10,
+            6,
+            5,
+            3
+          ],
+          "income": 1050.0,
+          "spent": 1030.0,
+          "overflow": 25.0,
+          "ending_energy": 95.0,
+          "full_seconds": 7.142857,
+          "all_four_cooling_seconds": 231.428571,
+          "energy_at_least_80_all_four_cooling_seconds": 29.285714
+        }
+      },
+      {
+        "hero": "fox",
+        "changed_slot": 0,
+        "new_cooldown": 30,
+        "enabled": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "income": 3.75,
+        "old": {
+          "priority": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "casts": [
+            9,
+            6,
+            5,
+            4
+          ],
+          "income": 1125.0,
+          "spent": 1085.0,
+          "overflow": 106.25,
+          "ending_energy": 33.75,
+          "full_seconds": 28.333333,
+          "all_four_cooling_seconds": 249.333333,
+          "energy_at_least_80_all_four_cooling_seconds": 68.666667
+        },
+        "candidate": {
+          "priority": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "casts": [
+            10,
+            6,
+            5,
+            4
+          ],
+          "income": 1125.0,
+          "spent": 1110.0,
+          "overflow": 81.25,
+          "ending_energy": 33.75,
+          "full_seconds": 21.666667,
+          "all_four_cooling_seconds": 237.666667,
+          "energy_at_least_80_all_four_cooling_seconds": 59.0
+        }
+      },
+      {
+        "hero": "bear",
+        "changed_slot": 1,
+        "new_cooldown": 25,
+        "enabled": [
+          1,
+          2,
+          3
+        ],
+        "income": 2.75,
+        "old": {
+          "priority": [
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            0,
+            10,
+            9,
+            5
+          ],
+          "income": 825.0,
+          "spent": 870.0,
+          "overflow": 12.5,
+          "ending_energy": 42.5,
+          "full_seconds": 4.545455,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "candidate": {
+          "priority": [
+            2,
+            3,
+            1
+          ],
+          "casts": [
+            0,
+            12,
+            9,
+            5
+          ],
+          "income": 825.0,
+          "spent": 920.0,
+          "overflow": 0.0,
+          "ending_energy": 5.0,
+          "full_seconds": 0.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        }
+      },
+      {
+        "hero": "bear",
+        "changed_slot": 1,
+        "new_cooldown": 25,
+        "enabled": [
+          1,
+          2,
+          3
+        ],
+        "income": 3.5,
+        "old": {
+          "priority": [
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            0,
+            10,
+            9,
+            5
+          ],
+          "income": 1050.0,
+          "spent": 870.0,
+          "overflow": 210.0,
+          "ending_energy": 70.0,
+          "full_seconds": 60.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "candidate": {
+          "priority": [
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            0,
+            12,
+            9,
+            5
+          ],
+          "income": 1050.0,
+          "spent": 920.0,
+          "overflow": 167.5,
+          "ending_energy": 62.5,
+          "full_seconds": 47.857143,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        }
+      },
+      {
+        "hero": "bear",
+        "changed_slot": 1,
+        "new_cooldown": 25,
+        "enabled": [
+          1,
+          2,
+          3
+        ],
+        "income": 3.75,
+        "old": {
+          "priority": [
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            0,
+            10,
+            9,
+            5
+          ],
+          "income": 1125.0,
+          "spent": 870.0,
+          "overflow": 280.0,
+          "ending_energy": 75.0,
+          "full_seconds": 74.666667,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        },
+        "candidate": {
+          "priority": [
+            1,
+            2,
+            3
+          ],
+          "casts": [
+            0,
+            12,
+            9,
+            5
+          ],
+          "income": 1125.0,
+          "spent": 920.0,
+          "overflow": 236.25,
+          "ending_energy": 68.75,
+          "full_seconds": 63.0,
+          "all_four_cooling_seconds": 0.0,
+          "energy_at_least_80_all_four_cooling_seconds": 0.0
+        }
+      }
+    ]
+  },
+  "runtime_probe": {
+    "engine": "Godot 4.7.2",
+    "map": "rift",
+    "seed": 294721,
+    "both_factions_use_existing_ai": true,
+    "same_hero_per_match": true,
+    "maximum_match_seconds": 300,
+    "maximum_sampling_step_seconds": 0.05,
+    "initial_energy": 20,
+    "notes": [
+      "Five same-hero AI matches are a small sample, not a win-rate or human-play evaluation.",
+      "Cooldown-ready does not imply a legal or valuable skill target.",
+      "Full-energy and cooldown durations are sampled at the start of each simulation step.",
+      "Income per second includes raw income before overflow; received is credited income.",
+      "Early phase is before 100 match seconds; late phase starts at 100."
+    ],
+    "summary": [
+      {
+        "hero": "squirrel",
+        "duration": 299.08,
+        "finished": true,
+        "factions": [
+          {
+            "faction": 0,
+            "balance_error": 1.7571721855347278e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "combat": 10.85,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 54.25,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 110.85,
+              "seconds": 100.0,
+              "spent": 70.0,
+              "tower": 0.0,
+              "losses_per_second": 0.542,
+              "income_per_second": 1.109
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                3,
+                5,
+                3,
+                3
+              ],
+              "combat": 191.391,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 11.0,
+              "full_seconds": 11.0,
+              "high_all_cd_seconds": 6.35,
+              "losses": 956.953,
+              "natural": 398.162,
+              "overflow": 35.067,
+              "received": 554.485,
+              "seconds": 199.081,
+              "spent": 555.0,
+              "tower": 0.0,
+              "losses_per_second": 4.807,
+              "income_per_second": 2.961
+            }
+          },
+          {
+            "faction": 1,
+            "balance_error": 1.4388490399142029e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                1,
+                0,
+                0,
+                1
+              ],
+              "combat": 13.6,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 68.0,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 113.6,
+              "seconds": 100.0,
+              "spent": 100.0,
+              "tower": 0.0,
+              "losses_per_second": 0.68,
+              "income_per_second": 1.136
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                3,
+                5,
+                3,
+                2
+              ],
+              "combat": 109.176,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 4.7,
+              "full_seconds": 4.7,
+              "high_all_cd_seconds": 0.0,
+              "losses": 653.825,
+              "natural": 398.162,
+              "overflow": 12.489,
+              "received": 494.849,
+              "seconds": 199.081,
+              "spent": 485.0,
+              "tower": 0.0,
+              "losses_per_second": 3.284,
+              "income_per_second": 2.548
+            }
+          }
+        ]
+      },
+      {
+        "hero": "rabbit",
+        "duration": 300.0,
+        "finished": false,
+        "factions": [
+          {
+            "faction": 0,
+            "balance_error": 2.2232882201933535e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                3,
+                2,
+                0,
+                0
+              ],
+              "combat": 10.0,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 50.0,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 110.0,
+              "seconds": 100.0,
+              "spent": 110.0,
+              "tower": 0.0,
+              "losses_per_second": 0.5,
+              "income_per_second": 1.1
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                7,
+                6,
+                6,
+                2
+              ],
+              "combat": 150.6,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 753.0,
+              "natural": 400.0,
+              "overflow": -0.0,
+              "received": 550.6,
+              "seconds": 200.0,
+              "spent": 540.0,
+              "tower": 0.0,
+              "losses_per_second": 3.765,
+              "income_per_second": 2.753
+            }
+          },
+          {
+            "faction": 1,
+            "balance_error": 1.8623325104272226e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                3,
+                2,
+                0,
+                0
+              ],
+              "combat": 10.0,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 50.0,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 110.0,
+              "seconds": 100.0,
+              "spent": 110.0,
+              "tower": 0.0,
+              "losses_per_second": 0.5,
+              "income_per_second": 1.1
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                9,
+                6,
+                6,
+                1
+              ],
+              "combat": 119.761,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 658.776,
+              "natural": 400.0,
+              "overflow": 0.0,
+              "received": 519.761,
+              "seconds": 200.0,
+              "spent": 515.0,
+              "tower": 0.0,
+              "losses_per_second": 3.294,
+              "income_per_second": 2.599
+            }
+          }
+        ]
+      },
+      {
+        "hero": "bear",
+        "duration": 277.95,
+        "finished": true,
+        "factions": [
+          {
+            "faction": 0,
+            "balance_error": 2.9558577807620168e-12,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                3,
+                0,
+                0,
+                0
+              ],
+              "combat": 13.6,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 68.0,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 113.6,
+              "seconds": 100.0,
+              "spent": 75.0,
+              "tower": 0.0,
+              "losses_per_second": 0.68,
+              "income_per_second": 1.136
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                2,
+                3,
+                1,
+                1
+              ],
+              "combat": 146.006,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 83.95,
+              "full_seconds": 83.95,
+              "high_all_cd_seconds": 0.0,
+              "losses": 730.029,
+              "natural": 355.9,
+              "overflow": 235.506,
+              "received": 266.4,
+              "seconds": 177.95,
+              "spent": 225.0,
+              "tower": 0.0,
+              "losses_per_second": 4.102,
+              "income_per_second": 2.82
+            }
+          },
+          {
+            "faction": 1,
+            "balance_error": -1.0231815394945443e-12,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                3,
+                0,
+                0,
+                0
+              ],
+              "combat": 13.6,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 68.0,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 113.6,
+              "seconds": 100.0,
+              "spent": 75.0,
+              "tower": 0.0,
+              "losses_per_second": 0.68,
+              "income_per_second": 1.136
+            },
+            "late": {
+              "capture": 20.0,
+              "casts": [
+                2,
+                3,
+                1,
+                2
+              ],
+              "combat": 90.469,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 63.15,
+              "full_seconds": 63.15,
+              "high_all_cd_seconds": 0.0,
+              "losses": 542.966,
+              "natural": 355.9,
+              "overflow": 184.944,
+              "received": 336.4,
+              "seconds": 177.95,
+              "spent": 295.0,
+              "tower": 54.975,
+              "losses_per_second": 3.051,
+              "income_per_second": 2.93
+            }
+          }
+        ]
+      },
+      {
+        "hero": "frog",
+        "duration": 300.0,
+        "finished": false,
+        "factions": [
+          {
+            "faction": 0,
+            "balance_error": 1.2960299500264227e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                2,
+                0,
+                0,
+                0
+              ],
+              "combat": 15.0,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 75.0,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 115.0,
+              "seconds": 100.0,
+              "spent": 40.0,
+              "tower": 0.0,
+              "losses_per_second": 0.75,
+              "income_per_second": 1.15
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                6,
+                2,
+                5,
+                2
+              ],
+              "combat": 144.567,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 28.75,
+              "full_seconds": 28.75,
+              "high_all_cd_seconds": 0.0,
+              "losses": 722.837,
+              "natural": 400.0,
+              "overflow": 79.567,
+              "received": 465.0,
+              "seconds": 200.0,
+              "spent": 460.0,
+              "tower": 0.0,
+              "losses_per_second": 3.614,
+              "income_per_second": 2.723
+            }
+          },
+          {
+            "faction": 1,
+            "balance_error": 1.9308998844280723e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                2,
+                0,
+                0,
+                1
+              ],
+              "combat": 15.25,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 76.25,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 115.25,
+              "seconds": 100.0,
+              "spent": 130.0,
+              "tower": 0.0,
+              "losses_per_second": 0.762,
+              "income_per_second": 1.153
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                5,
+                1,
+                4,
+                2
+              ],
+              "combat": 116.154,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 49.83,
+              "full_seconds": 49.83,
+              "high_all_cd_seconds": 0.0,
+              "losses": 586.984,
+              "natural": 400.0,
+              "overflow": 121.404,
+              "received": 394.75,
+              "seconds": 200.0,
+              "spent": 390.0,
+              "tower": 0.0,
+              "losses_per_second": 2.935,
+              "income_per_second": 2.581
+            }
+          }
+        ]
+      },
+      {
+        "hero": "fox",
+        "duration": 300.0,
+        "finished": false,
+        "factions": [
+          {
+            "faction": 0,
+            "balance_error": 3.0468072509393096e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                2,
+                1,
+                0,
+                0
+              ],
+              "combat": 10.65,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 53.25,
+              "natural": 100.0,
+              "overflow": 0.0,
+              "received": 110.65,
+              "seconds": 100.0,
+              "spent": 90.0,
+              "tower": 0.0,
+              "losses_per_second": 0.532,
+              "income_per_second": 1.107
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                5,
+                4,
+                3,
+                0
+              ],
+              "combat": 102.263,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 6.1,
+              "full_seconds": 6.1,
+              "high_all_cd_seconds": 0.0,
+              "losses": 607.5,
+              "natural": 400.0,
+              "overflow": 15.745,
+              "received": 486.518,
+              "seconds": 200.0,
+              "spent": 465.0,
+              "tower": 0.0,
+              "losses_per_second": 3.037,
+              "income_per_second": 2.511
+            }
+          },
+          {
+            "faction": 1,
+            "balance_error": 1.3638867812915123e-11,
+            "early": {
+              "capture": 0.0,
+              "casts": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "combat": 21.208,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 0.0,
+              "full_seconds": 0.0,
+              "high_all_cd_seconds": 0.0,
+              "losses": 106.038,
+              "natural": 100.0,
+              "overflow": -0.0,
+              "received": 121.208,
+              "seconds": 100.0,
+              "spent": 125.0,
+              "tower": 0.0,
+              "losses_per_second": 1.06,
+              "income_per_second": 1.212
+            },
+            "late": {
+              "capture": 0.0,
+              "casts": [
+                6,
+                3,
+                2,
+                1
+              ],
+              "combat": 137.086,
+              "full_all_cd_seconds": 0.0,
+              "full_ready_cd_seconds": 28.2,
+              "full_seconds": 28.2,
+              "high_all_cd_seconds": 0.0,
+              "losses": 685.43,
+              "natural": 400.0,
+              "overflow": 65.494,
+              "received": 471.592,
+              "seconds": 200.0,
+              "spent": 470.0,
+              "tower": 0.0,
+              "losses_per_second": 3.427,
+              "income_per_second": 2.685
+            }
+          }
+        ]
+      }
+    ],
+    "process_exit_codes": {
+      "squirrel": 0,
+      "rabbit": 0,
+      "bear": 0,
+      "frog": 0,
+      "fox": 0
+    }
+  }
+}

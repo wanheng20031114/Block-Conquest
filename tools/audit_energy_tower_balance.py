@@ -90,7 +90,7 @@ def audit(seconds: int = 300) -> dict:
         name: {"costs": constant(source, prefix + "COSTS"),
                "cooldowns": constant(source, prefix + "COOLDOWNS")}
         for name, prefix in [("squirrel", ""), ("rabbit", "RABBIT_"),
-                             ("bear", "BEAR_"), ("frog", "FROG_")]
+                             ("bear", "BEAR_"), ("frog", "FROG_"), ("fox", "FOX_")]
     }
     towers = []
     for count in range(5):
