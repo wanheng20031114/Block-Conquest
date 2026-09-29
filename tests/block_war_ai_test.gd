@@ -178,8 +178,9 @@ func _run() -> void:
 	home.level = 4
 	home.population = 60.0
 	game.by_id[0].kind = 2
-	# The public forge estimate is 20: 20 / .75 * 1.35 + 10 = 46
-	# under the wall, versus 37 after expiry; this home can dispatch at most 45.
+	# The public forge estimate is 20. Its owner's first forge adds 15% defense:
+	# 20 * 1.15 * 1.25 * 1.35 + 10 = 48.8125 under the shield, versus
+	# 20 * 1.15 * 1.35 + 10 = 41.05 after expiry; at most 45 can march.
 	game.by_id[0].population = 30.0
 	game.shields[0] = 10.0
 	game._ai_turn()
@@ -213,9 +214,9 @@ func _run() -> void:
 	forge.population = 60.0
 	game._ai_turn()
 	check(not forge.is_constructing and forge.population == 60.0, "an established economy never attempts to upgrade its fixed-level forge")
-	check(is_equal_approx(game.attack_bonus(1), 0.1), "one forge provides ten percent attack")
+	check(is_equal_approx(game.attack_bonus(1), 0.3), "one forge provides thirty percent attack")
 	game.simulate(10.0)
-	check(forge.level == 1 and is_equal_approx(game.attack_bonus(1), 0.1), "forge remains at level one without an automatic upgrade")
+	check(forge.level == 1 and is_equal_approx(game.attack_bonus(1), 0.3), "forge remains at level one without an automatic upgrade")
 
 	_fixture()
 	home.kind = 2

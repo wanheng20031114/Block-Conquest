@@ -3,6 +3,7 @@ extends RefCounted
 
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
+const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
 const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog"]
 
 
@@ -44,13 +45,13 @@ static func skill_summary(id: StringName, index: int) -> String:
 			return [
 				"为自己或盟友的住宅额外征召士兵，每秒 %d 人，持续 %d 秒。征召可超过自然产兵上限。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
 				"建立半径 %.1f 米的疾行区域，持续 %d 秒。自己的部队在区域内移速提高 %d%%，离开后恢复。" % [RULES.HASTE_RADIUS, RULES.DURATIONS[1], roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0)],
-				"为自己或盟友的建筑提供防护，守备提高 %d%%，持续 %d 秒。同类防护不叠加。" % [roundi(RULES.SHIELD_DEFENSE * 100.0), RULES.DURATIONS[2]],
+				"为自己或盟友的建筑提供防护，技能防御提高 %d%%，持续 %d 秒；与常驻防御分别结算。同类防护不叠加。" % [roundi(RULES.SHIELD_DEFENSE * 100.0), RULES.DURATIONS[2]],
 				"火焰扩散至半径 %.1f 米，消灭接触的双方士兵。对敌方或中立驻军造成基础 %d 点伤害，不直接占领建筑。" % [RULES.FIRE_RADIUS, RULES.FIRE_DAMAGE],
 			][index]
 		&"rabbit":
 			return [
 				"强化施放时半径 %.1f 米内的自有行军，移速与攻击分别提高 %d%%、%d%%，持续 %d 秒。离开落点仍然有效。" % [RULES.RABBIT_RUSH_RADIUS, roundi((RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), RULES.RABBIT_DURATIONS[0]],
-				"干扰一座敌方建筑，持续 %d 秒。暂停产兵、射击、铁匠铺攻击增益或能量塔恢复加成。" % RULES.DISABLE_DURATION,
+				"干扰一座敌方建筑，持续 %d 秒。暂停产兵、射击、铁匠铺全军增益或能量塔恢复加成。" % RULES.DISABLE_DURATION,
 				"令半径 %d 米内所有阵营的行军部队，各自返回出发建筑。返程途中仍会受到攻击。" % RULES.RECALL_RADIUS,
 				"使自己的建筑进入 %d 秒兔洞待命。下一次派兵经兔洞抵达目标附近，按所选比例最多派出 %d 人。" % [RULES.BURROW_READY_DURATION, RULES.BURROW_LIMIT],
 			][index]
@@ -120,20 +121,21 @@ static func guides() -> Array[Dictionary]:
 			"id": &"tower", "title": "炮塔", "tag": "建筑 · 区域防守",
 			"summary": "自动拦截附近敌军，并为驻军提供额外守备。",
 			"sections": [
-				{"title": "射程与火力", "body": "炮塔共有 3 级。射程依次为 11 / 13 / 15 米，每轮最多攻击 1 / 2 / 3 名敌兵；射击间隔为 1.5 / 1.2 / 0.9 秒。"},
-				{"title": "守备与限制", "body": "各级守备为 5% / 10% / 15%。炮塔不会自然产兵；隐身、滞空或处于薄雾内的士兵可避开炮塔攻击。"},
+				{"title": "射程与火力", "body": "炮塔共有 4 级。射程依次为 11 / 13 / 15 / 17 米，每轮最多攻击 1 / 2 / 3 / 4 名敌兵；射击间隔为 1.5 / 1.2 / 0.9 / 0.6 秒。"},
+				{"title": "守备与限制", "body": "各级守备为 %d%% / %d%% / %d%% / %d%%，与所属玩家的常驻防御相加。炮塔不会自然产兵；隐身、滞空或处于薄雾内的士兵可避开炮塔攻击。" % [roundi(COMBAT.tower_defense_bonus(1) * 100.0), roundi(COMBAT.tower_defense_bonus(2) * 100.0), roundi(COMBAT.tower_defense_bonus(3) * 100.0), roundi(COMBAT.tower_defense_bonus(4) * 100.0)]},
 			],
 			"tip": "将炮塔布置在必经路线附近，可持续削弱敌方行军。",
 			"icon": preload("res://assets/ui/block_war/action_tower.svg"),
 		},
 		{
-			"id": &"smithy", "title": "铁匠铺", "tag": "建筑 · 攻击支援",
-			"summary": "为所属玩家的全军提供可累加的攻击增益。",
+			"id": &"smithy", "title": "铁匠铺", "tag": "建筑 · 全军支援",
+			"summary": "提高所属玩家全军的攻击、防御与行军速度。",
 			"sections": [
-				{"title": "攻击增益", "body": "每座正在运作的铁匠铺提供 10% 攻击加成，多座效果累加。增益只属于建筑拥有者，不共享给队友。"},
-				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供攻击增益。"},
+				{"title": "攻防增益", "body": "有效铁匠铺为 1 / 2 / 3 / 4 座时，累计攻击提高 %d%% / %d%% / %d%% / %d%%，防御提高 %d%% / %d%% / %d%% / %d%%。第 5 座起，攻防加成不再增加。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_attack_bonus(2) * 100.0), roundi(COMBAT.forge_attack_bonus(3) * 100.0), roundi(COMBAT.forge_attack_bonus(4) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(2) * 100.0), roundi(COMBAT.forge_defense_bonus(3) * 100.0), roundi(COMBAT.forge_defense_bonus(4) * 100.0)]},
+				{"title": "行军与归属", "body": "每座有效铁匠铺提供 %d%% 移速加成，不设座数上限。各项增益只属于建筑拥有者，不共享给队友。" % roundi(COMBAT.forge_speed_bonus(1) * 100.0)},
+				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供全部增益。"},
 			],
-			"tip": "铁匠铺加成与守备先加减，再应用士气的攻防系数。",
+			"tip": "铁匠铺与士气的同类加成相加；炮塔守备计入防御，技能加成独立结算。",
 			"icon": preload("res://assets/ui/block_war/action_forge.svg"),
 		},
 		{
@@ -151,7 +153,7 @@ static func guides() -> Array[Dictionary]:
 			"id": &"construction", "title": "升级与改建", "tag": "据点经营",
 			"summary": "消耗驻军提升建筑等级，或更换据点功能。",
 			"sections": [
-				{"title": "升级", "body": "住宅升至 2 / 3 / 4 级，依次消耗 10 / 20 / 30 人；炮塔升至 2 / 3 级，依次消耗 30 / 60 人。只能使用尚未编入出发队列的驻军。"},
+				{"title": "升级", "body": "住宅升至 2 / 3 / 4 级，依次消耗 10 / 20 / 30 人；炮塔升至 2 / 3 / 4 级，依次消耗 30 / 60 / 90 人。只能使用尚未编入出发队列的驻军。"},
 				{"title": "改建", "body": "改建消耗 20 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。"},
 				{"title": "施工", "body": "升级与改建均需 %d 秒。期间保留原有功能；失守时施工中断，已消耗的人口不会返还。" % BUILDING.CONSTRUCTION_DURATION},
 			],
@@ -196,7 +198,7 @@ static func guides() -> Array[Dictionary]:
 			"summary": "与队友共享胜负，通过增援和协同进攻扩大优势。",
 			"sections": [
 				{"title": "队伍规模", "body": "战场支持 1v1、2v2 和 3v3。团队对局以整支队伍的建筑和行军部队判定胜负。"},
-				{"title": "独立资源", "body": "建筑、技力、士气、铁匠铺攻击加成与能量塔收益均按玩家独立计算。玩家只能从自己的建筑派兵、升级或改建。"},
+				{"title": "独立资源", "body": "建筑、技力、士气、铁匠铺全军增益与能量塔收益均按玩家独立计算。玩家只能从自己的建筑派兵、升级或改建。"},
 				{"title": "相互支援", "body": "派往盟友建筑的部队会补充其驻军，抵达后归接收方指挥。松鼠的征召军令与防护罩也可用于盟友建筑。"},
 			],
 			"tip": "据点失守后仍有队友作战时，团队对局会继续。",

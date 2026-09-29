@@ -45,8 +45,9 @@ func pair(faction: int = 0) -> Array[WarBuilding]:
 	var b: WarBuilding = game.buildings[2]
 	a.faction = faction
 	b.faction = faction
-	a.kind = 2
-	b.kind = 2
+	# Fixed-level non-defensive buildings isolate the link's casualty splitting.
+	a.kind = 3
+	b.kind = 3
 	a.population = 100.0
 	b.population = 100.0
 	b.global_position = a.global_position + Vector3(10, 0, 0)
@@ -148,8 +149,8 @@ func _run() -> void:
 	game.cast_skill(2, a)
 	for i: int in 20:
 		game._on_unit_arrived(a.building_id, 1, 1.0)
-	near(a.population, 90, "20 times 1.05 becomes 21 integer casualties")
-	near(b.population, 89, "support does not apply its own tower defense again")
+	near(a.population, 90, "20 times 1.30 divided by 1.25 settles twenty whole casualties")
+	near(b.population, 90, "support does not apply its own tower defense again")
 	var before := float(game.bear.links[a.building_id].remaining)
 	game.set_paused(true)
 	game.simulate(2.0)

@@ -84,7 +84,7 @@ func _partition_and_haste() -> void:
 	game.marches.create_haste_zone(0, CENTER, 100.0, 2.0, 1.6)
 	game.marches.apply_rush(0, CENTER, 3.6, 0.25)
 	game.marches.tick(1.0)
-	near(unit.distance, 5.27, "overlapping rush and haste use the strongest speed, then retain haste after rush expires")
+	near(unit.distance, 5.735, "overlapping rush and haste add their skill bonuses, then retain haste after rush expires")
 
 func _recall_keeps_rush() -> void:
 	await reset()
@@ -113,12 +113,13 @@ func _arrival_timing() -> void:
 		target.level = 3
 		target.population = 100.0
 		game.shields[target.building_id] = 10.0
-		var length := WarMarches.SPEED * (2.0 * minf(arrival_time, 8.0) + maxf(0.0, arrival_time - 8.0))
+		game.sync_environment_bonuses()
+		var length: float = game.marches.base_speed(0) * (2.0 * minf(arrival_time, 8.0) + maxf(0.0, arrival_time - 8.0))
 		soldier(0, CENTER, CENTER + Vector3(length, 0, 0), target.building_id)
 		check(game.cast_ground_skill(0, CENTER), "arrival boundary receives a real eight-second cast")
 		game.marches.tick(9.0)
-		var damage := 1.7 if arrival_time < 8.0 else 0.7
-		near(target.population, 100.0 - damage, "arrival %.1fs adds rush and smithy bonuses before subtracting tower and shield defense" % arrival_time)
+		var damage := 1.3 if arrival_time < 8.0 else 0.65
+		near(target.population, 100.0 - damage, "arrival %.1fs combines smithy/tower environment and rush/shield skill groups" % arrival_time)
 		check(game.marches.total_for(0) == 0, "arrival is processed once even when the tick spans buff expiry")
 
 func _projected_defense() -> void:
@@ -129,11 +130,11 @@ func _projected_defense() -> void:
 	game.shields[home().building_id] = 8.0
 	soldier(1, CENTER, CENTER + Vector3(30, 0, 0), home().building_id)
 	game.marches.apply_rush(1, CENTER, 3.6, 8.0)
-	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 1.7, "AI defense includes rush when a hostile soldier can arrive before expiry")
+	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 1.3, "AI defense includes rush when a hostile soldier can arrive before expiry")
 	game.marches.clear()
 	soldier(1, CENTER, CENTER + Vector3(55, 0, 0), home().building_id)
 	game.marches.apply_rush(1, CENTER, 3.6, 8.0)
-	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 0.7, "AI defense excludes a rush bonus that expires before the hostile arrival")
+	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 0.65, "AI defense excludes a rush bonus that expires before the hostile arrival")
 
 func _real_population() -> void:
 	await reset()
@@ -151,7 +152,7 @@ func _real_population() -> void:
 	game.marches.apply_rush(0, first.position, 3.6, 8.0)
 	near(first.rush_remaining, 8.0, "reapplying rush does not stack its duration")
 	game.marches.tick(3.0)
-	near(target.population, 97.0, "selected soldier deals two damage without stacking, while the unselected rank deals one")
+	near(target.population, 100.0 - 3.0 / 1.15, "selected and ordinary soldiers share the target forge's environment defense")
 	await reset("rivers")
 	var ally: WarBuilding = game.buildings[2]
 	ally.kind = 2
@@ -177,23 +178,23 @@ func _four_star_assault() -> void:
 	# resolve actual one-soldier arrivals against the same four-star garrison.
 	await reset()
 	var target := enemy()
-	target.population = 8.0
+	target.population = 9.0
 	game.morale.adjust(1, 4000.0)
 	for index: int in 10:
 		game._on_unit_arrived(target.building_id, 0, 1.0, 0.5)
-	check(target.faction == 1, "old fifty-point rush cannot capture eight four-star defenders with ten soldiers")
-	near(target.population, 0.5, "old rush leaves half a defender after all ten attackers are lost")
+	check(target.faction == 1, "old fifty-point rush cannot capture nine four-star defenders with ten soldiers")
+	near(target.population, 2.0 / 3.0, "old rush leaves two-thirds of a defender after ten arrivals")
 	await reset()
 	target = enemy()
-	target.population = 8.0
+	target.population = 9.0
 	game.morale.adjust(1, 4000.0)
 	for index: int in 10:
 		soldier(0, CENTER, CENTER + Vector3(3, 0, 0), target.building_id)
 	check(game.cast_ground_skill(0, CENTER), "stronger rush selects the actual attacking squad")
 	game.marches.tick(1.0)
 	check(target.faction == 0, "new rush captures the same four-star garrison")
-	near(target.population, 2.0, "new rush preserves two real attackers as the capturing garrison")
-	near(game.morale.points(1), 4030.0, "defender gains morale only for eight dead attackers and pays the building loss")
+	near(target.population, 1.9, "new rush preserves the actual surviving attackers as the capturing garrison")
+	near(game.morale.points(1), 4031.0, "defender gains morale for actual attacker losses and pays the building loss")
 	await reset()
 	game.morale.adjust(0, 1000.0)
 	var unit := soldier(0, CENTER, CENTER + Vector3(30, 0, 0), enemy().building_id)

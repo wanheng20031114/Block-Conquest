@@ -358,9 +358,9 @@ def cottage(level):
 
 def tower(level=1):
     m=env.Model()
-    deck=(1.84,2.50,2.77)[level-1]
+    deck=(1.84,2.50,2.77,3.20)[level-1]
     wall=deck-.22
-    radius=(1.49,1.57,1.66)[level-1]
+    radius=(1.49,1.57,1.66,1.78)[level-1]
     turned(m,[(-.10,radius-.06),(.04,radius+.16),(.33,radius+.16),
               (.46,radius),(wall-.42,radius),(wall-.29,radius+.15),
               (wall-.08,radius+.15),(wall,radius)],"stone",sections=12 if level==1 else 8)
@@ -373,9 +373,13 @@ def tower(level=1):
         m.box((.72 if level==1 else .85,.43 if level==1 else .61,.48),
               (math.sin(angle)*(radius-.09),wall+.19,math.cos(angle)*(radius-.09)),
               "wood" if level==1 else "stone_light",rot=(0,angle,0),bevel=.095)
-        if level==3:
+        if level>=3:
             m.box((.62,.17,.55),(math.sin(angle)*(radius-.09),wall+.48,math.cos(angle)*(radius-.09)),
                   "iron",rot=(0,angle,0),bevel=.05)
+        if level==4:
+            # Broad copper coping and a dark lower plate crown the final tier.
+            m.box((.75,.12,.60),(math.sin(angle)*(radius-.09),wall+.60,math.cos(angle)*(radius-.09)),
+                  "gold_dark",rot=(0,angle,0),bevel=.035)
     for i in range(8):
         angle=i*math.tau/8
         joints=env.Model()
@@ -386,13 +390,23 @@ def tower(level=1):
         detail=env.Model()
         shield(detail,0,wall*.63,0,.42 if level==1 else .63)
         m.absorb(detail,(side*radius,0,0),side*math.pi/2)
-    if level==3:
-        for x,z in [(-1.08,-1.08),(1.08,-1.08),(-1.08,1.08),(1.08,1.08)]:
+    if level>=3:
+        corner=1.08 if level==3 else 1.18
+        footing=.38 if level==3 else .44
+        top=1.87 if level==3 else 2.45
+        for x,z in [(-corner,-corner),(corner,-corner),(-corner,corner),(corner,corner)]:
             # Grounded splayed buttresses make the heavy tier visibly fortified.
             buttress=tm.convex.convex_hull(np.asarray([
-                (x+dx,y,z+dz) for y,r in [(-.10,.37),(.15,.38),(1.87,.25)]
+                (x+dx,y,z+dz) for y,r in [(-.10,footing-.01),(.15,footing),(top,.25)]
                 for dx,dz in [(-r,-r),(-r,r),(r,r),(r,-r)]]))
             m.add(buttress,"stone_light")
+            if level==4:
+                m.box((.61,.18,.61),(x,top-.02,z),"iron",bevel=.045)
+                m.box((.52,.10,.52),(x,top+.10,z),"gold_dark",bevel=.025)
+        if level==4:
+            # An additional waist course joins the taller masonry and corner braces.
+            turned(m,[(1.62,radius+.015),(1.67,radius+.065),(1.83,radius+.065),
+                      (1.89,radius+.015)],"stone_light",sections=8)
     m.cylinder(radius-.23,.12,(0,deck-.20,0),"wood_dark",16)
     m.cylinder(.77,.20,(0,deck-.12,0),"iron",16)
     m.ring(.63,.80,.10,(0,deck,0),"gold",16)
@@ -548,17 +562,22 @@ def bellows():
 
 def gun_mount(level=1):
     m=env.Model()
-    width=(.51,.64,.69)[level-1]
+    width=(.51,.64,.69,.77)[level-1]
     m.cylinder(.73 if level==1 else .85,.24,(0,.17,0),"iron",16)
     m.ring(.58 if level==1 else .68,.76 if level==1 else .89,.13,(0,.27,0),"gold",16)
     for x in (-width,width):
         m.box((.25 if level==1 else .30,.99,1.14),(x,.76,.03),"wood",bevel=.10)
         m.cylinder(.24,.16,(x,1.18,.04),"gold",12,rot=(0,0,math.pi/2))
         m.cylinder(.13,.19,(x,1.18,.04),"iron_light",12,rot=(0,0,math.pi/2))
-        if level==3:
+        if level>=3:
             m.box((.14,.73,1.10),(x*1.22,.69,.06),"iron",bevel=.075)
             for z in (-.32,.35):
                 m.add(tm.creation.icosphere(subdivisions=1,radius=.085),"gold",(x*1.34,.90,z))
+        if level==4:
+            m.box((.37,.19,1.28),(x,.38,.03),"iron",bevel=.055)
+            m.box((.12,.20,1.12),(x*1.25,1.05,.04),"gold_dark",bevel=.035)
+    if level==4:
+        m.box((1.72,.22,.31),(0,.61,.47),"wood_dark",bevel=.055)
     return m
 
 
@@ -573,12 +592,15 @@ def gun_barrel(level=1):
     turned(m,[(-.25,.605),(-.30,.67),(-.52,.67),(-.56,.58)],"blue",sections=24,axis="z")
     m.add(tm.creation.icosphere(subdivisions=1,radius=.15),"gold",(0,.15,.77))
     m.box((.23,.05,1.10),(0,.548,-1.13),"iron_light",bevel=.012)
-    if level==3:
+    if level>=3:
         turned(m,[(.28,.566),(.25,.635),(.05,.65),(-.01,.605)],"gold_dark",sections=24,axis="z")
         for side in (-1,1):
             m.box((.12,.44,.63),(side*.56,0,.12),"iron_light",bevel=.045)
-    radial=(.72,1.0,1.08)[level-1]
-    length=(.72,1.0,1.12)[level-1]
+    if level==4:
+        turned(m,[(-1.10,.54),(-1.14,.615),(-1.34,.615),(-1.39,.535)],"gold_dark",sections=24,axis="z")
+        turned(m,[(.52,.48),(.49,.575),(.33,.60),(.30,.57)],"iron_light",sections=24,axis="z")
+    radial=(.72,1.0,1.08,1.18)[level-1]
+    length=(.72,1.0,1.12,1.26)[level-1]
     for pieces in m.parts.values():
         for piece in pieces:
             piece.apply_scale((radial,radial,length))
@@ -596,6 +618,9 @@ if __name__ == "__main__":
                            ("gun_mount",gun_mount),("gun_barrel",gun_barrel)]:
             builders[name+suffix]=lambda build=build,level=level: build(level)
     builders["house_4"]=lambda: residence(4)
+    builders["tower_4"]=lambda: tower(4)
+    builders["gun_mount_4"]=lambda: gun_mount(4)
+    builders["gun_barrel_4"]=lambda: gun_barrel(4)
     if args.model and args.model not in builders:
         parser.error(f"Unknown model: {args.model}")
     for name,build in builders.items():

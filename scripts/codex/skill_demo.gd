@@ -223,7 +223,7 @@ func _rabbit() -> void:
 			projectile.points = PackedVector2Array([_right - Vector2(0, 18), _middle])
 			_march(allies, _phase(0.05, 0.95))
 			_label("暂停运作" if progress > 0.24 else "选择敌方建筑")
-			caption.text = "封停目标 6 秒：停产、停火或暂停攻击增益"
+			caption.text = "停工 6 秒：暂停产兵、炮击或建筑增益"
 		2:
 			var fraction := 0.46 * _phase(0.05, 0.38) * (1.0 - _phase(0.43, 0.92))
 			_march(allies, fraction)

@@ -36,6 +36,7 @@ func fresh(game: Node3D) -> void:
 		game.tower_clocks[b.building_id] = 0.0
 	for skill: RefCounted in game.faction_skills:
 		skill.energy = 50.0; skill.cooldowns.fill(0.0); skill.durations.fill(0.0); skill.recruit_target_id = -1
+	game.sync_environment_bonuses()
 
 func _run() -> void:
 	create_timer(90.0, true, false, true).timeout.connect(func(): quit(3))
@@ -167,6 +168,7 @@ func _run() -> void:
 	replica.effects.clear()
 	_recall_and_departure()
 	_energy_towers()
+	_environment_speed()
 	_stress()
 	await replica.prepare_shutdown()
 	await host.prepare_shutdown()
@@ -209,6 +211,68 @@ func _validate_references(state: Dictionary) -> void:
 	altered = state.duplicate(true)
 	altered.fires["1"][4] = [999999]
 	check(not Snapshot.valid(altered, host), "fire cannot reference a nonexistent building")
+
+func _environment_speed() -> void:
+	fresh(host)
+	host.elapsed = 10.0
+	host.by_id[0].kind = 2
+	host.by_id[2].kind = 2; host.by_id[2].faction = 0
+	host.by_id[2].begin_disruption(0.4)
+	host.by_id[4].kind = 2 # An allied faction's forge must not count.
+	host.morale.adjust(0, 500.0)
+	host.sync_environment_bonuses()
+	near(host.marches.environment_speed[0], 1.2, "one working forge and one morale star add before the skill group")
+	for index: int in 2:
+		host.marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(300, 0, 0)]))
+		var unit: WarMarches.MarchUnit = host.marches._units[-1]
+		unit.spawn_delay = 0.1; unit.levitation_remaining = 0.2; unit.rush_remaining = 0.5
+	host.marches.create_haste_zone(0, Vector3.ZERO, 1000.0, 0.6, 1.6)
+	host.marches.create_slow_zone(1, Vector3.ZERO, 1000.0, 0.3)
+	var state := writer.capture(host, 1800)
+	var historical := Snapshot.new()
+	historical.install(replica, state, 10.8)
+	# Held .0-.2; then .1*1.2*2 + .1*1.2*2.6 + .1*1.3*2.6
+	# + .1*1.3*1.6 + .2*1.3, all multiplied by the base speed 3.1.
+	for unit: WarMarches.MarchUnit in replica.marches._units:
+		near(unit.distance, 4.2098, "late snapshot integrates forge recovery and every timed skill boundary for each soldier")
+	near(replica.marches.environment_speed[0], 1.3, "historical integration restores the present environment speed")
+	var stepped := Snapshot.new()
+	stepped.install(replica, state)
+	for index: int in 8: stepped.present(replica, state, 0.1)
+	for unit: WarMarches.MarchUnit in replica.marches._units:
+		near(unit.distance, 4.2098, "short presentation frames match the historical movement integral")
+	host.simulate(0.8)
+	for unit: WarMarches.MarchUnit in host.marches._units:
+		near(unit.distance, 4.2098, "authority movement matches snapshot prediction through forge recovery")
+
+	for change: String in ["conversion", "capture", "disruption"]:
+		fresh(host)
+		host.elapsed = 20.0
+		host.by_id[0].kind = 2
+		host.sync_environment_bonuses()
+		host.marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(300, 0, 0)]))
+		var before := writer.capture(host, 1900)
+		var codec := Snapshot.new()
+		codec.install(replica, before)
+		codec.present(replica, before, 0.3)
+		match change:
+			"conversion": host.by_id[0].kind = 3
+			"capture": host.by_id[0].faction = 1
+			"disruption": host.by_id[0].begin_disruption(2.0)
+		var after := writer.capture(host, 1901)
+		var delta := Snapshot.diff(before, after)
+		check(delta.set.get("units", {}).size() == 1, "forge " + change + " reliably re-anchors every moving soldier")
+		Snapshot.apply_delta(before, delta)
+		check(Snapshot.valid(before, replica), "forge " + change + " and movement anchor form one valid fact")
+		codec.install(replica, before, 20.3)
+		near(replica.marches._units[0].distance, WarMarches.SPEED * 0.3, "same-time forge " + change + " replaces the extrapolated environment factor")
+
+	fresh(host)
+	host.by_id[0].kind = 1; host.by_id[0].level = 4
+	state = writer.capture(host, 2000)
+	check(Snapshot.valid(state, host), "level-four tower is a valid network building")
+	state.buildings["0"][2] = 5
+	check(not Snapshot.valid(state, host), "tower level five is rejected by the network schema")
 
 func _stress() -> void:
 	fresh(host)

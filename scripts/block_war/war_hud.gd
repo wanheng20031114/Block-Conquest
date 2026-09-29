@@ -16,6 +16,7 @@ signal ui_sound_requested(kind: StringName)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 const BUILDING_NAMES := WarBuilding.KIND_NAMES
 
 var _paused: bool = false
@@ -128,9 +129,14 @@ func update_state(state: Dictionary) -> void:
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
 		_percentage_buttons[index].disabled = _global_paused or _local_surrendered or _finished
-	var permanent_attack_bonus: float = ((1.0 + int(state.forges) * 0.1) * (1.0 + floori(float(state.morale_stars[local_faction])) * 0.05) - 1.0) * 100.0
-	var attack_text: String = ("%.1f" % permanent_attack_bonus).trim_suffix(".0")
-	%ForgeBonus.text = ("你的攻击  +%s%%" if state.team_size > 1 else "攻击加成  +%s%%") % attack_text
+	var forges := int(state.forges)
+	var stars := floori(float(state.morale_stars[local_faction]))
+	var forge_attack: int = roundi(COMBAT_RULES.forge_attack_bonus(forges) * 100.0)
+	var forge_defense: int = roundi(COMBAT_RULES.forge_defense_bonus(forges) * 100.0)
+	var forge_speed: int = roundi(COMBAT_RULES.forge_speed_bonus(forges) * 100.0)
+	var morale_defense: int = roundi(stars * WarMorale.DEFENSE_PER_STAR * 100.0)
+	%ForgeBonus.text = "攻 +%d%% · 防 +%d%%\n移速 +%d%%" % [forge_attack + stars * 5, forge_defense + morale_defense, forge_speed + stars * 10]
+	%ForgeBonus.tooltip_text = "你的全军常驻加成\n铁匠铺 %d 座：攻击 +%d%% · 防御 +%d%% · 移速 +%d%%\n士气 %d 星：攻击 +%d%% · 防御 +%d%% · 移速 +%d%%\n同类常驻加成相加，仅属于本玩家。\n炮塔守备与临时技能另行结算。" % [forges, forge_attack, forge_defense, forge_speed, stars, stars * 5, morale_defense, stars * 10]
 	_update_building_actions(state)
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0

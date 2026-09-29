@@ -73,19 +73,19 @@ func run() -> void:
 		game.simulate(0.05)
 	check(neutral.faction == 0 and neutral.population >= 16.0 and game.marches.total_for(0) == 0, "real marching soldiers capture and enter destination")
 	var tower: Node3D = game.by_id[6]
-	tower.population = 4.75
+	tower.population = 4.0
 	tower.faction = -1
 	for soldier: int in 5:
 		game._on_unit_arrived(6, 0, 1.0)
-	check(tower.population == 0.0 and tower.faction == -1, "five attackers trade for 4.75 defenders at a neutral level-one tower without capturing")
+	check(is_zero_approx(tower.population) and tower.faction == -1, "five attackers trade for four defenders at a neutral level-one tower without capturing")
 	game._on_unit_arrived(6, 0, 1.0)
-	check(tower.faction == 0 and tower.population == 1.0, "first surviving arrival captures building")
+	check(tower.faction == 0 and is_equal_approx(tower.population, 1.0), "first surviving arrival captures building")
 	var forge: Node3D = game.by_id[8]
 	forge.faction = 0
-	check(is_equal_approx(game.attack_bonus(0), 0.1), "one forge grants its current owner ten percent attack")
-	check(is_zero_approx(game.defense_bonus(home)), "forge provides no defense bonus")
+	check(is_equal_approx(game.attack_bonus(0), 0.3), "one forge grants its current owner thirty percent attack")
+	check(is_equal_approx(game.defense_bonus(home), 0.15), "one forge provides fifteen percent environment defense")
 	forge.faction = 1
-	check(is_zero_approx(game.attack_bonus(0)) and is_equal_approx(game.attack_bonus(1), 0.1), "forge benefit transfers immediately with ownership")
+	check(is_zero_approx(game.attack_bonus(0)) and is_equal_approx(game.attack_bonus(1), 0.3), "forge benefit transfers immediately with ownership")
 	forge.faction = -1
 	game.cooldowns.fill(0.0)
 	var before: float = home.population
@@ -96,7 +96,7 @@ func run() -> void:
 	check(game.cast_skill(2, home), "shield targets allied building")
 	home.population = 50.0
 	game._on_unit_arrived(0, 1, 1.0)
-	check(is_equal_approx(home.population, 49.25), "shield reduces ordinary incoming building damage by twenty-five percent")
+	check(is_equal_approx(home.population, 49.2), "twenty-five percent skill defense divides incoming damage by 1.25")
 	game.cooldowns[3] = 0.0
 	game.energy = game.ENERGY_MAX
 	tower.faction = -1

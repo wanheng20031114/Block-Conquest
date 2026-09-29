@@ -10,6 +10,7 @@ const MAX_EXTRAPOLATION := 1.0
 const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5, 9]}
 const FIRE := preload("res://scripts/block_war/war_fire_state.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 var _order_cache: Dictionary = {}
 var _shot_serial := 1
 var _objects: Dictionary = {}
@@ -19,6 +20,7 @@ var _installed_order_rows: Dictionary = {}
 var _presentation_rows: Array[Array] = []
 var _field_geometry: Dictionary = {}
 var _last_state: Dictionary = {}
+var _environment_timelines: Dictionary[int, Array] = {}
 
 static func v3(value: Vector3) -> Array:
 	return [value.x, value.y, value.z]
@@ -167,6 +169,14 @@ static func diff(previous: Dictionary, current: Dictionary, force: bool = false)
 	for key: String in changes.get("factions", {}):
 		if previous.get("factions", {}).has(key) and previous.factions[key][5] != current.factions[key][5]:
 			speed_changed = true
+	for key: String in changes.get("buildings", {}):
+		var next: Array = current.buildings[key]
+		if not previous.get("buildings", {}).has(key):
+			speed_changed = speed_changed or int(next[1]) == 2
+			continue
+		var old: Array = previous.buildings[key]
+		if (int(old[1]) == 2 or int(next[1]) == 2) and (old[0] != next[0] or old[1] != next[1] or absf(float(old[8]) - float(next[8])) > 0.00001):
+			speed_changed = true
 	if speed_changed:
 		changes["units"] = current.units.duplicate(false)
 	if previous.match_control.paused != current.match_control.paused:
@@ -299,7 +309,7 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 	match group:
 		"buildings":
 			if not _row(row, 12) or not _integer(row[0], -1, game.faction_count - 1) or not _integer(row[1], 0, 3): return false
-			if not _integer(row[2], 1, [4, 3, 1, 1][int(row[1])]) or not _nonnegative(row[3]) or not _integer(row[4], 0, floori(float(row[3]) + 0.000001)): return false
+			if not _integer(row[2], 1, [4, 4, 1, 1][int(row[1])]) or not _nonnegative(row[3]) or not _integer(row[4], 0, floori(float(row[3]) + 0.000001)): return false
 			if not _integer(row[6], 0, MAX_ID) or not _integer(row[7], -1, 3): return false
 			for i: int in [5, 8, 9, 10, 11]:
 				if not _nonnegative(row[i]): return false
@@ -457,7 +467,8 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		game.morale._points[f] = float(row[5])
 		game.morale._idle_seconds[f] = float(row[6])
 		game.morale._next_decay_at[f] = float(row[7])
-		game.marches.morale_speed[f] = game.morale.speed(f)
+	game.sync_environment_bonuses()
+	var environment_changed := _build_environment_timelines(game, state)
 	var orders_changed := false
 	for key: String in state.orders:
 		if _installed_order_rows.get(key) == state.orders[key]: continue
@@ -497,7 +508,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		var installed: Variant = _installed_unit_rows.get(key)
 		# A pause can commit at the same rule time as the previous row while this
 		# replica has already extrapolated. Reinstall at the exact control boundary.
-		if not control_changed and (is_same(installed, row) or installed == row) and (not orders_changed or unit.order == _orders[str(int(row[0]))]):
+		if not control_changed and not environment_changed and (is_same(installed, row) or installed == row) and (not orders_changed or unit.order == _orders[str(int(row[0]))]):
 			units.append(unit)
 			continue
 		units_changed = true
@@ -511,7 +522,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		unit.spawn_delay = remaining(row[5], base); unit.rush_remaining = remaining(row[6], base)
 		unit.levitation_remaining = remaining(row[7], base)
 		_set_field_clock(game, state, base, false)
-		_move_visual_unit(game, unit, minf(MAX_EXTRAPOLATION, maxf(0.0, now - base)))
+		_move_visual_unit(game, unit, minf(MAX_EXTRAPOLATION, maxf(0.0, now - base)), base)
 		unit.spawn_delay = remaining(row[5], now); unit.rush_remaining = remaining(row[6], now)
 		unit.levitation_remaining = remaining(row[7], now)
 		game.marches._update_pose(unit)
@@ -520,6 +531,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0) -> void:
 		_installed_unit_rows[key] = row
 		units.append(unit)
 	_set_field_clock(game, state, now, true)
+	game.sync_environment_bonuses()
 	for key: String in _objects.keys():
 		if not state.units.has(key):
 			units_changed = true
@@ -602,13 +614,50 @@ func _set_field_clock(game: Node, state: Dictionary, now: float, discard_expired
 		zones[id].remaining = remaining(row[4], now)
 		if discard_expired and zones[id].remaining <= 0.0: zones.erase(id)
 
-func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float) -> void:
-	if not unit.pending_departure and seconds > 0.0:
-		var step: float = game.marches.movement_distance(unit, seconds)
-		unit.distance = minf(unit.order.length - 0.001, unit.distance + step)
-		if game.marches.blocked_destinations.has(unit.order.target_id) and game.FACTIONS.hostile(unit.order.faction, game.marches.blocked_destinations[unit.order.target_id]):
-			unit.distance = minf(unit.distance, unit.order.length - 0.12)
-		unit.gait += step * 7.0
+func _build_environment_timelines(game: Node, state: Dictionary) -> bool:
+	# Ownership/type changes arrive with fresh unit anchors. The only predictable
+	# future forge-speed boundary is an existing disruption's absolute deadline.
+	var previous := _environment_timelines
+	_environment_timelines = {}
+	for faction: int in game.faction_count:
+		var active := 0
+		var deadlines: Array[float] = []
+		for row: Array in state.buildings.values():
+			if int(row[0]) != faction or int(row[1]) != 2: continue
+			if float(row[8]) <= 0.0: active += 1
+			else: deadlines.append(float(row[8]))
+		deadlines.sort()
+		var timeline: Array = [{"at": 0.0, "speed": game.morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(active)}]
+		for at: float in deadlines:
+			active += 1
+			timeline.append({"at": at, "speed": game.morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(active)})
+		_environment_timelines[faction] = timeline
+	return previous != _environment_timelines
+
+func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, at_time: float) -> void:
+	if unit.pending_departure or seconds <= 0.0: return
+	var cursor := at_time
+	var finish := at_time + seconds
+	for boundary: Dictionary in _environment_timelines[unit.order.faction]:
+		if float(boundary.at) <= cursor:
+			game.marches.environment_speed[unit.order.faction] = float(boundary.speed)
+			continue
+		if float(boundary.at) >= finish: break
+		_move_visual_section(game, unit, float(boundary.at) - cursor, cursor)
+		cursor = float(boundary.at)
+		game.marches.environment_speed[unit.order.faction] = float(boundary.speed)
+	_move_visual_section(game, unit, finish - cursor, cursor)
+
+func _move_visual_section(game: Node, unit: WarMarches.MarchUnit, seconds: float, at_time: float) -> void:
+	_set_field_clock(game, _last_state, at_time, false)
+	var step: float = game.marches.movement_distance(unit, seconds)
+	unit.distance = minf(unit.order.length - 0.001, unit.distance + step)
+	if game.marches.blocked_destinations.has(unit.order.target_id) and game.FACTIONS.hostile(unit.order.faction, game.marches.blocked_destinations[unit.order.target_id]):
+		unit.distance = minf(unit.distance, unit.order.length - 0.12)
+	unit.gait += step * 7.0
+	unit.spawn_delay = maxf(0.0, unit.spawn_delay - seconds)
+	unit.rush_remaining = maxf(0.0, unit.rush_remaining - seconds)
+	unit.levitation_remaining = maxf(0.0, unit.levitation_remaining - seconds)
 
 func _install_shots(game: Node, state: Dictionary, now: float) -> void:
 	game.projectiles.clear(); game.bear.shots.clear()
@@ -651,7 +700,7 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 		var unit: WarMarches.MarchUnit = marches._units[index]
 		var row: Array = _presentation_rows[index]
 		var prediction := minf(delta, maxf(0.0, float(row[12]) + MAX_EXTRAPOLATION - before))
-		_move_visual_unit(game, unit, prediction)
+		_move_visual_unit(game, unit, prediction, before)
 		unit.spawn_delay = remaining(row[5], game.elapsed)
 		unit.rush_remaining = remaining(row[6], game.elapsed)
 		unit.levitation_remaining = remaining(row[7], game.elapsed)
@@ -665,6 +714,7 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 			skill.cooldowns[i] = maxf(0.0, skill.cooldowns[i] - delta)
 			skill.durations[i] = maxf(0.0, skill.durations[i] - delta)
 	_present_buildings(game, _last_state, game.elapsed)
+	game.sync_environment_bonuses()
 	_set_field_clock(game, _last_state, game.elapsed, true)
 	for key: int in game.shields.keys():
 		game.shields[key] = maxf(0.0, game.shields[key] - delta)

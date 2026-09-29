@@ -210,6 +210,7 @@ func _run() -> void:
 	_check(_arrived.size() == 6 and marches.total_for(0) == 0, "The contracted rank fully enters the destination without losing or duplicating troops")
 	marches.clear()
 	_energy_origins(marches, straight)
+	_movement_groups(marches)
 	var long_route := PackedVector3Array([Vector3.ZERO, Vector3(0, 0, -200)])
 	marches.send(0, 1, 0, 700, long_route)
 	# Include the complete source queue and the exit funnel at the current speed.
@@ -254,4 +255,32 @@ func _energy_origins(marches: WarMarches, route: PackedVector3Array) -> void:
 	marches.tick(20.0)
 	_check(_arrived.size() == 1 and not _arrived[0].energy_origin, "Ordinary orders default to no energy origin")
 	marches.clear()
+	_arrived.clear()
+
+func _movement_groups(marches: WarMarches) -> void:
+	var distances: Array[float] = []
+	for short_ticks: bool in [false, true]:
+		marches.clear()
+		marches.environment_speed[0] = 1.3 # Two own smithies plus one morale star.
+		marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(300, 0, 0)]))
+		var unit := marches._units[0]
+		marches.apply_rush(0, Vector3.ZERO, 5.0, 1.0)
+		marches.apply_rush(0, Vector3.ZERO, 5.0, 1.0)
+		marches.create_haste_zone(0, Vector3.ZERO, 1000.0, 2.0, 1.6)
+		marches.create_haste_zone(0, Vector3.ZERO, 1000.0, 2.0, 1.6)
+		marches.create_slow_zone(1, Vector3.ZERO, 1000.0, 0.5)
+		marches.create_slow_zone(3, Vector3.ZERO, 1000.0, 0.5)
+		_check(is_equal_approx(marches.base_speed(0), WarMarches.SPEED * 1.3), "Smithy and morale are added within the persistent environment factor")
+		_check(is_equal_approx(marches.speed_multiplier(unit), 2.6), "Environment 1.3 multiplies additive skills 1 + 1 + 0.6 - 0.6; identical skills do not stack")
+		if short_ticks:
+			for index: int in 20: marches.tick(0.1)
+		else:
+			marches.tick(2.0)
+		distances.append(unit.distance)
+		# 0-.5: skills 2.0; .5-1: skills 2.6; 1-2: skills 1.6.
+		_check(absf(unit.distance - WarMarches.SPEED * 1.3 * 3.9) < 0.00001, "Both tick partitions integrate the three independent skill expiry intervals")
+		_check(is_equal_approx(marches.speed_multiplier(unit), 1.3), "Skill expiry preserves the current environment multiplier")
+	_check(absf(distances[0] - distances[1]) < 0.00001, "Grouped movement bonuses give equal long and short tick distances")
+	marches.clear()
+	marches.environment_speed.fill(1.0)
 	_arrived.clear()

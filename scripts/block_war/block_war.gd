@@ -5,6 +5,7 @@ signal presentation_event(kind: String, payload: Dictionary)
 
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺", "能量塔"]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 const SKILL_COOLDOWNS := SKILL_RULES.COOLDOWNS
 const SKILL_DURATIONS := SKILL_RULES.DURATIONS
 const SKILL_ENERGY_COSTS := SKILL_RULES.COSTS
@@ -328,6 +329,7 @@ func simulate(delta: float) -> void:
 	# small steps, including a recruitment skill crossing the completion time.
 	var remaining := delta
 	while remaining > 0.0 and not finished:
+		sync_environment_bonuses()
 		var step := remaining
 		if ai_enabled:
 			step = minf(step, maxf(ai_clock, 0.000001))
@@ -348,6 +350,7 @@ func simulate(delta: float) -> void:
 		remaining = maxf(0.0, remaining - step)
 
 func _simulate_step(delta: float) -> void:
+	sync_environment_bonuses()
 	morale.begin_step()
 	elapsed += delta
 	var recruiting := _tick_recruitment(delta)
@@ -400,6 +403,7 @@ func _simulate_step(delta: float) -> void:
 			if building.faction == local_faction:
 				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
+	sync_environment_bonuses()
 	bear.advance(self, delta)
 	world_effects.get_node("Frog").sync(marches, delta)
 	_check_victory()
@@ -529,23 +533,29 @@ func energy_regen_for(faction: int) -> float:
 	return ENERGY_REGEN + SKILL_RULES.energy_tower_bonus(energy_tower_count(faction))
 
 func attack_bonus(faction: int) -> float:
-	return 0.1 * forge_count(faction)
+	return COMBAT_RULES.forge_attack_bonus(forge_count(faction))
 
 func defense_bonus(building: Node3D) -> float:
-	var value: float = 0.05 * building.level if building.kind == 1 else 0.0
-	if shields.has(building.building_id):
-		value += SKILL_RULES.SHIELD_DEFENSE
-	return value
+	var tower: float = COMBAT_RULES.tower_defense_bonus(building.level) if building.kind == 1 else 0.0
+	return tower + COMBAT_RULES.forge_defense_bonus(forge_count(building.faction))
+
+func skill_defense_bonus(building: Node3D) -> float:
+	return SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
 
 func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 0.0) -> float:
-	# Sum percentage-point bonuses before scaling troops. Preview and AI use
-	# this same live coefficient, including ownership and construction changes.
-	return (1.0 + attack_bonus(faction) + unit_attack_bonus - defense_bonus(target)) * morale.attack(faction) / morale.defense(target.faction)
+	# Buildings and morale share one additive group; skills form a separate group.
+	var environment := (morale.attack(faction) + attack_bonus(faction)) / (morale.defense(target.faction) + defense_bonus(target))
+	return environment * (1.0 + unit_attack_bonus) / (1.0 + skill_defense_bonus(target))
+
+func sync_environment_bonuses() -> void:
+	for faction: int in faction_count:
+		marches.environment_speed[faction] = morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(forge_count(faction))
 
 func _on_morale_changed(faction: int) -> void:
-	marches.morale_speed[faction] = morale.speed(faction)
+	marches.environment_speed[faction] = morale.speed(faction) + COMBAT_RULES.forge_speed_bonus(forge_count(faction))
 
 func _on_building_completed(kind: int, completed_level: int, converted: bool, building: WarBuilding) -> void:
+	sync_environment_bonuses()
 	if not converted and building.faction >= 0:
 		morale.adjust(building.faction, MORALE.upgrade_reward(kind, completed_level))
 	presentation_event.emit("construction_complete", {"building": building.building_id, "faction": building.faction, "kind": kind, "level": completed_level, "converted": converted})
@@ -619,6 +629,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 			target.population = survivors
 			target.level = maxi(1, target.level - 1)
 			shields.erase(target_id)
+			sync_environment_bonuses()
 			var energy_bonus := 0.0
 			if energy_origin and FACTIONS.hostile(faction, previous_faction):
 				var state := faction_skills[faction]
@@ -632,7 +643,7 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 			elif previous_faction == local_faction:
 				audio.play_ui(&"war_lost")
 			if faction == local_faction:
-				var benefit: String = ["每秒 +%s 民兵" % target.production_rate, "炮塔开始拦截敌军", "全军攻击 +10%", "提高技力恢复速度"][target.kind]
+				var benefit: String = ["每秒 +%s 民兵" % target.production_rate, "炮塔开始拦截敌军", "提高全军攻击、防御与移速", "提高技力恢复速度"][target.kind]
 				if energy_bonus > 0.0:
 					benefit += " · 技力 +%.1f" % energy_bonus
 				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], benefit])
@@ -708,7 +719,8 @@ func _tick_fire_buildings() -> void:
 			var offset := Vector2(building.global_position.x - fire.global_position.x, building.global_position.z - fire.global_position.z)
 			if offset.length() <= fire.front(fire.age):
 				fire.hit_buildings[building.building_id] = true
-				var damage := bear.damage_for(self, building, IMPACT_DAMAGE * (1.0 - defense_bonus(building)) * morale.attack(fire.faction) / morale.defense(building.faction))
+				# Fire retains its independent base damage and morale attack scaling.
+				var damage := bear.damage_for(self, building, IMPACT_DAMAGE * morale.attack(fire.faction) / (morale.defense(building.faction) + defense_bonus(building)) / (1.0 + skill_defense_bonus(building)))
 				building.population = maxf(0.0, building.population - damage)
 				if building.queued_population > floori(building.population):
 					marches.trim_departures(building.building_id, building.faction, floori(building.population))
@@ -1122,7 +1134,7 @@ func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, i
 			damage += incoming.get(Vector2i(building.building_id, faction), 0) * combat_multiplier(faction, building)
 	for unit: WarMarches.MarchUnit in marches._units:
 		if unit.order.target_id == building.building_id and FACTIONS.hostile(building.faction, unit.order.faction):
-			damage += unit.order.strength * marches.projected_attack_bonus(unit) * morale.attack(unit.order.faction) / morale.defense(building.faction)
+			damage += unit.order.strength * (combat_multiplier(unit.order.faction, building, marches.projected_attack_bonus(unit)) - combat_multiplier(unit.order.faction, building))
 	return damage
 
 func total_for(faction: int) -> int:
@@ -1247,12 +1259,12 @@ func update_hud() -> void:
 	for faction: int in faction_count:
 		morale_stars.append(morale.stars(faction))
 		faction_names.append(faction_name(faction))
-	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺增攻 · 能量塔恢复技力"
+	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺强化军团 · 能量塔恢复技力"
 	if selected != null:
 		match selected.kind:
 			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限" % [selected.production_rate, selected.capacity]
-			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 守备 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, selected.level * 5]
-			2: detail = "所属军团攻击 +10% · 不可升级 · 不自动产兵"
+			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 防御 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, roundi(COMBAT_RULES.tower_defense_bonus(selected.level) * 100.0)]
+			2: detail = "提高所属军团攻击、防御与移速 · 不可升级 · 不自动产兵"
 			3: detail = "提高技力恢复 · 出征占领敌方建筑 +10 技力 · 不可升级 · 不自动产兵"
 		if shields.has(selected.building_id):
 			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])

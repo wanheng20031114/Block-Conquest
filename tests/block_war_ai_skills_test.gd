@@ -129,12 +129,12 @@ func _run() -> void:
 		game.by_id[faction].position = center + Vector3((faction - 3) * 0.2, 0, 0)
 		game.by_id[faction].kind = 2 # Isolate damage from post-hit residential regrowth.
 	game.cast_ground_skill(3, center, 1)
-	near(game.by_id[2].population, 35.0, "AI fire damages an opposing garrison in its ignition core immediately")
+	near(game.by_id[2].population, 60.0 - 25.0 / 1.15, "AI fire damages an opposing forge through its faction defense")
 	expose(1, 1, center, center + Vector3(20, 0, 0))
 	expose(0, 1, center, center + Vector3(20, 0, 0))
 	game.simulate(WarFireWave.EXPANSION_TIME)
 	for faction: int in 6:
-		near(game.by_id[faction].population, 60.0 if faction % 2 == 1 else 35.0, "enemy fire protects its own alliance and damages opponents")
+		near(game.by_id[faction].population, 60.0 if faction % 2 == 1 else 60.0 - 25.0 / 1.15, "enemy fire protects its own alliance and damages opponents")
 	check(game.marches._units.is_empty(), "AI fire burns both exposed factions")
 	await reset_match(30.0)
 	var ai := TACTICS.new(1)

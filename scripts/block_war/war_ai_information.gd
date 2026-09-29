@@ -33,7 +33,7 @@ static func incoming_damage(game: Node3D, building: WarBuilding, incoming: Dicti
 		if not is_unit_known(game, unit, faction) or unit.order.target_id != building.building_id or not game.FACTIONS.hostile(building.faction, unit.order.faction):
 			continue
 		damage += (unit.order.strength - 1.0) * game.combat_multiplier(unit.order.faction, building)
-		damage += unit.order.strength * game.marches.projected_attack_bonus(unit) * game.morale.attack(unit.order.faction) / game.morale.defense(building.faction)
+		damage += unit.order.strength * (game.combat_multiplier(unit.order.faction, building, game.marches.projected_attack_bonus(unit)) - game.combat_multiplier(unit.order.faction, building))
 	return damage
 
 static func team_strength(game: Node3D, team: int, faction: int) -> float:

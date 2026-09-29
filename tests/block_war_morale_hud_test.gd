@@ -36,18 +36,24 @@ func capture(label: String) -> void:
 	await RenderingServer.frame_post_draw
 	check(root.get_texture().get_image().save_png(output.path_join(label + ".png")) == OK, "capture " + label)
 
-func verify_attack_bonus() -> void:
-	for example: Array in [[0, 0.0, "0"], [0, 0.9999, "0"], [0, 5.0, "25"], [1, 0.0, "10"], [1, 4.9999, "32"], [1, 5.0, "37.5"]]:
+func verify_permanent_bonuses() -> void:
+	var bonus: Label = hud.get_node("%ForgeBonus")
+	for example: Array in [[0, 0.0, 0, 0, 0], [0, 0.9999, 0, 0, 0], [0, 5.0, 25, 100, 50], [1, 0.0, 30, 15, 10], [1, 4.9999, 50, 95, 50], [1, 5.0, 55, 115, 60], [2, 0.0, 50, 25, 20], [3, 0.0, 70, 35, 30], [4, 0.0, 80, 40, 40], [7, 5.0, 105, 140, 120]]:
 		var state := sample([10, 10], [example[1], 0.0])
 		state.forges = example[0]
 		hud.update_state(state)
-		check(hud.get_node("%ForgeBonus").text == "攻击加成  +%s%%" % example[2], "permanent attack composes forge %d and complete stars from %s" % [example[0], example[1]])
+		check(bonus.text == "攻 +%d%% · 防 +%d%%\n移速 +%d%%" % [example[2], example[3], example[4]], "permanent bonuses add forge %d and complete stars from %s" % [example[0], example[1]])
+		check(bonus.tooltip_text.contains("铁匠铺 %d 座" % example[0]) and bonus.tooltip_text.contains("士气 %d 星" % floori(float(example[1]))), "tooltip separates forge and morale sources")
+		for line: String in bonus.text.split("\n"):
+			check(bonus.get_theme_font("font").get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, bonus.get_theme_font_size("font_size")).x <= bonus.size.x, "permanent bonus text fits existing portrait column")
+	check(bonus.mouse_filter == Control.MOUSE_FILTER_PASS and not hud.is_pointer_blocked(bonus.get_global_rect().get_center()), "bonus tooltip preserves battlefield input")
 	var team_state := sample([10, 10, 10, 10], [5.0, 0.0, 0.0, 0.0])
 	team_state.commander = &"rabbit"
 	team_state.forges = 1
 	team_state.skill_durations[0] = 4.0
 	hud.update_state(team_state)
-	check(hud.get_node("%ForgeBonus").text == "你的攻击  +37.5%", "team label shows own permanent attack without temporary rabbit buff")
+	check(bonus.text == "攻 +55% · 防 +115%\n移速 +60%", "team label shows own permanent bonuses without temporary rabbit buff")
+	check(bonus.tooltip_text.begins_with("你的全军常驻加成") and bonus.tooltip_text.contains("炮塔守备与临时技能另行结算"), "tooltip identifies local ownership and bonus scope")
 
 func verify_near_full_stars() -> void:
 	var row: Control = balance.get_node("Stars/Faction1")
@@ -109,7 +115,8 @@ func _run() -> void:
 	var first_star: TextureProgressBar = balance.get_node("Stars/Faction0/Star0")
 	check(first_star.texture_under != null and first_star.texture_progress != null and first_star.get_node("Glow").texture != null, "all star textures are imported")
 	await create_timer(0.8).timeout
-	verify_attack_bonus()
+	verify_permanent_bonuses()
+	await capture("00_permanent_bonuses")
 	verify_near_full_stars()
 	await verify([120, 120], [0.0, 2.5], "01_duel_partial")
 	await verify([120, 120, 120, 120], [1.0, 2.0, 3.0, 4.0], "02_four_players")

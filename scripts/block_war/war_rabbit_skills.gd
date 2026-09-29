@@ -59,6 +59,7 @@ static func cast(_game: Node3D, index: int, target: WarBuilding, _faction: int) 
 	match index:
 		1:
 			target.begin_disruption(RULES.DISABLE_DURATION)
+			_game.sync_environment_bonuses()
 		3:
 			target.begin_burrow(RULES.BURROW_READY_DURATION)
 		_:

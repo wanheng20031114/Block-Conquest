@@ -56,7 +56,7 @@ func _run() -> void:
 	var completion: GPUParticles3D = home.get_node("Construction/Complete")
 	var original_nodes := home.find_children("*", "", true, false).size()
 	for kind: int in [0, 1, 2]:
-		var max_level: int = [4, 3, 1][kind]
+		var max_level: int = [4, 4, 1][kind]
 		for tier: int in range(1, max_level):
 			fixture(kind, tier)
 			var path: String = "Visual/%s/Stone" % ["House", "Tower", "Smithy"][kind]

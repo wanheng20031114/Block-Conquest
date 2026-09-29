@@ -43,9 +43,10 @@ func _run() -> void:
 	game.audio.muted = true
 	reset() # These movement fixtures need a funded skill pool after the 30-energy opening.
 	for building: WarBuilding in game.buildings:
-		building.kind = 2
+		building.kind = 3 # Suppress production and towers without a forge movement bonus.
 		building.population = 1000.0
 		building.refresh_visual()
+	game.sync_environment_bonuses()
 	var portrait: TextureRect = game.hud.get_node("UI/Player/Icon")
 	check(portrait.texture.resource_path.ends_with("commanders/squirrel.png") and portrait.material == null, "default squirrel keeps its full silhouette without a circular crop")
 	check(portrait.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "pixel commander uses nearest filtering")

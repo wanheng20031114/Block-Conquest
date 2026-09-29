@@ -117,7 +117,7 @@ func _run() -> void:
 		check(deaths.size() > 20 and deaths.all(func(death: Dictionary): return death.burning), "every contacted soldier has a burning casualty event without a damage-count cap")
 		check(deaths.any(func(death: Dictionary): return death.faction == 0) and deaths.any(func(death: Dictionary): return death.faction == 1), "casualty effects include both faction colors")
 		near(ally.population, 200.0, "friendly garrison remains protected inside its building")
-		near(enemy.population, 100.0 - 25.0 * 0.85, "level-three tower takes one hit reduced by its fifteen percent defense")
+		near(enemy.population, 100.0 - 25.0 / 1.6, "level-three tower divides the fire hit by its sixty-percent environment defense")
 		check(neutral.population == 0.0 and neutral.faction == -1, "fire damages a boundary garrison without capturing it")
 		near(far.population, 100.0, "building beyond the radius is never hit")
 		partition_totals.append(Vector2i(game.marches.total_for(0), game.marches.total_for(1)))

@@ -48,7 +48,7 @@ func _shield_boundaries() -> void:
 		var before_expiry := arrival < 0.02
 		for result: Vector2 in results:
 			check(int(result.x) == (1 if before_expiry else 0), "shield protects only an arrival before its expiration")
-			check(absf(result.y - (0.05 if before_expiry else 0.2)) < 0.00001, "shield boundary preserves the exact defender or attacker survivors")
+			check(absf(result.y - (0.0 if before_expiry else 0.2)) < 0.00001, "shield boundary preserves the exact defender or attacker survivors")
 		check(results[0].is_equal_approx(results[1]) and results[0].is_equal_approx(results[2]), "30 Hz and finer simulation agree on ownership and garrison")
 	clean()
 	game.shields[0] = 0.02; game.shields[1] = 0.03

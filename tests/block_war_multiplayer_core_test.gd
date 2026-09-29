@@ -69,7 +69,7 @@ func _run() -> void:
 	game.select_building(game.by_id[5])
 	game.morale.adjust(5, 2000.0)
 	game.update_hud()
-	check(game.hud.get_node("%ForgeBonus").text == "你的攻击  +15%", "HUD uses local morale rather than first player's morale")
+	check(game.hud.get_node("%ForgeBonus").text == "攻 +15% · 防 +60%\n移速 +30%", "HUD uses local morale rather than first player's morale")
 	check(game.hud.get_node("%Balance")._order == [5, 1, 3, 0, 2, 4], "own faction and teammates lead the territory bar")
 	check(game.hud.get_node("UI/Enemy/Role").text == "1 名玩家 · 2 名电脑", "enemy panel identifies human and bot mixture")
 	check(game.hud.get_node("%Balance").get_node("Stars/Faction5").tooltip_text.begins_with("Seat 5（你）"), "morale tooltip labels local seat")

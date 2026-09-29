@@ -108,7 +108,7 @@ func conversions() -> void:
 	check(game.begin_building_construction(forge, 3, 0), "only a forge accepts the paid energy conversion")
 	near(forge.population, 60.0, "energy conversion uses the existing twenty-soldier cost")
 	near(game.energy_regen_for(0), 2.0, "unfinished tower grants no bonus")
-	near(game.attack_bonus(0), 0.1, "forge keeps its attack bonus during construction")
+	near(game.attack_bonus(0), 0.3, "forge keeps its attack bonus during construction")
 	game.simulate(10.0)
 	check(forge.kind == 3 and forge.level == 1 and not forge.is_constructing, "conversion completes into a level-one energy tower")
 	near(game.energy, 30.0, "completion grants no retroactive regeneration")

@@ -52,7 +52,7 @@ func _run() -> void:
 	for kind: int in 3:
 		building.kind = kind
 		var signatures: Array[String] = []
-		var tiers: Array = [[1, 2, 3, 4, 3, 2, 1], [1, 2, 3, 2, 1], [1]][kind]
+		var tiers: Array = [[1, 2, 3, 4, 3, 2, 1], [1, 2, 3, 4, 3, 2, 1], [1]][kind]
 		for tier: int in tiers:
 			building.level = tier
 			var original_capacity := building.capacity

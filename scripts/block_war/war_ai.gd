@@ -230,11 +230,13 @@ func _assault_losses(game: Node3D, target: WarBuilding, defenders: float) -> flo
 	var attack_level: int = game.morale.level(faction)
 	var defense_points: float = 0.0 if target.faction < 0 else game.morale.points(target.faction)
 	var defense_level: int = 0 if target.faction < 0 else game.morale.level(target.faction)
-	var base_damage: float = 1.0 + game.attack_bonus(faction) - game.defense_bonus(target)
+	var environment_attack: float = 1.0 + game.attack_bonus(faction)
+	var environment_defense: float = 1.0 + game.defense_bonus(target)
+	var skill_defense: float = 1.0 + game.skill_defense_bonus(target)
 	var remaining := defenders
 	var losses := 0.0
 	while remaining > 0.0:
-		var damage := base_damage * (1.0 + 0.05 * attack_level) / (1.0 + WarMorale.DEFENSE_PER_STAR * defense_level)
+		var damage := (environment_attack + 0.05 * attack_level) / (environment_defense + WarMorale.DEFENSE_PER_STAR * defense_level) / skill_defense
 		var until_change := INF
 		if attack_level > 0:
 			# A soldier at the exact threshold still fights with the current star.

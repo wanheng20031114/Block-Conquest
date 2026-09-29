@@ -75,10 +75,10 @@ var blocked_destinations: Dictionary[int, int] = {}
 var _departure_sequence := 0
 var _next_order_id := 1
 var _next_unit_id := 1
-var morale_speed := PackedFloat64Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+var environment_speed := PackedFloat64Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
 func base_speed(faction: int) -> float:
-	return SPEED * morale_speed[faction]
+	return SPEED * environment_speed[faction]
 
 func _ready() -> void:
 	_multimesh.instance_count = 4096
@@ -610,18 +610,18 @@ func speed_multiplier(unit: MarchUnit) -> float:
 	if unit.levitation_remaining > 0.0:
 		return 0.0
 	if not unit.is_exposed():
-		return morale_speed[unit.order.faction]
+		return environment_speed[unit.order.faction]
 	var multiplier := RULES.RABBIT_RUSH_MULTIPLIER if unit.rush_remaining > 0.0 else 1.0
 	if haste_zones.has(unit.order.faction):
 		var zone := haste_zones[unit.order.faction]
 		var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
-		if offset.length_squared() <= zone.radius * zone.radius:
-			multiplier = maxf(multiplier, zone.multiplier)
+		if zone.remaining > 0.0 and offset.length_squared() <= zone.radius * zone.radius:
+			multiplier += zone.multiplier - 1.0
 	for faction: int in slow_zones:
 		var zone := slow_zones[faction]
-		if FACTIONS.hostile(faction, unit.order.faction) and Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z).length_squared() <= zone.radius * zone.radius:
-			return morale_speed[unit.order.faction] * multiplier * RULES.BEAR_SLOW_MULTIPLIER
-	return morale_speed[unit.order.faction] * multiplier
+		if zone.remaining > 0.0 and FACTIONS.hostile(faction, unit.order.faction) and Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z).length_squared() <= zone.radius * zone.radius:
+			return environment_speed[unit.order.faction] * (multiplier + RULES.BEAR_SLOW_MULTIPLIER - 1.0)
+	return environment_speed[unit.order.faction] * multiplier
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
 	# Timed boosts and fields continue aging while a soldier is held in the air.
@@ -641,7 +641,7 @@ func movement_distance(unit: MarchUnit, delta: float) -> float:
 func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float, time_offset: float = 0.0) -> float:
 	if not slow_zones.is_empty():
 		return _movement_with_fields(unit, from_distance, delta, multiplier, zone_time, time_offset)
-	# A unit buff and a ground field use their stronger speed, never multiply.
+	# Different skill sources add their percentages within the skill group.
 	# Split both independent expiry times, then integrate route entry/exit exactly.
 	var speed := base_speed(unit.order.faction) * multiplier
 	if delta <= 0.0 or zone_time <= 0.0:
@@ -661,7 +661,7 @@ func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, mult
 		remaining -= before_step
 		if remaining <= 0.0:
 			break
-		var inside_speed := base_speed(unit.order.faction) * maxf(multiplier, zone.multiplier)
+		var inside_speed: float = base_speed(unit.order.faction) * (multiplier + zone.multiplier - 1.0)
 		var inside_time: float = (interval.y - distance) / inside_speed
 		var inside_step := minf(remaining, inside_time)
 		distance += inside_step * inside_speed
@@ -672,7 +672,7 @@ func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, mult
 
 func _movement_with_fields(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float, time_offset: float) -> float:
 	# Integrate actual route crossings and expiries. Stacking slows use the same
-	# 60% reduction; friendly haste/rush take their maximum before this reduction.
+	# 60% reduction once; haste and rush each contribute their additive bonus.
 	var fields: Array[Dictionary] = []
 	if zone_time > 0.0:
 		var haste := haste_zones[unit.order.faction]
@@ -692,7 +692,7 @@ func _movement_with_fields(unit: MarchUnit, from_distance: float, delta: float, 
 	while delta - elapsed > 0.0000001:
 		var next_distance := INF
 		var next_time := delta - elapsed
-		var boost := multiplier
+		var boost := 1.0
 		var slowest := 1.0
 		for field: Dictionary in fields:
 			if field.until - elapsed <= 0.0000001:
@@ -708,7 +708,7 @@ func _movement_with_fields(unit: MarchUnit, from_distance: float, delta: float, 
 					boost = maxf(boost, field.speed)
 					slowest = minf(slowest, field.speed)
 				break
-		var speed := base_speed(unit.order.faction) * boost * slowest
+		var speed := base_speed(unit.order.faction) * (multiplier + boost + slowest - 2.0)
 		var step := minf(next_time, (next_distance - distance) / speed)
 		distance += step * speed
 		elapsed += step

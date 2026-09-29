@@ -48,7 +48,7 @@ var production_rate: float:
 		return HOUSE_PRODUCTION_RATES[level - 1] if kind == 0 else 0.0
 var max_level: int:
 	get:
-		return [4, 3, 1, 1][kind]
+		return [4, 4, 1, 1][kind]
 var attack_range: float:
 	get: return 9.0 + level * 2.0
 var upgrade_cost: int:
@@ -68,21 +68,21 @@ const LEVEL_MESHES := {
 	"House/Roof": [preload("res://assets/models/block_war/architecture/house_roof.res"), preload("res://assets/models/block_war/architecture/house_2_roof.res"), preload("res://assets/models/block_war/architecture/house_3_roof.res"), preload("res://assets/models/block_war/architecture/house_4_roof.res")],
 	"House/Stone": [preload("res://assets/models/block_war/architecture/house_stone.res"), preload("res://assets/models/block_war/architecture/house_2_stone.res"), preload("res://assets/models/block_war/architecture/house_3_stone.res"), preload("res://assets/models/block_war/architecture/house_4_stone.res")],
 	"House/Timber": [preload("res://assets/models/block_war/architecture/house_timber.res"), preload("res://assets/models/block_war/architecture/house_2_timber.res"), preload("res://assets/models/block_war/architecture/house_3_timber.res"), preload("res://assets/models/block_war/architecture/house_4_timber.res")],
-	"Tower/Metal": [preload("res://assets/models/block_war/architecture/tower_metal.res"), preload("res://assets/models/block_war/architecture/tower_2_metal.res"), preload("res://assets/models/block_war/architecture/tower_3_metal.res")],
-	"Tower/Stone": [preload("res://assets/models/block_war/architecture/tower_stone.res"), preload("res://assets/models/block_war/architecture/tower_2_stone.res"), preload("res://assets/models/block_war/architecture/tower_3_stone.res")],
-	"Tower/Timber": [preload("res://assets/models/block_war/architecture/tower_timber.res"), preload("res://assets/models/block_war/architecture/tower_2_timber.res"), preload("res://assets/models/block_war/architecture/tower_3_timber.res")],
+	"Tower/Metal": [preload("res://assets/models/block_war/architecture/tower_metal.res"), preload("res://assets/models/block_war/architecture/tower_2_metal.res"), preload("res://assets/models/block_war/architecture/tower_3_metal.res"), preload("res://assets/models/block_war/architecture/tower_4_metal.res")],
+	"Tower/Stone": [preload("res://assets/models/block_war/architecture/tower_stone.res"), preload("res://assets/models/block_war/architecture/tower_2_stone.res"), preload("res://assets/models/block_war/architecture/tower_3_stone.res"), preload("res://assets/models/block_war/architecture/tower_4_stone.res")],
+	"Tower/Timber": [preload("res://assets/models/block_war/architecture/tower_timber.res"), preload("res://assets/models/block_war/architecture/tower_2_timber.res"), preload("res://assets/models/block_war/architecture/tower_3_timber.res"), preload("res://assets/models/block_war/architecture/tower_4_timber.res")],
 	"Smithy/Metal": [preload("res://assets/models/block_war/architecture/smithy_metal.res"), preload("res://assets/models/block_war/architecture/smithy_2_metal.res"), preload("res://assets/models/block_war/architecture/smithy_3_metal.res")],
 	"Smithy/Roof": [preload("res://assets/models/block_war/architecture/smithy_roof.res"), preload("res://assets/models/block_war/architecture/smithy_2_roof.res"), preload("res://assets/models/block_war/architecture/smithy_3_roof.res")],
 	"Smithy/Stone": [preload("res://assets/models/block_war/architecture/smithy_stone.res"), preload("res://assets/models/block_war/architecture/smithy_2_stone.res"), preload("res://assets/models/block_war/architecture/smithy_3_stone.res")],
 	"Smithy/Timber": [preload("res://assets/models/block_war/architecture/smithy_timber.res"), preload("res://assets/models/block_war/architecture/smithy_2_timber.res"), preload("res://assets/models/block_war/architecture/smithy_3_timber.res")],
-	"Tower/Gun/MountTimber": [preload("res://assets/models/block_war/architecture/gun_mount_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_2_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_3_timber.res")],
-	"Tower/Gun/MountMetal": [preload("res://assets/models/block_war/architecture/gun_mount_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_2_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_3_metal.res")],
-	"Tower/Gun/Barrel/BarrelMetal": [preload("res://assets/models/block_war/architecture/gun_barrel_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_metal.res")],
-	"Tower/Gun/Barrel/BarrelStone": [preload("res://assets/models/block_war/architecture/gun_barrel_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_stone.res")],
-	"Tower/Gun/Barrel/BarrelBands": [preload("res://assets/models/block_war/architecture/gun_barrel_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_fabric.res")],
+	"Tower/Gun/MountTimber": [preload("res://assets/models/block_war/architecture/gun_mount_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_2_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_3_timber.res"), preload("res://assets/models/block_war/architecture/gun_mount_4_timber.res")],
+	"Tower/Gun/MountMetal": [preload("res://assets/models/block_war/architecture/gun_mount_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_2_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_3_metal.res"), preload("res://assets/models/block_war/architecture/gun_mount_4_metal.res")],
+	"Tower/Gun/Barrel/BarrelMetal": [preload("res://assets/models/block_war/architecture/gun_barrel_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_metal.res"), preload("res://assets/models/block_war/architecture/gun_barrel_4_metal.res")],
+	"Tower/Gun/Barrel/BarrelStone": [preload("res://assets/models/block_war/architecture/gun_barrel_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_stone.res"), preload("res://assets/models/block_war/architecture/gun_barrel_4_stone.res")],
+	"Tower/Gun/Barrel/BarrelBands": [preload("res://assets/models/block_war/architecture/gun_barrel_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_2_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_3_fabric.res"), preload("res://assets/models/block_war/architecture/gun_barrel_4_fabric.res")],
 }
-const TOWER_DECK_HEIGHTS := [1.5088, 2.05, 2.2714]
-const MUZZLE_LENGTHS := [-1.80, -2.50, -2.80]
+const TOWER_DECK_HEIGHTS := [1.5088, 2.05, 2.2714, 2.624]
+const MUZZLE_LENGTHS := [-1.80, -2.50, -2.80, -3.15]
 const SMITHY_SMOKE_HEIGHTS := [2.8126, 3.649, 3.8909]
 const SMITHY_SMOKE_X := [-0.6888, -0.6888, -0.9594]
 
