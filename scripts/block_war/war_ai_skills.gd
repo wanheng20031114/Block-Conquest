@@ -13,6 +13,17 @@ static func _xz(point: Vector3) -> Vector2:
 	# Skill and tower footprints are horizontal, even when their targets differ in height.
 	return Vector2(point.x, point.z)
 
+static func _combat_multiplier(game: Node3D, cache: Dictionary[Vector2i, Dictionary], attacker: int, target: WarBuilding, bonus: float = 0.0) -> float:
+	# The caller owns this cache for one read-only evaluation, before any cast.
+	# Keep the full float bonus and original formula; do not regroup its factors.
+	var key := Vector2i(target.building_id, attacker)
+	if not cache.has(key):
+		cache[key] = {}
+	var values: Dictionary = cache[key]
+	if not values.has(bonus):
+		values[bonus] = game.combat_multiplier(attacker, target, bonus)
+	return values[bonus]
+
 func _init(controlled_faction: int) -> void:
 	faction = controlled_faction
 	next_decision = 6.0 + 0.45 * (faction - 1)
@@ -24,6 +35,15 @@ func take_turn(game: Node3D) -> void:
 	# Short marches can finish between six-second decisions. Rabbit's instant
 	# squad selection needs a chance to act after the preceding turn's dispatch.
 	next_decision = game.elapsed + (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP)
+	# Keep the scheduled decision even when no paid action is available. These
+	# checks are read-only; an unavailable decision needs no target forecasts.
+	var available := false
+	for index: int in 4:
+		if game.can_cast_skill(index, faction):
+			available = true
+			break
+	if not available:
+		return
 	if game.faction_skills[faction].commander == SKILL_RULES.PIG:
 		_pig_turn(game)
 		return
@@ -39,18 +59,26 @@ func take_turn(game: Node3D) -> void:
 	if game.faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		_rabbit_turn(game)
 		return
+	var can_shield: bool = game.can_cast_skill(2, faction)
+	var can_recruit: bool = game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[0] + SKILL_RULES.COSTS[2]
+	var can_haste: bool = game.can_cast_skill(1, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[1] + 20.0
+	var can_fire: bool = game.can_cast_skill(3, faction)
+	if not can_shield and not can_recruit and not can_haste and not can_fire:
+		return
 	var visible: Array[WarMarches.MarchUnit] = []
 	var threats: Dictionary[int, float] = {}
+	var combat: Dictionary[Vector2i, Dictionary] = {}
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction):
 			continue
 		visible.append(unit)
-		var imminent: bool = game.marches.movement_distance(unit, 7.0) >= unit.order.length - unit.distance
+		if not (can_shield or can_recruit) or not game.FACTIONS.hostile(unit.order.faction, faction):
+			continue
 		var target: WarBuilding = game.by_id[unit.order.target_id]
-		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and imminent:
-			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target, game.marches.projected_attack_bonus(unit))
+		if game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 7.0) >= unit.order.length - unit.distance:
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * _combat_multiplier(game, combat, unit.order.faction, target, game.marches.projected_attack_bonus(unit))
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
-	if game.can_cast_skill(2, faction):
+	if can_shield:
 		for id: int in threats:
 			var building: WarBuilding = game.by_id[id]
 			if not game._valid_skill_target(2, building, faction):
@@ -61,7 +89,7 @@ func take_turn(game: Node3D) -> void:
 			var score := minf(danger * SKILL_RULES.SHIELD_DEFENSE, 45.0) + (28.0 if danger >= building.population else 12.0)
 			if score > best.score:
 				best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
-	if game.can_cast_skill(0, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[0] + SKILL_RULES.COSTS[2]:
+	if can_recruit:
 		for building: WarBuilding in game.buildings:
 			if not game._valid_skill_target(0, building, faction) or building.conversion_target in [1, 2]:
 				continue
@@ -76,11 +104,11 @@ func take_turn(game: Node3D) -> void:
 			score += 8.0 if danger > building.population * 0.4 else 0.0
 			if score > best.score:
 				best = {"index": 0, "score": score, "target": building, "at": Vector3.ZERO}
-	if game.can_cast_skill(1, faction) and game.faction_skills[faction].energy >= SKILL_RULES.COSTS[1] + 20.0:
+	if can_haste:
 		var haste := _haste_target(game, visible)
 		if not haste.is_empty() and haste.score > best.score:
 			best = {"index": 1, "score": haste.score, "target": null, "at": haste.at}
-	if game.can_cast_skill(3, faction):
+	if can_fire:
 		var fire := _fire_target(game, visible)
 		if not fire.is_empty() and fire.score > best.score:
 			best = {"index": 3, "score": fire.score, "target": null, "at": fire.at}
@@ -90,12 +118,12 @@ func take_turn(game: Node3D) -> void:
 		game.cast_skill(best.index, best.target, faction)
 
 func _pig_turn(game: Node3D) -> void:
-	var incoming: Dictionary[Vector2i, int] = INFORMATION.snapshot_incoming(game, faction)
-	var threats: Dictionary[int, float] = {}
+	var observation := INFORMATION.snapshot_defense(game, faction)
+	var incoming: Dictionary[Vector2i, int] = observation.counts
+	var threats: Dictionary[int, float] = observation.damage
 	var reinforcements: Dictionary[int, int] = {}
-	for building: WarBuilding in game.buildings:
-		if game.FACTIONS.allied(building.faction, faction):
-			threats[building.building_id] = INFORMATION.incoming_damage(game, building, incoming, faction)
+	var combat: Dictionary[Vector2i, Dictionary] = {}
+	var departure_times: Dictionary[Vector2i, float] = {}
 	for key: Vector2i in incoming:
 		if game.FACTIONS.allied(key.y, faction):
 			reinforcements[key.x] = reinforcements.get(key.x, 0) + incoming[key]
@@ -114,7 +142,7 @@ func _pig_turn(game: Node3D) -> void:
 			for target: WarBuilding in game.buildings:
 				if target == source:
 					continue
-				var plan := _pig_dispatch_plan(game, source, target, index, reserve, threats, reinforcements, incoming)
+				var plan := _pig_dispatch_plan(game, source, target, index, reserve, threats, reinforcements, incoming, combat, departure_times)
 				if not plan.is_empty() and plan.score > best.score:
 					best = plan
 	if best.index == 3:
@@ -125,7 +153,7 @@ func _pig_turn(game: Node3D) -> void:
 		if game.cast_skill(best.index, best.source, faction):
 			game.issue_order(best.source, best.target, best.percent, faction)
 
-func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, index: int, reserve: float, threats: Dictionary[int, float], reinforcements: Dictionary[int, int], incoming: Dictionary[Vector2i, int]) -> Dictionary:
+func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, index: int, reserve: float, threats: Dictionary[int, float], reinforcements: Dictionary[int, int], incoming: Dictionary[Vector2i, int], combat: Dictionary[Vector2i, Dictionary], departure_times: Dictionary[Vector2i, float]) -> Dictionary:
 	var allied: bool = game.FACTIONS.allied(target.faction, faction)
 	var missing: float = threats.get(target.building_id, 0.0) - target.available_population - reinforcements.get(target.building_id, 0) + 6.0 if allied else 0.0
 	if allied and (missing <= 0.0 or threats.get(target.building_id, 0.0) < 8.0):
@@ -162,7 +190,11 @@ func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 		var count := mini(limit, floori(source.available_population * percent / 100.0))
 		if count < (18 if index == 2 else 8) or source.available_population - count < reserve:
 			continue
-		var queue_time: float = game.marches.estimate_arrival_time(source.building_id, 0.0, count, faction)
+		# The source queue is unchanged until this decision casts and dispatches.
+		var departure_key := Vector2i(source.building_id, count)
+		if not departure_times.has(departure_key):
+			departure_times[departure_key] = game.marches.estimate_arrival_time(source.building_id, 0.0, count, faction)
+		var queue_time: float = departure_times[departure_key]
 		if dense:
 			queue_time -= floorf(float(count - 1) / WarMarches.COLUMNS) * (WarMarches.ROW_SPACING - WarMarches.DENSE_ROW_SPACING) / speed
 		var arrival := maxf(0.0, queue_time) + length / (speed * (1.0 + (SKILL_RULES.PIG_CHARGE_SPEED_BONUS if charge else 0.0)))
@@ -178,7 +210,7 @@ func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 				for defender: int in game.faction_count:
 					if game.FACTIONS.allied(defender, target.faction):
 						defenders += incoming.get(Vector2i(target.building_id, defender), 0)
-			var damage: float = count * game.combat_multiplier(faction, target, attack_bonus)
+			var damage: float = count * _combat_multiplier(game, combat, faction, target, attack_bonus)
 			if damage < defenders * (1.0 if target.faction < 0 else 1.2) + 5.0:
 				continue
 			score = 22.0 + (8.0 if target.kind == 0 else 0.0) + minf(12.0, damage - defenders) * 0.5 - arrival * 0.45
@@ -324,33 +356,48 @@ func _fox_turn(game: Node3D) -> void:
 func _frog_turn(game: Node3D) -> void:
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
 	var cells: Dictionary[Vector2i, Dictionary] = {}
-	var visible: Array[Dictionary] = []
+	var positions: Array[Vector2] = []
+	var q_values := PackedFloat64Array()
+	var floating_values := PackedFloat64Array()
+	var cloak_values := PackedFloat64Array()
+	var towers: Array[WarBuilding] = []
+	for building: WarBuilding in game.buildings:
+		if building.kind == 1 and building.faction >= 0 and building.disruption_remaining <= 0.0:
+			towers.append(building)
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction):
 			continue
 		var destination: WarBuilding = game.by_id[unit.order.target_id]
 		var hostile: bool = game.FACTIONS.hostile(unit.order.faction, faction)
 		var incoming: bool = game.FACTIONS.allied(destination.faction, faction) and hostile
-		var close: bool = game.marches.movement_distance(unit, 3.0) > unit.order.length - unit.distance
+		var friendly_attack: bool = not hostile and game.FACTIONS.hostile(unit.order.faction, destination.faction)
+		var close: bool = (incoming or friendly_attack) and game.marches.movement_distance(unit, 3.0) > unit.order.length - unit.distance
 		var q_value := SKILL_RULES.FROG_WEAKNESS if hostile and not unit.weakened and not game.FACTIONS.allied(unit.order.faction, destination.faction) else 0.0
 		var floating := 1.3 if incoming and close else 0.0
 		var can_cloak := unit.order.faction == faction and not unit.cloaked
 		var cloak := 1.0 if can_cloak and destination.faction >= 0 and game.FACTIONS.hostile(faction, destination.faction) else 0.0
-		if not hostile and game.FACTIONS.hostile(unit.order.faction, destination.faction) and close:
+		if friendly_attack and close:
 			floating -= 1.5
-		for tower: WarBuilding in game.buildings:
-			if tower.kind != 1 or tower.faction < 0 or tower.disruption_remaining > 0.0 or not game.FACTIONS.hostile(tower.faction, unit.order.faction):
+		var ahead := Vector3.ZERO
+		var ahead_sampled := false
+		for tower: WarBuilding in towers:
+			if not game.FACTIONS.hostile(tower.faction, unit.order.faction):
 				continue
 			if _xz(tower.global_position).distance_to(_xz(unit.position)) < game.tower_range(tower) and game.marches.tower_can_target(unit):
 				floating += (-1.8 if hostile else 1.8) * tower.level
 				# A cloud also shields enemy soldiers from our cannons; account for it.
 				q_value += (-0.25 if hostile else 0.30) * tower.level
 			if can_cloak:
-				var ahead := unit.order.sample(minf(unit.order.length, unit.distance + 12.0))
+				if not ahead_sampled:
+					ahead = unit.order.sample(minf(unit.order.length, unit.distance + 12.0))
+					ahead_sampled = true
 				if Geometry2D.get_closest_point_to_segment(_xz(tower.global_position), _xz(unit.position), _xz(ahead)).distance_to(_xz(tower.global_position)) < game.tower_range(tower):
 					cloak = maxf(cloak, 1.5 * tower.level)
-		visible.append({"unit": unit, "q": q_value, "float": floating if unit.levitation_remaining <= 0.0 else 0.0, "cloak": cloak})
 		var at := unit.position
+		positions.append(_xz(at))
+		q_values.append(q_value)
+		floating_values.append(floating if unit.levitation_remaining <= 0.0 else 0.0)
+		cloak_values.append(cloak)
 		var cell := Vector2i(floori(at.x / 4.0), floori(at.z / 4.0))
 		if not cells.has(cell):
 			cells[cell] = {"at": Vector3.ZERO, "count": 0}
@@ -373,18 +420,36 @@ func _frog_turn(game: Node3D) -> void:
 				score *= 0.45
 			if score >= 28.0 and score > best.score:
 				best = {"index": 3, "score": score, "target": building, "at": Vector3.ZERO}
+	var available: Array[bool] = []
+	var radii_squared := PackedFloat64Array()
+	for index: int in 3:
+		available.append(game.can_cast_skill(index, faction))
+		radii_squared.append(pow(SKILL_RULES.FROG_RADII[index], 2))
+	var any_available := available.has(true)
 	for at: Vector3 in candidates:
+		if not any_available:
+			break
 		if not game._valid_ground_skill_target(at):
 			continue
+		# Share the geometric test while keeping each skill's additions in the
+		# original soldier order and its score in full scalar float precision.
+		var q_total := 0.0
+		var floating_total := 0.0
+		var cloak_total := 0.0
+		for soldier: int in positions.size():
+			var p := positions[soldier]
+			var distance_squared := Vector2(p.x - at.x, p.y - at.z).length_squared()
+			if available[0] and distance_squared <= radii_squared[0]:
+				q_total += q_values[soldier]
+			if available[1] and distance_squared <= radii_squared[1]:
+				floating_total += floating_values[soldier]
+			if available[2] and distance_squared <= radii_squared[2]:
+				cloak_total += cloak_values[soldier]
+		var values := PackedFloat64Array([q_total, floating_total, cloak_total])
 		for index: int in 3:
-			if not game.can_cast_skill(index, faction):
+			if not available[index]:
 				continue
-			var value := 0.0
-			for entry: Dictionary in visible:
-				var unit: WarMarches.MarchUnit = entry.unit
-				var p: Vector3 = unit.position
-				if Vector2(p.x - at.x, p.z - at.z).length_squared() <= pow(SKILL_RULES.FROG_RADII[index], 2):
-					value += entry[["q", "float", "cloak"][index]]
+			var value := values[index]
 			var threshold: float = [1.0, 6.0, 8.0][index]
 			var score: float = 12.0 + minf(30.0, value * [5.0, 1.2, 0.5][index])
 			if value >= threshold and score > best.score:
@@ -397,20 +462,25 @@ func _frog_turn(game: Node3D) -> void:
 func _bear_turn(game: Node3D) -> void:
 	var threats: Dictionary[int, float] = {}
 	var cells: Dictionary[Vector2i, Dictionary] = {}
+	var combat: Dictionary[Vector2i, Dictionary] = {}
+	var towers: Array[WarBuilding] = []
+	for building: WarBuilding in game.buildings:
+		if building.faction == faction and building.kind == 1 and building.disruption_remaining <= 0.0:
+			towers.append(building)
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction) or not game.FACTIONS.hostile(unit.order.faction, faction):
 			continue
 		var target: WarBuilding = game.by_id[unit.order.target_id]
 		if target.faction == faction and game.marches.movement_distance(unit, 5.0) >= unit.order.length - unit.distance:
-			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target, game.marches.projected_attack_bonus(unit))
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * _combat_multiplier(game, combat, unit.order.faction, target, game.marches.projected_attack_bonus(unit))
 		# Slowing a harmless distant march spends energy without buying a useful
 		# defensive window. Prefer an approaching gate or exposure to our guns.
 		var value := 0.0
 		var remaining := unit.order.length - unit.distance
 		if target.faction == faction and remaining > 1.0 and remaining < game.marches.movement_distance(unit, 4.0):
 			value = 1.0
-		for tower: WarBuilding in game.buildings:
-			if tower.faction == faction and tower.kind == 1 and tower.disruption_remaining <= 0.0 and _xz(tower.global_position).distance_to(_xz(unit.position)) < game.tower_range(tower):
+		for tower: WarBuilding in towers:
+			if _xz(tower.global_position).distance_to(_xz(unit.position)) < game.tower_range(tower):
 				value = maxf(value, 1.0 + tower.level * 0.4)
 		if value <= 0.0 or remaining <= 0.15:
 			continue
@@ -457,10 +527,12 @@ func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit], radius: f
 	# Look ahead along actual routes. Distant armies do not contribute to a
 	# single global score: one local field must cover a useful group of soldiers.
 	var cells: Dictionary[Vector2i, Dictionary] = {}
+	var projected: Array[Vector3] = []
 	for unit: WarMarches.MarchUnit in visible:
 		if not unit.is_exposed() or unit.order.faction != faction or unit.order.length - unit.distance < radius * 1.25:
 			continue
 		var at := unit.order.sample(unit.distance + radius * 0.6)
+		projected.append(at)
 		var cell := Vector2i(floori(at.x / FIRE_CELL), floori(at.z / FIRE_CELL))
 		if not cells.has(cell):
 			cells[cell] = {"count": 0, "sum": Vector3.ZERO}
@@ -474,10 +546,7 @@ func _haste_target(game: Node3D, visible: Array[WarMarches.MarchUnit], radius: f
 		if not game._valid_ground_skill_target(at):
 			continue
 		var count := 0
-		for unit: WarMarches.MarchUnit in visible:
-			if not unit.is_exposed() or unit.order.faction != faction or unit.order.length - unit.distance < radius * 1.25:
-				continue
-			var ahead := unit.order.sample(unit.distance + radius * 0.6)
+		for ahead: Vector3 in projected:
 			if _xz(ahead).distance_to(_xz(at)) <= radius - 0.7:
 				count += 1
 		if count >= minimum and (best.is_empty() or float(count) > best.score):
@@ -512,7 +581,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 		var samples := maxi(1, ceili((span.y - span.x) / 1.5))
 		for sample: int in samples:
 			var point := order.sample(lerpf(span.x, span.y, float(sample + 1) / samples))
-			friendly_paths.append({"from": previous, "to": point, "padding": span.z})
+			friendly_paths.append({"from": _xz(previous), "to": _xz(point), "padding": span.z})
 			previous = point
 	for unit: WarMarches.MarchUnit in visible:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction) or not game.FACTIONS.hostile(unit.order.faction, faction):
@@ -533,17 +602,19 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 		var at: Vector3 = game.map.definition.surface_point(Vector3((cell.x + 0.5) * FIRE_CELL, 0.0, (cell.y + 0.5) * FIRE_CELL))
 		if not game._valid_ground_skill_target(at):
 			continue
+		var at_xz := _xz(at)
 		var threatened := false
 		for fire: RefCounted in game.fire_states:
-			if fire.age < WarFireWave.BURN_TIME and _xz(fire.global_position).distance_to(_xz(at)) < game.IMPACT_RADIUS * 1.5:
+			if fire.age < WarFireWave.BURN_TIME and _xz(fire.global_position).distance_to(at_xz) < game.IMPACT_RADIUS * 1.5:
 				threatened = true
+				break
 		if threatened:
 			continue
 		var enemies := 0
 		var unsafe := false
 		for path: Dictionary in friendly_paths:
-			var closest := Geometry2D.get_closest_point_to_segment(_xz(at), _xz(path.from), _xz(path.to))
-			if closest.distance_to(_xz(at)) <= game.IMPACT_RADIUS + path.padding:
+			var closest := Geometry2D.get_closest_point_to_segment(at_xz, path.from, path.to)
+			if closest.distance_to(at_xz) <= game.IMPACT_RADIUS + path.padding:
 				unsafe = true
 				break
 		if unsafe:
@@ -551,7 +622,7 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 		for x: int in range(-2, 3):
 			for y: int in range(-2, 3):
 				for point: Vector3 in cells.get(cell + Vector2i(x, y), []):
-					enemies += int(_xz(point).distance_to(_xz(at)) <= game.IMPACT_RADIUS - 0.6)
+					enemies += int(_xz(point).distance_to(at_xz) <= game.IMPACT_RADIUS - 0.6)
 		# Friendly fire remains real. Do not knowingly burn even a small allied escort.
 		if enemies < 8:
 			continue
@@ -563,23 +634,25 @@ func _fire_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 func _rabbit_turn(game: Node3D) -> void:
 	var visible: Array[WarMarches.MarchUnit] = []
 	var threats: Dictionary[int, float] = {}
+	var combat: Dictionary[Vector2i, Dictionary] = {}
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction):
 			continue
 		visible.append(unit)
 		var target: WarBuilding = game.by_id[unit.order.target_id]
 		if game.FACTIONS.hostile(unit.order.faction, faction) and game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 6.0) >= unit.order.length - unit.distance:
-			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * game.combat_multiplier(unit.order.faction, target, game.marches.projected_attack_bonus(unit))
+			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * _combat_multiplier(game, combat, unit.order.faction, target, game.marches.projected_attack_bonus(unit))
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
 	if game.can_cast_skill(0, faction):
 		var rush := _rush_target(game, visible)
 		if not rush.is_empty() and rush.score > best.score:
 			best = {"index": 0, "score": rush.score, "target": null, "at": rush.at}
 	if game.can_cast_skill(1, faction):
+		var future_positions: Dictionary[WarMarches.MarchUnit, Vector3] = {}
 		for building: WarBuilding in game.buildings:
 			if not game._valid_skill_target(1, building, faction):
 				continue
-			var score := _disable_score(game, building, visible)
+			var score := _disable_score(game, building, visible, future_positions)
 			if score > best.score:
 				best = {"index": 1, "score": score, "target": building, "at": Vector3.ZERO}
 	if game.can_cast_skill(2, faction):
@@ -614,6 +687,8 @@ func _rabbit_turn(game: Node3D) -> void:
 			if score > best.score:
 				best = {"index": 2, "score": score, "target": null, "at": at}
 	if game.can_cast_skill(3, faction):
+		# Existing allied commitments depend on the target, not the burrow source.
+		var incoming_by_target: Dictionary[int, int] = {}
 		for source: WarBuilding in game.buildings:
 			if not game._valid_skill_target(3, source, faction):
 				continue
@@ -643,8 +718,10 @@ func _rabbit_turn(game: Node3D) -> void:
 					var arrival: float = plan.dig_duration + SKILL_RULES.BURROW_EXIT_DISTANCE / game.marches.base_speed(faction) + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
 					var garrison := INFORMATION.garrison_estimate(game, building, faction)
 					var growth := minf(maxf(0.0, building.capacity - garrison), building.production_rate * maxf(0.0, arrival - building.disruption_remaining))
-					var damage: float = plan.count * game.combat_multiplier(faction, building)
-					var committed: int = game.marches.team_incoming_for(building.building_id, faction)
+					var damage: float = plan.count * _combat_multiplier(game, combat, faction, building)
+					if not incoming_by_target.has(building.building_id):
+						incoming_by_target[building.building_id] = game.marches.team_incoming_for(building.building_id, faction)
+					var committed := incoming_by_target[building.building_id]
 					if committed == 0 and damage > garrison + growth + 2.0 and plan.length >= 9.0:
 						score = 28.0 + minf(18.0, damage - garrison - growth)
 				if score > best.score:
@@ -694,7 +771,7 @@ func _rush_target(game: Node3D, visible: Array[WarMarches.MarchUnit]) -> Diction
 			best = {"at": at, "score": score}
 	return best
 
-func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarches.MarchUnit]) -> float:
+func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarches.MarchUnit], future_positions: Dictionary[WarMarches.MarchUnit, Vector3]) -> float:
 	if building.kind == 3:
 		var count: int = game.energy_tower_count(building.faction)
 		var denied: float = SKILL_RULES.energy_tower_bonus(count) - SKILL_RULES.energy_tower_bonus(maxi(0, count - 1))
@@ -721,7 +798,11 @@ func _disable_score(game: Node3D, building: WarBuilding, visible: Array[WarMarch
 	for unit: WarMarches.MarchUnit in visible:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction) or not game.FACTIONS.allied(unit.order.faction, faction):
 			continue
-		var future := unit.order.sample(minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, 4.0)))
+		# Each tower observes the same four-second path before the eventual cast.
+		# Lazily sample it once without changing this building's visibility/counts.
+		if not future_positions.has(unit):
+			future_positions[unit] = unit.order.sample(minf(unit.order.length, unit.distance + game.marches.movement_distance(unit, 4.0)))
+		var future := future_positions[unit]
 		if Geometry2D.get_closest_point_to_segment(_xz(building.global_position), _xz(unit.position), _xz(future)).distance_to(_xz(building.global_position)) <= game.tower_range(building):
 			exposed += 1
 	return minf(exposed, building.level * ceili(6.0 / game.tower_interval(building))) * 2.0 + (8.0 if exposed >= 12 else 0.0)

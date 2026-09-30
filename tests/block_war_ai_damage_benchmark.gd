@@ -141,6 +141,8 @@ func _clear_prediction_caches() -> void:
 func _verify_fixture(label: String) -> void:
 	for observer: int in game.faction_count:
 		var incoming: Dictionary[Vector2i, int] = INFORMATION.snapshot_incoming(game, observer)
+		var observation := INFORMATION.snapshot_defense(game, observer)
+		check(observation.counts == incoming, "%s batch counts observer %d" % [label, observer])
 		for building: WarBuilding in game.buildings:
 			_clear_prediction_caches()
 			var expected := reference_damage(game, building, incoming, observer)
@@ -148,6 +150,8 @@ func _verify_fixture(label: String) -> void:
 			var actual := candidate_damage(game, building, incoming, observer)
 			check(actual == expected, "%s observer %d building %d exact %.17f / %.17f" % [label, observer, building.building_id, actual, expected])
 			check(INFORMATION.incoming_damage(game, building, incoming, observer) == expected, "%s current production observer %d building %d" % [label, observer, building.building_id])
+			if game.FACTIONS.allied(building.faction, observer):
+				check(observation.damage.get(building.building_id, 0.0) == expected, "%s batch exact observer %d building %d" % [label, observer, building.building_id])
 
 func _queries() -> Array[Dictionary]:
 	var queries: Array[Dictionary] = []

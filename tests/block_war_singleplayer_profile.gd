@@ -6,12 +6,17 @@ const CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 const SNAPSHOT := preload("res://scripts/network/war_snapshot.gd")
 const STEP := 1.0 / 60.0
 const BASELINE_ZONE_BODY_SHA256 := "153ba6819cb87d922af7d88356e1af2b186e30dcca6a44e83029b56570c49c63"
-const AI_DETAIL_STAGES: Array[String] = ["ai_strategy", "ai_conquest", "ai_tower_losses", "ai_reinforce", "ai_development", "ai_enemy_distance", "ai_skills", "ai_haste_target", "ai_fire_target"]
+const AI_DETAIL_STAGES: Array[String] = ["ai_strategy", "ai_conquest", "ai_tower_losses", "ai_reinforce", "ai_development", "ai_enemy_distance", "ai_skills", "ai_haste_target", "ai_fire_target", "ai_pig_turn", "ai_fox_turn", "ai_frog_turn", "ai_bear_turn", "ai_rabbit_turn"]
 
 class ProfileSkills extends "res://scripts/block_war/war_ai_skills.gd":
 	var metrics := {"ai_skills_us": 0, "ai_skills_calls": 0,
 		"ai_haste_target_us": 0, "ai_haste_target_calls": 0,
-		"ai_fire_target_us": 0, "ai_fire_target_calls": 0}
+		"ai_fire_target_us": 0, "ai_fire_target_calls": 0,
+		"ai_pig_turn_us": 0, "ai_pig_turn_calls": 0,
+		"ai_fox_turn_us": 0, "ai_fox_turn_calls": 0,
+		"ai_frog_turn_us": 0, "ai_frog_turn_calls": 0,
+		"ai_bear_turn_us": 0, "ai_bear_turn_calls": 0,
+		"ai_rabbit_turn_us": 0, "ai_rabbit_turn_calls": 0}
 
 	func _init(controlled_faction: int) -> void:
 		super(controlled_faction)
@@ -39,6 +44,31 @@ class ProfileSkills extends "res://scripts/block_war/war_ai_skills.gd":
 		var result: Dictionary = super._fire_target(game, visible)
 		_record("ai_fire_target", begun)
 		return result
+
+	func _pig_turn(game: Node3D) -> void:
+		var begun := Time.get_ticks_usec()
+		super._pig_turn(game)
+		_record("ai_pig_turn", begun)
+
+	func _fox_turn(game: Node3D) -> void:
+		var begun := Time.get_ticks_usec()
+		super._fox_turn(game)
+		_record("ai_fox_turn", begun)
+
+	func _frog_turn(game: Node3D) -> void:
+		var begun := Time.get_ticks_usec()
+		super._frog_turn(game)
+		_record("ai_frog_turn", begun)
+
+	func _bear_turn(game: Node3D) -> void:
+		var begun := Time.get_ticks_usec()
+		super._bear_turn(game)
+		_record("ai_bear_turn", begun)
+
+	func _rabbit_turn(game: Node3D) -> void:
+		var begun := Time.get_ticks_usec()
+		super._rabbit_turn(game)
+		_record("ai_rabbit_turn", begun)
 
 class ProfileStrategy extends "res://scripts/block_war/war_ai.gd":
 	var metrics := {"ai_strategy_us": 0, "ai_strategy_calls": 0,
@@ -330,6 +360,11 @@ class BaselineInformationGame extends ProfileGame:
 			ai_us += Time.get_ticks_usec() - begun
 			ai_calls += 1
 
+class DetailedBaselineInformationGame extends BaselineInformationGame:
+	func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 0.0) -> float:
+		if profile_enabled: combat_multiplier_calls += 1
+		return super.combat_multiplier(faction, target, unit_attack_bonus)
+
 var sample_frames := 3000
 var initial_population := 1800
 var fixed_seed := 20260930
@@ -339,7 +374,12 @@ var detailed_ai := false
 var front_towers := false
 var baseline_ai_information := false
 var baseline_zone_geometry := false
-var ai_probes: Array[ProfileStrategy] = []
+var ai_strategy_script := ""
+var ai_commander := "squirrel"
+var variant_label := ""
+var ai_decision_checkpoints := false
+var ai_checkpoints: Array[Dictionary] = []
+var ai_probes: Array[RefCounted] = []
 var output_directory := "res://.local/singleplayer-profile/manual"
 var top_count := 20
 var game: ProfileGame
@@ -368,9 +408,18 @@ func _run() -> void:
 		elif argument.begins_with("--front-towers="): front_towers = argument.get_slice("=", 1) == "true"
 		elif argument.begins_with("--baseline-ai-information="): baseline_ai_information = argument.get_slice("=", 1) == "true"
 		elif argument.begins_with("--baseline-zone-geometry="): baseline_zone_geometry = argument.get_slice("=", 1) == "true"
+		elif argument.begins_with("--ai-strategy-script="): ai_strategy_script = argument.trim_prefix("--ai-strategy-script=")
+		elif argument.begins_with("--ai-commander="): ai_commander = argument.get_slice("=", 1)
+		elif argument.begins_with("--variant="): variant_label = argument.get_slice("=", 1)
+		elif argument.begins_with("--ai-decision-checkpoints="): ai_decision_checkpoints = argument.get_slice("=", 1) == "true"
 		elif argument.begins_with("--out="): output_directory = argument.trim_prefix("--out=")
 		elif argument.begins_with("--top="): top_count = int(argument.get_slice("=", 1))
 	var definition: Resource = CATALOG.find_map(map_id)
+	if variant_label.is_empty(): variant_label = "baseline" if baseline_targeting else "candidate"
+	if ai_commander not in ["squirrel", "pig", "fox", "frog", "bear", "rabbit"] or variant_label not in ["baseline", "candidate"]:
+		printerr("FAIL SINGLEPLAYER_PROFILE invalid commander or variant")
+		quit(2)
+		return
 	if detailed_ai and baseline_ai_information:
 		printerr("FAIL SINGLEPLAYER_PROFILE detailed AI cannot be combined with generated information reference")
 		quit(2)
@@ -391,12 +440,15 @@ func _run() -> void:
 		return
 	session.block_war_map_id = map_id
 	session.block_war_commander = &"pig"
-	session.block_war_opponent_commander = &"squirrel"
+	session.block_war_opponent_commander = StringName(ai_commander)
 	seed(fixed_seed)
 	var instance: Node3D = BATTLE.instantiate()
 	# Keep every authored native child and canonical WarMarches nested type.
 	# Instrumentation is installed before either script runs _enter_tree/_ready.
-	instance.set_script(BaselineInformationGame if baseline_ai_information else (DetailedProfileGame if detailed_ai else ProfileGame))
+	if not ai_strategy_script.is_empty():
+		instance.set_script(DetailedBaselineInformationGame if detailed_ai else BaselineInformationGame)
+	else:
+		instance.set_script(BaselineInformationGame if baseline_ai_information else (DetailedProfileGame if detailed_ai else ProfileGame))
 	instance.get_node("Marches").set_script(DetailedProfileMarches if detailed_ai else ProfileMarches)
 	game = instance as ProfileGame
 	march_probe = instance.get_node("Marches") as ProfileMarches
@@ -409,9 +461,13 @@ func _run() -> void:
 	game.audio.muted = true
 	game.ai_enabled = true
 	for faction: int in game.faction_count:
-		game.faction_skills[faction].commander = &"pig" if faction == 0 else &"squirrel"
-	if detailed_ai: _install_ai_probes()
-	if baseline_ai_information: _install_baseline_information()
+		game.faction_skills[faction].commander = &"pig" if faction == 0 else StringName(ai_commander)
+	if not ai_strategy_script.is_empty():
+		_install_ai_script(ai_strategy_script)
+	elif baseline_ai_information:
+		_install_ai_script("res://.local/singleplayer-reference/war_ai.gd")
+	elif detailed_ai:
+		_install_ai_probes()
 	var fixture: Dictionary = _prepare_fixture()
 	check(game.faction_count == 6 and game._bot_factions == [1, 2, 3, 4, 5], "one human and five actual native AI seats")
 	check(game.match_config.is_empty() and game.network_match == null, "no network coordinator participates")
@@ -420,12 +476,15 @@ func _run() -> void:
 	var initial_hashes: Dictionary = _save_state("initial", 0)
 	print("SINGLEPLAYER_PROFILE_CONTRACT ", JSON.stringify({
 		"engine": Engine.get_version_info().string, "display": DisplayServer.get_name(),
-		"variant": "baseline" if baseline_targeting else "candidate", "map": map_id, "detailed_ai": detailed_ai, "front_towers": front_towers,
+		"variant": variant_label, "map": map_id, "detailed_ai": detailed_ai, "front_towers": front_towers,
+		"baseline_targeting": baseline_targeting, "ai_strategy_script": ai_strategy_script,
+		"ai_commander": ai_commander,
+		"ai_decision_checkpoints": ai_decision_checkpoints,
 		"baseline_ai_information": baseline_ai_information,
 		"baseline_zone_geometry": baseline_zone_geometry, "baseline_zone_body_sha256": BASELINE_ZONE_BODY_SHA256,
 		"map_title": definition.title, "seed": fixed_seed, "frames": sample_frames, "step": STEP,
 		"start_elapsed": game.elapsed, "population_requested": initial_population, "fixture": fixture,
-		"commanders": ["pig", "squirrel", "squirrel", "squirrel", "squirrel", "squirrel"],
+		"commanders": ["pig", ai_commander, ai_commander, ai_commander, ai_commander, ai_commander],
 		"limits": ["CPU method attribution with nested inclusive timers; do not sum parent and child stages",
 			"No wall-clock pacing, renderer frame waits, GPU timing or FPS claim",
 			"Synthetic midgame ownership/population on unchanged authored geometry, not a reconstruction of a screenshot save",
@@ -434,6 +493,7 @@ func _run() -> void:
 			"Call the real _process at fixed 1/60 to retain native 0.1-second HUD cadence and five AI decisions",
 			"Reference variants independently opt into frozen acquire_targets, incoming_damage and _zone_intervals; all other helpers use current source",
 			"Setup/hash/counting/JSON output excluded from frame timing",
+			"Optional AI checkpoints capture each decision frame after _process returns, outside all measured timings",
 			"Reference/candidate execute in separate serial processes; no concurrent benchmark load",
 			"_render requests include deferred batch calls; render_submissions counts calls at batch depth zero",
 			"Optional detailed_ai replaces the five strategies/skills with super-only timing wrappers; nested times include instrumentation overhead",
@@ -446,7 +506,7 @@ func _run() -> void:
 	for frame: int in sample_frames:
 		game.reset_profile()
 		march_probe.reset_profile()
-		for strategy: ProfileStrategy in ai_probes: strategy.reset_profile()
+		for strategy: RefCounted in ai_probes: strategy.reset_profile()
 		var before: Dictionary = _population()
 		var begun := Time.get_ticks_usec()
 		game._process(STEP)
@@ -472,6 +532,9 @@ func _run() -> void:
 			"fire_fields": game.fire_states.size(), "finished": game.finished}
 		if detailed_ai: _append_ai_metrics(row)
 		rows.append(row)
+		if ai_decision_checkpoints and game.ai_calls > 0:
+			ai_checkpoints.append({"frame": frame, "elapsed": game.elapsed, "ai_calls": game.ai_calls,
+				"hashes": _save_state("ai-decision-%06d" % frame, frame + 1)})
 		if game.finished:
 			break
 	game.profile_enabled = false
@@ -488,7 +551,10 @@ func _run() -> void:
 	if trace != null:
 		for row: Dictionary in rows: trace.store_line(JSON.stringify(row, "", true, true))
 		trace.close()
-	var result := {"variant": "baseline" if baseline_targeting else "candidate", "map": map_id, "detailed_ai": detailed_ai, "front_towers": front_towers,
+	var result := {"variant": variant_label, "map": map_id, "detailed_ai": detailed_ai, "front_towers": front_towers,
+		"baseline_targeting": baseline_targeting, "ai_strategy_script": ai_strategy_script,
+		"ai_commander": ai_commander,
+		"ai_decision_checkpoints": ai_decision_checkpoints, "ai_checkpoints": ai_checkpoints,
 		"baseline_ai_information": baseline_ai_information,
 		"baseline_zone_geometry": baseline_zone_geometry, "baseline_zone_body_sha256": BASELINE_ZONE_BODY_SHA256,
 		"seed": fixed_seed, "frames": rows.size(), "step": STEP, "start_elapsed": 100.0,
@@ -500,8 +566,8 @@ func _run() -> void:
 	print("SINGLEPLAYER_PROFILE_RESULT ", JSON.stringify(result, "", true, true))
 	await _finish()
 
-func _install_baseline_information() -> void:
-	var reference_script: Script = load("res://.local/singleplayer-reference/war_ai.gd")
+func _install_ai_script(path: String) -> void:
+	var reference_script: Script = load(path)
 	check(reference_script != null, "generated AI information reference loads")
 	if reference_script == null: return
 	var reference_game := game as BaselineInformationGame
@@ -520,6 +586,7 @@ func _install_baseline_information() -> void:
 		game._ai_by_faction[faction] = strategy
 		reference_game.reference_strategies.append(strategy)
 		if faction != 1: game._other_ai.append(strategy)
+		if detailed_ai: ai_probes.append(strategy)
 	check(reference_game.reference_strategies.size() == 5 and game._other_ai.size() == 4,
 		"five generated reference AI seats retain native turn order")
 	for index: int in reference_game.reference_strategies.size():
@@ -559,9 +626,9 @@ func _append_ai_metrics(row: Dictionary) -> void:
 		row[stage + "_us"] = 0
 		row[stage + "_calls"] = 0
 	var factions: Dictionary = {}
-	for strategy: ProfileStrategy in ai_probes:
+	for strategy: RefCounted in ai_probes:
 		var values: Dictionary = strategy.metrics.duplicate()
-		values.merge((strategy._skills as ProfileSkills).metrics)
+		values.merge(strategy._skills.metrics)
 		for field: String in values:
 			row[field] += values[field]
 		factions[str(strategy.faction)] = values

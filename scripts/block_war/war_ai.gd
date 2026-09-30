@@ -18,6 +18,7 @@ var _reserves: Dictionary = {}
 var _tower_exposure: Dictionary[Vector4i, float] = {}
 var _incoming_teams: Dictionary[int, Vector2i] = {}
 var _departure_delays: Dictionary[Vector2i, float] = {}
+var _enemy_distances: Dictionary[int, float] = {}
 
 func _init(controlled_faction: int = 1) -> void:
 	faction = controlled_faction
@@ -33,9 +34,11 @@ func take_turn(game: Node3D) -> void:
 	_economy.record_spending(game.elapsed, maxf(0.0, energy_before - game.faction_skills[faction].energy))
 	_reserves.clear()
 	_departure_delays.clear()
+	_enemy_distances.clear()
 	# No simulation runs within one decision. Count each soldier once instead
 	# of rescanning all armies for every candidate source/target combination.
-	var incoming: Dictionary[Vector2i, int] = INFORMATION.snapshot_incoming(game, faction)
+	var observation := INFORMATION.snapshot_defense(game, faction)
+	var incoming: Dictionary[Vector2i, int] = observation.counts
 	_incoming_teams.clear()
 	for key: Vector2i in incoming:
 		var totals: Vector2i = _incoming_teams.get(key.x, Vector2i.ZERO)
@@ -51,7 +54,7 @@ func take_turn(game: Node3D) -> void:
 			homes += int(building.kind == 0 or building.conversion_target == 0)
 			constructing += int(building.is_constructing)
 		var reserve := _base_reserve(game, building)
-		reserve += INFORMATION.incoming_damage(game, building, incoming, faction)
+		reserve += observation.damage.get(building.building_id, 0.0)
 		_reserves[building.building_id] = reserve
 		# Guards already committed to an exit queue will not remain to defend here.
 		if reserve > building.available_population + _incoming_for(building.building_id, faction):
@@ -94,10 +97,14 @@ func _distance(game: Node3D, source: WarBuilding, target: WarBuilding) -> float:
 	return game.map.get_building_distance(source, target)
 
 func _enemy_distance(game: Node3D, source: WarBuilding) -> float:
+	# Ownership cannot change between this turn's observation and chosen action.
+	if _enemy_distances.has(source.building_id):
+		return _enemy_distances[source.building_id]
 	var distance := INF
 	for target: WarBuilding in game.buildings:
 		if game.FACTIONS.hostile(target.faction, faction):
 			distance = minf(distance, _distance(game, source, target))
+	_enemy_distances[source.building_id] = distance
 	return distance
 
 func _dispatch_percent(source: WarBuilding, reserve: float, needed: float) -> int:
@@ -173,6 +180,10 @@ func _development(game: Node3D, homes: int, constructing: int) -> Dictionary:
 
 func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 	var best := {}
+	# The candidate search is read-only. Forge/ward modifiers do not depend on
+	# the source or dispatch percentage; retain their original float64 values.
+	var environment_attack: float = 1.0 + game.attack_bonus(faction)
+	var defenses: Dictionary[int, PackedFloat64Array] = {}
 	for source: WarBuilding in game.buildings:
 		if source.faction != faction:
 			continue
@@ -205,7 +216,10 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 					var growth := minf(maxf(0.0, target.capacity - defenders), target.production_rate * maxf(0.0, arrival - target.disruption_remaining))
 					defenders += _incoming_for(target.building_id, target.faction)
 					defenders += growth
-				required = _assault_losses(game, target, defenders)
+				if not defenses.has(target.building_id):
+					defenses[target.building_id] = PackedFloat64Array([1.0 + game.defense_bonus(target), 1.0 + game.skill_defense_bonus(target)])
+				var defense := defenses[target.building_id]
+				required = _assault_losses_with_environment(game, target, defenders, environment_attack, defense[0], defense[1])
 				required = required * (1.0 if neutral else 1.35) + (6.0 if neutral else 10.0)
 				if count < required:
 					continue
@@ -223,6 +237,9 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 	return best
 
 func _assault_losses(game: Node3D, target: WarBuilding, defenders: float) -> float:
+	return _assault_losses_with_environment(game, target, defenders, 1.0 + game.attack_bonus(faction), 1.0 + game.defense_bonus(target), 1.0 + game.skill_defense_bonus(target))
+
+func _assault_losses_with_environment(game: Node3D, target: WarBuilding, defenders: float, environment_attack: float, environment_defense: float, skill_defense: float) -> float:
 	# Arrivals fight one soldier at a time. Each lost attacker can remove an
 	# attack star and award a defense star before the rest of the wave arrives.
 	# Advance directly to those boundaries, at most five changes per faction.
@@ -230,9 +247,6 @@ func _assault_losses(game: Node3D, target: WarBuilding, defenders: float) -> flo
 	var attack_level: int = game.morale.level(faction)
 	var defense_points: float = 0.0 if target.faction < 0 else game.morale.points(target.faction)
 	var defense_level: int = 0 if target.faction < 0 else game.morale.level(target.faction)
-	var environment_attack: float = 1.0 + game.attack_bonus(faction)
-	var environment_defense: float = 1.0 + game.defense_bonus(target)
-	var skill_defense: float = 1.0 + game.skill_defense_bonus(target)
 	var remaining := defenders
 	var losses := 0.0
 	while remaining > 0.0:

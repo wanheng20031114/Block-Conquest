@@ -1,6 +1,10 @@
 extends RefCounted
 ## Decisions use public army totals, buildings and observed armies, never hidden garrison distributions.
 
+class IncomingSnapshot extends RefCounted:
+	var counts: Dictionary[Vector2i, int] = {}
+	var damage: Dictionary[int, float] = {}
+
 static func garrison_estimate(game: Node3D, building: WarBuilding, faction: int) -> float:
 	if building.faction < 0 or game.FACTIONS.allied(building.faction, faction):
 		return building.population
@@ -23,25 +27,62 @@ static func snapshot_incoming(game: Node3D, faction: int) -> Dictionary[Vector2i
 	return result
 
 static func incoming_damage(game: Node3D, building: WarBuilding, incoming: Dictionary[Vector2i, int], faction: int) -> float:
+	var attackers: Array[WarMarches.MarchUnit] = []
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if unit.order.target_id == building.building_id and is_unit_known(game, unit, faction) and game.FACTIONS.hostile(building.faction, unit.order.faction):
+			attackers.append(unit)
+	return _observed_damage(game, building, incoming, attackers)
+
+static func snapshot_defense(game: Node3D, faction: int) -> IncomingSnapshot:
+	# This observation ends before a skill/order changes the battlefield. Keep
+	# each target's original soldier order so damage additions remain identical.
+	var result := IncomingSnapshot.new()
+	var attackers_by_target: Dictionary[int, Array] = {}
+	for unit: WarMarches.MarchUnit in game.marches._units:
+		if not is_unit_known(game, unit, faction):
+			continue
+		var key := Vector2i(unit.order.target_id, unit.order.faction)
+		result.counts[key] = result.counts.get(key, 0) + 1
+		if not game.FACTIONS.hostile(unit.order.faction, faction):
+			continue
+		var target: WarBuilding = game.by_id[unit.order.target_id]
+		if not game.FACTIONS.allied(target.faction, faction):
+			continue
+		if not attackers_by_target.has(key.x):
+			attackers_by_target[key.x] = []
+		attackers_by_target[key.x].append(unit)
+	for target_id: int in attackers_by_target:
+		result.damage[target_id] = _observed_damage(game, game.by_id[target_id], result.counts, attackers_by_target[target_id])
+	return result
+
+static func _observed_damage(game: Node3D, building: WarBuilding, incoming: Dictionary[Vector2i, int], attackers: Array) -> float:
 	var damage := 0.0
-	# One evaluation observes an unchanged battlefield. Reuse each attacker's
-	# base multiplier instead of rescanning every forge for each incoming soldier.
+	# Calculate only factions actually attacking this building, and reuse each
+	# distinct temporary bonus. All values are local to this unchanged observation.
 	var bases := PackedFloat64Array()
 	bases.resize(game.faction_count)
+	var adjusted_by_attacker: Array[Dictionary] = []
 	for attacker: int in game.faction_count:
+		adjusted_by_attacker.append({})
 		if game.FACTIONS.hostile(building.faction, attacker):
+			var count: int = incoming.get(Vector2i(building.building_id, attacker), 0)
+			if count == 0:
+				continue
 			bases[attacker] = game.combat_multiplier(attacker, building)
-			damage += incoming.get(Vector2i(building.building_id, attacker), 0) * bases[attacker]
+			damage += count * bases[attacker]
 	# The snapshot counts soldiers. Apply strength and temporary attack bonuses
 	# only to those same observed soldiers, including their visible levitation.
-	for unit: WarMarches.MarchUnit in game.marches._units:
-		if unit.order.target_id != building.building_id or not is_unit_known(game, unit, faction) or not game.FACTIONS.hostile(building.faction, unit.order.faction):
-			continue
+	for unit: WarMarches.MarchUnit in attackers:
 		var base: float = bases[unit.order.faction]
 		damage += (unit.order.strength - 1.0) * base
 		var bonus: float = game.marches.projected_attack_bonus(unit)
 		# Keep the original multiply/divide order when a skill changes attack.
-		var adjusted: float = base if bonus == 0.0 else game.combat_multiplier(unit.order.faction, building, bonus)
+		var adjusted := base
+		if bonus != 0.0:
+			var values := adjusted_by_attacker[unit.order.faction]
+			if not values.has(bonus):
+				values[bonus] = game.combat_multiplier(unit.order.faction, building, bonus)
+			adjusted = values[bonus]
 		damage += unit.order.strength * (adjusted - base)
 	return damage
 
