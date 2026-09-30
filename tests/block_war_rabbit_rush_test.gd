@@ -10,6 +10,7 @@ func soldier(faction: int, from: Vector3, to: Vector3, target_id: int) -> WarMar
 
 func _run() -> void:
 	create_timer(100.0, true, false, true).timeout.connect(func(): quit(3))
+	await _energy_gate()
 	await _snapshot_and_expiry()
 	await _partition_and_haste()
 	await _recall_keeps_rush()
@@ -22,14 +23,26 @@ func _run() -> void:
 	print("BLOCK_WAR_RABBIT_RUSH checks=%d failures=%d" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
+func _energy_gate() -> void:
+	await reset()
+	var unit := soldier(0, CENTER, CENTER + Vector3(80, 0, 0), enemy().building_id)
+	for energy: float in [20.0, 24.99]:
+		game.energy = energy
+		check(not game.cast_ground_skill(0, CENTER), "opening or fractional energy below twenty-five cannot cast rush")
+		check(game.energy == energy and game.cooldowns[0] == 0.0 and unit.rush_remaining == 0.0, "underfunded rush changes neither energy, cooldown nor soldier")
+	game.energy = 25.0
+	check(game.cast_ground_skill(0, CENTER), "exactly twenty-five energy funds rush")
+	check(game.energy == 0.0 and game.cooldowns[0] == 25.0 and unit.rush_remaining == 8.0, "funded rush spends once and preserves eight-second duration")
+
 func _snapshot_and_expiry() -> void:
 	await reset("rivers") # This scenario needs a real allied commander in seat 2.
 	check(not game.cast_ground_skill(0, CENTER), "empty rush is rejected")
 	check(game.energy == 100.0 and game.cooldowns[0] == 0.0, "empty rush spends neither energy nor cooldown")
 	var finish := CENTER + Vector3(80, 0, 0)
 	var own := soldier(0, CENTER, finish, enemy().building_id)
-	var boundary := soldier(0, CENTER - Vector3(0, 0, 3.6), finish, enemy().building_id)
-	var outside := soldier(0, CENTER - Vector3(0, 0, 3.61), finish, enemy().building_id)
+	var boundary := soldier(0, CENTER - Vector3(0, 0, 3.0), finish, enemy().building_id)
+	var outside := soldier(0, CENTER - Vector3(0, 0, 3.01), finish, enemy().building_id)
+	var former_range := soldier(0, CENTER - Vector3(0, 0, 3.3), finish, enemy().building_id)
 	var hostile := soldier(1, CENTER, finish, home().building_id)
 	var ally := soldier(2, CENTER, finish, enemy().building_id)
 	var queued := soldier(0, CENTER, finish, enemy().building_id)
@@ -41,12 +54,12 @@ func _snapshot_and_expiry() -> void:
 	later.distance = 0.0
 	game.marches._update_pose(later)
 	var total: int = game.total_for(0)
-	check(game.marches.rush_targets(0, CENTER, RULES.RABBIT_RUSH_RADIUS).size() == 2, "snapshot selects only exposed own units within the 3.6-metre boundary")
+	check(game.marches.rush_targets(0, CENTER, RULES.RABBIT_RUSH_RADIUS).size() == 2, "snapshot selects only exposed own units within the three-metre boundary")
 	check(game.cast_ground_skill(0, CENTER), "nonempty own squad receives rush")
 	check(own.rush_remaining == 8.0 and boundary.rush_remaining == 8.0, "the center and exact boundary receive eight seconds")
-	for excluded: WarMarches.MarchUnit in [outside, hostile, ally, queued, underground, later]:
+	for excluded: WarMarches.MarchUnit in [outside, former_range, hostile, ally, queued, underground, later]:
 		check(excluded.rush_remaining == 0.0, "outside, other factions, concealed and later units are excluded from the snapshot")
-	check(game.energy == 80.0 and game.cooldowns[0] == 20.0 and game.marches.haste_zones.is_empty(), "rush pays twenty energy and twenty seconds of cooldown without creating a haste field")
+	check(game.energy == 75.0 and game.cooldowns[0] == 25.0 and game.marches.haste_zones.is_empty(), "rush pays twenty-five energy and twenty-five seconds of cooldown without creating a haste field")
 	game.marches.tick(1.0)
 	near(own.distance, 6.2, "a selected soldier continues at double speed after leaving the original circle")
 	near(game.marches.speed_multiplier(own), 2.0, "rush travels with its soldier")
@@ -69,7 +82,7 @@ func _partition_and_haste() -> void:
 	for small_steps: bool in [false, true]:
 		await reset()
 		var unit := soldier(0, CENTER, CENTER + Vector3(80, 0, 0), enemy().building_id)
-		check(game.marches.apply_rush(0, CENTER, 3.6, 8.0) == 1, "rush application reports the actual selected count")
+		check(game.marches.apply_rush(0, CENTER, 3.0, 8.0) == 1, "rush application reports the actual selected count")
 		if small_steps:
 			for frame: int in 100:
 				game.marches.tick(0.1)
@@ -82,7 +95,7 @@ func _partition_and_haste() -> void:
 	await reset()
 	var unit := soldier(0, CENTER, CENTER + Vector3(80, 0, 0), enemy().building_id)
 	game.marches.create_haste_zone(0, CENTER, 100.0, 2.0, 1.6)
-	game.marches.apply_rush(0, CENTER, 3.6, 0.25)
+	game.marches.apply_rush(0, CENTER, 3.0, 0.25)
 	game.marches.tick(1.0)
 	near(unit.distance, 5.735, "overlapping rush and haste add their skill bonuses, then retain haste after rush expires")
 
@@ -118,7 +131,7 @@ func _arrival_timing() -> void:
 		soldier(0, CENTER, CENTER + Vector3(length, 0, 0), target.building_id)
 		check(game.cast_ground_skill(0, CENTER), "arrival boundary receives a real eight-second cast")
 		game.marches.tick(9.0)
-		var damage := 1.3 if arrival_time < 8.0 else 0.65
+		var damage := 0.975 if arrival_time < 8.0 else 0.65
 		near(target.population, 100.0 - damage, "arrival %.1fs combines smithy/tower environment and rush/shield skill groups" % arrival_time)
 		check(game.marches.total_for(0) == 0, "arrival is processed once even when the tick spans buff expiry")
 
@@ -129,11 +142,11 @@ func _projected_defense() -> void:
 	home().level = 3
 	game.shields[home().building_id] = 8.0
 	soldier(1, CENTER, CENTER + Vector3(30, 0, 0), home().building_id)
-	game.marches.apply_rush(1, CENTER, 3.6, 8.0)
-	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 1.3, "AI defense includes rush when a hostile soldier can arrive before expiry")
+	game.marches.apply_rush(1, CENTER, 3.0, 8.0)
+	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 0.975, "AI defense includes fifty-percent rush when a hostile soldier can arrive before expiry")
 	game.marches.clear()
 	soldier(1, CENTER, CENTER + Vector3(55, 0, 0), home().building_id)
-	game.marches.apply_rush(1, CENTER, 3.6, 8.0)
+	game.marches.apply_rush(1, CENTER, 3.0, 8.0)
 	near(game.incoming_damage_for(home(), game.marches.snapshot_incoming()), 0.65, "AI defense excludes a rush bonus that expires before the hostile arrival")
 
 func _real_population() -> void:
@@ -147,12 +160,12 @@ func _real_population() -> void:
 	first.distance = 0.0
 	game.marches._update_pose(first)
 	second.distance = -3.0
-	check(first.order == second.order and game.marches.apply_rush(0, first.position, 3.6, 8.0) == 1, "only the exposed soldier in a shared order receives rush")
+	check(first.order == second.order and game.marches.apply_rush(0, first.position, 3.0, 8.0) == 1, "only the exposed soldier in a shared order receives rush")
 	check(first.rush_remaining == 8.0 and second.rush_remaining == 0.0, "a queued soldier sharing the exact same order retains ordinary attack and speed")
-	game.marches.apply_rush(0, first.position, 3.6, 8.0)
+	game.marches.apply_rush(0, first.position, 3.0, 8.0)
 	near(first.rush_remaining, 8.0, "reapplying rush does not stack its duration")
 	game.marches.tick(3.0)
-	near(target.population, 100.0 - 3.0 / 1.15, "selected and ordinary soldiers share the target forge's environment defense")
+	near(target.population, 100.0 - 2.5 / 1.15, "selected and ordinary soldiers share the target forge's environment defense")
 	await reset("rivers")
 	var ally: WarBuilding = game.buildings[2]
 	ally.kind = 2
@@ -171,36 +184,28 @@ func _real_population() -> void:
 	check(game.cast_ground_skill(0, CENTER), "fractional capture receives rush")
 	game.marches.tick(1.0)
 	check(neutral.faction == 0, "boosted damage can capture a neutral garrison")
-	near(neutral.population, 0.625, "capturing survivor uses the original strength of one rather than boosted damage as population")
+	near(neutral.population, 0.5, "capturing survivor uses the original strength of one rather than boosted damage as population")
 
 func _four_star_assault() -> void:
-	# Keep the old attack bonus as a fixed regression reference. Both scenarios
-	# resolve actual one-soldier arrivals against the same four-star garrison.
+	# Resolve real one-soldier arrivals to verify that attack strength does not
+	# create extra population or overwhelm the same four-star garrison.
 	await reset()
 	var target := enemy()
 	target.population = 9.0
 	game.morale.adjust(1, 4000.0)
 	for index: int in 10:
-		game._on_unit_arrived(target.building_id, 0, 1.0, 0.5)
-	check(target.faction == 1, "old fifty-point rush cannot capture nine four-star defenders with ten soldiers")
-	near(target.population, 2.0 / 3.0, "old rush leaves two-thirds of a defender after ten arrivals")
-	await reset()
-	target = enemy()
-	target.population = 9.0
-	game.morale.adjust(1, 4000.0)
-	for index: int in 10:
 		soldier(0, CENTER, CENTER + Vector3(3, 0, 0), target.building_id)
-	check(game.cast_ground_skill(0, CENTER), "stronger rush selects the actual attacking squad")
+	check(game.cast_ground_skill(0, CENTER), "rush selects the actual attacking squad")
 	game.marches.tick(1.0)
-	check(target.faction == 0, "new rush captures the same four-star garrison")
-	near(target.population, 1.9, "new rush preserves the actual surviving attackers as the capturing garrison")
-	near(game.morale.points(1), 4031.0, "defender gains morale for actual attacker losses and pays the building loss")
+	check(target.faction == 1, "fifty-percent rush cannot capture nine four-star defenders with ten soldiers")
+	near(target.population, 2.0 / 3.0, "fifty-percent rush leaves two-thirds of a defender after ten arrivals")
+	near(game.morale.points(1), 4100.0, "defender gains morale for ten actual attacker losses")
 	await reset()
 	game.morale.adjust(0, 1000.0)
 	var unit := soldier(0, CENTER, CENTER + Vector3(30, 0, 0), enemy().building_id)
 	check(game.cast_ground_skill(0, CENTER), "rush remains usable with existing attacker morale")
 	near(game.marches.speed_multiplier(unit), 2.4, "rush multiplies the two-star morale movement bonus")
-	near(game.combat_multiplier(0, enemy(), game.marches.projected_attack_bonus(unit)), 2.2, "morale multiplies the new one-hundred-point attack bonus")
+	near(game.combat_multiplier(0, enemy(), game.marches.projected_attack_bonus(unit)), 1.65, "morale multiplies the fifty-percent attack bonus")
 
 func _ai_short_route() -> void:
 	await reset()
@@ -219,9 +224,9 @@ func _ai_short_route() -> void:
 	check(game.marches.total_for(1) == 6, "the six-person short-route wave is still exposed at three seconds")
 	tactics.take_turn(game)
 	check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining == 8.0), "rabbit casts before a fifteen-metre wave arrives between the old six-second decisions")
-	near(game.faction_skills[1].energy, 10.0, "short-route reaction pays the ordinary twenty energy")
+	near(game.faction_skills[1].energy, 5.0, "short-route reaction pays twenty-five energy")
 	tactics.take_turn(game)
-	near(game.faction_skills[1].energy, 10.0, "repeated same-time calls cannot cast twice")
+	near(game.faction_skills[1].energy, 5.0, "repeated same-time calls cannot cast twice")
 	for commander: StringName in [&"squirrel", &"bear", &"frog"]:
 		await reset()
 		game.faction_skills[1].commander = commander

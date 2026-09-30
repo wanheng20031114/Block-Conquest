@@ -76,8 +76,8 @@ func _run() -> void:
 	var rushing: WarMarches.MarchUnit = game.marches._units[0]
 	game.marches.send(1, 0, 1, 1, PackedVector3Array([center, center + Vector3(80, 0, 0)]))
 	check(game.cast_ground_skill(0, center), "rabbit rush casts on an exposed own squad")
-	near(game.energy, 80.0, "dash paid once")
-	near(game.cooldowns[0], 20.0, "dash cooldown")
+	near(game.energy, 75.0, "dash pays twenty-five energy once")
+	near(game.cooldowns[0], 25.0, "dash starts twenty-five seconds of cooldown")
 	game.marches.tick(0.2)
 	near(rushing.distance, 1.24, "selected squad receives double speed")
 	near(game.marches._units[1].distance, 0.62, "hostile unaffected")

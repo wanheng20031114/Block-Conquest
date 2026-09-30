@@ -123,7 +123,7 @@ func _run() -> void:
 	game.buildings[1].kind = 2
 	game.buildings[1].faction = 1
 	game.shields[0] = 8.0
-	near(game.combat_multiplier(1, game.buildings[0], game.marches.projected_attack_bonus(enemy)), 1.3 / 1.6 * 1.8 / 1.25, "forge and tower sum in environment; rush, mist and shield form the separate skill coefficient")
+	near(game.combat_multiplier(1, game.buildings[0], game.marches.projected_attack_bonus(enemy)), 1.3 / 1.6 * 1.3 / 1.25, "forge and tower sum in environment; fifty-percent rush, mist and shield form the separate skill coefficient")
 	game.marches.weak_zones.clear()
 	near(game.marches.projected_attack_bonus(enemy), RULES.RABBIT_RUSH_ATTACK_BONUS - 0.2, "weakness remains after the cloud disappears")
 	var unaffected := soldier(1, center, 0, 2.0)

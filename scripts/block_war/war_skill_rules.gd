@@ -24,12 +24,12 @@ const FIRE_DAMAGE := 25.0
 
 const RABBIT := &"rabbit"
 const RABBIT_NAMES: Array[String] = ["迅猛冲刺", "封条急件", "归巢口哨", "兔洞快递"]
-const RABBIT_COSTS: Array[float] = [20.0, 25.0, 20.0, 65.0]
-const RABBIT_COOLDOWNS: Array[float] = [20.0, 30.0, 26.0, 70.0]
+const RABBIT_COSTS: Array[float] = [25.0, 25.0, 20.0, 65.0]
+const RABBIT_COOLDOWNS: Array[float] = [25.0, 30.0, 26.0, 70.0]
 const RABBIT_DURATIONS: Array[float] = [8.0, 6.0, 0.0, 15.0]
-const RABBIT_RUSH_RADIUS := 3.6
+const RABBIT_RUSH_RADIUS := 3.0
 const RABBIT_RUSH_MULTIPLIER := 2.0
-const RABBIT_RUSH_ATTACK_BONUS := 1.0
+const RABBIT_RUSH_ATTACK_BONUS := 0.5
 const DISABLE_DURATION := 6.0
 const RECALL_RADIUS := 6.0
 const BURROW_LIMIT := 50

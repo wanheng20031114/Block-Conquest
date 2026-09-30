@@ -91,7 +91,7 @@ func _native_input() -> void:
 	motion(ground)
 	mouse(ground, false)
 	check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining == 8.0) and game.marches.haste_zones.is_empty() and game.armed_skill == -1, "native Q release empowers the selected squad without placing a persistent field")
-	near(game.energy, 80.0, "native release pays once")
+	near(game.energy, 75.0, "native release pays twenty-five energy once")
 	game.marches.clear()
 	refill()
 	key(KEY_W, true)
@@ -227,9 +227,22 @@ func _ai_decisions() -> void:
 	expose(1, 18, center, center + Vector3(20, 0, 0), 0)
 	ai.take_turn(game)
 	check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining > 0.0) and game.marches.haste_zones.is_empty(), "rabbit AI chooses Q on the actual exposed squad")
-	near(game.faction_skills[1].energy, 80.0, "AI pays the player's Q cost")
+	near(game.faction_skills[1].energy, 75.0, "AI pays the player's twenty-five energy Q cost")
 	ai.take_turn(game)
-	near(game.faction_skills[1].energy, 80.0, "same-time AI calls cannot chain casts")
+	near(game.faction_skills[1].energy, 75.0, "same-time AI calls cannot chain casts")
+	await reset()
+	ai = ai_setup()
+	expose(1, 6, center, center + Vector3(20, 0, 0), 0)
+	for energy: float in [20.0, 24.99, 25.0]:
+		game.faction_skills[1].energy = energy
+		game.elapsed += 3.0
+		ai.take_turn(game)
+		if energy < 25.0:
+			check(game.faction_skills[1].energy == energy and game.faction_skills[1].cooldowns[0] == 0.0, "AI cannot spend opening or fractional energy below twenty-five on Q")
+			check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining == 0.0), "underfunded AI leaves its exposed squad unbuffed")
+		else:
+			check(game.faction_skills[1].energy == 0.0 and game.faction_skills[1].cooldowns[0] == 25.0, "AI casts Q at exactly twenty-five energy")
+			check(game.marches._units.all(func(unit: WarMarches.MarchUnit): return unit.rush_remaining == 8.0), "funded AI buffs the actual squad for eight seconds")
 	await reset()
 	ai = ai_setup()
 	game.elapsed = 6.0
@@ -247,8 +260,8 @@ func _ai_decisions() -> void:
 	check(game.issue_order(enemy(), expansion_target, 50, 1) == 15, "opening AI sends a legal fifteen-person neutral expansion")
 	game.marches.tick(0.1)
 	ai.take_turn(game)
-	near(game.faction_skills[1].energy, 10.0, "AI with thirty energy can fund rush for its first expansion squad")
-	check(game.faction_skills[1].cooldowns[0] == 20.0, "opening squad triggers the normal Q cooldown")
+	near(game.faction_skills[1].energy, 5.0, "AI with thirty energy can fund rush for its first expansion squad")
+	check(game.faction_skills[1].cooldowns[0] == 25.0, "opening squad triggers twenty-five seconds of Q cooldown")
 	var rushed := 0
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if unit.is_exposed():
@@ -275,7 +288,7 @@ func _ai_decisions() -> void:
 	ai = ai_setup()
 	home().kind = 1
 	home().level = 3
-	game.faction_skills[1].cooldowns[0] = 100.0 # Isolate suppression from the stronger snapshot rush.
+	game.faction_skills[1].cooldowns[0] = 100.0 # Isolate suppression from the snapshot rush.
 	expose(1, 20, home().global_position + Vector3(-6, 0, 0), home().global_position + Vector3(30, 0, 0), 0)
 	ai.take_turn(game)
 	near(home().disruption_remaining, 6.0, "rabbit AI seals tower covering its column")
