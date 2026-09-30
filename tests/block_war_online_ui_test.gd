@@ -421,7 +421,6 @@ func _match_menu_checks(hud: CanvasLayer, online: Node) -> void:
 	hud._cancel_online_action()
 	online.is_host = true
 	hud._configure_online_menu(online)
-	check(hud.get_node("%PauseCard").get_node("CompanionNote").text.contains("托管"), "surrendered Host is told to keep hosting")
 	await capture("online_spectating_host")
 	hud.set_paused(false)
 	check(hud.get_node("%MatchStatusTitle").text.contains("观战"), "spectator sees persistent status after closing local menu")

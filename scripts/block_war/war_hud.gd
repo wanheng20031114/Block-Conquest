@@ -502,7 +502,6 @@ func _configure_online_menu(online: Node) -> void:
 	_hosting = online.is_host
 	%Pause.text = "菜单"
 	%Pause.tooltip_text = "打开菜单 · 对局继续进行 · Esc"
-	%PauseCard.get_node("Eyebrow").text = "积木战争  /  联机对局"
 	%PauseMenuActions.add_theme_constant_override("separation", 8)
 	for button: Button in %PauseMenuActions.get_children():
 		button.custom_minimum_size.y = 52 if button == %Resume else 44
@@ -546,7 +545,6 @@ func _refresh_match_menu() -> void:
 	%Surrender.disabled = not _can_surrender
 	%PauseCard.get_node("Title").text = "对局已暂停" if _global_paused else ("正在观战" if _local_surrendered else "战斗仍在继续")
 	%PauseCard.get_node("Sub").text = "仍参战的真人均可恢复对局。" if _global_paused else ("你已交出军团，可继续观看战局。" if _local_surrendered else "Esc 只打开菜单，暂停请按 %s。" % _pause_shortcut())
-	%PauseCard.get_node("CompanionNote").text = ("房主仍在托管，请留在房间。" if _hosting else "等待伙伴完成这场战斗。") if _local_surrendered else "你的军团仍在战场。"
 
 func _refresh_match_status() -> void:
 	%MatchStatus.visible = _online_menu and (_global_paused or _local_surrendered) and not _paused and not _finished and not %OnlineStatus.visible

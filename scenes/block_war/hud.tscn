@@ -1647,17 +1647,6 @@ offset_top = -315.0
 offset_right = 530.0
 offset_bottom = 315.0
 
-[node name="Eyebrow" type="Label" parent="UI/PauseOverlay/PauseCard"]
-layout_mode = 0
-offset_left = 46.0
-offset_top = 32.0
-offset_right = 646.0
-offset_bottom = 64.0
-text = "积木战争  /  小憩片刻"
-mouse_filter = 2
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-
 [node name="Title" type="Label" parent="UI/PauseOverlay/PauseCard"]
 layout_mode = 0
 offset_left = 568.0
@@ -1693,18 +1682,6 @@ texture_filter = 1
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
-
-[node name="CompanionNote" type="Label" parent="UI/PauseOverlay/PauseCard"]
-layout_mode = 0
-offset_left = 78.0
-offset_top = 527.0
-offset_right = 462.0
-offset_bottom = 565.0
-text = "伙伴正在等你。"
-mouse_filter = 2
-theme_type_variation = &"MenuHeading"
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 25
 
 [node name="Divider194" type="HSeparator" parent="UI/PauseOverlay/PauseCard"]
 layout_mode = 0
