@@ -15,7 +15,6 @@ const MAX_SPOTLIGHTS := 8
 @onready var objective: PanelContainer = %Objective
 @onready var chapter_label: Label = %Chapter
 @onready var objective_title: Label = %ObjectiveTitle
-@onready var objective_detail: Label = %ObjectiveDetail
 @onready var objective_progress: Label = %ObjectiveProgress
 @onready var instruction: PanelContainer = %Instruction
 @onready var instruction_title: Label = %InstructionTitle
@@ -58,10 +57,9 @@ func _ready() -> void:
 	_queue_layout()
 
 
-func set_objective(chapter: String, title: String, detail: String, progress: String) -> void:
+func set_objective(chapter: String, title: String, progress: String) -> void:
 	chapter_label.text = chapter
 	objective_title.text = title
-	objective_detail.text = detail
 	objective_progress.text = progress
 	objective_progress.visible = not progress.is_empty()
 	_queue_layout()
@@ -235,7 +233,6 @@ func _configure_density(profile: int) -> void:
 	continue_button.custom_minimum_size.y = 42.0 if small else (46.0 if compact else 50.0)
 	continue_button.add_theme_font_size_override("font_size", 19 if small else (20 if compact else 22))
 	objective_title.add_theme_font_size_override("font_size", 20 if small else (22 if compact else 25))
-	objective_detail.add_theme_font_size_override("font_size", 15 if small else (16 if compact else 18))
 
 
 func _update_spotlights() -> void:

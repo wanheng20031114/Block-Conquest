@@ -115,7 +115,7 @@ func _next_phase() -> void:
 	next_hint_at = 18.0
 	select_building(by_id[0] if phase.focus in ["upgrade", "selection"] else null)
 	_set_teaching_pause(true)
-	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "跟随讲解，然后亲自试一次。" if phase.action != "read" else "战场已暂停，可以安心阅读。", "%d / %d" % [phase_index + 1, lesson_steps.size()])
+	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
 	tutor.show_instruction(phase.title, phase.body, "明白，继续" if phase.action == "read" else "开始练习")
 	_update_guidance()
 
@@ -141,7 +141,7 @@ func _continue() -> void:
 		wave_started = true
 		shield_previous_population = by_id[1].population
 		issue_order(by_id[2], by_id[1], 100, 1)
-	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "练习瞄准时部队会等待，放准后才继续。" if phase.action in ["cast_building", "cast_ground", "fire_hit"] else "需要帮助时点「再看讲解」。拖错可按右键取消。", "%d / %d" % [phase_index + 1, lesson_steps.size()])
+	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
 
 func _replay() -> void:
 	if lesson_complete or _closing or advance_queued: return
@@ -343,7 +343,7 @@ func _complete_lesson() -> void:
 	var has_next := LESSONS.IDS.find(lesson_id) + 1 < LESSONS.IDS.size()
 	var body := LESSONS.summary(lesson_id) + ("\n这一关可以随时重玩，下一关也已经准备好了。" if has_next else "\n基础练习已经完成。回到主菜单，试试自己的第一场单人对局吧。")
 	if saved != OK: body += "\n本次通关已完成，但进度暂时无法写入磁盘。"
-	tutor.set_objective(LESSONS.title(lesson_id), "本课目标已完成", "已完成实际操作，可以继续下一课或随时重玩。", "%d / %d" % [lesson_steps.size(), lesson_steps.size()])
+	tutor.set_objective(LESSONS.title(lesson_id), "本课目标已完成", "%d / %d" % [lesson_steps.size(), lesson_steps.size()])
 	tutor.show_completion("完成 · " + LESSONS.title(lesson_id), body, has_next)
 
 func restart() -> void:

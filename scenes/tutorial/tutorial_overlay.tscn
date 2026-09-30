@@ -276,14 +276,6 @@ theme_override_font_sizes/font_size = 25
 text = "占领第一座房屋"
 autowrap_mode = 3
 
-[node name="ObjectiveDetail" type="Label" parent="UI/Objective/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-mouse_filter = 2
-theme_override_font_sizes/font_size = 18
-text = "从你的绿色房屋按住左键，拖到中立房屋后松开。"
-autowrap_mode = 3
-
 [node name="ObjectiveProgress" type="Label" parent="UI/Objective/Column"]
 unique_name_in_owner = true
 layout_mode = 2
