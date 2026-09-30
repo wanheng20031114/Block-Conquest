@@ -35,6 +35,8 @@
 
 `tests/codex_test.gd` 覆盖菜单往返、六位英雄及二十四项技能、规则数据一致性、检索空态、全部指南、暂停重播、快速切换与只读状态，并输出原生渲染截图。`tests/codex_native_demo_test.gd` 验证真实施法、对应的部队或建筑变化、镜头构图、960×540 小窗口及演示隔离。可通过 `tools/run_godot_private_desktop.py` 在独立桌面运行，测试结束自动释放进程树。
 
+正式导出必须启用 `internationalization/locale/include_text_server_data`，随包携带 `icudt_godot.dat`；模板准备工具会从官方模板包提取匹配的数据。编辑器内置 ICU 数据，仅用编辑器运行 PCK 无法发现缺失数据导致的中文断行退化。`tools/build_windows.ps1` 额外用实际发行 EXE 执行 `tests/export_text_layout_test.gd`，检查 720p、900p、1440p 下全部指南和技能的原生排版行宽。测试副本只增加检查入口，产品包不含检查脚本。详情见 [1.3.3 根因与发行验证](reviews/2026-09-30-export-text-1.3.3.md)。
+
 ## 技能命中表现
 
 青蛙大招以交错叶刃命中建筑，伴随碎瓦、土灰和卷尘显示降级；狐狸炸弹和猪的落地冲击补充接触层次与碎屑，熊的震地补充短促冲击波。保留原有技能的结算时点、伤害、范围和阵营规则。

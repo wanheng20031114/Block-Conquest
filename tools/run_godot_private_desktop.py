@@ -43,7 +43,7 @@ class ExtendedLimits(c.Structure):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("script")
+    parser.add_argument("script", nargs="?")
     parser.add_argument("--output", required=True)
     parser.add_argument("--timeout", type=int, default=150)
     parser.add_argument("--godot", default=r"C:\Program Files\Godot\Godot.exe",
@@ -53,9 +53,15 @@ def main():
     parser.add_argument("--main-pack", help="Load an exported PCK instead of source resources")
     parser.add_argument("--project-dir", help="Isolated empty project directory for PCK verification")
     parser.add_argument("--headless", action="store_true", help="Run protocol checks without a renderer")
+    parser.add_argument("--exported", action="store_true",
+                        help="Run the actual exported EXE and adjacent PCK, without editor-only path/script overrides")
     parser.add_argument("--script-arg", action="append", default=[],
                         help="Extra Godot script argument; use --script-arg=--flag for flags")
     args = parser.parse_args()
+    if args.exported and (args.script or args.main_pack):
+        parser.error("An exported executable uses its adjacent PCK and packaged test entry point")
+    if not args.exported and not args.script:
+        parser.error("A script is required unless --exported is used")
     project = Path(__file__).resolve().parents[1]
     run_project = Path(args.project_dir).resolve() if args.project_dir else project
     run_project.mkdir(parents=True, exist_ok=True)
@@ -98,12 +104,12 @@ def main():
         executable = str(Path(args.godot).resolve())
         command = subprocess.list2cmdline([
             executable, *( ["--headless"] if args.headless else []),
-            "--path", str(run_project),
+            *([] if args.exported else ["--path", str(run_project)]),
             *( ["--main-pack", str(Path(args.main_pack).resolve())] if args.main_pack else []),
             "--audio-driver", "Dummy",
             "--rendering-method", "forward_plus", "--resolution", "960x540",
             "--max-fps", "24", *([] if args.real_time else ["--fixed-fps", "24"]), "--log-file", str(log),
-            "--script", args.script, "--", str(output), *args.script_arg])
+            *([] if args.exported else ["--script", args.script]), "--", str(output), *args.script_arg])
         startup = Startup()
         startup.cb = c.sizeof(startup)
         startup.desktop = "WinSta0\\" + name

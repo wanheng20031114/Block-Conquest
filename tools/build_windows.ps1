@@ -12,7 +12,7 @@ if (-not (Test-Path -LiteralPath $GodotPath -PathType Leaf)) {
 }
 $runtimeVersion = & $GodotPath --version
 if ($runtimeVersion -notmatch '^4\.7\.2\.') { throw 'This release requires Godot 4.7.2 for reliable DTLS teardown.' }
-foreach ($template in @('windows_debug_x86_64.exe', 'windows_release_x86_64.exe')) {
+foreach ($template in @('windows_debug_x86_64.exe', 'windows_release_x86_64.exe', 'icudt_godot.dat')) {
     if (-not (Test-Path -LiteralPath (Join-Path $projectRoot ('.local/network/templates/' + $template)) -PathType Leaf)) {
         throw 'Prepare the verified export templates: python tools/deploy_block_war_relay.py --templates'
     }
@@ -39,8 +39,8 @@ if ($PackOnly) {
     $exportMode = '--export-pack'
     $exportTarget = Join-Path $buildRoot '积木战争.pck'
 }
-function Invoke-OwnedGodot([string[]]$EngineArgs, [int]$TimeoutSeconds = 300) {
-    $owned = Start-Process -FilePath $GodotPath -ArgumentList $EngineArgs -WindowStyle Hidden -PassThru
+function Invoke-OwnedGodot([string[]]$EngineArgs, [int]$TimeoutSeconds = 300, [string]$EnginePath = $GodotPath) {
+    $owned = Start-Process -FilePath $EnginePath -ArgumentList $EngineArgs -WindowStyle Hidden -PassThru
     try {
         if (-not $owned.WaitForExit($TimeoutSeconds * 1000)) { throw 'Godot validation timed out.' }
         if ($owned.ExitCode -ne 0) { throw "Godot failed with exit code $($owned.ExitCode)." }
@@ -75,6 +75,20 @@ New-Item -ItemType Directory -Path $smokeRoot -Force | Out-Null
 # files from that checkout. Use an empty resource root to test the real product.
 Invoke-OwnedGodot @('--headless', '--path', ('"' + $smokeRoot + '"'), '--main-pack', ('"' + (Join-Path $buildRoot '积木战争.pck') + '"'), '--log-file', ('"' + $smokeLog + '"'), '--script', ('"' + (Join-Path $projectRoot 'tests/product_release_test.gd') + '"')) 120
 if (Select-String -LiteralPath $smokeLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) { throw 'Packaged startup failed.' }
+# The editor embeds ICU dictionaries even when they are missing from the PCK.
+# Check shaping with the real release EXE as well. Official templates disable
+# external script/path overrides, so inject a test autoload into a pack copy;
+# all product resources (including optional text data) are copied unchanged.
+$textRoot = Join-Path $logRoot 'release-text-check'
+New-Item -ItemType Directory -Path $textRoot -Force | Out-Null
+$prepareLog = Join-Path $textRoot 'prepare.engine.log'
+Invoke-OwnedGodot @('--headless', '--path', ('"' + $smokeRoot + '"'), '--main-pack', ('"' + (Join-Path $buildRoot '积木战争.pck') + '"'), '--log-file', ('"' + $prepareLog + '"'), '--script', ('"' + (Join-Path $PSScriptRoot 'prepare_export_text_test.gd') + '"'), '--', ('"' + $textRoot + '"'), ('"' + (Join-Path $projectRoot 'tests/export_text_layout_test.gd') + '"')) 60
+if ((Select-String -LiteralPath $prepareLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) -or -not (Select-String -LiteralPath $prepareLog -Pattern 'EXPORT_TEXT_FIXTURE copied_resources=' -Quiet)) { throw 'Release text fixture preparation failed.' }
+$textExecutable = Join-Path $textRoot 'text-check.exe'
+Copy-Item -LiteralPath $executable -Destination $textExecutable -Force
+$textLog = Join-Path $textRoot 'release.engine.log'
+Invoke-OwnedGodot @('--headless', '--log-file', ('"' + $textLog + '"'), '--', ('"' + $textRoot + '"')) 90 $textExecutable
+if ((Select-String -LiteralPath $textLog -Pattern 'SCRIPT ERROR:|ERROR:' -Quiet) -or -not (Select-String -LiteralPath $textLog -Pattern 'EXPORT_TEXT_LAYOUT checks=\d+ failures=0' -Quiet)) { throw 'Actual release text layout failed.' }
 Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/windows-readme.txt') -Destination (Join-Path $buildRoot 'START_HERE.txt') -Force
 Copy-Item -LiteralPath (Join-Path $projectRoot 'assets/ui/medieval/fonts/OFL.txt') -Destination (Join-Path $buildRoot 'FONT_LICENSE.txt') -Force
 $licenseRoot = Join-Path $buildRoot 'licenses'

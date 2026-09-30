@@ -41,6 +41,7 @@ TEMPLATE_RELEASE_SHA256 = {
     "linux_release.x86_64": "d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63",
     "windows_release_x86_64.exe": "d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562",
 }
+TEMPLATE_FILES = ("windows_release_x86_64.exe", "windows_debug_x86_64.exe", "linux_release.x86_64", "icudt_godot.dat")
 SOURCE_FILES = (
     "scripts/network/war_protocol.gd",
     "server/war_relay_rooms.gd",
@@ -102,7 +103,7 @@ def templates() -> Path:
                 and receipt.get("official_checksum_verified") is True
                 and all((folder / name).is_file() and digest((folder / name).read_bytes()) == record.get("sha256")
                         for name, record in receipt.get("files", {}).items())
-                and set(receipt.get("files", {})) == {"windows_release_x86_64.exe", "windows_debug_x86_64.exe", "linux_release.x86_64"}):
+                and set(receipt.get("files", {})) == set(TEMPLATE_FILES)):
             return folder
     archive = folder / "Godot_v4.7.2-stable_export_templates.tpz"
     release = "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/"
@@ -116,7 +117,9 @@ def templates() -> Path:
         partial.replace(archive)
     files = {}
     with zipfile.ZipFile(archive) as package:
-        for name in ("windows_release_x86_64.exe", "windows_debug_x86_64.exe", "linux_release.x86_64"):
+        # Godot looks beside a custom template for its matching ICU data before
+        # falling back to the editor's embedded data, which may be older.
+        for name in TEMPLATE_FILES:
             data = package.read("templates/" + name)
             if name in TEMPLATE_RELEASE_SHA256 and digest(data) != TEMPLATE_RELEASE_SHA256[name]:
                 raise RuntimeError("Official release template checksum mismatch")
