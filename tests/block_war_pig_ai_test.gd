@@ -194,7 +194,7 @@ func impact_decisions() -> void:
 		check(Vector2(plan.at.x - expected.x, plan.at.z - expected.z).length() < 0.25, "R leads moving armies by the full falling delay")
 	TACTICS.new(1).take_turn(game)
 	check(game.pig.drops.size() == 1 and skill_actions().size() == 1, "R creates a real delayed impact")
-	near(game.faction_skills[1].energy, 25.0, "R pays seventy-five energy")
+	near(game.faction_skills[1].energy, 20.0, "R pays eighty energy")
 	check(game.marches._units.size() == 32, "R warning does not kill units early")
 	game.marches.tick(RULES.PIG_DROP_FALL_TIME)
 	game.pig.advance(game, RULES.PIG_DROP_FALL_TIME)

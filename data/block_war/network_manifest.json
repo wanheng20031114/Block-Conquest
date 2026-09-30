@@ -119,7 +119,7 @@
     "scripts/block_war/war_rally_effect.gd": "84d1998befa8be96004b9f595d96f6b68d6318188b07e6d83b7c5cab25992673",
     "scripts/block_war/war_seal_effect.gd": "81faf3ff5f72fb27925c4bea4ab9a6566bd59c3e83e8f1c47f9ce992770064e0",
     "scripts/block_war/war_skill_button.gd": "132c11725a7958b88088396196b7efb6e3b5af5c718b14e6b247658691bdb290",
-    "scripts/block_war/war_skill_rules.gd": "f6dabfb1467b2d622ef3517ca5178dd3c903299fbcaea465039e894c82fbc214",
+    "scripts/block_war/war_skill_rules.gd": "8652557946ecaf385da25734ba7288a386a67fd634f26be81bc218698f495477",
     "scripts/block_war/war_skill_tooltip.gd": "46b4be749eb3cc3e26682fbc5b3928777b0ab5dfb5723fde9c8e89a09d4b5243",
     "scripts/block_war/war_sound_bank.gd": "cf796b6b60c286502addd0de6b8ca0aa107dbe96644fac3eb5b58ecfe029b41d",
     "scripts/block_war/war_surface_effects.gd": "91941fb4d33e433548bf68ea590608c7d3228586244af3d305e2ccd655f57dad",
