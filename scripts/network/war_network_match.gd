@@ -841,7 +841,8 @@ func _play_presentation(event: Dictionary) -> void:
 						game.audio.play_ui(&"war_capture")
 					elif payload.get("previous_faction") == game.local_faction: game.audio.play_ui(&"war_lost")
 		"dispatch":
-			if payload.get("faction") == game.local_faction: game.audio.play_ui(&"war_order")
+			if Snapshot._integer(payload.get("faction"), 0, game.faction_count - 1) and Snapshot._integer(payload.get("target"), 0, 2147483647) and game.by_id.has(int(payload.target)):
+				game.present_dispatch(int(payload.faction), game.by_id[int(payload.target)])
 		"garrison_blast":
 			if not Snapshot._vector(payload.get("at")) or not Snapshot._integer(payload.get("faction"), -1, game.faction_count - 1) or not Snapshot._integer(payload.get("count"), 1, game.world_effects.get_node("BlastCasualties").MAX_BURST): return
 			if not Snapshot._number(payload.get("delay")) or float(payload.delay) < 0.0 or float(payload.delay) > 0.18: return

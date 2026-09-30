@@ -10,6 +10,7 @@ var destination: Vector3
 var zoom_target: float = 37.0
 var dragging: bool = false
 var edge_scroll: bool = true
+var selection_dragging: bool = false
 # The scenery border also covers the lower river surface and antialiasing.
 # At the authored 52-degree tilt, water at y=-1.18 projects 0.93m farther out.
 const BOUNDARY_MARGIN := 2.0
@@ -26,7 +27,7 @@ func configure_bounds(bounds: Rect2) -> void:
 	_constrain_view()
 
 func _process(delta: float) -> void:
-	if get_tree().paused or settings.is_open() or get_parent()._local_menu or get_parent().hud.help_visible():
+	if selection_dragging or get_tree().paused or settings.is_open() or get_parent()._local_menu or get_parent().hud.help_visible():
 		return
 	var direction := Vector3.ZERO
 	if keyboard_pan:

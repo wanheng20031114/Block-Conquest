@@ -74,7 +74,20 @@ var energy: float:
 var buildings: Array[Node3D] = []
 var by_id: Dictionary = {}
 var selected: Node3D
+var selected_buildings: Array[Node3D] = []
+var _selection_owned := false
 var drag_source: Node3D
+var drag_sources: Array[Node3D] = []
+var drag_pointer := Vector2.ZERO
+var _dispatch_selected_on_press := false
+var order_previews: Array[Dictionary] = []
+const SELECTION_DRAG_THRESHOLD := 6.0
+var box_selecting := false
+var box_start := Vector2.ZERO
+var box_end := Vector2.ZERO
+var box_preview: Array[Node3D] = []
+var _box_additive := false
+var _gesture_moved := false
 var hovered: Node3D
 var percentage: int = 50
 var elapsed: float = 0.0
@@ -324,7 +337,9 @@ func _process(delta: float) -> void:
 		_hud_clock = 0.1
 		update_hud()
 	if drag_source != null:
-		_update_drag(get_viewport().get_mouse_position())
+		_update_drag(drag_pointer)
+	elif box_selecting:
+		_update_box_selection(box_end)
 	elif armed_skill >= 0:
 		_update_skill_drag(get_viewport().get_mouse_position())
 	overlay.queue_redraw()
@@ -474,13 +489,81 @@ func set_percentage(value: int) -> void:
 		overlay.queue_redraw()
 
 func select_building(building: Node3D) -> void:
-	if selected != null:
-		selected.set_selected(false)
-	selected = building
-	if selected != null:
-		selected.set_selected(true)
-	hud.track_building(selected, camera, buildings)
+	var values: Array[Node3D] = []
+	if building != null:
+		# A deliberate re-click keeps the existing responsive building rebound.
+		building.set_selected(false)
+		values.append(building)
+	select_buildings(values)
+
+func select_buildings(values: Array[Node3D]) -> void:
+	_apply_building_selection(values)
 	update_hud()
+
+func _apply_building_selection(values: Array[Node3D]) -> void:
+	selected_buildings = values.duplicate()
+	selected = selected_buildings[0] if not selected_buildings.is_empty() else null
+	_selection_owned = selected != null and selected.faction == local_faction
+	for building: WarBuilding in buildings:
+		building.set_selected(building in selected_buildings)
+	hud.track_building(selected if selected_buildings.size() == 1 else null, camera, buildings)
+
+func _prune_selection() -> void:
+	if not _selection_owned: return
+	var retained: Array[Node3D] = []
+	for building: Node3D in selected_buildings:
+		if building.faction == local_faction: retained.append(building)
+	if retained.size() != selected_buildings.size(): _apply_building_selection(retained)
+
+func box_selection_rect() -> Rect2:
+	return Rect2(box_start, box_end - box_start).abs()
+
+func _begin_box_selection(screen: Vector2, additive: bool) -> void:
+	box_selecting = true
+	box_start = screen
+	box_end = screen
+	_box_additive = additive
+	_gesture_moved = false
+	box_preview = []
+	# Hold the camera's current pose while the screen-space rectangle is drawn.
+	camera_rig.selection_dragging = true
+	camera_rig.destination = camera_rig.position
+	camera_rig.zoom_target = camera.size
+	hud.track_building(null, camera, buildings)
+
+func _update_box_selection(screen: Vector2) -> void:
+	box_end = screen.clamp(Vector2.ZERO, get_viewport().get_visible_rect().size)
+	_gesture_moved = _gesture_moved or box_start.distance_to(box_end) > SELECTION_DRAG_THRESHOLD
+	if not _gesture_moved: return
+	var rect := box_selection_rect()
+	box_preview = []
+	for building: WarBuilding in buildings:
+		if building.faction == local_faction:
+			if (_box_additive and building in selected_buildings) or (not camera.is_position_behind(building.global_position) and rect.has_point(camera.unproject_position(building.global_position))):
+				box_preview.append(building)
+		building.set_selection_preview(true, building in box_preview)
+
+func _finish_box_selection(screen: Vector2) -> void:
+	_update_box_selection(screen)
+	var values: Array[Node3D] = box_preview.duplicate()
+	var moved := _gesture_moved
+	var additive := _box_additive
+	_cancel_drag()
+	if moved:
+		select_buildings(values)
+		if not values.is_empty(): audio.play_ui(&"war_select")
+	elif not additive:
+		select_building(null)
+
+func _begin_dispatch(source: Node3D, screen: Vector2) -> void:
+	_dispatch_selected_on_press = source not in selected_buildings
+	if _dispatch_selected_on_press: select_building(source)
+	drag_source = source
+	drag_sources = selected_buildings.duplicate()
+	_drag_start = screen
+	drag_pointer = screen
+	_gesture_moved = false
+	hovered = null
 
 func dispatch_count(source: WarBuilding, amount_percent: int) -> int:
 	var count := floori(source.available_population * amount_percent / 100.0)
@@ -499,20 +582,46 @@ func flight_route(source: WarBuilding, target: WarBuilding) -> PackedVector3Arra
 
 func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int = -2) -> int:
 	faction = local_faction if faction == -2 else faction
+	var count := _queue_order(source, target, amount_percent, faction)
+	if count > 0:
+		presentation_event.emit("dispatch", {"faction": faction, "source": source.building_id, "target": target.building_id, "count": count})
+		present_dispatch(faction, target)
+		update_hud()
+	elif faction == local_faction and network_match == null:
+		audio.play_ui(&"war_denied")
+	return count
+
+func issue_group_order(sources: Array[Node3D], target: Node3D, amount_percent: int, faction: int) -> int:
+	var total := 0
+	var sent: Array[int] = []
+	for source: Node3D in sources:
+		if source.building_id in sent: continue
+		var count := _queue_order(source, target, amount_percent, faction)
+		if count > 0:
+			total += count
+			sent.append(source.building_id)
+	if total > 0:
+		presentation_event.emit("dispatch", {"faction": faction, "sources": sent, "target": target.building_id, "count": total})
+		present_dispatch(faction, target)
+		update_hud()
+	elif faction == local_faction and network_match == null:
+		audio.play_ui(&"war_denied")
+	return total
+
+func present_dispatch(faction: int, target: Node3D) -> void:
+	if faction != local_faction: return
+	audio.play_ui(&"war_order")
+	add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
+
+func _queue_order(source: Node3D, target: Node3D, amount_percent: int, faction: int) -> int:
 	if not is_authority() or has_surrendered(faction) or finished or is_rule_paused() or source == null or target == null or source == target:
 		return 0
 	if source.faction != faction or amount_percent not in [25, 50, 75, 100]:
 		return 0
 	var count := dispatch_count(source, amount_percent)
-	if count < 1:
-		if faction == local_faction:
-			audio.play_ui(&"war_denied")
-		return 0
+	if count < 1: return 0
 	var route := dispatch_route(source, target)
-	if route.size() < 2:
-		if faction == local_faction:
-			audio.play_ui(&"war_denied")
-		return 0
+	if route.size() < 2: return 0
 	if source.burrow_remaining > 0.0:
 		var plan := RABBIT_SKILLS.burrow_plan(self, source, target, amount_percent)
 		if plan.is_empty():
@@ -525,11 +634,6 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 		var pig_flags: Vector3 = pig.flags_for(source.building_id)
 		marches.queue_departure(source.building_id, target.building_id, faction, count, route, source.kind == 3, pig_flags.x > 0.0, pig_flags.y > 0.0, pig_flags.z > 0.0)
 	pig.clear_building(self, source.building_id)
-	presentation_event.emit("dispatch", {"faction": faction, "source": source.building_id, "target": target.building_id, "count": count})
-	if faction == local_faction:
-		audio.play_ui(&"war_order")
-		add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
-	update_hud()
 	return count
 
 func forge_count(faction: int) -> int:
@@ -1068,12 +1172,12 @@ func skill_ground_at(screen: Vector2) -> Vector3:
 	return hit
 
 func upgrade_selected() -> void:
-	if selected == null:
+	if selected == null or selected_buildings.size() != 1:
 		return
 	submit_player_command({"type": "upgrade", "building": selected.building_id})
 
 func convert_selected(kind: int) -> void:
-	if selected == null:
+	if selected == null or selected_buildings.size() != 1:
 		return
 	submit_player_command({"type": "convert", "building": selected.building_id, "kind": kind})
 
@@ -1138,6 +1242,22 @@ func execute_network_command(faction: int, command: Dictionary) -> Dictionary:
 			if not _integer_fields(command, ["source", "target", "percent"]):
 				return {"accepted": false, "reason": "invalid_command"}
 			count = issue_order(by_id.get(int(command.source)), by_id.get(int(command.target)), int(command.percent), faction)
+			accepted = count > 0
+		"dispatch_group":
+			if not _integer_fields(command, ["target", "percent"]) or not command.get("sources") is Array:
+				return {"accepted": false, "reason": "invalid_command"}
+			if command.sources.is_empty() or command.sources.size() > buildings.size():
+				return {"accepted": false, "reason": "invalid_command"}
+			var ids: Array[int] = []
+			# Validate the complete envelope before reserving any garrison.
+			for value: Variant in command.sources:
+				if not _integer_fields({"id": value}, ["id"]) or not by_id.has(int(value)) or int(value) in ids:
+					return {"accepted": false, "reason": "invalid_command"}
+				ids.append(int(value))
+			ids.sort()
+			var sources: Array[Node3D] = []
+			for id: int in ids: sources.append(by_id[id])
+			count = issue_group_order(sources, by_id.get(int(command.target)), int(command.percent), faction)
 			accepted = count > 0
 		"upgrade", "convert":
 			var converting: bool = command.type == "convert"
@@ -1298,6 +1418,7 @@ func _on_debug_visibility_changed(visible: bool) -> void:
 		update_hud()
 
 func update_hud() -> void:
+	_prune_selection()
 	if not is_node_ready():
 		return
 	var faction_population: Array[float] = []
@@ -1369,7 +1490,7 @@ func update_hud() -> void:
 		"energy": energy, "energy_max": ENERGY_MAX, "energy_regen": energy_regen_for(local_faction), "energy_tower_count": energy_tower_count(local_faction), "energy_costs": SKILL_RULES.costs_for(faction_skills[local_faction].commander),
 		"commander": faction_skills[local_faction].commander, "enemy_commander": faction_skills[opponent_faction()].commander,
 		"skill_target_types": ["ground" if skill_is_ground(0) else "building", "ground" if skill_is_ground(1) else "building", "ground" if skill_is_ground(2) else "building", "ground" if skill_is_ground(3) else "building"], "ground_skill_radius": skill_radius(armed_skill),
-		"forges": forge_count(local_faction), "selected_owned": selected != null and selected.faction == local_faction,
+		"forges": forge_count(local_faction), "selected_owned": selected_buildings.size() == 1 and selected.faction == local_faction and not box_selecting,
 		"selected_faction": selected.faction if selected != null else -1, "selected_id": selected.building_id if selected != null else -1,
 		"selected_kind": selected.kind if selected != null else -1, "selected_level": selected.level if selected != null else 0,
 		"selected_max_level": selected.max_level if selected != null else 4,
@@ -1447,7 +1568,20 @@ func _input(event: InputEvent) -> void:
 	# Settings persist across scenes, including a host starting while a guest
 	# is editing preferences. The native GUI still receives these events.
 	if get_node("/root/Session/Settings").is_open():
+		_cancel_drag()
 		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and (box_selecting or drag_source != null):
+		_cancel_drag()
+		update_hud()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseMotion:
+		if box_selecting:
+			_update_box_selection(event.position)
+			return
+		if drag_source != null:
+			_update_drag(event.position)
+			return
 	if event is InputEventMouseMotion and camera_rig.dragging and not _local_menu:
 		camera_rig.drag_by(event.relative)
 		if armed_skill >= 0:
@@ -1477,11 +1611,22 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and not event.pressed:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			camera_rig.dragging = false
+		if event.button_index == MOUSE_BUTTON_LEFT and box_selecting:
+			_finish_box_selection(event.position)
+			get_viewport().set_input_as_handled()
+			return
 		if event.button_index == MOUSE_BUTTON_LEFT and drag_source != null:
-			var target: Node3D = pick_building(event.position) if not hud.is_pointer_blocked(event.position) else null
-			if target != null and target != drag_source and event.position.distance_to(_drag_start) > 6.0:
-				submit_player_command({"type": "dispatch", "source": drag_source.building_id, "target": target.building_id, "percent": percentage})
-			elif target == drag_source and event.position.distance_to(_drag_start) <= 6.0:
+			_update_drag(event.position)
+			var target: Node3D = hovered
+			if target != null and _gesture_moved:
+				if drag_sources.size() > 1:
+					var ids: Array[int] = []
+					for source: Node3D in drag_sources: ids.append(source.building_id)
+					submit_player_command({"type": "dispatch_group", "sources": ids, "target": target.building_id, "percent": percentage})
+				elif target != drag_source:
+					submit_player_command({"type": "dispatch", "source": drag_source.building_id, "target": target.building_id, "percent": percentage})
+			elif target == drag_source and not _gesture_moved:
+				if not _dispatch_selected_on_press: select_building(drag_source)
 				audio.play_ui(&"war_select")
 			_cancel_drag()
 			get_viewport().set_input_as_handled()
@@ -1490,6 +1635,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _local_menu or finished or get_node("/root/Session/Settings").is_open():
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE and selected != null:
+		_cancel_drag()
 		camera_rig.focus_at(selected.global_position)
 		get_viewport().set_input_as_handled()
 	if not event is InputEventMouseButton or not event.pressed:
@@ -1499,12 +1645,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera_rig.dragging = true
 			_cancel_drag()
 		MOUSE_BUTTON_WHEEL_UP:
-			if drag_source != null:
+			if box_selecting: pass
+			elif drag_source != null:
 				set_percentage(mini(100, percentage + 25))
 			else:
 				camera_rig.zoom_by(-3.0)
 		MOUSE_BUTTON_WHEEL_DOWN:
-			if drag_source != null:
+			if box_selecting: pass
+			elif drag_source != null:
 				set_percentage(maxi(25, percentage - 25))
 			else:
 				camera_rig.zoom_by(3.0)
@@ -1513,20 +1661,27 @@ func _unhandled_input(event: InputEvent) -> void:
 				audio.play_ui(&"war_cancel")
 			_cancel_skill_drag()
 			_cancel_drag()
-			update_hud()
+			select_building(null)
 		MOUSE_BUTTON_LEFT:
 			if armed_skill >= 0:
 				get_viewport().set_input_as_handled()
 				return
 			var building: Node3D = pick_building(event.position)
-			select_building(building)
-			if building != null:
-				if building.faction == local_faction:
-					drag_source = building
-					_drag_start = event.position
-					hovered = null
-				else:
+			if building == null:
+				_begin_box_selection(event.position, event.shift_pressed)
+			elif building.faction == local_faction:
+				if event.shift_pressed:
+					var values: Array[Node3D] = []
+					for current: Node3D in selected_buildings:
+						if current.faction == local_faction and current != building: values.append(current)
+					if building not in selected_buildings: values.append(building)
+					select_buildings(values)
 					audio.play_ui(&"war_select")
+				else:
+					_begin_dispatch(building, event.position)
+			elif not event.shift_pressed:
+				select_building(building)
+				audio.play_ui(&"war_select")
 	get_viewport().set_input_as_handled()
 
 func pick_building(screen: Vector2) -> Node3D:
@@ -1539,20 +1694,45 @@ func pick_building(screen: Vector2) -> Node3D:
 	return hit.collider.get_parent()
 
 func _update_drag(screen: Vector2) -> void:
-	hovered = pick_building(screen) if not hud.is_pointer_blocked(screen) else null
+	drag_pointer = screen
+	_gesture_moved = _gesture_moved or screen.distance_to(_drag_start) > SELECTION_DRAG_THRESHOLD
+	hovered = pick_building(screen) if get_viewport().get_visible_rect().has_point(screen) and not hud.is_pointer_blocked(screen) else null
 	order_route = PackedVector3Array()
-	if hovered != null and hovered != drag_source:
-		if drag_source.burrow_remaining > 0.0:
-			var plan := RABBIT_SKILLS.burrow_plan(self, drag_source, hovered, percentage)
-			if not plan.is_empty():
-				order_route = PackedVector3Array([plan.entrance, plan.exit])
-				order_route.append_array(plan.route)
-		else:
-			order_route = dispatch_route(drag_source, hovered)
+	order_previews = []
+	for source: WarBuilding in drag_sources:
+		if source.faction != local_faction or source == hovered: continue
+		var count := dispatch_count(source, percentage)
+		if count < 1: continue
+		var route := PackedVector3Array()
+		if hovered != null:
+			if source.burrow_remaining > 0.0:
+				var plan := RABBIT_SKILLS.burrow_plan(self, source, hovered, percentage)
+				if not plan.is_empty():
+					route = PackedVector3Array([plan.entrance, plan.exit])
+					route.append_array(plan.route)
+			else:
+				route = dispatch_route(source, hovered)
+			if route.size() < 2: continue
+		order_previews.append({"source": source, "route": route, "count": count})
+		if source == drag_source: order_route = route
+
+func dispatch_preview_count() -> int:
+	var total := 0
+	for preview: Dictionary in order_previews: total += int(preview.count)
+	return total
 
 func _cancel_drag() -> void:
+	if box_selecting:
+		box_selecting = false
+		box_preview = []
+		camera_rig.selection_dragging = false
+		for building: WarBuilding in buildings: building.set_selection_preview(false)
+		hud.track_building(selected if selected_buildings.size() == 1 else null, camera, buildings)
 	drag_source = null
+	drag_sources = []
+	order_previews = []
 	hovered = null
+	_gesture_moved = false
 	# Packed arrays are shared with the route cache. Clearing this array would
 	# erase a valid route and silently reject every later order for that pair.
 	order_route = PackedVector3Array()

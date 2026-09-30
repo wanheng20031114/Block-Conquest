@@ -413,6 +413,12 @@ func set_selected(selected: bool) -> void:
 		_play_selection_rebound()
 
 
+func set_selection_preview(active: bool, included: bool = false) -> void:
+	_selection.visible = included if active else _is_selected
+	_kind_label.visible = _is_selected and not active
+	if active and not _is_selected: _selection.scale = Vector3.ONE * 0.94
+
+
 func _play_selection_rebound() -> void:
 	# Capture and construction completion own the body until their pulse settles.
 	if _capture_tween and _capture_tween.is_valid():

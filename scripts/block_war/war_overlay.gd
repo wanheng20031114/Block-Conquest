@@ -15,8 +15,8 @@ var _hint_rect := Rect2()
 
 func _process(delta: float) -> void:
 	for building: WarBuilding in game.buildings:
-		building.set_attack_range_emphasis(building == game.selected or building == game.hovered, game.armed_skill >= 0)
-	hint_label.visible = game._match_ready and game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0
+		building.set_attack_range_emphasis(building in game.selected_buildings or building == game.hovered, game.armed_skill >= 0)
+	hint_label.visible = game._match_ready and game.drag_source != null and game._gesture_moved
 	if hint_label.visible:
 		_hint_time += delta
 		_update_dispatch_hint()
@@ -93,28 +93,13 @@ func _draw() -> void:
 					_draw_skill_number(game.hovered.construction_cost / 2, camera.unproject_position(game.hovered.global_position + Vector3(3, 2, 0)))
 				elif game.armed_skill == 3:
 					_ring(game.hovered.global_position, game.SKILL_RULES.BEAR_ORB_RANGE, Color(0.94, 0.77, 0.43, 0.48), 1.5)
-	if game.drag_source != null and get_viewport().get_mouse_position().distance_to(game._drag_start) > 6.0:
-		var points := PackedVector2Array()
-		var color := dispatch_route_color()
-		if game.order_route.size() >= 2:
-			for point: Vector3 in game.order_route:
-				points.append(camera.unproject_position(point + Vector3(0, 0.4, 0)))
-		else:
-			points.append(camera.unproject_position(game.drag_source.global_position + Vector3.UP))
-			points.append(get_viewport().get_mouse_position())
-		if points.size() >= 2:
-			color.a = 0.75
-			if game.drag_source.burrow_remaining > 0.0 and game.order_route.size() >= 2:
-				draw_dashed_line(points[0], points[1], color, 3.5, 9.0, true)
-				_ring(game.order_route[1], 1.1, color, 2.0)
-				if points.size() > 2:
-					draw_polyline(points.slice(1), color, 3.5, true)
-			else:
-				draw_polyline(points, color, 3.5, true)
-			var end: Vector2 = points[-1]
-			var direction: Vector2 = (end - points[-2]).normalized()
-			var side := Vector2(-direction.y, direction.x)
-			draw_polyline(PackedVector2Array([end - direction * 16 + side * 8, end, end - direction * 16 - side * 8]), color, 3.5, true)
+	if game.box_selecting and game._gesture_moved:
+		var rect: Rect2 = game.box_selection_rect()
+		draw_rect(rect, Color(1.0, 0.99, 0.96, 0.04))
+		draw_rect(Rect2(rect.position + Vector2(0, 1), rect.size), Color(0.15, 0.22, 0.15, 0.12), false, 2.0)
+		draw_rect(rect, Color(1.0, 0.99, 0.94, 0.86), false, 1.4)
+	if game.drag_source != null and game._gesture_moved:
+		_draw_dispatch_routes(camera)
 		if hint_label.visible:
 			_draw_dispatch_hint()
 	for shot: Dictionary in game.projectiles:
@@ -130,16 +115,41 @@ func _draw() -> void:
 		_ring(effect.at, radius, color, 2.5)
 
 func dispatch_route_color() -> Color:
-	return Color(0.55, 0.93, 0.7, 0.9) if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, game.drag_source.faction) else Color(1.0, 0.81, 0.32, 0.9)
+	return Color(0.55, 0.93, 0.7, 0.9) if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, game.local_faction) else Color(1.0, 0.81, 0.32, 0.9)
+
+func _draw_dispatch_routes(camera: Camera3D) -> void:
+	var grouped: bool = game.drag_sources.size() > 1
+	var color := dispatch_route_color()
+	color.a = maxf(0.28, 0.75 / sqrt(maxi(1, game.order_previews.size()))) if grouped else 0.75
+	var width := 2.5 if grouped else 3.5
+	for preview: Dictionary in game.order_previews:
+		var points := PackedVector2Array()
+		var route: PackedVector3Array = preview.route
+		for point: Vector3 in route:
+			points.append(camera.unproject_position(point + Vector3(0, 0.4, 0)))
+		if route.is_empty():
+			points.append(camera.unproject_position(preview.source.global_position + Vector3.UP))
+			points.append(game.drag_pointer)
+		if preview.source.burrow_remaining > 0.0 and not route.is_empty():
+			draw_dashed_line(points[0], points[1], color, width, 9.0, true)
+			_ring(route[1], 1.1, color, 2.0)
+			if points.size() > 2: draw_polyline(points.slice(1), color, width, true)
+		else:
+			draw_polyline(points, color, width, true)
+		if not grouped or game.hovered != null:
+			var end: Vector2 = points[-1]
+			var direction: Vector2 = (end - points[-2]).normalized()
+			var side := Vector2(-direction.y, direction.x)
+			draw_polyline(PackedVector2Array([end - direction * 16 + side * 8, end, end - direction * 16 - side * 8]), color, width, true)
 
 func _update_dispatch_hint() -> void:
-	var count: int = game.dispatch_count(game.drag_source, game.percentage)
+	var count: int = game.dispatch_preview_count()
 	hint_label.text = str(count)
 	var font := hint_label.get_theme_font("font")
 	var font_size := hint_label.get_theme_font_size("font_size")
 	var text_size := font.get_string_size(hint_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var extent := Vector2(maxf(72.0, ceilf(text_size.x) + 36.0), 50.0)
-	var at := get_viewport().get_mouse_position() + Vector2(20.0, -extent.y - 12.0)
+	var at: Vector2 = game.drag_pointer + Vector2(20.0, -extent.y - 12.0)
 	at.x = clampf(at.x, 8.0, size.x - extent.x - 8.0)
 	at.y = clampf(at.y, 8.0, size.y - extent.y - 10.0)
 	_hint_rect = Rect2(at.round(), extent)
@@ -192,11 +202,19 @@ func _draw_dispatch_hint() -> void:
 		draw_polyline(PackedVector2Array([at + Vector2(-4, 0), at + Vector2(0, tip), at + Vector2(4, 0)]), color, 2.0, true)
 
 func dispatch_advantage() -> int:
-	if game.drag_source == null or game.hovered == null or game.FACTIONS.allied(game.drag_source.faction, game.hovered.faction):
+	if game.drag_source == null or game.hovered == null or game.FACTIONS.allied(game.local_faction, game.hovered.faction):
 		return 0
 	# Integer percentage points avoid floating-point noise at 100/120/140%.
 	var pig_attack: float = game.SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if game.pig.flags_for(game.drag_source.building_id).x > 0.0 else 0.0
-	var difference := roundi((game.combat_multiplier(game.drag_source.faction, game.hovered, pig_attack) - 1.0) * 100.0)
+	var multiplier: float = game.combat_multiplier(game.local_faction, game.hovered, pig_attack)
+	if game.drag_sources.size() > 1:
+		var count: int = game.dispatch_preview_count()
+		if count == 0: return 0
+		multiplier = 0.0
+		for preview: Dictionary in game.order_previews:
+			pig_attack = game.SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if game.pig.flags_for(preview.source.building_id).x > 0.0 else 0.0
+			multiplier += game.combat_multiplier(game.local_faction, game.hovered, pig_attack) * int(preview.count) / count
+	var difference := roundi((multiplier - 1.0) * 100.0)
 	return signi(difference) * ceili(absi(difference) / 20.0)
 
 func _cloud_outline(rect: Rect2) -> PackedVector2Array:
