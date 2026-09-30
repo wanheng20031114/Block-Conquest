@@ -18,7 +18,7 @@ func _run() -> void:
 	var session: Node = root.get_node("Session")
 	check(ProjectSettings.get_setting("application/config/name") == "积木战争", "standalone product identity")
 	check(not session.has_node("RelayClient") and not session.has_node("Rogue"), "standalone session")
-	check(ProjectSettings.get_setting("application/config/version") == "1.3.4", "multiplayer release version")
+	check(ProjectSettings.get_setting("application/config/version") == "1.3.5", "multiplayer release version")
 	check(ProjectSettings.get_setting("internationalization/locale/include_text_server_data", false), "export includes CJK line breaking data")
 	check(FileAccess.file_exists("res://" + TextServerManager.get_primary_interface().get_support_data_filename()), "text support data is present in the actual PCK")
 	check(InputMap.has_action("pause") and InputMap.action_get_events("pause").any(func(event: InputEvent): return event is InputEventKey and event.physical_keycode == KEY_F3), "packaged native pause action maps F3")

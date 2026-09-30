@@ -1,6 +1,6 @@
 {
   "physics_ticks_per_second": 30,
-  "release": "1.3.4",
+  "release": "1.3.5",
   "schema": 1,
   "sha256": {
     "data/block_war/maps/crown.tres": "8b54c312f42a9e72011a983faeb502a0355205ebfbea0d19774f1f0b319efe22",
@@ -128,7 +128,7 @@
     "scripts/block_war/war_tunnel_effect.gd": "622c2e5e51ce341f561b9b1de86af0da16775f7c69616553302b6f3adda744c0",
     "scripts/network/war_network_match.gd": "a3a1d3064da3ec794d79c452c2e5fe37dc189c61b5bc69d601bd56a51369b59d",
     "scripts/network/war_online.gd": "e3d5ef08056a764ccf36c1d98902ab3838bf0bb0c2b4f641bc8368c6e15f80dd",
-    "scripts/network/war_protocol.gd": "9008ae7d2a109c4ee88430883f0fe6ee2a8ea6f683d01bb9a1dd8e425757e05b",
+    "scripts/network/war_protocol.gd": "3417cf200979025c99fee7a5bada77de4c577d7800962ab58ec60bf99fd65f88",
     "scripts/network/war_remote_pointer.gd": "b7c31ca56f79b762862e5c6f90bca44c12c88018014fb5cec353dee7e917709f",
     "scripts/network/war_room.gd": "947989c330bcce8d7e2570ce090cee10cd27e76a927a48af31dde529d2089db9",
     "scripts/network/war_room_slot.gd": "3530c5f9565708e3c3b78f460abb563c514f17e57aa249b41704c79a1391ba6b",
