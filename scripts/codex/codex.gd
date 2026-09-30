@@ -35,7 +35,6 @@ func _set_category(value: int) -> void:
 	%Guides.set_pressed_no_signal(value == 1)
 	%Search.text = ""
 	%IndexTitle.text = "指挥官名录" if value == 0 else "战场指南"
-	%IndexNote.text = "%d 位英雄 · %d 项技能" % [CATALOG.HEROES.size(), CATALOG.HEROES.size() * 4] if value == 0 else "%d 项作战知识" % _guides.size()
 	%HeroPage.visible = value == 0
 	%GuidePage.visible = value == 1
 	%Demo.set_playing(value == 0 and not _paused)

@@ -243,13 +243,6 @@ text = "指挥官名录"
 theme_override_font_sizes/font_size = 25
 
 
-[node name="IndexNote" type="Label" parent="Margin/Column/Body/Sidebar/Navigation"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "6 位英雄 · 24 项技能"
-theme_override_font_sizes/font_size = 17
-theme_type_variation = &"MenuMuted"
-
 [node name="Search" type="LineEdit" parent="Margin/Column/Body/Sidebar/Navigation"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -285,16 +278,6 @@ theme_override_styles/hovered = SubResource("Hover")
 theme_override_styles/hovered_selected = SubResource("Selected")
 theme_override_styles/hovered_selected_focus = SubResource("Selected")
 theme_override_styles/focus = SubResource("Focus")
-
-[node name="NavDivider" type="HSeparator" parent="Margin/Column/Body/Sidebar/Navigation"]
-layout_mode = 2
-
-
-[node name="OpenNote" type="Label" parent="Margin/Column/Body/Sidebar/Navigation"]
-layout_mode = 2
-text = "全部开放，自由查阅"
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.36, 0.42, 0.29, 1)
 
 [node name="Book" type="PanelContainer" parent="Margin/Column/Body"]
 unique_name_in_owner = true
@@ -673,15 +656,7 @@ layout_mode = 2
 
 [node name="Footer" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
-theme_override_constants/separation = 16
-
-
-[node name="Hint" type="Label" parent="Margin/Column/Footer"]
-layout_mode = 2
-text = "方向键选择条目  ·  Tab 切换焦点  ·  Esc 返回"
-theme_override_font_sizes/font_size = 16
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.35, 0.42, 0.3, 1)
+alignment = 2
 
 [node name="PageNumber" type="Label" parent="Margin/Column/Footer"]
 unique_name_in_owner = true
