@@ -103,7 +103,7 @@ func _toolbox_stalemates() -> void:
 	game._check_victory()
 	check(game.finished and game.winner_team == 0, "elimination takes priority over a potential toolbox refund")
 	home = _exhausted_bear()
-	game.simulate(10.0 + 1.0 / 30.0)
+	game.simulate(home.construction_remaining + 1.0 / 30.0)
 	check(game.finished and game.winner_team == -1 and not home.is_constructing,
 		"declining the toolbox only postpones the draw until natural completion consumes its receipt")
 
@@ -118,12 +118,12 @@ func _toolbox_energy_boundaries() -> void:
 			supply.kind = 2; supply.population = 20.0
 			check(game.begin_building_construction(supply, 3, 0), "spare forge pays for energy conversion")
 			supply.construction_remaining = 1.0
-		game.faction_skills[0].energy = 12.0
+		game.faction_skills[0].energy = 19.0
 		game._check_victory()
 		check(not game.finished, "scheduled energy recovery preserves a real toolbox window: " + recovery)
-		# One second at +1, then +1.5: Q becomes affordable at nine seconds,
-		# before the empty tower completes its ten-second upgrade.
-		game.simulate(9.1)
+		# One second at +1, then +1.5: Q becomes affordable after 4 1/3
+		# seconds, before the current five-second first upgrade completes.
+		game.simulate(4.5)
 		check(home.is_constructing and game.cast_skill(0, home, 0) and home.population == 15.0,
 			"predicted energy recovery permits the actual paid cast: " + recovery)
 	var home := _exhausted_bear()

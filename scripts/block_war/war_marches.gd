@@ -44,6 +44,10 @@ class MarchOrder extends RefCounted:
 	var slow_intervals: Dictionary[Vector2, PackedVector2Array] = {}
 	var mist_intervals: Dictionary[Vector2, PackedVector2Array] = {}
 	var ground_fire_intervals: Dictionary[float, PackedVector2Array] = {}
+	# Immutable route samples shared by the lanes and successive field circles.
+	# Widths stay Float64 so caching cannot round intermediate GDScript floats.
+	var zone_geometry: Dictionary = {}
+	var zone_lane_points: Dictionary[float, PackedVector2Array] = {}
 
 	func sample(distance: float) -> Vector3:
 		return curve.sample_baked(length - distance if returning else distance)
@@ -491,25 +495,38 @@ func tower_can_target(unit: MarchUnit) -> bool:
 
 func acquire_targets(center: Vector3, attacking_faction: int, radius: float, count: int, farthest: bool = false, tower_shot: bool = false) -> Array[MarchUnit]:
 	var targets: Array[MarchUnit] = []
+	if count <= 0:
+		return targets
+	var distances: Array[float] = []
 	var radius_squared := radius * radius
-	for target_index: int in count:
-		var nearest := -1
-		var nearest_distance := -1.0 if farthest else radius_squared
-		for index: int in _units.size():
-			var unit := _units[index]
-			if FACTIONS.allied(unit.order.faction, attacking_faction) or not unit.is_exposed() or unit.reserved:
-				continue
-			if tower_shot and not tower_can_target(unit):
-				continue
-			var distance_squared := Vector2(unit.position.x - center.x, unit.position.z - center.z).length_squared()
-			if distance_squared <= radius_squared and ((farthest and distance_squared > nearest_distance) or (not farthest and distance_squared <= nearest_distance)):
-				nearest_distance = distance_squared
-				nearest = index
-		if nearest < 0:
-			break
-		_units[nearest].reserved = true
-		_units[nearest].intercepted_by = attacking_faction
-		targets.append(_units[nearest])
+	# A volley needs only a few targets. Scan once and retain that small ordered
+	# set instead of rescanning every soldier for each shot in the volley.
+	for unit: MarchUnit in _units:
+		if unit.reserved:
+			continue
+		var distance_squared := Vector2(unit.position.x - center.x, unit.position.z - center.z).length_squared()
+		if not (distance_squared <= radius_squared) or FACTIONS.allied(unit.order.faction, attacking_faction) or not unit.is_exposed():
+			continue
+		var insertion := targets.size()
+		while insertion > 0:
+			var better := distance_squared > distances[insertion - 1] if farthest else distance_squared <= distances[insertion - 1]
+			if not better:
+				break
+			insertion -= 1
+		if insertion >= count or (tower_shot and not tower_can_target(unit)):
+			continue
+		# Preserve the previous scan's ties: later array entries win nearest,
+		# earlier entries win farthest. Array order can change after swap-removal.
+		targets.insert(insertion, unit)
+		distances.insert(insertion, distance_squared)
+		if targets.size() > count:
+			targets.pop_back()
+			distances.pop_back()
+	# No callbacks or simulation run during selection. Reserve only the final
+	# set, keeping cross-tower and bear-orb reservations immediately visible.
+	for unit: MarchUnit in targets:
+		unit.reserved = true
+		unit.intercepted_by = attacking_faction
 	return targets
 
 func has_marchers() -> bool:
@@ -843,17 +860,67 @@ func _movement_with_fields(unit: MarchUnit, from_distance: float, delta: float, 
 		elapsed += step
 	return distance - from_distance
 
+func _build_zone_geometry(order: MarchOrder) -> void:
+	var count := ceili(order.length / 0.24)
+	var centers := PackedVector3Array()
+	var sideways := PackedVector3Array()
+	var gate_widths := PackedFloat64Array()
+	var corner_widths := PackedFloat64Array()
+	centers.resize(count)
+	sideways.resize(count)
+	gate_widths.resize(count)
+	corner_widths.resize(count)
+	for index: int in count:
+		var distance := order.length * float(index + 1) / count
+		var heading := _route_heading(order, distance)
+		var center := order.sample(distance)
+		centers[index] = center
+		sideways[index] = Vector3(-heading.z, 0.0, heading.x)
+		var forward_distance := order.length - distance if order.returning else distance
+		var gate_distance := minf(forward_distance, order.length - forward_distance)
+		gate_distance = minf(gate_distance, absf(forward_distance - order.departure_distance))
+		gate_widths[index] = smoothstep(0.0, GATE_LENGTH, gate_distance)
+		var approach := center - order.sample(maxf(0.0, distance - 1.2))
+		var departure := order.sample(minf(order.length, distance + 1.2)) - center
+		approach.y = 0.0
+		departure.y = 0.0
+		var turn := approach.angle_to(departure) if approach.length_squared() > 0.0001 and departure.length_squared() > 0.0001 else 0.0
+		corner_widths[index] = lerpf(1.0, 0.63, smoothstep(0.12, 0.85, turn))
+	order.zone_geometry = {"centers": centers, "sideways": sideways,
+		"gate_widths": gate_widths, "corner_widths": corner_widths}
+
+func _zone_lane_points(order: MarchOrder, lane: float) -> PackedVector2Array:
+	if order.zone_lane_points.has(lane):
+		return order.zone_lane_points[lane]
+	if order.zone_geometry.is_empty():
+		_build_zone_geometry(order)
+	var centers: PackedVector3Array = order.zone_geometry.centers
+	var sideways: PackedVector3Array = order.zone_geometry.sideways
+	var gate_widths: PackedFloat64Array = order.zone_geometry.gate_widths
+	var corner_widths: PackedFloat64Array = order.zone_geometry.corner_widths
+	var points := PackedVector2Array()
+	points.resize(centers.size() + 1)
+	# Preserve the old sampler's raw first point, including return orders.
+	var from := order.sample(0.0)
+	points[0] = Vector2(from.x, from.z)
+	for index: int in centers.size():
+		# Keep the original Vector3 multiplication order and intermediate rounding.
+		# Ground projection only changes Y; circle intersections consume X/Z.
+		var point := centers[index] + sideways[index] * lane * gate_widths[index] * corner_widths[index]
+		points[index + 1] = Vector2(point.x, point.z)
+	order.zone_lane_points[lane] = points
+	return points
+
 func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> PackedVector2Array:
 	var intervals := PackedVector2Array()
 	var center := Vector2(zone.at.x, zone.at.z)
 	var count := ceili(order.length / 0.24)
-	var from := order.sample(0.0)
+	var points := _zone_lane_points(order, lane)
 	for index: int in count:
 		var low := order.length * float(index) / count
 		var high := order.length * float(index + 1) / count
-		var to := _formation_position(order, high, lane, _route_heading(order, high))
-		var a := Vector2(from.x, from.z)
-		var b := Vector2(to.x, to.z)
+		var a := points[index]
+		var b := points[index + 1]
 		var start := 0.0 if a.distance_to(center) <= zone.radius else Geometry2D.segment_intersects_circle(a, b, center, zone.radius)
 		if start >= 0.0:
 			var end := 1.0 if b.distance_to(center) <= zone.radius else 1.0 - Geometry2D.segment_intersects_circle(b, a, center, zone.radius)
@@ -863,7 +930,6 @@ func _zone_intervals(order: MarchOrder, lane: float, zone: Dictionary) -> Packed
 					intervals[-1] = Vector2(intervals[-1].x, span.y)
 				else:
 					intervals.append(span)
-		from = to
 	return intervals
 
 func clear() -> void:

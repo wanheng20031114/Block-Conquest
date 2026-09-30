@@ -24,16 +24,25 @@ static func snapshot_incoming(game: Node3D, faction: int) -> Dictionary[Vector2i
 
 static func incoming_damage(game: Node3D, building: WarBuilding, incoming: Dictionary[Vector2i, int], faction: int) -> float:
 	var damage := 0.0
+	# One evaluation observes an unchanged battlefield. Reuse each attacker's
+	# base multiplier instead of rescanning every forge for each incoming soldier.
+	var bases := PackedFloat64Array()
+	bases.resize(game.faction_count)
 	for attacker: int in game.faction_count:
 		if game.FACTIONS.hostile(building.faction, attacker):
-			damage += incoming.get(Vector2i(building.building_id, attacker), 0) * game.combat_multiplier(attacker, building)
+			bases[attacker] = game.combat_multiplier(attacker, building)
+			damage += incoming.get(Vector2i(building.building_id, attacker), 0) * bases[attacker]
 	# The snapshot counts soldiers. Apply strength and temporary attack bonuses
 	# only to those same observed soldiers, including their visible levitation.
 	for unit: WarMarches.MarchUnit in game.marches._units:
-		if not is_unit_known(game, unit, faction) or unit.order.target_id != building.building_id or not game.FACTIONS.hostile(building.faction, unit.order.faction):
+		if unit.order.target_id != building.building_id or not is_unit_known(game, unit, faction) or not game.FACTIONS.hostile(building.faction, unit.order.faction):
 			continue
-		damage += (unit.order.strength - 1.0) * game.combat_multiplier(unit.order.faction, building)
-		damage += unit.order.strength * (game.combat_multiplier(unit.order.faction, building, game.marches.projected_attack_bonus(unit)) - game.combat_multiplier(unit.order.faction, building))
+		var base: float = bases[unit.order.faction]
+		damage += (unit.order.strength - 1.0) * base
+		var bonus: float = game.marches.projected_attack_bonus(unit)
+		# Keep the original multiply/divide order when a skill changes attack.
+		var adjusted: float = base if bonus == 0.0 else game.combat_multiplier(unit.order.faction, building, bonus)
+		damage += unit.order.strength * (adjusted - base)
 	return damage
 
 static func team_strength(game: Node3D, team: int, faction: int) -> float:

@@ -1,0 +1,1552 @@
+{
+  "date": "2026-09-30",
+  "frozen_functions_from_commit": "f5c0cc8",
+  "integrated_map_commit": "b5b2c98",
+  "scope": "Three functions vs frozen originals on the same current scene/resources",
+  "engines": {
+    "integrated_and_target_subset": "4.6.3-stable official",
+    "target_full_damage_zone_micro": "4.7.2-stable official"
+  },
+  "limits": [
+    "Headless controller method elapsed CPU timings, not a complete engine frame or GPU/FPS test",
+    "Fixed 1/60 step; no real frame-delta feedback or Tween/child-node process updates",
+    "Synthetic six-faction midgame fixture, not a replay of the user screenshot",
+    "Integration compares initial/final sampled state and per-frame counters, not every target/event ID",
+    "Microtests compare exact references/reservations, float values, and zone points/spans separately",
+    "Inclusive timings must not be summed; no outlier removal; pooled nearest-rank quantiles for micro summaries"
+  ],
+  "targeting_463": [
+    {
+      "open_air_units": 200,
+      "density": "bridge",
+      "calls_per_batch": 12,
+      "reference": {
+        "n": 180,
+        "mean_ms": 3.354977777777779,
+        "p50_ms": 3.267,
+        "p95_ms": 3.771,
+        "p99_ms": 5.524,
+        "max_ms": 5.969
+      },
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.51365,
+        "p50_ms": 0.493,
+        "p95_ms": 0.668,
+        "p99_ms": 0.893,
+        "max_ms": 0.922
+      }
+    },
+    {
+      "open_air_units": 200,
+      "density": "empty_radius",
+      "calls_per_batch": 12,
+      "reference": {
+        "n": 180,
+        "mean_ms": 1.7364611111111101,
+        "p50_ms": 1.662,
+        "p95_ms": 1.941,
+        "p99_ms": 3.528,
+        "max_ms": 3.717
+      },
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.3304166666666663,
+        "p50_ms": 0.303,
+        "p95_ms": 0.417,
+        "p99_ms": 1.506,
+        "max_ms": 1.702
+      }
+    },
+    {
+      "open_air_units": 600,
+      "density": "bridge",
+      "calls_per_batch": 12,
+      "reference": {
+        "n": 180,
+        "mean_ms": 10.151433333333332,
+        "p50_ms": 10.04,
+        "p95_ms": 10.611,
+        "p99_ms": 13.841,
+        "max_ms": 16.21
+      },
+      "candidate": {
+        "n": 180,
+        "mean_ms": 1.4213944444444444,
+        "p50_ms": 1.388,
+        "p95_ms": 1.539,
+        "p99_ms": 1.997,
+        "max_ms": 3.476
+      }
+    },
+    {
+      "open_air_units": 600,
+      "density": "empty_radius",
+      "calls_per_batch": 12,
+      "reference": {
+        "n": 180,
+        "mean_ms": 5.222566666666669,
+        "p50_ms": 5.027,
+        "p95_ms": 6.41,
+        "p99_ms": 8.993,
+        "max_ms": 9.28
+      },
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.9422833333333336,
+        "p50_ms": 0.892,
+        "p95_ms": 1.355,
+        "p99_ms": 1.733,
+        "max_ms": 1.838
+      }
+    },
+    {
+      "open_air_units": 1800,
+      "density": "bridge",
+      "calls_per_batch": 12,
+      "reference": {
+        "n": 180,
+        "mean_ms": 30.82282222222222,
+        "p50_ms": 30.389,
+        "p95_ms": 33.379,
+        "p99_ms": 39.857,
+        "max_ms": 52.364
+      },
+      "candidate": {
+        "n": 180,
+        "mean_ms": 4.143177777777779,
+        "p50_ms": 4.067,
+        "p95_ms": 4.455,
+        "p99_ms": 5.763,
+        "max_ms": 6.111
+      }
+    },
+    {
+      "open_air_units": 1800,
+      "density": "empty_radius",
+      "calls_per_batch": 12,
+      "reference": {
+        "n": 180,
+        "mean_ms": 15.353233333333332,
+        "p50_ms": 15.141,
+        "p95_ms": 15.829,
+        "p99_ms": 20.461,
+        "max_ms": 25.76
+      },
+      "candidate": {
+        "n": 180,
+        "mean_ms": 2.706283333333332,
+        "p50_ms": 2.671,
+        "p95_ms": 2.913,
+        "p99_ms": 3.108,
+        "max_ms": 3.377
+      }
+    }
+  ],
+  "targeting_full_checks": [
+    "TARGETING_CHECKS checks=20675 failures=0"
+  ],
+  "targeting_463_checks": [
+    "TARGETING_CHECKS checks=2909 failures=0"
+  ],
+  "damage_micro": [
+    {
+      "case": "ordinary",
+      "reference": {
+        "n": 30,
+        "mean_ms": 207.351,
+        "p50_ms": 197.431,
+        "p95_ms": 233.921,
+        "p99_ms": 281.518,
+        "max_ms": 281.518
+      },
+      "soldiers": 1800,
+      "buildings": 41,
+      "queries": 100,
+      "candidate": {
+        "n": 30,
+        "mean_ms": 45.5651,
+        "p50_ms": 44.034,
+        "p95_ms": 54.02,
+        "p99_ms": 55.663,
+        "max_ms": 55.663
+      }
+    },
+    {
+      "case": "mixed",
+      "reference": {
+        "n": 30,
+        "mean_ms": 200.16963333333334,
+        "p50_ms": 188.974,
+        "p95_ms": 250.668,
+        "p99_ms": 267.026,
+        "max_ms": 267.026
+      },
+      "soldiers": 1806,
+      "buildings": 41,
+      "queries": 100,
+      "candidate": {
+        "n": 30,
+        "mean_ms": 62.86303333333333,
+        "p50_ms": 60.482,
+        "p95_ms": 86.863,
+        "p99_ms": 88.828,
+        "max_ms": 88.828
+      }
+    }
+  ],
+  "zone_micro": [
+    {
+      "extent": 32,
+      "mode": "cold_six_lanes",
+      "reference": {
+        "n": 180,
+        "mean_ms": 2.057094444444444,
+        "p50_ms": 2.051,
+        "p95_ms": 2.122,
+        "p99_ms": 2.202,
+        "max_ms": 2.223
+      },
+      "baked_route_length": 41.5535621643066,
+      "sample_segments": 174,
+      "lanes_per_batch": 6,
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.528305555555556,
+        "p50_ms": 0.525,
+        "p95_ms": 0.537,
+        "p99_ms": 0.641,
+        "max_ms": 0.804
+      }
+    },
+    {
+      "extent": 32,
+      "mode": "hot_repeated_zone",
+      "reference": {
+        "n": 180,
+        "mean_ms": 2.0585999999999993,
+        "p50_ms": 2.052,
+        "p95_ms": 2.13,
+        "p99_ms": 2.199,
+        "max_ms": 2.23
+      },
+      "baked_route_length": 41.5535621643066,
+      "sample_segments": 174,
+      "lanes_per_batch": 6,
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.22456666666666658,
+        "p50_ms": 0.223,
+        "p95_ms": 0.23,
+        "p99_ms": 0.311,
+        "max_ms": 0.338
+      }
+    },
+    {
+      "extent": 32,
+      "mode": "hot_changing_zone",
+      "reference": {
+        "n": 180,
+        "mean_ms": 2.039261111111111,
+        "p50_ms": 2.038,
+        "p95_ms": 2.08,
+        "p99_ms": 2.135,
+        "max_ms": 2.158
+      },
+      "baked_route_length": 41.5535621643066,
+      "sample_segments": 174,
+      "lanes_per_batch": 6,
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.21700555555555565,
+        "p50_ms": 0.217,
+        "p95_ms": 0.23,
+        "p99_ms": 0.26,
+        "max_ms": 0.277
+      }
+    },
+    {
+      "extent": 96,
+      "mode": "cold_six_lanes",
+      "reference": {
+        "n": 180,
+        "mean_ms": 6.210572222222224,
+        "p50_ms": 6.157,
+        "p95_ms": 6.306,
+        "p99_ms": 8.767,
+        "max_ms": 10.593
+      },
+      "baked_route_length": 124.660659790039,
+      "sample_segments": 520,
+      "lanes_per_batch": 6,
+      "candidate": {
+        "n": 180,
+        "mean_ms": 1.5187888888888896,
+        "p50_ms": 1.511,
+        "p95_ms": 1.592,
+        "p99_ms": 1.642,
+        "max_ms": 1.718
+      }
+    },
+    {
+      "extent": 96,
+      "mode": "hot_repeated_zone",
+      "reference": {
+        "n": 180,
+        "mean_ms": 6.163799999999998,
+        "p50_ms": 6.155,
+        "p95_ms": 6.267,
+        "p99_ms": 6.449,
+        "max_ms": 6.605
+      },
+      "baked_route_length": 124.660659790039,
+      "sample_segments": 520,
+      "lanes_per_batch": 6,
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.6098611111111105,
+        "p50_ms": 0.607,
+        "p95_ms": 0.628,
+        "p99_ms": 0.644,
+        "max_ms": 0.65
+      }
+    },
+    {
+      "extent": 96,
+      "mode": "hot_changing_zone",
+      "reference": {
+        "n": 180,
+        "mean_ms": 6.153549999999998,
+        "p50_ms": 6.127,
+        "p95_ms": 6.295,
+        "p99_ms": 6.455,
+        "max_ms": 7.283
+      },
+      "baked_route_length": 124.660659790039,
+      "sample_segments": 520,
+      "lanes_per_batch": 6,
+      "candidate": {
+        "n": 180,
+        "mean_ms": 0.5972333333333325,
+        "p50_ms": 0.596,
+        "p95_ms": 0.616,
+        "p99_ms": 0.668,
+        "max_ms": 0.686
+      }
+    }
+  ],
+  "integrated_runs": [
+    {
+      "round": 0,
+      "variant": "baseline",
+      "checks": [
+        "SINGLEPLAYER_PROFILE_CHECKS checks=25 failures=0"
+      ],
+      "controller_ms": {
+        "n": 3000,
+        "mean_ms": 5.394555333333315,
+        "p50_ms": 3.362,
+        "p95_ms": 10.78,
+        "p99_ms": 20.378,
+        "max_ms": 270.78
+      },
+      "ai_decision_frame_ms": {
+        "n": 17,
+        "mean_ms": 69.4125294117647,
+        "p50_ms": 48.295,
+        "p95_ms": 217.194,
+        "p99_ms": 217.194,
+        "max_ms": 217.194
+      },
+      "zone_frame_max_ms": 99.788,
+      "selected_targets": 271,
+      "exposed_max": 766,
+      "march_records_max": 784,
+      "substeps_max": 5,
+      "initial_hashes": {
+        "backbone_exact_sha256": "41794e16a8caa4bbdeda989c1108f89da3eecd8cbf74520e4d63dd168bc358bb",
+        "snapshot_exact_sha256": "42e5911700a3e0241fc81568385868fab855deba16ff4570d52c6f36c83c56ed",
+        "snapshot_rule_sha256": "d9322b3e31af58d0d4fb4fa4422fe0935bc6bf67a3cf5fb8adabf3f37befadfd"
+      },
+      "final_hashes": {
+        "backbone_exact_sha256": "dc326977d668aef5059ba918b7702954223d383f483453b32152b5e0099fdc0c",
+        "snapshot_exact_sha256": "d2c571b47fe89d9cfa4d9a8f1900fb5a358cedfc68e936d91f847a3f192b34f0",
+        "snapshot_rule_sha256": "64ae73f1fb05e8ad3f75a471e0d77704420e9c372ad08025446a5d40d193aca1"
+      },
+      "frame_rule_trace_sha256": "6965e959022c7c7c2722bdaddd398713d61dffdf39a7d5282727a1ec16c80522",
+      "raw_frame_sha256": "d513ec090791ecc6b7a3516a6c241df8f8e9a6a06d46c93398652346fc16a870",
+      "raw_directory": ".local/singleplayer-profile-complete/round-00-baseline"
+    },
+    {
+      "round": 0,
+      "variant": "candidate",
+      "checks": [
+        "SINGLEPLAYER_PROFILE_CHECKS checks=18 failures=0"
+      ],
+      "controller_ms": {
+        "n": 3000,
+        "mean_ms": 3.4483030000000072,
+        "p50_ms": 2.137,
+        "p95_ms": 7.185,
+        "p99_ms": 12.118,
+        "max_ms": 110.043
+      },
+      "ai_decision_frame_ms": {
+        "n": 17,
+        "mean_ms": 37.07411764705882,
+        "p50_ms": 31.507,
+        "p95_ms": 86.392,
+        "p99_ms": 86.392,
+        "max_ms": 86.392
+      },
+      "zone_frame_max_ms": 22.293,
+      "selected_targets": 271,
+      "exposed_max": 766,
+      "march_records_max": 784,
+      "substeps_max": 5,
+      "initial_hashes": {
+        "backbone_exact_sha256": "41794e16a8caa4bbdeda989c1108f89da3eecd8cbf74520e4d63dd168bc358bb",
+        "snapshot_exact_sha256": "42e5911700a3e0241fc81568385868fab855deba16ff4570d52c6f36c83c56ed",
+        "snapshot_rule_sha256": "d9322b3e31af58d0d4fb4fa4422fe0935bc6bf67a3cf5fb8adabf3f37befadfd"
+      },
+      "final_hashes": {
+        "backbone_exact_sha256": "dc326977d668aef5059ba918b7702954223d383f483453b32152b5e0099fdc0c",
+        "snapshot_exact_sha256": "d2c571b47fe89d9cfa4d9a8f1900fb5a358cedfc68e936d91f847a3f192b34f0",
+        "snapshot_rule_sha256": "64ae73f1fb05e8ad3f75a471e0d77704420e9c372ad08025446a5d40d193aca1"
+      },
+      "frame_rule_trace_sha256": "6965e959022c7c7c2722bdaddd398713d61dffdf39a7d5282727a1ec16c80522",
+      "raw_frame_sha256": "6df750354533c942a6a6a6f46e108ea20d872dd3e6b3b7d40fad27106f28fa4d",
+      "raw_directory": ".local/singleplayer-profile-complete/round-00-candidate"
+    },
+    {
+      "round": 1,
+      "variant": "candidate",
+      "checks": [
+        "SINGLEPLAYER_PROFILE_CHECKS checks=18 failures=0"
+      ],
+      "controller_ms": {
+        "n": 3000,
+        "mean_ms": 3.482787333333325,
+        "p50_ms": 2.167,
+        "p95_ms": 7.24,
+        "p99_ms": 12.13,
+        "max_ms": 111.791
+      },
+      "ai_decision_frame_ms": {
+        "n": 17,
+        "mean_ms": 37.31005882352942,
+        "p50_ms": 31.755,
+        "p95_ms": 87.474,
+        "p99_ms": 87.474,
+        "max_ms": 87.474
+      },
+      "zone_frame_max_ms": 22.605,
+      "selected_targets": 271,
+      "exposed_max": 766,
+      "march_records_max": 784,
+      "substeps_max": 5,
+      "initial_hashes": {
+        "backbone_exact_sha256": "41794e16a8caa4bbdeda989c1108f89da3eecd8cbf74520e4d63dd168bc358bb",
+        "snapshot_exact_sha256": "42e5911700a3e0241fc81568385868fab855deba16ff4570d52c6f36c83c56ed",
+        "snapshot_rule_sha256": "d9322b3e31af58d0d4fb4fa4422fe0935bc6bf67a3cf5fb8adabf3f37befadfd"
+      },
+      "final_hashes": {
+        "backbone_exact_sha256": "dc326977d668aef5059ba918b7702954223d383f483453b32152b5e0099fdc0c",
+        "snapshot_exact_sha256": "d2c571b47fe89d9cfa4d9a8f1900fb5a358cedfc68e936d91f847a3f192b34f0",
+        "snapshot_rule_sha256": "64ae73f1fb05e8ad3f75a471e0d77704420e9c372ad08025446a5d40d193aca1"
+      },
+      "frame_rule_trace_sha256": "6965e959022c7c7c2722bdaddd398713d61dffdf39a7d5282727a1ec16c80522",
+      "raw_frame_sha256": "b8f824a9a58ac40746b6155bb6761184357e25106eaa15d82274a33044c90aa1",
+      "raw_directory": ".local/singleplayer-profile-complete/round-01-candidate"
+    },
+    {
+      "round": 1,
+      "variant": "baseline",
+      "checks": [
+        "SINGLEPLAYER_PROFILE_CHECKS checks=25 failures=0"
+      ],
+      "controller_ms": {
+        "n": 3000,
+        "mean_ms": 5.382816666666673,
+        "p50_ms": 3.328,
+        "p95_ms": 10.794,
+        "p99_ms": 20.327,
+        "max_ms": 266.982
+      },
+      "ai_decision_frame_ms": {
+        "n": 17,
+        "mean_ms": 69.15470588235293,
+        "p50_ms": 48.462,
+        "p95_ms": 213.325,
+        "p99_ms": 213.325,
+        "max_ms": 213.325
+      },
+      "zone_frame_max_ms": 99.305,
+      "selected_targets": 271,
+      "exposed_max": 766,
+      "march_records_max": 784,
+      "substeps_max": 5,
+      "initial_hashes": {
+        "backbone_exact_sha256": "41794e16a8caa4bbdeda989c1108f89da3eecd8cbf74520e4d63dd168bc358bb",
+        "snapshot_exact_sha256": "42e5911700a3e0241fc81568385868fab855deba16ff4570d52c6f36c83c56ed",
+        "snapshot_rule_sha256": "d9322b3e31af58d0d4fb4fa4422fe0935bc6bf67a3cf5fb8adabf3f37befadfd"
+      },
+      "final_hashes": {
+        "backbone_exact_sha256": "dc326977d668aef5059ba918b7702954223d383f483453b32152b5e0099fdc0c",
+        "snapshot_exact_sha256": "d2c571b47fe89d9cfa4d9a8f1900fb5a358cedfc68e936d91f847a3f192b34f0",
+        "snapshot_rule_sha256": "64ae73f1fb05e8ad3f75a471e0d77704420e9c372ad08025446a5d40d193aca1"
+      },
+      "frame_rule_trace_sha256": "6965e959022c7c7c2722bdaddd398713d61dffdf39a7d5282727a1ec16c80522",
+      "raw_frame_sha256": "b0b1fd78508b17440b3174b52efd2737d8d11c71e38dd21163c39eebf2143c50",
+      "raw_directory": ".local/singleplayer-profile-complete/round-01-baseline"
+    },
+    {
+      "round": 2,
+      "variant": "baseline",
+      "checks": [
+        "SINGLEPLAYER_PROFILE_CHECKS checks=25 failures=0"
+      ],
+      "controller_ms": {
+        "n": 3000,
+        "mean_ms": 5.39030033333333,
+        "p50_ms": 3.342,
+        "p95_ms": 10.843,
+        "p99_ms": 20.227,
+        "max_ms": 265.996
+      },
+      "ai_decision_frame_ms": {
+        "n": 17,
+        "mean_ms": 68.81082352941178,
+        "p50_ms": 48.056,
+        "p95_ms": 212.506,
+        "p99_ms": 212.506,
+        "max_ms": 212.506
+      },
+      "zone_frame_max_ms": 98.604,
+      "selected_targets": 271,
+      "exposed_max": 766,
+      "march_records_max": 784,
+      "substeps_max": 5,
+      "initial_hashes": {
+        "backbone_exact_sha256": "41794e16a8caa4bbdeda989c1108f89da3eecd8cbf74520e4d63dd168bc358bb",
+        "snapshot_exact_sha256": "42e5911700a3e0241fc81568385868fab855deba16ff4570d52c6f36c83c56ed",
+        "snapshot_rule_sha256": "d9322b3e31af58d0d4fb4fa4422fe0935bc6bf67a3cf5fb8adabf3f37befadfd"
+      },
+      "final_hashes": {
+        "backbone_exact_sha256": "dc326977d668aef5059ba918b7702954223d383f483453b32152b5e0099fdc0c",
+        "snapshot_exact_sha256": "d2c571b47fe89d9cfa4d9a8f1900fb5a358cedfc68e936d91f847a3f192b34f0",
+        "snapshot_rule_sha256": "64ae73f1fb05e8ad3f75a471e0d77704420e9c372ad08025446a5d40d193aca1"
+      },
+      "frame_rule_trace_sha256": "6965e959022c7c7c2722bdaddd398713d61dffdf39a7d5282727a1ec16c80522",
+      "raw_frame_sha256": "f0d327eb01414b7b240e1d35e60dccb86d89b4cdf2534e6c8313b8e690572a50",
+      "raw_directory": ".local/singleplayer-profile-complete/round-02-baseline"
+    },
+    {
+      "round": 2,
+      "variant": "candidate",
+      "checks": [
+        "SINGLEPLAYER_PROFILE_CHECKS checks=18 failures=0"
+      ],
+      "controller_ms": {
+        "n": 3000,
+        "mean_ms": 3.4574906666666556,
+        "p50_ms": 2.136,
+        "p95_ms": 7.227,
+        "p99_ms": 12.025,
+        "max_ms": 108.616
+      },
+      "ai_decision_frame_ms": {
+        "n": 17,
+        "mean_ms": 36.88641176470588,
+        "p50_ms": 31.725,
+        "p95_ms": 84.941,
+        "p99_ms": 84.941,
+        "max_ms": 84.941
+      },
+      "zone_frame_max_ms": 22.072,
+      "selected_targets": 271,
+      "exposed_max": 766,
+      "march_records_max": 784,
+      "substeps_max": 5,
+      "initial_hashes": {
+        "backbone_exact_sha256": "41794e16a8caa4bbdeda989c1108f89da3eecd8cbf74520e4d63dd168bc358bb",
+        "snapshot_exact_sha256": "42e5911700a3e0241fc81568385868fab855deba16ff4570d52c6f36c83c56ed",
+        "snapshot_rule_sha256": "d9322b3e31af58d0d4fb4fa4422fe0935bc6bf67a3cf5fb8adabf3f37befadfd"
+      },
+      "final_hashes": {
+        "backbone_exact_sha256": "dc326977d668aef5059ba918b7702954223d383f483453b32152b5e0099fdc0c",
+        "snapshot_exact_sha256": "d2c571b47fe89d9cfa4d9a8f1900fb5a358cedfc68e936d91f847a3f192b34f0",
+        "snapshot_rule_sha256": "64ae73f1fb05e8ad3f75a471e0d77704420e9c372ad08025446a5d40d193aca1"
+      },
+      "frame_rule_trace_sha256": "6965e959022c7c7c2722bdaddd398713d61dffdf39a7d5282727a1ec16c80522",
+      "raw_frame_sha256": "fc248182286aabaab7231e639f13245f3da9c369d0c663be2f5eae5fe2f4116b",
+      "raw_directory": ".local/singleplayer-profile-complete/round-02-candidate"
+    }
+  ],
+  "integrated_comparisons": [
+    {
+      "round": 0,
+      "equal": true,
+      "mismatches": [],
+      "timing_changes": {
+        "ai_us": {
+          "mean": {
+            "baseline": 393.3376666666667,
+            "candidate": 210.08666666666667,
+            "change_percent": -46.589
+          },
+          "p95": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "p99": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "max": {
+            "baseline": 217194,
+            "candidate": 86392,
+            "change_percent": -60.224
+          }
+        },
+        "frame_us": {
+          "mean": {
+            "baseline": 5394.555333333334,
+            "candidate": 3448.303,
+            "change_percent": -36.078
+          },
+          "p95": {
+            "baseline": 10780,
+            "candidate": 7185,
+            "change_percent": -33.349
+          },
+          "p99": {
+            "baseline": 20378,
+            "candidate": 12118,
+            "change_percent": -40.534
+          },
+          "max": {
+            "baseline": 270780,
+            "candidate": 110043,
+            "change_percent": -59.361
+          }
+        },
+        "hud_us": {
+          "mean": {
+            "baseline": 123.581,
+            "candidate": 118.74766666666666,
+            "change_percent": -3.911
+          },
+          "p95": {
+            "baseline": 850,
+            "candidate": 822,
+            "change_percent": -3.294
+          },
+          "p99": {
+            "baseline": 927,
+            "candidate": 952,
+            "change_percent": 2.697
+          },
+          "max": {
+            "baseline": 6965,
+            "candidate": 6598,
+            "change_percent": -5.269
+          }
+        },
+        "march_tick_us": {
+          "mean": {
+            "baseline": 1849.8166666666666,
+            "candidate": 1844.4843333333333,
+            "change_percent": -0.288
+          },
+          "p95": {
+            "baseline": 4346,
+            "candidate": 4338,
+            "change_percent": -0.184
+          },
+          "p99": {
+            "baseline": 7396,
+            "candidate": 7361,
+            "change_percent": -0.473
+          },
+          "max": {
+            "baseline": 37546,
+            "candidate": 18352,
+            "change_percent": -51.121
+          }
+        },
+        "render_us": {
+          "mean": {
+            "baseline": 394.65833333333336,
+            "candidate": 391.40433333333334,
+            "change_percent": -0.825
+          },
+          "p95": {
+            "baseline": 925,
+            "candidate": 914,
+            "change_percent": -1.189
+          },
+          "p99": {
+            "baseline": 969,
+            "candidate": 955,
+            "change_percent": -1.445
+          },
+          "max": {
+            "baseline": 1119,
+            "candidate": 4517,
+            "change_percent": 303.664
+          }
+        },
+        "simulate_us": {
+          "mean": {
+            "baseline": 5286.726,
+            "candidate": 3344.267333333333,
+            "change_percent": -36.742
+          },
+          "p95": {
+            "baseline": 10474,
+            "candidate": 6909,
+            "change_percent": -34.037
+          },
+          "p99": {
+            "baseline": 20376,
+            "candidate": 11878,
+            "change_percent": -41.706
+          },
+          "max": {
+            "baseline": 270776,
+            "candidate": 110039,
+            "change_percent": -59.362
+          }
+        },
+        "substep_us": {
+          "mean": {
+            "baseline": 4851.973,
+            "candidate": 2912.955,
+            "change_percent": -39.963
+          },
+          "p95": {
+            "baseline": 9516,
+            "candidate": 5983,
+            "change_percent": -37.127
+          },
+          "p99": {
+            "baseline": 19509,
+            "candidate": 11051,
+            "change_percent": -43.354
+          },
+          "max": {
+            "baseline": 269611,
+            "candidate": 108917,
+            "change_percent": -59.602
+          }
+        },
+        "target_us": {
+          "mean": {
+            "baseline": 2212.571,
+            "candidate": 470.5443333333333,
+            "change_percent": -78.733
+          },
+          "p95": {
+            "baseline": 5237,
+            "candidate": 1084,
+            "change_percent": -79.301
+          },
+          "p99": {
+            "baseline": 10418,
+            "candidate": 2241,
+            "change_percent": -78.489
+          },
+          "max": {
+            "baseline": 23469,
+            "candidate": 4630,
+            "change_percent": -80.272
+          }
+        },
+        "tower_us": {
+          "mean": {
+            "baseline": 2229.1646666666666,
+            "candidate": 486.34566666666666,
+            "change_percent": -78.183
+          },
+          "p95": {
+            "baseline": 5256,
+            "candidate": 1138,
+            "change_percent": -78.349
+          },
+          "p99": {
+            "baseline": 10451,
+            "candidate": 2279,
+            "change_percent": -78.193
+          },
+          "max": {
+            "baseline": 23501,
+            "candidate": 4681,
+            "change_percent": -80.082
+          }
+        },
+        "zone_us": {
+          "mean": {
+            "baseline": 39.029,
+            "candidate": 8.774333333333333,
+            "change_percent": -77.518
+          },
+          "p95": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "p99": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "max": {
+            "baseline": 99788,
+            "candidate": 22293,
+            "change_percent": -77.66
+          }
+        }
+      }
+    },
+    {
+      "round": 1,
+      "equal": true,
+      "mismatches": [],
+      "timing_changes": {
+        "ai_us": {
+          "mean": {
+            "baseline": 391.87666666666667,
+            "candidate": 211.42366666666666,
+            "change_percent": -46.048
+          },
+          "p95": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "p99": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "max": {
+            "baseline": 213325,
+            "candidate": 87474,
+            "change_percent": -58.995
+          }
+        },
+        "frame_us": {
+          "mean": {
+            "baseline": 5382.816666666667,
+            "candidate": 3482.787333333333,
+            "change_percent": -35.298
+          },
+          "p95": {
+            "baseline": 10794,
+            "candidate": 7240,
+            "change_percent": -32.926
+          },
+          "p99": {
+            "baseline": 20327,
+            "candidate": 12130,
+            "change_percent": -40.326
+          },
+          "max": {
+            "baseline": 266982,
+            "candidate": 111791,
+            "change_percent": -58.128
+          }
+        },
+        "hud_us": {
+          "mean": {
+            "baseline": 122.941,
+            "candidate": 122.625,
+            "change_percent": -0.257
+          },
+          "p95": {
+            "baseline": 853,
+            "candidate": 841,
+            "change_percent": -1.407
+          },
+          "p99": {
+            "baseline": 975,
+            "candidate": 970,
+            "change_percent": -0.513
+          },
+          "max": {
+            "baseline": 6704,
+            "candidate": 6716,
+            "change_percent": 0.179
+          }
+        },
+        "march_tick_us": {
+          "mean": {
+            "baseline": 1849.5993333333333,
+            "candidate": 1867.4673333333333,
+            "change_percent": 0.966
+          },
+          "p95": {
+            "baseline": 4364,
+            "candidate": 4407,
+            "change_percent": 0.985
+          },
+          "p99": {
+            "baseline": 7392,
+            "candidate": 7417,
+            "change_percent": 0.338
+          },
+          "max": {
+            "baseline": 37820,
+            "candidate": 18743,
+            "change_percent": -50.442
+          }
+        },
+        "render_us": {
+          "mean": {
+            "baseline": 391.7853333333333,
+            "candidate": 392.183,
+            "change_percent": 0.102
+          },
+          "p95": {
+            "baseline": 917,
+            "candidate": 916,
+            "change_percent": -0.109
+          },
+          "p99": {
+            "baseline": 963,
+            "candidate": 957,
+            "change_percent": -0.623
+          },
+          "max": {
+            "baseline": 1196,
+            "candidate": 1638,
+            "change_percent": 36.957
+          }
+        },
+        "simulate_us": {
+          "mean": {
+            "baseline": 5275.616333333333,
+            "candidate": 3375.5066666666667,
+            "change_percent": -36.017
+          },
+          "p95": {
+            "baseline": 10507,
+            "candidate": 6944,
+            "change_percent": -33.911
+          },
+          "p99": {
+            "baseline": 20324,
+            "candidate": 12034,
+            "change_percent": -40.789
+          },
+          "max": {
+            "baseline": 266979,
+            "candidate": 111786,
+            "change_percent": -58.129
+          }
+        },
+        "substep_us": {
+          "mean": {
+            "baseline": 4843.373,
+            "candidate": 2943.248666666667,
+            "change_percent": -39.231
+          },
+          "p95": {
+            "baseline": 9543,
+            "candidate": 6051,
+            "change_percent": -36.592
+          },
+          "p99": {
+            "baseline": 19468,
+            "candidate": 11128,
+            "change_percent": -42.84
+          },
+          "max": {
+            "baseline": 265877,
+            "candidate": 110625,
+            "change_percent": -58.392
+          }
+        },
+        "target_us": {
+          "mean": {
+            "baseline": 2202.2823333333336,
+            "candidate": 471.92833333333334,
+            "change_percent": -78.571
+          },
+          "p95": {
+            "baseline": 5228,
+            "candidate": 1082,
+            "change_percent": -79.304
+          },
+          "p99": {
+            "baseline": 10253,
+            "candidate": 2266,
+            "change_percent": -77.899
+          },
+          "max": {
+            "baseline": 21951,
+            "candidate": 4643,
+            "change_percent": -78.848
+          }
+        },
+        "tower_us": {
+          "mean": {
+            "baseline": 2218.839,
+            "candidate": 487.88433333333336,
+            "change_percent": -78.012
+          },
+          "p95": {
+            "baseline": 5243,
+            "candidate": 1155,
+            "change_percent": -77.971
+          },
+          "p99": {
+            "baseline": 10286,
+            "candidate": 2299,
+            "change_percent": -77.649
+          },
+          "max": {
+            "baseline": 22010,
+            "candidate": 4695,
+            "change_percent": -78.669
+          }
+        },
+        "zone_us": {
+          "mean": {
+            "baseline": 38.875,
+            "candidate": 8.908333333333333,
+            "change_percent": -77.085
+          },
+          "p95": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "p99": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "max": {
+            "baseline": 99305,
+            "candidate": 22605,
+            "change_percent": -77.237
+          }
+        }
+      }
+    },
+    {
+      "round": 2,
+      "equal": true,
+      "mismatches": [],
+      "timing_changes": {
+        "ai_us": {
+          "mean": {
+            "baseline": 389.928,
+            "candidate": 209.023,
+            "change_percent": -46.394
+          },
+          "p95": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "p99": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "max": {
+            "baseline": 212506,
+            "candidate": 84941,
+            "change_percent": -60.029
+          }
+        },
+        "frame_us": {
+          "mean": {
+            "baseline": 5390.300333333334,
+            "candidate": 3457.4906666666666,
+            "change_percent": -35.857
+          },
+          "p95": {
+            "baseline": 10843,
+            "candidate": 7227,
+            "change_percent": -33.349
+          },
+          "p99": {
+            "baseline": 20227,
+            "candidate": 12025,
+            "change_percent": -40.55
+          },
+          "max": {
+            "baseline": 265996,
+            "candidate": 108616,
+            "change_percent": -59.166
+          }
+        },
+        "hud_us": {
+          "mean": {
+            "baseline": 124.21733333333333,
+            "candidate": 119.30333333333333,
+            "change_percent": -3.956
+          },
+          "p95": {
+            "baseline": 858,
+            "candidate": 824,
+            "change_percent": -3.963
+          },
+          "p99": {
+            "baseline": 978,
+            "candidate": 927,
+            "change_percent": -5.215
+          },
+          "max": {
+            "baseline": 6726,
+            "candidate": 6805,
+            "change_percent": 1.175
+          }
+        },
+        "march_tick_us": {
+          "mean": {
+            "baseline": 1858.1686666666667,
+            "candidate": 1853.535,
+            "change_percent": -0.249
+          },
+          "p95": {
+            "baseline": 4356,
+            "candidate": 4402,
+            "change_percent": 1.056
+          },
+          "p99": {
+            "baseline": 7420,
+            "candidate": 7345,
+            "change_percent": -1.011
+          },
+          "max": {
+            "baseline": 37427,
+            "candidate": 18401,
+            "change_percent": -50.835
+          }
+        },
+        "render_us": {
+          "mean": {
+            "baseline": 393.34,
+            "candidate": 390.25966666666665,
+            "change_percent": -0.783
+          },
+          "p95": {
+            "baseline": 924,
+            "candidate": 915,
+            "change_percent": -0.974
+          },
+          "p99": {
+            "baseline": 960,
+            "candidate": 956,
+            "change_percent": -0.417
+          },
+          "max": {
+            "baseline": 1109,
+            "candidate": 1115,
+            "change_percent": 0.541
+          }
+        },
+        "simulate_us": {
+          "mean": {
+            "baseline": 5281.818333333334,
+            "candidate": 3353.094,
+            "change_percent": -36.516
+          },
+          "p95": {
+            "baseline": 10521,
+            "candidate": 6939,
+            "change_percent": -34.046
+          },
+          "p99": {
+            "baseline": 20225,
+            "candidate": 11796,
+            "change_percent": -41.676
+          },
+          "max": {
+            "baseline": 265993,
+            "candidate": 108614,
+            "change_percent": -59.167
+          }
+        },
+        "substep_us": {
+          "mean": {
+            "baseline": 4848.477,
+            "candidate": 2922.8233333333333,
+            "change_percent": -39.717
+          },
+          "p95": {
+            "baseline": 9569,
+            "candidate": 6022,
+            "change_percent": -37.068
+          },
+          "p99": {
+            "baseline": 19315,
+            "candidate": 10935,
+            "change_percent": -43.386
+          },
+          "max": {
+            "baseline": 264865,
+            "candidate": 107529,
+            "change_percent": -59.402
+          }
+        },
+        "target_us": {
+          "mean": {
+            "baseline": 2203.5226666666667,
+            "candidate": 472.81033333333335,
+            "change_percent": -78.543
+          },
+          "p95": {
+            "baseline": 5269,
+            "candidate": 1082,
+            "change_percent": -79.465
+          },
+          "p99": {
+            "baseline": 10289,
+            "candidate": 2255,
+            "change_percent": -78.083
+          },
+          "max": {
+            "baseline": 21833,
+            "candidate": 4647,
+            "change_percent": -78.716
+          }
+        },
+        "tower_us": {
+          "mean": {
+            "baseline": 2220.317,
+            "candidate": 488.638,
+            "change_percent": -77.992
+          },
+          "p95": {
+            "baseline": 5285,
+            "candidate": 1156,
+            "change_percent": -78.127
+          },
+          "p99": {
+            "baseline": 10316,
+            "candidate": 2294,
+            "change_percent": -77.763
+          },
+          "max": {
+            "baseline": 21890,
+            "candidate": 4703,
+            "change_percent": -78.515
+          }
+        },
+        "zone_us": {
+          "mean": {
+            "baseline": 38.62566666666667,
+            "candidate": 8.707,
+            "change_percent": -77.458
+          },
+          "p95": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "p99": {
+            "baseline": 0,
+            "candidate": 0,
+            "change_percent": null
+          },
+          "max": {
+            "baseline": 98604,
+            "candidate": 22072,
+            "change_percent": -77.616
+          }
+        }
+      }
+    }
+  ],
+  "source_sha256": {
+    "data/block_war/maps/crown.tres": "2470a3e7dc6d54fd3bdd5b89b1fe2d3e85efec4624f9179d76f556cff56f546c",
+    "data/block_war/maps/highland.tres": "8830d59522c0dda657e146c66360dfe71c27ac8cc1184bdd66e481396eef7a0b",
+    "data/block_war/maps/islands.tres": "c378f42c8a824fc78666e5064cc80750c9c4136bddb7014d62043b0b8ffdec60",
+    "data/block_war/maps/lake.tres": "3e66ed339f341672a47bcd6dea0e1337eb73d689db3dc41be6391bf23853dce5",
+    "data/block_war/maps/ridges.tres": "bd0030253ab23122f8232a75b71a7d12a1564f20c2d5a245bcf1b23365ffe9c4",
+    "data/block_war/maps/rift.tres": "04727c25448ea58084632ce6ed4792c188dd011798d83bb391d770d4e3aadeb0",
+    "data/block_war/maps/rivers.tres": "27c68c5171eb8bfc47d1bc5c103aedaef6ebd28dfe9c707ce267b0c2e987a875",
+    "data/block_war/maps/switchback.tres": "28fb04e37ca6c9d1d6921d7551a17323d7f5445d24c5070c2d8172890fbf029f",
+    "data/block_war/maps/terraces.tres": "f8c6f8226573ae386eb8346da3167850f71a452feee74f7bb7970bbc6026d1c0",
+    "data/block_war/routes/islands.res": "5eb49c78f9f5f9390a28687ffa96a89052f54e2f5fbbe1c9b4c891845aa21d6d",
+    "data/block_war/terrain/crown.res": "2a6ed2076ab098b1b4d88e751c03971d837f63f41d0d25669936a492ce25354f",
+    "data/block_war/terrain/switchback.res": "d1ea3ec8aad5d57f922b534e0ff8496d803916b281f2863117193f16a35d7a9d",
+    "data/block_war/terrain/terraces.res": "c4203f1022163ff9853411addfbfb4159e582fe967b37e7ebe7f0a0234185549",
+    "project.godot": "e40a712e546e38b56ce48873e4ee3d3aac880a06905127fb61efad8b56744b82",
+    "scenes/block_war/audio.tscn": "c96e5c4b722519e627fa53009e751351ff7a00138c0fafd16c7c52f59fac8151",
+    "scenes/block_war/bear_effects.tscn": "776f51a7285ac5f7382a84d593a79155b37be1da664fc2f9ab7da936b03c1d51",
+    "scenes/block_war/bear_toolbox.tscn": "e3dfe89ace105454fb0e080aeccc341d14363cf9bd22f59d347f950629878a31",
+    "scenes/block_war/blast_casualties.tscn": "3652c1164a2784d03e1a95c0c615fc62fb36fa03fdc66e732fcbd375f42cb964",
+    "scenes/block_war/block_war.tscn": "516d21d2cbeab86149c7a768540149f3c794490f1072dacc94ec9a96fcbb17e2",
+    "scenes/block_war/building.tscn": "728a5409c7fcc1d161eb6fa6717da84bbe7e06c5916bedb2bb9fc01b6a4e9bd7",
+    "scenes/block_war/commander_select.tscn": "dd221b41ff0a7daf968dc5bd4ccf7202df3bad763140b9c1888cfeaf4c396b72",
+    "scenes/block_war/construction.tscn": "ad09e06e01aaca330b51cae596e4b24c4630db7a42af4a71b4e7b3c92d49156a",
+    "scenes/block_war/debug_panel.tscn": "5d06fa704d4f268e2518d1ed78e3c76fbb457981f20b9509ac547f4dc20c91ff",
+    "scenes/block_war/effect_burst.tscn": "1ca07865f310723826e9f48d3f638e879995edcc845ed97f00b4fe64f781c5bd",
+    "scenes/block_war/energy_tower.tscn": "47b267acf8dbc65bb5648af28871b45f580bfe0c7dd653fa67df06724f5bd895",
+    "scenes/block_war/fire_wave.tscn": "2ca3058119ae20274f14585fd6f502eb4caa85f866ec4ab1042df1420a374f86",
+    "scenes/block_war/fox_cast.tscn": "54b9c908c088dabad243fc81d3f9f696321957f7f54a8cf91a8c7cc5f95283fa",
+    "scenes/block_war/fox_effects.tscn": "91aff6192681ce2958aa58122c59f5cc9d78c2601625c687012831334da8568b",
+    "scenes/block_war/frog_effects.tscn": "253fa233f7be5601990f3f96859d58efab4fcdd9aa5655f0de27137cc9256533",
+    "scenes/block_war/hud.tscn": "ab7707eb3ff0c67f0a7a6bfd1dd4707eb6bb6315e4d847d9122115ae73f5680c",
+    "scenes/block_war/map.tscn": "3b4b23828db97b09e7b1147e2e7186f7905606485fc2149fca0081c4bdd520f1",
+    "scenes/block_war/map_select.tscn": "0ce99f90c79582aee52af7411701dbc0f89f9469ccba115e5fd996420c0e754d",
+    "scenes/block_war/maps/crown.tscn": "8e99519cc50fcd8d9e3220057328d033f697e45944b7621818854af8e972e1b1",
+    "scenes/block_war/maps/highland.tscn": "acc28cdff53535f6f5f0c29bebe2e7eee3ad89ffc01248eecfaae1a652e01c04",
+    "scenes/block_war/maps/islands.tscn": "6559136d642b4eeefcaa9ef4480e39dd689312cd3dc1e377bdd1a349a4069425",
+    "scenes/block_war/maps/lake.tscn": "67ce9237b64fccd31bcfacd136a1f31c67f4c6f51c3d20372988240c061b83d8",
+    "scenes/block_war/maps/ridges.tscn": "cddbf4759e2f7b19d84d8b3c63290998a1b90b4083f5bbe01054b335842e6c09",
+    "scenes/block_war/maps/rivers.tscn": "c26105cd96c7249e4d3a75f905cbc05d9829e73c24be6f9679dd55a75410e380",
+    "scenes/block_war/maps/switchback.tscn": "1eced128b04682cb80a178cdad23853f2df56bc18e2603b8ea766042954e115f",
+    "scenes/block_war/maps/terraces.tscn": "a9dcb868a3a8a093e3c95526070c23ec5180dd7d13f7659de48da38e73de4fb1",
+    "scenes/block_war/marches.tscn": "70b216330200cfb8aa816fde7ceb7e4c5475086ee5f0ac8b57d5093a2be08e91",
+    "scenes/block_war/morale_row.tscn": "50eb71870f1e5f90bf52ee11559bab0791fe9a6f50098e386479ed404bef407b",
+    "scenes/block_war/morale_star.tscn": "3f035186dc51fa25df30c689658e8bcefbc70b97c147f4cc50c8d5d634f35cdb",
+    "scenes/block_war/percentage_button.tscn": "96e62b375b543fc5120e5149b3849af3e6b1ebb9887c4def5704af45ef132056",
+    "scenes/block_war/pig_drop.tscn": "ef8f666ae4aa6c715d80675186428c93ba18f01b2f35ac38c16010a4259b1515",
+    "scenes/block_war/pig_effects.tscn": "b1975a72331292be2b2915d88158a52ad9d30e398e51d224ea16736e8aad6318",
+    "scenes/block_war/pig_ready.tscn": "a5e9e5be951a1428f420ec814d65a3483e943a74e7703821ae7d7d70dd3bce42",
+    "scenes/block_war/portrait_studio.tscn": "37aa7268d9c3566e569fbcf67057b1a7bf3c64e026f355d61e96f4d08738dfb8",
+    "scenes/block_war/public_skill_icon.tscn": "4ff013dfe926bf8807f7f7d4907af4f7ecbc0926d855ae3a884277c422439eef",
+    "scenes/block_war/public_skill_row.tscn": "0b1d4a1b1517dc1dde5e9ac6d93d7ca417fc826d4d90375be7ed5d4815b93d78",
+    "scenes/block_war/rabbit_burrow.tscn": "732bd684f7c4c9cf5f38c53218f6385fb8bec13ffece5fa1635c785b10fbfa57",
+    "scenes/block_war/rabbit_burrow_ready.tscn": "3edc404b7334d53bdef6d812e4345ad607a131b3988a627ab000b84dc94879e1",
+    "scenes/block_war/rabbit_effects.tscn": "bcd2f90baf52902fa4f47af0c90226fa99f01d657ad3bb18e153adad6becfc69",
+    "scenes/block_war/rabbit_rally.tscn": "f6ca9dc68cab06e8340b1e955039dae35b6f660bd2cb5cd961c0f48f40cc6a0c",
+    "scenes/block_war/rabbit_seal.tscn": "d37a36356665c54ca2b90cd0aa954ef4b4be65e204bfda1f569558995b289f3a",
+    "scenes/block_war/rabbit_tunnel.tscn": "96f7a65b765a941cf487352ed4d3718feda410141203f4a2680959212013969c",
+    "scenes/block_war/skill_tooltip.tscn": "32005d300e8aee8fa6f5b4d27f9c66c9cc21b791e92d4310318ae8379edbfd30",
+    "scenes/block_war/soldier_hit.tscn": "1223200cc50f705ef82ae5e1555ca55703b8231aa055599ee42a8d57dbdac7a0",
+    "scenes/block_war/tower_range.tscn": "e9a49e98e1f0de19b582508d002365f5cb35e0e0839857c703f26d8037b81a61",
+    "scenes/block_war/war_balance.tscn": "5803d7cd68aca5cb3898855816f1b65afe40cdca7f28a625932f634992c21cc9",
+    "scenes/block_war/war_effects.tscn": "70210a1cb031a26b43294958e0f9a03a7c32864b5477f56f34a0041fc9382e13",
+    "scripts/audio_director.gd": "f12afc5cbe0fbb4cfc42a90b1aeec860e4406301bb49bc13f0cd5d60b923b3ca",
+    "scripts/block_war/block_war.gd": "2fcc1cc3f30ee9cd126fbfd0bf5b19abee033cd568e43262293e44c77676335b",
+    "scripts/block_war/war_ai.gd": "987c9a1703b6c647e4ce13a82f55290cf0e5174f54dbfc1c90eb72e0d8c67677",
+    "scripts/block_war/war_ai_economy.gd": "24866b8125628d9621b2eca20b99dfcf7df7d3bea9a3578db8a1799b121a34c2",
+    "scripts/block_war/war_ai_information.gd": "b63fb6d69a3ee655ecb834b1f9ac11534054fd4de762cebff7e009456e1ee684",
+    "scripts/block_war/war_ai_skills.gd": "1d7bfdca44f179c15282a9f5b08e7f7e118242c139bf8a93ca19c375746291da",
+    "scripts/block_war/war_audio.gd": "53dc334972402153a72adc8b5569de1b83aa5711018a49dd55b3574d300d422d",
+    "scripts/block_war/war_balance.gd": "e0eaf502d3caf6a60272597a9cc316c6fc4b8717b5a2746abc78821fa943df14",
+    "scripts/block_war/war_bear_effects.gd": "3d0ad08f7da98e2a93d65d62e5cf64f61c22d92d6a42d934b56f89536704292e",
+    "scripts/block_war/war_bear_skills.gd": "e6d99642f36a10cd4ebc4aa02b269cd5cc02a58ab9ae164a728e52d6e9767371",
+    "scripts/block_war/war_blast_casualties.gd": "caa880ccf9b3794c2e932d3aea9e67ec9734007e5cc4cd1d4df84ebadb1cfd78",
+    "scripts/block_war/war_building.gd": "25b835098e10b599a2d5934a1a61d7e11523c8e620a52a6da7e20815e09b6633",
+    "scripts/block_war/war_burrow_effect.gd": "64753086875f0516bb20e0d3f3e107f04cba0833ee81399407e4e0802aac82b6",
+    "scripts/block_war/war_burrow_ready_effect.gd": "1faeec7398841dee6a0c8ce188a70e3e9d36a2d156789469b1f34b09738ac23e",
+    "scripts/block_war/war_combat_rules.gd": "02189e9137f41ad6130a884c3ddd7b7268c686127deebe436c6373107c7e9dcd",
+    "scripts/block_war/war_commander_select.gd": "7e5feb668db823c8c4a2c8dc254649d91063b74a71338b1396b40a13dec26f00",
+    "scripts/block_war/war_debug_data.gd": "a003f306a23d65217eaaffd0fc69df2803ea8c9f2f4f32e6b086c7f1757f6243",
+    "scripts/block_war/war_debug_panel.gd": "678dab5ea1b1c64ebb890930f091b16c2324ae28c566145e12c29b825077046d",
+    "scripts/block_war/war_effects.gd": "6f68210d5d844ac4b793a31f2a345b503b91adff7dfe43c91c5f2084f37370a4",
+    "scripts/block_war/war_factions.gd": "c9dd655a4de7c5842a1d51ade1e2124ac1ade3d7ea48a2359dc3d06bcc1d173d",
+    "scripts/block_war/war_fire_state.gd": "c925e564ad8495e32fd9a08363da8dc93c0ccac9454aef0ab445535649b6ea0e",
+    "scripts/block_war/war_fire_wave.gd": "ca853de8045cd7972b8329916c357f28f98e5e21434a06efae0f594727f89371",
+    "scripts/block_war/war_fox_cast.gd": "0208b4e05c7b3553ab50a911ea3fe5be94f9303f1cb1f35cfa7ccd2c211a8421",
+    "scripts/block_war/war_fox_effects.gd": "ed3ec2f61a5057c0b14588bf5a3c8a33fa7cd7455af62e9abbcafee88e2f8d13",
+    "scripts/block_war/war_fox_skills.gd": "82712948d25a0a432f858443577d5afd4b91b0021adaa51cedf864173a554ea0",
+    "scripts/block_war/war_frog_effects.gd": "871c11c795f1a806714438e1eb4773a20d42541abd38b9bd5ddfb576a2e3b47d",
+    "scripts/block_war/war_frog_skills.gd": "bad2bf7fcd967171b8c7c5c55c04020ac3b1edb29ec8276f113620c05668a8cd",
+    "scripts/block_war/war_hud.gd": "13aba38feb9b1664438abcd923c24999cc4fc0912df541b81c654370128df8fa",
+    "scripts/block_war/war_map.gd": "9c49bbef3e6a322d5ce369b72a18786b5fe2ef419f7e6e22aa9856833eb5646d",
+    "scripts/block_war/war_map_catalog.gd": "14e18c530277a4c70dcd62b271b8a3ebede387604b0361a3b368a0b25f21f50b",
+    "scripts/block_war/war_map_definition.gd": "2b2c6f6030913a79cb6a7695813846ea07836d94a68307a24374c513eb5ec060",
+    "scripts/block_war/war_map_preview.gd": "0a0fe94d669b56168a59f3ab4f3bc109fa7402510d93e8c65c8c9aa3665d0d18",
+    "scripts/block_war/war_map_routes.gd": "ddd6cf3d69d94bfd6504eb0d0345fbaf711b765097bfd981919f87d21c58b620",
+    "scripts/block_war/war_map_select.gd": "0242034e37b212590961272e3bb789d1863412392ac669069368099ccde9f795",
+    "scripts/block_war/war_marches.gd": "0271b7c83962511d1f427908224868502c3fdb4db25995cbe0f3b67e2bc5475b",
+    "scripts/block_war/war_morale.gd": "653565d37311e55c7bab65326c3062f7524da95f4295718859948aac01e31dbd",
+    "scripts/block_war/war_morale_star.gd": "ac0c6b4a4d91f3a2bd14eb63b169058c2747b672bf6fe0abbb15183343439fe5",
+    "scripts/block_war/war_overlay.gd": "542569efb8210680dfbc27ce6a214385fd54335bcde2d8c9649f7fadb30f0c52",
+    "scripts/block_war/war_percentage_button.gd": "8b090b17fe9bec85605d982129b49464a5a4dab2cce76eb0e30d6edaadbb9270",
+    "scripts/block_war/war_pig_drop.gd": "18fa2a78f582a416ad94de46624d1786208e42285adf8b2e728d8250d9a48579",
+    "scripts/block_war/war_pig_effects.gd": "cc441360ff3e974c929a7e7798d6d5343a80c48a1eaac40fc6fe430fc876fbcc",
+    "scripts/block_war/war_pig_ready.gd": "9523a7321191a20b23b8065f136724244202e68bb672028f119a8ca5f68bd467",
+    "scripts/block_war/war_pig_skills.gd": "35ba11af8f48ab898babd41b051d7cd79370bc70723c32e197711a646d0b9aff",
+    "scripts/block_war/war_public_skill_row.gd": "d5b7ed6cc92b27062cba4158dbb14d45469ba4982e306c16acf803649320a010",
+    "scripts/block_war/war_rabbit_effects.gd": "68e15a690649ab1ee39a32ad03b61258a6456976a4182f84b07ff6a94284af5f",
+    "scripts/block_war/war_rabbit_skills.gd": "6568b50191a64f2b36a09c52a689641541e6b2490ac8d60a333d382711e19f00",
+    "scripts/block_war/war_rally_effect.gd": "84d1998befa8be96004b9f595d96f6b68d6318188b07e6d83b7c5cab25992673",
+    "scripts/block_war/war_seal_effect.gd": "81faf3ff5f72fb27925c4bea4ab9a6566bd59c3e83e8f1c47f9ce992770064e0",
+    "scripts/block_war/war_skill_button.gd": "132c11725a7958b88088396196b7efb6e3b5af5c718b14e6b247658691bdb290",
+    "scripts/block_war/war_skill_rules.gd": "8652557946ecaf385da25734ba7288a386a67fd634f26be81bc218698f495477",
+    "scripts/block_war/war_skill_tooltip.gd": "46b4be749eb3cc3e26682fbc5b3928777b0ab5dfb5723fde9c8e89a09d4b5243",
+    "scripts/block_war/war_sound_bank.gd": "9eb1f05136b797f2a41ab601bf492ef10f5c604f70c2a0fcc8ba2c56882ed7b3",
+    "scripts/block_war/war_surface_effects.gd": "91941fb4d33e433548bf68ea590608c7d3228586244af3d305e2ccd655f57dad",
+    "scripts/block_war/war_surrender.gd": "0a24cc97ab6c454ec5094be6c9eab00d15d9dec960e5456e6ae2564765e60bd5",
+    "scripts/block_war/war_terrain_surface.gd": "0e222822e5bfb6ee962e0d1d9402a4fce7ff6c29fcb1bdd8e33546cfa158ca74",
+    "scripts/block_war/war_tunnel_effect.gd": "622c2e5e51ce341f561b9b1de86af0da16775f7c69616553302b6f3adda744c0",
+    "scripts/codex/codex.gd": "d456406bd8a92bb99ac28c4b7cd9ac7c825568f77330f628275140a690cd2872",
+    "scripts/codex/codex_catalog.gd": "5df61a65356c466c4bfc5a6eebb407692a3178f9ab2137032b06f23b90f5ebdc",
+    "scripts/codex/demo_audio.gd": "3b1702ead6a8e5e1bf25a9b331e7b3113a70d86976076cb0b7458c1e2201f213",
+    "scripts/codex/demo_map.gd": "0ff5b35abddb30e703ca5b6fd6e43960df1f4f518f001eccec3beb593013c830",
+    "scripts/codex/demo_world.gd": "e08fece4bca522d9050e6b937a769e591418e2968fe93db81bd86bee4f909486",
+    "scripts/codex/skill_demo.gd": "6e549119b4578924ce4eb46bd5f3af4b1c35ef4b580521312ed12cad65eecd71",
+    "scripts/game_settings.gd": "94ca44bf5561b68c36f550f8e735c5f678fddb8621462a1ae1c72740f7c53bd3",
+    "scripts/lobby.gd": "6940ea5b8d07231cc1c2f2e9e6097b8a5124b0e02b6fee0fb8f7199ece226e00",
+    "scripts/network/war_network_match.gd": "d3e7b6f91bdd62fba9bae987009f098c15595d5c331538f16c62591f6f2ea438",
+    "scripts/network/war_online.gd": "e3d5ef08056a764ccf36c1d98902ab3838bf0bb0c2b4f641bc8368c6e15f80dd",
+    "scripts/network/war_protocol.gd": "4831cc4065a473220baee7f57a19f161a015d74c6a48fe1d23cc2a0c4fa20f2a",
+    "scripts/network/war_remote_pointer.gd": "b7c31ca56f79b762862e5c6f90bca44c12c88018014fb5cec353dee7e917709f",
+    "scripts/network/war_room.gd": "276f62a72d487f84618481e2d448aa67a4d6ac58ff82d3896a02f4b531fcec5f",
+    "scripts/network/war_room_slot.gd": "6908002fc952a0de2f118360fa147aafab0c8b472010f5749a10dc4fe779564a",
+    "scripts/network/war_snapshot.gd": "bb86278a23b70819a1d300a14a8d5e4e5428845d77d93bcd2a78c68a312fb608",
+    "scripts/network/war_teammate_cursors.gd": "5b7bb353ab64bb07cec9fe7e6ae5ba4021e07d9cdd78a3c43a4a89407e57ad20",
+    "scripts/rts_camera.gd": "a7a672d788f8a9c5980c415af30ca86f10e18c36ebaaa04ba024c8272fe3e37a",
+    "scripts/session.gd": "9e8279554233f7a0f6ff3811fd49fb1b20f4dee3d4687df297d9054744c94faa",
+    "scripts/settings_menu.gd": "1bd149aff19844fae857779930d07726a3a275ddc279dcd2dac0fc7cbec12aab",
+    "scripts/sound_bank.gd": "43e16c733965728e9b96898aa9f4375b046e90b3606169e7546f447b78b9b297",
+    "scripts/tutorial/tutorial_battle.gd": "2ae93f35238328b5d060e426947f343f5648449373bd91c16a5e793083ad2fbf",
+    "scripts/tutorial/tutorial_catalog.gd": "1609c133848672baf72ecd8b37395fd10200492541fd52468fe53a1d34f7c0ee",
+    "scripts/tutorial/tutorial_gesture.gd": "11a888ecdca9ed1fcd94b740046a4ad3c63af9509dcc0208b18c0275d077cbb4",
+    "scripts/tutorial/tutorial_map.gd": "d417ec5f8a451dcfd4defebb255aae0d871e261c336160dd2c20cef1c94cd2db",
+    "scripts/tutorial/tutorial_menu.gd": "854f3f2e981c710fcb9fc5119f612935225f1a26f48b47ad20db7a1d4ecb6e99",
+    "scripts/tutorial/tutorial_overlay.gd": "ac467980cf5da6f0084f23e4dc742d282c859396f0c9421af515f8e9104bf2f4",
+    "scripts/tutorial/tutorial_progress.gd": "3630fe82e1197d95671acd5647cc0f56f3706c2f80319988ce9a0677b60720c8",
+    "scripts/ui/lobby_diorama.gd": "49c72a184f4b5b24a917e0f4c1720d265df9f977dae9ef4ea3393dd8643b504f",
+    "scripts/ui/lobby_outpost.gd": "9d08a10d04b717f9256d65d0ea45ec770b747f68b679958824f090168455d5d9",
+    "scripts/ui/menu_entrance.gd": "5962df4a8882be33dcc4e0d8a839cd4c72be811887961c0576fe8ccf5fc66e79",
+    "scripts/ui/ui_feedback.gd": "093f31eeeee3bce3104cffc2826479a80ad6ee0364b799e6f80eeac03ea02397",
+    "scripts/ui/ui_motion.gd": "1d4ea1981e26406f0681ecb678b1ea6a15aa6be5a2c9c5044c2193097135d7b5",
+    "scripts/ui/ui_transition.gd": "28be3dc813d95a59d87a0fd61fa3f8f0cd96563ed776fdb43b4e092629dab41e",
+    "scripts/user_data_migration.gd": "63e09d75c32f18e89c3f31eaa57098900973ff4c74b96e2ac636ef0f71e0148e",
+    "tests/block_war_ai_damage_benchmark.gd": "53a6b1ab2f9c2a522e0c0cb5000ed93eb339405b9397538d7af984d4df35e844",
+    "tests/block_war_singleplayer_profile.gd": "85a2ba20360b94bfab383b1c024c7b0a76094d203df0555e3eb855ceaf2d7f8e",
+    "tools/profile_block_war_singleplayer.py": "09c8eda7381aba6434f58017992dfd8b7fc5d898a9b1db99ecef76cd68afec89"
+  },
+  "source_unchanged": true,
+  "raw_receipt": ".local/singleplayer-profile-complete/profile.json",
+  "regressions": [
+    {
+      "script": "res://tests/block_war_tower_test.gd",
+      "summary": "BLOCK_WAR_TOWER checks=131 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_tower_test"
+    },
+    {
+      "script": "res://tests/block_war_bear_test.gd",
+      "summary": "Bear checks: 172, failures: 0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_bear_test"
+    },
+    {
+      "script": "res://tests/block_war_frog_test.gd",
+      "summary": "FROG checks=109 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_frog_test"
+    },
+    {
+      "script": "res://tests/block_war_frog_persistence_test.gd",
+      "summary": "FROG_PERSISTENCE checks=65 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_frog_persistence_test"
+    },
+    {
+      "script": "res://tests/block_war_pig_marches_test.gd",
+      "summary": "BLOCK_WAR_PIG_MARCHES checks=105 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_pig_marches_test"
+    },
+    {
+      "script": "res://tests/block_war_surface_runtime_test.gd",
+      "summary": "BLOCK_WAR_SURFACE_RUNTIME checks=203 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_surface_runtime_test"
+    },
+    {
+      "script": "res://tests/block_war_replication_test.gd",
+      "summary": "REPLICATION checks=126 failures=0 reliable_bytes=15199 resyncs=1",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_replication_test"
+    },
+    {
+      "script": "res://tests/block_war_zero_step_field_test.gd",
+      "summary": "ZERO_STEP_CHECKS checks=271488 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_zero_step_field_test"
+    },
+    {
+      "script": "res://tests/block_war_ai_damage_benchmark.gd",
+      "summary": "AI_DAMAGE_CHECKS checks=5412 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_ai_damage_benchmark"
+    },
+    {
+      "script": "res://tests/block_war_ai_skills_test.gd",
+      "summary": "BLOCK_WAR_AI_SKILLS checks=258 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_ai_skills_test"
+    },
+    {
+      "script": "res://tests/block_war_pig_ai_test.gd",
+      "summary": "PIG_AI 1141 checks; 0 failures",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-release-block_war_pig_ai_test"
+    },
+    {
+      "script": "res://tests/block_war_ai_information_test.gd",
+      "summary": "AI_INFORMATION 174 checks; 0 failures",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-block_war_ai_information_test"
+    },
+    {
+      "script": "res://tests/block_war_ai_test.gd",
+      "summary": "BLOCK_WAR_AI checks=44 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-block_war_ai_test"
+    },
+    {
+      "script": "res://tests/block_war_ai_energy_policy_test.gd",
+      "summary": "AI_ENERGY_POLICY 67 checks; 0 failures",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-block_war_ai_energy_policy_test"
+    },
+    {
+      "script": "res://tests/block_war_morale_ai_test.gd",
+      "summary": "BLOCK_WAR_MORALE_AI 150 checks; 0 failures",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-block_war_morale_ai_test"
+    },
+    {
+      "script": "res://tests/block_war_rule_boundaries_test.gd",
+      "summary": "RULE_BOUNDARIES checks=64 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-final-rule-boundaries"
+    },
+    {
+      "script": "res://tests/block_war_future_motion_test.gd",
+      "summary": "FUTURE_MOTION checks=185 failures=0",
+      "passed": true,
+      "raw_directory": ".local/multiplayer-candidates/singleplayer-final-future-motion"
+    },
+    {
+      "script": "res://tests/block_war_fox_test.gd",
+      "summary": "FOX_TEST checks=291 failures=0",
+      "engine": "4.6.3 stable, Vulkan Forward+",
+      "passed": true,
+      "verification": "Real MultiMesh resource transform readback; private desktop runner exited successfully",
+      "raw_log": "BlockWarReview_d88213d87c464653b52814a957994822.log"
+    }
+  ],
+  "hardware": {
+    "cpu": "Intel Core i7-14700K",
+    "native_fox_gpu": "NVIDIA GeForce RTX 3080 Ti",
+    "note": "GPU used only for native resource assertions; integrated timings are headless"
+  },
+  "process_cleanup": {
+    "verified_at": "2026-09-30T19:39:27.5324641+09:00",
+    "query": "Get-CimInstance Win32_Process: Godot names, then --headless/--check-only/test/profile command lines",
+    "all_godot_count": 0,
+    "test_godot_count": 0,
+    "test_processes": [],
+    "normal_editors_stopped": 0
+  }
+}
