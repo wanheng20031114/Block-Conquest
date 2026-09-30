@@ -21,7 +21,6 @@ const SCREEN_MARGIN := 20.0
 @onready var instruction: PanelContainer = %Instruction
 @onready var instruction_title: Label = %InstructionTitle
 @onready var instruction_body: Label = %InstructionBody
-@onready var instruction_eyebrow: Label = %InstructionEyebrow
 @onready var pause_note: Label = %PauseNote
 @onready var continue_button: Button = %Continue
 @onready var next_button: Button = %Next
@@ -30,6 +29,7 @@ const SCREEN_MARGIN := 20.0
 @onready var hint: PanelContainer = %Hint
 @onready var hint_text: Label = %HintText
 @onready var hint_timer: Timer = $HintTimer
+@onready var annotations: Control = $UI/Annotations
 
 var _spotlights: Array[Rect2] = []
 var _completion := false
@@ -67,23 +67,25 @@ func set_objective(chapter: String, title: String, progress: String) -> void:
 	_queue_layout()
 
 
-func show_instruction(title: String, body: String, button_text: String = "开始练习") -> void:
+func show_instruction(title: String, body: String, button_text: String = "继续", direct_action: bool = false) -> void:
 	_completion = false
-	instruction_eyebrow.text = "松鼠教官 · 一步一步来"
 	instruction_title.text = title
 	instruction_body.text = body
 	continue_button.text = button_text
-	continue_button.show()
+	continue_button.visible = not direct_action
 	completion_actions.hide()
 	%Replay.disabled = true
 	%Retry.disabled = true
-	pause_note.text = "战场时间已暂停，可以慢慢看。"
+	pause_note.text = "已暂停 · 可直接操作" if direct_action else "已暂停"
 	instruction.show()
 	dimmer.show()
 	hint.hide()
 	_queue_layout()
 	UIMotion.reveal_menu(instruction, Vector2.ZERO)
-	continue_button.grab_focus.call_deferred()
+	if not direct_action:
+		continue_button.grab_focus.call_deferred()
+	else:
+		continue_button.release_focus()
 
 
 func dismiss_instruction() -> void:
@@ -93,6 +95,16 @@ func dismiss_instruction() -> void:
 	%Retry.disabled = false
 	continue_button.release_focus()
 	next_button.release_focus()
+	set_interaction_regions([])
+
+
+func set_interaction_regions(rects: Array[Rect2]) -> void:
+	dimmer.interaction_regions.assign(rects)
+
+
+func set_annotations(items: Array[Dictionary]) -> void:
+	if annotations.set_annotations(items):
+		_queue_layout()
 
 
 func set_spotlights(rects: Array[Rect2]) -> void:
@@ -120,7 +132,8 @@ func show_completion(title: String, body: String, has_next: bool) -> void:
 	_completion = true
 	clear_gesture()
 	set_spotlights([])
-	instruction_eyebrow.text = "练习完成 · 做得很好"
+	set_annotations([])
+	set_interaction_regions([])
 	instruction_title.text = title
 	instruction_body.text = body
 	continue_button.hide()
@@ -128,7 +141,7 @@ func show_completion(title: String, body: String, has_next: bool) -> void:
 	%Replay.disabled = true
 	%Retry.disabled = true
 	next_button.visible = has_next
-	pause_note.text = "你可以再练一次，也可以继续学习。"
+	pause_note.text = "本课完成"
 	instruction.show()
 	dimmer.show()
 	hint.hide()
@@ -182,13 +195,18 @@ func _layout() -> void:
 	hint.position = objective.position + Vector2(0.0, objective.size.y + 10.0)
 	hint.size.x = objective.size.x
 	hint.size.y = hint.get_combined_minimum_size().y
-	instruction.size.x = minf(506.0 if compact else 566.0, viewport_size.x - 48.0)
+	instruction.size.x = minf(440.0 if compact else 500.0, viewport_size.x - 48.0)
 	instruction.size.y = instruction.get_combined_minimum_size().y
 	instruction.pivot_offset = instruction.size * 0.5
 	if _completion:
 		instruction.position = (viewport_size - instruction.size) * 0.5
 	else:
 		instruction.position = _instruction_position(viewport_size)
+	var occupied: Array[Rect2] = [objective.get_rect()]
+	if instruction.visible: occupied.append(instruction.get_rect().grow(10.0))
+	if hint.visible: occupied.append(hint.get_rect())
+	if gesture.visible: occupied.append_array(gesture.annotation_exclusion_rects())
+	annotations.layout_annotations(viewport_size, occupied)
 	_update_spotlights()
 
 
@@ -264,13 +282,11 @@ func _configure_density(profile: int) -> void:
 	paper.content_margin_bottom = 16.0 if small else (18.0 if compact else 24.0)
 	column.add_theme_constant_override("separation", 10 if small else (12 if compact else 16))
 	portrait.visible = not small
-	portrait.custom_minimum_size = Vector2.ONE * (40.0 if compact else 56.0)
-	instruction_eyebrow.visible = not small
-	instruction_eyebrow.add_theme_font_size_override("font_size", 14 if compact else 16)
+	portrait.custom_minimum_size = Vector2.ONE * (32.0 if compact else 36.0)
 	pause_note.add_theme_font_size_override("font_size", 13 if small else (14 if compact else 15))
-	instruction_title.add_theme_font_size_override("font_size", 24 if small else (27 if compact else 32))
-	instruction_body.add_theme_font_size_override("font_size", 17 if small else (18 if compact else 21))
-	instruction_body.add_theme_constant_override("line_spacing", 3 if small else (4 if compact else 7))
+	instruction_title.add_theme_font_size_override("font_size", 23 if small else (25 if compact else 28))
+	instruction_body.add_theme_font_size_override("font_size", 17 if small else (18 if compact else 20))
+	instruction_body.add_theme_constant_override("line_spacing", 3 if compact else 4)
 	continue_button.custom_minimum_size.y = 42.0 if small else (46.0 if compact else 50.0)
 	continue_button.add_theme_font_size_override("font_size", 19 if small else (20 if compact else 22))
 	objective_title.add_theme_font_size_override("font_size", 20 if small else (22 if compact else 25))

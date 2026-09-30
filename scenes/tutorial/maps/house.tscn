@@ -52,6 +52,7 @@ definition = SubResource("MapDefinition")
 water_paths = Array[NodePath]([])
 
 [node name="Ground" type="MeshInstance3D" parent="."]
+layers = 524289
 mesh = SubResource("GroundMesh")
 material_override = SubResource("Meadow")
 

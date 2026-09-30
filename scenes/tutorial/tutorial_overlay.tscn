@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/tutorial/tutorial_overlay.gd" id="script"]
 [ext_resource type="Script" path="res://scripts/tutorial/tutorial_gesture.gd" id="gesture"]
+[ext_resource type="Script" path="res://scripts/tutorial/tutorial_dimmer.gd" id="dimmer"]
+[ext_resource type="PackedScene" path="res://scenes/tutorial/tutorial_annotations.tscn" id="annotations"]
 [ext_resource type="Shader" path="res://assets/ui/tutorial/spotlight.gdshader" id="spotlight"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/commanders/squirrel.png" id="portrait"]
@@ -164,6 +166,10 @@ grow_vertical = 2
 mouse_filter = 0
 mouse_force_pass_scroll_events = false
 color = Color(1, 1, 1, 1)
+script = ExtResource("dimmer")
+
+[node name="Annotations" parent="UI" instance=ExtResource("annotations")]
+layout_mode = 1
 
 [node name="Gesture" type="Control" parent="UI"]
 unique_name_in_owner = true
@@ -362,20 +368,12 @@ size_flags_horizontal = 3
 alignment = 1
 theme_override_constants/separation = 4
 
-[node name="InstructionEyebrow" type="Label" parent="UI/Instruction/Column/Guide/Words"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.39, 0.47, 0.30, 1)
-theme_override_font_sizes/font_size = 16
-text = "松鼠教官 · 一步一步来"
-autowrap_mode = 3
-
 [node name="PauseNote" type="Label" parent="UI/Instruction/Column/Guide/Words"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.50, 0.49, 0.36, 1)
 theme_override_font_sizes/font_size = 15
-text = "战场时间已暂停，可以慢慢看。"
+text = "已暂停"
 autowrap_mode = 3
 
 [node name="InstructionTitle" type="Label" parent="UI/Instruction/Column"]
@@ -401,7 +399,7 @@ custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MenuPrimary"
-text = "开始练习"
+text = "继续"
 
 [node name="CompletionActions" type="HBoxContainer" parent="UI/Instruction/Column"]
 unique_name_in_owner = true

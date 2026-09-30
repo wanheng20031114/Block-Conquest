@@ -76,6 +76,7 @@ func _run() -> void:
 		await physics_frame
 		for frame: int in 8: await process_frame
 		check(game.simulation_paused and not game.ai_enabled and game.network_match == null, id + " opens paused and offline")
+		check(game.map.get_node("Ground").layers & (1 << 19) != 0, id + " ground receives the real tower range decal")
 		var time_before: float = game.elapsed
 		var population_before: float = game.by_id[0].population
 		var energy_before: float = game.energy
@@ -86,13 +87,19 @@ func _run() -> void:
 		while not game.lesson_complete and completed_steps < 12:
 			var index: int = game.phase_index
 			var action: String = game.phase.action
-			click(game.tutor.continue_button)
-			await process_frame
+			var direct: bool = game._is_direct_action()
+			await capture(id + "_step_%02d" % index)
+			if direct:
+				check(game.simulation_paused and not game.tutor.continue_button.visible, id + "/" + action + " is actionable without a start button")
+			else:
+				click(game.tutor.continue_button)
+				await process_frame
 			if action == "read":
 				check(game.phase_index > index or game.lesson_complete, id + " read advances")
 				completed_steps += 1
 				continue
-			check(game.practicing and not game.simulation_paused, id + " practice accepts input")
+			if not direct:
+				check(game.practicing and not game.simulation_paused, id + " observation starts from its control")
 			var rejected: Dictionary = game.submit_player_command({"type": "convert", "building": 0, "kind": 2})
 			check(not rejected.accepted, id + " unrelated command cannot disrupt lesson")
 			match action:
@@ -127,6 +134,9 @@ func _run() -> void:
 					drag(from, to)
 					check(game.accepted_action, id + " real skill drag accepted")
 					await capture(id + "_cast")
+			if direct and action not in ["zoom", "pan"]:
+				check(game.practicing and not game.simulation_paused and not game.tutor.is_instruction_visible(), id + "/" + action + " starts practice with the actual operation")
+				check(game.tutor.annotations._items.is_empty() and not game.tutor.gesture.visible, id + "/" + action + " clears teaching marks after the actual operation")
 			var ticks := 0
 			while game.phase_index == index and not game.lesson_complete and ticks < 500:
 				game._process(0.1)

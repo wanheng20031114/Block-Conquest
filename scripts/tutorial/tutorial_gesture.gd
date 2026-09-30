@@ -55,6 +55,26 @@ func gesture_bounds() -> Rect2:
 	return bounds.intersection(Rect2(Vector2.ZERO, size))
 
 
+func annotation_exclusion_rects() -> Array[Rect2]:
+	# Labels need space beside the demonstrated controls, not outside the
+	# bounding box of the entire drag. Reserve the stationary reading moments
+	# and opening approach; these do not change as AnimationPlayer advances.
+	var result: Array[Rect2] = []
+	for at: Vector2 in [_from, _from + Vector2(-26.0, 26.0), _to]:
+		result.append(Rect2(at - Vector2(20.0, 20.0), Vector2(48.0, 58.0)))
+		result.append(Rect2(_legend_position(at), Vector2(252.0, 58.0)))
+	return result
+
+
+func _legend_position(at: Vector2) -> Vector2:
+	var icon_pos := at + Vector2(30.0, 20.0)
+	if icon_pos.x + 252.0 > size.x:
+		icon_pos.x = at.x - 254.0
+	if icon_pos.y + 64.0 > size.y:
+		icon_pos.y = at.y - 72.0
+	return icon_pos.clamp(Vector2(12.0, 12.0), (size - Vector2(254.0, 58.0)).max(Vector2(12.0, 12.0)))
+
+
 func _process(_delta: float) -> void:
 	if visible:
 		_update_diagram()
@@ -84,12 +104,7 @@ func _update_diagram() -> void:
 	cursor.position = _current
 	cursor.scale = Vector2.ONE * (0.90 if _pressed else 1.0)
 	cursor.modulate.a = _alpha
-	var icon_pos := _current + Vector2(30.0, 20.0)
-	if icon_pos.x + 252.0 > size.x:
-		icon_pos.x = _current.x - 254.0
-	if icon_pos.y + 64.0 > size.y:
-		icon_pos.y = _current.y - 72.0
-	icon_pos = icon_pos.clamp(Vector2(12.0, 12.0), (size - Vector2(254.0, 58.0)).max(Vector2(12.0, 12.0)))
+	var icon_pos := _legend_position(_current)
 	mouse.position = icon_pos
 	mouse.modulate.a = _alpha
 	left_key.modulate = Color(1.0, 0.75, 0.30, 1.0) if _pressed and _kind != "pan" else Color(1.0, 1.0, 1.0, 0.28)

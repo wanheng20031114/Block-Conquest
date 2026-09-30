@@ -182,15 +182,17 @@ func _run() -> void:
 	while not game.lesson_complete and steps < 8:
 		var phase_index: int = game.phase_index
 		var action: String = game.phase.action
-		click(game.tutor.continue_button)
-		await process_frame
 		if action == "capture":
+			check(game.simulation_paused and game.tutor.is_instruction_visible() and not game.tutor.continue_button.visible, "capture explanation accepts a direct gesture without a start button")
 			drag(game.camera.unproject_position(game.by_id[0].global_position + Vector3.UP * 1.5), game.camera.unproject_position(game.by_id[1].global_position + Vector3.UP * 1.5))
-			check(game.accepted_action, "native building drag issues the capture command")
+			check(game.accepted_action and game.practicing and not game.simulation_paused and not game.tutor.is_instruction_visible(), "native building drag starts capture and dismisses its explanation")
 			for tick: int in 400:
 				if game.phase_index != phase_index: break
 				game._process(0.1)
 				await process_frame
+		else:
+			click(game.tutor.continue_button)
+			await process_frame
 		check(game.phase_index > phase_index or game.lesson_complete, "first lesson advances from " + action)
 		if game.phase_index == phase_index and not game.lesson_complete: break
 		steps += 1

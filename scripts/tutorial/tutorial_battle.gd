@@ -2,6 +2,7 @@ extends "res://scripts/block_war/block_war.gd"
 ## A guided course around the real battle rules, isolated from match selection.
 const LESSONS := preload("res://scripts/tutorial/tutorial_catalog.gd")
 const PROGRESS := preload("res://scripts/tutorial/tutorial_progress.gd")
+const DIRECT_ACTIONS := ["capture", "dispatch", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit", "ratio", "zoom", "pan"]
 var lesson_id := "basics"
 var progress_path := PROGRESS.SAVE_PATH
 var lesson_steps: Array[Dictionary] = []
@@ -85,6 +86,11 @@ func _process(delta: float) -> void:
 	_aiming_hold = tutorial_ready and practicing and not accepted_action and (phase.action in ["cast_building", "cast_ground", "fire_hit"] or (lesson_id == "morale" and phase.action == "capture"))
 	super._process(delta)
 	if not tutorial_ready or _closing: return
+	# Camera practice is judged by the rendered view, not by an attempted wheel
+	# tick at a map boundary. The battle remains frozen until it actually moves.
+	if simulation_paused and _can_direct_interact() and phase.action in ["zoom", "pan"] and _objective_met():
+		accepted_action = true
+		_continue()
 	if practicing and not is_rule_paused() and not lesson_complete:
 		practice_seconds += delta
 		_observe_practice()
@@ -112,10 +118,13 @@ func _next_phase() -> void:
 	practice_seconds = 0.0
 	accepted_action = false
 	next_hint_at = 18.0
+	phase_start_energy = energy
+	phase_start_zoom = camera.size
+	phase_start_camera = camera_rig.position
 	select_building(by_id[0] if phase.focus in ["upgrade", "selection"] else null)
 	_set_teaching_pause(true)
 	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
-	tutor.show_instruction(phase.title, phase.body, "明白，继续" if phase.action == "read" else "开始练习")
+	tutor.show_instruction(phase.title, phase.body, "继续" if phase.action == "read" else "开始观察", _is_direct_action())
 	_update_guidance()
 
 func _queue_advance() -> void:
@@ -125,14 +134,10 @@ func _queue_advance() -> void:
 	_next_phase.call_deferred()
 
 func _continue() -> void:
-	if _closing or lesson_complete or advance_queued: return
+	if _closing or lesson_complete or advance_queued or _local_menu: return
 	if phase.action == "read":
 		_queue_advance()
 		return
-	if not practicing:
-		phase_start_energy = energy
-		phase_start_zoom = camera.size
-		phase_start_camera = camera_rig.position
 	practicing = true
 	tutor.dismiss_instruction()
 	_set_teaching_pause(false)
@@ -141,6 +146,7 @@ func _continue() -> void:
 		shield_previous_population = by_id[1].population
 		issue_order(by_id[2], by_id[1], 100, 1)
 	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
+	_update_guidance()
 
 func _replay() -> void:
 	if lesson_complete or _closing or advance_queued: return
@@ -150,45 +156,130 @@ func _replay() -> void:
 		camera.size = 45.0
 		camera_rig.zoom_target = camera.size
 		camera_rig.focus_at(Vector3(0, 0, 1), true)
-	tutor.show_instruction(phase.title, phase.body, "继续练习" if practicing else ("明白，继续" if phase.action == "read" else "开始练习"))
+	tutor.show_instruction(phase.title, phase.body, "继续" if phase.action == "read" else "继续观察", _is_direct_action() and not accepted_action)
+	_update_guidance()
+
+func _is_direct_action() -> bool:
+	return phase.get("action", "") in DIRECT_ACTIONS
+
+func _can_direct_interact() -> bool:
+	if not tutorial_ready or _closing or lesson_complete or advance_queued or _local_menu:
+		return false
+	if get_node("/root/Session/Settings").is_open(): return false
+	return (practicing and not simulation_paused) or (_is_direct_action() and not accepted_action)
+
+func _sync_teaching_input() -> void:
+	var direct := _can_direct_interact()
+	hud.set_process_unhandled_key_input(_local_menu or not simulation_paused or direct)
+	camera_rig.set_process(not _local_menu and (not simulation_paused or (direct and phase.action in ["zoom", "pan"])))
+	camera_rig.keyboard_pan = not simulation_paused or (direct and phase.action == "pan")
 
 func _set_teaching_pause(value: bool) -> void:
 	simulation_paused = value
-	camera_rig.set_process(not value and not _local_menu)
+	if value:
+		# A previous view gesture must not drift into the next camera objective.
+		camera_rig.destination = camera_rig.position
+		camera_rig.zoom_target = camera.size
 	_cancel_drag()
 	_cancel_skill_drag()
 	camera_rig.dragging = false
-	hud.set_process_unhandled_key_input(not value or _local_menu)
+	_sync_teaching_input()
 	sync_match_control_presentation()
 
 func set_paused(value: bool) -> void:
 	super.set_paused(value)
 	if not tutorial_ready: return
 	tutor.visible = not value
-	hud.set_process_unhandled_key_input(value or not simulation_paused)
-	camera_rig.set_process(not value and not simulation_paused)
+	_sync_teaching_input()
 
 func _input(event: InputEvent) -> void:
 	if not tutorial_ready: return
+	if get_node("/root/Session/Settings").is_open(): return
 	if simulation_paused and not _local_menu:
 		if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_ESCAPE or event.is_action_pressed("pause")):
 			set_paused(true)
 			get_viewport().set_input_as_handled()
+			return
+		if not _can_direct_interact(): return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and drag_source != null:
+		# Cancellation also works outside the spotlight; the dimmer would
+		# otherwise consume this before the normal unhandled-input callback.
+		audio.play_ui(&"war_cancel")
+		_cancel_drag()
+		update_hud()
+		get_viewport().set_input_as_handled()
 		return
+	# _input precedes GUI picking. A release over a tutorial card must never
+	# dispatch to a building behind it, even when the drag began in a cutout.
+	if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and _pointer_over_tutorial(event.position):
+		_cancel_drag()
+		_cancel_skill_drag()
+		update_hud()
 	super._input(event)
 
+func _pointer_over_tutorial(screen: Vector2) -> bool:
+	for panel: Control in [tutor.instruction, tutor.objective, tutor.hint]:
+		if panel.is_visible_in_tree() and panel.get_global_rect().has_point(screen): return true
+	return false
+
 func _unhandled_input(event: InputEvent) -> void:
-	if simulation_paused: return
+	if simulation_paused:
+		if not _can_direct_interact(): return
+		if not event is InputEventMouseButton or not event.pressed: return
+		match event.button_index:
+			MOUSE_BUTTON_LEFT:
+				if phase.action not in ["capture", "dispatch", "reinforce_tower", "upgrade"]: return
+			MOUSE_BUTTON_MIDDLE:
+				if phase.action != "pan": return
+			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
+				if phase.action != "zoom" and drag_source == null: return
+			MOUSE_BUTTON_RIGHT: pass
+			_: return
 	super._unhandled_input(event)
 
 func request_skill(index: int, from_keyboard: bool = false) -> void:
-	if not tutorial_ready or not practicing or simulation_paused or int(phase.get("skill", -1)) != index:
-		if tutorial_ready: tutor.show_hint("先完成左上角的目标；技能会在对应课程中逐个练习。")
+	if not _can_direct_interact() or int(phase.get("skill", -1)) != index:
 		return
+	# The native skill validator shares the simulation pause gate. Open it only
+	# for this synchronous preview request; no world frame can run in between.
+	var teaching_pause := simulation_paused
+	simulation_paused = false
 	super.request_skill(index, from_keyboard)
+	simulation_paused = teaching_pause
+
+func can_cast_skill(index: int, faction: int = -2) -> bool:
+	if not simulation_paused:
+		return super.can_cast_skill(index, faction)
+	var preview_faction := local_faction if faction == -2 else faction
+	if not _can_direct_interact() or preview_faction != local_faction or int(phase.get("skill", -1)) != index:
+		return false
+	# Ground previews query this read-only availability method while the lesson
+	# is frozen. Reuse native resource/cooldown rules without opening execution.
+	simulation_paused = false
+	var available := super.can_cast_skill(index, faction)
+	simulation_paused = true
+	return available
+
+func release_skill_drag(screen: Vector2) -> void:
+	if _pointer_over_tutorial(screen):
+		_cancel_skill_drag()
+		update_hud()
+		return
+	super.release_skill_drag(screen)
+
+func set_percentage(value: int) -> void:
+	if not tutorial_ready:
+		super.set_percentage(value)
+		return
+	if not _can_direct_interact(): return
+	if simulation_paused and phase.action != "ratio" and drag_source == null: return
+	super.set_percentage(value)
+	if phase.action == "ratio" and percentage == 25:
+		accepted_action = true
+		_continue()
 
 func submit_player_command(command: Dictionary) -> Dictionary:
-	if not practicing or simulation_paused or lesson_complete or _closing:
+	if not _can_direct_interact():
 		return {"accepted": false, "reason": "tutorial_paused"}
 	var kind := str(command.get("type", ""))
 	var allowed := false
@@ -205,11 +296,17 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 				var centre := _army_center(int(phase.army))
 				allowed = Vector2(aim.x, aim.z).distance_to(Vector2(centre.x, centre.z)) < skill_radius(int(phase.skill)) * 0.9
 	if not allowed:
-		tutor.show_hint("这一步请先完成：" + str(phase.goal) + "。跟随示范，再试一次。")
+		tutor.show_hint(str(phase.goal))
 		return {"accepted": false, "reason": "tutorial_objective"}
+	# Validate and commit through the same rules as ordinary battles. A failed
+	# attempt restores the lecture pause without spending time or advancing.
+	var teaching_pause := simulation_paused
+	simulation_paused = false
 	var result := super.submit_player_command(command)
+	simulation_paused = teaching_pause
 	if result.accepted:
 		accepted_action = true
+		if teaching_pause: _continue()
 		if phase.action == "reinforce_tower" and not wave_started:
 			wave_started = true
 			issue_order(by_id[2], by_id[1], 100, 1)
@@ -267,10 +364,10 @@ func _army_center(faction: int) -> Vector3:
 
 func _practice_hint() -> String:
 	if phase.action in ["shield_defense", "tower_defense", "fire_hit", "haste_arrival"] and marches.total_for(1 if lesson_id != "drum" else 0) == 0:
-		return "点「重练」即可立即重来，不必等待技能冷却。"
-	if phase.action == "upgrade": return "先点住宅，再点建筑旁的升级按钮。1 级升到 2 级需要 %d 秒；驻军不足时住宅会继续生产。" % WarBuilding.upgrade_duration(0, 1)
-	if phase.action in ["cast_ground", "fire_hit"]: return "把技能拖向动画指向的队伍；放错位置可右键取消。"
-	return "跟随动画完成左上角目标；点「再看讲解」可暂停复习。"
+		return "点「重练」重新开始。"
+	if phase.action == "upgrade": return "点击住宅旁的向上箭头。"
+	if phase.action in ["cast_ground", "fire_hit"]: return "将技能拖到标出的部队；右键取消。"
+	return str(phase.goal)
 
 func _world_rect(at: Vector3, radius: float = 3.8) -> Rect2:
 	var result := Rect2(camera.unproject_position(at), Vector2.ZERO)
@@ -283,33 +380,134 @@ func _world_rect(at: Vector3, radius: float = 3.8) -> Rect2:
 func _ui_rect(path: String) -> Rect2:
 	return (hud.get_node(path) as Control).get_global_rect().grow(8.0)
 
+func _ownership_label(building: WarBuilding) -> Dictionary:
+	return {"text": "中立" if building.faction < 0 else ("己方" if building.faction == local_faction else "敌方"),
+		"target": _mesh_rect(building.get_node("Visual/Flag")), "badge": true, "side": "right"}
+
+func _mesh_rect(mesh: MeshInstance3D) -> Rect2:
+	var bounds := mesh.get_aabb()
+	var result := Rect2(camera.unproject_position(mesh.to_global(bounds.position)), Vector2.ZERO)
+	for corner: int in 8:
+		result = result.expand(camera.unproject_position(mesh.to_global(bounds.get_endpoint(corner))))
+	return result.grow(3.0)
+
+func _army_rect(faction: int) -> Rect2:
+	var result := Rect2(camera.unproject_position(_army_center(faction)), Vector2.ZERO)
+	for unit: WarMarches.MarchUnit in marches._units:
+		if unit.order.faction == faction and unit.is_exposed():
+			result = result.expand(camera.unproject_position(unit.position))
+			result = result.expand(camera.unproject_position(unit.position + Vector3.UP * 1.5))
+	return result.grow(8.0)
+
+func _tower_range_rect(building: WarBuilding) -> Rect2:
+	var result := Rect2(camera.unproject_position(building.global_position), Vector2.ZERO)
+	for index: int in 64:
+		var angle := TAU * float(index) / 64.0
+		var edge := building.global_position + Vector3(cos(angle), 0, sin(angle)) * building.attack_range
+		result = result.expand(camera.unproject_position(edge))
+	return result.grow(14.0)
+
+func _population_rect(building: WarBuilding) -> Rect2:
+	var badge: MeshInstance3D = building.get_node("PopulationBadge")
+	var center := camera.unproject_position(badge.global_position)
+	var edge := camera.unproject_position(badge.global_position + camera.global_basis.x * 1.675 * badge.scale.x)
+	var half_size := Vector2.ONE * center.distance_to(edge)
+	return Rect2(center - half_size, half_size * 2.0).grow(4.0)
+
 func _update_guidance() -> void:
 	if phase.is_empty() or lesson_complete or _local_menu: return
 	var rectangles: Array[Rect2] = []
+	var labels: Array[Dictionary] = []
+	# Once the real action starts, leave its result unobstructed. Reviewing the
+	# explanation restores the same labels and demonstration while time freezes.
+	if not tutor.is_instruction_visible():
+		tutor.set_spotlights(rectangles)
+		tutor.set_annotations(labels)
+		tutor.set_interaction_regions(rectangles)
+		tutor.clear_gesture()
+		return
 	var focus := str(phase.focus)
 	if focus.begins_with("building:"):
-		rectangles.append(_world_rect(by_id[int(focus.get_slice(":", 1))].global_position))
+		var building: WarBuilding = by_id[int(focus.get_slice(":", 1))]
+		rectangles.append(_world_rect(building.global_position))
+		labels.append(_ownership_label(building))
+		if lesson_id in ["basics", "house", "recruit"] and building.is_population_visible():
+			labels.append({"text": "驻军", "target": _population_rect(building), "side": "above"})
+		else:
+			labels.append({"text": KIND_NAMES[building.kind], "target": rectangles[0], "side": "below"})
+		if lesson_id == "tower" and building.kind == 1:
+			rectangles.append(_tower_range_rect(building))
+			var edge := camera.unproject_position(building.global_position + Vector3.RIGHT * building.attack_range)
+			labels.append({"text": "射程", "target": Rect2(edge - Vector2.ONE * 4.0, Vector2.ONE * 8.0), "side": "right"})
 	elif focus.begins_with("army:"):
-		rectangles.append(_world_rect(_army_center(int(focus.get_slice(":", 1))), 4.8))
+		var army := _army_rect(int(focus.get_slice(":", 1)))
+		rectangles.append(army.grow(20.0))
+		labels.append({"text": "己方部队" if focus == "army:0" else "敌方部队", "target": army})
 	elif focus.begins_with("skill:"):
 		rectangles.append(_ui_rect("UI/Skills/Row/Skill" + focus.get_slice(":", 1)))
 		rectangles.append(_world_rect(_aim_position(), 4.4))
+		labels.append({"text": SKILL_RULES.NAMES[int(phase.skill)], "target": rectangles[0], "side": "left"})
+		if phase.has("army"):
+			var army := _army_rect(int(phase.army))
+			rectangles[1] = army.grow(20.0)
+			labels.append({"text": "己方部队" if int(phase.army) == 0 else "敌方部队", "target": army})
+		else:
+			labels.append(_ownership_label(by_id[int(phase.target)]))
 	else:
 		match focus:
 			"buildings":
 				rectangles.append(_world_rect(by_id[0].global_position))
 				rectangles.append(_world_rect(by_id[1].global_position))
-			"top": rectangles.append(_ui_rect("UI/Top"))
-			"morale": rectangles.append(_ui_rect("UI/Top/Balance"))
-			"skills": rectangles.append(_ui_rect("UI/Skills"))
-			"ratios": rectangles.append(_ui_rect("UI/Percentages"))
+				labels.append(_ownership_label(by_id[0]))
+				labels.append(_ownership_label(by_id[1]))
+				if lesson_id == "basics" and phase.action == "read":
+					labels.append({"text": "驻军", "target": _population_rect(by_id[0]), "side": "above"})
+			"top":
+				rectangles.append(_ui_rect("UI/Top/Balance/Segments"))
+				rectangles.append(_ui_rect("UI/Top/Time"))
+				labels.append({"text": "兵力占比", "target": rectangles[0], "side": "below"})
+				labels.append({"text": "己方兵力", "target": _ui_rect("UI/Top/PlayerTotal"), "side": "left"})
+				labels.append({"text": "敌方兵力", "target": _ui_rect("UI/Top/EnemyTotal"), "side": "right"})
+				labels.append({"text": "时间", "target": rectangles[1], "side": "below"})
+			"morale":
+				rectangles.append(_ui_rect("UI/Top/Balance/Stars/Faction0"))
+				rectangles.append(_ui_rect("UI/Top/Balance/Stars/Faction1"))
+				labels.append({"text": "己方士气", "target": rectangles[0], "side": "below"})
+				labels.append({"text": "敌方士气", "target": rectangles[1], "side": "below"})
+			"skills":
+				rectangles.append(_ui_rect("UI/Skills/Row"))
+				rectangles.append(_ui_rect("UI/Skills/EnergyBar"))
+				labels.append({"text": "技能", "target": rectangles[0], "side": "left"})
+				labels.append({"text": "技力", "target": rectangles[1], "side": "right"})
+			"ratios":
+				rectangles.append(_ui_rect("UI/Percentages"))
+				labels.append({"text": "出兵比例", "target": rectangles[0], "side": "above"})
 			"selection", "upgrade":
 				rectangles.append(_world_rect(by_id[0].global_position))
-				rectangles.append(_ui_rect("UI/Selection/BuildingActions"))
+				rectangles.append(_ui_rect("UI/Selection/BuildingActions/Upgrade"))
+				labels.append(_ownership_label(by_id[0]))
+				labels.append({"text": "升级", "target": rectangles[1], "side": "above"})
+				if focus == "selection":
+					var conversion := _ui_rect("UI/Selection/BuildingActions/ConvertTower").merge(_ui_rect("UI/Selection/BuildingActions/ConvertForge"))
+					rectangles.append(conversion)
+					labels.append({"text": "改建", "target": conversion, "side": "right"})
 			"energy":
 				rectangles.append(_world_rect(by_id[1].global_position))
-				rectangles.append(_ui_rect("UI/Skills"))
+				rectangles.append(_ui_rect("UI/Skills/EnergyBar"))
+				labels.append({"text": "能量塔", "target": rectangles[0], "side": "above"})
+				labels.append(_ownership_label(by_id[1]))
+				labels.append({"text": "技力", "target": rectangles[1], "side": "right"})
 	tutor.set_spotlights(rectangles)
+	tutor.set_annotations(labels)
+	var regions: Array[Rect2] = []
+	if simulation_paused and _can_direct_interact():
+		match phase.action:
+			"capture", "dispatch", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit": regions.assign(rectangles)
+			"ratio": regions.append(_ui_rect("UI/Percentages/Stack/P25"))
+			"zoom", "pan":
+				var view := get_viewport().get_visible_rect().size
+				regions.append(Rect2(Vector2(160, 170), view - Vector2(320, 320)))
+	tutor.set_interaction_regions(regions)
 	match phase.action:
 		"capture", "dispatch", "reinforce_tower":
 			tutor.set_gesture(camera.unproject_position(by_id[int(phase.source)].global_position + Vector3.UP * 1.6), camera.unproject_position(by_id[int(phase.target)].global_position + Vector3.UP * 1.6), "drag")
@@ -340,8 +538,8 @@ func _complete_lesson() -> void:
 	tutor.clear_gesture()
 	var saved := PROGRESS.mark_completed(lesson_id, progress_path)
 	var has_next := LESSONS.IDS.find(lesson_id) + 1 < LESSONS.IDS.size()
-	var body := LESSONS.summary(lesson_id) + ("\n这一关可以随时重玩，下一关也已经准备好了。" if has_next else "\n基础练习已经完成。回到主菜单，试试自己的第一场单人对局吧。")
-	if saved != OK: body += "\n本次通关已完成，但进度暂时无法写入磁盘。"
+	var body := LESSONS.summary(lesson_id)
+	if saved != OK: body += "\n进度保存失败，可重试本课。"
 	tutor.set_objective(LESSONS.title(lesson_id), "本课目标已完成", "%d / %d" % [lesson_steps.size(), lesson_steps.size()])
 	tutor.show_completion("完成 · " + LESSONS.title(lesson_id), body, has_next)
 
