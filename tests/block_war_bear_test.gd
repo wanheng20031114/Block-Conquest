@@ -94,7 +94,7 @@ func _run() -> void:
 			game.upgrade_selected()
 			check(home.construction_cost == cost and home.is_constructing, "player records actual paid cost")
 			check(game.cast_skill(0, home), "Q completes paid upgrade %d/%d" % [kind, level])
-			near(home.population, 100.0 - cost * 0.5, "half refund from actual cost")
+			near(home.population, 100.0 - cost + floorf(cost * 0.5), "half refund from actual cost rounds down to whole troops")
 			check(home.level == level + 1 and not home.is_constructing and home.construction_cost == 0, "level changes immediately and consumes receipt")
 			refill()
 			check(not game.cast_skill(0, home), "completed task cannot refund twice")

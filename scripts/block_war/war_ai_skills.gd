@@ -507,8 +507,9 @@ func _bear_turn(game: Node3D) -> void:
 				if score > best.score:
 					best = {"index": 2, "score": score, "target": building, "at": Vector3.ZERO}
 		if game.can_cast_skill(0, faction) and game._valid_skill_target(0, building, faction):
-			var score: float = building.construction_cost * 0.5 + building.construction_remaining * 2.0
-			if danger < building.population + building.construction_cost * 0.5 and score > best.score:
+			var refund: int = building.construction_cost / 2
+			var score: float = refund + building.construction_remaining * 2.0
+			if danger < building.population + refund and score > best.score:
 				best = {"index": 0, "score": score, "target": building, "at": Vector3.ZERO}
 	if game.can_cast_skill(1, faction):
 		for cell: Vector2i in cells:

@@ -81,7 +81,7 @@ func _run() -> void:
 			continue
 		check(not game.hud.get_node("%ConvertEnergy").visible, "residence and tower expose only the two original conversion choices")
 		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
-		var expected_costs := [10, 20, 30] if kind == 0 else [30, 60, 90]
+		var expected_costs := [5, 20, 30] if kind == 0 else [30, 60, 90]
 		var expected_max := 4
 		var remaining: float = building.population
 		for tier: int in expected_costs.size():
@@ -104,13 +104,14 @@ func _run() -> void:
 		check(game.marches.total_for(0) == 0 and game.selected == building, "kind %d upgrade buttons never dispatch or select the map behind them" % kind)
 	# Every residential upgrade rejects even a one-person shortfall.
 	for tier: int in [1, 2, 3]:
+		var expected_cost: int = [5, 20, 30][tier - 1]
 		home.level = tier
-		home.population = tier * 10 - 1
+		home.population = expected_cost - 1
 		home.refresh_visual()
 		await select_on_map(home)
-		check(upgrade.disabled and cost.text == str(tier * 10) and upgrade.tooltip_text.contains("还差 1"), "house level %d explains its actual shortfall" % tier)
+		check(upgrade.disabled and cost.text == str(expected_cost) and upgrade.tooltip_text.contains("还差 1"), "house level %d explains its actual shortfall" % tier)
 		await click(center(upgrade))
-		check(home.level == tier and home.population == tier * 10 - 1, "insufficient house level %d click changes nothing" % tier)
+		check(home.level == tier and home.population == expected_cost - 1, "insufficient house level %d click changes nothing" % tier)
 	# Ownership is communicated, and neither hostile nor neutral buildings upgrade.
 	for hostile: Node3D in [game.by_id[1], game.by_id[2]]:
 		hostile.level = 1

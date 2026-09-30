@@ -90,7 +90,7 @@ func _run() -> void:
 			check(home.find_children("*", "", true, false).size() == original_nodes, "construction reuses authored scene nodes")
 	# Start two builds four seconds apart, then cross both completion boundaries.
 	for small_steps: bool in [false, true]:
-		fixture(0, 1, 10.0)
+		fixture(0, 1, 5.0)
 		game.upgrade_selected()
 		game.simulate(4.0)
 		var second: WarBuilding = game.by_id[3]
@@ -109,7 +109,7 @@ func _run() -> void:
 		near(second.population, 15.3, "second home integrates its own later completion boundary")
 	# Q spans the completion boundary; both large and small steps have the same sum.
 	for small_steps: bool in [false, true]:
-		fixture(0, 1, 10.0)
+		fixture(0, 1, 5.0)
 		game.upgrade_selected()
 		game.simulate(3.0)
 		check(game.cast_skill(0, home), "recruitment can start during construction")
@@ -122,7 +122,7 @@ func _run() -> void:
 	fixture(0, 1, 40.0)
 	game.upgrade_selected()
 	game.simulate(12.0)
-	near(home.population, 38.75, "old production cap stays stopped until the five-second completion opens room")
+	near(home.population, 43.75, "old production cap stays stopped until the five-second completion opens room")
 	fixture(0, 2, 20.0)
 	game.upgrade_selected()
 	game.simulate(5.0)

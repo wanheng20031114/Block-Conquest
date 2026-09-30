@@ -103,15 +103,16 @@ func _run() -> void:
 	game.select_building(home)
 	for tier: int in [1, 2, 3]:
 		var duration := 5.0 if tier == 1 else 10.0
+		var cost: int = [5, 20, 30][tier - 1]
 		home.level = tier
-		home.population = tier * 10.0 - 0.01
+		home.population = cost - 0.01
 		game.upgrade_selected()
 		check(home.level == tier, "fractional purchase shortfall cannot upgrade")
-		near(home.population, tier * 10.0 - 0.01, "rejected upgrade spends nothing")
-		home.population = tier * 10.0
+		near(home.population, cost - 0.01, "rejected upgrade spends nothing")
+		home.population = cost
 		game.upgrade_selected()
 		check(home.level == tier and home.is_constructing, "exact cost starts construction at the current level")
-		near(home.population, 0.0, "upgrade deducts exactly ten/twenty/thirty")
+		near(home.population, 0.0, "upgrade deducts exactly five/twenty/thirty")
 		near(home.capacity, limits[tier - 1], "construction retains the current production limit")
 		check(home.construction_remaining == duration, "the first residence upgrade takes five seconds and later upgrades take ten")
 		game.simulate(duration)
@@ -135,7 +136,7 @@ func _run() -> void:
 	game.simulate(1.0)
 	game.upgrade_selected()
 	game.simulate(1.0)
-	near(home.population, 10.0, "active Q retains the 1/s natural rate during construction")
+	near(home.population, 15.0, "active Q retains the 1/s natural rate during construction")
 	game._cancel_recruitment()
 	game.simulate(4.0)
 	check(home.level == 2 and not home.is_constructing, "construction completes after Q is cancelled")
@@ -180,7 +181,7 @@ func _run() -> void:
 	front.faction = 1
 	front.population = 200.0
 	game._ai_turn()
-	check(reserve.is_constructing and reserve.population == 20.0, "AI invests ten soldiers from a full level-one residence")
+	check(reserve.is_constructing and reserve.population == 25.0, "AI invests five soldiers from a full level-one residence")
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_RESIDENCE checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)

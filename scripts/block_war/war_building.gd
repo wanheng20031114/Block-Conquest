@@ -24,6 +24,7 @@ var available_population: float:
 
 const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
+const HOUSE_UPGRADE_COSTS: Array[int] = [5, 20, 30]
 const CONSTRUCTION_DURATION := 10.0
 const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
 const SELECTION_REBOUND_DURATION := 0.38
@@ -53,7 +54,7 @@ var attack_range: float:
 	get: return 9.0 + level * 2.0
 var upgrade_cost: int:
 	get:
-		return level * (10 if kind == 0 else 30) if level < max_level else 0
+		return (HOUSE_UPGRADE_COSTS[level - 1] if kind == 0 else level * 30) if level < max_level else 0
 
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const FACTION_COLORS: Array[Color] = FACTIONS.COLORS

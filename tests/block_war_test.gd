@@ -121,17 +121,17 @@ func run() -> void:
 	game.select_building(home)
 	home.population = 100.0
 	game.upgrade_selected()
-	check(home.level == 1 and home.is_constructing and home.population == 90.0, "house upgrade pays once and starts ten seconds of construction")
-	game.simulate(10.0)
-	check(home.level == 2 and home.capacity == 50.0 and home.population == 90.0, "house upgrade spends ten and raises the production limit")
+	check(home.level == 1 and home.is_constructing and home.population == 95.0, "house upgrade pays once and starts five seconds of construction")
+	game.simulate(5.0)
+	check(home.level == 2 and home.capacity == 50.0 and home.population == 95.0, "house upgrade spends five and raises the production limit")
 	game.convert_selected(2)
 	game.simulate(10.0)
-	check(home.kind == 2 and home.level == 1 and home.population == 70.0, "convert costs twenty and resets building level after ten seconds")
+	check(home.kind == 2 and home.level == 1 and home.population == 75.0, "convert costs twenty and resets building level after ten seconds")
 	game.simulate(1.0)
-	check(home.population == 70.0, "forge does not automatically produce troops")
+	check(home.population == 75.0, "forge does not automatically produce troops")
 	game.convert_selected(0)
 	game.simulate(10.0)
-	check(home.kind == 0 and home.population == 50.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
+	check(home.kind == 0 and home.population == 55.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
 	game.camera_rig.focus_at(Vector3(999, 0, -999), true)
 	check(camera_view_inside_map(), "instant focus keeps every viewport corner over the rendered battlefield")
 	game.camera_rig.zoom_by(999)
@@ -153,7 +153,7 @@ func run() -> void:
 	game.ai_enabled = true
 	game.ai_clock = 0.0
 	game.simulate(0.05)
-	check(game.by_id[1].is_constructing and game.by_id[1].population == 50.0, "AI opens with a paid residence upgrade")
+	check(game.by_id[1].is_constructing and game.by_id[1].population == 55.0, "AI opens with a paid residence upgrade")
 	game.simulate(3.0)
 	check(game.marches.total_for(1) > 0 and game.by_id[1].population >= 20, "AI expands through normal dispatch while retaining a garrison")
 	game.ai_enabled = false
