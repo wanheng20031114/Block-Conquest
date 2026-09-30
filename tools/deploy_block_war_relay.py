@@ -337,7 +337,7 @@ def probe() -> None:
         client.close()
 
 
-def deploy(max_rooms: int) -> None:
+def deploy(max_rooms: int, *, before_activate=None) -> None:
     if not 1 <= max_rooms <= 64:
         raise ValueError("Room capacity must be 1..64")
     certificate()
@@ -390,6 +390,10 @@ def deploy(max_rooms: int) -> None:
                     if not remote(client, "sha256sum " + shlex.quote(path + ".uploading")).startswith(digest(data) + " "):
                         raise RuntimeError("Uploaded source checksum mismatch")
                     remote(client, "mv -T -- " + shlex.quote(path + ".uploading") + " " + shlex.quote(path))
+            # Refusal here leaves the running service untouched; after this
+            # point failures must roll back changes to the active configuration.
+            if before_activate is not None:
+                before_activate(client)
             changed = True
             upload(sftp, BASE + "/config/relay-private.key", KEY.read_bytes(), 0o600)
             upload(sftp, BASE + "/config/relay.crt", CERT.read_bytes())
