@@ -182,6 +182,7 @@ func _compare_games(actual: Node3D, expected: Node3D, label: String) -> void:
 		near(unit.spawn_delay, other.spawn_delay, prefix + " spawn")
 		near(unit.rush_remaining, other.rush_remaining, prefix + " rush")
 		near(unit.levitation_remaining, other.levitation_remaining, prefix + " levitation")
+		near(unit.slow_remaining, other.slow_remaining, prefix + " lingering slow")
 
 func _compare_authority(game: Node3D, label: String) -> void:
 	var reference := {}
@@ -190,6 +191,7 @@ func _compare_authority(game: Node3D, label: String) -> void:
 		var authority: WarMarches.MarchUnit = reference[unit.unit_id]
 		near(unit.distance, authority.distance, "%s agrees with authority distance for %d" % [label, unit.unit_id])
 		near(unit.gait, authority.gait, "%s agrees with authority gait for %d" % [label, unit.unit_id])
+		near(unit.slow_remaining, authority.slow_remaining, "%s agrees with authority lingering slow for %d" % [label, unit.unit_id])
 
 func _seed(at_time: float, count: int) -> void:
 	host.marches.clear()

@@ -1,8 +1,8 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 7
+const SCHEMA := 8
 const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "combat_remainders", "fires", "pig_ready", "pig_drops"]
-const UNIT_SIZE := 14
+const UNIT_SIZE := 15
 const COUNTER_SIZE := 5
 const MAX_ID := 2147483647
 const MAX_RECORDS := 65536
@@ -72,7 +72,7 @@ func capture(game: Node, tick: int) -> Dictionary:
 			unit.departure_sequence, now + unit.spawn_delay if unit.spawn_delay > 0.0 else 0.0,
 			now + unit.rush_remaining if unit.rush_remaining > 0.0 else 0.0,
 			now + unit.levitation_remaining if unit.levitation_remaining > 0.0 else 0.0, unit.cloaked, unit.weakened, unit.reserved,
-			unit.intercepted_by, now, unit.gait]
+			unit.intercepted_by, now, unit.gait, deadline(now, unit.slow_remaining)]
 	for key: String in _order_cache.keys():
 		if not state.orders.has(key):
 			_order_cache.erase(key)
@@ -196,11 +196,17 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 	if group == "units":
 		# This runs once per soldier per Host tick. Avoid allocating index arrays
 		# and iterating Variants for the fixed wire layout.
+		# A full five-second tail is continuously renewed while inside a field.
+		# Publish entry/exit/expiry, not a new reliable deadline every tick.
+		var old_refreshing := slow_is_refreshing(old)
+		var next_refreshing := slow_is_refreshing(next)
 		return old[0] != next[0] or old[2] != next[2] or old[3] != next[3] or old[4] != next[4] \
 			or old[8] != next[8] or old[9] != next[9] or old[10] != next[10] or old[11] != next[11] \
 			or absf(float(old[5]) - float(next[5])) > 0.00001 \
 			or absf(float(old[6]) - float(next[6])) > 0.00001 \
-			or absf(float(old[7]) - float(next[7])) > 0.00001
+			or absf(float(old[7]) - float(next[7])) > 0.00001 \
+			or old_refreshing != next_refreshing \
+			or (not next_refreshing and absf(float(old[14]) - float(next[14])) > 0.00001)
 	if group == "buildings":
 		for i: int in [0, 1, 2, 4, 6, 7]:
 			if old[i] != next[i]: return true
@@ -246,6 +252,9 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 			elif old[i] != next[i]: return true
 		return false
 	return old != next
+
+static func slow_is_refreshing(row: Array) -> bool:
+	return absf(float(row[14]) - float(row[12]) - RULES.BEAR_SLOW_LINGER) <= 0.00001
 
 static func apply_delta(state: Dictionary, delta: Dictionary) -> void:
 	for group: String in delta.remove:
@@ -366,11 +375,11 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 		"units":
 			if not _row(row, UNIT_SIZE) or not _integer(row[0], 1, MAX_ID) or not _number(row[1]) or absf(float(row[1])) > MAX_TIME or not _number(row[2]) or absf(float(row[2])) > 32.0: return false
 			if not _integer(row[4], 0, MAX_ID) or not _integer(row[11], -1, game.faction_count - 1): return false
-			for i: int in [5, 6, 7, 12, 13]:
+			for i: int in [5, 6, 7, 12, 13, 14]:
 				if not _nonnegative(row[i]): return false
 			for i: int in [3, 8, 9, 10]:
 				if not row[i] is bool: return false
-			return true
+			return float(row[14]) <= float(row[12]) + RULES.BEAR_SLOW_LINGER + 0.00001
 		"fields":
 			if not row is Array or row.is_empty() or not row[0] is String: return false
 			if row[0] == "shield": return _row(row, 3) and _building_id(row[1], game) and _nonnegative(row[2])
@@ -471,7 +480,10 @@ static func same_structure(group: String, first: Array, second: Array) -> bool:
 	if group == "units":
 		# Optional anchors already passed record validation. Comparing their fixed
 		# structure needs no temporary dictionary/arrays or repeat type probing.
-		return first[0] == second[0] and first[3] == second[3] and first[4] == second[4] \
+		var refreshing := slow_is_refreshing(first)
+		return refreshing == slow_is_refreshing(second) \
+			and (refreshing or absf(float(first[14]) - float(second[14])) <= 0.00001) \
+			and first[0] == second[0] and first[3] == second[3] and first[4] == second[4] \
 			and first[8] == second[8] and first[9] == second[9] and first[10] == second[10] and first[11] == second[11] \
 			and absf(float(first[2]) - float(second[2])) <= 0.00001 \
 			and absf(float(first[5]) - float(second[5])) <= 0.00001 \
@@ -572,8 +584,13 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 		var base: float = row[12]
 		unit.spawn_delay = remaining(row[5], base); unit.rush_remaining = remaining(row[6], base)
 		unit.levitation_remaining = remaining(row[7], base)
+		unit.slow_remaining = remaining(row[14], base)
 		_set_field_clock(game, state, base, false)
-		_move_visual_unit(game, unit, minf(MAX_EXTRAPOLATION, maxf(0.0, now - base)), base)
+		var predicted := minf(MAX_EXTRAPOLATION, maxf(0.0, now - base))
+		_move_visual_unit(game, unit, predicted, base)
+		if now > base + predicted:
+			_set_field_clock(game, state, base + predicted, false)
+			unit.slow_remaining = game.marches.slow_after_wait(unit, now - base - predicted)
 		unit.spawn_delay = remaining(row[5], now); unit.rush_remaining = remaining(row[6], now)
 		unit.levitation_remaining = remaining(row[7], now)
 		game.marches._update_pose(unit)
@@ -696,7 +713,13 @@ func _move_visual_unit(game: Node, unit: WarMarches.MarchUnit, seconds: float, _
 	# Morale changes arrive with authoritative movement anchors. Skill expiry and
 	# field crossings are integrated by movement_distance for each soldier. The
 	# caller sets the shared field clock once per frame, or per historical anchor.
-	var step: float = game.marches.movement_distance(unit, seconds)
+	var step: float
+	if unit.slow_remaining > 0.0 or not game.marches.slow_zones.is_empty():
+		var motion: PackedFloat64Array = game.marches.movement_with_slow(unit, seconds)
+		step = motion[0]
+		unit.slow_remaining = motion[1]
+	else:
+		step = game.marches.movement_distance(unit, seconds)
 	var previous_distance := unit.distance
 	unit.distance = minf(unit.order.length - 0.001, unit.distance + step)
 	unit.gait += maxf(0.0, unit.distance - previous_distance) * 7.0
@@ -774,9 +797,14 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 			unit.spawn_delay = remaining(row[5], start)
 			unit.rush_remaining = remaining(row[6], start)
 			unit.levitation_remaining = remaining(row[7], start)
+			unit.slow_remaining = remaining(row[14], start)
 			_set_field_clock(game, _last_state, start, false)
 		_move_visual_unit(game, unit, prediction, start)
-		if base > before and prediction > 0.0:
+		var waiting := maxf(0.0, game.elapsed - start - prediction)
+		if waiting > 0.0:
+			_set_field_clock(game, _last_state, start + prediction, false)
+			unit.slow_remaining = marches.slow_after_wait(unit, waiting)
+		if waiting > 0.0 or (base > before and prediction > 0.0):
 			_set_field_clock(game, _last_state, before, false)
 		unit.spawn_delay = remaining(row[5], game.elapsed)
 		unit.rush_remaining = remaining(row[6], game.elapsed)

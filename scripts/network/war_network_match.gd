@@ -482,6 +482,10 @@ func _receive_anchor(payload: Dictionary) -> void:
 			row = _mirror.units[key].duplicate(false)
 			row[13] = float(row[13]) + maxf(0.0, distance - float(row[1])) * 7.0
 			row[1] = distance
+			# Reliable entry/exit facts distinguish a refreshing aura from its
+			# fixed tail. Compact motion anchors share the aura's new sample time.
+			if Snapshot.slow_is_refreshing(row):
+				row[14] = float(payload.time) + Snapshot.RULES.BEAR_SLOW_LINGER
 			row[12] = float(payload.time)
 		if not Snapshot.valid_record(group, row, game): continue
 		# Do not let an old anchor replace a newer reliable structural transition.
