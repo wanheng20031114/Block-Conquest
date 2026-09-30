@@ -1333,8 +1333,8 @@ func update_hud() -> void:
 	if selected != null:
 		match selected.kind:
 			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限" % [selected.production_rate, selected.capacity]
-			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 防御 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, roundi(COMBAT_RULES.tower_defense_bonus(selected.level) * 100.0)]
-			2: detail = "提高所属军团攻击与防御 · 不可升级 · 不自动产兵"
+			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 防御力 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, roundi(COMBAT_RULES.tower_defense_bonus(selected.level) * 100.0)]
+			2: detail = "提高所属军团攻击力与防御力 · 不可升级 · 不自动产兵"
 			3: detail = "提高技力恢复 · 出征占领敌方建筑 +10 技力 · 不可升级 · 不自动产兵"
 		if shields.has(selected.building_id):
 			detail += " · 防护罩 %ds" % ceili(shields[selected.building_id])

@@ -22,7 +22,7 @@ func update_data(data: Dictionary) -> void:
 	%MoraleValue.text = "%d 星 · %d 士气" % [morale_level, floori(float(data.morale_points))]
 	var next_points: float = float(data.morale_next)
 	%MoraleProgress.text = "已达最高等级" if next_points < 0.0 else "下一级：%d / %.0f" % [floori(float(data.morale_points)), next_points]
-	%BonusSources.text = "士气：攻 +%s · 防 +%s · 移速 +%s\n铁匠：攻 +%s · 防 +%s" % [
+	%BonusSources.text = "士气：攻击力 +%s · 防御力 +%s · 移速 +%s\n铁匠铺：攻击力 +%s · 防御力 +%s" % [
 		_percent(float(data.morale_attack)), _percent(float(data.morale_defense)),
 		_percent(float(data.morale_speed)), _percent(float(data.forge_attack)),
 		_percent(float(data.forge_defense))]
@@ -47,7 +47,7 @@ func _update_selection(selected: Dictionary) -> void:
 		lines.append("驻军 %.1f · 可派 %d · 待出 %d" % [float(selected.population), floori(float(selected.available)), int(selected.queued)])
 	else:
 		lines.append("驻军情报不可见")
-	lines.append("常驻防御 %s · 临时加成 +%s" % [_percent(float(selected.defense_multiplier)), _percent(float(selected.skill_defense))])
+	lines.append("常驻防御力 %s · 临时防御力 +%s" % [_percent(float(selected.defense_multiplier)), _percent(float(selected.skill_defense))])
 	if float(selected.construction_remaining) > 0.0:
 		lines.append("施工剩余 %.1f 秒" % float(selected.construction_remaining))
 	if float(selected.disruption_remaining) > 0.0:

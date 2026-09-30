@@ -31,23 +31,23 @@ func _select(index: int, animate: bool = true) -> void:
 	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 震庭威慑", 3: "冲锋 · 飞行 · 密集出兵 · 重击", 4: "投弹 · 窃星 · 招降 · 恐慌", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
 	var summaries := PackedStringArray([
 		"每秒增援 %d 人，持续 %d 秒。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
-		"区域内自己的部队提速 %d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
-		"建筑守备 +%d%%，持续 %d 秒。" % [RULES.SHIELD_DEFENSE * 100, RULES.DURATIONS[2]],
+		"区域内己军移速 +%d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
+		"己方或盟友建筑防御力 +%d%%，持续 %d 秒。" % [RULES.SHIELD_DEFENSE * 100, RULES.DURATIONS[2]],
 		"瞬间点燃区域，火焰对双方士兵都致命。",
 	] if index == 0 else [
-		"选中部队移速 +%d%%、攻击 +%d%%，持续 %d 秒。" % [roundi((RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100), RULES.RABBIT_RUSH_ATTACK_BONUS * 100, RULES.RABBIT_DURATIONS[0]],
+		"选中己军攻击力 +%d%%、移速 +%d%%，持续 %d 秒。" % [RULES.RABBIT_RUSH_ATTACK_BONUS * 100, roundi((RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100), RULES.RABBIT_DURATIONS[0]],
 		"让敌方建筑停止运作 %d 秒。" % RULES.DISABLE_DURATION,
 		"让区域内双方部队各自返回出发建筑。",
 		"建筑待命 %d 秒，下次派兵经兔洞突袭。" % RULES.BURROW_READY_DURATION,
 	])
 	if commander == RULES.BEAR:
-		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军减速 60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "建筑防御 +100%，持续 5 秒；法球优先攻击远处敌兵。"])
+		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军移速 -60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "己方建筑防御力 +100%，持续 5 秒；法球优先攻击远处敌兵。"])
 	elif commander == RULES.FROG:
-		summaries = PackedStringArray(["薄雾遮挡炮塔，敌军虚弱 -20% 至入城。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己军隐身至入城，避开炮塔的攻击。", "削减当前驻军 80%，建筑降至 1 级。"])
+		summaries = PackedStringArray(["敌军攻击力 -20%，持续至进入建筑；雾内避开炮塔。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己军隐身至进入建筑，避开炮塔的攻击。", "削减当前驻军 80%，建筑降至 1 级。"])
 	elif commander == RULES.FOX:
 		summaries = PackedStringArray(["投下炸弹，削减 50% 驻军，最多 30 人。", "通过敌方建筑，偷取所属英雄最多 1 星士气。", "招降小范围内的敌军，保持阵型和行军路线。", "80% 驻军逃往较近的同阵营建筑，距离不限。"])
 	elif commander == &"pig":
-		summaries = PackedStringArray(["下一次出兵移速 +20%、攻击 +10%。", "下一次出兵直线飞行，最多派出 30 人。", "下一次出兵更加密集，最多派出 60 人。", "小范围砸落：行军全灭，建筑驻军减半。"])
+		summaries = PackedStringArray(["15 秒内下次出兵：攻击力 +10%、移速 +20%。\n加成持续至进入建筑。", "下一次出兵直线飞行，最多派出 30 人。", "下一次出兵更加密集，最多派出 60 人。", "小范围砸落：行军全灭，建筑驻军减半。"])
 	for i: int in 4:
 		get_node("%%SkillIcon%d" % i).texture = RULES.icons_for(commander)[i]
 		get_node("%%SkillName%d" % i).text = RULES.names_for(commander)[i]

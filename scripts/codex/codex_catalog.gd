@@ -50,38 +50,7 @@ static func hero_profile(id: StringName) -> Dictionary:
 
 static func skill_summary(id: StringName, index: int) -> String:
 	assert(id in HEROES and index >= 0 and index < 4)
-	match id:
-		&"pig": return RULES.description(index, id)
-		&"fox": return RULES.description(index, id)
-		&"squirrel":
-			return [
-				"为自己或盟友的住宅额外征召士兵，每秒 %d 人，持续 %d 秒。征召可超过自然产兵上限。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
-				"建立半径 %.1f 米的疾行区域，持续 %d 秒。自己的部队在区域内移速提高 %d%%，离开后恢复。" % [RULES.HASTE_RADIUS, RULES.DURATIONS[1], roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0)],
-				"为自己或盟友的建筑提供防护，技能防御提高 %d%%，持续 %d 秒；与常驻防御分别结算。同类防护不叠加。" % [roundi(RULES.SHIELD_DEFENSE * 100.0), RULES.DURATIONS[2]],
-				"火焰扩散至半径 %.1f 米，消灭接触的双方士兵。对敌方或中立驻军造成基础 %d 点伤害，不直接占领建筑。" % [RULES.FIRE_RADIUS, RULES.FIRE_DAMAGE],
-			][index]
-		&"rabbit":
-			return [
-				"强化施放时半径 %.1f 米内的自有行军，移速与攻击分别提高 %d%%、%d%%，持续 %d 秒。离开落点仍然有效。" % [RULES.RABBIT_RUSH_RADIUS, roundi((RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), RULES.RABBIT_DURATIONS[0]],
-				"干扰一座敌方建筑，持续 %d 秒。暂停产兵、射击、铁匠铺全军增益或能量塔恢复加成。" % RULES.DISABLE_DURATION,
-				"令半径 %d 米内所有阵营的行军部队，各自返回出发建筑。返程途中仍会受到攻击。" % RULES.RECALL_RADIUS,
-				"使自己的建筑进入 %d 秒兔洞待命。下一次派兵经兔洞抵达目标附近，按所选比例最多派出 %d 人。" % [RULES.BURROW_READY_DURATION, RULES.BURROW_LIMIT],
-			][index]
-		&"bear":
-			return [
-				"立即完成自己建筑的升级或改建，返还本次消耗人口的 50%。",
-				"建立半径 %.1f 米的震地区域，持续 %d 秒。区域内敌军移速降低 %d%%，离开后恢复，盟友不受影响。" % [RULES.BEAR_SLOW_RADIUS, RULES.BEAR_DURATIONS[1], roundi((1.0 - RULES.BEAR_SLOW_MULTIPLIER) * 100.0)],
-				"连接 %d 米内最近的另一座自己的建筑，由其分担目标所受驻军伤害的一半，持续 %d 秒。支援兵力耗尽或一端失守时解除。" % [RULES.BEAR_LINK_RADIUS, RULES.BEAR_DURATIONS[2]],
-				"使自己的建筑防御提高 %d%%，持续 %d 秒。法术球立即开火，每 %.1f 秒攻击 %d 米内最多 %d 名敌兵，优先选择最远目标。" % [roundi(RULES.BEAR_WARD_DEFENSE * 100.0), RULES.BEAR_DURATIONS[3], RULES.BEAR_ORB_INTERVAL, RULES.BEAR_ORB_RANGE, RULES.BEAR_ORB_TARGETS],
-			][index]
-		&"frog":
-			return [
-				"建立半径 %.1f 米的薄雾，持续 %d 秒。接触的敌军攻击降低 %d%%，持续至入城；炮塔无法攻击雾内士兵。" % [RULES.FROG_RADII[0], RULES.FROG_DURATIONS[0], roundi(RULES.FROG_WEAKNESS * 100.0)],
-				"使半径 %.1f 米内当前的双方士兵滞空 %d 秒。期间无法移动，也不会被炮塔命中；落地后继续原路线。" % [RULES.FROG_RADII[1], RULES.FROG_DURATIONS[1]],
-				"使施放时半径 %.1f 米内的自有士兵隐身，持续至进入建筑。可避开炮塔攻击，仍会受到火焰和法术伤害。" % RULES.FROG_RADII[2],
-				"移除敌方或中立建筑当前驻军的 %d%%，按整个人口计算，降至 1 级并中断施工。不会直接占领；不受防御减免，链式防守无法分担。" % roundi(RULES.FROG_STRIKE_FRACTION * 100.0),
-			][index]
-	return ""
+	return RULES.description(index, id)
 
 
 static func skill_target(id: StringName, index: int) -> String:
@@ -125,8 +94,8 @@ static func guides() -> Array[Dictionary]:
 			"id": &"residence", "title": "住宅", "tag": "建筑 · 兵力生产",
 			"summary": "持续补充驻军，是维持战线的兵力来源。",
 			"sections": [
-				{"title": "产兵速度", "body": "住宅共有 4 级，各级每秒产兵 %s / %s / %s / %s 人。升级可提高产兵速度。" % BUILDING.HOUSE_PRODUCTION_RATES},
-				{"title": "自然产兵上限", "body": "各级自然产兵上限为 %d / %d / %d / %d 人。达到上限后暂停自然产兵，驻军减少后继续。" % BUILDING.HOUSE_PRODUCTION_LIMITS},
+				{"title": "产兵速度", "body": "1 级：%s 人/秒；2 级：%s 人/秒；\n3 级：%s 人/秒；4 级：%s 人/秒。" % BUILDING.HOUSE_PRODUCTION_RATES},
+				{"title": "自然产兵上限", "body": "1 级：%d 人；2 级：%d 人；3 级：%d 人；4 级：%d 人。\n达到上限后暂停自然产兵，驻军减少后继续。" % BUILDING.HOUSE_PRODUCTION_LIMITS},
 				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间继续按原等级产兵。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2)]},
 			],
 			"tip": "自然产兵上限不是驻军上限；增援与征召可以超出。",
@@ -134,42 +103,42 @@ static func guides() -> Array[Dictionary]:
 		},
 		{
 			"id": &"tower", "title": "炮塔", "tag": "建筑 · 区域防守",
-			"summary": "自动拦截附近敌军，并为驻军提供额外守备。",
+			"summary": "自动拦截附近敌军，并为驻军提供防御力加成。",
 			"sections": [
-				{"title": "射程与火力", "body": "炮塔共有 4 级。射程依次为 11 / 13 / 15 / 17 米，每轮最多攻击 1 / 2 / 3 / 4 名敌兵；射击间隔为 1.5 / 1.2 / 0.9 / 0.6 秒。"},
-				{"title": "守备与限制", "body": "各级守备为 %d%% / %d%% / %d%% / %d%%，与所属玩家的常驻防御相加。炮塔不会自然产兵；隐身、滞空或处于薄雾内的士兵可避开炮塔攻击。" % [roundi(COMBAT.tower_defense_bonus(1) * 100.0), roundi(COMBAT.tower_defense_bonus(2) * 100.0), roundi(COMBAT.tower_defense_bonus(3) * 100.0), roundi(COMBAT.tower_defense_bonus(4) * 100.0)]},
-				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间继续按原等级开火与守备。" % [BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2)]},
+				{"title": "射程与火力", "body": "1 级：射程 11 米，每 1.5 秒攻击最多 1 人。\n2 级：射程 13 米，每 1.2 秒攻击最多 2 人。\n3 级：射程 15 米，每 0.9 秒攻击最多 3 人。\n4 级：射程 17 米，每 0.6 秒攻击最多 4 人。"},
+				{"title": "防御力与限制", "body": "1 级：防御力 +%d%%；2 级：防御力 +%d%%；\n3 级：防御力 +%d%%；4 级：防御力 +%d%%。\n与所属玩家的常驻防御力相加。炮塔不产兵；无法攻击隐身、滞空或雾内士兵。" % [roundi(COMBAT.tower_defense_bonus(1) * 100.0), roundi(COMBAT.tower_defense_bonus(2) * 100.0), roundi(COMBAT.tower_defense_bonus(3) * 100.0), roundi(COMBAT.tower_defense_bonus(4) * 100.0)]},
+				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间射击能力与防御力保持原等级。" % [BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2)]},
 			],
 			"tip": "将炮塔布置在必经路线附近，可持续削弱敌方行军。",
 			"icon": preload("res://assets/ui/block_war/action_tower.svg"),
 		},
 		{
 			"id": &"smithy", "title": "铁匠铺", "tag": "建筑 · 全军支援",
-			"summary": "提高所属玩家全军的攻击与防御。",
+			"summary": "为所属玩家全军提供攻击力与防御力加成。",
 			"sections": [
-				{"title": "攻防增益", "body": "有效铁匠铺为 1 / 2 / 3 / 4 座时，累计攻击提高 %d%% / %d%% / %d%% / %d%%，防御提高 %d%% / %d%% / %d%% / %d%%。第 5 座起，攻防加成不再增加。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_attack_bonus(2) * 100.0), roundi(COMBAT.forge_attack_bonus(3) * 100.0), roundi(COMBAT.forge_attack_bonus(4) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(2) * 100.0), roundi(COMBAT.forge_defense_bonus(3) * 100.0), roundi(COMBAT.forge_defense_bonus(4) * 100.0)]},
+				{"title": "攻防增益", "body": "按有效铁匠铺总数计算累计加成：\n1 座：攻击力 +%d%%，防御力 +%d%%。\n2 座：攻击力 +%d%%，防御力 +%d%%。\n3 座：攻击力 +%d%%，防御力 +%d%%。\n4 座及以上：攻击力 +%d%%，防御力 +%d%%。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0), roundi(COMBAT.forge_attack_bonus(2) * 100.0), roundi(COMBAT.forge_defense_bonus(2) * 100.0), roundi(COMBAT.forge_attack_bonus(3) * 100.0), roundi(COMBAT.forge_defense_bonus(3) * 100.0), roundi(COMBAT.forge_attack_bonus(4) * 100.0), roundi(COMBAT.forge_defense_bonus(4) * 100.0)]},
 				{"title": "加成归属", "body": "铁匠铺不提供移速加成。攻防增益只属于建筑拥有者，不共享给队友。"},
 				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供全部增益。"},
 			],
-			"tip": "铁匠铺与士气的同类加成相加；炮塔守备计入防御，技能加成独立结算。",
+			"tip": "铁匠铺与士气的同类加成相加；炮塔的防御力加成计入常驻防御，技能加成独立结算。",
 			"icon": preload("res://assets/ui/block_war/action_forge.svg"),
 		},
 		{
 			"id": &"energy", "title": "能量塔", "tag": "建筑 · 技力补充",
 			"summary": "由铁匠铺改建，提高技力恢复速度，并奖励成功进攻。",
 			"sections": [
-				{"title": "技力恢复", "body": "第 1 / 2 / 3 座有效能量塔，每秒分别额外恢复 0.5 / 0.25 / 0.15 点技力。第 4 座起，每座额外恢复 0.1 点。各玩家独立计算，上限 100 点；封条急件期间暂停加成。"},
+				{"title": "技力恢复", "body": "每座有效能量塔提供额外恢复：\n第 1 座：+%s 点/秒；第 2 座：+%s 点/秒；\n第 3 座：+%s 点/秒；第 4 座起每座：+%s 点/秒。\n收益按玩家独立计算，技力上限 %d 点；封条急件期间暂停加成。" % [RULES.ENERGY_TOWER_BONUSES[0], RULES.ENERGY_TOWER_BONUSES[1], RULES.ENERGY_TOWER_BONUSES[2], RULES.ENERGY_TOWER_LATER_BONUS, RULES.ENERGY_MAX]},
 				{"title": "夺取奖励", "body": "从能量塔派出的部队夺取敌方建筑时，立即获得 10 点技力。每次成功占领结算一次，奖励不随塔数增加；占领中立建筑不触发。"},
 				{"title": "建设限制", "body": "仅铁匠铺可改建为能量塔，消耗 20 人，耗时 %d 秒。能量塔不产兵、不可升级，可改建回住宅、炮塔或铁匠铺。" % BUILDING.CONSTRUCTION_DURATION},
 			],
-			"tip": "部队来源以发令时的建筑类型为准；原塔改造或易主不影响已发军令。入城后，下次出征重新判定。",
+			"tip": "部队来源以发令时的建筑类型为准；原塔改造或易主不影响已发军令。进入建筑后，下次出征重新判定。",
 			"icon": preload("res://assets/ui/block_war/action_energy.svg"),
 		},
 		{
 			"id": &"construction", "title": "升级与改建", "tag": "据点经营",
 			"summary": "消耗驻军提升建筑等级，或更换据点功能。",
 			"sections": [
-				{"title": "升级", "body": "住宅升至 2 / 3 / 4 级，依次消耗 10 / 20 / 30 人；炮塔升至 2 / 3 / 4 级，依次消耗 30 / 60 / 90 人。只能使用尚未编入出发队列的驻军。"},
+				{"title": "升级", "body": "住宅：升至 2 级消耗 10 人，3 级消耗 20 人，4 级消耗 30 人。\n炮塔：升至 2 级消耗 30 人，3 级消耗 60 人，4 级消耗 90 人。\n只能使用尚未编入出发队列的驻军。"},
 				{"title": "改建", "body": "改建消耗 20 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。"},
 				{"title": "施工", "body": "住宅与炮塔的 1 → 2 级升级需 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒；所有改建仍需 %d 秒。期间保留原有功能；失守时施工中断，已消耗的人口不会返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.CONSTRUCTION_DURATION]},
 			],
@@ -192,7 +161,7 @@ static func guides() -> Array[Dictionary]:
 			"summary": "通过战斗和建设积累士气，提高全军表现。",
 			"sections": [
 				{"title": "士气变化", "body": "占领据点、完成升级和击杀敌军可积累士气。进攻损失与据点失守会降低士气；建筑改建本身不提供升级奖励。"},
-				{"title": "星级增益", "body": "每颗完整士气星提供攻击 5%%、防御 %d%%、移速 10%% 加成，最多 5 星。下一颗星的部分充能尚不提供增益。" % roundi(WarMorale.DEFENSE_PER_STAR * 100.0)},
+				{"title": "星级增益", "body": "每颗完整士气星：攻击力 +5%%，防御力 +%d%%，移速 +10%%。\n最多 5 星；下一颗星尚未充满时不提供额外增益。" % roundi(WarMorale.DEFENSE_PER_STAR * 100.0)},
 				{"title": "自然衰减", "body": "没有士气事件时，士气会在一段时间后逐渐衰减。星级越高，开始衰减越早，衰减速度也越快。"},
 			],
 			"tip": "每位玩家独立计算士气，队友之间不共享星级。",
@@ -203,7 +172,7 @@ static func guides() -> Array[Dictionary]:
 			"summary": "技力决定施法资源，冷却限制技能使用频率。",
 			"sections": [
 				{"title": "自然恢复", "body": "开局 %d 点技力，上限 %d 点。前 %d 秒自然恢复 %d 点/秒，之后 %d 点/秒；暂停不计时。能量塔额外加速恢复，悬停技力条可查看当前数值。" % [RULES.ENERGY_INITIAL, RULES.ENERGY_MAX, RULES.ENERGY_ACCELERATION_TIME, RULES.ENERGY_REGEN, RULES.ENERGY_LATE_REGEN]},
-				{"title": "战损回能", "body": "建筑交战中，己方每实际损失 1 人回复技力：战前士气低于 3 星为 0.2，3 至不足 5 星为 0.15，5 星为 0.1。攻守均计，包含进攻中立和链式分担；技能直接杀伤、路上伤亡不计。"},
+				{"title": "战损回能", "body": "建筑交战中，己方每实际损失 1 人：\n战前士气不足 3 星：技力 +0.2；\n3 星至不足 5 星：技力 +0.15；5 星：技力 +0.1。\n攻守均计，包含进攻中立和链式分担；技能直接杀伤、路上伤亡不计。"},
 				{"title": "施法与取消", "body": "四项技能共用技力、独立冷却。拖动图标或按住 Q/W/E/R 瞄准，松手施放，右键取消。取消或无效施放不扣技力、不进冷却；电脑遵循相同规则。"},
 			],
 			"tip": "查看技能的目标与作用范围，避免对友军造成误伤。",

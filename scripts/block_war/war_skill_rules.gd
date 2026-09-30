@@ -156,49 +156,45 @@ static func icons_for(commander: StringName) -> Array[Texture2D]:
 	if commander == BEAR: return BEAR_ICONS
 	return RABBIT_ICONS if commander == RABBIT else SQUIRREL_ICONS
 
-static func effect_text(index: int) -> String:
-	match index:
-		0: return "每秒征召 %d 人，持续 %d 秒，不叠加。" % [RECRUIT_RATE, DURATIONS[0]]
-		1: return "半径 %.1f 米的疾行区域，持续 %d 秒。\n圈内自己的部队提速 %d%%，离开恢复原速。" % [HASTE_RADIUS, DURATIONS[1], roundi((HASTE_MULTIPLIER - 1.0) * 100.0)]
-		2: return "守备 +%d%%，持续 %d 秒，不叠加。" % [SHIELD_DEFENSE * 100.0, DURATIONS[2]]
-		3: return "松手立即点燃，火焰从圆心迅速扩散至 %.1f 米。\n接触的双方士兵均死亡，敌方驻军基础伤害 %d。" % [FIRE_RADIUS, FIRE_DAMAGE]
-	return ""
-
 static func description(index: int, commander: StringName = COMMANDER_ID) -> String:
 	if commander == PIG:
 		return [
-			"选择自己的建筑，获得 15 秒冲锋待命。\n下一次派出的部队移速 +20%、攻击 +10%，持续至入城。\n可与飞行、整队叠加；过期未出兵则失效。",
-			"选择自己的建筑，获得 15 秒飞行待命。\n下一次派兵飞越地形，沿直线前往目的地。\n最多派出 30 人后停止；余兵留守，可叠加。",
-			"选择自己的建筑，获得 15 秒整队待命。\n下一次派兵缩短排距和列距，集中抵达。\n最多派出 60 人后停止；叠加飞行时上限 30 人。",
-			"选择战场落点，0.65 秒后特大猪砸下。\n半径 3 米内敌我所有行军部队死亡，建筑驻军减半。\n无视防护与分伤，不直接占领；空地也可施放。"
+			"攻击力 +%d%%，移速 +%d%%，持续至进入建筑。\n己方建筑获得 %d 秒冲锋待命，强化下一次派出的部队。\n可与飞行、整队叠加；过期未出兵则失效。" % [roundi(PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(PIG_CHARGE_SPEED_BONUS * 100.0), PIG_READY_DURATION],
+			"下一次派兵直线飞行，无视地形，最多 %d 人。\n己方建筑获得 %d 秒飞行待命，过期未出兵则失效。\n剩余驻军留守，可与冲锋、整队叠加。" % [PIG_FLIGHT_LIMIT, PIG_READY_DURATION],
+			"下一次派兵缩短排距和列距，最多 %d 人。\n己方建筑获得 %d 秒整队待命，过期未出兵则失效。\n剩余驻军留守；与飞行叠加时最多 %d 人。" % [PIG_FORMATION_LIMIT, PIG_READY_DURATION, PIG_FLIGHT_LIMIT],
+			"半径 %.1f 米内，敌我行军部队全部死亡，建筑驻军减少 50%%。\n选择落点后 %.2f 秒砸下，无视防御力和链式分伤。\n不直接占领建筑，空地也可施放。" % [PIG_DROP_RADIUS, PIG_DROP_FALL_TIME]
 		][index]
 	if commander == FOX:
 		return [
-			"向敌方或中立建筑投下炸弹。\n损失当前驻军的 50%，最多 30 人，向下取整。\n无视防御，不直接占领；链式防守可分担。",
-			"拖至敌方建筑，偷取其所属英雄最多 1 星士气。\n不足 1 星时按实际数量转移，自己最多 5 星。\n对方无士气或自己已满时不消耗技力。",
-			"招降半径 3 米内当前的敌方行军部队。\n永久归自己指挥，保留位置、阵型及行军路线。\n进入己方建筑增援，进入敌方建筑则进攻。",
-			"使敌方建筑内 80% 的驻军逃走，向下取整。\n逃兵保持原阵营，分赴较近的最多 3 座同阵营建筑。\n距离不限；无去处时无法施放。"
+			"敌方或中立建筑损失当前驻军的 %d%%，最多 %d 人，向下取整。\n无视防御力，链式防守可分担；不直接占领。" % [roundi(FOX_BOMB_FRACTION * 100.0), FOX_BOMB_CAP],
+			"偷取敌方最多 %d 星士气，己方最多 %d 星。\n以敌方建筑为目标，士气从其所属玩家转移给自己。\n不足 %d 星时转移实际数量；敌方无士气或己方已满时无法施放。" % [FOX_STEAL_STARS, 5, FOX_STEAL_STARS],
+			"招降半径 %.1f 米内施放时的敌方行军部队。\n永久归己方指挥，保留位置、阵型和路线。\n抵达己方建筑时增援，抵达敌方建筑时进攻。" % FOX_CONVERT_RADIUS,
+			"敌方建筑内 %d%% 的驻军逃走，人数向下取整。\n逃兵保持原阵营，分赴最近的最多 %d 座同阵营建筑。\n距离不限；没有可抵达的建筑时无法施放。" % [roundi(FOX_PANIC_FRACTION * 100.0), FOX_PANIC_DESTINATIONS]
 		][index]
 	if commander == FROG:
 		return [
-			"展开半径 3.5 米的薄雾，持续 3 秒。\n接触的敌军攻击 -20%，持续至入城。\n炮塔无法攻击雾内士兵；增援人数不变。",
-			"使半径 3.5 米内当前的双方士兵滞空 3 秒。\n无法移动，也不会被炮塔命中。\n落地后继续原路线，其他技能仍可影响。",
-			"半径 4.5 米内当前的己方士兵隐身。\n仅留下极淡轮廓，持续至进入建筑。\n炮塔无法攻击；仍会被火攻和法术击中。",
-			"敌方或中立建筑损失当前驻军的 80%，降至 1 级。\n损失按整个人口计算，打断施工，不直接占领。\n无视防御，链式防守不分担。"
+			"攻击力 -%d%%，作用于接触薄雾的敌军，持续至进入建筑。\n薄雾半径 %.1f 米，持续 %d 秒；炮塔无法攻击雾内士兵。\n增援人数不变。" % [roundi(FROG_WEAKNESS * 100.0), FROG_RADII[0], FROG_DURATIONS[0]],
+			"半径 %.1f 米内，施放时的敌我行军部队滞空 %d 秒。\n期间无法移动，也不会被炮塔命中。\n落地后继续原路线，其他技能仍可影响。" % [FROG_RADII[1], FROG_DURATIONS[1]],
+			"半径 %.1f 米内，施放时的己方行军部队隐身，持续至进入建筑。\n仅留下极淡轮廓，炮塔无法攻击。\n仍会受到火焰和法术伤害。" % FROG_RADII[2],
+			"敌方或中立建筑损失当前驻军的 %d%%，等级降至 1 级。\n损失按整个人口计算，中断施工，不直接占领。\n无视防御力，链式防守无法分担。" % roundi(FROG_STRIKE_FRACTION * 100.0)
 		][index]
 	if commander == BEAR:
 		return [
-			"拖至正在升级或转换的己方建筑。\n立即完工，返还本次消耗人口的 50%。",
-			"拖至地面，展开半径 4.5 米的震地区域。\n圈内敌军减速 60%，持续 4 秒。\n友军不受影响，离开后恢复速度。",
-			"连接 18 米内最近的另一座己方建筑，持续 8 秒。\n支援方分担一半驻军伤害，奇数多承担 1 人。\n支援兵力不足或一端失守时断开。",
-			"己方建筑防御 +%d%%，持续 %d 秒。\n头顶法球立即开火，优先攻击范围内最远的敌兵。\n射程 %d 米，每 %.1f 秒攻击最多 %d 人。" % [roundi(BEAR_WARD_DEFENSE * 100.0), BEAR_DURATIONS[3], BEAR_ORB_RANGE, BEAR_ORB_INTERVAL, BEAR_ORB_TARGETS]
+			"立即完成己方建筑的升级或改建，返还本次消耗人口的 50%。",
+			"移速 -%d%%，作用于区域内的敌军。\n震地区域半径 %.1f 米，持续 %d 秒。\n离开区域后恢复原速，己方与盟友不受影响。" % [roundi((1.0 - BEAR_SLOW_MULTIPLIER) * 100.0), BEAR_SLOW_RADIUS, BEAR_DURATIONS[1]],
+			"由最近的另一座己方建筑分担 50%% 驻军伤害，持续 %d 秒。\n连接距离最多 %d 米，奇数伤亡由支援方多承担 1 人。\n支援兵力不足或一端失守时断开。" % [BEAR_DURATIONS[2], BEAR_LINK_RADIUS],
+			"防御力 +%d%%，作用于己方建筑，持续 %d 秒。\n法术球立即开火，每 %.1f 秒攻击 %d 米内最多 %d 名敌兵。\n优先选择最远目标。" % [roundi(BEAR_WARD_DEFENSE * 100.0), BEAR_DURATIONS[3], BEAR_ORB_INTERVAL, BEAR_ORB_RANGE, BEAR_ORB_TARGETS]
 		][index]
 	if commander == RABBIT:
 		return [
-			"选中半径 %.1f 米内自己的行军，持续 %d 秒。\n移速 +%d%%，攻击 +%d%%，离开落点仍生效。\n仅强化施放瞬间选中的部队，不叠加。" % [RABBIT_RUSH_RADIUS, RABBIT_DURATIONS[0], roundi((RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(RABBIT_RUSH_ATTACK_BONUS * 100.0)],
-			"拖至敌方建筑，令其停工 6 秒。\n暂停产兵、射击、铁匠铺攻防、\n能量塔恢复加成。不叠加。",
-			"拖至地面，松手吹响口哨。\n半径 6 米内所有阵营的行军部队，\n各自返回出发建筑，途中仍会受到攻击。",
-			"拖至自己的建筑，获得 15 秒兔洞待命。\n下一次派兵开始快速掘地，无距离限制。\n按所选比例最多派出 50 人，每 0.16 秒出洞一排。"
+			"攻击力 +%d%%，移速 +%d%%，持续 %d 秒。\n仅作用于施放时半径 %.1f 米内的己方行军部队。\n离开范围后仍生效，同类效果不叠加。" % [roundi(RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), RABBIT_DURATIONS[0], RABBIT_RUSH_RADIUS],
+			"敌方建筑停工 %d 秒。\n暂停产兵、射击、铁匠铺攻防增益和能量塔技力恢复加成。\n不暂停升级或改建，同类效果不叠加。" % DISABLE_DURATION,
+			"半径 %d 米内，所有阵营的行军部队返回各自出发建筑。\n返程途中仍会受到攻击。" % RECALL_RADIUS,
+			"己方建筑获得 %d 秒兔洞待命，强化下一次派兵。\n经兔洞抵达目标附近，两座建筑间需有可通行路线。\n无距离限制，按所选比例最多 %d 人，每 %.2f 秒出洞一排。" % [BURROW_READY_DURATION, BURROW_LIMIT, BURROW_BATCH_INTERVAL]
 		][index]
-	var targets: Array[String] = ["自己或盟友住宅", "地面", "自己或盟友建筑", "地面"]
-	return "拖至%s，松手施放。\n%s" % [targets[index], effect_text(index)]
+	return [
+		"每秒征召 %d 人，持续 %d 秒。\n作用于己方或盟友住宅，可超过自然产兵上限。\n同类效果不叠加。" % [RECRUIT_RATE, DURATIONS[0]],
+		"移速 +%d%%，作用于区域内的己方行军部队。\n疾行区域半径 %.1f 米，持续 %d 秒。\n离开区域后恢复原速。" % [roundi((HASTE_MULTIPLIER - 1.0) * 100.0), HASTE_RADIUS, DURATIONS[1]],
+		"防御力 +%d%%，持续 %d 秒。\n作用于己方或盟友建筑，同类效果不叠加。\n与士气、铁匠铺等常驻防御力独立结算。" % [roundi(SHIELD_DEFENSE * 100.0), DURATIONS[2]],
+		"基础伤害 %d，范围半径 %.1f 米。\n火焰从圆心扩散，消灭接触的敌我行军部队。\n伤害敌方和中立建筑驻军，不直接占领。" % [FIRE_DAMAGE, FIRE_RADIUS]
+	][index]

@@ -188,12 +188,12 @@ func _cast_example() -> void:
 
 func _outcome_caption() -> String:
 	match demo_commander:
-		&"squirrel": return ["持续征召，住宅驻军增加。", "己方行军进入疾行区域后提速。", "防护罩降低建筑受到的伤害。", "火焰灼烧行军部队，同时削减范围内的驻军。"][demo_skill]
-		&"rabbit": return ["冲刺随选中的士兵移动，持续至增益到期。", "敌方炮塔停止射击，停工结束后恢复。", "范围内双方行军返回各自出发建筑。", "下次派兵先掘地，再逐排从目标附近出洞。"][demo_skill]
-		&"bear": return ["升级立即完成，并返还一半施工人口。", "敌方行军在震地区域内减速。", "相连建筑分担驻军伤亡。", "建筑防御提高，法术球每轮攻击最多三名敌兵。"][demo_skill]
-		&"frog": return ["敌军获得持续虚弱，薄雾同时遮挡炮塔射击。", "选中的双方士兵滞空，落地后继续行军。", "己方士兵隐身，避开炮塔攻击直至入城。", "敌方驻军按比例减少，建筑降至一级。"][demo_skill]
+		&"squirrel": return ["持续征召，住宅驻军增加。", "圈内己军移速 +%d%%，离开后恢复。" % roundi((SKILL_RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "建筑防御力 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.SHIELD_DEFENSE * 100.0), SKILL_RULES.DURATIONS[2]], "火焰消灭接触的敌我行军部队，并伤害敌方驻军。"][demo_skill]
+		&"rabbit": return ["攻击力 +%d%%，移速 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]], "敌方炮塔停止射击，停工结束后恢复。", "范围内双方行军返回各自出发建筑。", "下次派兵先掘地，再逐排从目标附近出洞。"][demo_skill]
+		&"bear": return ["升级立即完成，返还 50% 施工人口。", "圈内敌军移速 -%d%%，离开后恢复。" % roundi((1.0 - SKILL_RULES.BEAR_SLOW_MULTIPLIER) * 100.0), "相连建筑分担 50% 驻军伤害。", "建筑防御力 +%d%%，法术球每轮攻击最多 %d 人。" % [roundi(SKILL_RULES.BEAR_WARD_DEFENSE * 100.0), SKILL_RULES.BEAR_ORB_TARGETS]][demo_skill]
+		&"frog": return ["敌军攻击力 -%d%%，持续至进入建筑；炮塔无法攻击雾内士兵。" % roundi(SKILL_RULES.FROG_WEAKNESS * 100.0), "选中的双方士兵滞空，落地后继续行军。", "己方士兵隐身，避开炮塔攻击直至进入建筑。", "敌方驻军减少 %d%%，建筑降至 1 级。" % roundi(SKILL_RULES.FROG_STRIKE_FRACTION * 100.0)][demo_skill]
 		&"fox": return ["炸弹削减敌方驻军。", "敌方士气转移至己方，双方星级随之变化。", "选中的敌军归属转为己方，沿原路线行军。", "敌方驻军离开据点，前往同阵营避难建筑。"][demo_skill]
-		&"pig": return ["下次派兵获得冲锋，增益随士兵持续至入城。", "下次派兵从空中直线抵达，最多运送三十人。", "下次派兵缩短逐排间隔，最多派出六十人。", "空投砸伤落点附近的部队，并减缓敌军。"][demo_skill]
+		&"pig": return ["攻击力 +%d%%，移速 +%d%%，持续至进入建筑。" % [roundi(SKILL_RULES.PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(SKILL_RULES.PIG_CHARGE_SPEED_BONUS * 100.0)], "下次派兵直线飞行，最多 %d 人。" % SKILL_RULES.PIG_FLIGHT_LIMIT, "下次派兵缩短排距和列距，最多 %d 人。" % SKILL_RULES.PIG_FORMATION_LIMIT, "范围内敌我行军部队全部死亡，建筑驻军减少 50%。"][demo_skill]
 	return ""
 
 func fit_camera(aspect: float) -> void:

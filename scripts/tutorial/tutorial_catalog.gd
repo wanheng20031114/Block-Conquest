@@ -1,6 +1,8 @@
 extends RefCounted
 ## Authored lessons: one concept, one real practice, then a clear result.
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
+const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
 const IDS: Array[String] = ["basics", "interface", "house", "tower", "forge", "energy", "morale", "recruit", "drum", "shield", "fire"]
 const TITLES: Array[String] = ["第一道军令", "读懂战场", "住宅：壮大军团", "炮塔：守住路口", "铁匠铺：武装全军", "能量塔：积攒技力", "士气：越战越勇", "征召军令：补足兵力", "疾行战鼓：抢先增援", "防护罩：守住前哨", "天降冲击：截断敌军"]
 const SUMMARIES: Array[String] = ["拖动派兵，占领据点。", "认识界面，调整出兵比例与视野。", "了解产兵，升级住宅。", "增援炮塔，守住路口。", "占领铁匠铺，提高全军攻防。", "占领能量塔，加快技力恢复。", "占领据点，点亮第一颗士气星星。", "突破住宅产兵上限，补兵扩张。", "在援军路线上放置加速区域。", "给前哨加盾，减少守军损失。", "瞄准密集敌军，避开己军。"]
@@ -46,7 +48,7 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("自动开火", "援军正在抵达，炮塔会自动瞄准射击。", "等待炮塔击退敌军", "tower_defense", "building:1"),
 			step("守住路口", "在敌军必经之路布置炮塔，并用住宅补充守军。", "已完成炮塔防守", "read", "building:1")]
 		"forge": return [
-			step("铁匠铺加成", "铁匠铺提高全军攻击和防御，不提高移速。\n它不产兵，需要其他住宅增援。", "认识铁匠铺", "read", "building:1"),
+			step("铁匠铺加成", "1 座铁匠铺：攻击力 +%d%%、防御力 +%d%%。\n无移速加成，不产兵，需要住宅增援。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0)], "认识铁匠铺", "read", "building:1"),
 			step("占领铁匠铺", "从住宅拖到中立铁匠铺，派兵占领。", "占领中立铁匠铺", "capture", "buildings", {"source": 0, "target": 1}),
 			step("全军攻防提高", "持有铁匠铺，加成自动生效；失守后加成消失。", "已获得铁匠铺攻防加成", "read", "building:1")]
 		"energy": return [
@@ -57,7 +59,7 @@ static func steps(id: String) -> Array[Dictionary]:
 		"morale": return [
 			step("士气星星", "兵力条下的星星是士气，影响全军攻防和移速。\n占领据点可获得士气，500 点亮起第一颗星。", "找到己方士气星星", "read", "morale"),
 			step("点亮第一颗星", "派兵占领空置的中立铁匠铺。\n占领后，看顶部己方的第一颗星亮起。", "占领铁匠铺，升到一星士气", "capture", "buildings", {"source": 0, "target": 1}),
-			step("一星加成", "一星：防御 +20%、攻击 +5%、移速 +10%，最高五星。\n进攻伤亡、丢失据点或久无战果会降低士气。", "确认一星士气加成", "read", "morale")]
+			step("一星加成", "每颗完整星：攻击力 +5%%、防御力 +%d%%、移速 +10%%。\n最多 5 星；进攻伤亡、失守或久无战果会降低士气。" % roundi(WarMorale.DEFENSE_PER_STAR * 100.0), "确认一星士气加成", "read", "morale")]
 		"recruit": return [
 			step("征召军令", "这座住宅已有 30 人，停止自然产兵。\n征召军令能补充士兵，突破产兵上限。", "认识征召军令的用途", "read", "building:0"),
 			step("拖动一技能", "把第一个技能拖到己方住宅上，松开施放。\n右键取消，不消耗技力。", "将征召军令拖到己方住宅", "cast_building", "skill:0", {"skill": 0, "target": 0}),
@@ -65,14 +67,14 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("补兵后扩张", "从住宅拖到中立据点，派出一半驻军进攻。", "派兵占领前方据点", "capture", "buildings", {"source": 0, "target": 1})]
 		"drum": return [
 			step("先派出援军", "从住宅拖到前方己方据点，派出援军。\n疾行战鼓可加速路上的己方部队。", "从住宅向前方据点派兵", "dispatch", "buildings", {"source": 0, "target": 1}),
-			step("拖动二技能", "把第二个技能拖到金色队伍中央。\n圈内己军提速，离开后恢复；加速圈固定不动。", "将战鼓放在己方队伍中央", "cast_ground", "skill:1", {"skill": 1, "army": 0}),
+			step("拖动二技能", "把第二个技能拖到金色队伍中央。\n圈内己军移速 +%d%%，离开后恢复；加速圈固定不动。" % roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "将战鼓放在己方队伍中央", "cast_ground", "skill:1", {"skill": 1, "army": 0}),
 			step("加速增援", "等待经过加速圈的援军抵达据点。", "让受加速的援军抵达据点", "haste_arrival", "building:1")]
 		"shield": return [
-			step("防护罩", "防护罩暂时提高己方建筑防御，减少驻军损失。\n本课在施法成功后开始敌军进攻。", "认识防护罩的用途", "read", "building:1"),
-			step("拖动三技能", "把第三个技能拖到金色前哨，高亮后松开。\n只能保护己方建筑，不能对士兵或空地施放。", "把防护罩拖到己方前哨", "cast_building", "skill:2", {"skill": 2, "target": 1}),
+			step("防护罩", "建筑防御力 +%d%%，持续 %d 秒。\n本课在施法成功后开始敌军进攻。" % [roundi(RULES.SHIELD_DEFENSE * 100.0), RULES.DURATIONS[2]], "认识防护罩的用途", "read", "building:1"),
+			step("拖动三技能", "把第三个技能拖到金色前哨，高亮后松开。\n可保护己方或盟友建筑，不能对士兵或空地施放。", "把防护罩拖到己方前哨", "cast_building", "skill:2", {"skill": 2, "target": 1}),
 			step("带盾迎敌", "护盾减伤，但不无敌；临近交战时施放更有效。", "借助护盾守住前哨", "shield_defense", "building:1")]
 		"fire": return [
-			step("天降冲击", "小范围火焰适合攻击密集敌军。\n敌我行军士兵都会受伤，注意避开己军。", "瞄准密集敌军，避开己军", "read", "army:1"),
+			step("天降冲击", "小范围火焰适合攻击密集敌军。\n接触的敌我行军士兵都会死亡，注意避开己军。", "瞄准密集敌军，避开己军", "read", "army:1"),
 			step("拖动四技能", "把第四个技能拖到青绿色敌军中央，松开施放。\n瞄错时按右键取消。", "用天降冲击消灭至少 3 名敌军", "fire_hit", "skill:3", {"skill": 3, "army": 1}),
 			step("四个技能", "征召补兵，战鼓加速，护盾守点，冲击清敌。", "已完成松鼠的四项技能练习", "read", "skills")]
 	return []
