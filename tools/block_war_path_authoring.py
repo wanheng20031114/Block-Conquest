@@ -22,33 +22,33 @@ def author_paths(layout):
              (-12, 23), (-26, 21), (-26, 0))
     elif map_id == "rivers":
         for z in (-23, 0, 23):
-            line((-43, z + 2), (-25, z), (25, z), (43, z + 2))
+            line((-37, z + 2), (-25, z), (25, z), (37, z + 2))
         for side in (-1, 1):
-            line((side * 35, -26), (side * 36, -12), (side * 35, 12), (side * 35, 26))
+            line((side * 31, -26), (side * 32, -12), (side * 31, 12), (side * 31, 26))
         line((0, -29), (2, -16), (0, 0), (-2, 16), (0, 29))
     elif map_id == "ridges":
         for side in (-1, 1):
-            line((side * 42, -23), (side * 27, -24), (side * 16, -34), (0, -35))
-            line((side * 42, 23), (side * 27, 26), (side * 16, 36), (0, 37))
-            line((side * 29, -27), (side * 17, -10), (side * 12, 3),
-                 (side * 17, 10), (side * 29, 27))
+            line((side * 36, -22), (side * 25, -23), (side * 16, -32), (0, -33))
+            line((side * 36, 22), (side * 25, 25), (side * 16, 34), (0, 35))
+            line((side * 27, -26), (side * 17, -10), (side * 12, 3),
+                 (side * 17, 10), (side * 27, 26))
             for direction in (-1, 1):
-                line((side * 42, direction * 2), (side * 34, direction * 9),
+                line((side * 36, direction * 2), (side * 30, direction * 9),
                      (side * 17, direction * 9), (side * 12, direction * 3), (0, direction * 3))
     elif map_id == "islands":
-        for z in (-37, 0, 37):
-            line((-62, z + 2), (-30, z), (30, z), (62, z + 2))
-        line((0, -37), (0, 0), (0, 37))
+        for z in (-31, 0, 31):
+            line((-54, z + 2), (-30, z), (30, z), (54, z + 2))
+        line((0, -31), (0, 0), (0, 31))
         for side in (-1, 1):
-            line((side * 51, -39), (side * 50, -18.5), (side * 52, 0),
-                 (side * 50, 18.5), (side * 51, 39))
+            line((side * 46, -33), (side * 46, -15.5), (side * 46, 0),
+                 (side * 46, 15.5), (side * 46, 33))
     elif map_id == "highland":
         for side in (-1, 1):
-            line((side * 60, -37), (side * 40, -36), (side * 24, -38), (0, -38))
-            line((side * 60, 41), (side * 40, 42), (side * 24, 42), (0, 44))
-            line((side * 46, -38), (side * 47, -21), (side * 43, 0),
-                 (side * 47, 21), (side * 46, 41))
-        line((-60, 2), (-38, 0), (38, 0), (60, 2))
+            line((side * 51, -31), (side * 36, -30), (side * 22, -32), (0, -32))
+            line((side * 51, 35), (side * 36, 36), (side * 22, 36), (0, 38))
+            line((side * 40, -32), (side * 41, -18), (side * 39, 0),
+                 (side * 41, 18), (side * 40, 35))
+        line((-51, 2), (-34, 0), (34, 0), (51, 2))
     elif map_id == "terraces":
         line((-35, 0), (0, 0), (35, 0))
         line((0, -27), (0, 0), (0, 27))
@@ -80,6 +80,13 @@ def author_paths(layout):
             line((0, 0), (side * 12, 0))
     else:
         raise ValueError(f"No road plan for {map_id}")
+
+    # These two terrain sources and their sites were reauthored at the same
+    # horizontal ratios. Scale only the authored spines, never door offsets,
+    # road width or the formation's physical clearance.
+    if map_id in ("switchback", "crown"):
+        ratio = 0.9 if map_id == "switchback" else 0.86
+        paths = [tuple(round(value * ratio, 5) for value in segment) for segment in paths]
 
     def clear(segment):
         if not surface_segment_clear(layout, segment):

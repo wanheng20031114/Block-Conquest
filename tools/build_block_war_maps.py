@@ -55,37 +55,39 @@ def layouts():
                      water=[(-8, -11, 16, 22), (-12, -4, 4, 8), (8, -4, 4, 8)],
                      buildings=starts(26, [0]) + mirrored([26], [-18, 18]) + mirrored([16], [0], 2, 18)
                      + [building(0, z, population=20) for z in (-20, 20)] + mirrored([12], [-20, 20], 1, 22)))
-    medium = dict(common, size=1, half=(54, 40), team=2)
+    medium = dict(common, size=1, half=(48, 36), team=2)
     # Preserve central outpost / tower spacing while compacting the outer villages;
     # overlapping tower fire otherwise turns the middle lanes into prolonged sieges.
     maps.append(dict(medium, id="rivers", title="双河平原", description="六座宽桥串起三条战线，河湾把中央平原收成两段狭长前哨。抢下中桥，可在上下战线之间快速转兵。",
                      water=[(-15, -60, 6, 120), (9, -60, 6, 120)]
                      + [(x, z, 2, 10) for x in (-9, 7) for z in (-17, 7)],
                      bridges=[(x, z - 4, 6, 8) for x in (-15, 9) for z in (-23, 0, 23)],
-                     buildings=starts(42, [-23, 23]) + mirrored([42], [-5.5, 5.5]) + mirrored([25], [-27, 27])
-                     + mirrored([25], [-7, 7], 1, 22) + mirrored([34], [-15, 15], 2, 18)
+                     buildings=starts(36, [-23, 23]) + mirrored([36], [-5.5, 5.5]) + mirrored([24], [-27, 27])
+                     + mirrored([25], [-7, 7], 1, 22) + mirrored([31], [-15, 15], 2, 18)
                      + [building(0, z, 1 if z == 0 else 0, population=30 if z == 0 else 20) for z in (-29, -16, 0, 16, 29)]))
-    maps.append(dict(medium, id="ridges", title="断脊山道", color=(0.38, 0.47, 0.215), description="两道长岩脊和两处侧峰围成分叉谷口。外圈山道适合包抄，中央工坊则能连通两翼的支援。",
-                     mountains=[(-5, -30, 10, 17), (-5, 13, 10, 17), (-28, -5, 8, 10), (20, -5, 8, 10)],
-                     buildings=starts(42, [-23, 23]) + mirrored([42], [-5.5, 5.5]) + mirrored([27], [-27, 27])
-                     + mirrored([27], [-9, 9], 2, 18) + mirrored([14], [-19.5, 19.5], 1, 24)
-                     + mirrored([13], [-35, 35]) + [building(0, 0, 2, population=28)] + mirrored([12], [0], 0, 20)))
-    large = dict(common, size=2, half=(76, 54), team=3)
+    maps.append(dict(medium, id="ridges", title="断脊山道", half=(48, 38), color=(0.38, 0.47, 0.215), description="两道长岩脊和两处侧峰围成分叉谷口。外圈山道适合包抄，中央工坊则能连通两翼的支援。",
+                     mountains=[(-5, -28, 10, 15), (-5, 13, 10, 15), (-26, -5, 8, 10), (18, -5, 8, 10)],
+                     buildings=starts(36, [-22, 22]) + mirrored([36], [-5.5, 5.5]) + mirrored([25], [-26, 26])
+                     + mirrored([25], [-10, 10], 2, 18) + mirrored([14], [-19.5, 19.5], 1, 24)
+                     + mirrored([13], [-33, 33]) + [building(0, 0, 2, population=28)] + mirrored([12], [0], 0, 20)))
+    large = dict(common, size=2, half=(67, 46), team=3)
     maps.append(dict(large, id="islands", title="群岛长滩", description="三座纵向岛屿与八座宽桥连接三条战线。两岸内凹水湾分开集结区，沿岛心转兵可迅速支援队友。",
-                     water=[(-25, -76, 7, 152), (18, -76, 7, 152), (-18, -23, 36, 7), (-18, 16, 36, 7)]
-                     + [(x, z, 4, 6) for x in (-29, 25) for z in (-13, 7)],
-                     bridges=[(x, z - 5, 7, 10) for x in (-25, 18) for z in (-37, 0, 37)] + [(-4, z, 8, 7) for z in (-23, 16)],
-                     buildings=starts(60, [-36, 0, 36]) + mirrored([40], [-36, 0, 36]) + mirrored([60, 40], [-18.5, 18.5])
-                     + [building(x, z, 2 if x == 0 else 0, population=22) for z in (-36, 0, 36) for x in (-9, 0, 9)]
-                     + mirrored([70], [-31, 9, 31], 2, 18) + mirrored([30], [-36, 0, 36], 1, 25)))
-    maps.append(dict(large, id="highland", title="环湖高原", half=(76, 58), color=(0.35, 0.455, 0.195), description="中央石台扼守长桥，湖岸四处岩岬分出内侧捷径和外侧迂回线。三位队友分别推进，也能借中央快速换翼。",
-                     water=[(-18, -26, 36, 52)], bridges=[(-20, -4.5, 40, 9), (-7, -7, 14, 14)],
-                     mountains=[(x, z, 8, 10) for x in (-36, 28) for z in (-20, 10)],
-                     buildings=starts(60, [-39, 0, 39]) + mirrored([40], [-39, 0, 39]) + mirrored([60, 39], [-19.5, 19.5])
-                     + mirrored([26], [-39, 0, 39], 1, 25) + mirrored([52], [-44, -10.5, 10.5, 44], 2, 18)
-                     + [building(0, z, 1 if z == 0 else 0, population=35 if z == 0 else 22) for z in (-41, 0, 41)]
-                     + mirrored([68], [-10, 10], population=12)))
+                     water=[(-25, -70, 7, 140), (18, -70, 7, 140), (-18, -20, 36, 7), (-18, 13, 36, 7)]
+                     + [(x, z, 4, 5) for x in (-29, 25) for z in (-10, 5)],
+                     bridges=[(x, z - 5, 7, 10) for x in (-25, 18) for z in (-31, 0, 31)] + [(-4, z, 8, 7) for z in (-20, 13)],
+                     buildings=starts(52, [-30, 0, 30]) + mirrored([40], [-30, 0, 30]) + mirrored([52, 40], [-15.5, 15.5])
+                     + [building(x, z, 2 if x == 0 else 0, population=22) for z in (-30, 0, 30) for x in (-9, 0, 9)]
+                     + mirrored([61], [-26, 8, 26], 2, 18) + mirrored([30], [-30, 0, 30], 1, 25)))
+    maps.append(dict(large, id="highland", title="环湖高原", half=(66, 50), color=(0.35, 0.455, 0.195), description="中央石台扼守长桥，湖岸四处岩岬分出内侧捷径和外侧迂回线。三位队友分别推进，也能借中央快速换翼。",
+                     water=[(-16, -22, 32, 44)], bridges=[(-18, -4.5, 36, 9), (-7, -7, 14, 14)],
+                     mountains=[(x, z, 8, 10) for x in (-30, 22) for z in (-18, 8)],
+                     buildings=starts(51, [-33, 0, 33]) + mirrored([36], [-33, 0, 33]) + mirrored([51, 35], [-16.5, 16.5])
+                     + mirrored([24], [-33, 0, 33], 1, 25) + mirrored([44], [-38, -9.5, 9.5, 38], 2, 18)
+                     + [building(0, z, 1 if z == 0 else 0, population=35 if z == 0 else 22) for z in (-35, 0, 35)]
+                     + mirrored([59], [-9, 9], population=12)))
     # Wide, deliberately placed earth ramps are the only ways across cliff edges.
+    # Elevated sites use the half-metre height grid so their six-metre level
+    # yards remain flat right through the surrounding triangle interpolation.
     maps.append(dict(common, id="terraces", title="叠翠台地", half=(44, 32),
                      description="四条宽土坡通向中央台地，四座高地住宅环绕坡顶炮塔。先占住宅稳住前线，或沿南北低地绕行，抢占两翼工坊。",
                      terrain=True,
@@ -93,22 +95,22 @@ def layouts():
                      + mirrored([18], [-23, 23], 2, 20) + [building(0, 0, 1, population=36)]
                      + mirrored([35.5], [-10, 10], population=12)
                      + mirrored([8], [-7], population=18) + mirrored([6.75], [7.25], population=18)))
-    maps.append(dict(medium, id="switchback", title="盘山双关", half=(54, 44), color=(0.37, 0.465, 0.215),
+    maps.append(dict(medium, id="switchback", title="盘山双关", half=(49, 40), color=(0.37, 0.465, 0.215),
                      description="南北两座台地由二段土坡连接八米高的山脊要塞。可以沿坡逐层推进，也能走山脚与外沿山道换线包抄。",
                      terrain=True,
-                     buildings=starts(43, [-27, 27]) + mirrored([42], [-9, 9])
-                     + mirrored([28], [0], 2, 20) + mirrored([10], [-27, 27], 0, 24)
+                     buildings=starts(38.5, [-24.5, 24.5]) + mirrored([38], [-8, 8])
+                     + mirrored([25], [0], 2, 20) + mirrored([9], [-24.5, 24.5], 0, 24)
                      + [building(0, 0, 1, population=42)]
-                     + mirrored([31], [-12, 12], population=14)))
-    maps.append(dict(large, id="crown", title="云冠盆地", half=(76, 58), color=(0.355, 0.455, 0.22),
+                     + mirrored([28], [-11, 11], population=14)))
+    maps.append(dict(large, id="crown", title="云冠盆地", half=(66, 50), color=(0.355, 0.455, 0.22),
                      description="环形高地围住林间盆地，六处外坡连接三条战线，两处内坡通向腹地。夺取坡顶哨塔，或借盆地工坊组织跨线支援。",
-                     water=[(-12, -58, 24, 10), (-12, 48, 24, 10)],
+                     water=[(-10, -50, 20, 9), (-10, 41, 20, 9)],
                      terrain=True,
-                     buildings=starts(64, [-30, 0, 30]) + mirrored([62], [-16, 16])
-                     + mirrored([18], [-28, 28], 1, 28) + mirrored([28], [0], 0, 24)
-                     + mirrored([12], [-11, 11], 0, 18) + [building(0, 0, 2, population=30)]
-                     + mirrored([64, 48], [-46, 46], population=12)
-                     + mirrored([48], [-14, 14], population=14)))
+                     buildings=starts(55, [-26, 0, 26]) + mirrored([53.5], [-14, 14])
+                     + mirrored([15.5], [-24, 24], 1, 28) + mirrored([25], [0], 0, 24)
+                     + mirrored([10.5], [-9.5, 9.5], 0, 18) + [building(0, 0, 2, population=30)]
+                     + mirrored([55, 41.5], [-39.5, 39.5], population=12)
+                     + mirrored([41.5], [-12, 12], population=14)))
     return maps
 
 
