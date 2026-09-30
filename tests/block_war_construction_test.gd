@@ -59,31 +59,32 @@ func _run() -> void:
 		var max_level: int = [4, 4, 1][kind]
 		for tier: int in range(1, max_level):
 			fixture(kind, tier)
+			var duration := 5.0 if tier == 1 else 10.0
 			var path: String = "Visual/%s/Stone" % ["House", "Tower", "Smithy"][kind]
 			var old_mesh: Mesh = home.get_node(path).mesh
 			var cost := home.upgrade_cost
 			var defense: float = game.defense_bonus(home)
 			var attack: float = game.attack_bonus(0)
 			game.upgrade_selected()
-			check(home.is_constructing and home.level == tier and home.construction_remaining == 10.0, "each paid tier starts ten seconds without an immediate level")
+			check(home.is_constructing and home.level == tier and home.construction_remaining == duration, "first upgrades take five seconds and later tiers take ten without an immediate level")
 			near(home.population, 200.0 - cost, "construction deducts the exact cost once")
 			check(home.get_node(path).mesh == old_mesh, "unfinished construction retains its current model")
 			near(game.defense_bonus(home), defense, "unfinished construction retains current defense")
 			near(game.attack_bonus(0), attack, "construction cannot grant an early global bonus")
 			check(dust.emitting and chips.emitting and dust.is_visible_in_tree(), "construction begins visible dust and debris")
-			check(upgrade.disabled and upgrade.get_node("Cost/Amount").text == "10s", "paid upgrade shows ten seconds and rejects duplicate clicks")
+			check(upgrade.disabled and upgrade.get_node("Cost/Amount").text == "%ds" % int(duration), "paid upgrade shows its actual duration and rejects duplicate clicks")
 			for repeat: int in 3:
 				game.upgrade_selected()
 			game.convert_selected((kind + 1) % 3)
-			check(home.kind == kind and home.population == 200.0 - cost and home.construction_remaining == 10.0, "duplicate upgrade and conflicting conversion cannot spend or reset work")
+			check(home.kind == kind and home.population == 200.0 - cost and home.construction_remaining == duration, "duplicate upgrade and conflicting conversion cannot spend or reset work")
 			for button: String in ["%ConvertHouse", "%ConvertTower", "%ConvertForge"]:
 				check(game.hud.get_node(button).disabled, "conversion actions are disabled during construction")
-			game.simulate(9.999)
+			game.simulate(duration - 0.001)
 			game.update_hud()
-			check(home.level == tier and home.is_constructing and home.get_node(path).mesh == old_mesh, "9.999 seconds never changes the level or model")
+			check(home.level == tier and home.is_constructing and home.get_node(path).mesh == old_mesh, "the last unfinished millisecond never changes the level or model")
 			check(upgrade.get_node("Cost/Amount").text == "1s", "last fraction of a second remains visible as one second")
 			game.simulate(0.001)
-			check(home.level == tier + 1 and not home.is_constructing, "level changes exactly at ten seconds")
+			check(home.level == tier + 1 and not home.is_constructing, "level changes exactly at its scheduled duration")
 			check(home.get_node(path).mesh != old_mesh and home.get_node("Visual/Flag").get_instance_shader_parameter("building_level") == tier + 1, "completion changes geometry and flag together")
 			check(not dust.emitting and not chips.emitting and completion.emitting, "completion stops the work emitters and releases one final puff")
 			check(home.find_children("*", "", true, false).size() == original_nodes, "construction reuses authored scene nodes")
@@ -104,24 +105,24 @@ func _run() -> void:
 		else:
 			game.simulate(12.0)
 		check(home.level == 2 and second.level == 3, "unselected and selected buildings finish independent construction")
-		near(home.population, 17.5, "first home integrates ten old-rate seconds and six new-rate seconds")
+		near(home.population, 18.75, "first home integrates five old-rate seconds and eleven new-rate seconds")
 		near(second.population, 15.3, "second home integrates its own later completion boundary")
 	# Q spans the completion boundary; both large and small steps have the same sum.
 	for small_steps: bool in [false, true]:
 		fixture(0, 1, 10.0)
 		game.upgrade_selected()
-		game.simulate(8.0)
+		game.simulate(3.0)
 		check(game.cast_skill(0, home), "recruitment can start during construction")
 		if small_steps:
 			for frame: int in 80:
 				game.simulate(0.1)
 		else:
 			game.simulate(8.0)
-		near(home.population, 41.5, "recruitment and natural growth use the correct rates across completion")
+		near(home.population, 36.5, "recruitment and natural growth use the correct rates across the five-second completion")
 	fixture(0, 1, 40.0)
 	game.upgrade_selected()
 	game.simulate(12.0)
-	near(home.population, 32.5, "old production cap stays stopped until completion opens room")
+	near(home.population, 38.75, "old production cap stays stopped until the five-second completion opens room")
 	fixture(0, 2, 20.0)
 	game.upgrade_selected()
 	game.simulate(5.0)
@@ -201,15 +202,15 @@ func _run() -> void:
 	game._on_unit_arrived(home.building_id, 0, 200.0)
 	game.select_building(home)
 	game.upgrade_selected()
-	check(home.level == 1 and home.construction_remaining == 10.0 and dust.is_visible_in_tree(), "recapture starts a fresh full timer and restores dust")
+	check(home.level == 1 and home.construction_remaining == 5.0 and dust.is_visible_in_tree(), "recapture starts a fresh five-second timer and restores dust")
 	game.simulate(3.0)
 	game.set_paused(true)
 	game.simulate(100.0)
-	near(home.construction_remaining, 7.0, "pause cannot consume construction time")
+	near(home.construction_remaining, 2.0, "pause cannot consume construction time")
 	check(dust.speed_scale == 0.0 and chips.speed_scale == 0.0 and completion.speed_scale == 0.0, "pause freezes all native construction particles")
 	game.set_paused(false)
 	check(dust.speed_scale == 1.0 and chips.speed_scale == 1.0, "resume restores particle speed")
-	game.simulate(7.0)
+	game.simulate(2.0)
 	check(home.level == 2 and not home.is_constructing, "resume completes only the remaining work")
 	game.upgrade_selected()
 	game._finish_match(0)

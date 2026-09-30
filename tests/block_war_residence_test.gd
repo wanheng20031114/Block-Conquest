@@ -99,9 +99,10 @@ func _run() -> void:
 		game.simulate(7.0)
 		near(home.population, limit + 44.0, "Q adds twenty-four above the cap and then stops")
 	# Each purchase accepts the exact cost, rejects fractional shortfalls, and
-	# changes the model, natural rate and limit only after ten seconds of work.
+	# changes the model, natural rate and limit only after its full work duration.
 	game.select_building(home)
 	for tier: int in [1, 2, 3]:
+		var duration := 5.0 if tier == 1 else 10.0
 		home.level = tier
 		home.population = tier * 10.0 - 0.01
 		game.upgrade_selected()
@@ -112,12 +113,13 @@ func _run() -> void:
 		check(home.level == tier and home.is_constructing, "exact cost starts construction at the current level")
 		near(home.population, 0.0, "upgrade deducts exactly ten/twenty/thirty")
 		near(home.capacity, limits[tier - 1], "construction retains the current production limit")
-		game.simulate(10.0)
-		check(home.level == tier + 1 and not home.is_constructing, "ten seconds completes the next residence level")
-		near(home.population, rates[tier - 1] * 10.0, "construction retains ordinary production at the old rate")
+		check(home.construction_remaining == duration, "the first residence upgrade takes five seconds and later upgrades take ten")
+		game.simulate(duration)
+		check(home.level == tier + 1 and not home.is_constructing, "the scheduled duration completes the next residence level")
+		near(home.population, rates[tier - 1] * duration, "construction retains ordinary production at the old rate")
 		near(home.capacity, limits[tier], "completed upgrade switches production limit")
 		game.simulate(1.0)
-		near(home.population, rates[tier - 1] * 10.0 + rates[tier], "completed upgrade switches production rate")
+		near(home.population, rates[tier - 1] * duration + rates[tier], "completed upgrade switches production rate")
 		home.population = limits[tier]
 		game.simulate(1.0)
 		near(home.population, limits[tier], "upgraded residence stops at its new limit")
@@ -135,7 +137,7 @@ func _run() -> void:
 	game.simulate(1.0)
 	near(home.population, 10.0, "active Q retains the 1/s natural rate during construction")
 	game._cancel_recruitment()
-	game.simulate(9.0)
+	game.simulate(4.0)
 	check(home.level == 2 and not home.is_constructing, "construction completes after Q is cancelled")
 	# Losing a level-four home restores the existing level-three silhouette and
 	# derives its lower production limit without destroying over-cap survivors.

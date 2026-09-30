@@ -268,7 +268,7 @@ func _army_center(faction: int) -> Vector3:
 func _practice_hint() -> String:
 	if phase.action in ["shield_defense", "tower_defense", "fire_hit", "haste_arrival"] and marches.total_for(1 if lesson_id != "drum" else 0) == 0:
 		return "点「重练」即可立即重来，不必等待技能冷却。"
-	if phase.action == "upgrade": return "先点住宅，再点建筑旁的升级按钮。施工需要 10 秒；驻军不足时住宅会继续生产。"
+	if phase.action == "upgrade": return "先点住宅，再点建筑旁的升级按钮。1 级升到 2 级需要 %d 秒；驻军不足时住宅会继续生产。" % WarBuilding.upgrade_duration(0, 1)
 	if phase.action in ["cast_ground", "fire_hit"]: return "把技能拖向动画指向的队伍；放错位置可右键取消。"
 	return "跟随动画完成左上角目标；点「再看讲解」可暂停复习。"
 

@@ -127,6 +127,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "产兵速度", "body": "住宅共有 4 级，各级每秒产兵 %s / %s / %s / %s 人。升级可提高产兵速度。" % BUILDING.HOUSE_PRODUCTION_RATES},
 				{"title": "自然产兵上限", "body": "各级自然产兵上限为 %d / %d / %d / %d 人。达到上限后暂停自然产兵，驻军减少后继续。" % BUILDING.HOUSE_PRODUCTION_LIMITS},
+				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间继续按原等级产兵。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2)]},
 			],
 			"tip": "自然产兵上限不是驻军上限；增援与征召可以超出。",
 			"icon": preload("res://assets/ui/block_war/action_house.svg"),
@@ -137,6 +138,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "射程与火力", "body": "炮塔共有 4 级。射程依次为 11 / 13 / 15 / 17 米，每轮最多攻击 1 / 2 / 3 / 4 名敌兵；射击间隔为 1.5 / 1.2 / 0.9 / 0.6 秒。"},
 				{"title": "守备与限制", "body": "各级守备为 %d%% / %d%% / %d%% / %d%%，与所属玩家的常驻防御相加。炮塔不会自然产兵；隐身、滞空或处于薄雾内的士兵可避开炮塔攻击。" % [roundi(COMBAT.tower_defense_bonus(1) * 100.0), roundi(COMBAT.tower_defense_bonus(2) * 100.0), roundi(COMBAT.tower_defense_bonus(3) * 100.0), roundi(COMBAT.tower_defense_bonus(4) * 100.0)]},
+				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间继续按原等级开火与守备。" % [BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2)]},
 			],
 			"tip": "将炮塔布置在必经路线附近，可持续削弱敌方行军。",
 			"icon": preload("res://assets/ui/block_war/action_tower.svg"),
@@ -158,7 +160,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "技力恢复", "body": "第 1 / 2 / 3 座有效能量塔，每秒分别额外恢复 0.5 / 0.25 / 0.15 点技力。第 4 座起，每座额外恢复 0.1 点。各玩家独立计算，上限 100 点；封条急件期间暂停加成。"},
 				{"title": "夺取奖励", "body": "从能量塔派出的部队夺取敌方建筑时，立即获得 10 点技力。每次成功占领结算一次，奖励不随塔数增加；占领中立建筑不触发。"},
-				{"title": "建设限制", "body": "仅铁匠铺可改建为能量塔，消耗 20 人，耗时 10 秒。能量塔不产兵、不可升级，可改建回住宅、炮塔或铁匠铺。"},
+				{"title": "建设限制", "body": "仅铁匠铺可改建为能量塔，消耗 20 人，耗时 %d 秒。能量塔不产兵、不可升级，可改建回住宅、炮塔或铁匠铺。" % BUILDING.CONSTRUCTION_DURATION},
 			],
 			"tip": "部队来源以发令时的建筑类型为准；原塔改造或易主不影响已发军令。入城后，下次出征重新判定。",
 			"icon": preload("res://assets/ui/block_war/action_energy.svg"),
@@ -169,7 +171,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "升级", "body": "住宅升至 2 / 3 / 4 级，依次消耗 10 / 20 / 30 人；炮塔升至 2 / 3 / 4 级，依次消耗 30 / 60 / 90 人。只能使用尚未编入出发队列的驻军。"},
 				{"title": "改建", "body": "改建消耗 20 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。"},
-				{"title": "施工", "body": "升级与改建均需 %d 秒。期间保留原有功能；失守时施工中断，已消耗的人口不会返还。" % BUILDING.CONSTRUCTION_DURATION},
+				{"title": "施工", "body": "住宅与炮塔的 1 → 2 级升级需 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒；所有改建仍需 %d 秒。期间保留原有功能；失守时施工中断，已消耗的人口不会返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "封条急件暂停建筑运作，不暂停升级或改建计时。",
 			"icon": preload("res://assets/ui/block_war/action_upgrade.svg"),

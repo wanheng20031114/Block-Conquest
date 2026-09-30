@@ -72,7 +72,7 @@ func _run() -> void:
 		building.kind = kind
 		building.faction = 0
 		building.level = 1
-		building.population = 120.0
+		building.population = 210.0 if kind == 1 else 120.0
 		building.refresh_visual()
 		await select_on_map(building)
 		if kind == 2:
@@ -81,20 +81,22 @@ func _run() -> void:
 			continue
 		check(not game.hud.get_node("%ConvertEnergy").visible, "residence and tower expose only the two original conversion choices")
 		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
-		var expected_costs := [10, 20, 30] if kind == 0 else [30, 60]
-		var expected_max := 4 if kind == 0 else 3
-		var remaining := 120.0
+		var expected_costs := [10, 20, 30] if kind == 0 else [30, 60, 90]
+		var expected_max := 4
+		var remaining: float = building.population
 		for tier: int in expected_costs.size():
+			var duration := 5.0 if tier == 0 else 10.0
 			check(next_level.text == str(tier + 2) and cost.text == str(expected_costs[tier]) and upgrade.text.is_empty(), "kind %d tier %d shows the actual next level and cost" % [kind, tier + 1])
+			check(upgrade.tooltip_text.contains("%d 秒" % int(duration)), "kind %d tier %d tooltip shows its actual construction duration" % [kind, tier + 1])
 			await click(center(upgrade))
 			remaining -= expected_costs[tier]
 			check(building.level == tier + 1 and building.is_constructing and building.population == remaining, "kind %d click pays exactly %d and starts construction" % [kind, expected_costs[tier]])
-			check(upgrade.disabled and cost.text == "10s" and not upgrade.get_node("Cost/Population").visible, "construction replaces cost with a disabled ten-second countdown")
+			check(upgrade.disabled and cost.text == "%ds" % int(duration) and not upgrade.get_node("Cost/Population").visible, "construction replaces cost with the correct disabled countdown")
 			await click(center(upgrade))
-			check(building.population == remaining and building.construction_remaining == 10.0, "repeated construction click neither pays again nor restarts the timer")
-			game.simulate(10.0)
+			check(building.population == remaining and building.construction_remaining == duration, "repeated construction click neither pays again nor restarts the timer")
+			game.simulate(duration)
 			game.update_hud()
-			check(building.level == tier + 2 and not building.is_constructing, "kind %d completes its paid level after ten seconds" % kind)
+			check(building.level == tier + 2 and not building.is_constructing, "kind %d completes its paid level after the scheduled duration" % kind)
 		check(upgrade.disabled and next_level.text == str(expected_max) and cost.text == "—", "kind %d visibly reaches its correct maximum level" % kind)
 		check(upgrade.tooltip_text.contains("已达 %d 级" % expected_max), "max-level tooltip matches the building kind")
 		await click(center(upgrade))
@@ -142,8 +144,8 @@ func _run() -> void:
 	home.population = 90.0
 	game.update_hud()
 	await click(center(upgrade))
-	check(home.level == 1 and home.is_constructing and home.population == 60.0, "converted building starts construction through the same direct button")
-	game.simulate(10.0)
+	check(home.level == 1 and home.is_constructing and home.population == 60.0 and home.construction_remaining == 5.0, "converted level-one building starts a five-second upgrade through the same direct button")
+	game.simulate(5.0)
 	game.update_hud()
 	game.set_paused(true)
 	game.update_hud()

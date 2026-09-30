@@ -234,12 +234,16 @@ func can_convert_to(target_kind: int) -> bool:
 	return target_kind in [0, 1, 2]
 
 
+static func upgrade_duration(building_kind: int, from_level: int) -> float:
+	return 5.0 if building_kind in [0, 1] and from_level == 1 else CONSTRUCTION_DURATION
+
+
 func begin_construction(target_kind: int = -1, paid_cost: int = 0) -> void:
 	assert(not is_constructing)
 	assert((target_kind == -1 and level < max_level) or can_convert_to(target_kind))
 	conversion_target = target_kind
 	construction_cost = paid_cost
-	construction_remaining = CONSTRUCTION_DURATION
+	construction_remaining = upgrade_duration(kind, level) if target_kind == -1 else CONSTRUCTION_DURATION
 	$Construction.show()
 	$Construction/Complete.hide()
 	$Construction/Complete.emitting = false

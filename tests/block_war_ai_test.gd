@@ -61,14 +61,14 @@ func _run() -> void:
 	var home: WarBuilding = game.by_id[1]
 	game._ai_turn()
 	check(home.is_constructing and home.level == 1 and home.population == 50.0, "opening spends ten on housing before launching an army")
-	check(home.construction_remaining == 10.0 and game.marches.total_for(1) == 0, "AI uses the full ten-second construction contract")
+	check(home.construction_remaining == 5.0 and game.marches.total_for(1) == 0, "AI uses the same five-second first-upgrade contract")
 	check(game.selected == game.by_id[0] and game.by_id[0].population == 60.0, "enemy investment does not alter the player's selection or garrison")
 	game._ai_turn()
 	check(game.marches.incoming_for(4, 1) + game.marches.incoming_for(5, 1) == 25, "opening chooses a nearby neutral residence with a sufficient legal wave")
 	check(home.available_population == 25.0 and home.population == 50.0 and game.total_for(1) == 50, "expansion reserves its wave, keeps a guard and conserves all troops")
 	game._ai_turn()
 	check(game.total_for(1) == 50 and game.marches.total_for(1) == 25, "pending construction and expansion cannot be paid twice")
-	game.simulate(9.9)
+	game.simulate(4.9)
 	check(home.level == 1 and home.is_constructing, "investment retains its old level before completion")
 	game.simulate(0.1)
 	check(home.level == 2 and not home.is_constructing, "AI housing completes through the normal simulation")
@@ -76,12 +76,12 @@ func _run() -> void:
 	_fixture()
 	game.ai_enabled = true
 	game.simulate(6.0)
-	check(home.population == 50.0 and home.construction_remaining == 10.0, "a long opening step grants no construction time before payment")
+	check(home.population == 50.0 and home.construction_remaining == 5.0, "a long opening step grants no construction time before payment")
 	game.ai_enabled = false
-	game.simulate(9.999)
+	game.simulate(4.999)
 	check(home.level == 1, "new AI construction cannot finish early after a long step")
 	game.simulate(0.001)
-	check(home.level == 2, "AI construction finishes exactly ten seconds after payment")
+	check(home.level == 2, "AI first upgrade finishes exactly five seconds after payment")
 	_fixture()
 	game.ai_enabled = true
 	game.simulate(18.0)

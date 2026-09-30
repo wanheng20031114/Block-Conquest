@@ -258,7 +258,8 @@ func _update_building_actions(state: Dictionary) -> void:
 	var detail := "开工后剩余 %d 名可用驻军" % (population - cost)
 	if population < cost:
 		detail = "还差 %d 名驻军" % (cost - population)
-	var upgrade_hint := "升级至 %d 级 · 耗时 10 秒\n消耗 %d 名驻军 · %s\n%s" % [level + 1, cost, detail, state.selected_detail]
+	var duration := WarBuilding.upgrade_duration(int(state.selected_kind), level)
+	var upgrade_hint := "升级至 %d 级 · 耗时 %d 秒\n消耗 %d 名驻军 · %s\n%s" % [level + 1, duration, cost, detail, state.selected_detail]
 	if int(state.selected_kind) == 1 and not capped:
 		upgrade_hint += "\n完工后射程增加 2 米"
 	var amount := str(cost)

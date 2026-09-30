@@ -115,7 +115,7 @@ func _run() -> void:
 			game.convert_selected(1)
 		else:
 			game.upgrade_selected()
-		check(home.advance_construction(10.0), "actual construction completes after its ten-second duration")
+		check(home.advance_construction(10.0 if conversion else 5.0), "actual construction completes after five seconds for the first upgrade or ten for conversion")
 		check(not prior_motion.is_valid() and body.transform.is_equal_approx(prior_pose), "completion replaces rebound without resetting its current pose")
 		check((home.kind == 1 and home.level == 1) if conversion else (home.kind == 0 and home.level == 2), "completion changes to the intended model")
 		var completion := home._capture_tween
