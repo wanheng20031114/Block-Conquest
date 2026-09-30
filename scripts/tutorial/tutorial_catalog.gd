@@ -44,8 +44,8 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("2 级住宅", "现在每秒产 1.25 人，达到 50 人停产。\n旁边的建筑图标用于改建，也会消耗驻军。", "认识升级结果与改建按钮", "read", "selection")]
 		"tower": return [
 			step("炮塔与射程", "虚线圈是射程，炮塔会自动射击圈内敌军。\n炮塔不产兵，需要住宅增援。", "找到炮塔射程圈", "read", "building:1"),
-			step("增援炮塔", "从己方住宅拖到己方炮塔，送入援军。\n发出命令后，敌军开始进攻。", "从住宅拖到己方炮塔", "reinforce_tower", "buildings", {"source": 0, "target": 1}),
-			step("自动开火", "援军正在抵达，炮塔会自动瞄准射击。", "等待炮塔击退敌军", "tower_defense", "building:1"),
+			step("增援炮塔", "从己方住宅拖到己方炮塔，送入援军。\n随后观察炮塔自动击退敌军。", "从住宅拖到己方炮塔", "reinforce_tower", "buildings", {"source": 0, "target": 1, "watch_goal": "观察增援抵达、炮塔击退敌军"}),
+			step("防守完成", "援军已抵达，炮塔击退了敌军。", "确认炮塔防守结果", "read", "building:1"),
 			step("守住路口", "在敌军必经之路布置炮塔，并用住宅补充守军。", "已完成炮塔防守", "read", "building:1")]
 		"forge": return [
 			step("铁匠铺加成", "1 座铁匠铺：攻击力 +%d%%、防御力 +%d%%。\n无移速加成，不产兵，需要住宅增援。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0)], "认识铁匠铺", "read", "building:1"),
@@ -62,19 +62,19 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("一星加成", "每颗完整星：攻击力 +5%%、防御力 +%d%%、移速 +10%%。\n最多 5 星；进攻伤亡、失守或久无战果会降低士气。" % roundi(WarMorale.DEFENSE_PER_STAR * 100.0), "确认一星士气加成", "read", "morale")]
 		"recruit": return [
 			step("征召军令", "这座住宅已有 30 人，停止自然产兵。\n征召军令能补充士兵，突破产兵上限。", "认识征召军令的用途", "read", "building:0"),
-			step("拖动一技能", "把第一个技能拖到己方住宅上，松开施放。\n右键取消，不消耗技力。", "将征召军令拖到己方住宅", "cast_building", "skill:0", {"skill": 0, "target": 0}),
-			step("等待征召", "征召会继续增加驻军，超过原来的 30 人上限。", "等待驻军达到 46 人", "recruit_watch", "building:0"),
+			step("拖动一技能", "把第一个技能拖到己方住宅上，松开施放。\n看完 %d 秒征召；右键可取消瞄准。" % RULES.DURATIONS[0], "将征召军令拖到己方住宅", "cast_building", "skill:0", {"skill": 0, "target": 0, "watch_goal": "观察征召结束、驻军增加"}),
+			step("征召完成", "完整征召增加 %d 人，可突破住宅产兵上限。" % int(RULES.RECRUIT_RATE * RULES.DURATIONS[0]), "确认征召后的驻军", "read", "building:0"),
 			step("补兵后扩张", "从住宅拖到中立据点，派出一半驻军进攻。", "派兵占领前方据点", "capture", "buildings", {"source": 0, "target": 1})]
 		"drum": return [
 			step("先派出援军", "从住宅拖到前方己方据点，派出援军。\n疾行战鼓可加速路上的己方部队。", "从住宅向前方据点派兵", "dispatch", "buildings", {"source": 0, "target": 1}),
-			step("拖动二技能", "把第二个技能拖到金色队伍中央。\n圈内己军移速 +%d%%，离开后恢复；加速圈固定不动。" % roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "将战鼓放在己方队伍中央", "cast_ground", "skill:1", {"skill": 1, "army": 0}),
-			step("加速增援", "等待经过加速圈的援军抵达据点。", "让受加速的援军抵达据点", "haste_arrival", "building:1")]
+			step("拖动二技能", "把第二个技能拖到金色队伍中央。\n圈内己军移速 +%d%%，离开后恢复；加速圈固定不动。" % roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "将战鼓放在己方队伍中央", "cast_ground", "skill:1", {"skill": 1, "army": 0, "watch_goal": "观察加速圈消散、援军全部抵达"}),
+			step("援军到达", "加速圈已消散，援军全部进入前方据点。", "确认增援后的驻军", "read", "building:1")]
 		"shield": return [
 			step("防护罩", "建筑防御力 +%d%%，持续 %d 秒。\n本课在施法成功后开始敌军进攻。" % [roundi(RULES.SHIELD_DEFENSE * 100.0), RULES.DURATIONS[2]], "认识防护罩的用途", "read", "building:1"),
-			step("拖动三技能", "把第三个技能拖到金色前哨，高亮后松开。\n可保护己方或盟友建筑，不能对士兵或空地施放。", "把防护罩拖到己方前哨", "cast_building", "skill:2", {"skill": 2, "target": 1}),
-			step("带盾迎敌", "护盾减伤，但不无敌；临近交战时施放更有效。", "借助护盾守住前哨", "shield_defense", "building:1")]
+			step("拖动三技能", "把第三个技能拖到金色前哨，高亮后松开。\n观察前哨带盾迎敌，直到护盾消失。", "把防护罩拖到己方前哨", "cast_building", "skill:2", {"skill": 2, "target": 1, "watch_goal": "观察护盾消失，守住前哨"}),
+			step("前哨守住了", "护盾已消失，前哨仍有守军。\n护盾减伤但不无敌，适合临近交战时施放。", "确认护盾防守结果", "read", "building:1")]
 		"fire": return [
 			step("天降冲击", "小范围火焰适合攻击密集敌军。\n接触的敌我行军士兵都会死亡，注意避开己军。", "瞄准密集敌军，避开己军", "read", "army:1"),
-			step("拖动四技能", "把第四个技能拖到青绿色敌军中央，松开施放。\n瞄错时按右键取消。", "用天降冲击消灭至少 3 名敌军", "fire_hit", "skill:3", {"skill": 3, "army": 1}),
+			step("拖动四技能", "把第四个技能拖到青绿色敌军中央，松开施放。\n观察火焰展开、消散；右键可取消瞄准。", "用天降冲击消灭至少 3 名敌军", "fire_hit", "skill:3", {"skill": 3, "army": 1, "watch_goal": "消灭至少 3 名敌军，观察火焰消散"}),
 			step("四个技能", "征召补兵，战鼓加速，护盾守点，冲击清敌。", "已完成松鼠的四项技能练习", "read", "skills")]
 	return []

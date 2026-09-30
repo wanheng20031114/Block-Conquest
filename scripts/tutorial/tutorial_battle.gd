@@ -3,6 +3,8 @@ extends "res://scripts/block_war/block_war.gd"
 const LESSONS := preload("res://scripts/tutorial/tutorial_catalog.gd")
 const PROGRESS := preload("res://scripts/tutorial/tutorial_progress.gd")
 const DIRECT_ACTIONS := ["capture", "dispatch", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit", "ratio", "zoom", "pan"]
+const RESULT_HOLD := 0.75
+const OBSERVED_ACTIONS := ["capture", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit"]
 var lesson_id := "basics"
 var progress_path := PROGRESS.SAVE_PATH
 var lesson_steps: Array[Dictionary] = []
@@ -23,9 +25,10 @@ var shield_damage_seen := false
 var phase_start_energy := 0.0
 var phase_start_zoom := 0.0
 var phase_start_camera := Vector3.ZERO
-var shield_previous_population := 0.0
+var recruit_result_population := 0.0
+var result_ready_at := -1.0
+var observation_hint := ""
 var next_hint_at := 18.0
-var _aiming_hold := false
 @onready var tutor: CanvasLayer = $Tutorial
 
 func _enter_tree() -> void:
@@ -83,7 +86,6 @@ func _check_victory() -> void:
 	pass
 
 func _process(delta: float) -> void:
-	_aiming_hold = tutorial_ready and practicing and not accepted_action and (phase.action in ["cast_building", "cast_ground", "fire_hit"] or (lesson_id == "morale" and phase.action == "capture"))
 	super._process(delta)
 	if not tutorial_ready or _closing: return
 	# Camera practice is judged by the rendered view, not by an attempted wheel
@@ -93,19 +95,39 @@ func _process(delta: float) -> void:
 		_continue()
 	if practicing and not is_rule_paused() and not lesson_complete:
 		practice_seconds += delta
-		_observe_practice()
 		if _objective_met():
-			_queue_advance()
-		elif practice_seconds >= next_hint_at:
+			if result_ready_at < 0.0: result_ready_at = elapsed
+			if _result_visible_long_enough(): _queue_advance()
+		else:
+			result_ready_at = -1.0
+		var hint := _observation_hint()
+		if not hint.is_empty() and hint != observation_hint:
+			observation_hint = hint
+			tutor.show_hint(hint)
+		elif not accepted_action and practice_seconds >= next_hint_at:
 			next_hint_at += 18.0
 			tutor.show_hint(_practice_hint())
 	_update_guidance()
 
 func simulate(delta: float) -> void:
-	# First-time aiming has no time pressure. Input still uses the real skill
-	# validation, but troops wait until a valid placement commits the skill.
-	if _aiming_hold: return
-	super.simulate(delta)
+	if not tutorial_ready or phase.action != "dispatch" or not accepted_action:
+		super.simulate(delta)
+		return
+	# Stop this demonstration at its aiming opportunity, even if a slow frame
+	# would otherwise carry the whole column into the destination building.
+	var remaining := delta
+	while remaining > 0.0 and not is_rule_paused():
+		var step := minf(remaining, 0.05)
+		super.simulate(step)
+		if _army_exposed(0) >= 6: return
+		remaining = maxf(0.0, remaining - step)
+
+func _simulate_step(delta: float) -> void:
+	# Observe the authoritative substeps, including frames that span an entire
+	# skill. A frame-end sample can miss every accelerated soldier.
+	_observe_practice()
+	super._simulate_step(delta)
+	_observe_practice()
 
 func _next_phase() -> void:
 	advance_queued = false
@@ -117,6 +139,8 @@ func _next_phase() -> void:
 	practicing = false
 	practice_seconds = 0.0
 	accepted_action = false
+	result_ready_at = -1.0
+	observation_hint = ""
 	next_hint_at = 18.0
 	phase_start_energy = energy
 	phase_start_zoom = camera.size
@@ -141,11 +165,10 @@ func _continue() -> void:
 	practicing = true
 	tutor.dismiss_instruction()
 	_set_teaching_pause(false)
-	if phase.action == "shield_defense" and not wave_started:
-		wave_started = true
-		shield_previous_population = by_id[1].population
-		issue_order(by_id[2], by_id[1], 100, 1)
-	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
+	var goal := str(phase.get("watch_goal", phase.goal)) if accepted_action else str(phase.goal)
+	if accepted_action and phase.action == "capture": goal = "观察占领与部队入驻"
+	if accepted_action and phase.action == "upgrade": goal = "观察住宅升级完成"
+	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
 	_update_guidance()
 
 func _replay() -> void:
@@ -167,6 +190,13 @@ func _can_direct_interact() -> bool:
 		return false
 	if get_node("/root/Session/Settings").is_open(): return false
 	return (practicing and not simulation_paused) or (_is_direct_action() and not accepted_action)
+
+func _can_issue_lesson_action() -> bool:
+	if not _can_direct_interact(): return false
+	if not accepted_action: return true
+	# Observe one committed action. A failed capture can be reinforced once its
+	# first column has resolved; other actions cannot be repeated mid-effect.
+	return phase.action == "capture" and by_id[int(phase.target)].faction != local_faction and marches.incoming_for(int(phase.target), local_faction) == 0
 
 func _sync_teaching_input() -> void:
 	var direct := _can_direct_interact()
@@ -238,7 +268,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	super._unhandled_input(event)
 
 func request_skill(index: int, from_keyboard: bool = false) -> void:
-	if not _can_direct_interact() or int(phase.get("skill", -1)) != index:
+	if not _can_issue_lesson_action() or int(phase.get("skill", -1)) != index:
 		return
 	# The native skill validator shares the simulation pause gate. Open it only
 	# for this synchronous preview request; no world frame can run in between.
@@ -279,7 +309,7 @@ func set_percentage(value: int) -> void:
 		_continue()
 
 func submit_player_command(command: Dictionary) -> Dictionary:
-	if not _can_direct_interact():
+	if not _can_issue_lesson_action():
 		return {"accepted": false, "reason": "tutorial_paused"}
 	var kind := str(command.get("type", ""))
 	var allowed := false
@@ -301,13 +331,17 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 	# Validate and commit through the same rules as ordinary battles. A failed
 	# attempt restores the lecture pause without spending time or advancing.
 	var teaching_pause := simulation_paused
+	var recruitment_population: float = by_id[int(phase.target)].population if phase.action == "cast_building" and int(phase.skill) == 0 else 0.0
 	simulation_paused = false
 	var result := super.submit_player_command(command)
 	simulation_paused = teaching_pause
 	if result.accepted:
 		accepted_action = true
+		observation_hint = ""
+		if phase.action == "cast_building" and int(phase.skill) == 0:
+			recruit_result_population = recruitment_population + RECRUIT_RATE * SKILL_DURATIONS[0]
 		if teaching_pause: _continue()
-		if phase.action == "reinforce_tower" and not wave_started:
+		if (phase.action == "reinforce_tower" or (phase.action == "cast_building" and int(phase.skill) == 2)) and not wave_started:
 			wave_started = true
 			issue_order(by_id[2], by_id[1], 100, 1)
 	return result
@@ -318,34 +352,68 @@ func _record_event(kind: String, payload: Dictionary) -> void:
 
 func _record_arrival(target: int, faction: int, _strength: float, _bonus: float, _energy_origin: bool) -> void:
 	if faction == 0 and target == 1 and haste_seen: haste_arrived = true
+	# The native arrival handler has applied damage, and the shield has not yet
+	# ticked down. This also witnesses damage in a frame crossing shield expiry.
+	if lesson_id == "shield" and target == 1 and faction == 1 and shields.has(1) and by_id[1].faction == 0:
+		shield_damage_seen = true
 
 func _observe_practice() -> void:
 	if lesson_id == "drum":
 		for unit: WarMarches.MarchUnit in marches._units:
 			if unit.order.faction == 0 and unit.is_exposed() and marches.speed_multiplier(unit) > morale.speed(0) + 0.1:
 				haste_seen = true
-	if phase.action == "shield_defense":
-		if shields.has(1) and by_id[1].population < shield_previous_population:
-			shield_damage_seen = true
-		shield_previous_population = by_id[1].population
 
 func _objective_met() -> bool:
 	match phase.action:
-		"capture": return accepted_action and by_id[int(phase.target)].faction == 0 and (lesson_id != "morale" or morale.level(0) >= 1)
+		"capture": return accepted_action and by_id[int(phase.target)].faction == 0 and marches.incoming_for(int(phase.target), 0) == 0 and (lesson_id != "morale" or morale.level(0) >= 1)
 		"ratio": return percentage == 25
 		"zoom": return absf(camera.size - phase_start_zoom) >= 0.8
 		"pan": return camera_rig.position.distance_to(phase_start_camera) >= 1.0 and not camera_rig.dragging
 		"upgrade": return accepted_action and by_id[0].level >= 2 and not by_id[0].is_constructing
 		"dispatch": return accepted_action and _army_exposed(0) >= 6
-		"reinforce_tower", "cast_building": return accepted_action
-		"tower_defense": return tower_shots > 0 and wave_started and marches.total_for(1) == 0 and by_id[1].faction == 0
+		"reinforce_tower": return accepted_action and tower_shots > 0 and wave_started and marches.total_for(1) == 0 and marches.incoming_for(1, 0) == 0 and projectiles.is_empty() and by_id[1].faction == 0
+		"cast_building":
+			if not accepted_action: return false
+			if int(phase.skill) == 0:
+				return faction_skills[0].recruit_target_id < 0 and faction_skills[0].durations[0] <= 0.0 and by_id[int(phase.target)].population >= recruit_result_population - 0.0001
+			return not shields.has(int(phase.target)) and shield_damage_seen and wave_started and marches.total_for(1) == 0 and by_id[int(phase.target)].faction == 0
 		"energy_watch": return energy >= minf(ENERGY_MAX, phase_start_energy + 5.0)
-		"recruit_watch": return by_id[0].population >= 46.0
-		"cast_ground": return accepted_action and haste_seen
-		"haste_arrival": return haste_seen and haste_arrived
-		"shield_defense": return shield_damage_seen and wave_started and marches.total_for(1) == 0 and by_id[1].faction == 0
-		"fire_hit": return accepted_action and burned_enemies >= 3
+		"cast_ground": return accepted_action and haste_seen and haste_arrived and not marches.haste_zones.has(0) and marches.incoming_for(1, 0) == 0
+		"fire_hit": return accepted_action and burned_enemies >= 3 and fire_states.is_empty()
 	return false
+
+func _result_visible_long_enough() -> bool:
+	if phase.action not in OBSERVED_ACTIONS: return true
+	var hold := RESULT_HOLD
+	# Hand-emitted motes outlive their ring. Their authored lifetime, rather
+	# than cooldown or rendering quality, determines the final viewing period.
+	if phase.action == "cast_building":
+		hold = maxf(hold, world_effects.get_node("RecruitMotes" if int(phase.skill) == 0 else "ShieldMotes").lifetime)
+	elif phase.action == "cast_ground":
+		hold = maxf(hold, world_effects.get_node("HasteMotes").lifetime)
+	elif phase.action in ["capture", "upgrade"]:
+		var building: WarBuilding = by_id[int(phase.target)]
+		if phase.action == "upgrade":
+			for particles: GPUParticles3D in building._construction_particles:
+				hold = maxf(hold, particles.lifetime)
+		if building._capture_tween and building._capture_tween.is_running(): return false
+		for effect: Dictionary in effects:
+			if effect.kind == "capture" and effect.at == building.global_position: return false
+	return elapsed - result_ready_at >= hold
+
+func _observation_hint() -> String:
+	if not accepted_action: return ""
+	match phase.action:
+		"capture":
+			if marches.incoming_for(int(phase.target), 0) == 0 and by_id[int(phase.target)].faction != 0:
+				return "兵力不足，再派一批。"
+		"fire_hit":
+			if fire_states.is_empty() and burned_enemies < 3: return "命中不足 3 人，点「重练」。"
+		"cast_ground":
+			if not marches.haste_zones.has(0) and not haste_seen: return "未加速到援军，点「重练」。"
+		"cast_building", "reinforce_tower":
+			if by_id[int(phase.target)].faction != 0: return "据点失守，点「重练」。"
+	return ""
 
 func _army_exposed(faction: int) -> int:
 	var count := 0
@@ -363,8 +431,6 @@ func _army_center(faction: int) -> Vector3:
 	return centre / count if count > 0 else by_id[1].global_position
 
 func _practice_hint() -> String:
-	if phase.action in ["shield_defense", "tower_defense", "fire_hit", "haste_arrival"] and marches.total_for(1 if lesson_id != "drum" else 0) == 0:
-		return "点「重练」重新开始。"
 	if phase.action == "upgrade": return "点击住宅旁的向上箭头。"
 	if phase.action in ["cast_ground", "fire_hit"]: return "将技能拖到标出的部队；右键取消。"
 	return str(phase.goal)
