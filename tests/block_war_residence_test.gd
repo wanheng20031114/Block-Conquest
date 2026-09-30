@@ -38,8 +38,8 @@ func _run() -> void:
 		for corner: int in 8:
 			var world := part.to_global(bounds.get_endpoint(corner))
 			check(game.pick_building(game.camera.unproject_position(world)) == home, "level-four roof and crown remain inside the authored click area")
-	var rates := [1.0, 1.25, 1.4, 1.5]
-	var limits := [30.0, 50.0, 60.0, 80.0]
+	var rates := [0.33, 0.66, 1.0, 1.2]
+	var limits := [20.0, 40.0, 60.0, 80.0]
 	for tier: int in [1, 2, 3, 4]:
 		home.level = tier
 		enemy.level = tier
@@ -72,7 +72,7 @@ func _run() -> void:
 		home.population = limit
 		check(game.issue_order(home, neutral, 100) == int(limit), "all natural garrison can leave through normal dispatch")
 		# Advance departures alone so natural production cannot obscure the cost.
-		game.marches.tick(5.0)
+		game.marches.tick(8.0)
 		check(home.population == 0.0 and home.queued_population == 0, "the entire garrison is deducted after its final rank exits")
 		game.marches.clear()
 		game.simulate(1.0)
@@ -102,8 +102,8 @@ func _run() -> void:
 	# changes the model, natural rate and limit only after its full work duration.
 	game.select_building(home)
 	for tier: int in [1, 2, 3]:
-		var duration := 5.0 if tier == 1 else 10.0
-		var cost: int = [5, 20, 30][tier - 1]
+		var duration: float = [5.0, 10.0, 20.0][tier - 1]
+		var cost: int = [5, 15, 30][tier - 1]
 		home.level = tier
 		home.population = cost - 0.01
 		game.upgrade_selected()
@@ -112,11 +112,16 @@ func _run() -> void:
 		home.population = cost
 		game.upgrade_selected()
 		check(home.level == tier and home.is_constructing, "exact cost starts construction at the current level")
-		near(home.population, 0.0, "upgrade deducts exactly five/twenty/thirty")
+		near(home.population, 0.0, "upgrade deducts exactly five/fifteen/thirty")
 		near(home.capacity, limits[tier - 1], "construction retains the current production limit")
-		check(home.construction_remaining == duration, "the first residence upgrade takes five seconds and later upgrades take ten")
-		game.simulate(duration)
+		check(home.construction_remaining == duration, "residence upgrades take five/ten/twenty seconds")
+		game.simulate(duration - 0.001)
+		check(home.level == tier and home.is_constructing, "residence upgrade does not complete a millisecond early")
+		near(home.production_rate, rates[tier - 1], "unfinished upgrade retains its current production rate")
+		near(game.defense_bonus(home), 0.1 * (tier - 1), "unfinished upgrade retains its current intrinsic defense")
+		game.simulate(0.001)
 		check(home.level == tier + 1 and not home.is_constructing, "the scheduled duration completes the next residence level")
+		near(game.defense_bonus(home), 0.1 * tier, "completed upgrade immediately grants the next intrinsic defense")
 		near(home.population, rates[tier - 1] * duration, "construction retains ordinary production at the old rate")
 		near(home.capacity, limits[tier], "completed upgrade switches production limit")
 		game.simulate(1.0)
@@ -136,7 +141,7 @@ func _run() -> void:
 	game.simulate(1.0)
 	game.upgrade_selected()
 	game.simulate(1.0)
-	near(home.population, 15.0, "active Q retains the 1/s natural rate during construction")
+	near(home.population, 13.66, "active Q retains the 0.33/s natural rate during construction")
 	game._cancel_recruitment()
 	game.simulate(4.0)
 	check(home.level == 2 and not home.is_constructing, "construction completes after Q is cancelled")
@@ -163,7 +168,7 @@ func _run() -> void:
 	near(home.population, 110.0, "forge conversion pays twenty and does not produce")
 	game.convert_selected(0)
 	game.simulate(10.0)
-	check(home.kind == 0 and home.level == 1 and home.capacity == 30.0, "conversion back derives level-one house rules")
+	check(home.kind == 0 and home.level == 1 and home.capacity == 20.0, "conversion back derives level-one house rules")
 	game.simulate(2.0)
 	near(home.population, 90.0, "over-cap garrison survives conversion back")
 	# At the level-one cap the AI invests to reopen growth rather than waiting
@@ -177,11 +182,11 @@ func _run() -> void:
 	var reserve: WarBuilding = game.by_id[4]
 	var front: WarBuilding = game.by_id[5]
 	reserve.faction = 1
-	reserve.population = 30.0
+	reserve.population = 20.0
 	front.faction = 1
 	front.population = 200.0
 	game._ai_turn()
-	check(reserve.is_constructing and reserve.population == 25.0, "AI invests five soldiers from a full level-one residence")
+	check(reserve.is_constructing and reserve.population == 15.0, "AI invests five soldiers from a full level-one residence")
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_RESIDENCE checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)

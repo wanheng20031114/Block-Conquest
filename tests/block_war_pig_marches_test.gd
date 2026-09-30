@@ -53,7 +53,7 @@ func _charge_and_doorway() -> void:
 	var unit := marches._units[0]
 	check(departures == 1 and reservations == 0, "An immediately exposed one-person order pays exactly once")
 	near(marches.speed_multiplier(unit), 1.8, "Charge +20% multiplies the existing morale speed")
-	near(marches.movement_distance(unit, 1.0), 3.1 * 1.5 * 1.2, "Charge changes actual movement, not just its displayed multiplier")
+	near(marches.movement_distance(unit, 1.0), WarMarches.SPEED * 1.5 * 1.2, "Charge changes actual movement, not just its displayed multiplier")
 	near(marches.projected_attack_bonus(unit), 0.1, "Pig charge provides ten percentage points of attack throughout a long march")
 	unit.rush_remaining = 30.0
 	near(marches.speed_multiplier(unit), 3.3, "Charge and rabbit rush add within the skill multiplier")
@@ -86,7 +86,7 @@ func _charge_and_doorway() -> void:
 	unit = marches._units[0]
 	marches.create_haste_zone(0, Vector3.ZERO, 100.0, 0.5, 1.6)
 	marches.create_slow_zone(1, Vector3.ZERO, 100.0, 0.25)
-	near(marches.movement_distance(unit, 1.0), marches.SPEED * (1.2 + 0.6 * 0.5 - 0.6 * 0.25), "Charge retains exact haste and slow expiry integration")
+	near(marches.movement_distance(unit, 1.0), marches.SPEED * (1.2 + 0.6 * 0.5 - 0.6), "Charge retains exact haste expiry and the slow's ongoing five-second tail")
 
 func _dense_queue() -> void:
 	reset()
@@ -97,7 +97,7 @@ func _dense_queue() -> void:
 		near(marches._units[column + 1].lane - marches._units[column].lane, 0.44, "Dense formations retain six files with 0.44m lane spacing")
 	for row: int in range(1, 10):
 		near(marches._units[(row - 1) * 6].distance - marches._units[row * 6].distance, 0.50, "Dense queued rows are separated by 0.50m")
-	marches.tick(3.0)
+	marches.tick((9.0 * marches.DENSE_ROW_SPACING + marches.GATE_LENGTH + marches.DENSE_COLUMN_SPACING * 2.5 * 0.11) / marches.SPEED + 0.01)
 	check(reservations == 0 and departures == 60 and marches.total_for(0) == 60, "Dense departure speeds up the complete queue without losing or duplicating population")
 	var minimum := INF
 	for first: int in marches._units.size():

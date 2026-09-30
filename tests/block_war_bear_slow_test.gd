@@ -36,13 +36,13 @@ func _run() -> void:
 
 func _exit_and_allies() -> void:
 	for faction: int in 6: soldier(faction)
-	marches.create_slow_zone(0, Vector3.ZERO, 1.24, 4.0)
+	marches.create_slow_zone(0, Vector3.ZERO, WarMarches.SPEED * 0.4, 4.0)
 	for unit: WarMarches.MarchUnit in marches._units:
 		near(unit.slow_remaining, 5.0 if unit.order.faction % 2 == 1 else 0.0, "cast affects only enemies %d" % unit.order.faction)
 	marches.tick(1.0)
 	for unit: WarMarches.MarchUnit in marches._units:
 		var enemy := unit.order.faction % 2 == 1
-		near(unit.distance, 1.24 if enemy else 3.1, "exact circle exit %d" % unit.order.faction)
+		near(unit.distance, WarMarches.SPEED * (0.4 if enemy else 1.0), "exact circle exit %d" % unit.order.faction)
 		near(unit.slow_remaining, 5.0 if enemy else 0.0, "exit starts a complete tail %d" % unit.order.faction)
 	marches.tick(4.5)
 	check(marches.slow_zones.is_empty(), "ground field expires independently of affected soldiers")
@@ -52,7 +52,7 @@ func _exit_and_allies() -> void:
 		near(marches.speed_multiplier(unit), 0.4 if enemy else 1.0, "out-of-range speed %d" % unit.order.faction)
 	marches.tick(1.0)
 	for unit: WarMarches.MarchUnit in marches._units:
-		near(unit.distance, 8.99 if unit.order.faction % 2 == 1 else 20.15, "mid-frame expiry restores ordinary speed %d" % unit.order.faction)
+		near(unit.distance, WarMarches.SPEED * (6.0 * 0.4 + 0.5 if unit.order.faction % 2 == 1 else 6.5), "mid-frame expiry restores ordinary speed %d" % unit.order.faction)
 		near(unit.slow_remaining, 0.0, "tail fully expired %d" % unit.order.faction)
 		near(marches.speed_multiplier(unit), 1.0, "full speed restored %d" % unit.order.faction)
 
@@ -63,16 +63,16 @@ func _expiry_and_overlap() -> void:
 	marches.create_slow_zone(2, Vector3.ZERO, 100.0, 2.0)
 	marches.create_slow_zone(4, Vector3.ZERO, 100.0, 3.0)
 	marches.tick(4.0)
-	near(unit.distance, 4.96, "three overlapping zones slow only once")
+	near(unit.distance, WarMarches.SPEED * 4.0 * 0.4, "three overlapping zones slow only once")
 	near(unit.slow_remaining, 5.0, "last zone expiry leaves five seconds, not a sum")
 	marches.tick(6.0)
-	near(unit.distance, 14.26, "four seconds of field plus five of tail then ordinary motion")
+	near(unit.distance, WarMarches.SPEED * (9.0 * 0.4 + 1.0), "four seconds of field plus five of tail then ordinary motion")
 	near(unit.slow_remaining, 0.0, "overlapping zones never accumulate extra tail")
 
 func _reentry_and_recall() -> void:
 	marches.clear()
 	var unit := soldier()
-	marches.create_slow_zone(0, Vector3.ZERO, 1.24, 4.0)
+	marches.create_slow_zone(0, Vector3.ZERO, WarMarches.SPEED * 0.4, 4.0)
 	marches.tick(1.5)
 	near(unit.slow_remaining, 4.5, "departing unit has consumed half a second of tail")
 	var before := unit.position
@@ -81,7 +81,7 @@ func _reentry_and_recall() -> void:
 	near(unit.slow_remaining, 4.5, "recall cannot cleanse the slow")
 	marches.tick(0.75)
 	near(unit.slow_remaining, 5.0, "returning through the same circle refreshes, rather than adds, the tail")
-	near(unit.position.x, 0.93, "reentry keeps formation-route motion")
+	near(unit.position.x, WarMarches.SPEED * 0.4 * 0.75, "reentry keeps formation-route motion")
 	marches.tick(1.0)
 	check(marches._units.is_empty(), "entering the building ends this march")
 	marches.clear()
@@ -92,7 +92,7 @@ func _hidden_and_floating() -> void:
 	marches.clear()
 	var floating := soldier()
 	var queued := soldier(3)
-	queued.distance = -3.1
+	queued.distance = -WarMarches.SPEED
 	queued.pending_departure = true
 	var tunnel := soldier(5)
 	tunnel.spawn_delay = 2.0
@@ -105,19 +105,19 @@ func _hidden_and_floating() -> void:
 	marches.tick(3.0)
 	near(floating.distance, 0.0, "levitation still prevents all movement")
 	near(floating.slow_remaining, 3.0, "slow ages from field expiry while levitating")
-	near(queued.distance, 6.2, "queue leaves only after this field expires")
+	near(queued.distance, WarMarches.SPEED * 2.0, "queue leaves only after this field expires")
 	near(queued.slow_remaining, 0.0, "queue does not acquire an expired field")
 	near(tunnel.slow_remaining, 0.0, "tunnel does not acquire an expired field")
 	marches.tick(1.0)
-	near(floating.distance, 1.24, "landing retains the unexpired slow")
+	near(floating.distance, WarMarches.SPEED * 0.4, "landing retains the unexpired slow")
 	near(floating.slow_remaining, 2.0, "landing cannot restart the tail")
 	marches.clear()
 	var emerging := soldier()
-	emerging.distance = -1.55
+	emerging.distance = -WarMarches.SPEED * 0.5
 	emerging.pending_departure = true
 	marches.create_slow_zone(0, Vector3.ZERO, 100.0, 1.0)
 	marches.tick(2.0)
-	near(emerging.distance, 1.86, "emergence starts slowing only after the half-second queue")
+	near(emerging.distance, WarMarches.SPEED * 1.5 * 0.4, "emergence starts slowing only after the half-second queue")
 	near(emerging.slow_remaining, 4.0, "new contact receives the tail from field expiry")
 
 func _partition_and_prediction() -> void:

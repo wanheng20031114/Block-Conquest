@@ -22,9 +22,10 @@ var queued_population := 0
 var available_population: float:
 	get: return maxf(0.0, population - queued_population)
 
-const HOUSE_PRODUCTION_RATES: Array[float] = [1.0, 1.25, 1.4, 1.5]
-const HOUSE_PRODUCTION_LIMITS: Array[float] = [30.0, 50.0, 60.0, 80.0]
-const HOUSE_UPGRADE_COSTS: Array[int] = [5, 20, 30]
+const HOUSE_PRODUCTION_RATES: Array[float] = [0.33, 0.66, 1.0, 1.2]
+const HOUSE_PRODUCTION_LIMITS: Array[float] = [20.0, 40.0, 60.0, 80.0]
+const HOUSE_UPGRADE_COSTS: Array[int] = [5, 15, 30]
+const HOUSE_UPGRADE_DURATIONS: Array[float] = [5.0, 10.0, 20.0]
 const CONSTRUCTION_DURATION := 10.0
 const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
 const SELECTION_REBOUND_DURATION := 0.38
@@ -236,7 +237,12 @@ func can_convert_to(target_kind: int) -> bool:
 
 
 static func upgrade_duration(building_kind: int, from_level: int) -> float:
-	return 5.0 if building_kind in [0, 1] and from_level == 1 else CONSTRUCTION_DURATION
+	# HUD also queries completed buildings; they have no next upgrade.
+	if building_kind not in [0, 1] or from_level >= 4:
+		return 0.0
+	if building_kind == 0:
+		return HOUSE_UPGRADE_DURATIONS[from_level - 1]
+	return 5.0 if from_level == 1 else CONSTRUCTION_DURATION
 
 
 func begin_construction(target_kind: int = -1, paid_cost: int = 0) -> void:

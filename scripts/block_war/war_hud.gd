@@ -18,6 +18,7 @@ signal debug_visibility_changed(visible: bool)
 
 const PERCENTAGES: Array[int] = [100, 75, 50, 25]
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
+const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 const BUILDING_NAMES := WarBuilding.KIND_NAMES
 
 var _paused: bool = false
@@ -482,7 +483,11 @@ func _update_help_controls() -> void:
 	if _online_menu:
 		%HelpCard.get_node("Detail4").text = "屏幕边缘或中键拖动来移动镜头；滚轮缩放。\nEsc 只打开本地菜单；%s 暂停或继续整场对局。\n参战真人均可暂停，投降后可观战；%s 开关数据面板。" % [_pause_shortcut(), _debug_shortcut()]
 	else:
-		%HelpCard.get_node("Detail4").text = "铁匠铺提高全军攻击力与防御力；士气提高攻击力、防御力与移速。\n炮塔防御力：1 级 +25%%、2 级 +40%%、3 级 +60%%、4 级 +70%%。\n同类常驻加成相加，攻击力除以防御力结算；技能独立结算。按 %s 开关数据面板。" % _debug_shortcut()
+		%HelpCard.get_node("Detail4").text = "住宅防御力：1 级 +%d%%、2 级 +%d%%、3 级 +%d%%、4 级 +%d%%。\n炮塔防御力：1 级 +%d%%、2 级 +%d%%、3 级 +%d%%、4 级 +%d%%。\n士气、铁匠铺与建筑防御力相加；技能独立结算。按 %s 开关数据面板。" % [
+			roundi(COMBAT_RULES.house_defense_bonus(1) * 100.0), roundi(COMBAT_RULES.house_defense_bonus(2) * 100.0),
+			roundi(COMBAT_RULES.house_defense_bonus(3) * 100.0), roundi(COMBAT_RULES.house_defense_bonus(4) * 100.0),
+			roundi(COMBAT_RULES.tower_defense_bonus(1) * 100.0), roundi(COMBAT_RULES.tower_defense_bonus(2) * 100.0),
+			roundi(COMBAT_RULES.tower_defense_bonus(3) * 100.0), roundi(COMBAT_RULES.tower_defense_bonus(4) * 100.0), _debug_shortcut()]
 
 func _close_help() -> void:
 	%HelpOverlay.hide()

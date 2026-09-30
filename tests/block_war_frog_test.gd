@@ -83,11 +83,11 @@ func _run() -> void:
 	near(game.energy, 10.0, "Q actual energy cost")
 	for i: int in 20:
 		game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(5, 0, 0), center + Vector3(2.4, 0, 0)]))
-	game.marches.tick(1.0)
+	game.marches.tick(2.6 / WarMarches.SPEED + 0.01)
 	near(home.population, 84.0, "20 attackers in mist cause 16 casualties")
 	for i: int in 20:
 		game.marches.send(0, home.building_id, 0, 1, PackedVector3Array([center + Vector3(5, 0, 0), center + Vector3(2.4, 0, 0)]))
-	game.marches.tick(1.0)
+	game.marches.tick(2.6 / WarMarches.SPEED + 0.01)
 	near(home.population, 104.0, "friendly transport preserves all 20 population")
 	game.marches.tick(1.0)
 	check(game.marches.weak_zones.is_empty(), "mist ends at three seconds")
@@ -98,7 +98,7 @@ func _run() -> void:
 	game.marches.apply_frog_field(0, 0, center)
 	for i: int in 20:
 		game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(5, 0, 0), center + Vector3(2.4, 0, 0)]))
-	game.marches.tick(1.0)
+	game.marches.tick(2.6 / WarMarches.SPEED + 0.01)
 	near(home.population, 120.0, "weakened enemy reinforcements still carry their full population")
 	for entry_time: float in [2.98, 3.02]:
 		for short_steps: bool in [false, true]:
@@ -106,7 +106,7 @@ func _run() -> void:
 			home = game.buildings[0]
 			center = home.global_position
 			game.marches.apply_frog_field(0, 0, center)
-			game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(3.5 + entry_time * 3.1, 0, 0), center + Vector3(2.4, 0, 0)]))
+			game.marches.send(1, home.building_id, 1, 1, PackedVector3Array([center + Vector3(3.5 + entry_time * WarMarches.SPEED, 0, 0), center + Vector3(2.4, 0, 0)]))
 			for step: int in (72 if short_steps else 1):
 				game.marches.tick(0.05 if short_steps else 3.6)
 			near(home.population, 99.2 if entry_time < 3.0 else 99.0, "fog expiry samples entry, with lasting weakness after arrival in long and short frames")
@@ -149,7 +149,7 @@ func _run() -> void:
 	near(own.distance, 0, "exact three-second freeze")
 	near(own.position.y, 0, "lands at expiry")
 	game.marches.tick(0.5)
-	near(own.distance, 1.55, "original route resumes at normal speed")
+	near(own.distance, WarMarches.SPEED * 0.5, "original route resumes at normal speed")
 	check(not game.marches.acquire_targets(center, 0, 12.0, 2, false, true).is_empty(), "cannons can lock after landing")
 	await reset()
 	var tower: WarBuilding = game.buildings[0]

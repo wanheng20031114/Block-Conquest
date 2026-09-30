@@ -59,14 +59,14 @@ func _run() -> void:
 		var max_level: int = [4, 4, 1][kind]
 		for tier: int in range(1, max_level):
 			fixture(kind, tier)
-			var duration := 5.0 if tier == 1 else 10.0
+			var duration: float = [5.0, 10.0, 20.0][tier - 1] if kind == 0 else (5.0 if tier == 1 else 10.0)
 			var path: String = "Visual/%s/Stone" % ["House", "Tower", "Smithy"][kind]
 			var old_mesh: Mesh = home.get_node(path).mesh
 			var cost := home.upgrade_cost
 			var defense: float = game.defense_bonus(home)
 			var attack: float = game.attack_bonus(0)
 			game.upgrade_selected()
-			check(home.is_constructing and home.level == tier and home.construction_remaining == duration, "first upgrades take five seconds and later tiers take ten without an immediate level")
+			check(home.is_constructing and home.level == tier and home.construction_remaining == duration, "each paid upgrade starts its correct duration without granting an immediate level")
 			near(home.population, 200.0 - cost, "construction deducts the exact cost once")
 			check(home.get_node(path).mesh == old_mesh, "unfinished construction retains its current model")
 			near(game.defense_bonus(home), defense, "unfinished construction retains current defense")
@@ -105,8 +105,8 @@ func _run() -> void:
 		else:
 			game.simulate(12.0)
 		check(home.level == 2 and second.level == 3, "unselected and selected buildings finish independent construction")
-		near(home.population, 18.75, "first home integrates five old-rate seconds and eleven new-rate seconds")
-		near(second.population, 15.3, "second home integrates its own later completion boundary")
+		near(home.population, 8.91, "first home integrates five old-rate seconds and eleven new-rate seconds")
+		near(second.population, 13.6, "second home integrates its own later completion boundary")
 	# Q spans the completion boundary; both large and small steps have the same sum.
 	for small_steps: bool in [false, true]:
 		fixture(0, 1, 5.0)
@@ -118,17 +118,17 @@ func _run() -> void:
 				game.simulate(0.1)
 		else:
 			game.simulate(8.0)
-		near(home.population, 36.5, "recruitment and natural growth use the correct rates across the five-second completion")
+		near(home.population, 29.61, "recruitment and natural growth use the correct rates across the five-second completion")
 	fixture(0, 1, 40.0)
 	game.upgrade_selected()
 	game.simulate(12.0)
-	near(home.population, 43.75, "old production cap stays stopped until the five-second completion opens room")
+	near(home.population, 39.62, "old production cap stays stopped until the five-second completion opens room")
 	fixture(0, 2, 20.0)
 	game.upgrade_selected()
 	game.simulate(5.0)
 	game._on_unit_arrived(home.building_id, 0, 100.0)
 	game.simulate(5.0)
-	near(home.population, 106.25, "friendly reinforcements remain uncapped throughout construction")
+	near(home.population, 108.3, "friendly reinforcements remain uncapped throughout construction")
 	check(home.level == 3, "reinforcement does not interrupt work")
 	for old_kind: int in [1, 2]:
 		fixture(old_kind, 1, 20.0)
@@ -141,7 +141,7 @@ func _run() -> void:
 		check(not game.finished and home.kind == old_kind and home.population == 0.0, "a pending residence prevents premature draw when both sides exhaust their garrisons")
 		game.simulate(0.2)
 		check(not game.finished and home.kind == 0, "last viable residence can complete its conversion")
-		near(home.population, 0.1, "the completed residence restarts natural growth after the ten-second boundary")
+		near(home.population, 0.033, "the completed residence restarts natural growth after the ten-second boundary")
 	# A lost construction never finishes for a new owner, including a level-one floor.
 	for kind: int in [0, 1, 2]:
 		for tier: int in range(1, [4, 3, 1][kind] + 1):

@@ -48,7 +48,7 @@ func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 		0:
 			var refund := target.construction_cost / 2
 			var converting := target.conversion_target >= 0
-			target.advance_construction(WarBuilding.CONSTRUCTION_DURATION)
+			target.advance_construction(target.construction_remaining)
 			target.population += refund
 			if converting and target.kind != 0:
 				game._cancel_building_recruitment(target.building_id)

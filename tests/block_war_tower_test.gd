@@ -55,6 +55,7 @@ func _run() -> void:
 	for faction: int in [0, 1]:
 		for tier: int in [1, 2, 3]:
 			await reset_match(tier, faction)
+			check(is_equal_approx(game.tower_interval(tower), [1.0, 0.8, 0.6][tier - 1]), "tower attacks 50 percent faster by dividing its old interval by 1.5")
 			var enemy := 1 - faction
 			spawn(Vector3(5, 0, 0), enemy, 6)
 			spawn(Vector3(5, 0, 2), faction, 6)
@@ -158,8 +159,21 @@ func _run() -> void:
 	game.simulate(0.61)
 	land()
 	check(tower.level == 1 and game.marches.total_for(0) == 0, "recapture reverses target allegiance and immediately downgrades again")
+	await _fourth_tier_rate()
 	await _large_volley()
 	await _finish()
+
+func _fourth_tier_rate() -> void:
+	await reset_match(4)
+	spawn(Vector3(5, 0, 0), 1, 24)
+	game.marches.tick(0.25)
+	game.simulate(0.001)
+	check(game.projectiles.size() == 4, "fourth-tier tower launches four balls at once")
+	check(is_equal_approx(game.tower_clocks[tower.building_id], 0.4), "fourth-tier reload is 0.4 seconds after its first volley")
+	game.simulate(0.399)
+	check(game.projectiles.is_empty() and game.marches.total_for(1) == 20, "first fourth-tier volley lands and no second volley fires before its deadline")
+	game.simulate(0.001001)
+	check(game.projectiles.size() == 4 and game.marches.total_for(1) == 20, "fourth-tier tower fires its second four-ball volley within a microsecond of the 0.4-second deadline")
 
 func _finish() -> void:
 	print("BLOCK_WAR_TOWER checks=", checks, " failures=", failures.size())

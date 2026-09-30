@@ -109,12 +109,12 @@ func _combat() -> void:
 	game.morale.adjust(0, 10.0)
 	game.morale.adjust(1, 20.0)
 	game.marches.send(0, 1, 0, 1, PackedVector3Array([Vector3.ZERO, Vector3(0, 0, 1)]))
-	game._simulate_step(.4)
+	game._simulate_step(.6)
 	near(game.morale.points(0), 0.0, "real march arrival settles its attacking loss")
 	near(game.morale.points(1), 30.0, "real march arrival settles defensive kill credit")
 	near(game.morale.idle_seconds(0), 0.0, "new zero-capped combat event is not backdated")
 	near(game.morale.idle_seconds(1), 0.0, "new defensive event is not backdated")
-	near(game.morale.idle_seconds(2), .4, "unrelated faction still accumulates idle time")
+	near(game.morale.idle_seconds(2), .6, "unrelated faction still accumulates idle time")
 
 func _interceptions() -> void:
 	reset()
@@ -146,6 +146,7 @@ func _interceptions() -> void:
 	near(game.morale.points(1), 180.0, "a reinforcement was not on an attack order")
 
 func _movement() -> void:
+	near(WarMarches.SPEED, 2.015, "default movement is 65 percent of the previous 3.1 metres per second")
 	var thresholds := [0.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0]
 	var speeds := [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
 	for level: int in thresholds.size():
@@ -169,7 +170,7 @@ func _movement() -> void:
 	var ordinary: WarMarches.MarchUnit = game.marches._units[0]
 	var charged: WarMarches.MarchUnit = game.marches._units[1]
 	game.marches.tick(1.0)
-	near(ordinary.distance, WarMarches.SPEED, "zero stars retain ordinary movement")
+	near(ordinary.distance, 2.015, "zero stars move exactly 2.015 metres in one actual simulation second")
 	near(charged.distance, WarMarches.SPEED * 1.4, "four stars change actual route travel")
 	game.morale.adjust(1, 4000.0)
 	charged.rush_remaining = 2.0
@@ -269,9 +270,9 @@ func _construction_and_time() -> void:
 	reset()
 	var house: WarBuilding = game.by_id[0]
 	house.begin_construction()
-	game.simulate(10.0)
+	game.simulate(5.0)
 	near(game.morale.points(0), 50.0, "actual completion gives first-upgrade reward")
-	near(game.morale.idle_seconds(0), 0.0, "a long build frame does not backdate its new reward")
+	near(game.morale.idle_seconds(0), 0.0, "the five-second completion starts the new reward's idle clock")
 	game.simulate(9.99)
 	near(game.morale.points(0), 50.0, "fresh reward keeps its full idle grace")
 	game.simulate(.01)

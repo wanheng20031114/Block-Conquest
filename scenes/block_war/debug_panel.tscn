@@ -307,7 +307,7 @@ autowrap_mode = 2
 [node name="SourcesNote" type="Label" parent="Column/Scroll/Details"]
 layout_mode = 2
 theme_type_variation = &"DebugMuted"
-text = "同类常驻加成相加，仅属于本玩家。\n炮塔防御力与临时技能另行结算。"
+text = "同类常驻加成相加，仅属于本玩家。\n建筑防御力与临时技能在所选建筑中列出。"
 autowrap_mode = 2
 
 [node name="Separator1" type="HSeparator" parent="Column/Scroll/Details"]

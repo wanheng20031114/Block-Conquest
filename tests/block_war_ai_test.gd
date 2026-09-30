@@ -90,7 +90,7 @@ func _run() -> void:
 	game.ai_enabled = true
 	for step: int in 36:
 		game.simulate(0.5)
-	check(long_step == [home.level, home.population, home.construction_remaining, game.ai_clock], "long and short simulation steps make the same economic decisions at the same times")
+	check(long_step[0] == home.level and is_equal_approx(long_step[1], home.population) and is_equal_approx(long_step[2], home.construction_remaining) and is_equal_approx(long_step[3], game.ai_clock), "long and short simulation steps make the same economic decisions at the same times")
 
 	_fixture()
 	home.population = 30.0
@@ -115,7 +115,7 @@ func _run() -> void:
 	check(home.population == 18.0 and not home.is_constructing, "incoming attackers prevent investment or dispatch from the endangered home")
 	game._ai_turn()
 	check(game.marches.incoming_for(1, 1) == 20, "reinforcement planning accounts for the support already on its way")
-	check(game.marches.incoming_for(0, 1) == 0, "defending does not open another offensive front")
+	check(home.queued_population == 0 and home.population == 18.0, "a covered defense may use spare donors without dispatching the threatened home's garrison")
 
 	_fixture()
 	home.population = 10.0
@@ -224,7 +224,7 @@ func _run() -> void:
 	game._ai_turn()
 	check(home.conversion_target == 0 and home.population == 0.0 and home.kind == 2, "a safe surviving forge pays to restore a lost production base")
 	game.simulate(11.0)
-	check(home.kind == 0 and home.level == 1 and is_equal_approx(home.population, 1.0), "recovered housing resumes ordinary production after conversion")
+	check(home.kind == 0 and home.level == 1 and is_equal_approx(home.population, 0.33), "recovered housing resumes ordinary production after conversion")
 
 	_fixture()
 	game.set_paused(true)

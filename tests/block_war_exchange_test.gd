@@ -50,8 +50,8 @@ func _run() -> void:
 	# Golden coefficients for no defense and each tower level, with 0–5 forges.
 	var coefficients := [
 		[1.0, 1.3, 1.5, 1.7, 1.8, 1.8],
-		[0.8, 1.04, 1.2, 1.36, 1.44, 1.44],
-		[0.714285714, 0.928571429, 1.071428571, 1.214285714, 1.285714286, 1.285714286],
+		[0.769230769, 1.0, 1.153846154, 1.307692308, 1.384615385, 1.384615385],
+		[0.666666667, 0.866666667, 1.0, 1.133333333, 1.2, 1.2],
 		[0.625, 0.8125, 0.9375, 1.0625, 1.125, 1.125],
 		[0.588235294, 0.764705882, 0.882352941, 1.0, 1.058823529, 1.058823529],
 	]
@@ -84,27 +84,27 @@ func _run() -> void:
 	target.level = 1
 	target.population = 100.0
 	game._on_unit_arrived(target.building_id, 0, 20.0)
-	near(target.population, 79.2, "one forge against a first-tier tower: twenty troops remove 20.8 defenders")
-	target.population = 20.8
+	near(target.population, 80.0, "one forge against a first-tier tower: equal thirty-percent bonuses exchange one for one")
+	target.population = 20.0
 	game._on_unit_arrived(target.building_id, 0, 20.0)
 	check(target.population == 0.0 and target.faction == 1, "an exact exchange needs a surviving attacker to capture")
 	# Reset battle-earned morale so this remains the same zero-star exchange.
 	game.morale.configure(game.faction_count)
-	target.population = 10.4
+	target.population = 10.0
 	game._on_unit_arrived(target.building_id, 0, 20.0)
 	near(target.population, 10.0, "capture keeps ten actual survivors rather than inflated attack strength")
 	check(target.faction == 0 and target.level == 1, "capture retains the level-one floor")
 	target.faction = 1
-	# Forge defense belongs to the owner; house levels do not add intrinsic defense.
+	# Intrinsic building defense adds to the owner's forge defense.
 	game.morale.configure(game.faction_count)
 	game.by_id[8].faction = 1
-	near(game.combat_multiplier(0, target), 1.0 / 1.4, "defender's forge adds fifteen percent to tower defense")
+	near(game.combat_multiplier(0, target), 1.0 / 1.45, "defender's forge adds fifteen percent to tower defense")
 	for owner: int in [-1, 1]:
 		target.faction = owner
 		for tier: int in [1, 2, 3, 4]:
 			target.kind = 0
 			target.level = tier
-			near(game.defense_bonus(target), 0.0 if owner < 0 else 0.15, "residences retain owner forge defense without level-based defense")
+			near(game.defense_bonus(target), (tier - 1) * 0.1 + (0.0 if owner < 0 else 0.15), "neutral and owned residences add their level defense to the owner's forge bonus")
 		target.kind = 1
 		target.level = 3
 		near(game.combat_multiplier(0, target), 1.0 / (1.6 if owner < 0 else 1.75), "neutral and owned towers share intrinsic defense while owned forges add defense")
@@ -139,18 +139,22 @@ func _run() -> void:
 	target.faction = 0
 	game.select_building(target)
 	game.upgrade_selected()
-	near(game.defense_bonus(target), 0.25, "tower keeps old defense during upgrade")
+	near(game.defense_bonus(target), 0.30, "tower keeps old defense during upgrade")
 	target.advance_construction(10.0)
-	near(game.defense_bonus(target), 0.4, "tower defense increases on completion")
+	near(game.defense_bonus(target), 0.50, "tower defense increases on completion")
 	target.population = 0.0
 	game._on_unit_arrived(target.building_id, 1, 1.0)
-	near(game.defense_bonus(target), 0.25, "capture downgrade immediately reduces tower defense")
+	near(game.defense_bonus(target), 0.30, "capture downgrade immediately reduces tower defense")
 	# Corner badges use the same actual target and stay separate from count layout.
 	game.morale.configure(game.faction_count)
 	game.drag_source = source
 	game.hovered = target
 	source.population = 64.0
 	game.percentage = 75
+	game.drag_sources.clear()
+	game.drag_sources.append(source)
+	game.order_previews.clear()
+	game.order_previews.append({"source": source, "count": 48, "route": PackedVector3Array()})
 	target.kind = 0
 	target.level = 1
 	game.overlay._update_dispatch_hint()
@@ -166,7 +170,7 @@ func _run() -> void:
 	target.kind = 1
 	for tier: int in [1, 2, 3, 4]:
 		target.level = tier
-		check(game.overlay.dispatch_advantage() == [-1, -2, -2, -3][tier - 1], "unassisted tower attacks show the corresponding red disadvantage")
+		check(game.overlay.dispatch_advantage() == [-2, -2, -2, -3][tier - 1], "unassisted tower attacks show the corresponding red disadvantage")
 	forges(3)
 	target.level = 4
 	check(game.overlay.dispatch_advantage() == 0, "equal seventy-percent environment attack and defense cancel with no symbol")
@@ -181,6 +185,57 @@ func _run() -> void:
 	game.hovered = null
 	check(game.overlay.dispatch_advantage() == 0, "no target has no speculative combat badge")
 	game.drag_source = null
+	_residence_defense()
 	await game.prepare_shutdown()
 	print("BLOCK_WAR_EXCHANGE checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)
+
+func _residence_defense() -> void:
+	var ai: RefCounted = game.AI_STRATEGY.new(0)
+	forges(0)
+	game.shields.clear()
+	target.kind = 0
+	for owner: int in [-1, 1]:
+		for tier: int in [1, 2, 3, 4]:
+			game.morale.configure(game.faction_count)
+			target.faction = owner
+			target.level = tier
+			target.population = 100.0
+			var defense := 1.0 + 0.1 * (tier - 1)
+			var label := "residence level=%d owner=%d" % [tier, owner]
+			near(game.combat_multiplier(0, target), 1.0 / defense, label + ": intrinsic defense divides actual attack damage")
+			near(ai._assault_losses(game, target, 10.0), 10.0 * defense, label + ": AI budgets casualties with the same intrinsic defense")
+			game._on_unit_arrived(target.building_id, 0, 10.0)
+			near(target.population, 100.0 - 10.0 / defense, label + ": arrivals preserve fractional defensive casualties")
+			game.morale.configure(game.faction_count)
+			target.population = 100.0
+			_fire_on_target()
+			near(target.population, 100.0 - 25.0 / defense, label + ": fire uses the residence's intrinsic defense")
+	# House, forge and morale defense add in the environment denominator;
+	# the shield remains a separate skill multiplier.
+	target.faction = 1
+	target.level = 4
+	target.population = 100.0
+	game.by_id[8].faction = 1
+	game.morale.configure(game.faction_count)
+	game.morale.adjust(0, 1000.0)
+	game.morale.adjust(1, 2000.0)
+	game.shields[target.building_id] = 10.0
+	var coefficient := 1.1 / 2.05 / 1.25
+	near(game.combat_multiplier(0, target), coefficient, "house +30%, forge +15% and morale +60% add before shield defense")
+	game._on_unit_arrived(target.building_id, 0, 10.0)
+	near(target.population, 100.0 - 10.0 * coefficient, "mixed residence defense is applied to real arrivals")
+	game.morale.configure(game.faction_count)
+	game.morale.adjust(0, 1000.0)
+	game.morale.adjust(1, 2000.0)
+	target.population = 100.0
+	_fire_on_target()
+	near(target.population, 100.0 - 25.0 * coefficient, "mixed residence defense is also applied to real fire damage")
+
+func _fire_on_target() -> void:
+	var fire: RefCounted = game.FIRE_STATE.new()
+	fire.faction = 0
+	fire.global_position = target.global_position
+	game.fire_states.append(fire)
+	game._tick_fire_buildings()
+	game.fire_states.clear()

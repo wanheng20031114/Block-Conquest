@@ -48,19 +48,19 @@ func run() -> void:
 	check(own == 1 and enemy == 1 and game.by_id[0].kind == 0, "exactly one starting residence per side")
 	var home: Node3D = game.by_id[0]
 	var neutral: Node3D = game.by_id[2]
-	check(home.population == 60.0 and home.capacity == 30.0, "authored starting army remains above the new production limit")
-	home.population = 20.0
+	check(home.population == 60.0 and home.capacity == 20.0, "authored starting army remains above the new production limit")
+	home.population = 10.0
 	var initial: float = home.population
 	var neutral_initial: float = neutral.population
 	game.simulate(1.0)
-	check(is_equal_approx(home.population, initial + 1.0), "residence produces exactly one population each second")
+	check(is_equal_approx(home.population, initial + 0.33), "level-one residence produces exactly 0.33 population each second")
 	check(neutral.population == neutral_initial, "neutral residence does not grow")
-	home.population = 30.0
+	home.population = 20.0
 	game.simulate(2.0)
-	check(home.population == 30.0, "automatic growth stops at soft cap")
+	check(home.population == 20.0, "automatic growth stops at soft cap")
 	game._on_unit_arrived(0, 0, 1.0)
 	game.simulate(1.0)
-	check(home.population == 31.0, "reinforcement above cap is preserved")
+	check(home.population == 21.0, "reinforcement above cap is preserved")
 	home.population = 60.0
 	check(game.issue_order(home, neutral, 25) == 15 and home.available_population == 45.0 and home.population == 60.0, "25 percent dispatch reserves fifteen until they leave the garrison")
 	check(game.marches.total_for(0) == 15 and game.marches.incoming_for(2, 0) == 15, "queued ranks remain in population total")
@@ -77,9 +77,9 @@ func run() -> void:
 	tower.faction = -1
 	for soldier: int in 5:
 		game._on_unit_arrived(6, 0, 1.0)
-	check(is_zero_approx(tower.population) and tower.faction == -1, "five attackers trade for four defenders at a neutral level-one tower without capturing")
+	check(is_equal_approx(tower.population, 4.0 - 5.0 / 1.3) and tower.faction == -1, "thirty-percent tower defense preserves a fraction of the fourth defender after five attackers")
 	game._on_unit_arrived(6, 0, 1.0)
-	check(tower.faction == 0 and is_equal_approx(tower.population, 1.0), "first surviving arrival captures building")
+	check(tower.faction == 0 and is_equal_approx(tower.population, 0.8), "first surviving arrival captures building with its unspent attacking strength")
 	var forge: Node3D = game.by_id[8]
 	forge.faction = 0
 	check(is_equal_approx(game.attack_bonus(0), 0.3), "one forge grants its current owner thirty percent attack")
@@ -123,7 +123,7 @@ func run() -> void:
 	game.upgrade_selected()
 	check(home.level == 1 and home.is_constructing and home.population == 95.0, "house upgrade pays once and starts five seconds of construction")
 	game.simulate(5.0)
-	check(home.level == 2 and home.capacity == 50.0 and home.population == 95.0, "house upgrade spends five and raises the production limit")
+	check(home.level == 2 and home.capacity == 40.0 and home.population == 95.0, "house upgrade spends five and raises the production limit")
 	game.convert_selected(2)
 	game.simulate(10.0)
 	check(home.kind == 2 and home.level == 1 and home.population == 75.0, "convert costs twenty and resets building level after ten seconds")
@@ -131,7 +131,7 @@ func run() -> void:
 	check(home.population == 75.0, "forge does not automatically produce troops")
 	game.convert_selected(0)
 	game.simulate(10.0)
-	check(home.kind == 0 and home.population == 55.0 and home.capacity == 30.0, "forge converts back to a level-one residence with its production limit")
+	check(home.kind == 0 and home.population == 55.0 and home.capacity == 20.0, "forge converts back to a level-one residence with its production limit")
 	game.camera_rig.focus_at(Vector3(999, 0, -999), true)
 	check(camera_view_inside_map(), "instant focus keeps every viewport corner over the rendered battlefield")
 	game.camera_rig.zoom_by(999)

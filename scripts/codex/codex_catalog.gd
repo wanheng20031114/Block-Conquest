@@ -4,6 +4,7 @@ extends RefCounted
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
 const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
+const MARCHES := preload("res://scripts/block_war/war_marches.gd")
 const GUIDE_ICONS := preload("res://assets/ui/block_war/codex_icons.tres")
 const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog", &"fox", &"pig"]
 
@@ -96,17 +97,17 @@ static func guides() -> Array[Dictionary]:
 			"summary": "持续补充驻军，是维持战线的兵力来源。",
 			"sections": [
 				{"title": "产兵速度", "body": "1 级：%s 人/秒；2 级：%s 人/秒；\n3 级：%s 人/秒；4 级：%s 人/秒。" % BUILDING.HOUSE_PRODUCTION_RATES},
-				{"title": "自然产兵上限", "body": "1 级：%d 人；2 级：%d 人；3 级：%d 人；4 级：%d 人。\n达到上限后暂停自然产兵，驻军减少后继续。" % BUILDING.HOUSE_PRODUCTION_LIMITS},
-				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间继续按原等级产兵。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2)]},
+				{"title": "驻扎容量与防御力", "body": "1 级：驻扎容量 %d 人，防御力 +%d%%。\n2 级：驻扎容量 %d 人，防御力 +%d%%。\n3 级：驻扎容量 %d 人，防御力 +%d%%。\n4 级：驻扎容量 %d 人，防御力 +%d%%。\n建筑防御力与士气、铁匠铺加成相加。" % [BUILDING.HOUSE_PRODUCTION_LIMITS[0], roundi(COMBAT.house_defense_bonus(1) * 100.0), BUILDING.HOUSE_PRODUCTION_LIMITS[1], roundi(COMBAT.house_defense_bonus(2) * 100.0), BUILDING.HOUSE_PRODUCTION_LIMITS[2], roundi(COMBAT.house_defense_bonus(3) * 100.0), BUILDING.HOUSE_PRODUCTION_LIMITS[3], roundi(COMBAT.house_defense_bonus(4) * 100.0)]},
+				{"title": "升级耗时", "body": "1 → 2 级：%d 秒；2 → 3 级：%d 秒；3 → 4 级：%d 秒。\n施工期间产兵、驻扎容量与防御力保持原等级。" % BUILDING.HOUSE_UPGRADE_DURATIONS},
 			],
-			"tip": "自然产兵上限不是驻军上限；增援与征召可以超出。",
+			"tip": "达到驻扎容量只暂停自然产兵；增援与征召人数不限。驻军低于容量后恢复产兵。",
 			"icon": GUIDE_ICONS.get_meta(&"residence"),
 		},
 		{
 			"id": &"tower", "title": "炮塔", "tag": "建筑 · 区域防守",
 			"summary": "自动拦截附近敌军，并为驻军提供防御力加成。",
 			"sections": [
-				{"title": "射程与火力", "body": "1 级：射程 11 米，每 1.5 秒攻击最多 1 人。\n2 级：射程 13 米，每 1.2 秒攻击最多 2 人。\n3 级：射程 15 米，每 0.9 秒攻击最多 3 人。\n4 级：射程 17 米，每 0.6 秒攻击最多 4 人。"},
+				{"title": "射程与火力", "body": "1 级：射程 11 米，每 %s 秒攻击最多 1 人。\n2 级：射程 13 米，每 %s 秒攻击最多 2 人。\n3 级：射程 15 米，每 %s 秒攻击最多 3 人。\n4 级：射程 17 米，每 %s 秒攻击最多 4 人。" % [COMBAT.tower_attack_interval(1), COMBAT.tower_attack_interval(2), COMBAT.tower_attack_interval(3), COMBAT.tower_attack_interval(4)]},
 				{"title": "防御力与限制", "body": "1 级：防御力 +%d%%；2 级：防御力 +%d%%；\n3 级：防御力 +%d%%；4 级：防御力 +%d%%。\n与所属玩家的常驻防御力相加。炮塔不产兵；无法攻击隐身、滞空或雾内士兵。" % [roundi(COMBAT.tower_defense_bonus(1) * 100.0), roundi(COMBAT.tower_defense_bonus(2) * 100.0), roundi(COMBAT.tower_defense_bonus(3) * 100.0), roundi(COMBAT.tower_defense_bonus(4) * 100.0)]},
 				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间射击能力与防御力保持原等级。" % [BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2)]},
 			],
@@ -121,7 +122,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "加成归属", "body": "铁匠铺不提供移速加成。攻防增益只属于建筑拥有者，不共享给队友。"},
 				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供全部增益。"},
 			],
-			"tip": "铁匠铺与士气的同类加成相加；炮塔的防御力加成计入常驻防御，技能加成独立结算。",
+			"tip": "铁匠铺与士气的同类加成相加；住宅、炮塔的防御力加成计入常驻防御，技能加成独立结算。",
 			"icon": GUIDE_ICONS.get_meta(&"smithy"),
 		},
 		{
@@ -141,7 +142,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "升级", "body": "住宅：升至 2 级消耗 %d 人，3 级消耗 %d 人，4 级消耗 %d 人。\n炮塔：升至 2 级消耗 30 人，3 级消耗 60 人，4 级消耗 90 人。\n只能使用尚未编入出发队列的驻军。" % BUILDING.HOUSE_UPGRADE_COSTS},
 				{"title": "改建", "body": "改建消耗 20 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。"},
-				{"title": "施工", "body": "住宅与炮塔的 1 → 2 级升级需 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒；所有改建仍需 %d 秒。期间保留原有功能；失守时施工中断，已消耗的人口不会返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.CONSTRUCTION_DURATION]},
+				{"title": "施工", "body": "住宅：1 → 2 级 %d 秒，2 → 3 级 %d 秒，3 → 4 级 %d 秒。\n炮塔：1 → 2 级 %d 秒，后续升级各 %d 秒。改建均需 %d 秒。\n期间保留原有功能与防御力；失守中断施工，消耗不返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.upgrade_duration(0, 3), BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2), BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "封条急件暂停建筑运作，不暂停升级或改建计时。",
 			"icon": GUIDE_ICONS.get_meta(&"construction"),
@@ -150,7 +151,7 @@ static func guides() -> Array[Dictionary]:
 			"id": &"terrain", "title": "地形与行军", "tag": "战场路线",
 			"summary": "利用桥梁和山道组织进攻，控制关键通路。",
 			"sections": [
-				{"title": "通行路线", "body": "部队沿可通行路线前进。水域和山地阻挡通行，桥梁连接两岸；派兵前的路线预览显示实际行进方向。"},
+				{"title": "通行路线", "body": "基础移速 %s 米/秒，士气与技能可改变移速。部队沿可通行路线前进；水域和山地阻挡通行，桥梁连接两岸。路线预览显示实际行进方向。" % MARCHES.SPEED},
 				{"title": "途中交互", "body": "双方行军部队可以互相穿行，不在途中进行近战。炮塔、火焰与其他技能仍可影响行军。"},
 				{"title": "特殊机动", "body": "兔洞将部队送至目标附近，两楼仍须有可通行路线。猪会飞则可无视地形、直线前往目的地，最多派出 30 人；与猪整队叠加仍取 30 人上限，其余驻军留在建筑。"},
 			],

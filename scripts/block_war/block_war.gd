@@ -661,8 +661,7 @@ func attack_bonus(faction: int) -> float:
 	return COMBAT_RULES.forge_attack_bonus(forge_count(faction))
 
 func defense_bonus(building: Node3D) -> float:
-	var tower: float = COMBAT_RULES.tower_defense_bonus(building.level) if building.kind == 1 else 0.0
-	return tower + COMBAT_RULES.forge_defense_bonus(forge_count(building.faction))
+	return COMBAT_RULES.building_defense_bonus(building.kind, building.level) + COMBAT_RULES.forge_defense_bonus(forge_count(building.faction))
 
 func skill_defense_bonus(building: Node3D) -> float:
 	var bonus: float = SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
@@ -858,7 +857,7 @@ func tower_range(building: Node3D) -> float:
 	return building.attack_range
 
 func tower_interval(building: Node3D) -> float:
-	return maxf(0.55, 1.5 - 0.3 * (building.level - 1))
+	return COMBAT_RULES.tower_attack_interval(building.level)
 
 func request_skill(index: int, from_keyboard: bool = false) -> void:
 	if _local_menu or not _skill_available(index):
@@ -1453,7 +1452,7 @@ func update_hud() -> void:
 	var detail: String = "住宅产兵 · 炮塔拦截 · 铁匠铺强化军团 · 能量塔恢复技力"
 	if selected != null:
 		match selected.kind:
-			0: detail = "每秒 +%s 民兵 · %d 人停产 · 援军不限" % [selected.production_rate, selected.capacity]
+			0: detail = "每秒 +%s 民兵 · %d 人停产 · 防御力 +%d%% · 援军不限" % [selected.production_rate, selected.capacity, roundi(COMBAT_RULES.house_defense_bonus(selected.level) * 100.0)]
 			1: detail = "射程 %d · 每 %.1f 秒拦截 %d 人 · 防御力 +%d%%" % [tower_range(selected), tower_interval(selected), selected.level, roundi(COMBAT_RULES.tower_defense_bonus(selected.level) * 100.0)]
 			2: detail = "提高所属军团攻击力与防御力 · 不可升级 · 不自动产兵"
 			3: detail = "提高技力恢复 · 出征占领敌方建筑 +10 技力 · 不可升级 · 不自动产兵"

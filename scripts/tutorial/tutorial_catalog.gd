@@ -39,11 +39,11 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("滚轮缩放", "在地图空白处滚动滚轮，拉近或拉远视野。\n拖动建筑时，滚轮会改出兵比例。", "在地图空白处滚动滚轮", "zoom", "world"),
 			step("移动视野", "在地图空白处按住中键拖动，再松开。\n也可用方向键移动；视野不会越出地图。", "中键拖动地图，或按方向键", "pan", "world")]
 		"house": return [
-			step("住宅产兵", "1 级住宅每秒产 1 人，达到 30 人停产。\n增援和征召可超过此上限。", "观察住宅驻军", "read", "building:0"),
-			step("点击升级", "选中己方住宅，点击向上箭头升级到 2 级。\n升级消耗驻军，%d 秒完成；施工期间仍会产兵。" % BUILDING.upgrade_duration(0, 1), "点击升级，等待住宅升到 2 级", "upgrade", "upgrade", {"target": 0}),
-			step("2 级住宅", "现在每秒产 1.25 人，达到 50 人停产。\n旁边的建筑图标用于改建，也会消耗驻军。", "认识升级结果与改建按钮", "read", "selection")]
+			step("住宅产兵", "1 级住宅产兵 %s 人/秒，驻扎容量 %d 人。\n达到容量只停自然产兵，增援和征召人数不限。" % [BUILDING.HOUSE_PRODUCTION_RATES[0], BUILDING.HOUSE_PRODUCTION_LIMITS[0]], "观察住宅驻军", "read", "building:0"),
+			step("点击升级", "选中己方住宅，点击向上箭头升级到 2 级。\n消耗 %d 人，%d 秒完成；施工仍按原等级产兵和防守。" % [BUILDING.HOUSE_UPGRADE_COSTS[0], BUILDING.upgrade_duration(0, 1)], "点击升级，等待住宅升到 2 级", "upgrade", "upgrade", {"target": 0}),
+			step("2 级住宅", "产兵 %s 人/秒，驻扎容量 %d 人，防御力 +%d%%。\n旁边的建筑图标用于改建，也会消耗驻军。" % [BUILDING.HOUSE_PRODUCTION_RATES[1], BUILDING.HOUSE_PRODUCTION_LIMITS[1], roundi(COMBAT.house_defense_bonus(2) * 100.0)], "认识升级结果与改建按钮", "read", "selection")]
 		"tower": return [
-			step("炮塔与射程", "虚线圈是射程，炮塔会自动射击圈内敌军。\n炮塔不产兵，需要住宅增援。", "找到炮塔射程圈", "read", "building:1"),
+			step("炮塔与射程", "虚线圈是射程，1 级炮塔每 %s 秒射击 1 名敌兵。\n防御力 +%d%%；不产兵，需要住宅增援。" % [COMBAT.tower_attack_interval(1), roundi(COMBAT.tower_defense_bonus(1) * 100.0)], "找到炮塔射程圈", "read", "building:1"),
 			step("增援炮塔", "从己方住宅拖到己方炮塔，送入援军。\n随后观察炮塔自动击退敌军。", "从住宅拖到己方炮塔", "reinforce_tower", "buildings", {"source": 0, "target": 1, "watch_goal": "观察增援抵达、炮塔击退敌军"}),
 			step("防守完成", "援军已抵达，炮塔击退了敌军。", "确认炮塔防守结果", "read", "building:1"),
 			step("守住路口", "在敌军必经之路布置炮塔，并用住宅补充守军。", "已完成炮塔防守", "read", "building:1")]
@@ -61,9 +61,9 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("点亮第一颗星", "派兵占领空置的中立铁匠铺。\n占领后，看顶部己方的第一颗星亮起。", "占领铁匠铺，升到一星士气", "capture", "buildings", {"source": 0, "target": 1}),
 			step("一星加成", "每颗完整星：攻击力 +5%%、防御力 +%d%%、移速 +10%%。\n最多 5 星；进攻伤亡、失守或久无战果会降低士气。" % roundi(WarMorale.DEFENSE_PER_STAR * 100.0), "确认一星士气加成", "read", "morale")]
 		"recruit": return [
-			step("征召军令", "这座住宅已有 30 人，停止自然产兵。\n征召军令能补充士兵，突破产兵上限。", "认识征召军令的用途", "read", "building:0"),
+			step("征召军令", "这座住宅已有 30 人，超过 %d 人驻扎容量，已停产。\n征召仍可补充士兵，驻军容纳人数不限。" % BUILDING.HOUSE_PRODUCTION_LIMITS[0], "认识征召军令的用途", "read", "building:0"),
 			step("拖动一技能", "把第一个技能拖到己方住宅上，松开施放。\n看完 %d 秒征召；右键可取消瞄准。" % RULES.DURATIONS[0], "将征召军令拖到己方住宅", "cast_building", "skill:0", {"skill": 0, "target": 0, "watch_goal": "观察征召结束、驻军增加"}),
-			step("征召完成", "完整征召增加 %d 人，可突破住宅产兵上限。" % int(RULES.RECRUIT_RATE * RULES.DURATIONS[0]), "确认征召后的驻军", "read", "building:0"),
+			step("征召完成", "完整征召增加 %d 人，超过 %d 人驻扎容量也可接收。" % [int(RULES.RECRUIT_RATE * RULES.DURATIONS[0]), BUILDING.HOUSE_PRODUCTION_LIMITS[0]], "确认征召后的驻军", "read", "building:0"),
 			step("补兵后扩张", "从住宅拖到中立据点，派出一半驻军进攻。", "派兵占领前方据点", "capture", "buildings", {"source": 0, "target": 1})]
 		"drum": return [
 			step("先派出援军", "从住宅拖到前方己方据点，派出援军。\n疾行战鼓可加速路上的己方部队。", "从住宅向前方据点派兵", "dispatch", "buildings", {"source": 0, "target": 1}),

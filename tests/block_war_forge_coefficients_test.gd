@@ -73,8 +73,8 @@ func _run() -> void:
 	defender.kind = 1
 	for tier: int in 4:
 		defender.level = tier + 1
-		near(game.defense_bonus(defender), [0.25, 0.4, 0.6, 0.7][tier], "tower's independent defense tier %d" % (tier + 1))
-		near(game.combat_multiplier(0, defender), 1.0 / [1.25, 1.4, 1.6, 1.7][tier], "tower defense divides damage instead of subtracting from it")
+		near(game.defense_bonus(defender), [0.3, 0.5, 0.6, 0.7][tier], "tower's independent defense tier %d" % (tier + 1))
+		near(game.combat_multiplier(0, defender), 1.0 / [1.3, 1.5, 1.6, 1.7][tier], "tower defense divides damage instead of subtracting from it")
 	forge(2, 0)
 	forge(3, 0)
 	forge(4, 1)

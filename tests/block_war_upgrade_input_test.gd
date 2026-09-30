@@ -81,11 +81,11 @@ func _run() -> void:
 			continue
 		check(not game.hud.get_node("%ConvertEnergy").visible, "residence and tower expose only the two original conversion choices")
 		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
-		var expected_costs := [5, 20, 30] if kind == 0 else [30, 60, 90]
+		var expected_costs := [5, 15, 30] if kind == 0 else [30, 60, 90]
 		var expected_max := 4
 		var remaining: float = building.population
 		for tier: int in expected_costs.size():
-			var duration := 5.0 if tier == 0 else 10.0
+			var duration: float = [5.0, 10.0, 20.0][tier] if kind == 0 else [5.0, 10.0, 10.0][tier]
 			check(next_level.text == str(tier + 2) and cost.text == str(expected_costs[tier]) and upgrade.text.is_empty(), "kind %d tier %d shows the actual next level and cost" % [kind, tier + 1])
 			check(upgrade.tooltip_text.contains("%d 秒" % int(duration)), "kind %d tier %d tooltip shows its actual construction duration" % [kind, tier + 1])
 			await click(center(upgrade))
@@ -104,7 +104,7 @@ func _run() -> void:
 		check(game.marches.total_for(0) == 0 and game.selected == building, "kind %d upgrade buttons never dispatch or select the map behind them" % kind)
 	# Every residential upgrade rejects even a one-person shortfall.
 	for tier: int in [1, 2, 3]:
-		var expected_cost: int = [5, 20, 30][tier - 1]
+		var expected_cost: int = [5, 15, 30][tier - 1]
 		home.level = tier
 		home.population = expected_cost - 1
 		home.refresh_visual()

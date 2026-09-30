@@ -26,12 +26,12 @@ func _run() -> void:
 	var straight := PackedVector3Array([Vector3(0, 0, 0), Vector3(0, 0, -30)])
 	marches.send(0, 1, 0, 1, straight)
 	marches.tick(1.0)
-	_check(marches.get_units()[0].position.is_equal_approx(Vector3(0, 0, -3.1)), "Default marching covers 3.1 metres in one second")
+	_check(marches.get_units()[0].position.is_equal_approx(Vector3(0, 0, -2.015)), "Default marching covers 2.015 metres in one second, 65 percent of the former speed")
 	marches.clear()
 	marches.send(0, 1, 0, 42, straight, 1.25)
 	_check(marches.total_for(0) == 42, "Queued and visible population are both conserved")
 	_check(marches.incoming_for(1, 0) == 42, "Incoming intelligence includes the door queue")
-	marches.tick(1.2)
+	marches.tick(3.72 / marches.SPEED) # Sample the same expanded ranks at the new base speed.
 	var sample: Array = marches.get_units()
 	_check(sample.size() > 12 and sample.size() < 42, "Soldiers emerge over several ranks instead of all at once")
 	var widest := 0.0
@@ -206,7 +206,7 @@ func _run() -> void:
 		entry_monotonic = entry_monotonic and width <= previous_width + 0.001
 		previous_width = width
 	_check(entry_monotonic and previous_width < 0.15 and marches.total_for(0) == 6, "The final rank contracts monotonically into the same entrance funnel before absorption")
-	marches.tick(0.2)
+	marches.tick((0.25 + 1.40 * 0.11) / marches.SPEED + 0.01)
 	_check(_arrived.size() == 6 and marches.total_for(0) == 0, "The contracted rank fully enters the destination without losing or duplicating troops")
 	marches.clear()
 	_energy_origins(marches, straight)
@@ -277,9 +277,9 @@ func _movement_groups(marches: WarMarches) -> void:
 		else:
 			marches.tick(2.0)
 		distances.append(unit.distance)
-		# 0-.5: skills 2.0; .5-1: skills 2.6; 1-2: skills 1.6.
-		_check(absf(unit.distance - WarMarches.SPEED * 1.3 * 3.9) < 0.00001, "Both tick partitions integrate the three independent skill expiry intervals")
-		_check(is_equal_approx(marches.speed_multiplier(unit), 1.3), "Skill expiry preserves the current environment multiplier")
+		# The slow retains its five-second tail: 0-1 skills 2.0; 1-2 skills 1.0.
+		_check(absf(unit.distance - WarMarches.SPEED * 1.3 * 3.0) < 0.00001, "Both tick partitions integrate rush and haste expiry while the slow tail remains")
+		_check(is_equal_approx(marches.speed_multiplier(unit), 1.3 * 0.4), "Expired haste leaves morale multiplied by the ongoing slow tail")
 	_check(absf(distances[0] - distances[1]) < 0.00001, "Grouped movement bonuses give equal long and short tick distances")
 	marches.clear()
 	marches.environment_speed.fill(1.0)

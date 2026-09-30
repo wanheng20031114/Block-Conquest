@@ -218,7 +218,7 @@ func _recruitment_growth() -> void:
 	near(game.active_durations[0], 6.0, "Q exposes its full duration for HUD feedback")
 	game.simulate(0.2)
 	near(home.population - control.population, 0.8, "A subsecond frame grants proportional recruitment in addition to normal production")
-	# Starting above the soft cap isolates recruitment from ordinary +1/s growth.
+	# Starting above the soft cap isolates recruitment from ordinary production.
 	home.population = home.capacity + 10.0
 	var baseline: float = home.population
 	var recruited_time := 0.0
@@ -243,7 +243,7 @@ func _recruitment_growth() -> void:
 	check(game.cast_skill(0, home), "Q can start just below the ordinary production cap")
 	game.simulate(6.0)
 	var whole_step: float = home.population
-	near(whole_step, home.capacity + 23.0 + 1.0 / 5.0, "Only the first one-fifth second of ordinary growth contributes while Q crosses the cap")
+	near(whole_step, home.capacity + 23.0 + 0.33 / 4.33, "Ordinary production contributes only until recruitment crosses the stop threshold")
 	game.energy = 100.0
 	game.cooldowns[0] = 0.0
 	home.population = home.capacity - 1.0
@@ -322,12 +322,12 @@ func _ground_impact() -> void:
 	check(wave.visible and wave.global_position.is_equal_approx(center), "Native fire effect starts at the requested ground location")
 	game.simulate(WarFireWave.EXPANSION_TIME)
 	near(ally.population, 100.0, "Ground impact leaves friendly buildings unharmed")
-	near(enemy.population, 75.0, "Residence level grants no passive defense against ground impact")
+	near(enemy.population, 100.0 - 25.0 / 1.2, "Level-three residence defense reduces ground impact damage")
 	check(neutral.population == 0.0 and neutral.faction == -1, "Ground impact damages neutral garrison but never captures it")
 	near(edge.population, 75.0, "A hostile building exactly on the radius is hit")
 	near(outside.population, 100.0, "A hostile building just outside the radius is untouched")
 	game.simulate(0.5)
-	near(enemy.population, 75.0, "The lingering fire does not repeatedly damage the same garrison")
+	near(enemy.population, 100.0 - 25.0 / 1.2, "The lingering fire does not repeatedly damage the same garrison")
 	game.energy = 70.0
 	game.cooldowns[3] = 0.0
 	var empty := Vector3(0, 0, 26)
@@ -335,7 +335,7 @@ func _ground_impact() -> void:
 	near(game.energy, 0.0, "Casting on empty ground still pays the full cost")
 	near(game.cooldowns[3], 70.0, "Casting on empty ground still starts cooldown")
 	game.simulate(WarFireWave.EXPANSION_TIME)
-	near(enemy.population, 75.0, "Empty-ground fire does not damage distant buildings")
+	near(enemy.population, 100.0 - 25.0 / 1.2, "Empty-ground fire does not damage distant buildings")
 
 
 func _native_skill_hint(button: Button) -> void:
