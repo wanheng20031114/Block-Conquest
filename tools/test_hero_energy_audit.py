@@ -68,8 +68,10 @@ class BudgetTests(unittest.TestCase):
         self.assertAlmostEqual(result["all_eligible_cooling_seconds"], 0)
 
     def test_subset_measures_only_eligible_skills(self):
+        # Isolate the analytical fixture from subsequent hero balance changes.
+        profile = {"costs": [25.0] * 4, "cooldowns": [35.0] * 4}
         case = scenario(self.economy, late=True, enabled=(0,), towers=0, seconds=35)
-        result = simulate(self.profiles["fox"], self.economy, case, (0,))
+        result = simulate(profile, self.economy, case, (0,))
         self.assertEqual(result["casts_qwer"], [1, 0, 0, 0])
         self.assertAlmostEqual(result["full_seconds"], 22.5)
         self.assertAlmostEqual(result["full_and_all_eligible_cooling_seconds"], 22.5)

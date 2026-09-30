@@ -17,10 +17,10 @@ func check(value: bool, label: String) -> void:
 func near(actual: float, expected: float, label: String) -> void:
 	check(absf(actual - expected) < 0.002, "%s: %s expected %s" % [label, actual, expected])
 
-func reset() -> void:
+func reset(map_id: String = "rift") -> void:
 	if game != null:
 		await game.prepare_shutdown()
-	root.get_node("Session").block_war_map_id = "rift"
+	root.get_node("Session").block_war_map_id = map_id
 	root.get_node("Session").block_war_commander = &"bear"
 	root.get_node("Session").block_war_opponent_commander = &"bear"
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
@@ -200,7 +200,7 @@ func _run() -> void:
 	near(a.population, 82, "ward halves the next fire hit before integer link sharing")
 	near(b.population, 81, "warded target shares the reduced fire damage with support")
 
-	await reset()
+	await reset("highland")
 	var center := Vector3(-22, 0, 10)
 	var route := PackedVector3Array([center, center + Vector3(60, 0, 0)])
 	game.marches.send(1, 0, 1, 1, route)
@@ -322,7 +322,7 @@ func _orb_soldier(building: WarBuilding, distance: float, faction: int = 1) -> W
 	return game.marches._units[-1]
 
 func _ward_projectile_checks() -> void:
-	await reset()
+	await reset("highland")
 	var a := pair()[0]
 	var near_unit := _orb_soldier(a, 4.0)
 	var middle := _orb_soldier(a, 10.0)

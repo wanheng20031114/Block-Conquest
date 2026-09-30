@@ -17,11 +17,11 @@ func check(ok: bool, label: String) -> void:
 func near(actual: float, expected: float, label: String) -> void:
 	check(absf(actual - expected) < 0.002, "%s: %.5f expected %.5f" % [label, actual, expected])
 
-func reset() -> void:
+func reset(map_id: String = "rift") -> void:
 	if game != null:
 		await game.prepare_shutdown()
 	var session := root.get_node("Session")
-	session.block_war_map_id = "rift"
+	session.block_war_map_id = map_id
 	session.block_war_commander = &"frog"
 	session.block_war_opponent_commander = &"frog"
 	change_scene_to_file("res://scenes/block_war/block_war.tscn")
@@ -110,7 +110,7 @@ func _run() -> void:
 			for step: int in (72 if short_steps else 1):
 				game.marches.tick(0.05 if short_steps else 3.6)
 			near(home.population, 99.2 if entry_time < 3.0 else 99.0, "fog expiry samples entry, with lasting weakness after arrival in long and short frames")
-	await reset()
+	await reset("highland")
 	center = Vector3(-22, 0, 10)
 	var enemy := soldier(1, center, 0, 2.0)
 	game.marches.apply_frog_field(0, 0, center)
@@ -128,7 +128,7 @@ func _run() -> void:
 	near(game.marches.projected_attack_bonus(enemy), RULES.RABBIT_RUSH_ATTACK_BONUS - 0.2, "weakness remains after the cloud disappears")
 	var unaffected := soldier(1, center, 0, 2.0)
 	near(game.marches.projected_attack_bonus(unaffected), 0.0, "a later troop receives no vanished mist debuff")
-	await reset()
+	await reset("highland")
 	var own := soldier(0, center)
 	enemy = soldier(1, center + Vector3(0, 0, 1))
 	var ally := soldier(2, center + Vector3(0, 0, -1))
@@ -192,7 +192,7 @@ func _run() -> void:
 	for i: int in 160:
 		game.marches.tick(0.05)
 	near(long_unit.distance, predicted, "float, rush and haste expiry agree across long/short frames")
-	await reset()
+	await reset("highland")
 	own = soldier(0, center)
 	enemy = soldier(1, center + Vector3(0, 0, 1))
 	ally = soldier(2, center + Vector3(0, 0, -1))
@@ -220,7 +220,7 @@ func _run() -> void:
 	refill()
 	check(not game.cast_ground_skill(2, center - Vector3(10, 0, 0)), "empty cloak rejects")
 	near(game.energy, 100, "empty cast does not consume energy")
-	await reset()
+	await reset("highland")
 	var target: WarBuilding = game.buildings[1]
 	target.faction = 1
 	target.level = 4
@@ -228,7 +228,7 @@ func _run() -> void:
 	check(game.cast_skill(3, target), "R targets hostile building")
 	near(target.population, 20, "R loses exactly80 of100")
 	check(target.level == 1 and target.faction == 1, "R downgrades without capturing")
-	near(game.energy, 10, "R pays90 energy")
+	near(game.energy, 15, "R pays85 energy")
 	refill()
 	target.population = 21
 	game.cast_skill(3, target)
@@ -281,7 +281,7 @@ func _run() -> void:
 	check(game.cast_skill(3, target), "frog R remains legal against ward plus shield")
 	near(target.population, 4, "percentage strike bypasses both temporary defense bonuses")
 	check(target.level == 1, "defensive ward does not prevent the strike's downgrade")
-	near(game.energy, 10, "successful defended-target strike pays ninety energy")
+	near(game.energy, 15, "successful defended-target strike pays eighty-five energy")
 	await reset()
 	target = game.buildings[1]
 	target.faction = 1
