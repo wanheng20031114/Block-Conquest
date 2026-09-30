@@ -180,10 +180,10 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 		][index]
 	if commander == BEAR:
 		return [
-			"立即完成己方建筑的升级或改建，返还本次消耗人口的 50%。",
+			"立即完成自己或盟友建筑的升级或改建。\n返还本次消耗人口的 50%，补入该建筑驻军。",
 			"移速 -%d%%，作用于区域内的敌军。\n震地区域半径 %.1f 米，持续 %d 秒。\n离开区域后恢复原速，己方与盟友不受影响。" % [roundi((1.0 - BEAR_SLOW_MULTIPLIER) * 100.0), BEAR_SLOW_RADIUS, BEAR_DURATIONS[1]],
-			"由最近的另一座己方建筑分担 50%% 驻军伤害，持续 %d 秒。\n连接距离最多 %d 米，奇数伤亡由支援方多承担 1 人。\n支援兵力不足或一端失守时断开。" % [BEAR_DURATIONS[2], BEAR_LINK_RADIUS],
-			"防御力 +%d%%，作用于己方建筑，持续 %d 秒。\n法术球立即开火，每 %.1f 秒攻击 %d 米内最多 %d 名敌兵。\n优先选择最远目标。" % [roundi(BEAR_WARD_DEFENSE * 100.0), BEAR_DURATIONS[3], BEAR_ORB_INTERVAL, BEAR_ORB_RANGE, BEAR_ORB_TARGETS]
+			"自己或盟友的建筑，由最近的另一座同队建筑分担 50%% 驻军伤害，持续 %d 秒。\n连接距离最多 %d 米，奇数伤亡由支援方多承担 1 人。\n支援兵力不足或一端失守时断开。" % [BEAR_DURATIONS[2], BEAR_LINK_RADIUS],
+			"防御力 +%d%%，作用于自己或盟友建筑，持续 %d 秒。\n法术球立即开火，每 %.1f 秒攻击 %d 米内最多 %d 名敌兵。\n优先选择最远目标。" % [roundi(BEAR_WARD_DEFENSE * 100.0), BEAR_DURATIONS[3], BEAR_ORB_INTERVAL, BEAR_ORB_RANGE, BEAR_ORB_TARGETS]
 		][index]
 	if commander == RABBIT:
 		return [

@@ -2,6 +2,8 @@ extends RefCounted
 ## Bear state belongs to the simulation; authored scenes only display it.
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+# Active effects retain the caster's faction for skill timers and presentation;
+# their buildings can belong to any player on that team.
 var links: Dictionary[int, Dictionary] = {}
 var wards: Dictionary[int, Dictionary] = {}
 var shots: Array[Dictionary] = []
@@ -23,7 +25,7 @@ func partner(game: Node3D, target: WarBuilding) -> WarBuilding:
 	var closest: WarBuilding
 	var distance := RULES.BEAR_LINK_RADIUS * RULES.BEAR_LINK_RADIUS
 	for candidate: WarBuilding in game.buildings:
-		if candidate == target or candidate.faction != target.faction or candidate.population < 1.0 or participates(candidate.building_id):
+		if candidate == target or not FACTIONS.allied(candidate.faction, target.faction) or candidate.population < 1.0 or participates(candidate.building_id):
 			continue
 		var offset := target.global_position - candidate.global_position
 		var squared := Vector2(offset.x, offset.z).length_squared()
@@ -33,7 +35,7 @@ func partner(game: Node3D, target: WarBuilding) -> WarBuilding:
 	return closest
 
 func valid_target(game: Node3D, index: int, target: WarBuilding, faction: int) -> bool:
-	if target.faction != faction:
+	if not FACTIONS.allied(target.faction, faction):
 		return false
 	match index:
 		0: return target.is_constructing and target.construction_cost > 0
@@ -76,7 +78,7 @@ func apply_damage(game: Node3D, target: WarBuilding, damage: float, combat_damag
 	if links.has(id):
 		var link := links[id]
 		var support: WarBuilding = game.by_id[link.support]
-		if target.faction != link.faction or support.faction != link.faction or support.population < 1.0:
+		if not FACTIONS.allied(target.faction, link.faction) or not FACTIONS.allied(support.faction, link.faction) or support.population < 1.0:
 			_end_link(game, id)
 		else:
 			settled_link = true
@@ -143,14 +145,14 @@ func advance(game: Node3D, delta: float) -> void:
 		var link := links[id]
 		link.remaining = maxf(0.0, link.remaining - delta)
 		link.pulse = maxf(0.0, link.pulse - delta * 3.0)
-		if link.remaining < 0.000001 or game.by_id[link.target].faction != link.faction or game.by_id[link.support].faction != link.faction or game.by_id[link.support].population < 1.0:
+		if link.remaining < 0.000001 or not FACTIONS.allied(game.by_id[link.target].faction, link.faction) or not FACTIONS.allied(game.by_id[link.support].faction, link.faction) or game.by_id[link.support].population < 1.0:
 			_end_link(game, id)
 	for id: int in wards.keys():
 		var ward := wards[id]
 		ward.remaining = maxf(0.0, ward.remaining - delta)
 		ward.pulse = maxf(0.0, ward.pulse - delta * 5.0)
 		ward.shot_clock -= delta
-		if ward.remaining < 0.000001 or game.by_id[id].faction != ward.faction:
+		if ward.remaining < 0.000001 or not FACTIONS.allied(game.by_id[id].faction, ward.faction):
 			game.faction_skills[ward.faction].durations[3] = 0.0
 			wards.erase(id)
 		elif ward.shot_clock < 0.000001:

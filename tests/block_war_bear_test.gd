@@ -228,6 +228,7 @@ func _run() -> void:
 	await _ward_defense_checks()
 	await _ward_projectile_checks()
 	await _ward_arrival_checks()
+	await _ally_support_checks()
 
 	for ability: int in 4:
 		await reset()
@@ -371,3 +372,102 @@ func _ward_arrival_checks() -> void:
 	check(game.bear.wards.has(a.building_id), "arrivals resolve while the ward remains active")
 	check(game.marches.total_for(1) == 0, "real incoming soldiers enter immediately without waiting outside")
 	near(a.population, 85.0, "thirty real arrivals inflict fifteen garrison casualties during R")
+
+func _ally_pair() -> Array[WarBuilding]:
+	for building: WarBuilding in game.buildings:
+		building.kind = 3
+		building.faction = -1
+	var buildings := pair(2)
+	buildings[1].faction = 4
+	game.by_id[1].faction = 1
+	return buildings
+
+func _ally_support_checks() -> void:
+	await reset("highland")
+	var buildings := _ally_pair()
+	var target := buildings[0]
+	var support := buildings[1]
+	for index: int in [0, 2, 3]:
+		check(not game.cast_skill(index, game.by_id[1]), "bear support rejects an enemy for skill %d" % index)
+		check(not game.cast_skill(index, game.by_id[6]), "bear support rejects neutral buildings for skill %d" % index)
+	near(game.energy, 100.0, "invalid allied support never charges the caster")
+	check(not game.cast_skill(0, target), "ally without paid construction rejects toolbox")
+	check(game.begin_building_construction(target, 0, 2), "ally pays for a real conversion")
+	check(game.cast_skill(0, target), "toolbox completes an ally's conversion")
+	near(target.population, 90.0, "ally keeps the ten refunded conversion soldiers")
+	check(target.faction == 2 and target.kind == 0 and not target.is_constructing, "toolbox preserves ally ownership and applies the new form")
+	near(game.energy, 75.0, "only the bear pays toolbox energy")
+	near(game.faction_skills[2].energy, 100.0, "receiving ally pays no energy")
+	refill()
+	check(game.begin_building_construction(target, -1, 2), "ally pays five for a real first house upgrade")
+	check(game.cast_skill(0, target), "toolbox also completes an ally's upgrade")
+	near(target.population, 87.0, "odd five-person upgrade refunds two whole soldiers to the ally")
+	check(target.level == 2, "ally receives completed upgrade immediately")
+
+	await reset("highland")
+	buildings = _ally_pair()
+	target = buildings[0]
+	support = buildings[1]
+	check(game.bear.partner(game, target) == support, "link preview finds the nearest building owned by another teammate")
+	check(game.cast_skill(2, target), "bear connects two teammates' buildings")
+	game.bear.advance(game, 0.25)
+	check(game.bear.links.has(target.building_id), "cross-player link remains active after the next tick")
+	check(not game._valid_skill_target(2, support, 4), "another allied bear cannot reverse or overlap the active link")
+	game.faction_skills[2].energy = 20.0
+	game.faction_skills[4].energy = 30.0
+	game._on_unit_arrived(target.building_id, 1, 21.0)
+	near(target.population, 90.0, "allied linked target loses ten from twenty-one damage")
+	near(support.population, 89.0, "other teammate's support loses eleven from twenty-one damage")
+	near(game.faction_skills[2].energy, 22.0, "target owner's ten casualties restore its own energy")
+	near(game.faction_skills[4].energy, 32.2, "support owner's eleven casualties restore its own energy")
+	near(game.energy, 70.0, "caster gains no combat energy from other players' casualties")
+	game.bear.advance(game, 7.75)
+	check(game.bear.links.is_empty(), "allied link expires after eight seconds")
+	near(game.active_durations[2], 0.0, "allied link expiry clears the caster's HUD timer")
+	refill()
+	check(game.cast_skill(2, target), "allied link can be cast again after expiry")
+	game._on_unit_arrived(support.building_id, 1, 300.0)
+	check(support.faction == 1 and game.bear.links.is_empty(), "capturing allied support immediately breaks the link")
+	near(game.active_durations[2], 0.0, "allied capture clears the original caster's link timer")
+
+	await reset("highland")
+	buildings = _ally_pair()
+	target = buildings[0]
+	var enemy := _orb_soldier(target, 12.0)
+	var ally := _orb_soldier(target, 14.0, 4)
+	check(game.cast_skill(3, target), "bear ward accepts a teammate's building")
+	game.bear.advance(game, 0.25)
+	check(game.bear.wards.has(target.building_id), "allied ward persists after the next tick")
+	near(game.skill_defense_bonus(target), RULES.BEAR_WARD_DEFENSE, "ally receives the full existing defense bonus")
+	check(not game._valid_skill_target(3, target, 4), "another allied bear cannot stack the same ward")
+	game.bear.tick_projectiles(game, 0.5)
+	check(not enemy.alive and ally.alive, "ally's orb kills an enemy and spares allied troops")
+	game._on_unit_arrived(target.building_id, 1, 20.0)
+	near(target.population, 90.0, "allied ward reduces ordinary garrison damage")
+	near(game.energy, 30.0, "bear pays ward cost without spending teammate energy")
+	game.bear.advance(game, 4.75)
+	check(game.bear.wards.is_empty(), "allied ward ends at five seconds")
+	near(game.active_durations[3], 0.0, "ward expiry clears the caster's timer")
+	refill()
+	check(game.cast_skill(3, target), "ally receives a fresh ward after expiry")
+	game._on_unit_arrived(target.building_id, 1, 300.0)
+	check(target.faction == 1 and game.bear.wards.is_empty(), "captured allied building does not retain the old team's ward")
+	near(game.active_durations[3], 0.0, "capture clears the original caster's ward timer")
+
+	for ability: int in 4:
+		await reset("highland")
+		buildings = _ally_pair()
+		target = buildings[0]
+		game.faction_skills[0].cooldowns.fill(100.0)
+		game.faction_skills[0].cooldowns[ability] = 0.0
+		if ability == 0:
+			game.begin_building_construction(target, 0, 2)
+		else:
+			target.population = 10.0
+			var start := target.global_position + Vector3(7, 0, 0)
+			game.marches.send(1, target.building_id, 1, 30, PackedVector3Array([start, target.global_position + Vector3(2.5, 0, 0)]))
+			game.marches.tick(0.7)
+		game.elapsed = 20.0
+		TACTICS.new(0).take_turn(game)
+		check(game.faction_skills[0].cooldowns[ability] > 0.0, "AI uses bear skill %d to help an ally" % ability)
+		near(game.energy, 100.0 - RULES.BEAR_COSTS[ability], "AI pays its own energy to help ally with skill %d" % ability)

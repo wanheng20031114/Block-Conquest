@@ -465,19 +465,19 @@ func _bear_turn(game: Node3D) -> void:
 	var combat: Dictionary[Vector2i, Dictionary] = {}
 	var towers: Array[WarBuilding] = []
 	for building: WarBuilding in game.buildings:
-		if building.faction == faction and building.kind == 1 and building.disruption_remaining <= 0.0:
+		if game.FACTIONS.allied(building.faction, faction) and building.kind == 1 and building.disruption_remaining <= 0.0:
 			towers.append(building)
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction) or not game.FACTIONS.hostile(unit.order.faction, faction):
 			continue
 		var target: WarBuilding = game.by_id[unit.order.target_id]
-		if target.faction == faction and game.marches.movement_distance(unit, 5.0) >= unit.order.length - unit.distance:
+		if game.FACTIONS.allied(target.faction, faction) and game.marches.movement_distance(unit, 5.0) >= unit.order.length - unit.distance:
 			threats[target.building_id] = threats.get(target.building_id, 0.0) + unit.order.strength * _combat_multiplier(game, combat, unit.order.faction, target, game.marches.projected_attack_bonus(unit))
 		# Slowing a harmless distant march spends energy without buying a useful
 		# defensive window. Prefer an approaching gate or exposure to our guns.
 		var value := 0.0
 		var remaining := unit.order.length - unit.distance
-		if target.faction == faction and remaining > 1.0 and remaining < game.marches.movement_distance(unit, 4.0):
+		if game.FACTIONS.allied(target.faction, faction) and remaining > 1.0 and remaining < game.marches.movement_distance(unit, 4.0):
 			value = 1.0
 		for tower: WarBuilding in towers:
 			if _xz(tower.global_position).distance_to(_xz(unit.position)) < game.tower_range(tower):
@@ -492,7 +492,7 @@ func _bear_turn(game: Node3D) -> void:
 		cells[cell].value += value
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
 	for building: WarBuilding in game.buildings:
-		if building.faction != faction:
+		if not game.FACTIONS.allied(building.faction, faction):
 			continue
 		var danger: float = threats.get(building.building_id, 0.0)
 		if game.can_cast_skill(3, faction) and game._valid_skill_target(3, building, faction) and danger >= maxf(8.0, building.population * 0.7):
