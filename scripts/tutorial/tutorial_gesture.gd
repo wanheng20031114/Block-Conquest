@@ -45,7 +45,14 @@ func clear_gesture() -> void:
 
 
 func gesture_bounds() -> Rect2:
-	return Rect2(_from, Vector2.ZERO).expand(_to).grow(56.0)
+	# Reserve the whole demonstration, including the mouse and its caption.
+	# Use the swept area rather than this animation frame, so nearby callouts
+	# do not jump as the cursor travels from source to destination.
+	var path := Rect2(_from, Vector2.ZERO).expand(_to).expand(_from + Vector2(-26.0, 26.0))
+	var bounds := path.grow_individual(56.0, 80.0, 284.0, 84.0)
+	if path.end.x + 282.0 > size.x:
+		bounds = bounds.expand(Vector2(path.position.x - 254.0, bounds.position.y))
+	return bounds.intersection(Rect2(Vector2.ZERO, size))
 
 
 func _process(_delta: float) -> void:

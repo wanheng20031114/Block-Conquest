@@ -9,6 +9,8 @@ signal exit_requested
 signal next_requested
 
 const MAX_SPOTLIGHTS := 8
+const CALLOUT_GAP := 24.0
+const SCREEN_MARGIN := 20.0
 
 @onready var ui: Control = $UI
 @onready var dimmer: ColorRect = %Dimmer
@@ -183,28 +185,67 @@ func _layout() -> void:
 	instruction.size.x = minf(506.0 if compact else 566.0, viewport_size.x - 48.0)
 	instruction.size.y = instruction.get_combined_minimum_size().y
 	instruction.pivot_offset = instruction.size * 0.5
-	var top := 134.0
-	var bottom := maxf(top, viewport_size.y - instruction.size.y - 142.0)
-	var right := viewport_size.x - instruction.size.x - 28.0
-	var center := (viewport_size.x - instruction.size.x) * 0.5
-	var candidates: Array[Vector2] = [Vector2(right, top), Vector2(right, bottom), Vector2(right, 16.0), Vector2(right, viewport_size.y - instruction.size.y - 20.0), Vector2(center, bottom), Vector2(center, 16.0)]
 	if _completion:
 		instruction.position = (viewport_size - instruction.size) * 0.5
 	else:
-		var best_score := INF
-		for candidate: Vector2 in candidates:
-			var panel_rect := Rect2(candidate, instruction.size).grow(16.0)
-			var overlap := panel_rect.intersection(objective.get_rect()).get_area() * 4.0
-			for target: Rect2 in _spotlights:
-				overlap += panel_rect.intersection(target.grow(20.0)).get_area() * 2.0
-			if gesture.visible:
-				overlap += panel_rect.intersection(gesture.gesture_bounds()).get_area()
-			if overlap < best_score:
-				best_score = overlap
-				instruction.position = candidate
-	# Labels wrap before this clamp; keep controls reachable on resized windows.
-	instruction.position.y = clampf(instruction.position.y, 20.0, maxf(20.0, viewport_size.y - instruction.size.y - 20.0))
+		instruction.position = _instruction_position(viewport_size)
 	_update_spotlights()
+
+
+func _instruction_position(viewport_size: Vector2) -> Vector2:
+	var limit := (viewport_size - instruction.size - Vector2.ONE * SCREEN_MARGIN).max(Vector2.ONE * SCREEN_MARGIN)
+	var candidates: Array[Vector2] = []
+	# The first spotlight is the subject of this explanation. Other spotlights
+	# (a skill's destination, for example) remain visible without making one
+	# huge bounding rectangle that would push the explanation across the screen.
+	for target: Rect2 in _spotlights:
+		candidates.append_array(_adjacent_positions(target))
+	# Include the demonstration's edge, so a caption between the highlighted
+	# control and the explanation does not force the explanation far away.
+	if gesture.visible:
+		candidates.append_array(_adjacent_positions(gesture.gesture_bounds()))
+	for x: float in [SCREEN_MARGIN, limit.x * 0.5, limit.x]:
+		for y: float in [SCREEN_MARGIN, limit.y]:
+			candidates.append(Vector2(x, y))
+	var anchor: Rect2 = _spotlights[0] if not _spotlights.is_empty() else gesture.gesture_bounds()
+	var best_position := limit
+	var best_overlap := INF
+	var best_distance := INF
+	for candidate: Vector2 in candidates:
+		# Score the actual on-screen position, including after a window resize.
+		candidate = candidate.clamp(Vector2.ONE * SCREEN_MARGIN, limit)
+		var panel := Rect2(candidate, instruction.size)
+		var overlap := panel.grow(8.0).intersection(objective.get_rect()).get_area() * 4.0
+		for target: Rect2 in _spotlights:
+			overlap += panel.intersection(target.grow(16.0)).get_area() * 2.0
+		if gesture.visible:
+			overlap += panel.intersection(gesture.gesture_bounds()).get_area()
+		var separation := (anchor.position - panel.end).max(panel.position - anchor.end).max(Vector2.ZERO)
+		var distance := separation.length() * 8.0 + panel.get_center().distance_to(anchor.get_center()) * 0.05
+		if overlap < best_overlap or (is_equal_approx(overlap, best_overlap) and distance < best_distance):
+			best_overlap = overlap
+			best_distance = distance
+			best_position = candidate
+	return best_position
+
+
+func _adjacent_positions(target: Rect2) -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	var panel_size := instruction.size
+	var objective_rect := objective.get_rect()
+	# Center on the subject when possible; slide along the same edge to avoid
+	# the objective card, rather than moving to an unrelated screen corner.
+	var columns := [target.get_center().x - panel_size.x * 0.5, target.position.x, target.end.x - panel_size.x,
+		objective_rect.end.x + CALLOUT_GAP, objective_rect.position.x - panel_size.x - CALLOUT_GAP]
+	var rows := [target.get_center().y - panel_size.y * 0.5, target.position.y, target.end.y - panel_size.y,
+		objective_rect.end.y + CALLOUT_GAP, objective_rect.position.y - panel_size.y - CALLOUT_GAP]
+	for x: float in columns:
+		result.append(Vector2(x, target.end.y + CALLOUT_GAP))
+		result.append(Vector2(x, target.position.y - panel_size.y - CALLOUT_GAP))
+	for y: float in rows:
+		result.append(Vector2(target.end.x + CALLOUT_GAP, y))
+		result.append(Vector2(target.position.x - panel_size.x - CALLOUT_GAP, y))
+	return result
 
 
 func _configure_density(profile: int) -> void:
