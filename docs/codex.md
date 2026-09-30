@@ -21,11 +21,12 @@
 - `scripts/codex/demo_world.gd`：继承实际战斗控制器，复用派兵、人口、施法和伤害结算；仅隔离会话入口、网络、输入、胜负与正式 HUD。
 
 美术全部复用项目现有资源，未增加外部图像依赖。预留角色未实装前不列入名录。
-机制插画使用 `codex_icons.tres` 内嵌的原 SVG 矢量源与 Godot 4.6 原生 DPITexture，在大尺寸与缩放窗口中保持清晰；导出后无需读取外部 SVG 源文件。
+目录图标与机制插画统一使用图鉴专属 `codex_icons.tres`，内嵌原 SVG 矢量源并使用原生 DPITexture 的 4 倍基础分辨率和自动 DPI 重绘；目录用线性采样保持曲线边缘清晰，英雄像素立绘继续使用最近邻采样。战斗界面的原图及导入设置不变，导出后无需读取外部 SVG 源文件。
 
 ## 原生能力参考
 
 - [ItemList](https://docs.godotengine.org/en/stable/classes/class_itemlist.html)：图标列表、选择、滚动与键盘导航。
+- [DPITexture](https://docs.godotengine.org/en/stable/classes/class_dpitexture.html)：内嵌矢量源、基础分辨率与窗口缩放时自动重绘。
 - [ScrollContainer](https://docs.godotengine.org/en/stable/classes/class_scrollcontainer.html)：长篇指南的原生滚动。
 - [SubViewport](https://docs.godotengine.org/en/stable/classes/class_subviewport.html)：隔离三维世界、禁用输入与控制渲染更新。
 - [SubViewportContainer](https://docs.godotengine.org/en/stable/classes/class_subviewportcontainer.html)：将实机场景嵌入图鉴布局。
@@ -36,6 +37,8 @@
 `tests/codex_test.gd` 覆盖菜单往返、六位英雄及二十四项技能、规则数据一致性、检索空态、全部指南、暂停重播、快速切换与只读状态，并输出原生渲染截图。`tests/codex_native_demo_test.gd` 验证真实施法、对应的部队或建筑变化、镜头构图、960×540 小窗口及演示隔离。可通过 `tools/run_godot_private_desktop.py` 在独立桌面运行，测试结束自动释放进程树。
 
 正式导出必须启用 `internationalization/locale/include_text_server_data`，随包携带 `icudt_godot.dat`；模板准备工具会从官方模板包提取匹配的数据。编辑器内置 ICU 数据，仅用编辑器运行 PCK 无法发现缺失数据导致的中文断行退化。`tools/build_windows.ps1` 额外用实际发行 EXE 执行 `tests/export_text_layout_test.gd`，检查 720p、900p、1440p 下全部指南和技能的原生排版行宽。测试副本只增加检查入口，产品包不含检查脚本。详情见 [1.3.3 根因与发行验证](reviews/2026-09-30-export-text-1.3.3.md)。
+
+1.3.4 将十二个目录图标从战斗用小尺寸导入图切换到图鉴专属 DPITexture，避免放大 32×40／64×64 纹理造成模糊和锯齿。上述发行 EXE 检查同时覆盖图标类型、基础分辨率及指南／像素立绘的采样区别；三个窗口尺寸的原生 GPU 验证共 990 项通过。
 
 ## 技能命中表现
 

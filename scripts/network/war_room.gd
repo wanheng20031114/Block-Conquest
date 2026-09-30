@@ -5,6 +5,7 @@ const CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 var _pending_action := ""
 var _request_clock := 0.0
 var _map_id := ""
+var _displayed_room_code := ""
 var _fill_queue: Array[int] = []
 var _fill_waiting := -1
 @onready var session: Node = get_node("/root/Session")
@@ -24,6 +25,7 @@ func _ready() -> void:
 	%Start.pressed.connect(online.start_match)
 	%Fill.pressed.connect(_fill_bots)
 	%Copy.pressed.connect(_copy_code)
+	%CopyFeedback.timeout.connect(_update_copy_label)
 	%Leave.pressed.connect(_leave_room)
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
@@ -97,12 +99,15 @@ func _process(delta: float) -> void:
 
 func _refresh(room: Dictionary) -> void:
 	var in_room := not room.is_empty()
+	%RoomLabel.visible = not in_room
 	%Entry.visible = not in_room
 	%Room.visible = in_room
 	%RoomFooter.visible = in_room
 	%Leave.visible = in_room
 	if not in_room:
 		%Copy.hide()
+		%CopyFeedback.stop()
+		_displayed_room_code = ""
 		%RoomHeading.text = "与伙伴并肩，或一决高下。"
 		%RoomLabel.text = "创建房间，或输入朋友分享的房间码。"
 		_clear_fill()
@@ -112,7 +117,10 @@ func _refresh(room: Dictionary) -> void:
 	var host: bool = online.is_host
 	var editable: bool = str(room.phase) == "room" and online.connection_state == "room"
 	%RoomHeading.text = "战前集结"
-	%RoomLabel.text = "房间码  %s" % str(room.code)
+	if _displayed_room_code != str(room.code):
+		%CopyFeedback.stop()
+		_displayed_room_code = str(room.code)
+	_update_copy_label()
 	%Copy.visible = true
 	%MapChoice.disabled = not host or not editable
 	%Fill.visible = host
@@ -210,7 +218,11 @@ func _clear_fill() -> void:
 func _copy_code() -> void:
 	if not online.room.is_empty():
 		DisplayServer.clipboard_set(str(online.room.code))
-		%Message.text = "房间码已复制，分享给朋友即可加入。"
+		%CopyFeedback.start()
+		_update_copy_label()
+
+func _update_copy_label() -> void:
+	%Copy.text = "房间号  %s    %s" % [_displayed_room_code, "复制" if %CopyFeedback.is_stopped() else "已复制"]
 
 func _state_changed(state: String) -> void:
 	var labels := {"disconnected": "尚未连接", "connecting": "连接中…", "connected": "联机服务已连接", "room": "已连接", "loading": "载入战场…", "match": "对局进行中", "host_lost": "等待房主重连…", "reconnecting": "正在重新连接…"}

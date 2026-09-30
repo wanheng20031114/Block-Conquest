@@ -3,7 +3,6 @@ extends Control
 
 const CATALOG := preload("res://scripts/codex/codex_catalog.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const GUIDE_ICONS := preload("res://assets/ui/block_war/codex_icons.tres")
 var category: int = 0
 var commander: StringName = &"squirrel"
 var skill_index: int = 0
@@ -31,6 +30,7 @@ func _ready() -> void:
 
 func _set_category(value: int) -> void:
 	category = value
+	%Entries.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if value == 0 else CanvasItem.TEXTURE_FILTER_LINEAR
 	%Heroes.set_pressed_no_signal(value == 0)
 	%Guides.set_pressed_no_signal(value == 1)
 	%Search.text = ""
@@ -122,7 +122,7 @@ func _show_guide() -> void:
 	%DetailTag.text = "战场指南   /   " + entry.tag
 	%DetailTitle.text = entry.title
 	%DetailSummary.text = entry.summary
-	%GuideIcon.texture = GUIDE_ICONS.get_meta(entry.id)
+	%GuideIcon.texture = entry.icon
 	%GuideTag.text = entry.tag
 	%GuideTip.text = entry.tip
 	for index: int in 3:

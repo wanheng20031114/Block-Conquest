@@ -4,6 +4,7 @@ extends RefCounted
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
 const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
+const GUIDE_ICONS := preload("res://assets/ui/block_war/codex_icons.tres")
 const HEROES: Array[StringName] = [&"squirrel", &"rabbit", &"bear", &"frog", &"fox", &"pig"]
 
 
@@ -77,7 +78,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "出发队列", "body": "部队依次出发。已编入队列的士兵无法重复派遣，但离开建筑前仍参与防守。"},
 			],
 			"tip": "增援进入盟友建筑后，归接收方指挥。",
-			"icon": preload("res://assets/ui/block_war/action_population.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"dispatch"),
 		},
 		{
 			"id": &"victory", "title": "占领与胜负", "tag": "对局目标",
@@ -88,7 +89,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "僵局", "body": "若双方均只剩无法产兵且不足 1 人的据点，也没有行军部队，对局以平局结束。"},
 			],
 			"tip": "敌方建筑不显示人口图标；己方、盟友和中立建筑仍显示驻军数量。",
-			"icon": preload("res://assets/ui/block_war/bulwark.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"victory"),
 		},
 		{
 			"id": &"residence", "title": "住宅", "tag": "建筑 · 兵力生产",
@@ -99,7 +100,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间继续按原等级产兵。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2)]},
 			],
 			"tip": "自然产兵上限不是驻军上限；增援与征召可以超出。",
-			"icon": preload("res://assets/ui/block_war/action_house.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"residence"),
 		},
 		{
 			"id": &"tower", "title": "炮塔", "tag": "建筑 · 区域防守",
@@ -110,7 +111,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间射击能力与防御力保持原等级。" % [BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2)]},
 			],
 			"tip": "将炮塔布置在必经路线附近，可持续削弱敌方行军。",
-			"icon": preload("res://assets/ui/block_war/action_tower.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"tower"),
 		},
 		{
 			"id": &"smithy", "title": "铁匠铺", "tag": "建筑 · 全军支援",
@@ -121,7 +122,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供全部增益。"},
 			],
 			"tip": "铁匠铺与士气的同类加成相加；炮塔的防御力加成计入常驻防御，技能加成独立结算。",
-			"icon": preload("res://assets/ui/block_war/action_forge.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"smithy"),
 		},
 		{
 			"id": &"energy", "title": "能量塔", "tag": "建筑 · 技力补充",
@@ -132,7 +133,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "建设限制", "body": "仅铁匠铺可改建为能量塔，消耗 20 人，耗时 %d 秒。能量塔不产兵、不可升级，可改建回住宅、炮塔或铁匠铺。" % BUILDING.CONSTRUCTION_DURATION},
 			],
 			"tip": "部队来源以发令时的建筑类型为准；原塔改造或易主不影响已发军令。进入建筑后，下次出征重新判定。",
-			"icon": preload("res://assets/ui/block_war/action_energy.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"energy"),
 		},
 		{
 			"id": &"construction", "title": "升级与改建", "tag": "据点经营",
@@ -143,7 +144,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "施工", "body": "住宅与炮塔的 1 → 2 级升级需 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒；所有改建仍需 %d 秒。期间保留原有功能；失守时施工中断，已消耗的人口不会返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "封条急件暂停建筑运作，不暂停升级或改建计时。",
-			"icon": preload("res://assets/ui/block_war/action_upgrade.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"construction"),
 		},
 		{
 			"id": &"terrain", "title": "地形与行军", "tag": "战场路线",
@@ -154,7 +155,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "特殊机动", "body": "兔洞将部队送至目标附近，两楼仍须有可通行路线。猪会飞则可无视地形、直线前往目的地，最多派出 30 人；与猪整队叠加仍取 30 人上限，其余驻军留在建筑。"},
 			],
 			"tip": "派兵时同时观察路线长度与沿途敌方炮塔。",
-			"icon": preload("res://assets/ui/block_war/skill_haste.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"terrain"),
 		},
 		{
 			"id": &"morale", "title": "士气", "tag": "军团状态",
@@ -165,7 +166,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "自然衰减", "body": "没有士气事件时，士气会在一段时间后逐渐衰减。星级越高，开始衰减越早，衰减速度也越快。"},
 			],
 			"tip": "每位玩家独立计算士气，队友之间不共享星级。",
-			"icon": preload("res://assets/ui/block_war/morale_star.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"morale"),
 		},
 		{
 			"id": &"skills", "title": "技力与施法", "tag": "指挥官技能",
@@ -176,7 +177,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "施法与取消", "body": "四项技能共用技力、独立冷却。拖动图标或按住 Q/W/E/R 瞄准，松手施放，右键取消。取消或无效施放不扣技力、不进冷却；电脑遵循相同规则。"},
 			],
 			"tip": "查看技能的目标与作用范围，避免对友军造成误伤。",
-			"icon": preload("res://assets/ui/block_war/skill_muster.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"skills"),
 		},
 		{
 			"id": &"teams", "title": "队伍协作", "tag": "多人战术",
@@ -187,7 +188,7 @@ static func guides() -> Array[Dictionary]:
 				{"title": "相互支援", "body": "派往盟友建筑的部队会补充其驻军，抵达后归接收方指挥。松鼠的征召军令与防护罩也可用于盟友建筑。"},
 			],
 			"tip": "据点失守后仍有队友作战时，团队对局会继续。",
-			"icon": preload("res://assets/ui/block_war/skill_bear_link.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"teams"),
 		},
 		{
 			"id": &"controls", "title": "镜头与快捷键", "tag": "操作指南",
@@ -198,6 +199,6 @@ static func guides() -> Array[Dictionary]:
 				{"title": "菜单与帮助", "body": "F1 查看战场操作说明，Esc 打开或关闭战场菜单。拖动派兵时，滚轮改为调整派遣比例。"},
 			],
 			"tip": "右键可以取消当前派兵拖动或技能瞄准。",
-			"icon": preload("res://assets/ui/block_war/drum.svg"),
+			"icon": GUIDE_ICONS.get_meta(&"controls"),
 		},
 	]

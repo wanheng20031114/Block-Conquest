@@ -60,18 +60,22 @@ func _run() -> void:
 		get_tree().root.size = resolution
 		page._set_category(1)
 		await _settle()
+		_check(page.get_node("%Entries").texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR, "guide vectors use smooth sampling")
 		for row: int in page._guides.size():
 			page.get_node("%Entries").select(row)
 			page.get_node("%Entries").ensure_current_is_visible()
 			page._select_entry(row)
 			await _settle()
 			var context := "%dx%d guide %d" % [resolution.x, resolution.y, row]
+			var icon: Texture2D = page.get_node("%Entries").get_item_icon(row)
+			_check(icon is DPITexture and icon.get_width() >= 128, context + " has an independent high-resolution vector icon")
 			for name: String in ["GuideTip", "DetailSummary", "SectionBody0", "SectionBody1", "SectionBody2"]:
 				_label(page, name, context)
 			if row == 1:
 				_check(page.get_node("%GuideTip").get_line_count() >= 3, context + " Chinese-only capture tip wraps")
 				await _capture("victory_%dx%d" % [resolution.x, resolution.y])
 		page._set_category(0)
+		_check(page.get_node("%Entries").texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "hero portraits retain pixel sampling")
 		for row: int in page.get_node("%Entries").item_count:
 			page.get_node("%Entries").select(row)
 			page.get_node("%Entries").ensure_current_is_visible()

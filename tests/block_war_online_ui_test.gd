@@ -125,6 +125,7 @@ func _run() -> void:
 	online.install(value)
 	await process_frame
 	check(room.get_node("%Room").visible and not room.get_node("%Entry").visible, "membership opens room")
+	check(room.get_node("%Copy").visible and room.get_node("%Copy").text.contains(value.code) and not room.get_node("%RoomLabel").visible, "room number itself is the copy button")
 	check(room.get_node("%Preview").local_faction == 5, "host in seat six highlights own spawn")
 	check(room.get_node("%Seat5").get_node("%Badge").text == "你 · 房主", "host identity follows seat")
 	check(not room.get_node("%Seat5").get_node("%Commander").disabled, "own commander editable")
@@ -168,6 +169,7 @@ func _run() -> void:
 	check(room.get_node("%Seat3").get_node("%Commander").disabled, "loading barrier locks commander")
 	room._leave_room()
 	check(room.get_node("%Entry").visible and not room.get_node("%Room").visible and not room.get_node("%Copy").visible, "leaving room returns to usable create/join entry")
+	check(room.get_node("%CopyFeedback").is_stopped(), "leaving a room cancels pending copy feedback")
 	room.queue_free()
 	await process_frame
 	var battle := FakeBattle.new()

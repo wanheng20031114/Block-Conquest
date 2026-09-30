@@ -74,6 +74,11 @@ script = ExtResource("script")
 script = ExtResource("entrance")
 sections = Array[NodePath]([NodePath("Margin/Column/Header"), NodePath("Margin/Column/Body"), NodePath("Margin/Column/Footer")])
 
+[node name="CopyFeedback" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 2.0
+one_shot = true
+
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -154,7 +159,6 @@ theme_override_constants/separation = 12
 [node name="RoomLabel" type="Label" parent="Margin/Column/RoomBar"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 text = "创建房间，或输入朋友分享的房间码。"
 theme_override_font_sizes/font_size = 20
 
@@ -162,9 +166,16 @@ theme_override_font_sizes/font_size = 20
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = "复制房间码"
-theme_override_font_sizes/font_size = 16
+custom_minimum_size = Vector2(310, 48)
+text = "房间号      复制"
+theme_override_font_sizes/font_size = 22
+theme_type_variation = &"MenuChoice"
 mouse_default_cursor_shape = 2
+
+[node name="RoomBarSpacer" type="Control" parent="Margin/Column/RoomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="Leave" type="Button" parent="Margin/Column/RoomBar"]
 unique_name_in_owner = true
