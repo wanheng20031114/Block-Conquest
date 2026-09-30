@@ -34,6 +34,8 @@ class MarchOrder extends RefCounted:
 	var pig_charge := false
 	var airborne := false
 	var dense := false
+	# Fox panic remains visible for the entire march, including recall/conversion.
+	var panicked := false
 	var curve: Curve3D
 	var length: float
 	var returning := false
@@ -74,6 +76,7 @@ class MarchUnit extends RefCounted:
 
 @onready var _multimesh: MultiMesh = $Militia.multimesh
 @onready var _cloaked_mesh: MultiMesh = $CloakedMilitia.multimesh
+@onready var _panic_mesh: MultiMesh = $PanicMarks.multimesh
 var _units: Array[MarchUnit] = []
 var _render_batch_depth := 0
 var _render_pending := false
@@ -95,6 +98,8 @@ func _ready() -> void:
 	_multimesh.visible_instance_count = 0
 	_cloaked_mesh.instance_count = 4096
 	_cloaked_mesh.visible_instance_count = 0
+	_panic_mesh.instance_count = 4096
+	_panic_mesh.visible_instance_count = 0
 
 func _make_order(source_id: int, target_id: int, faction: int, route: PackedVector3Array, strength: float = 1.0, energy_origin: bool = false) -> MarchOrder:
 	assert(route.size() >= 2, "A march needs a source and destination in its route.")
@@ -124,21 +129,22 @@ func _make_order(source_id: int, target_id: int, faction: int, route: PackedVect
 	assert(order.length > 0.01, "Cannot send soldiers along a zero-length route.")
 	return order
 
-func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0, energy_origin: bool = false) -> void:
+func send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float = 1.0, energy_origin: bool = false, panicked: bool = false) -> void:
 	# Transport soldiers whose source has already paid for them (including fixtures).
-	_send(source_id, target_id, faction, count, route, strength, false, energy_origin)
+	_send(source_id, target_id, faction, count, route, strength, false, energy_origin, false, false, false, panicked)
 
 func queue_departure(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, energy_origin: bool = false, charge: bool = false, airborne: bool = false, dense: bool = false) -> void:
 	# Normal building orders reserve a garrison, then pay one soldier per departure.
 	_send(source_id, target_id, faction, count, route, 1.0, true, energy_origin, charge, airborne, dense)
 
-func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool, energy_origin: bool, charge: bool = false, airborne: bool = false, dense: bool = false) -> void:
+func _send(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, strength: float, from_garrison: bool, energy_origin: bool, charge: bool = false, airborne: bool = false, dense: bool = false, panicked: bool = false) -> void:
 	if count <= 0:
 		return
 	var order := _make_order(source_id, target_id, faction, route, strength, energy_origin)
 	order.pig_charge = charge
 	order.airborne = airborne
 	order.dense = dense
+	order.panicked = panicked
 	var column_spacing := DENSE_COLUMN_SPACING if dense else COLUMN_SPACING
 	var row_spacing := DENSE_ROW_SPACING if dense else ROW_SPACING
 	if from_garrison:
@@ -288,6 +294,7 @@ func return_order(outbound: MarchOrder) -> MarchOrder:
 	order.pig_charge = outbound.pig_charge
 	order.airborne = outbound.airborne
 	order.dense = outbound.dense
+	order.panicked = outbound.panicked
 	order.curve = outbound.curve
 	order.length = outbound.length
 	order.departure_distance = outbound.departure_distance
@@ -308,6 +315,7 @@ func transfer_order(original: MarchOrder, faction: int) -> MarchOrder:
 	order.pig_charge = original.pig_charge
 	order.airborne = original.airborne
 	order.dense = original.dense
+	order.panicked = original.panicked
 	order.curve = original.curve
 	order.length = original.length
 	order.returning = original.returning
@@ -875,6 +883,7 @@ func clear() -> void:
 	weak_zones.clear()
 	_multimesh.visible_instance_count = 0
 	_cloaked_mesh.visible_instance_count = 0
+	_panic_mesh.visible_instance_count = 0
 
 func snapshot_incoming() -> Dictionary[Vector2i, int]:
 	var incoming: Dictionary[Vector2i, int] = {}
@@ -900,6 +909,7 @@ func _ensure_capacity(required: int) -> void:
 		capacity *= 2
 	_multimesh.instance_count = capacity
 	_cloaked_mesh.instance_count = capacity
+	_panic_mesh.instance_count = capacity
 
 func _update_pose(unit: MarchUnit) -> void:
 	var order := unit.order
@@ -968,6 +978,7 @@ func _render() -> void:
 	_render_pending = false
 	var slot := 0
 	var cloaked_slot := 0
+	var panic_slot := 0
 	for unit: MarchUnit in _units:
 		if not unit.is_exposed():
 			continue
@@ -980,9 +991,16 @@ func _render() -> void:
 		var gait := unit.gait + unit.presentation_gait_offset
 		color.a = -(gait + 1.0) if unit.rush_remaining > 0.0 else gait
 		mesh.set_instance_custom_data(index, color)
+		if unit.order.panicked and not unit.cloaked:
+			# Share the body's interpolated position and simulation-driven gait:
+			# marks follow network corrections and freeze with the fleeing soldier.
+			_panic_mesh.set_instance_transform(panic_slot, Transform3D(Basis.IDENTITY, _presentation_position(unit) + Vector3.UP * 1.85))
+			_panic_mesh.set_instance_custom_data(panic_slot, Color(0, 0, 0, gait))
+			panic_slot += 1
 		if unit.cloaked:
 			cloaked_slot += 1
 		else:
 			slot += 1
 	_multimesh.visible_instance_count = slot
 	_cloaked_mesh.visible_instance_count = cloaked_slot
+	_panic_mesh.visible_instance_count = panic_slot

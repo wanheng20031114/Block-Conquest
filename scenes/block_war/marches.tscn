@@ -4,6 +4,7 @@
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/militia.res" id="2_mesh"]
 [ext_resource type="Shader" path="res://assets/models/block_war/militia.gdshader" id="3_shader"]
 [ext_resource type="Shader" path="res://assets/models/block_war/frog_cloak.gdshader" id="cloak"]
+[ext_resource type="Shader" path="res://assets/models/block_war/fox_panic_mark.gdshader" id="panic"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_militia"]
 shader = ExtResource("3_shader")
@@ -27,6 +28,21 @@ custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 visible_instance_count = 0
 mesh = ExtResource("2_mesh")
 
+[sub_resource type="ShaderMaterial" id="PanicMaterial"]
+shader = ExtResource("panic")
+
+[sub_resource type="QuadMesh" id="PanicMark"]
+material = SubResource("PanicMaterial")
+size = Vector2(0.52, 0.88)
+
+[sub_resource type="MultiMesh" id="PanicMarks"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+visible_instance_count = 0
+mesh = SubResource("PanicMark")
+
 [node name="Marches" type="Node3D"]
 script = ExtResource("1_script")
 
@@ -39,4 +55,9 @@ multimesh = SubResource("MultiMesh_militia")
 physics_interpolation_mode = 2
 material_override = SubResource("CloakMaterial")
 multimesh = SubResource("CloakedMilitia")
+cast_shadow = 0
+
+[node name="PanicMarks" type="MultiMeshInstance3D" parent="."]
+physics_interpolation_mode = 2
+multimesh = SubResource("PanicMarks")
 cast_shadow = 0

@@ -50,6 +50,14 @@ func soldier(faction: int, at: Vector3, target_id: int = 0) -> WarMarches.MarchU
 	game.marches.send(1, target_id, faction, 1, PackedVector3Array([at, at + Vector3(30, 0, 0)]))
 	return game.marches._units[-1]
 
+func panic_marks(marches: WarMarches) -> MultiMesh:
+	return marches.get_node("PanicMarks").multimesh
+
+func check_panic_pose(marches: WarMarches, unit: WarMarches.MarchUnit, index: int, label: String) -> void:
+	var at := panic_marks(marches).get_instance_transform(index).origin
+	var soldier_at := marches._presentation_position(unit)
+	check(Vector2(at.x, at.z).distance_to(Vector2(soldier_at.x, soldier_at.z)) < 0.0001 and at.y > soldier_at.y + 0.4, label)
+
 func _run() -> void:
 	create_timer(50.0, true, false, true).timeout.connect(func(): quit(3))
 	var session := root.get_node("Session")
@@ -186,10 +194,17 @@ func _run() -> void:
 	check(game.marches._units.size() == 24, "exactly 24 flee")
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		check(unit.order.target_id == farthest.building_id and unit.order.faction == 1, "flee toward own distant faction")
+		check(unit.order.panicked, "every fleeing soldier retains panic for its journey")
 	check(sounds.has(&"war_fox_panic"), "R sound")
 	var total: float = farthest.population + target.population + game.marches._units.size()
+	game.marches.tick(1.6)
+	game.world_effects.get_node("Fox").advance(1.6)
+	check(game.world_effects.get_node("Fox/Casts").get_children().all(func(slot: Node3D): return slot.kind != 3 or not slot.active), "short R cast effects have ended")
+	check(panic_marks(game.marches).visible_instance_count == 24, "panic remains visible on every refugee after the cast effect ends")
+	check_panic_pose(game.marches, game.marches._units[0], 0, "panic mark follows the distant fleeing soldier")
 	game.marches.tick(300)
 	near(farthest.population + target.population, total, "all refugees arrive with conserved population")
+	check(panic_marks(game.marches).visible_instance_count == 0, "arrivals remove every panic mark")
 	reset(); target.population = 50
 	for id: int in [3, 5, 7, 9]: game.by_id[id].faction = 1
 	game.marches.queue_departure(1, 0, 1, 30, game.map.get_building_route(target, game.by_id[0]))
@@ -207,11 +222,48 @@ func _run() -> void:
 		if b != target: b.faction = 0
 	check(not game.cast_skill(3, target), "last enemy building has no refuge")
 	near(game.energy, 100, "no refuge consumes nothing")
+	_panic_marker_checks()
 	await _network_check()
 	_ai_checks()
 	await game.prepare_shutdown()
 	print("FOX_TEST checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)
+
+func _panic_marker_checks() -> void:
+	reset()
+	var ordinary := soldier(1, Vector3.ZERO)
+	var fleeing := soldier(1, Vector3(2, 0, 0))
+	fleeing.order.panicked = true
+	var hidden := soldier(1, Vector3(4, 0, 0))
+	hidden.order.panicked = true; hidden.cloaked = true
+	var delayed := soldier(1, Vector3(6, 0, 0))
+	delayed.order.panicked = true; delayed.spawn_delay = 2.0
+	var unstarted := soldier(1, Vector3(8, 0, 0))
+	unstarted.order.panicked = true; unstarted.distance = -1.0
+	game.marches.queue_departure(1, 0, 1, 1, PackedVector3Array([Vector3(10, 0, 0), Vector3(40, 0, 0)]))
+	var queued: WarMarches.MarchUnit = game.marches._units[-1]
+	queued.order.panicked = true
+	check(queued.pending_departure, "panic visibility fixture includes a reserved garrison soldier")
+	game.marches._render()
+	check(not ordinary.order.panicked and panic_marks(game.marches).visible_instance_count == 1, "only the exposed fleeing soldier is marked; ordinary, cloaked, delayed and queued soldiers are not")
+	check_panic_pose(game.marches, fleeing, 0, "panic mark begins above its own soldier")
+	fleeing.presentation_offset = Vector3(0.7, 0.1, -0.4)
+	game.marches._render()
+	check_panic_pose(game.marches, fleeing, 0, "panic mark follows the interpolated position across terrain")
+	fleeing.order = game.marches.transfer_order(fleeing.order, 0)
+	check(fleeing.order.panicked, "recruitment preserves panic on the remaining journey")
+	var recall: WarMarches.MarchOrder = game.marches.return_order(fleeing.order)
+	game.marches.redirect(fleeing, recall)
+	game.marches._render()
+	check(recall.panicked and panic_marks(game.marches).visible_instance_count == 1, "recall keeps the refugee's panic mark")
+	fleeing.intercepted_by = 1
+	check(game.marches.hit_target(fleeing, Vector3.RIGHT), "a real projectile kills the fleeing soldier")
+	check(panic_marks(game.marches).visible_instance_count == 0, "death removes its panic mark immediately")
+	hidden.cloaked = false
+	game.marches._render()
+	check(panic_marks(game.marches).visible_instance_count == 1, "revealing a still fleeing soldier restores its mark")
+	game.marches.clear()
+	check(panic_marks(game.marches).visible_instance_count == 0, "clearing the battle leaves no stale panic marks")
 
 func _network_check() -> void:
 	reset(); game.morale.adjust(1, 2000)
@@ -221,6 +273,8 @@ func _network_check() -> void:
 	game.energy = 100
 	game.by_id[3].faction = 1
 	check(game.cast_skill(3, game.by_id[1]), "network R setup")
+	game.marches.tick(1.6)
+	game.elapsed = 1.6
 	var replica: Node3D = load("res://scenes/block_war/block_war.tscn").instantiate()
 	root.add_child(replica)
 	replica.set_process(false); replica.camera_rig.set_process(false); replica.ai_enabled = false; replica.audio.muted = true
@@ -237,6 +291,21 @@ func _network_check() -> void:
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		var copy: WarMarches.MarchUnit = reader._objects[str(unit.unit_id)]
 		check(copy.order.faction == unit.order.faction and copy.order.target_id == unit.order.target_id and is_equal_approx(copy.lane, unit.lane), "replica faction destination formation")
+		check(copy.order.panicked == unit.order.panicked, "replica preserves panic and ordinary march states")
+	check(panic_marks(replica.marches).visible_instance_count == panic_marks(game.marches).visible_instance_count and panic_marks(replica.marches).visible_instance_count > 0, "snapshot alone restores fleeing marks without replaying a cast")
+	var refugees: Array = replica.marches._units.filter(func(unit: WarMarches.MarchUnit): return unit.order.panicked and unit.is_exposed())
+	var displayed: WarMarches.MarchUnit = refugees[0]
+	game.marches.tick(0.2)
+	game.elapsed += 0.2
+	state = writer.capture(game, 5)
+	reader.install(replica, state)
+	check(displayed.presentation_offset.length() > 0.01, "network correction exercises real interpolation for a fleeing soldier")
+	check_panic_pose(replica.marches, displayed, 0, "replica panic mark follows corrected display position")
+	reader.present(replica, state, 0.1)
+	check_panic_pose(replica.marches, displayed, 0, "replica panic mark keeps following between snapshots")
+	game.marches.clear()
+	reader.install(replica, writer.capture(game, 6))
+	check(panic_marks(replica.marches).visible_instance_count == 0, "authoritative march removal clears replica panic marks")
 	await replica.prepare_shutdown()
 	replica.queue_free()
 	await process_frame

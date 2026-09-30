@@ -50,7 +50,7 @@
     "scenes/block_war/maps/rivers.tscn": "dfb4bee22b203223a640b3db8da5f88fb11a4c37ae06b8e0d03de8c963a608c4",
     "scenes/block_war/maps/switchback.tscn": "2a8d17324ee3425131adebd656fd024442104b46395880dfd62bca11171e1388",
     "scenes/block_war/maps/terraces.tscn": "6ef2a72a58fb2fdeacda542fe12e0c374e16c98c14b800e74fbd08968e07c9d6",
-    "scenes/block_war/marches.tscn": "e142b0d67d23872521ef5bac4acf06aea1e552b909f621206d4f8f41c02be607",
+    "scenes/block_war/marches.tscn": "70b216330200cfb8aa816fde7ceb7e4c5475086ee5f0ac8b57d5093a2be08e91",
     "scenes/block_war/morale_row.tscn": "50eb71870f1e5f90bf52ee11559bab0791fe9a6f50098e386479ed404bef407b",
     "scenes/block_war/morale_star.tscn": "3f035186dc51fa25df30c689658e8bcefbc70b97c147f4cc50c8d5d634f35cdb",
     "scenes/block_war/percentage_button.tscn": "96e62b375b543fc5120e5149b3849af3e6b1ebb9887c4def5704af45ef132056",
@@ -94,7 +94,7 @@
     "scripts/block_war/war_fire_wave.gd": "ca853de8045cd7972b8329916c357f28f98e5e21434a06efae0f594727f89371",
     "scripts/block_war/war_fox_cast.gd": "0208b4e05c7b3553ab50a911ea3fe5be94f9303f1cb1f35cfa7ccd2c211a8421",
     "scripts/block_war/war_fox_effects.gd": "ed3ec2f61a5057c0b14588bf5a3c8a33fa7cd7455af62e9abbcafee88e2f8d13",
-    "scripts/block_war/war_fox_skills.gd": "65126926394410b137de8e87a32e5ab63b007f63d99559dd8c6dbeec315eea7d",
+    "scripts/block_war/war_fox_skills.gd": "82712948d25a0a432f858443577d5afd4b91b0021adaa51cedf864173a554ea0",
     "scripts/block_war/war_frog_effects.gd": "871c11c795f1a806714438e1eb4773a20d42541abd38b9bd5ddfb576a2e3b47d",
     "scripts/block_war/war_frog_skills.gd": "bad2bf7fcd967171b8c7c5c55c04020ac3b1edb29ec8276f113620c05668a8cd",
     "scripts/block_war/war_hud.gd": "13aba38feb9b1664438abcd923c24999cc4fc0912df541b81c654370128df8fa",
@@ -104,7 +104,7 @@
     "scripts/block_war/war_map_preview.gd": "0a0fe94d669b56168a59f3ab4f3bc109fa7402510d93e8c65c8c9aa3665d0d18",
     "scripts/block_war/war_map_routes.gd": "ddd6cf3d69d94bfd6504eb0d0345fbaf711b765097bfd981919f87d21c58b620",
     "scripts/block_war/war_map_select.gd": "0442b80b9e05fec0d8f835534d6b924d613cc9a70e1c29e485c572e8a3e226e7",
-    "scripts/block_war/war_marches.gd": "82d77dfd107859e001eaecd577ae250b5384cba110bc6e12e7f7550cd2712134",
+    "scripts/block_war/war_marches.gd": "281d1f2c56747dd5596c3559f8c51bfdd7e1381ae8b95ea155aaefb1d4297460",
     "scripts/block_war/war_morale.gd": "653565d37311e55c7bab65326c3062f7524da95f4295718859948aac01e31dbd",
     "scripts/block_war/war_morale_star.gd": "ac0c6b4a4d91f3a2bd14eb63b169058c2747b672bf6fe0abbb15183343439fe5",
     "scripts/block_war/war_overlay.gd": "4c74b789661ad006ae908bcaa9587cdacf1c9a2ada231d6dde88277604822f1b",
@@ -132,7 +132,7 @@
     "scripts/network/war_remote_pointer.gd": "b7c31ca56f79b762862e5c6f90bca44c12c88018014fb5cec353dee7e917709f",
     "scripts/network/war_room.gd": "276f62a72d487f84618481e2d448aa67a4d6ac58ff82d3896a02f4b531fcec5f",
     "scripts/network/war_room_slot.gd": "3530c5f9565708e3c3b78f460abb563c514f17e57aa249b41704c79a1391ba6b",
-    "scripts/network/war_snapshot.gd": "3c3130990e0f5d8502bfd047e8781934c9747a95207833d80f5c5a0b475ccdc5",
+    "scripts/network/war_snapshot.gd": "202645c3ded7854b289489b3433a080e6370153af683ef171361b39ccb1323f8",
     "scripts/network/war_teammate_cursors.gd": "5b7bb353ab64bb07cec9fe7e6ae5ba4021e07d9cdd78a3c43a4a89407e57ad20"
   }
 }

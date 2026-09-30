@@ -80,7 +80,7 @@ static func cast(game: Node3D, index: int, target: WarBuilding, faction: int) ->
 				var entry := routes[i]
 				cumulative += (1.0 / maxf(1.0, entry.length)) / total_weight
 				var end := count if i == routes.size() - 1 else roundi(count * cumulative)
-				game.marches.send(target.building_id, entry.target.building_id, target.faction, end - assigned, entry.route, 1.0, target.kind == 3)
+				game.marches.send(target.building_id, entry.target.building_id, target.faction, end - assigned, entry.route, 1.0, target.kind == 3, true)
 				assigned = end
 	game.world_effects.get_node("Fox").release(index, faction, target.global_position, target.building_id)
 	var sounds: Array[StringName] = [&"war_fox_bomb", &"war_fox_steal", &"war_fox_convert", &"war_fox_panic"]

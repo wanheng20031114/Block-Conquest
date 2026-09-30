@@ -67,7 +67,7 @@ func _run() -> void:
 	host.bear.damage_remainders[2] = 0.375
 	host.bear.wards[3] = {"faction": 3, "remaining": 2.0, "shot_clock": 0.25, "pulse": 1.0}
 	var route := PackedVector3Array([Vector3.ZERO, Vector3(30, 0, 0)])
-	host.marches.send(4, 1, 4, 1, route, 0.625)
+	host.marches.send(4, 1, 4, 1, route, 0.625, false, true)
 	var troop: WarMarches.MarchUnit = host.marches._units[-1]
 	troop.rush_remaining = 0.2; troop.levitation_remaining = 0.1; troop.cloaked = true; troop.weakened = true
 	troop.reserved = true; troop.intercepted_by = 1
@@ -100,6 +100,7 @@ func _run() -> void:
 	check(replica.fire_states[0].effect_id == fire.effect_id and replica.fire_states[0].hit_buildings.has(1), "fire identity and per-building hit ledger survive")
 	check(replica.projectiles[0].target == replica.bear.shots[0].target and replica.projectiles[0].target.unit_id == troop.unit_id, "both projectile kinds share stable restored soldier references")
 	check(reader._objects[str(troop.unit_id)].cloaked and reader._objects[str(troop.unit_id)].weakened, "persistent frog flags survive snapshots")
+	check(reader._objects[str(troop.unit_id)].order.panicked, "fleeing status survives JSON snapshots independently of the brief cast effect")
 	var redacted := Snapshot.for_player(state, 1)
 	check(redacted.factions["0"][1] == 0.0 and redacted.factions["1"][1] == 50.0 and redacted.factions["1"][2][0] == 12.0, "private energy and cooldowns belong only to receiving faction")
 	check(state.factions["0"][1] == 50.0, "privacy filtering never mutates authoritative state")
@@ -113,6 +114,7 @@ func _run() -> void:
 	check(replica.projectiles.is_empty() and replica.bear.shots.is_empty(), "both remote projectile visuals expire without reliable deletion")
 	check(shot_target.alive and state.shots.size() == 2 and replica_events == 0, "visual expiry cannot inflict damage or alter the reliable mirror")
 	reader.present(replica, state, 2.01)
+	check(reader._objects[str(troop.unit_id)].order.panicked, "remote fleeing status outlasts the cast animation while the soldier is still marching")
 	check(not replica.bear.wards.has(3), "display clock removes the expired defense ward before another reliable packet")
 	near(replica.skill_defense_bonus(replica.by_id[3]), 0.0, "expired replica ward no longer grants skill defense")
 	reader.install(replica, state, float(state.time) + 2.01)
@@ -437,8 +439,16 @@ func _energy_towers() -> void:
 	var order: Array = state.orders.values()[0].duplicate(true)
 	order[7] = 1
 	check(not Snapshot.valid_record("orders", order, host), "numeric energy provenance cannot pass as a Boolean")
+	order = state.orders.values()[0].duplicate(true)
+	for bad: Variant in [1, "true", null, [], {}]:
+		order[11] = bad
+		check(not Snapshot.valid_record("orders", order, host), "panic status requires a strict Boolean")
+	order = state.orders.values()[0].duplicate(true)
 	order.pop_back()
-	check(not Snapshot.valid_record("orders", order, host), "legacy march order without provenance is rejected")
+	check(not Snapshot.valid_record("orders", order, host), "legacy march order without panic status is rejected")
+	invalid = state.duplicate(true)
+	invalid.schema = 6
+	check(not Snapshot.valid(invalid, host), "snapshot schema preceding persistent panic status is explicitly rejected")
 	for rate: Variant in [NAN, INF, "1.5", -1.0, 0.9, 1000.0]:
 		var account: Array = state.factions["0"].duplicate(true)
 		account[9] = rate
