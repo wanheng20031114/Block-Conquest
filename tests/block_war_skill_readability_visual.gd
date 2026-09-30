@@ -36,7 +36,6 @@ func reset() -> void:
 	game.energy = 100.0
 	game.select_building(null)
 	game.update_hud()
-	game.hud.get_node("%Toast").hide()
 	stars()
 	await create_timer(0.8).timeout
 

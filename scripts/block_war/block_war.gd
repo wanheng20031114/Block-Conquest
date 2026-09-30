@@ -306,7 +306,6 @@ func _ready() -> void:
 	select_building(home)
 	_match_ready = true
 	update_hud()
-	hud.notify("拖动自己的住宅到中立据点，派出你的第一支民兵。")
 	if not match_config.is_empty():
 		network_match = load("res://scripts/network/war_network_match.gd").new()
 		network_match.setup(self, get_node("/root/Session/Online"))
@@ -416,8 +415,6 @@ func _simulate_step(delta: float) -> void:
 			if converting and building.kind != 0:
 				_cancel_building_recruitment(building.building_id)
 			audio.play_world(&"war_upgrade", building.global_position)
-			if building.faction == local_faction:
-				hud.notify("改建完成 · %s" % KIND_NAMES[building.kind] if converting else "%s已升至 %d 级" % [KIND_NAMES[building.kind], building.level])
 			update_hud()
 	sync_environment_bonuses()
 	bear.advance(self, delta)
@@ -509,13 +506,11 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 	var count := dispatch_count(source, amount_percent)
 	if count < 1:
 		if faction == local_faction:
-			hud.notify("当前比例不足 1 名可用民兵 · 待出发部队已预留")
 			audio.play_ui(&"war_denied")
 		return 0
 	var route := dispatch_route(source, target)
 	if route.size() < 2:
 		if faction == local_faction:
-			hud.notify("没有可通行的路线")
 			audio.play_ui(&"war_denied")
 		return 0
 	if source.burrow_remaining > 0.0:
@@ -533,9 +528,6 @@ func issue_order(source: Node3D, target: Node3D, amount_percent: int, faction: i
 	presentation_event.emit("dispatch", {"faction": faction, "source": source.building_id, "target": target.building_id, "count": count})
 	if faction == local_faction:
 		audio.play_ui(&"war_order")
-		var verb := "增援" if FACTIONS.allied(target.faction, local_faction) else "进攻"
-		var transfer := " · 抵达后归队友指挥" if target.faction != local_faction and FACTIONS.allied(target.faction, local_faction) else ""
-		hud.notify("%d 名民兵依次出发 · %s%s%s" % [count, verb, KIND_NAMES[target.kind], transfer])
 		add_effect(target.global_position, Color(1.0, 0.77, 0.3), "order", 0.65)
 	update_hud()
 	return count
@@ -682,11 +674,6 @@ func _on_unit_arrived(target_id: int, faction: int, strength: float, unit_attack
 				audio.play_ui(&"war_capture")
 			elif previous_faction == local_faction:
 				audio.play_ui(&"war_lost")
-			if faction == local_faction:
-				var benefit: String = ["每秒 +%s 民兵" % target.production_rate, "炮塔开始拦截敌军", "提高全军攻击与防御", "提高技力恢复速度"][target.kind]
-				if energy_bonus > 0.0:
-					benefit += " · 技力 +%.1f" % energy_bonus
-				hud.notify("已占领%s · %s" % [KIND_NAMES[target.kind], benefit])
 			tower_clocks[target_id] = 0.6
 		if effects.size() < 80:
 			add_effect(target.global_position, faction_color(faction), "hit", 0.2)
@@ -886,12 +873,10 @@ func _skill_available(index: int, faction: int = -2) -> bool:
 	if index < 0 or index >= 4 or is_rule_paused() or finished or has_surrendered(faction):
 		return false
 	if cooldowns[index] > 0.0:
-		hud.notify("技能冷却中 · 还需 %d 秒" % ceili(cooldowns[index]))
 		audio.play_ui(&"war_denied")
 		return false
 	var cost := SKILL_RULES.costs_for(faction_skills[faction].commander)[index]
 	if energy < cost:
-		hud.notify("技力不足 · 需要 %d，还差 %d" % [int(cost), ceili(cost - energy)])
 		audio.play_ui(&"war_denied")
 		return false
 	return true
@@ -930,18 +915,6 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		return false
 	if not _valid_skill_target(index, target, faction):
 		if faction == local_faction:
-			if faction_skills[faction].commander == SKILL_RULES.PIG:
-				hud.notify("选择尚未获得此待命效果的自己的建筑" if index < 3 else "拖至战场地面后松手")
-			elif faction_skills[faction].commander == SKILL_RULES.FOX:
-				hud.notify(["选择有驻军的敌方或中立建筑", "选择仍有士气的敌方建筑；自己的士气须未满", "拖至有敌军的地面区域后松手", "选择有同阵营避难建筑的敌方建筑"][index])
-			elif faction_skills[faction].commander == SKILL_RULES.FROG:
-				hud.notify("选择有驻军、可降级或正在施工的敌方或中立建筑" if index == 3 else "拖至战场地面后松手")
-			elif faction_skills[faction].commander == SKILL_RULES.BEAR:
-				hud.notify(["选择正在升级或转换的己方建筑", "拖至战场地面后松手", "选择附近 18 米内有己方支援建筑的据点", "选择尚未获得震庭威慑的己方建筑"][index])
-			elif faction_skills[faction].commander == SKILL_RULES.RABBIT:
-				hud.notify(["拖至战场地面后松手", "选择尚未停工的敌方建筑", "选择有行军部队的地面区域", "选择尚未获得兔洞待命的自己的建筑"][index])
-			else:
-				hud.notify("选择尚未受此军令影响的己方或盟友住宅" if index == 0 else ("选择尚未受防护罩保护的己方或盟友建筑" if index == 2 else "拖至战场地面后松手"))
 			audio.play_ui(&"war_denied")
 		return false
 	if faction_skills[faction].commander == SKILL_RULES.PIG:
@@ -949,8 +922,6 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		pig.arm(self, index, target, faction)
 		_present_skill(index, faction, target.global_position, target.building_id)
 		audio.play_world(pig.CAST_SOUNDS[index], target.global_position)
-		if faction == local_faction:
-			hud.notify("%s · 待命 15 秒，下次出兵生效" % SKILL_RULES.PIG_NAMES[index])
 		update_hud()
 		return true
 	if faction_skills[faction].commander in [SKILL_RULES.BEAR, SKILL_RULES.FROG, SKILL_RULES.FOX]:
@@ -971,8 +942,6 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		_commit_skill(index, faction)
 		_present_skill(index, faction, target.global_position, target.building_id)
 		audio.play_world(&"war_rabbit_seal" if index == 1 else &"war_rabbit_burrow", target.global_position)
-		if faction == local_faction:
-			hud.notify("封条急件 · 停工 6 秒" if index == 1 else "兔洞待命 15 秒 · 下次派兵最多 50 人，距离不限")
 		target.refresh_visual()
 		update_hud()
 		return true
@@ -986,8 +955,6 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 	_present_skill(index, faction, target.global_position, target.building_id)
 	var skill_sounds: Array[StringName] = [&"war_skill_command", &"war_skill_drum", &"war_skill_shield"]
 	audio.play_world(skill_sounds[index], target.global_position)
-	if faction == local_faction:
-		hud.notify("%s · %s" % [SKILL_RULES.NAMES[index], SKILL_RULES.effect_text(index)])
 	if target != null:
 		target.refresh_visual()
 	world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
@@ -1000,7 +967,6 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 		return false
 	if not _valid_ground_skill_target(at):
 		if faction == local_faction:
-			hud.notify("请选择战场内的地面 · 右键取消")
 			audio.play_ui(&"war_denied")
 		return false
 	var center: Vector3 = map.definition.surface_point(at)
@@ -1014,7 +980,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 	if faction_skills[faction].commander == SKILL_RULES.FOX:
 		if FOX_SKILLS.convert(self, center, faction) == 0:
 			if faction == local_faction:
-				hud.notify("范围内没有可招降的敌方行军部队")
+				audio.play_ui(&"war_denied")
 			return false
 		world_effects.get_node("Fox").release(index, faction, center)
 		_commit_skill(index, faction)
@@ -1025,7 +991,7 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		if marches.apply_frog_field(index, faction, center) == 0:
 			if faction == local_faction:
-				hud.notify("范围内没有可滞空的士兵" if index == 1 else "范围内没有可隐身的己方士兵")
+				audio.play_ui(&"war_denied")
 			return false
 		world_effects.get_node("Frog").release(index, faction, center)
 		world_effects.get_node("Frog").sync(marches, 0.0)
@@ -1049,19 +1015,15 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 			var rushing: int = marches.apply_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS, SKILL_RULES.RABBIT_DURATIONS[0])
 			if rushing == 0:
 				if faction == local_faction:
-					hud.notify("小圈内没有自己的行军部队 · 请选择已出发的士兵")
+					audio.play_ui(&"war_denied")
 				return false
 			world_effects.get_node("Rabbit").start_rush(faction, center, SKILL_RULES.RABBIT_RUSH_RADIUS)
-			if faction == local_faction:
-				hud.notify("迅猛冲刺 · %d 人移速 +%d%%、攻击 +%d%%，持续 %d 秒" % [rushing, roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]])
 		else:
 			var recalled := RABBIT_SKILLS.recall(self, center, faction)
 			if recalled == 0:
 				if faction == local_faction:
-					hud.notify("范围内没有需要折返的行军部队")
+					audio.play_ui(&"war_denied")
 				return false
-			if faction == local_faction:
-				hud.notify("归巢口哨 · %d 名双方部队返回各自出发建筑" % recalled)
 		_commit_skill(index, faction)
 		_present_skill(index, faction, center)
 		audio.play_world(&"war_rabbit_dash" if index == 0 else &"war_rabbit_recall", center)
@@ -1077,8 +1039,6 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 	_commit_skill(index, faction)
 	_present_skill(index, faction, center)
 	audio.play_world(&"war_skill_drum" if index == 1 else &"war_skill_breach", center)
-	if faction == local_faction:
-		hud.notify("疾行区域已展开 · 圈内自己的部队提速，离开恢复" if index == 1 else "火焰已点燃 · 接触火焰的双方士兵都会死亡")
 	world_effects.update_skills(0.0, faction_skills, shields, by_id, marches)
 	update_hud()
 	return true
@@ -1128,7 +1088,6 @@ func begin_building_construction(building: WarBuilding, kind: int, faction: int)
 	var cost: int = building.upgrade_cost if kind == -1 else CONVERSION_COST
 	if building.available_population < cost:
 		if faction == local_faction:
-			hud.notify("%s需要 %d 名未编入出发队列的驻军" % ["升级" if kind == -1 else "改建", cost])
 			audio.play_ui(&"war_denied")
 		return false
 	building.population -= cost
@@ -1136,8 +1095,6 @@ func begin_building_construction(building: WarBuilding, kind: int, faction: int)
 	building.refresh_visual()
 	audio.play_world(&"war_rebuild", building.global_position)
 	presentation_event.emit("construction", {"building": building.building_id, "faction": faction, "kind": kind})
-	if faction == local_faction:
-		hud.notify("%s开始升级 · 10 秒后完成" % KIND_NAMES[building.kind] if kind == -1 else "开始改建%s · 10 秒后完成" % KIND_NAMES[kind])
 	update_hud()
 	return true
 

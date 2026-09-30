@@ -26,7 +26,6 @@ func _run() -> void:
 	game.map.set_visual_paused(true)
 	for building: WarBuilding in game.buildings:
 		building.set_visual_paused(true)
-	game.hud.get_node("%Toast").hide()
 	game.camera_rig.focus_at(Vector3(-16, 0, -9), true)
 	game.camera.size = 30.0
 	var source: WarBuilding = game.by_id[0]

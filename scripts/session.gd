@@ -86,8 +86,6 @@ func _online_error(message: String) -> void:
 		if online.room.is_empty():
 			_online_room_changed({})
 			online_notice = message
-		elif scene != null and scene.scene_file_path == BATTLE_SCENE:
-			scene.hud.notify(message)
 
 func _queue_online_scene(path: String) -> void:
 	_pending_online_scene = path

@@ -83,7 +83,6 @@ func setup(battle: Node, transport: Node) -> void:
 	_snapshot_loading = not online.is_host
 	game.simulation_paused = true
 	game.hud.set_network_status("正在集结", "等待所有玩家加载战场…")
-	game.hud.notify("正在等待所有玩家加载战场…")
 	online.loaded()
 	if online.room.get("phase") == "match": _on_started(online.match_config)
 
@@ -100,7 +99,6 @@ func _on_started(config: Dictionary) -> void:
 			if _remote_human(slot): _send_snapshot(int(slot.player_id))
 	else:
 		_request_resync()
-	game.hud.notify("对局开始 · 只显示队友的鼠标")
 	if online.is_host: game.hud.set_network_status("")
 
 func _on_connection(state: String) -> void:
@@ -148,7 +146,6 @@ func _on_room(room: Dictionary) -> void:
 	var phase: String = room.get("phase", "room")
 	if phase == "host_lost":
 		_set_transport_paused(true)
-		game.hud.notify("房主连接中断 · 等待恢复，战局已暂停")
 		game.hud.set_network_status("等待房主恢复连接", "对局已暂停 · 30 秒内可恢复")
 	elif phase == "match" and _started:
 		_set_transport_paused(_snapshot_loading or _recovery_waiting)
@@ -283,7 +280,7 @@ func _drain_commands() -> void:
 
 func _reply(player: int, result: Dictionary) -> void:
 	if player == online.player_id:
-		if not result.accepted: game.hud.notify(str(result.reason))
+		if not result.accepted: game.audio.play_ui(&"war_denied")
 	else: online.send_match("command_result", result, player, 1, true)
 
 func _publish_step(delta: float) -> void:
@@ -376,7 +373,7 @@ func _on_message(sender: int, kind: String, payload: Dictionary) -> void:
 			if not _snapshot_loading and payload.get("seq") == _applied and Snapshot.digest(_mirror) != payload.get("hash", ""):
 				_request_resync("checksum")
 		"command_result":
-			if payload.get("accepted") == false: game.hud.notify(str(payload.get("reason", "操作未生效")))
+			if payload.get("accepted") == false: game.audio.play_ui(&"war_denied")
 		"time":
 			if not Snapshot._integer(payload.get("tick"), 0, 2147483647) or not Snapshot._number(payload.get("time")): return
 			var stamp := int(payload.get("stamp", -1)) if Snapshot._integer(payload.get("stamp"), 0, 9007199254740991) else -1
@@ -772,7 +769,6 @@ func _try_recovery_ack() -> void:
 	if _recovery_epoch != epoch: return
 	_recovery_waiting = false
 	online.send_match("ack", {"op": "recovered", "seq": _applied, "epoch": _recovery_epoch}, -1, 1, true)
-	game.hud.notify("战场同步完成")
 
 func _request_resync(reason: String = "recovery") -> void:
 	var now := Time.get_ticks_msec()
@@ -839,7 +835,6 @@ func _play_presentation(event: Dictionary) -> void:
 					game.add_effect(building.global_position, game.faction_color(building.faction), "capture", 1.1)
 					if payload.get("faction") == game.local_faction:
 						game.audio.play_ui(&"war_capture")
-						if float(payload.energy_bonus) > 0.0: game.hud.notify("占领成功 · 技力 +%.1f" % float(payload.energy_bonus))
 					elif payload.get("previous_faction") == game.local_faction: game.audio.play_ui(&"war_lost")
 		"dispatch":
 			if payload.get("faction") == game.local_faction: game.audio.play_ui(&"war_order")

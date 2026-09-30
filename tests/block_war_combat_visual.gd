@@ -18,7 +18,6 @@ func reset_game() -> void:
 	game.camera_rig.set_process(false)
 	game.ai_enabled = false
 	game.audio.muted = true
-	game.hud.get_node("%Toast").hide()
 	await physics_frame
 
 func advance(seconds: float) -> void:
@@ -82,7 +81,6 @@ func _run() -> void:
 	if video:
 		await advance(0.8)
 	game.convert_selected(2)
-	game.hud.get_node("%Toast").hide()
 	await advance(2.0)
 	await capture("conversion")
 	if video:
@@ -96,7 +94,6 @@ func _run() -> void:
 	game.marches.send(901, 0, 1, 72, PackedVector3Array([CENTER + Vector3(5, 0, -0.6), CENTER + Vector3(-30, 0, -0.6)]))
 	await advance(0.8)
 	await drag_fire()
-	game.hud.get_node("%Toast").hide()
 	await advance(0.18)
 	await capture("fire_early")
 	await advance(0.37)

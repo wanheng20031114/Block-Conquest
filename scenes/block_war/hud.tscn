@@ -30,7 +30,6 @@
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/action_forge.svg" id="action_forge"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/action_energy.svg" id="action_energy"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/action_population.svg" id="action_population"]
-[ext_resource type="StyleBox" path="res://assets/ui/block_war/dispatch_hint.tres" id="dispatch_hint"]
 
 [ext_resource type="Script" path="res://scripts/block_war/war_skill_button.gd" id="skill_button"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/skill_tooltip_theme.tres" id="skill_hints"]
@@ -1625,29 +1624,6 @@ theme_override_colors/font_shadow_color = Color(0.03, 0.025, 0.015, 0.95)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
 
-
-[node name="Toast" type="PanelContainer" parent="UI"]
-unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.0
-anchor_right = 0.5
-anchor_bottom = 0.0
-offset_left = -280.0
-offset_top = 124.0
-offset_right = 280.0
-offset_bottom = 166.0
-mouse_filter = 2
-visible = false
-theme_override_styles/panel = ExtResource("dispatch_hint")
-
-[node name="ToastText" type="Label" parent="UI/Toast"]
-unique_name_in_owner = true
-layout_mode = 2
-mouse_filter = 2
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
-text = "军令已下达"
 
 [node name="PauseOverlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true

@@ -54,7 +54,6 @@ func _ready() -> void:
 	camera.size = 45.0
 	camera_rig.zoom_target = camera.size
 	camera_rig.clamp_destination()
-	hud.get_node("%Toast").hide()
 	hud.get_node("%PauseRestart").text = "重新练习本课"
 	hud.get_node("%PauseExit").text = "返回课程列表"
 	hud.get_node("%Resume").text = "继续教程"

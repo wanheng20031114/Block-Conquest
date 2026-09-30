@@ -23,7 +23,6 @@ const BUILDING_NAMES := WarBuilding.KIND_NAMES
 var _paused: bool = false
 var _finished: bool = false
 var _help_from_pause: bool = false
-var _toast_tween: Tween
 var _last_ready: Array[bool] = [false, false, false, false]
 var _skills_initialized: bool = false
 var _skill_buttons: Array[Button] = []
@@ -145,7 +144,6 @@ func update_state(state: Dictionary) -> void:
 		# Team matches show individual totals above morale and skills below it.
 		var player_row_space: float = 0.0 if duel else 48.0
 		%Time.position.y = 54.0 + player_row_space
-		%Toast.position.y = 124.0 + player_row_space
 		%MatchStatus.position.y = 128.0 + player_row_space
 	for index: int in 4:
 		_percentage_buttons[index].set_pressed_no_signal(PERCENTAGES[index] == int(state.percentage))
@@ -387,17 +385,8 @@ func set_paused(value: bool) -> void:
 		%HelpOverlay.hide()
 	_refresh_match_status()
 
-func notify(message: String) -> void:
-	if _toast_tween != null and _toast_tween.is_valid():
-		_toast_tween.kill()
-	%ToastText.text = message
-	UIMotion.reveal(%Toast, Vector2(0, -8))
-	_toast_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_toast_tween.tween_interval(2.8)
-	_toast_tween.tween_callback(func(): UIMotion.dismiss(%Toast, Vector2(0, -6)))
-
 func set_network_status(message: String, detail: String = "") -> void:
-	# Waiting/recovery lasts until authority confirms it, not a toast duration.
+	# Waiting/recovery lasts until authority confirms it.
 	if message.is_empty():
 		%OnlineStatus.hide()
 		_refresh_match_status()
@@ -426,7 +415,7 @@ func is_pointer_over_hud(screen: Vector2) -> bool:
 	# still permit ordinary battlefield input according to is_pointer_blocked.
 	if is_pointer_blocked(screen):
 		return true
-	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %Toast, %OnlineStatus, %MatchStatus]:
+	for control: Control in [%Top, %Player, %Enemy, %Percentages, %Skills, %OnlineStatus, %MatchStatus]:
 		if control.is_visible_in_tree():
 			var local := control.get_global_transform_with_canvas().affine_inverse() * screen
 			if Rect2(Vector2.ZERO, control.size).has_point(local):

@@ -21,13 +21,11 @@ func _start_work() -> void:
 		else:
 			game.upgrade_selected()
 	game.select_building(sites[0])
-	game.hud.get_node("%Toast").hide()
 
 func _capture_home() -> void:
 	sites[0].population = 0.0
 	game._on_unit_arrived(sites[0].building_id, 1, 80.0)
 	game.update_hud()
-	game.hud.get_node("%Toast").hide()
 
 func _run() -> void:
 	create_timer(120.0, true, false, true).timeout.connect(func(): quit(3))
@@ -47,7 +45,6 @@ func _run() -> void:
 		site.population = 120.0
 		site.refresh_visual()
 	game.select_building(sites[0])
-	game.hud.get_node("%Toast").hide()
 	game.camera_rig.focus_at(Vector3(-24, 0, -4), true)
 	game.camera.size = 30.0
 	if OS.get_cmdline_user_args().has("--video"):
@@ -56,7 +53,6 @@ func _run() -> void:
 				_start_work()
 			elif frame == 375:
 				game.upgrade_selected()
-				game.hud.get_node("%Toast").hide()
 			elif frame == 435:
 				_capture_home()
 			game.simulate(1.0 / 30.0)

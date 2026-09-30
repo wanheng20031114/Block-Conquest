@@ -44,7 +44,6 @@ func _run() -> void:
 		game.camera_rig.edge_scroll = false
 		game.ai_enabled = false
 		game.audio.muted = true
-		game.hud.get_node("%Toast").hide()
 		game.map.set_visual_paused(true)
 		frame_at(Vector3.ZERO, game.camera_rig.maximum_zoom)
 		await capture(map_id + "_overview")

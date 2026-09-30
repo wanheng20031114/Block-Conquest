@@ -34,7 +34,6 @@ func _run() -> void:
 		game.camera_rig.edge_scroll = false
 		game.ai_enabled = false
 		game.audio.muted = true
-		game.hud.get_node("%Toast").hide()
 		game.map.set_visual_paused(true)
 		game.camera.size = game.camera_rig.maximum_zoom
 		game.camera_rig.zoom_target = game.camera.size

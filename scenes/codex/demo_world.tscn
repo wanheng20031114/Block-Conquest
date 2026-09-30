@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" path="res://scenes/block_war/marches.tscn" id="marches"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/war_effects.tscn" id="effects"]
 [ext_resource type="Script" path="res://scripts/codex/demo_audio.gd" id="audio"]
-[ext_resource type="Script" path="res://scripts/codex/demo_feedback.gd" id="feedback"]
 [ext_resource type="Environment" path="res://assets/block_war/environment/woodland_daylight.tres" id="environment"]
 [ext_resource type="Shader" path="res://assets/block_war/environment/map_ground.gdshader" id="ground"]
 [ext_resource type="Texture2D" path="res://assets/block_war/environment/meadow_noise.tres" id="noise"]
@@ -104,7 +103,6 @@ far = 100.0
 current = true
 
 [node name="HUD" type="CanvasLayer" parent="."]
-script = ExtResource("feedback")
 
 [node name="Audio" type="Node" parent="."]
 script = ExtResource("audio")

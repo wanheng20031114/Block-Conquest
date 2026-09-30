@@ -29,7 +29,6 @@ func _run() -> void:
 	game.camera_rig.edge_scroll = false
 	game.ai_enabled = false
 	game.audio.muted = true
-	game.hud.get_node("%Toast").hide()
 	var home: WarBuilding = game.by_id[0]
 	game.camera_rig.focus_at(home.global_position + Vector3(0, 0, -2), true)
 	game.camera.size = 22.0
