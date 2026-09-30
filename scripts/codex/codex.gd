@@ -125,6 +125,8 @@ func _show_guide() -> void:
 	%GuideIcon.texture = entry.icon
 	%GuideTag.text = entry.tag
 	%GuideTip.text = entry.tip
+	%GuideTableGroup.visible = entry.has("table")
+	%GuideTable.text = _guide_table_text(entry.table) if entry.has("table") else ""
 	for index: int in 3:
 		var section: Control = get_node("%%Section%d" % index)
 		section.visible = index < entry.sections.size()
@@ -133,6 +135,25 @@ func _show_guide() -> void:
 			get_node("%%SectionBody%d" % index).text = entry.sections[index].body
 	%GuideScroll.scroll_vertical = 0
 	%Demo.set_playing(false)
+
+func _guide_table_text(table: Dictionary) -> String:
+	var cells: PackedStringArray = []
+	# Keep column expansion on every cell; native shrink would return it to text width.
+	for header: String in table.headers:
+		var lines := header.split("\n")
+		var text := "[font_size=20]%s[/font_size]" % lines[0]
+		if lines.size() == 2:
+			text += "\n[color=#697557][font_size=17]%s[/font_size][/color]" % lines[1]
+		cells.append("[cell expand=1 shrink=false bg=#e2e6cc padding=10,16,10,16][center]%s[/center][/cell]" % text)
+	for row_index: int in table.rows.size():
+		var row: Array = table.rows[row_index]
+		var background := "#f0eedb" if row_index % 2 == 0 else "#faf5e3"
+		for column: int in row.size():
+			var text: String = row[column]
+			if column == 0:
+				text = "[color=#405437]%s[/color]" % text
+			cells.append("[cell expand=1 shrink=false bg=%s padding=10,17,10,17][center]%s[/center][/cell]" % [background, text])
+	return "[table=%d]%s[/table]" % [table.headers.size(), "".join(cells)]
 
 func _toggle_pause() -> void:
 	_paused = not _paused

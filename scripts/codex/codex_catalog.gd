@@ -95,10 +95,17 @@ static func guides() -> Array[Dictionary]:
 		{
 			"id": &"residence", "title": "住宅", "tag": "建筑 · 兵力生产",
 			"summary": "持续补充驻军，是维持战线的兵力来源。",
+			"table": {
+				"headers": ["等级", "产兵\n人/秒", "驻扎容量\n人", "防御力", "升级消耗\n人", "升级耗时\n秒"],
+				"rows": [
+					["1", str(BUILDING.HOUSE_PRODUCTION_RATES[0]), "%d" % BUILDING.HOUSE_PRODUCTION_LIMITS[0], "+%d%%" % roundi(COMBAT.house_defense_bonus(1) * 100.0), str(BUILDING.HOUSE_UPGRADE_COSTS[0]), "%d" % BUILDING.upgrade_duration(0, 1)],
+					["2", str(BUILDING.HOUSE_PRODUCTION_RATES[1]), "%d" % BUILDING.HOUSE_PRODUCTION_LIMITS[1], "+%d%%" % roundi(COMBAT.house_defense_bonus(2) * 100.0), str(BUILDING.HOUSE_UPGRADE_COSTS[1]), "%d" % BUILDING.upgrade_duration(0, 2)],
+					["3", str(BUILDING.HOUSE_PRODUCTION_RATES[2]), "%d" % BUILDING.HOUSE_PRODUCTION_LIMITS[2], "+%d%%" % roundi(COMBAT.house_defense_bonus(3) * 100.0), str(BUILDING.HOUSE_UPGRADE_COSTS[2]), "%d" % BUILDING.upgrade_duration(0, 3)],
+					["4", str(BUILDING.HOUSE_PRODUCTION_RATES[3]), "%d" % BUILDING.HOUSE_PRODUCTION_LIMITS[3], "+%d%%" % roundi(COMBAT.house_defense_bonus(4) * 100.0), "—", "—"],
+				],
+			},
 			"sections": [
-				{"title": "产兵速度", "body": "1 级：%s 人/秒；2 级：%s 人/秒；\n3 级：%s 人/秒；4 级：%s 人/秒。" % BUILDING.HOUSE_PRODUCTION_RATES},
-				{"title": "驻扎容量与防御力", "body": "1 级：驻扎容量 %d 人，防御力 +%d%%。\n2 级：驻扎容量 %d 人，防御力 +%d%%。\n3 级：驻扎容量 %d 人，防御力 +%d%%。\n4 级：驻扎容量 %d 人，防御力 +%d%%。\n建筑防御力与士气、铁匠铺加成相加。" % [BUILDING.HOUSE_PRODUCTION_LIMITS[0], roundi(COMBAT.house_defense_bonus(1) * 100.0), BUILDING.HOUSE_PRODUCTION_LIMITS[1], roundi(COMBAT.house_defense_bonus(2) * 100.0), BUILDING.HOUSE_PRODUCTION_LIMITS[2], roundi(COMBAT.house_defense_bonus(3) * 100.0), BUILDING.HOUSE_PRODUCTION_LIMITS[3], roundi(COMBAT.house_defense_bonus(4) * 100.0)]},
-				{"title": "升级耗时", "body": "1 → 2 级：%d 秒；2 → 3 级：%d 秒；3 → 4 级：%d 秒。\n施工期间产兵、驻扎容量与防御力保持原等级。" % BUILDING.HOUSE_UPGRADE_DURATIONS},
+				{"title": "规则说明", "body": "升级消耗与耗时均指升至下一级，4 级已满级。\n施工期间产兵、驻扎容量与防御力保持原等级。\n建筑防御力与士气、铁匠铺加成相加，技能独立结算。"},
 			],
 			"tip": "达到驻扎容量只暂停自然产兵；增援与征召人数不限。驻军低于容量后恢复产兵。",
 			"icon": GUIDE_ICONS.get_meta(&"residence"),
@@ -106,12 +113,19 @@ static func guides() -> Array[Dictionary]:
 		{
 			"id": &"tower", "title": "炮塔", "tag": "建筑 · 区域防守",
 			"summary": "自动拦截附近敌军，并为驻军提供防御力加成。",
+			"table": {
+				"headers": ["等级", "射程\n米", "攻击间隔\n秒", "每轮目标\n人", "防御力", "升级消耗\n人", "升级耗时\n秒"],
+				"rows": [
+					["1", "%d" % (9.0 + 1 * 2.0), str(COMBAT.tower_attack_interval(1)), "1", "+%d%%" % roundi(COMBAT.tower_defense_bonus(1) * 100.0), str(1 * 30), "%d" % BUILDING.upgrade_duration(1, 1)],
+					["2", "%d" % (9.0 + 2 * 2.0), str(COMBAT.tower_attack_interval(2)), "2", "+%d%%" % roundi(COMBAT.tower_defense_bonus(2) * 100.0), str(2 * 30), "%d" % BUILDING.upgrade_duration(1, 2)],
+					["3", "%d" % (9.0 + 3 * 2.0), str(COMBAT.tower_attack_interval(3)), "3", "+%d%%" % roundi(COMBAT.tower_defense_bonus(3) * 100.0), str(3 * 30), "%d" % BUILDING.upgrade_duration(1, 3)],
+					["4", "%d" % (9.0 + 4 * 2.0), str(COMBAT.tower_attack_interval(4)), "4", "+%d%%" % roundi(COMBAT.tower_defense_bonus(4) * 100.0), "—", "—"],
+				],
+			},
 			"sections": [
-				{"title": "射程与火力", "body": "1 级：射程 11 米，每 %s 秒攻击最多 1 人。\n2 级：射程 13 米，每 %s 秒攻击最多 2 人。\n3 级：射程 15 米，每 %s 秒攻击最多 3 人。\n4 级：射程 17 米，每 %s 秒攻击最多 4 人。" % [COMBAT.tower_attack_interval(1), COMBAT.tower_attack_interval(2), COMBAT.tower_attack_interval(3), COMBAT.tower_attack_interval(4)]},
-				{"title": "防御力与限制", "body": "1 级：防御力 +%d%%；2 级：防御力 +%d%%；\n3 级：防御力 +%d%%；4 级：防御力 +%d%%。\n与所属玩家的常驻防御力相加。炮塔不产兵；无法攻击隐身、滞空或雾内士兵。" % [roundi(COMBAT.tower_defense_bonus(1) * 100.0), roundi(COMBAT.tower_defense_bonus(2) * 100.0), roundi(COMBAT.tower_defense_bonus(3) * 100.0), roundi(COMBAT.tower_defense_bonus(4) * 100.0)]},
-				{"title": "升级耗时", "body": "1 → 2 级需要 %d 秒，2 → 3 级和 3 → 4 级各需 %d 秒。施工期间射击能力与防御力保持原等级。" % [BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2)]},
+				{"title": "规则说明", "body": "升级消耗与耗时均指升至下一级，4 级已满级。\n施工期间射程、射速与防御力保持原等级；每轮目标为最多攻击人数。\n建筑防御力与士气、铁匠铺加成相加，技能独立结算。"},
 			],
-			"tip": "将炮塔布置在必经路线附近，可持续削弱敌方行军。",
+			"tip": "炮塔不产兵；无法攻击隐身、滞空或雾内士兵。中立炮塔只提供防御力，不主动开火。",
 			"icon": GUIDE_ICONS.get_meta(&"tower"),
 		},
 		{

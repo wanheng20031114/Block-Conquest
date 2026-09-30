@@ -123,6 +123,44 @@ func _hero_layout(context: String) -> void:
 		_label_fits(name, context)
 
 
+func _guide_layout(entry: Dictionary) -> void:
+	var context: String = entry.title
+	for name: String in ["Book", "PageContent", "GuidePage", "GuideScroll", "GuideTip"]:
+		_fits(name, context)
+	for name: String in ["DetailSummary", "GuideTag", "GuideTip"]:
+		_label_fits(name, context)
+	for index: int in 3:
+		var section: Control = _control("Section%d" % index)
+		_check(section.visible == (index < entry.sections.size()), context + ": section visibility follows the selected entry")
+		if section.visible:
+			_label_fits("SectionTitle%d" % index, context)
+			_label_fits("SectionBody%d" % index, context)
+	var group: Control = _control("GuideTableGroup")
+	_check(group.visible == entry.has("table"), context + ": only tabular guides display the table group")
+	if not entry.has("table"):
+		_check(not _control("GuideTable").is_visible_in_tree(), context + ": ordinary guides hide the previous table")
+		return
+	var table: RichTextLabel = _control("GuideTable")
+	_check(table.is_visible_in_tree() and table.bbcode_enabled and table.fit_content and not table.scroll_active, context + ": table uses the authored native rich text label within the guide scroll")
+	_fits("GuideTableGroup", context)
+	_check(table.get_content_height() <= table.size.y + 1.0 and table.get_content_width() <= table.size.x + 1.0, context + ": table rows and columns fit without internal clipping")
+	_check(table.get_content_width() >= table.size.x - 2.0, context + ": table columns fill the available guide width")
+	var cells: Array = entry.table.headers.duplicate()
+	for row: Array in entry.table.rows:
+		cells.append_array(row)
+	var parsed := table.get_parsed_text()
+	var cursor := 0
+	var complete := true
+	for cell: Variant in cells:
+		var value := str(cell)
+		var at := parsed.find(value, cursor)
+		if at < 0:
+			complete = false
+			break
+		cursor = at + value.length()
+	_check(complete, context + ": rendered headers and cells retain their catalogue row order")
+
+
 func _selection() -> Array:
 	return [session.block_war_commander, session.block_war_opponent_commander, session.block_war_map_id]
 
@@ -253,13 +291,7 @@ func _run() -> void:
 		await _hero_row(matching_row)
 		_check(current_scene.guide_index == index, "native result selection opens the searched mechanic: " + entry.title)
 		_check(_control("DetailTitle").text == entry.title, "correct mechanic is displayed: " + entry.title)
-		for name: String in ["Book", "PageContent", "GuidePage", "GuideScroll", "GuideTip"]:
-			_fits(name, entry.title)
-		for name: String in ["DetailSummary", "GuideTag", "GuideTip"]:
-			_label_fits(name, entry.title)
-		for section: int in entry.sections.size():
-			_label_fits("SectionTitle%d" % section, entry.title)
-			_label_fits("SectionBody%d" % section, entry.title)
+		_guide_layout(entry)
 		await _capture("guide_%02d_%s" % [index + 1, entry.id])
 
 	_click("Heroes")

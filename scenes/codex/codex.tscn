@@ -579,6 +579,24 @@ layout_mode = 2
 theme_override_constants/separation = 24
 size_flags_horizontal = 3
 
+[node name="GuideTableGroup" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="GuideTable" type="RichTextLabel" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections/GuideTableGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.25, 0.30, 0.22, 1)
+theme_override_font_sizes/normal_font_size = 24
+theme_override_constants/table_h_separation = 0
+theme_override_constants/table_v_separation = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 2
+
 [node name="Section0" type="VBoxContainer" parent="Margin/Column/Body/Book/PageContent/GuidePage/GuideScroll/Sections"]
 unique_name_in_owner = true
 layout_mode = 2
