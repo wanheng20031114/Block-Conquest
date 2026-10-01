@@ -31,7 +31,7 @@
         0
       ],
       "events_played": {},
-      "frames": 32768,
+      "frames": 28672,
       "gain_db": 1.0,
       "kind": "war_pig_fly",
       "master_db": -6.02059984207153,
@@ -53,19 +53,19 @@
         0
       ],
       "events_played": {},
-      "frames": 28672,
+      "frames": 102400,
       "gain_db": 0.0,
-      "kind": "war_pig_formation",
+      "kind": "war_pig_airlift",
       "master_db": -6.02059984207153,
       "music_bus_db": -6.02059984207153,
-      "name": "war_pig_formation_01",
+      "name": "war_pig_airlift_01",
       "position": "(8.0, 0.0, 0.0)",
-      "sample": "res://assets/audio/block_war/war_pig_formation_01.wav",
+      "sample": "res://assets/audio/block_war/war_pig_airlift_01.wav",
       "type": "isolated",
       "variant": 0,
-      "rms_50ms_dbfs": -29.81,
-      "true_peak_dbtp": -19.1,
-      "pre_limiter_peak_dbfs": -13.09,
+      "rms_50ms_dbfs": -33.2,
+      "true_peak_dbtp": -17.32,
+      "pre_limiter_peak_dbfs": -11.64,
       "limiter_threshold_frames_percent": 0.0
     },
     {
@@ -87,7 +87,7 @@
       "variant": 0,
       "rms_50ms_dbfs": -29.89,
       "true_peak_dbtp": -14.54,
-      "pre_limiter_peak_dbfs": -8.53,
+      "pre_limiter_peak_dbfs": -8.52,
       "limiter_threshold_frames_percent": 0.0
     },
     {
@@ -97,7 +97,7 @@
         0
       ],
       "events_played": {},
-      "frames": 32768,
+      "frames": 36864,
       "gain_db": 1.0,
       "kind": "war_pig_impact",
       "master_db": -6.02059984207153,
@@ -140,13 +140,13 @@
         0
       ],
       "events_played": {
-        "cannon_shot": 11,
+        "cannon_shot": 12,
         "war_march": 20,
         "war_melee": 40,
+        "war_pig_airlift": 1,
         "war_pig_charge": 1,
         "war_pig_drop": 1,
         "war_pig_fly": 1,
-        "war_pig_formation": 1,
         "war_pig_impact": 1,
         "war_projectile_hit": 11
       },
@@ -165,7 +165,7 @@
           "seconds": 2.2
         },
         {
-          "kind": "war_pig_formation",
+          "kind": "war_pig_airlift",
           "seconds": 3.8
         },
         {
@@ -179,8 +179,8 @@
       ],
       "type": "mix",
       "rms_50ms_dbfs": -24.05,
-      "true_peak_dbtp": -11.35,
-      "pre_limiter_peak_dbfs": -5.33,
+      "true_peak_dbtp": -12.48,
+      "pre_limiter_peak_dbfs": -6.46,
       "limiter_threshold_frames_percent": 0.0
     },
     {
@@ -192,14 +192,14 @@
         "cannon_shot": 12,
         "war_march": 20,
         "war_melee": 40,
+        "war_pig_airlift": 6,
         "war_pig_charge": 1,
         "war_pig_drop": 1,
         "war_pig_fly": 1,
-        "war_pig_formation": 1,
         "war_pig_impact": 7,
         "war_projectile_hit": 11
       },
-      "frames": 380928,
+      "frames": 376832,
       "master_db": 0.0,
       "music_bus_db": -6.02059984207153,
       "name": "pig_maximum_overlap",
@@ -214,7 +214,7 @@
           "seconds": 2.2
         },
         {
-          "kind": "war_pig_formation",
+          "kind": "war_pig_airlift",
           "seconds": 3.8
         },
         {
@@ -227,9 +227,9 @@
         }
       ],
       "type": "mix",
-      "rms_50ms_dbfs": -9.98,
-      "true_peak_dbtp": -3.06,
-      "pre_limiter_peak_dbfs": -3.21,
+      "rms_50ms_dbfs": -9.75,
+      "true_peak_dbtp": -1.72,
+      "pre_limiter_peak_dbfs": -2.08,
       "limiter_threshold_frames_percent": 0.0
     },
     {
@@ -243,7 +243,7 @@
         "war_pig_impact": 1
       },
       "expected_impact_seconds": 0.65,
-      "frames": 126976,
+      "frames": 131072,
       "master_db": -6.02059984207153,
       "music_bus_db": -6.02059984207153,
       "name": "pig_drop_actual_timing",
@@ -261,13 +261,13 @@
         }
       ],
       "type": "actual_gameplay",
-      "rms_50ms_dbfs": -25.92,
-      "true_peak_dbtp": -14.6,
-      "pre_limiter_peak_dbfs": -8.59,
+      "rms_50ms_dbfs": -25.87,
+      "true_peak_dbtp": -14.57,
+      "pre_limiter_peak_dbfs": -8.56,
       "limiter_threshold_frames_percent": 0.0
     }
   ],
-  "retained_wavs": 56,
+  "retained_wavs": 61,
   "click_bgm_buses_unchanged": true,
   "pig_sources_verified_cc0": true,
   "discarded_frames": [
@@ -275,7 +275,7 @@
     0
   ],
   "idle_discarded_frames": [
-    33280,
-    33280
+    49664,
+    49664
   ]
 }

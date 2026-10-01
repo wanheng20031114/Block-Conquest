@@ -8,17 +8,22 @@ var trail_clock := 0.0
 var trail_offset := 0
 var _buildings: Array = []
 
+func _ready() -> void:
+	for slot: Node3D in $Airlifts.get_children():
+		slot.reset()
+
 func configure_surface(definition: WarMapDefinition) -> void:
 	map_definition = definition
 	for slot: Node3D in $Preparations.get_children():
 		slot.configure_surface(definition)
 	for slot: Node3D in $Drops.get_children():
 		slot.configure_surface(definition)
+	for slot: Node3D in $Airlifts.get_children():
+		slot.configure_surface(definition)
 
 func update_ready(buildings: Array, ready: Dictionary) -> void:
 	_buildings = buildings
-	# The three cooldowns exceed the 15-second lifetime: six players can have
-	# at most eighteen prepared buildings. Twenty-four authored slots leave room.
+	# The two preparations can coexist; airlifts are separate immediate actions.
 	var count := 0
 	for building: WarBuilding in buildings:
 		if not ready.has(building.building_id):
@@ -62,6 +67,30 @@ func sync_drops(states: Array) -> void:
 		if slot.drop_id not in ids:
 			slot.reset()
 
+func sync_airlifts(states: Array, by_id: Dictionary) -> void:
+	var ids: Array[int] = []
+	for state: Dictionary in states:
+		ids.append(int(state.id))
+	# A replacement snapshot may contain six new casts. Release obsolete slots
+	# before allocating, even when every old cast was still locally active.
+	for slot: Node3D in $Airlifts.get_children():
+		if slot.airlift_id not in ids:
+			slot.reset()
+	for state: Dictionary in states:
+		var slot := _airlift_slot(int(state.id))
+		if slot.airlift_id == int(state.id):
+			slot.synchronize(state)
+		else:
+			slot.begin(state, by_id[int(state.target)])
+
+func _airlift_slot(id: int) -> Node3D:
+	for slot: Node3D in $Airlifts.get_children():
+		if slot.airlift_id == id: return slot
+	for slot: Node3D in $Airlifts.get_children():
+		if not slot.active: return slot
+	assert(false, "Six authored airlift slots cover all six player cooldowns.")
+	return null
+
 func _drop_slot(id: int) -> Node3D:
 	for slot: Node3D in $Drops.get_children():
 		if slot.drop_id == id:
@@ -84,6 +113,8 @@ func tick(delta: float) -> void:
 	for slot: Node3D in $Drops.get_children():
 		slot.tick(delta)
 		_emit_landing(slot)
+	for slot: Node3D in $Airlifts.get_children():
+		slot.tick(delta)
 
 func _emit_landing(slot: Node3D) -> void:
 	if slot.active and not slot.dust_emitted and slot.age >= slot.IMPACT_TIME:
@@ -103,6 +134,8 @@ func _emit_landing(slot: Node3D) -> void:
 
 func set_running(value: bool) -> void:
 	running = value
+	for slot: Node3D in $Airlifts.get_children():
+		slot.set_running(value)
 	for emitter: GPUParticles3D in [$Dust, $Debris, $ChargeTrails, $FlightTrails]:
 		emitter.speed_scale = 1.0 if value else 0.0
 
@@ -141,6 +174,8 @@ func reset() -> void:
 	for slot: Node3D in $Preparations.get_children():
 		slot.reset()
 	for slot: Node3D in $Drops.get_children():
+		slot.reset()
+	for slot: Node3D in $Airlifts.get_children():
 		slot.reset()
 	trail_clock = 0.0
 	trail_offset = 0

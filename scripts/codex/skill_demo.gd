@@ -12,6 +12,7 @@ var commander: StringName = &"squirrel"
 var skill_index := 0
 var bear_hostile := false
 var frog_siege := false
+var pig_hostile := false
 var playing := true
 var world: Node3D
 var progress: float:
@@ -29,6 +30,7 @@ func configure(next_commander: StringName, next_skill_index: int) -> void:
 	skill_index = next_skill_index
 	bear_hostile = false
 	frog_siege = false
+	pig_hostile = false
 	if is_node_ready(): replay()
 
 func set_playing(enabled: bool) -> void:
@@ -45,6 +47,7 @@ func replay() -> void:
 	world.demo_skill = skill_index
 	world.bear_hostile = bear_hostile
 	world.frog_siege = frog_siege
+	world.pig_hostile = pig_hostile
 	viewport.add_child(world)
 	_fit_stage()
 	world.cycle_completed.connect(_repeat)
@@ -56,6 +59,8 @@ func _repeat() -> void:
 		bear_hostile = not bear_hostile
 	if commander == &"frog" and skill_index == 0:
 		frog_siege = not frog_siege
+	if commander == &"pig" and skill_index == 2:
+		pig_hostile = not pig_hostile
 	replay.call_deferred()
 
 func _sync_playback() -> void:

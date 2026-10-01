@@ -49,29 +49,29 @@ func _run() -> void:
 	var source: WarBuilding = host.by_id[2]
 	source.population = 70.0
 	grant_energy()
-	for skill: int in 3:
+	for skill: int in 2:
 		send_client({"type": "skill_building", "skill": skill, "target": 2}, skill == 1)
 		check(host.pig.flags_for(2)[skill] > 14.0 and replica.pig.flags_for(2)[skill] > 14.0, "Pig skill %d arms once on host and remote building" % skill)
 	check(host.pig.ready_owners[2] == 2 and replica.pig.ready_owners[2] == 2, "Stacked preparations retain their owning player through replication")
 	send_client({"type": "dispatch", "source": 2, "target": 8, "percent": 100}, true)
-	check(host.marches._units.size() == 30 and source.available_population == 40.0, "W plus E caps the client command at thirty and leaves forty physical soldiers uncommitted")
-	check(host.pig.ready.is_empty() and replica.pig.ready.is_empty(), "Successful dispatch consumes all three preparations on both peers")
+	check(host.marches._units.size() == 20 and source.available_population == 50.0, "Q plus W caps the client command at twenty and leaves fifty soldiers uncommitted")
+	check(host.pig.ready.is_empty() and replica.pig.ready.is_empty(), "Successful dispatch consumes both preparations on both peers")
 	for unit: WarMarches.MarchUnit in replica.marches._units:
-		check(unit.order.pig_charge and unit.order.airborne and unit.order.dense, "Every replicated soldier carries all three stacked order modifiers")
+		check(unit.order.pig_charge and unit.order.airborne and not unit.order.dense, "Every replicated soldier carries charge and flight without the removed formation skill")
 	for frame: int in 45: boundary(Coordinator.STEP, true)
 	flush()
-	check(source.queued_population == 0 and source.population == 40.0 and replica.by_id[2].population == 40.0, "Lossy motion anchors never change the exact thirty-person gradual departure")
+	check(source.queued_population == 0 and source.population == 50.0 and replica.by_id[2].population == 50.0, "Lossy motion anchors never change the exact twenty-person gradual departure")
 	check(Codec.digest(client._mirror) == Codec.digest(authority._published), "Pig flight leaves host and replica reliable state identical")
 	source.population = 100.0
-	host.faction_skills[2].cooldowns[2] = 0.0
+	host.faction_skills[2].cooldowns[1] = 0.0
 	grant_energy()
-	send_client({"type": "skill_building", "skill": 2, "target": 2})
+	send_client({"type": "skill_building", "skill": 1, "target": 2})
 	send_client({"type": "dispatch", "source": 2, "target": 8, "percent": 100})
-	check(source.available_population == 40.0, "Dense-only client order caps at sixty and keeps the remaining forty")
-	var dense_count := 0
+	check(source.available_population == 40.0, "Flight-only client order caps at sixty and keeps the remaining forty")
+	var flight_count := 0
 	for unit: WarMarches.MarchUnit in host.marches._units:
-		if unit.order.dense and not unit.order.airborne: dense_count += 1
-	check(dense_count == 60, "The host actually creates sixty dense soldiers rather than only changing a UI count")
+		if unit.order.airborne and not unit.order.pig_charge: flight_count += 1
+	check(flight_count == 60, "The host actually creates sixty flying soldiers rather than only changing a UI count")
 	var impact_target: WarBuilding = host.by_id[10]
 	impact_target.population = 80.0
 	var center: Vector3 = impact_target.global_position

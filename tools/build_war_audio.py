@@ -70,6 +70,7 @@ EVENTS = [
     ("pig_charge", 1, "Combat", 1, 5, 0, 6),
     ("pig_fly", 1, "Combat", 1, 5, 0, 6),
     ("pig_formation", 1, "Combat", 0, 5, 0, 6),
+    ("pig_airlift", 1, "Combat", 0, 5, 0, 6),
     ("pig_drop", 1, "Combat", 1, 5, 0, 6),
     ("pig_impact", 1, "Combat", 1, 6, 0, 6),
     ("projectile_hit", 2, "Combat", -3, 3, 120, 3),
@@ -116,6 +117,7 @@ DESCRIPTIONS = {
     "pig_charge": "A short leather pressure gesture and three accelerating wooden hoof-like contacts; foley, not an animal recording",
     "pig_fly": "Two light feather sweeps rise in pitch and overlap into one compact lift; no wet bubble",
     "pig_formation": "Three close paired wooden hoof-like contacts settle into a firm unified beat; no marching loop",
+    "pig_airlift": "Five short falling feather sweeps and soft grass contacts at 400 ms intervals, matching the two-second airlift",
     "pig_drop": "A 650 ms feather-air approach grows toward landing and stops; contains no impact",
     "pig_impact": "A low rounded soft-body landing and a small dry stone scatter; immediate impact, no windup",
     "projectile_hit": "Soft impact and a restrained equipment contact at the projectile collision",
@@ -128,12 +130,13 @@ DESCRIPTIONS = {
 REFINED = set("select drag ratio order denied cancel pause resume skill_command skill_drum skill_shield skill_breach rabbit_dash rabbit_seal rabbit_recall rabbit_burrow projectile_hit".split())
 NEW_COMMANDERS = set("bear_toolbox bear_stomp bear_link bear_ward frog_mist frog_float frog_cloak frog_strike".split())
 FOX = set("fox_bomb fox_steal fox_convert fox_panic".split())
-PIG = set("pig_charge pig_fly pig_formation pig_drop pig_impact".split())
+PIG = set("pig_charge pig_fly pig_formation pig_airlift pig_drop pig_impact".split())
 REFINED |= NEW_COMMANDERS | FOX | PIG
 PIG_EDITS = {
     "pig_charge": "75 Hz highpass, 2.6/3.4 kHz lowpass; leather at 1.08x with 100 ms decay, 0.94x wooden contacts at 55/205/315 ms; boundary fades and linear gain",
     "pig_fly": "75 Hz highpass, 4.3/4.6 kHz lowpass; 1.08x/1.28x feather sweeps at 0/160 ms, 8 ms onset fades and 110/160 ms decay; boundary fades and linear gain",
     "pig_formation": "75 Hz highpass, 2.9/3.2 kHz lowpass; 0.91x/1.03x wood contacts paired at 0/42, 140/171 and 255/270 ms; boundary fades and linear gain",
+    "pig_airlift": "75 Hz highpass; reversed recorded feather sweeps resampled to 400 ms and lowpassed at 3.6/3.7/3.8/3.9/4.0 kHz with 20 ms onset/tail fades; 2.8 kHz grass landings at 400/800/1200/1600/2000 ms with 65 ms decay; linear gain, no oscillator or noise synthesis",
     "pig_drop": "75 Hz highpass, 4.1 kHz lowpass; reverse 0.96x recorded feather movement, polyphase-resample to 650 ms, one crescendo and 35 ms tail fade; linear gain, no impact layer",
     "pig_impact": "75 Hz highpass, 2.2/3.4 kHz lowpass; 0.78x soft impact at 0 ms, 1.05x stones at 35 ms with 95 ms decay; boundary fades and linear gain",
 }
@@ -317,7 +320,7 @@ def refined(name, n):
 
 
 def make_pig(name):
-    """Pig's five licensed foley gestures; only the R approach is a windup.
+    """Pig's licensed foley gestures; only the R approach is a windup.
 
     All gestures use retained CC0 recordings. Wooden contacts suggest small
     hooves; leather pressure is deliberately not labelled a real pig snort.
@@ -356,6 +359,20 @@ def make_pig(name):
         return mix(.43, [(left, 0, .48), (right, .042, .35),
                          (left, .14, .65), (right, .171, .44),
                          (left, .255, .88), (right, .270, .55)])
+    if name == "pig_airlift":
+        layers = []
+        for batch in range(5):
+            air = material("weapons_apparel/arrow-feathers-02.wav", .5,
+                           3600 + batch * 100, .96 + batch * .025)[::-1].copy()
+            air = signal.resample_poly(air, round(.4 * SR), len(air))[:round(.4 * SR)]
+            phase = np.linspace(0, 1, len(air))
+            air *= (.10 + .70 * phase ** 1.4) * np.minimum(phase / .05, 1)
+            air[-960:] *= np.linspace(1, 0, 960)
+            contact = material("kenney_impact/footstep_grass_000.ogg", .14, 2800,
+                               .94 + batch * .015)
+            contact *= np.exp(-np.arange(len(contact)) / (SR * .065))
+            layers += [(air, batch * .4, .65), (contact, (batch + 1) * .4, .30)]
+        return mix(2.16, layers)
     if name == "pig_drop":
         # Reverse only a sustained real feather movement, then apply a single
         # crescendo. The tail reaches the authoritative 0.65 s collision; the
@@ -427,7 +444,7 @@ def export(name, samples, description):
     target_db = {"bear_ward": -18.5, "frog_mist": -21.0, "frog_cloak": -22.0}.get(event, target_db)
     target_db = {"fox_bomb": -19.5, "fox_steal": -21.0, "fox_convert": -20.5, "fox_panic": -19.5}.get(event, target_db)
     target_db = {"pig_charge": -20.0, "pig_fly": -21.0, "pig_formation": -21.0,
-                 "pig_drop": -22.0, "pig_impact": -18.5}.get(event, target_db)
+                 "pig_airlift": -27.5, "pig_drop": -22.0, "pig_impact": -18.5}.get(event, target_db)
     if not transparent:
         samples = filt(samples, 60, "highpass")
         samples = np.tanh(samples / max(rms_active(samples) * 4.5, 1e-10))
@@ -464,7 +481,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--new-commanders", action="store_true", help="Build only bear/frog WAVs, preserving all approved existing audio")
     parser.add_argument("--fox", action="store_true", help="Build only fox WAVs; retain all approved audio byte-for-byte")
-    parser.add_argument("--pig", action="store_true", help="Build only the five pig WAVs; retain all other audio byte-for-byte")
+    parser.add_argument("--pig", action="store_true", help="Build only the pig WAVs; retain all other audio byte-for-byte")
     args = parser.parse_args()
     if sum((args.new_commanders, args.fox, args.pig)) > 1:
         parser.error("Choose only one scoped build flag")
@@ -487,8 +504,9 @@ def main():
                 samples = make(name, index)
                 files.append(export(filename, samples, DESCRIPTIONS[name]))
             streams.append(f'preload("res://assets/audio/block_war/{filename}.wav")')
+        timing = ', "pitch_variation": 0.0' if name == "pig_airlift" else ''
         bank.append(f'\t"war_{name}": {{"streams": [{", ".join(streams)}], "gain_db": {gain:.1f}, '
-                    f'"bus": &"{bus}", "priority": {priority}, "gap_ms": {gap}, "limit": {limit}}},')
+                    f'"bus": &"{bus}", "priority": {priority}, "gap_ms": {gap}, "limit": {limit}{timing}}},')
     bank += ['}', '']
     (ROOT / "scripts/block_war/war_sound_bank.gd").write_text("\n".join(bank), encoding="utf-8")
     manifest = {"format": "48 kHz mono PCM16 WAV", "generator": "tools/build_war_audio.py",

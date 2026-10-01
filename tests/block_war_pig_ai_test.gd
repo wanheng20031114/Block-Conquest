@@ -29,6 +29,7 @@ func reset(index: int) -> void:
 	game.shields.clear()
 	game.fire_states.clear()
 	game.bear.links.clear()
+	game.bear.locks.clear()
 	game.bear.wards.clear()
 	game.bear.shots.clear()
 	game.bear.damage_remainders.clear()
@@ -36,7 +37,9 @@ func reset(index: int) -> void:
 	game.pig.ready.clear()
 	game.pig.ready_owners.clear()
 	game.pig.drops.clear()
+	game.pig.airlifts.clear()
 	game.pig.next_drop_id = 1
+	game.pig.next_airlift_id = 1
 	game.morale.configure(game.faction_count)
 	game.finished = false
 	game.match_paused = false
@@ -64,6 +67,7 @@ func reset(index: int) -> void:
 		building.refresh_visual()
 	game.world_effects.pig_ready(game.buildings, game.pig.ready)
 	game.world_effects.sync_pig_drops(game.pig.drops)
+	game.world_effects.get_node("PigEffects").sync_airlifts(game.pig.airlifts, game.by_id)
 	actions.clear()
 
 func building(id: int, owner: int, population: float) -> WarBuilding:
@@ -130,11 +134,11 @@ func dispatch_actions() -> Array[Dictionary]:
 	return result
 
 func dispatch_decisions(pair: Vector2i) -> void:
-	for index: int in 3:
+	for index: int in 2:
 		reset(index)
 		var source_id := pair.x if index == 1 else 1
 		var target_id := pair.y if index == 1 else 7
-		var stock := 160.0 if index == 1 else (300.0 if index == 2 else 120.0)
+		var stock := 300.0 if index == 1 else 120.0
 		var source := building(source_id, 1, stock)
 		building(target_id, -1, 10.0)
 		var tactics := TACTICS.new(1)
@@ -148,18 +152,16 @@ func dispatch_decisions(pair: Vector2i) -> void:
 		check(orders[0].payload.source == source_id and orders[0].payload.target == target_id, "QWE %d dispatches to the planned target" % index)
 		var count: int = orders[0].payload.count
 		if index == 1:
-			check(count == RULES.PIG_FLIGHT_LIMIT, "W stops at its thirty-person cap")
-		elif index == 2:
-			check(count == RULES.PIG_FORMATION_LIMIT, "E stops at its sixty-person cap")
+			check(count == RULES.PIG_FLIGHT_LIMIT, "W stops at its sixty-person cap")
 		else:
-			check(count >= 8, "Q sends a useful opening force")
+			check(count == RULES.PIG_CHARGE_LIMIT, "Q sends at most twenty strengthened soldiers")
 		near(game.faction_skills[1].energy, 100.0 - RULES.PIG_COSTS[index], "QWE %d has the real energy cost" % index)
 		check(not game.pig.ready.has(source_id), "QWE %d consumes preparation without idle expiry" % index)
 		near(game.faction_skills[1].durations[index], 0.0, "QWE %d clears ready-duration HUD state" % index)
 		check(source.available_population >= 8.0, "QWE %d preserves a defensive garrison" % index)
 		check(game.marches._units.size() == count, "QWE %d creates exactly the planned soldiers" % index)
 		var order: WarMarches.MarchOrder = game.marches._units[0].order
-		check(order.pig_charge == (index == 0) and order.airborne == (index == 1) and order.dense == (index == 2), "QWE %d applies the correct issued-order effect" % index)
+		check(order.pig_charge == (index == 0) and order.airborne == (index == 1) and not order.dense, "QW %d applies the correct issued-order effect" % index)
 		near(source.population, stock, "QWE %d keeps reserved soldiers inside the source" % index)
 		game.marches.tick(0.5)
 		check(source.population < stock and source.population >= stock - count, "QWE %d actually departs while respecting the cap" % index)
@@ -172,6 +174,89 @@ func dispatch_decisions(pair: Vector2i) -> void:
 	TACTICS.new(1).take_turn(game)
 	check(actions.is_empty() and game.pig.ready.is_empty(), "No affordable safe departure means no wasted enchantment")
 	near(game.faction_skills[1].energy, 100.0, "No viable mission leaves energy untouched")
+
+func airlift_decisions() -> void:
+	for owner: int in [-1, 0, 1, 3]:
+		reset(2)
+		var survivor := building(0, 0, 1000.0)
+		survivor.kind = 1
+		survivor.level = 4
+		survivor.refresh_visual()
+		var source := building(1, 1, 80.0)
+		source.kind = 0
+		source.refresh_visual()
+		var target := building(7, owner, 10.0)
+		if owner == 1:
+			target.kind = 0
+			target.refresh_visual()
+		elif owner == 3:
+			var route := PackedVector3Array([target.position + Vector3(8, 0, 0), target.position])
+			game.marches.send(0, 7, 0, 18, route)
+			for unit: WarMarches.MarchUnit in game.marches._units:
+				unit.distance = 0.0
+				game.marches._update_pose(unit)
+		var troops_before: int = game.marches._units.size()
+		var population_before := target.population
+		TACTICS.new(1).take_turn(game)
+		check(game.pig.airlifts.size() == 1 and skill_actions().size() == 1, "E selects a useful target with owner %d" % owner)
+		if game.pig.airlifts.is_empty():
+			continue
+		check(game.pig.airlifts[0].target == 7 and game.pig.airlifts[0].faction == 1, "E targets the destination directly for owner %d" % owner)
+		check(dispatch_actions().is_empty() and game.marches._units.size() == troops_before, "E creates no source dispatch or marching army")
+		near(source.population, 80.0, "E does not withdraw population from an owned source")
+		near(target.population, population_before, "E does not land soldiers before its first batch")
+		near(game.faction_skills[1].energy, 100.0 - RULES.PIG_COSTS[2], "E pays its independent airlift price")
+		var airlift_key := Vector2i(7, 1)
+		check(INFORMATION.snapshot_incoming(game, 0).get(airlift_key, 0) == RULES.PIG_AIRLIFT_COUNT, "public airlift starts with forty incoming soldiers")
+		if owner == 0:
+			var defense := INFORMATION.snapshot_defense(game, 0)
+			near(defense.damage[7], RULES.PIG_AIRLIFT_COUNT * game.combat_multiplier(1, target), "defender observes the real airlift attack without a march object")
+		game.simulate(RULES.PIG_AIRLIFT_BATCH_INTERVAL)
+		check(INFORMATION.snapshot_incoming(game, 0).get(airlift_key, 0) == RULES.PIG_AIRLIFT_COUNT - RULES.PIG_AIRLIFT_BATCH_SIZE, "landed batch leaves the incoming count exactly once")
+		game.simulate(RULES.PIG_AIRLIFT_DURATION - RULES.PIG_AIRLIFT_BATCH_INTERVAL)
+		check(game.pig.airlifts[0].landed == RULES.PIG_AIRLIFT_COUNT, "E completes all forty generated landings")
+		check(INFORMATION.snapshot_incoming(game, 0).get(airlift_key, 0) == 0, "completed airlift is not counted again as incoming")
+		check(target.faction == (owner if owner in [1, 3] else 1), "E completes actual reinforcement or capture")
+		near(source.population, 80.0, "completed E still leaves the source garrison unchanged")
+	reset(2)
+	building(1, 1, 80.0)
+	var target := building(7, -1, 10.0)
+	game.pig.airlifts.append({"id": 100, "faction": 3, "target": 7, "age": 0.0, "landed": 0})
+	TACTICS.new(1).take_turn(game)
+	check(skill_actions().is_empty(), "AI avoids duplicating an ally's already committed airlift")
+	reset(2)
+	building(1, 1, 80.0)
+	target = building(7, -1, 100.0)
+	TACTICS.new(1).take_turn(game)
+	check(game.pig.airlifts.is_empty(), "E does not waste forty soldiers on a known overwhelming neutral garrison")
+	reset(2)
+	building(1, 1, 80.0)
+	building(7, -1, 10.0)
+	game.faction_skills[1].energy = RULES.PIG_COSTS[2] - 1.0
+	TACTICS.new(1).take_turn(game)
+	check(game.pig.airlifts.is_empty(), "E respects its full revised energy cost")
+
+func airlift_defense_decisions() -> void:
+	for commander: StringName in [&"squirrel", &"bear"]:
+		reset(2)
+		game.faction_skills[1].commander = commander
+		game.faction_skills[1].cooldowns.fill(999.0)
+		game.faction_skills[1].cooldowns[2 if commander == &"squirrel" else 3] = 0.0
+		var target := building(1, 1, 15.0)
+		game.faction_skills[0].commander = RULES.PIG
+		game.faction_skills[0].cooldowns[2] = 0.0
+		check(game.cast_skill(2, target, 0), "hostile airlift launches against the defending " + commander)
+		near(INFORMATION.airlift_threats(game, 1)[1], RULES.PIG_AIRLIFT_COUNT * game.combat_multiplier(0, target), "skill threat counts publicly falling soldiers once")
+		TACTICS.new(1).take_turn(game)
+		check(game.shields.has(1) if commander == &"squirrel" else game.bear.wards.has(1), commander + " uses its defensive skill against visible airlift")
+		check(game.marches._units.is_empty(), "airlift defense decision does not need fake marching soldiers")
+	reset(2)
+	var target := building(1, 1, 15.0)
+	game.pig.airlifts.append({"id": 100, "faction": 3, "target": 1, "age": 0.0, "landed": 0})
+	check(INFORMATION.airlift_threats(game, 1).is_empty() and INFORMATION.snapshot_defense(game, 1).damage.is_empty(), "allied airlift is reinforcement, never hostile pressure")
+	game.pig.airlifts[0].faction = 0
+	target.faction = 0
+	check(INFORMATION.airlift_threats(game, 1).is_empty(), "lost building no longer asks its former owner for protection")
 
 func exposed_group(owner: int, count: int, at: Vector3, cloak: bool = false) -> void:
 	for index: int in count:
@@ -260,9 +345,9 @@ func target_types() -> void:
 		game.faction_skills[1].energy = 100.0
 		check(game.skill_is_ground(index, 1) == (index == 3), "Pig target type %d is correct for non-local faction" % index)
 		check(game._valid_skill_target(index, source, 1) == (index < 3), "Only QWE accepts an owned building, index %d" % index)
-		check(not game._valid_skill_target(index, ally, 1), "Own-building spell rejects another allied commander, index %d" % index)
-		check(not game._valid_skill_target(index, enemy, 1), "Own-building spell rejects enemies, index %d" % index)
-		check(not game._valid_skill_target(index, game.by_id[6], 1), "Own-building spell rejects neutral buildings, index %d" % index)
+		check(game._valid_skill_target(index, ally, 1) == (index == 2), "Only E accepts another allied commander's building, index %d" % index)
+		check(game._valid_skill_target(index, enemy, 1) == (index == 2), "Only E accepts enemy buildings, index %d" % index)
+		check(game._valid_skill_target(index, game.by_id[6], 1) == (index == 2), "Only E accepts neutral buildings, index %d" % index)
 		if index < 3:
 			check(not game.cast_ground_skill(index, source.position, 1), "QWE cannot be cast as a ground spell, index %d" % index)
 		else:
@@ -295,6 +380,8 @@ func _run() -> void:
 	check(flight_ids.x >= 0 and flight_ids.y >= 0, "Authored highland map offers a genuine flight shortcut")
 	if flight_ids.x >= 0:
 		dispatch_decisions(flight_ids)
+	airlift_decisions()
+	airlift_defense_decisions()
 	impact_decisions()
 	information_pairs()
 	target_types()

@@ -9,6 +9,7 @@ var demo_commander: StringName = &"squirrel"
 var demo_skill := 0
 var bear_hostile := false
 var frog_siege := false
+var pig_hostile := false
 var cast_succeeded := false
 var cast_count := 0
 var dispatched := false
@@ -135,10 +136,15 @@ func _setup_example() -> void:
 			away.population = 80.0
 		if demo_skill == 1:
 			morale.adjust(1, 1000.0)
-	elif demo_commander == &"pig" and demo_skill < 3:
+	elif demo_commander == &"pig" and demo_skill < 2:
 		cast_at = 0.8
 		dispatch_at = 1.6
-		home.population = 80.0 if demo_skill == 2 else 48.0
+		home.population = 80.0 if demo_skill == 1 else 48.0
+	elif demo_commander == &"pig" and demo_skill == 2:
+		cast_at = 1.2
+		away.population = 20.0
+		camera_rig.position.y = 3.0
+		caption = "选择建筑，2 秒内空投 40 名己方士兵。"
 
 func _process(delta: float) -> void:
 	if simulation_paused or _cycle_done:
@@ -173,7 +179,7 @@ func _process(delta: float) -> void:
 		cycle_completed.emit()
 
 func _dispatch_example() -> void:
-	var own_attack := (demo_commander == &"squirrel" and demo_skill == 1) or (demo_commander == &"rabbit" and demo_skill in [0, 1, 2, 3]) or (demo_commander == &"frog" and (demo_skill in [1, 2] or (demo_skill == 0 and frog_siege))) or (demo_commander == &"pig" and demo_skill < 3)
+	var own_attack := (demo_commander == &"squirrel" and demo_skill == 1) or (demo_commander == &"rabbit" and demo_skill in [0, 1, 2, 3]) or (demo_commander == &"frog" and (demo_skill in [1, 2] or (demo_skill == 0 and frog_siege))) or (demo_commander == &"pig" and demo_skill < 2)
 	var enemy_attack := (demo_commander == &"squirrel" and demo_skill in [2, 3]) or (demo_commander == &"rabbit" and demo_skill == 2) or (demo_commander == &"bear" and demo_skill > 0) or (demo_commander == &"frog" and (demo_skill == 1 or (demo_skill == 0 and not frog_siege))) or (demo_commander == &"fox" and demo_skill == 2) or (demo_commander == &"pig" and demo_skill == 3)
 	if own_attack:
 		var sent := issue_order(home, away, 100 if demo_commander == &"pig" else 50, 0)
@@ -203,7 +209,7 @@ func _cast_example() -> void:
 			center = (_army_center(0) + _army_center(1)) * 0.5
 		cast_succeeded = cast_ground_skill(demo_skill, center, 0)
 	else:
-		var enemy_target := demo_commander in [&"frog", &"fox"] or (demo_commander == &"rabbit" and demo_skill == 1) or (demo_commander == &"bear" and (demo_skill == 1 or (demo_skill == 3 and bear_hostile)))
+		var enemy_target := demo_commander in [&"frog", &"fox"] or (demo_commander == &"rabbit" and demo_skill == 1) or (demo_commander == &"bear" and (demo_skill == 1 or (demo_skill == 3 and bear_hostile))) or (demo_commander == &"pig" and demo_skill == 2 and pig_hostile)
 		cast_succeeded = cast_skill(demo_skill, away if enemy_target else home, 0)
 	after_population = away.population
 	assert(cast_succeeded, "Every codex example must pass the actual skill target and energy rules.")
@@ -222,7 +228,7 @@ func _outcome_caption() -> String:
 				return "雾内敌方建筑防御力 -%d%%；雾散后恢复。" % roundi(-SKILL_RULES.FROG_BUILDING_DEFENSE * 100.0)
 			return ["敌军攻击力 -%d%%，持续至进入建筑；炮塔无法攻击雾内士兵。" % roundi(SKILL_RULES.FROG_WEAKNESS * 100.0), "选中的双方士兵滞空，落地后继续行军。", "己方士兵完全隐身，避开炮塔攻击直至进入建筑。", "敌方驻军减少 %d%%，建筑降至 1 级。" % roundi(SKILL_RULES.FROG_STRIKE_FRACTION * 100.0)][demo_skill]
 		&"fox": return ["炸弹削减敌方驻军。", "敌方士气转移至己方，双方星级随之变化。", "选中的敌军归属转为己方，沿原路线行军。", "敌方驻军离开据点，前往同阵营避难建筑。"][demo_skill]
-		&"pig": return ["攻击力 +%d%%，移速 +%d%%，持续至进入建筑。" % [roundi(SKILL_RULES.PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(SKILL_RULES.PIG_CHARGE_SPEED_BONUS * 100.0)], "下次派兵直线飞行，最多 %d 人。" % SKILL_RULES.PIG_FLIGHT_LIMIT, "下次派兵缩短排距和列距，最多 %d 人。" % SKILL_RULES.PIG_FORMATION_LIMIT, "范围内敌我行军部队全部死亡，建筑驻军减少 50%。"][demo_skill]
+		&"pig": return ["最多 %d 人，攻击力 +%d%%、移速 +%d%%，持续至入城。" % [SKILL_RULES.PIG_CHARGE_LIMIT, roundi(SKILL_RULES.PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(SKILL_RULES.PIG_CHARGE_SPEED_BONUS * 100.0)], "下次派兵直线飞行，最多 %d 人。" % SKILL_RULES.PIG_FLIGHT_LIMIT, "选择建筑，%d 秒内空投 %d 名己方士兵。" % [SKILL_RULES.PIG_AIRLIFT_DURATION, SKILL_RULES.PIG_AIRLIFT_COUNT], "范围内敌我行军部队全部死亡，建筑驻军减少 50%。"][demo_skill]
 	return ""
 
 func fit_camera(aspect: float) -> void:
@@ -231,6 +237,9 @@ func fit_camera(aspect: float) -> void:
 	var single := buildings.size() == 1
 	var width := 12.0 if single else 26.0
 	var min_height := 17.0 if buildings.size() > 2 else 13.0
+	if demo_commander == &"pig" and demo_skill == 2:
+		# Include the complete descent and wind trails above either destination.
+		min_height = 15.0
 	camera.size = maxf(min_height, width / aspect)
 
 func set_running(value: bool) -> void:

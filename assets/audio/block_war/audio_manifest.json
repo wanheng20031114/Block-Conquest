@@ -3,7 +3,7 @@
   "generator": "tools/build_war_audio.py",
   "processing": "UI and skills use transparent source editing. Approved combat and result recipes are retained. See each file and tools/build_war_audio.py for exact edits.",
   "license": "CC0-1.0 and CC-BY-3.0, listed per source; see ../CREDITS.md and ../licenses",
-  "events": 43,
+  "events": 44,
   "files": [
     {
       "file": "war_select_01.wav",
@@ -1394,6 +1394,30 @@
           "sha256": "9ff095b05cee5eec40b081defe3f0eef7232bb16d4865ce03b9f6dbab875cfdd",
           "license": "CC0-1.0",
           "page": "https://kenney.nl/assets/impact-sounds"
+        }
+      ]
+    },
+    {
+      "file": "war_pig_airlift_01.wav",
+      "description": "Five short falling feather sweeps and soft grass contacts at 400 ms intervals, matching the two-second airlift",
+      "seconds": 2.16,
+      "active_rms_db": -27.5,
+      "true_peak_db": -8.48,
+      "bytes": 207404,
+      "sha256": "aba4e2f0c7e557867aaf4a166f6c4e3603072aa629560748cff4496dbee57672",
+      "processing": "75 Hz highpass; reversed recorded feather sweeps resampled to 400 ms and lowpassed at 3.6/3.7/3.8/3.9/4.0 kHz with 20 ms onset/tail fades; 2.8 kHz grass landings at 400/800/1200/1600/2000 ms with 65 ms decay; linear gain, no oscillator or noise synthesis; -3.2 dBFS true-peak ceiling; no saturation",
+      "sources": [
+        {
+          "path": "kenney_impact/footstep_grass_000.ogg",
+          "sha256": "9d49497777405d78d7cf7f2888e28277f3a23192300cfd1d79d54876b20f479f",
+          "license": "CC0-1.0",
+          "page": "https://kenney.nl/assets/impact-sounds"
+        },
+        {
+          "path": "weapons_apparel/arrow-feathers-02.wav",
+          "sha256": "5e2974eade6ba7238642a5993114d46d10fd28912e044cacebff0b9e18c0b4e2",
+          "license": "CC0-1.0",
+          "page": "https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library"
         }
       ]
     },

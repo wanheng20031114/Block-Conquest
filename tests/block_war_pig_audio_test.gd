@@ -1,7 +1,7 @@
 extends "res://tests/block_war_replication_test.gd"
 ## Observe the native sound signal from real gestures and serialized gameplay.
 const CUES: Array[StringName] = [
-	&"war_pig_charge", &"war_pig_fly", &"war_pig_formation", &"war_pig_drop", &"war_pig_impact",
+	&"war_pig_charge", &"war_pig_fly", &"war_pig_airlift", &"war_pig_drop", &"war_pig_impact",
 ]
 var sounds: Array[Dictionary] = []
 var game: Node3D
@@ -39,6 +39,11 @@ func _mouse(at: Vector2, down: bool, button: int = MOUSE_BUTTON_LEFT) -> void:
 func _refill(value: Node3D, faction: int = 0) -> void:
 	value.faction_skills[faction].energy = 100.0
 	value.faction_skills[faction].cooldowns.fill(0.0)
+
+func _audio_wall_time(milliseconds: int) -> void:
+	# --fixed-fps advances SceneTree timers faster than the native audio thread.
+	var deadline := Time.get_ticks_msec() + milliseconds
+	while Time.get_ticks_msec() < deadline: await process_frame
 
 func _run() -> void:
 	if AudioServer.get_driver_name() != "Dummy": quit(2); return
@@ -94,17 +99,41 @@ func _local_gestures() -> void:
 		_mouse(icon, true)
 		_mouse(aim, false)
 		check(game.cooldowns[index] > 0 and heard("local", CUES[index]) == 1 and pig_count("local") == 1, "Pig %d valid native release plays exactly its own cue" % index)
+		if index == 2:
+			var voices: Array = game.audio.get_node("Combat").get_children().filter(func(voice: Node): return voice.playing and voice.get_meta("kind") == &"war_pig_airlift")
+			check(voices.size() == 1 and is_equal_approx(voices[0].pitch_scale, 1.0), "Airlift cue keeps the exact five-batch tempo without randomized pitch")
+			check(voices[0].stream.format == AudioStreamWAV.FORMAT_16_BITS and voices[0].stream.loop_mode == AudioStreamWAV.LOOP_DISABLED, "Airlift uses imported uncompressed PCM and no loop")
+			game.set_paused(true)
+			await _audio_wall_time(250)
+			check(not voices[0].can_process() and is_zero_approx(voices[0].get_playback_position()), "Same-frame pause holds the pending native airlift start across physics frames")
+			game.set_paused(false)
+			await _audio_wall_time(150)
+			check(voices[0].can_process() and voices[0].get_playback_position() > 0.0 and heard("local", &"war_pig_airlift") == 1, "Airlift starts from the beginning on resume without a new cast cue")
+			game.set_paused(true)
+			check(voices[0].stream_paused, "Already-playing airlift receives the native pause notification")
+			await _audio_wall_time(100)
+			var audio_at: float = voices[0].get_playback_position()
+			await _audio_wall_time(200)
+			check(is_equal_approx(voices[0].get_playback_position(), audio_at), "Paused native airlift position stays fixed after the mixer fade")
+			game.set_paused(false)
+			paused = true
+			await _audio_wall_time(100)
+			audio_at = voices[0].get_playback_position()
+			await _audio_wall_time(200)
+			check(not voices[0].can_process() and voices[0].stream_paused and is_equal_approx(voices[0].get_playback_position(), audio_at), "World resume preserves the authored PAUSABLE mode for SceneTree pauses")
+			paused = false
+			check(voices[0].can_process() and not voices[0].stream_paused, "Native SceneTree resume restores the existing airlift playback")
 		var events := sounds.filter(func(event: Dictionary): return event.kind == CUES[index])
 		if events.size() == 1:
 			check(events[0].spatial and events[0].at.distance_to(at) < 0.15, "Pig %d cue is located at the actual effect" % index)
 		check(not (game.cast_ground_skill(index, at) if index == 3 else game.cast_skill(index, home)) and pig_count("local") == 1, "Pig %d rejected cooldown cannot repeat its success cue" % index)
 	# A retry after cooldown reset still fails if this building is already armed.
 	_refill(game)
-	for index: int in 3:
+	for index: int in 2:
 		var before := pig_count("local")
 		check(not game.cast_skill(index, home) and pig_count("local") == before, "Pig %d duplicate preparation stays silent" % index)
 	var enemy: WarBuilding = game.buildings.filter(func(building: WarBuilding): return building.faction == 1)[0]
-	for index: int in 3:
+	for index: int in 2:
 		var before := pig_count("local")
 		check(not game.cast_skill(index, enemy) and pig_count("local") == before, "Pig %d hostile building rejection stays silent" % index)
 	check(heard("local", &"war_pig_impact") == 0, "R release is a falling cue, never an immediate impact")

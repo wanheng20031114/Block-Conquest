@@ -23,3 +23,7 @@
 处理配方：`tools/build_war_audio.py` 的 `make_pig()`；五个成品的来源、处理步骤与输出哈希：`../block_war/audio_manifest.json`。请以源代码和清单为准复现。
 
 检索时也查阅了 [Vinrax 的 Pig SFX Pack](https://opengameart.org/content/pig-sfx-pack)。它按作者说明是橡胶猪玩具变速、CC BY 3.0；本项目未下载或使用该包，不将其列为本次采样来源。
+
+## 2026-10-01：猪降临
+
+E 改为空降后新增 `war_pig_airlift_01.wav`，复用上述 Vehicle `arrow-feathers-02.wav` 和既有 Kenney Impact `footstep_grass_000.ogg`（SHA-256 `9d49497777405d78d7cf7f2888e28277f3a23192300cfd1d79d54876b20f479f`）。两份原件均为此前留存的 CC0，未新增下载或修改原件。五次短气流对应五批下落，草地接触位于 0.4、0.8、1.2、1.6、2.0 秒，2.16 秒收尾；精确滤波、包络、变速及哈希见配方和清单。旧整队声音保留作历史资源，现行 E 不再使用。

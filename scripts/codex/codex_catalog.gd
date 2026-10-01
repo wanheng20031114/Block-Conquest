@@ -13,9 +13,9 @@ static func hero_profile(id: StringName) -> Dictionary:
 	assert(id in HEROES)
 	var profiles: Dictionary = {
 		&"pig": {
-			"title": RULES.name_for(id), "subtitle": "出征准备与精准重击",
-			"summary": "提前强化下一次出兵，让部队冲锋、起飞或紧密集结；以特大猪砸破密集阵地。",
-			"note": "出征准备可叠加；同时飞行和整队时，最多派出 30 人。特大猪会伤及双方。",
+			"title": RULES.name_for(id), "subtitle": "冲锋空降与精准重击",
+			"summary": "强化冲锋、飞越地形，向指定建筑空投士兵；以特大猪砸破密集阵地。",
+			"note": "冲锋与飞行可叠加，最多派出 20 人。特大猪会伤及双方。",
 		},
 		&"fox": {
 			"title": RULES.name_for(id), "subtitle": "诡计与阵线瓦解",
@@ -58,7 +58,7 @@ static func skill_summary(id: StringName, index: int) -> String:
 static func skill_target(id: StringName, index: int) -> String:
 	assert(id in HEROES and index >= 0 and index < 4)
 	var targets: Dictionary = {
-		&"pig": ["自己的建筑", "自己的建筑", "自己的建筑", "任意地面 · 敌我全部受影响"],
+		&"pig": ["自己的建筑", "自己的建筑", "任意建筑", "任意地面 · 敌我全部受影响"],
 		&"fox": ["敌方或中立建筑", "有士气的敌方英雄所属建筑", "敌方行军部队", "有同阵营避难建筑的敌方据点"],
 		&"squirrel": ["自己或盟友住宅", "地面区域", "自己或盟友建筑", "地面区域"],
 		&"rabbit": ["自己的行军部队", "敌方建筑", "所有阵营的行军部队", "自己的建筑"],
@@ -167,7 +167,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "通行路线", "body": "基础移速 %s 米/秒，士气与技能可改变移速。部队沿可通行路线前进；水域和山地阻挡通行，桥梁连接两岸。路线预览显示实际行进方向。" % MARCHES.SPEED},
 				{"title": "途中交互", "body": "双方行军部队可以互相穿行，不在途中进行近战。炮塔、火焰与其他技能仍可影响行军。"},
-				{"title": "特殊机动", "body": "兔洞将部队送至目标附近，两楼仍须有可通行路线。猪会飞则可无视地形、直线前往目的地，最多派出 30 人；与猪整队叠加仍取 30 人上限，其余驻军留在建筑。"},
+				{"title": "特殊机动", "body": "兔洞将部队送至目标附近，两楼仍须有可通行路线。猪会飞可无视地形、直线前往目的地，最多派出 60 人；与猪冲锋叠加取 20 人上限，其余驻军留守。猪降临可直接向任意建筑空投 40 人。"},
 			],
 			"tip": "派兵时同时观察路线长度与沿途敌方炮塔。",
 			"icon": GUIDE_ICONS.get_meta(&"terrain"),

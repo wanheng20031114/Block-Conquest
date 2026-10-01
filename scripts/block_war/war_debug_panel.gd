@@ -30,8 +30,8 @@ func update_data(data: Dictionary) -> void:
 	%BuildingsValue.text = "住宅 %d    炮塔 %d\n铁匠铺 %d（有效 %d）\n能量塔 %d（有效 %d）" % [
 		int(buildings[0]), int(buildings[1]), int(buildings[2]), int(data.forges_active),
 		int(buildings[3]), int(data.energy_towers_active)]
-	%ArmyValue.text = "总兵力 %.1f\n建筑驻军 %.1f    行军 %d\n门内待出 %d（已计入驻军）" % [
-		float(data.army_total), float(data.garrison), int(data.marching), int(data.queued)]
+	%ArmyValue.text = "总兵力 %.1f\n建筑驻军 %.1f    行军 %d\n空降 %d · 门内待出 %d（含在驻军内）" % [
+		float(data.army_total), float(data.garrison), int(data.marching), int(data.airlifting), int(data.queued)]
 	%EnergyValue.text = "%.1f / %.0f  ·  +%.2f / 秒" % [float(data.energy), float(data.energy_max), float(data.energy_regen)]
 	_update_selection(data.selected)
 	%PerformanceValue.text = "%.0f FPS  ·  %.2f ms / 帧\n对局时间 %02d:%02d" % [

@@ -66,7 +66,7 @@ func take_turn(game: Node3D) -> void:
 	if not can_shield and not can_recruit and not can_haste and not can_fire:
 		return
 	var visible: Array[WarMarches.MarchUnit] = []
-	var threats: Dictionary[int, float] = {}
+	var threats := INFORMATION.airlift_threats(game, faction)
 	var combat: Dictionary[Vector2i, Dictionary] = {}
 	for unit: WarMarches.MarchUnit in game.marches._units:
 		if not unit.is_exposed() or not INFORMATION.is_unit_known(game, unit, faction):
@@ -132,11 +132,15 @@ func _pig_turn(game: Node3D) -> void:
 		var drop := _pig_drop_target(game)
 		if not drop.is_empty():
 			best = {"index": 3, "score": drop.score, "at": drop.at}
+	if game.can_cast_skill(2, faction):
+		var airlift := _pig_airlift_plan(game, threats, reinforcements, incoming, combat)
+		if not airlift.is_empty() and airlift.score > best.score:
+			best = airlift
 	for source: WarBuilding in game.buildings:
 		if source.faction != faction:
 			continue
 		var reserve: float = 8.0 + (source.level - 1) * 2.0 + threats.get(source.building_id, 0.0)
-		for index: int in 3:
+		for index: int in 2:
 			if not game.can_cast_skill(index, faction) or not game.pig.valid_target(index, source, faction):
 				continue
 			for target: WarBuilding in game.buildings:
@@ -147,6 +151,8 @@ func _pig_turn(game: Node3D) -> void:
 					best = plan
 	if best.index == 3:
 		game.cast_ground_skill(3, best.at, faction)
+	elif best.index == 2:
+		game.cast_skill(2, best.target, faction)
 	elif best.index >= 0:
 		# The destination, real capped count and route are chosen before payment.
 		# Consume the next-order enchantment immediately, within the same decision.
@@ -166,13 +172,12 @@ func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 				return {} # Do not race an observed enemy wave to neutral territory.
 	var flags: Vector3 = game.pig.ready.get(source.building_id, Vector3.ZERO)
 	var flying := index == 1 or flags.y > 0.0
-	var dense := index == 2 or flags.z > 0.0
 	var charge := index == 0 or flags.x > 0.0
 	var limit: int = game.pig.limit_for(source.building_id)
 	if index == 1:
 		limit = mini(limit, SKILL_RULES.PIG_FLIGHT_LIMIT)
-	elif index == 2:
-		limit = mini(limit, SKILL_RULES.PIG_FORMATION_LIMIT)
+	elif index == 0:
+		limit = mini(limit, SKILL_RULES.PIG_CHARGE_LIMIT)
 	var ground_length: float = game.map.get_building_distance(source, target)
 	var route: PackedVector3Array = game.flight_route(source, target) if flying else game.map.get_building_route(source, target)
 	if route.size() < 2:
@@ -188,15 +193,13 @@ func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 	var attack_bonus := SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if charge else 0.0
 	for percent: int in [25, 50, 75, 100]:
 		var count := mini(limit, floori(source.available_population * percent / 100.0))
-		if count < (18 if index == 2 else 8) or source.available_population - count < reserve:
+		if count < 8 or source.available_population - count < reserve:
 			continue
 		# The source queue is unchanged until this decision casts and dispatches.
 		var departure_key := Vector2i(source.building_id, count)
 		if not departure_times.has(departure_key):
 			departure_times[departure_key] = game.marches.estimate_arrival_time(source.building_id, 0.0, count, faction)
 		var queue_time: float = departure_times[departure_key]
-		if dense:
-			queue_time -= floorf(float(count - 1) / WarMarches.COLUMNS) * (WarMarches.ROW_SPACING - WarMarches.DENSE_ROW_SPACING) / speed
 		var arrival := maxf(0.0, queue_time) + length / (speed * (1.0 + (SKILL_RULES.PIG_CHARGE_SPEED_BONUS if charge else 0.0)))
 		var score := 0.0
 		if allied:
@@ -216,12 +219,56 @@ func _pig_dispatch_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 			score = 22.0 + (8.0 if target.kind == 0 else 0.0) + minf(12.0, damage - defenders) * 0.5 - arrival * 0.45
 		if index == 1:
 			score += minf(18.0, maxf(0.0, ground_length - length)) if is_finite(ground_length) else 18.0
-		elif index == 2:
-			score += count * 0.12
 		else:
 			score += count * SKILL_RULES.PIG_CHARGE_ATTACK_BONUS
 		return {"index": index, "source": source, "target": target, "percent": percent, "score": score}
 	return {}
+
+func _pig_airlift_plan(game: Node3D, threats: Dictionary[int, float], reinforcements: Dictionary[int, int], incoming: Dictionary[Vector2i, int], combat: Dictionary[Vector2i, Dictionary]) -> Dictionary:
+	var best := {}
+	for target: WarBuilding in game.buildings:
+		if not game.pig.valid_target(2, target, faction):
+			continue
+		var already_landing := false
+		for airlift: Dictionary in game.pig.airlifts:
+			if airlift.target == target.building_id and game.FACTIONS.allied(int(airlift.faction), faction):
+				already_landing = true
+		if already_landing:
+			continue
+		var score := 0.0
+		var reinforcements_count: int = reinforcements.get(target.building_id, 0)
+		if game.FACTIONS.allied(target.faction, faction):
+			var danger: float = threats.get(target.building_id, 0.0)
+			var missing: float = danger - target.population - reinforcements_count + 8.0
+			if danger >= 8.0 and missing > 0.0 and missing <= SKILL_RULES.PIG_AIRLIFT_COUNT:
+				score = 55.0 + missing
+			elif target.faction == faction and target.kind == 0 and target.available_population + reinforcements_count < target.capacity:
+				# Reinforce a depleted home when there is no useful capture or rescue.
+				score = 18.0 + minf(12.0, target.capacity - target.available_population - reinforcements_count) * 0.5
+		else:
+			# The generated soldiers use normal attack/defense on landing. Enemy
+			# troop distribution remains hidden, so only public type/level estimates
+			# and known incoming armies contribute to this decision.
+			var defenders := INFORMATION.garrison_estimate(game, target, faction)
+			if target.faction >= 0:
+				defenders += minf(maxf(0.0, target.capacity - defenders), target.production_rate * SKILL_RULES.PIG_AIRLIFT_DURATION)
+				for defender: int in game.faction_count:
+					if game.FACTIONS.allied(defender, target.faction):
+						defenders += incoming.get(Vector2i(target.building_id, defender), 0)
+			var damage: float = SKILL_RULES.PIG_AIRLIFT_COUNT * _combat_multiplier(game, combat, faction, target)
+			if reinforcements_count > 0 or damage < defenders * (1.0 if target.faction < 0 else 1.2) + 5.0:
+				continue
+			var contested_neutral := false
+			if target.faction < 0:
+				for attacker: int in game.faction_count:
+					if game.FACTIONS.hostile(attacker, faction) and incoming.get(Vector2i(target.building_id, attacker), 0) > 0:
+						contested_neutral = true
+			if contested_neutral:
+				continue
+			score = 35.0 + (8.0 if target.kind == 0 else 0.0) + minf(15.0, damage - defenders) * 0.5
+		if score > 12.0 and (best.is_empty() or score > best.score):
+			best = {"index": 2, "target": target, "score": score}
+	return best
 
 func _pig_drop_target(game: Node3D) -> Dictionary:
 	var radius := SKILL_RULES.PIG_DROP_RADIUS
@@ -482,7 +529,7 @@ func _frog_turn(game: Node3D) -> void:
 		game.cast_ground_skill(best.index, best.at, faction)
 
 func _bear_turn(game: Node3D) -> void:
-	var threats: Dictionary[int, float] = {}
+	var threats := INFORMATION.airlift_threats(game, faction)
 	var assaults: Dictionary[int, float] = {}
 	var departures: Dictionary[int, int] = {}
 	var enemies: Array[WarMarches.MarchUnit] = []

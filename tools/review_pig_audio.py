@@ -10,7 +10,7 @@ from scipy import signal
 from review_war_loudness import db, read_capture, window_rms, write_wave
 
 ROOT = Path(__file__).resolve().parents[1]
-NAMES = ["pig_charge", "pig_fly", "pig_formation", "pig_drop", "pig_impact"]
+NAMES = ["pig_charge", "pig_fly", "pig_airlift", "pig_drop", "pig_impact"]
 
 
 def main():
@@ -66,7 +66,7 @@ def main():
     assert levels["war_pig_charge_01_edge"] < levels["war_pig_charge_01"], "Spatial attenuation is absent"
     # Q, W, E, then the actual cast-to-impact R timeline; retain in-game gain.
     preview = []
-    for name in ["pig_charge", "pig_fly", "pig_formation", "pig_drop_actual_timing"]:
+    for name in ["pig_charge", "pig_fly", "pig_airlift", "pig_drop_actual_timing"]:
         if preview:
             preview.append(np.zeros((round(.60 * rate), 2)))
         preview.append(auditions[name])

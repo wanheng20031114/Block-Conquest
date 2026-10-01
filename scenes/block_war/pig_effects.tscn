@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/block_war/war_pig_effects.gd" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/pig_ready.tscn" id="ready"]
 [ext_resource type="PackedScene" path="res://scenes/block_war/pig_drop.tscn" id="drop"]
+[ext_resource type="PackedScene" path="res://scenes/block_war/pig_airlift.tscn" id="airlift"]
 
 [sub_resource type="Gradient" id="DustFade"]
 offsets = PackedFloat32Array(0, 0.2, 1)
@@ -121,6 +122,14 @@ script = ExtResource("script")
 [node name="Drop9" parent="Drops" instance=ExtResource("drop")]
 [node name="Drop10" parent="Drops" instance=ExtResource("drop")]
 [node name="Drop11" parent="Drops" instance=ExtResource("drop")]
+
+[node name="Airlifts" type="Node3D" parent="."]
+[node name="Airlift0" parent="Airlifts" instance=ExtResource("airlift")]
+[node name="Airlift1" parent="Airlifts" instance=ExtResource("airlift")]
+[node name="Airlift2" parent="Airlifts" instance=ExtResource("airlift")]
+[node name="Airlift3" parent="Airlifts" instance=ExtResource("airlift")]
+[node name="Airlift4" parent="Airlifts" instance=ExtResource("airlift")]
+[node name="Airlift5" parent="Airlifts" instance=ExtResource("airlift")]
 
 [node name="Dust" type="GPUParticles3D" parent="."]
 emitting = false

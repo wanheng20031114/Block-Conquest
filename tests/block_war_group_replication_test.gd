@@ -101,7 +101,7 @@ func _run() -> void:
 	for id: int in [2, 8, 14]: host.by_id[id].population = 120.0
 	host.pig.arm(host, 0, host.by_id[2], 2)
 	host.pig.arm(host, 1, host.by_id[2], 2)
-	host.pig.arm(host, 2, host.by_id[8], 2)
+	host.pig.arm(host, 1, host.by_id[8], 2)
 	authority._publish_step(0.0)
 	flush()
 	check(client.submit({"type": "dispatch_group", "sources": [2, 8, 14], "target": 5, "percent": 100}).accepted, "mixed pig preparations submit as one group")
@@ -114,11 +114,11 @@ func _run() -> void:
 		counts[unit.order.source_id] += 1
 		match unit.order.source_id:
 			2: modifiers_correct = modifiers_correct and unit.order.pig_charge and unit.order.airborne and not unit.order.dense
-			8: modifiers_correct = modifiers_correct and not unit.order.pig_charge and not unit.order.airborne and unit.order.dense
+			8: modifiers_correct = modifiers_correct and not unit.order.pig_charge and unit.order.airborne and not unit.order.dense
 			14: modifiers_correct = modifiers_correct and not unit.order.pig_charge and not unit.order.airborne and not unit.order.dense
-	check(counts == {2: 30, 8: 60, 14: 120} and modifiers_correct, "replica preserves each building's distinct cap, flight, charge and formation")
+	check(counts == {2: 20, 8: 60, 14: 120} and modifiers_correct, "replica preserves each building's distinct cap, flight and charge")
 	check(host.pig.ready.is_empty() and replica.pig.ready.is_empty(), "only successful source preparations are consumed and replicated")
-	check(confirmations.size() == 1 and confirmations[0].count == 210, "mixed preparations retain one group confirmation")
+	check(confirmations.size() == 1 and confirmations[0].count == 200, "mixed preparations retain one group confirmation")
 	for step: int in 18: boundary(Coordinator.STEP, true)
 	flush()
 	check(Codec.digest(client._mirror) == Codec.digest(authority._published), "lost motion anchors do not corrupt group orders")

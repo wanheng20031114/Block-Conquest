@@ -53,3 +53,19 @@
 ## 发布范围
 
 本次更新本地项目及 Git 仓库，不重启东京中继。网络内容清单随本次提交从 Git 索引生成；当前中继严格比较内容哈希，因此发布此版客户端供公网联机前，需要同步同一版本的中继内容清单。
+
+## 2026-10-01：E 改为猪降临
+
+以上保留首次整队技能的验收记录；现行 E 使用独立的 `war_pig_airlift`，不再调用旧整队声音。新声音与 2 秒、5 批、每批 8 人的空降一致：五次短羽毛气流渐近，在 0.4、0.8、1.2、1.6、2.0 秒接轻草地触地，2.16 秒结束。音轨禁用随机音高变化，防止第五批的接触声偏离落地；其他音效仍保留原来的 3% 音高变化。
+
+仅复用已保留的 CC0 原件 `weapons_apparel/arrow-feathers-02.wav` 与 `kenney_impact/footstep_grass_000.ogg`，无新增下载或许可。原件及成品哈希、精确处理配方均记录于音源清单与 `audio_manifest.json`。新增 WAV 为 48 kHz 单声道 PCM16，Godot 导入不压缩、不归一化、不循环。与基线 `721ee99` 比较，之前 61 份战役 WAV、菜单点击、BGM 和混音总线文件全部字节一致。
+
+新 E 在默认主音量 50%、原生空间衰减下，最高 50 ms RMS 为 **−33.20 dBFS**，真峰值 **−17.32 dBTP**；六阵营空降与六次特大猪重击同帧叠加，再加战斗和 BGM、主音量 100% 的压力片段真峰值 **−1.72 dBTP**。9 段实时原生采集全部零丢帧，未额外放大试听文件。当前试听：[猪降临](audio/pig/pig_airlift.wav)、[现行 Q/W/E/R 合集](audio/pig/pig_skills_preview.wav)；[最新完整测量](audio/pig/measurements.json)。这是客观原生采集与行为验证，未做人工听感验收。
+
+此次还修正了施法同帧暂停时的音频边界。Godot 的 `AudioStreamPlayer3D.play()` 会在首个内部物理帧才注册播放，单独写 `stream_paused` 无法保留这之前的暂停请求。现在仅切换 Combat/Foley 父节点的原生 `PROCESS_MODE_DISABLED/PAUSABLE`：待播放请求停住，已播放音轨收到原生暂停通知，恢复后维持场景原有的可暂停语义。依据：[Godot 官方音频内部实现](https://github.com/godotengine/godot/blob/master/scene/audio/audio_stream_player_internal.cpp)及[3D 播放实现](https://github.com/godotengine/godot/blob/master/scene/3d/audio_stream_player_3d.cpp)。
+
+`block_war_pig_audio_test.gd` **61 项通过**，覆盖拖动取消、无效施放、重复事务、重连不重播，以及真实音频墙钟下的同帧暂停 250 ms 不偷跑、恢复从头播放、进行中暂停位置冻结、`SceneTree.paused` 再次暂停与恢复。空降原生视觉专项覆盖分批下降与落地、暂停、跳时快照、阵营转让以及 6 个旧槽到 6 个新槽的整体替换。选择页面另在 1600×900 和 1280×720 下逐项核对了技能名称、数值、上限及新 E 图标。
+
+公共 `block_war_audio_mix_test.gd` **108 项通过**，覆盖完整音库加载、实际混音、静音、暂停、画外音效裁剪及退出时释放全部原生播放句柄。
+
+复现当前测量：`python tools/review_pig_audio.py .local/pig-airlift/audio-capture --reference 721ee99`。

@@ -21,7 +21,7 @@ func reset() -> void:
 	game.projectiles.clear()
 	game.bear.links.clear(); game.bear.wards.clear(); game.bear.shots.clear()
 	game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear()
-	game.pig.ready.clear(); game.pig.ready_owners.clear(); game.pig.drops.clear()
+	game.pig.ready.clear(); game.pig.ready_owners.clear(); game.pig.drops.clear(); game.pig.airlifts.clear()
 	game.shields.clear(); game.fire_states.clear()
 	game.morale.configure(game.faction_count)
 	game.elapsed = 0.0; game.finished = false; game.match_paused = false
@@ -38,6 +38,7 @@ func reset() -> void:
 		state.energy = 100.0; state.cooldowns.fill(0.0); state.durations.fill(0.0)
 	game.world_effects.pig_ready(game.buildings, game.pig.ready)
 	game.world_effects.sync_pig_drops(game.pig.drops)
+	game.world_effects.get_node("PigEffects").sync_airlifts(game.pig.airlifts, game.by_id)
 
 func refill() -> void:
 	game.energy = 100
@@ -84,18 +85,18 @@ func _run() -> void:
 	game.pig.advance(game, 0.101)
 	check(not game.pig.ready.has(0), "Preparation expires after 15")
 	near(game.active_durations[0], 0, "Expiry clears HUD duration")
-	for skill_indices: Array in [[0], [1], [2], [0, 1, 2]]:
+	for skill_indices: Array in [[0], [1], [0, 1]]:
 		reset()
 		for index: int in skill_indices:
 			refill(); check(game.cast_skill(index, home), "Stack preparation %s %d" % [skill_indices, index])
-		var expected := 30 if 1 in skill_indices else (60 if 2 in skill_indices else 70)
+		var expected := 20 if 0 in skill_indices else 60
 		check(game.dispatch_count(home, 100) == expected, "Preview enforces cap %s" % str(skill_indices))
 		check(game.issue_order(home, enemy, 100) == expected, "Dispatch respects cap %s" % str(skill_indices))
 		check(not game.pig.ready.has(0), "Successful dispatch consumes preparation")
 		near(home.population, 70, "Dispatch does not instantly remove garrison")
 		check(home.queued_population == expected, "Reservations match cap")
 		var order: WarMarches.MarchOrder = game.marches._units[0].order
-		check(order.pig_charge == (0 in skill_indices) and order.airborne == (1 in skill_indices) and order.dense == (2 in skill_indices), "Flags belong to issued wave")
+		check(order.pig_charge == (0 in skill_indices) and order.airborne == (1 in skill_indices) and not order.dense, "Only charge and flight modify the issued wave")
 		game.marches.tick(0.1)
 		check(home.population < 70 and home.population > 70 - expected, "Garrison decreases in batches")
 		for step: int in 50: game.marches.tick(0.1)

@@ -52,19 +52,19 @@ func _charge_and_doorway() -> void:
 	marches.queue_departure(0, 1, 0, 1, route, true, true)
 	var unit := marches._units[0]
 	check(departures == 1 and reservations == 0, "An immediately exposed one-person order pays exactly once")
-	near(marches.speed_multiplier(unit), 1.8, "Charge +20% multiplies the existing morale speed")
-	near(marches.movement_distance(unit, 1.0), WarMarches.SPEED * 1.5 * 1.2, "Charge changes actual movement, not just its displayed multiplier")
-	near(marches.projected_attack_bonus(unit), 0.1, "Pig charge provides ten percentage points of attack throughout a long march")
+	near(marches.speed_multiplier(unit), 1.95, "Charge +30% multiplies the existing morale speed")
+	near(marches.movement_distance(unit, 1.0), WarMarches.SPEED * 1.5 * 1.3, "Charge changes actual movement, not just its displayed multiplier")
+	near(marches.projected_attack_bonus(unit), 0.5, "Pig charge provides fifty percentage points of attack throughout a long march")
 	unit.rush_remaining = 30.0
-	near(marches.speed_multiplier(unit), 3.3, "Charge and rabbit rush add within the skill multiplier")
-	near(marches.projected_attack_bonus(unit), 0.1 + RULES.RABBIT_RUSH_ATTACK_BONUS, "Rabbit attack and pig attack stack without overwriting each other")
+	near(marches.speed_multiplier(unit), 3.45, "Charge and rabbit rush add within the skill multiplier")
+	near(marches.projected_attack_bonus(unit), 0.5 + RULES.RABBIT_RUSH_ATTACK_BONUS, "Rabbit attack and pig attack stack without overwriting each other")
 	unit.weakened = true
-	near(marches.projected_attack_bonus(unit), 0.1 + RULES.RABBIT_RUSH_ATTACK_BONUS - RULES.FROG_WEAKNESS, "Weakness still subtracts from the stacked attack bonus")
+	near(marches.projected_attack_bonus(unit), 0.5 + RULES.RABBIT_RUSH_ATTACK_BONUS - RULES.FROG_WEAKNESS, "Weakness still subtracts from the stacked attack bonus")
 	unit.rush_remaining = 0.0
 	unit.weakened = false
 	marches.tick(40.0)
 	check(arrivals.size() == 1 and arrivals[0].energy and arrivals[0].strength == 1.0, "Arrival preserves real population and energy-origin provenance")
-	near(arrivals[0].attack, 0.1, "The destination receives the permanent per-march pig attack")
+	near(arrivals[0].attack, 0.5, "The destination receives the permanent per-march pig attack")
 	reset()
 	marches.queue_departure(0, 1, 0, 60, route)
 	var preceding := marches._units[-1]
@@ -73,7 +73,7 @@ func _charge_and_doorway() -> void:
 	check(unit.distance < preceding.distance and unit.pending_departure, "A later enchanted order joins behind the existing building queue")
 	var delay := -unit.distance / marches.base_speed(0)
 	near(marches.movement_distance(unit, delay * 0.5), -unit.distance * 0.5, "Charge does not accelerate reserved soldiers still inside their building")
-	near(marches.movement_distance(unit, delay + 1.0), -unit.distance + marches.SPEED * 1.2, "A long tick splits ordinary waiting from boosted movement at the actual exit")
+	near(marches.movement_distance(unit, delay + 1.0), -unit.distance + marches.SPEED * 1.3, "A long tick splits ordinary waiting from boosted movement at the actual exit")
 	near(marches.speed_multiplier(unit), 1.0, "Pending charge soldiers report the unboosted queue speed")
 	var expected := marches.movement_distance(unit, delay + 1.0)
 	var before := unit.distance
@@ -86,7 +86,7 @@ func _charge_and_doorway() -> void:
 	unit = marches._units[0]
 	marches.create_haste_zone(0, Vector3.ZERO, 100.0, 0.5, 1.6)
 	marches.create_slow_zone(1, Vector3.ZERO, 100.0, 0.25)
-	near(marches.movement_distance(unit, 1.0), marches.SPEED * (1.2 + 0.6 * 0.5 - 0.6), "Charge retains exact haste expiry and the slow's ongoing five-second tail")
+	near(marches.movement_distance(unit, 1.0), marches.SPEED * (1.3 + 0.6 * 0.5 - 0.6), "Charge retains exact haste expiry and the slow's ongoing five-second tail")
 
 func _dense_queue() -> void:
 	reset()

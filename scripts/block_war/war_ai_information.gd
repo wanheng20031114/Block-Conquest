@@ -24,6 +24,13 @@ static func snapshot_incoming(game: Node3D, faction: int) -> Dictionary[Vector2i
 		if is_unit_known(game, unit, faction):
 			var key := Vector2i(unit.order.target_id, unit.order.faction)
 			result[key] = result.get(key, 0) + 1
+	# A visible airlift announces its destination and remaining soldiers. They
+	# are incoming until they land, then the ordinary garrison owns them once.
+	for airlift: Dictionary in game.pig.airlifts:
+		var count: int = game.SKILL_RULES.PIG_AIRLIFT_COUNT - int(airlift.landed)
+		if count > 0:
+			var key := Vector2i(int(airlift.target), int(airlift.faction))
+			result[key] = result.get(key, 0) + count
 	return result
 
 static func incoming_damage(game: Node3D, building: WarBuilding, incoming: Dictionary[Vector2i, int], faction: int) -> float:
@@ -32,6 +39,18 @@ static func incoming_damage(game: Node3D, building: WarBuilding, incoming: Dicti
 		if unit.order.target_id == building.building_id and is_unit_known(game, unit, faction) and game.FACTIONS.hostile(building.faction, unit.order.faction):
 			attackers.append(unit)
 	return _observed_damage(game, building, incoming, attackers)
+
+static func airlift_threats(game: Node3D, faction: int) -> Dictionary[int, float]:
+	# Skill planners that independently sample nearby walking troops add only
+	# this public falling population, rather than counting all incoming twice.
+	var result: Dictionary[int, float] = {}
+	for airlift: Dictionary in game.pig.airlifts:
+		var target: WarBuilding = game.by_id[int(airlift.target)]
+		if game.FACTIONS.hostile(int(airlift.faction), faction) and game.FACTIONS.allied(target.faction, faction):
+			var count: int = game.SKILL_RULES.PIG_AIRLIFT_COUNT - int(airlift.landed)
+			if count > 0:
+				result[target.building_id] = result.get(target.building_id, 0.0) + count * game.combat_multiplier(int(airlift.faction), target)
+	return result
 
 static func snapshot_defense(game: Node3D, faction: int) -> IncomingSnapshot:
 	# This observation ends before a skill/order changes the battlefield. Keep
@@ -51,6 +70,15 @@ static func snapshot_defense(game: Node3D, faction: int) -> IncomingSnapshot:
 		if not attackers_by_target.has(key.x):
 			attackers_by_target[key.x] = []
 		attackers_by_target[key.x].append(unit)
+	for airlift: Dictionary in game.pig.airlifts:
+		var count: int = game.SKILL_RULES.PIG_AIRLIFT_COUNT - int(airlift.landed)
+		if count <= 0:
+			continue
+		var key := Vector2i(int(airlift.target), int(airlift.faction))
+		result.counts[key] = result.counts.get(key, 0) + count
+		var target: WarBuilding = game.by_id[key.x]
+		if game.FACTIONS.hostile(key.y, faction) and game.FACTIONS.allied(target.faction, faction) and not attackers_by_target.has(key.x):
+			attackers_by_target[key.x] = []
 	for target_id: int in attackers_by_target:
 		result.damage[target_id] = _observed_damage(game, game.by_id[target_id], result.counts, attackers_by_target[target_id])
 	return result

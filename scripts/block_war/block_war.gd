@@ -636,7 +636,7 @@ func _queue_order(source: Node3D, target: Node3D, amount_percent: int, faction: 
 		presentation_event.emit("tunnel", {"faction": faction, "entrance": _vector_values(plan.entrance), "exit": _vector_values(plan.exit), "direction": _vector_values(plan.route[1] - plan.route[0]), "count": count, "dig_duration": plan.dig_duration})
 	else:
 		var pig_flags: Vector3 = pig.flags_for(source.building_id)
-		marches.queue_departure(source.building_id, target.building_id, faction, count, route, source.kind == 3, pig_flags.x > 0.0, pig_flags.y > 0.0, pig_flags.z > 0.0)
+		marches.queue_departure(source.building_id, target.building_id, faction, count, route, source.kind == 3, pig_flags.x > 0.0, pig_flags.y > 0.0)
 	pig.clear_building(self, source.building_id)
 	return count
 
@@ -1029,7 +1029,10 @@ func cast_skill(index: int, target: Node3D, faction: int = -2) -> bool:
 		return false
 	if faction_skills[faction].commander == SKILL_RULES.PIG:
 		_commit_skill(index, faction)
-		pig.arm(self, index, target, faction)
+		if index == 2:
+			pig.start_airlift(self, target, faction)
+		else:
+			pig.arm(self, index, target, faction)
 		_present_skill(index, faction, target.global_position, target.building_id)
 		audio.play_world(pig.CAST_SOUNDS[index], target.global_position)
 		update_hud()
@@ -1288,6 +1291,8 @@ func _ai_turn() -> void:
 
 func team_total_for(faction: int) -> int:
 	var count: float = marches.team_total_for(faction)
+	for member: int in faction_count:
+		if FACTIONS.allied(member, faction): count += pig.pending_for(member)
 	for building: WarBuilding in buildings:
 		if FACTIONS.allied(building.faction, faction):
 			count += building.available_population
@@ -1304,7 +1309,7 @@ func incoming_damage_for(building: WarBuilding, incoming: Dictionary[Vector2i, i
 	return damage
 
 func total_for(faction: int) -> int:
-	var count: float = marches.total_for(faction)
+	var count: float = marches.total_for(faction) + pig.pending_for(faction)
 	for building: Node3D in buildings:
 		if building.faction == faction:
 			count += building.available_population
@@ -1327,6 +1332,10 @@ func _check_victory() -> void:
 	# Only inspect marching armies when elimination/stalemate is possible.
 	if remaining[PLAYER] and remaining[ENEMY] and can_make_progress:
 		return
+	for airlift: Dictionary in pig.airlifts:
+		if airlift.landed < SKILL_RULES.PIG_AIRLIFT_COUNT:
+			remaining[int(airlift.faction) % 2] = true
+			can_make_progress = true
 	for unit: WarMarches.MarchUnit in marches._units:
 		remaining[unit.order.faction % 2] = true
 		can_make_progress = true
@@ -1396,6 +1405,7 @@ func update_hud() -> void:
 	var player_population := 0.0
 	var enemy_population := 0.0
 	for faction: int in faction_count:
+		faction_population[faction] += pig.pending_for(faction)
 		faction_totals.append(floori(faction_population[faction]))
 		if FACTIONS.allied(faction, local_faction):
 			player_population += faction_population[faction]
@@ -1420,7 +1430,7 @@ func update_hud() -> void:
 		if selected.burrow_remaining > 0.0:
 			detail += " · 兔洞待命 %ds · 下次最多 50 人" % ceili(selected.burrow_remaining)
 		var pig_flags: Vector3 = pig.flags_for(selected.building_id)
-		for index: int in 3:
+		for index: int in 2:
 			if pig_flags[index] > 0.0:
 				detail += " · %s待命 %ds" % [SKILL_RULES.PIG_NAMES[index], ceili(pig_flags[index])]
 		if selected.is_population_visible() and selected.queued_population > 0:

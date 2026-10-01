@@ -41,6 +41,7 @@ const EVENTS: Dictionary = {
 	"war_pig_charge": {"streams": [preload("res://assets/audio/block_war/war_pig_charge_01.wav")], "gain_db": 1.0, "bus": &"Combat", "priority": 5, "gap_ms": 0, "limit": 6},
 	"war_pig_fly": {"streams": [preload("res://assets/audio/block_war/war_pig_fly_01.wav")], "gain_db": 1.0, "bus": &"Combat", "priority": 5, "gap_ms": 0, "limit": 6},
 	"war_pig_formation": {"streams": [preload("res://assets/audio/block_war/war_pig_formation_01.wav")], "gain_db": 0.0, "bus": &"Combat", "priority": 5, "gap_ms": 0, "limit": 6},
+	"war_pig_airlift": {"streams": [preload("res://assets/audio/block_war/war_pig_airlift_01.wav")], "gain_db": 0.0, "bus": &"Combat", "priority": 5, "gap_ms": 0, "limit": 6, "pitch_variation": 0.0},
 	"war_pig_drop": {"streams": [preload("res://assets/audio/block_war/war_pig_drop_01.wav")], "gain_db": 1.0, "bus": &"Combat", "priority": 5, "gap_ms": 0, "limit": 6},
 	"war_pig_impact": {"streams": [preload("res://assets/audio/block_war/war_pig_impact_01.wav")], "gain_db": 1.0, "bus": &"Combat", "priority": 6, "gap_ms": 0, "limit": 6},
 	"war_projectile_hit": {"streams": [preload("res://assets/audio/block_war/war_projectile_hit_01.wav"), preload("res://assets/audio/block_war/war_projectile_hit_02.wav")], "gain_db": -3.0, "bus": &"Combat", "priority": 3, "gap_ms": 120, "limit": 3},

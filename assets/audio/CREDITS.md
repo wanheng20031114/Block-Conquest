@@ -99,3 +99,7 @@ Some of the sounds in this project were created by David McKee (ViRiX / ViRiX Dr
 制作采用 75 Hz 高通、2.2–4.6 kHz 的克制低通、能量窗口起音对齐、短包络、变速、时序组合和边界淡化。下降和命中是分开的事件，命中只在实际碰撞结算时请求，不预先拼进下降音轨。没有新增持续循环、旋律、合成噪声、混响或饱和。五份成品为 48 kHz 单声道 PCM16，制作真峰值上限 -3.2 dBFS；Godot 导入保留 PCM、不归一化、不循环，仍使用原生 Combat 总线和用户的音量/静音设置。
 
 `python tools/build_war_audio.py --pig` 只重建这五个文件并保留其他音效；`block_war/audio_manifest.json` 保存每份成品的准确采样来源、处理步骤、活动区 RMS、真峰值及 SHA-256。
+
+## 2026-10-01：猪降临空降音效
+
+E 改为分批空降，新增 `war_pig_airlift`，以已保留的 CC0 Vehicle `arrow-feathers-02.wav` 和 Kenney Impact `footstep_grass_000.ogg` 重制，未新增下载或音源许可。五次渐近气流与每 0.4 秒一次的轻草地接触对应 40 名士兵的五批落地，时长 2.16 秒。以 75 Hz 高通、柔和低通、边界淡化及线性增益处理，不添加合成噪声、混响或循环。原生导入采用 48 kHz 单声道 PCM16，旧整队音保留但不再由技能触发。`--pig` 现在同时重建新空降音与五份历史声音；其他已认可文件保持原哈希。

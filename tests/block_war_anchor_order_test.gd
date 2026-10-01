@@ -49,20 +49,20 @@ func _subject() -> Subject:
 	value.game = StateFixture.new()
 	value._snapshot_loading = false
 	value._mirror = {"schema": Snapshot.SCHEMA, "tick": 0, "time": 0.0, "finished": false, "winner": -2,
-		"counters": [10, 100, 0, 1, 1], "match_control": {"paused": false, "by": -1, "surrendered": []}}
+		"counters": [10, 100, 0, 1, 1, 1], "match_control": {"paused": false, "by": -1, "surrendered": []}}
 	for group: String in Snapshot.GROUPS: value._mirror[group] = {}
 	for key: String in ["0", "1"]:
 		value._mirror.buildings[key] = [0, 0, 1, 10.0, 0, 0.0, 0, -1, 0.0, 0.0, 0.0, 0.0]
 	value._mirror.factions["0"] = ["squirrel", 0.0, [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], -1,
 		0.0, 0.0, 10.0, 0.0, Snapshot.RULES.natural_energy_regen(0.0), [1, 1, 1, 1]]
 	value._mirror.orders["1"] = [0, 1, 0, 1.0, false, 0.0, [[0.0, 0.0, 0.0], [100.0, 0.0, 0.0]], false, false, false, false, false]
-	value._mirror.units["1"] = [1, 2.0, 0.0, false, 0, 0.0, 0.0, 0.0, false, false, false, -1, 0.0, 0.0]
+	value._mirror.units["1"] = [1, 2.0, 0.0, false, 0, 0.0, 0.0, 0.0, false, false, false, -1, 0.0, 0.0, 0.0]
 	check(Snapshot.valid(value._mirror, value.game), "fixture includes fully validated buildings, order and moving soldier")
 	return value
 
 func _event(seq: int, at_time: float, writes: Dictionary = {}, removes: Dictionary = {}) -> Dictionary:
 	return {"seq": seq, "tick": seq, "time": at_time, "finished": false, "winner": -2,
-		"set": writes, "remove": removes, "visuals": [], "counters": [10, 100, 0, 1, 1],
+		"set": writes, "remove": removes, "visuals": [], "counters": [10, 100, 0, 1, 1, 1],
 		"match_control": {"paused": false, "by": -1, "surrendered": []}}
 
 func _anchor(base: int, tick: int, at_time: float, distance: float, key: String = "1") -> Dictionary:

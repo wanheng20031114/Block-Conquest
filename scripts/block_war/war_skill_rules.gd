@@ -73,19 +73,24 @@ const FOX_CONVERT_RADIUS := 2.0
 const FOX_PANIC_FRACTION := 0.8
 const FOX_PANIC_DESTINATIONS := 3
 const PIG := &"pig"
-const PIG_NAMES: Array[String] = ["猪冲锋", "猪会飞", "猪整队", "特大猪"]
-const PIG_COSTS: Array[float] = [15.0, 25.0, 25.0, 80.0]
-const PIG_COOLDOWNS: Array[float] = [18.0, 30.0, 30.0, 70.0]
-const PIG_DURATIONS: Array[float] = [15.0, 15.0, 15.0, 0.0]
+const PIG_NAMES: Array[String] = ["猪冲锋", "猪会飞", "猪降临", "特大猪"]
+const PIG_COSTS: Array[float] = [20.0, 35.0, 65.0, 80.0]
+const PIG_COOLDOWNS: Array[float] = [25.0, 40.0, 65.0, 70.0]
+const PIG_DURATIONS: Array[float] = [15.0, 15.0, 2.0, 0.0]
 const PIG_READY_DURATION := 15.0
-const PIG_CHARGE_SPEED_BONUS := 0.20
-const PIG_CHARGE_ATTACK_BONUS := 0.10
-const PIG_FLIGHT_LIMIT := 30
-const PIG_FORMATION_LIMIT := 60
+const PIG_CHARGE_SPEED_BONUS := 0.30
+const PIG_CHARGE_ATTACK_BONUS := 0.50
+const PIG_CHARGE_LIMIT := 20
+const PIG_FLIGHT_LIMIT := 60
+const PIG_AIRLIFT_COUNT := 40
+const PIG_AIRLIFT_DURATION := 2.0
+const PIG_AIRLIFT_BATCH_SIZE := 8
+const PIG_AIRLIFT_BATCH_INTERVAL := 0.4
+const PIG_AIRLIFT_LIFETIME := 2.18
 const PIG_DROP_RADIUS := 3.0
 const PIG_DROP_FALL_TIME := 0.65
 const PIG_DROP_LIFETIME := 1.4
-const PIG_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_pig_charge.svg"), preload("res://assets/ui/block_war/skill_pig_fly.svg"), preload("res://assets/ui/block_war/skill_pig_formation.svg"), preload("res://assets/ui/block_war/skill_pig_drop.svg")]
+const PIG_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_pig_charge.svg"), preload("res://assets/ui/block_war/skill_pig_fly.svg"), preload("res://assets/ui/block_war/skill_pig_airlift.svg"), preload("res://assets/ui/block_war/skill_pig_drop.svg")]
 const SQUIRREL_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_muster.svg"), preload("res://assets/ui/block_war/skill_haste.svg"), preload("res://assets/ui/block_war/skill_bulwark.svg"), preload("res://assets/ui/block_war/skill_impact.svg")]
 const RABBIT_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_rabbit_dash.svg"), preload("res://assets/ui/block_war/skill_rabbit_seal.svg"), preload("res://assets/ui/block_war/skill_rabbit_recall.svg"), preload("res://assets/ui/block_war/skill_rabbit_burrow.svg")]
 const BEAR_ICONS: Array[Texture2D] = [preload("res://assets/ui/block_war/skill_bear_toolbox.svg"), preload("res://assets/ui/block_war/skill_bear_stomp.svg"), preload("res://assets/ui/block_war/skill_bear_link.svg"), preload("res://assets/ui/block_war/skill_bear_fortress.svg")]
@@ -163,9 +168,9 @@ static func icons_for(commander: StringName) -> Array[Texture2D]:
 static func description(index: int, commander: StringName = COMMANDER_ID) -> String:
 	if commander == PIG:
 		return [
-			"攻击力 +%d%%，移速 +%d%%，持续至进入建筑。\n己方建筑获得 %d 秒冲锋待命，强化下一次派出的部队。\n可与飞行、整队叠加；过期未出兵则失效。" % [roundi(PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(PIG_CHARGE_SPEED_BONUS * 100.0), PIG_READY_DURATION],
-			"下一次派兵直线飞行，无视地形，最多 %d 人。\n己方建筑获得 %d 秒飞行待命，过期未出兵则失效。\n剩余驻军留守，可与冲锋、整队叠加。" % [PIG_FLIGHT_LIMIT, PIG_READY_DURATION],
-			"下一次派兵缩短排距和列距，最多 %d 人。\n己方建筑获得 %d 秒整队待命，过期未出兵则失效。\n剩余驻军留守；与飞行叠加时最多 %d 人。" % [PIG_FORMATION_LIMIT, PIG_READY_DURATION, PIG_FLIGHT_LIMIT],
+			"下次最多派出 %d 人，攻击力 +%d%%、移速 +%d%%，直至进入建筑。\n待命 %d 秒，可叠加飞行。" % [PIG_CHARGE_LIMIT, roundi(PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(PIG_CHARGE_SPEED_BONUS * 100.0), PIG_READY_DURATION],
+			"下次最多派出 %d 人，直线飞行，无视地形。\n待命 %d 秒；叠加冲锋时最多 %d 人，余兵留守。" % [PIG_FLIGHT_LIMIT, PIG_READY_DURATION, PIG_CHARGE_LIMIT],
+			"选择一座建筑，在 %d 秒内空投 %d 名新兵。" % [PIG_AIRLIFT_DURATION, PIG_AIRLIFT_COUNT],
 			"半径 %.1f 米内，敌我行军部队全部死亡，建筑驻军减少 50%%。\n选择落点后 %.2f 秒砸下，无视防御力和链式分伤。\n不直接占领建筑，空地也可施放。" % [PIG_DROP_RADIUS, PIG_DROP_FALL_TIME]
 		][index]
 	if commander == FOX:

@@ -4,7 +4,7 @@
 [ext_resource type="Shader" path="res://assets/models/block_war/pig_ground.gdshader" id="shader"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_pig_charge.svg" id="charge"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_pig_fly.svg" id="fly"]
-[ext_resource type="Texture2D" path="res://assets/ui/block_war/skill_pig_formation.svg" id="formation"]
+
 [ext_resource type="Font" path="res://assets/ui/block_war/fonts/numbers.tres" id="numbers"]
 [ext_resource type="Texture2D" path="res://assets/ui/block_war/pig_ready_badge.svg" id="badge"]
 
@@ -32,7 +32,7 @@ cast_shadow = 0
 position = Vector3(1.8, 6.3, 0)
 
 [node name="Charge" type="Node3D" parent="Badges"]
-position = Vector3(-1.05, 0, 0)
+position = Vector3(-0.55, 0, 0)
 
 [node name="Backdrop" type="Sprite3D" parent="Badges/Charge"]
 texture = ExtResource("badge")
@@ -62,6 +62,7 @@ modulate = Color(1, 0.94, 0.91, 1)
 text = "15"
 
 [node name="Flight" type="Node3D" parent="Badges"]
+position = Vector3(0.55, 0, 0)
 
 [node name="Backdrop" type="Sprite3D" parent="Badges/Flight"]
 texture = ExtResource("badge")
@@ -79,36 +80,6 @@ no_depth_test = true
 cast_shadow = 0
 
 [node name="Time" type="Label3D" parent="Badges/Flight"]
-position = Vector3(0, -1.22, 0)
-billboard = 1
-no_depth_test = true
-font = ExtResource("numbers")
-font_size = 30
-pixel_size = 0.019
-outline_size = 8
-outline_modulate = Color(0.21, 0.13, 0.13, 1)
-modulate = Color(1, 0.94, 0.91, 1)
-text = "15"
-
-[node name="Formation" type="Node3D" parent="Badges"]
-position = Vector3(1.05, 0, 0)
-
-[node name="Backdrop" type="Sprite3D" parent="Badges/Formation"]
-texture = ExtResource("badge")
-pixel_size = 0.011
-billboard = 1
-no_depth_test = true
-render_priority = -1
-cast_shadow = 0
-
-[node name="Icon" type="Sprite3D" parent="Badges/Formation"]
-texture = ExtResource("formation")
-pixel_size = 0.0088
-billboard = 1
-no_depth_test = true
-cast_shadow = 0
-
-[node name="Time" type="Label3D" parent="Badges/Formation"]
 position = Vector3(0, -1.22, 0)
 billboard = 1
 no_depth_test = true

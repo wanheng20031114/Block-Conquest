@@ -27,8 +27,8 @@ func _select(index: int, animate: bool = true) -> void:
 	%Portrait.texture = RULES.PORTRAITS[commander]
 	%AnimalName.text = RULES.name_for(commander)
 	%Next.text = "就选%s   →" % RULES.name_for(commander)
-	%Personality.text = {0: "稳稳扎营，也能一鼓作气。", 1: "跑得轻快，打个出其不意。", 2: "修好小屋，举盾守住大家。", 3: "整整队，下一波就起飞。", 4: "借一颗星，让对面乱了阵脚。", 5: "呼一口雾，藏好下一步。"}[index]
-	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 震庭威慑", 3: "冲锋 · 飞行 · 密集出兵 · 重击", 4: "投弹 · 窃星 · 招降 · 恐慌", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
+	%Personality.text = {0: "稳稳扎营，也能一鼓作气。", 1: "跑得轻快，打个出其不意。", 2: "修好小屋，举盾守住大家。", 3: "从天而降，一起向前冲。", 4: "借一颗星，让对面乱了阵脚。", 5: "呼一口雾，藏好下一步。"}[index]
+	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 震庭威慑", 3: "冲锋 · 飞行 · 空降 · 重击", 4: "投弹 · 窃星 · 招降 · 恐慌", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
 	var summaries := PackedStringArray([
 		"每秒增援 %d 人，持续 %d 秒。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
 		"区域内己军移速 +%d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
@@ -47,7 +47,7 @@ func _select(index: int, animate: bool = true) -> void:
 	elif commander == RULES.FOX:
 		summaries = PackedStringArray(["投下炸弹，削减 50% 驻军，最多 30 人。", "通过敌方建筑，偷取所属英雄最多 1 星士气。", "招降小范围内的敌军，保持阵型和行军路线。", "80% 驻军逃往较近的同阵营建筑，距离不限。"])
 	elif commander == &"pig":
-		summaries = PackedStringArray(["15 秒内下次出兵：攻击力 +10%、移速 +20%。\n加成持续至进入建筑。", "下一次出兵直线飞行，最多派出 30 人。", "下一次出兵更加密集，最多派出 60 人。", "小范围砸落：行军全灭，建筑驻军减半。"])
+		summaries = PackedStringArray(["下次最多派出 %d 人，攻击力 +%d%%、移速 +%d%%。\n待命 %d 秒；加成持续至进入建筑。" % [RULES.PIG_CHARGE_LIMIT, roundi(RULES.PIG_CHARGE_ATTACK_BONUS * 100), roundi(RULES.PIG_CHARGE_SPEED_BONUS * 100), RULES.PIG_READY_DURATION], "下次最多派出 %d 人，直线飞行，无视地形。" % RULES.PIG_FLIGHT_LIMIT, "选择建筑，%d 秒内空投 %d 名新兵。" % [RULES.PIG_AIRLIFT_DURATION, RULES.PIG_AIRLIFT_COUNT], "小范围砸落：行军全灭，建筑驻军减半。"])
 	for i: int in 4:
 		get_node("%%SkillIcon%d" % i).texture = RULES.icons_for(commander)[i]
 		get_node("%%SkillName%d" % i).text = RULES.names_for(commander)[i]

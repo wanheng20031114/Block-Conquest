@@ -1,23 +1,40 @@
 extends RefCounted
-## Host-owned next-departure orders and delayed, indiscriminate impact.
+## Host-owned departure buffs, generated reinforcements and giant-pig impact.
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
-const CAST_SOUNDS: Array[StringName] = [&"war_pig_charge", &"war_pig_fly", &"war_pig_formation", &"war_pig_drop"]
+const CAST_SOUNDS: Array[StringName] = [&"war_pig_charge", &"war_pig_fly", &"war_pig_airlift", &"war_pig_drop"]
 const IMPACT_SOUND := &"war_pig_impact"
 var ready: Dictionary[int, Vector3] = {}
 var ready_owners: Dictionary[int, int] = {}
 var drops: Array[Dictionary] = []
 var next_drop_id := 1
+var airlifts: Array[Dictionary] = []
+var next_airlift_id := 1
 
 func valid_target(index: int, target: WarBuilding, faction: int) -> bool:
-	return index >= 0 and index < 3 and target.faction == faction and flags_for(target.building_id)[index] <= 0.0
+	if index == 2: return true
+	return index >= 0 and index < 2 and target.faction == faction and flags_for(target.building_id)[index] <= 0.0
 
 func flags_for(id: int) -> Vector3:
 	return ready.get(id, Vector3.ZERO)
 
 func limit_for(id: int) -> int:
 	var flags := flags_for(id)
+	if flags.x > 0.0: return RULES.PIG_CHARGE_LIMIT
 	if flags.y > 0.0: return RULES.PIG_FLIGHT_LIMIT
-	return RULES.PIG_FORMATION_LIMIT if flags.z > 0.0 else 2147483647
+	return 2147483647
+
+func pending_for(faction: int) -> int:
+	var result := 0
+	for airlift: Dictionary in airlifts:
+		if airlift.faction == faction:
+			result += RULES.PIG_AIRLIFT_COUNT - int(airlift.landed)
+	return result
+
+func start_airlift(game: Node3D, target: WarBuilding, faction: int) -> void:
+	airlifts.append({"id": next_airlift_id, "faction": faction, "target": target.building_id, "age": 0.0, "landed": 0})
+	next_airlift_id += 1
+	_sync_durations(game)
+	game.world_effects.get_node("PigEffects").sync_airlifts(airlifts, game.by_id)
 
 func arm(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 	var flags := flags_for(target.building_id)
@@ -39,8 +56,12 @@ func _sync_durations(game: Node3D) -> void:
 			for index: int in 3: state.durations[index] = 0.0
 	for id: int in ready:
 		var state: RefCounted = game.faction_skills[ready_owners[id]]
-		for index: int in 3:
+		for index: int in 2:
 			state.durations[index] = maxf(state.durations[index], ready[id][index])
+	for airlift: Dictionary in airlifts:
+		var state: RefCounted = game.faction_skills[airlift.faction]
+		if state.commander == RULES.PIG:
+			state.durations[2] = maxf(state.durations[2], maxf(0.0, RULES.PIG_AIRLIFT_DURATION - float(airlift.age)))
 
 func start_drop(game: Node3D, at: Vector3, faction: int) -> void:
 	drops.append({"id": next_drop_id, "faction": faction, "at": at, "age": 0.0, "impacted": false})
@@ -56,6 +77,11 @@ func step_limit() -> float:
 	for drop: Dictionary in drops:
 		var boundary: float = RULES.PIG_DROP_LIFETIME if drop.impacted else RULES.PIG_DROP_FALL_TIME
 		result = minf(result, maxf(0.000001, boundary - float(drop.age)))
+	for airlift: Dictionary in airlifts:
+		var boundary: float = RULES.PIG_AIRLIFT_LIFETIME
+		if airlift.landed < RULES.PIG_AIRLIFT_COUNT:
+			boundary = (int(airlift.landed) / RULES.PIG_AIRLIFT_BATCH_SIZE + 1) * RULES.PIG_AIRLIFT_BATCH_INTERVAL
+		result = minf(result, maxf(0.000001, boundary - float(airlift.age)))
 	return result
 
 func advance(game: Node3D, delta: float) -> void:
@@ -78,9 +104,20 @@ func advance(game: Node3D, delta: float) -> void:
 			drop.impacted = true
 			_impact(game, drop.at, drop.faction)
 		if drop.age >= RULES.PIG_DROP_LIFETIME: drops.remove_at(index)
+	for index: int in range(airlifts.size() - 1, -1, -1):
+		var airlift := airlifts[index]
+		airlift.age += delta
+		var due := mini(RULES.PIG_AIRLIFT_COUNT, floori((float(airlift.age) + 0.000001) / RULES.PIG_AIRLIFT_BATCH_INTERVAL) * RULES.PIG_AIRLIFT_BATCH_SIZE)
+		# Resolve individual arrivals against the building's current owner. Capture
+		# can happen within a batch; the remaining soldiers then enter normally.
+		while airlift.landed < due:
+			airlift.landed += 1
+			game._on_unit_arrived(airlift.target, airlift.faction, 1.0)
+		if airlift.age >= RULES.PIG_AIRLIFT_LIFETIME: airlifts.remove_at(index)
 	_sync_durations(game)
 	game.world_effects.pig_ready(game.buildings, ready)
 	game.world_effects.sync_pig_drops(drops)
+	game.world_effects.get_node("PigEffects").sync_airlifts(airlifts, game.by_id)
 
 func _impact(game: Node3D, at: Vector3, faction: int) -> void:
 	var radius_squared := RULES.PIG_DROP_RADIUS * RULES.PIG_DROP_RADIUS

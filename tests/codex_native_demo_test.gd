@@ -86,6 +86,10 @@ func _run() -> void:
 				check(not game.bear.is_locked(1) and game.away.queued_population == 0, "bear lock expires without reviving a cancelled order")
 				game._process(0.6)
 				check(game.followup_dispatched and game.marches.total_for(1) > 0, "bear lock demonstration explicitly issues a new order after expiry")
+			if hero == &"pig" and index == 2:
+				verify_airlift_framing(game, demo, "friendly airlift")
+				check(game.home.population == 80.0 and game.away.population == 20.0, "friendly pig airlift adds forty soldiers without a source withdrawal")
+				check(game.marches._units.is_empty() and game.pig.airlifts.is_empty(), "friendly airlift finishes without a fake marching order")
 			game.set_running(false)
 			var stopped: float = game.elapsed
 			await frames(2)
@@ -144,6 +148,32 @@ func _run() -> void:
 	demo._repeat()
 	await frames(2)
 	check(not demo.frog_siege and not demo.world.frog_siege, "automatic repeat returns to mist's field-weakening demonstration")
+	var pig_row := CATALOG.HEROES.find(&"pig")
+	page.get_node("%Entries").select(pig_row)
+	page._select_entry(pig_row)
+	page._select_skill(2, false)
+	check(not demo.pig_hostile, "pig airlift demonstration begins with friendly reinforcement")
+	demo._repeat()
+	await frames(2)
+	check(demo.pig_hostile and demo.world.pig_hostile, "next pig airlift cycle switches to the enemy building")
+	demo.set_playing(false)
+	var airlift_game: Node3D = demo.world
+	airlift_game.set_running(true)
+	airlift_game.set_process(false)
+	demo.viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	airlift_game._process(airlift_game.cast_at + 0.001)
+	check(airlift_game.cast_succeeded and airlift_game.pig.airlifts[0].target == 1, "enemy airlift demonstration uses the actual destination")
+	verify_airlift_framing(airlift_game, demo, "enemy airlift")
+	check(airlift_game.pig.airlifts[0].landed == 0 and airlift_game.home.population == 40.0, "enemy airlift has no early landings or source cost")
+	for frame: int in 12:
+		airlift_game._process(1.0 / 24.0)
+		demo._update_caption()
+		await frames(1)
+	await save("pig_3_hostile")
+	airlift_game._process(4.0 - airlift_game.elapsed)
+	check(airlift_game.away.faction == 0 and airlift_game.away.population >= 20.0, "airlift soldiers capture and reinforce the enemy building through real combat")
+	check(airlift_game.home.population == 40.0 and airlift_game.marches._units.is_empty(), "capturing airlift creates no source dispatch")
+	airlift_game.set_running(false)
 	page._set_category(1)
 	await frames(3)
 	check(demo.viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED and demo.world.process_mode == Node.PROCESS_MODE_DISABLED, "reading mechanics disables rendering and simulation")
@@ -155,12 +185,23 @@ func _run() -> void:
 	check(page.get_global_rect().grow(1).encloses(demo.get_global_rect()), "small window retains complete demo")
 	check(root.get_visible_rect().grow(1).encloses(page.get_global_rect()), "small window retains the complete page")
 	check(page.get_global_rect().grow(1).encloses(page.get_node("Margin").get_global_rect()), "small window retains top and bottom margins")
+	verify_airlift_framing(demo.world, demo, "small-window airlift")
 	await save("small_window")
 	page.queue_free()
 	await process_frame
 	check(snapshot() == original, "exit preserves session, online state, preferences and window lifecycle")
 	print("CODEX_NATIVE_RESULTS ", JSON.stringify({"checks": checks, "failures": failures}))
 	quit(0 if failures.is_empty() else 1)
+
+func verify_airlift_framing(game: Node3D, demo: Control, label: String) -> void:
+	# Include the entire perimeter and the wind above soldiers' initial height.
+	var frame := Rect2(Vector2.ZERO, Vector2(demo.viewport.size)).grow(-8)
+	for building: WarBuilding in game.buildings:
+		for height: float in [0.0, 9.0]:
+			for index: int in 8:
+				var angle := TAU * index / 8.0
+				var point := building.position + Vector3(cos(angle) * 3.2, height, sin(angle) * 3.2)
+				check(frame.has_point(game.camera.unproject_position(point)), label + " complete descent stays inside camera")
 
 func verify_effect(game: Node3D, hero: StringName, index: int, label: String) -> void:
 	var active := false
@@ -194,5 +235,10 @@ func verify_effect(game: Node3D, hero: StringName, index: int, label: String) ->
 			elif index == 1: active = game.morale.level(0) == 1 and game.morale.level(1) == 1
 			elif index == 2: active = game.marches.total_for(0) > 0
 			else: active = game.marches.total_for(1) > 0 and game.after_population < game.before_population
-		&"pig": active = game.pig.flags_for(0)[index] > 0.0 if index < 3 else not game.pig.drops.is_empty()
+		&"pig":
+			if index < 2: active = game.pig.flags_for(0)[index] > 0.0
+			elif index == 2:
+				active = not game.pig.airlifts.is_empty() and game.pig.airlifts[0].target == 0
+				check(game.home.population == 40.0 and game.marches._units.is_empty(), "friendly airlift starts without spending or moving existing troops")
+			else: active = not game.pig.drops.is_empty()
 	check(active, label + " changes the real skill state")

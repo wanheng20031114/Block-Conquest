@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b07gcg5id32m0"
-path="res://.godot/imported/skill_pig_formation.svg-be4656fcc558290cfd56bea4ecfc4fa0.ctex"
+uid="uid://b2grffhlmnp11"
+path="res://.godot/imported/skill_pig_airlift.svg-d150d5e5152a3d28300ef1a1b9ffd416.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/block_war/skill_pig_formation.svg"
-dest_files=["res://.godot/imported/skill_pig_formation.svg-be4656fcc558290cfd56bea4ecfc4fa0.ctex"]
+source_file="res://assets/ui/block_war/skill_pig_airlift.svg"
+dest_files=["res://.godot/imported/skill_pig_airlift.svg-d150d5e5152a3d28300ef1a1b9ffd416.ctex"]
 
 [params]
 

@@ -55,8 +55,15 @@ static func transfer(game: Node3D, faction: int, recipients: Array[int]) -> Dict
 		if fire.faction == faction: fire.faction = recipients.pick_random()
 	for drop: Dictionary in game.pig.drops:
 		if drop.faction == faction: drop.faction = recipients.pick_random()
+	# Airborne reinforcements are already committed soldiers, not garrisons.
+	# Keep each wave together and preserve its settled batches and destination.
+	for airlift: Dictionary in game.pig.airlifts:
+		if airlift.faction != faction: continue
+		airlift.faction = recipients.pick_random()
+		transferred += game.SKILL_RULES.PIG_AIRLIFT_COUNT - int(airlift.landed)
 	game.marches._render()
 	game.world_effects.update_skills(0.0, game.faction_skills, game.shields, game.by_id, game.marches)
 	game.world_effects.get_node("Bear").sync(game.bear, game.marches, game.by_id, 0.0)
 	game.world_effects.get_node("Frog").sync(game.marches, 0.0)
+	game.world_effects.get_node("PigEffects").sync_airlifts(game.pig.airlifts, game.by_id)
 	return {"buildings": owners.size(), "soldiers": transferred, "cancelled_reservations": cancelled}

@@ -74,10 +74,20 @@ func _run() -> void:
 	await scene_changed
 	await create_timer(0.55).timeout
 	assert(current_scene.get_node("%AnimalName").text == "猪猪")
+	var charge_text: String = current_scene.get_node("%SkillDetail0").text
+	assert("50%" in charge_text and "30%" in charge_text and "20" in charge_text)
+	assert("60" in current_scene.get_node("%SkillDetail1").text)
+	assert(current_scene.get_node("%SkillName2").text == "猪降临")
+	assert("40" in current_scene.get_node("%SkillDetail2").text and "2" in current_scene.get_node("%SkillDetail2").text)
+	assert("65" in current_scene.get_node("%SkillCost2").text)
 	await capture("01_selection_1600")
 	root.size = Vector2i(1280, 720)
 	await create_timer(0.25).timeout
 	await capture("02_selection_1280")
+	if "--selection-only" in OS.get_cmdline_user_args():
+		print("PIG_SELECTION_VISUAL PASS current_rule_text=true captures=2")
+		quit()
+		return
 	change_scene_to_file("res://scenes/block_war/map_select.tscn")
 	await scene_changed
 	await create_timer(0.4).timeout
@@ -93,12 +103,12 @@ func _run() -> void:
 	await fresh()
 	var home := own(15, 70.0)
 	focus(home.global_position + Vector3(1, 0, 1), 24.0)
-	for index: int in 3:
+	for index: int in 2:
 		assert(game.cast_skill(index, home))
 	await advance(0.25)
-	assert(game.pig.ready[15].x > 0.0 and game.pig.ready[15].y > 0.0 and game.pig.ready[15].z > 0.0)
-	await capture("03_three_preparations")
-	assert(game.issue_order(home, game.by_id[1], 100) == 30)
+	assert(game.pig.ready[15].x > 0.0 and game.pig.ready[15].y > 0.0 and game.pig.ready[15].z == 0.0)
+	await capture("03_two_preparations")
+	assert(game.issue_order(home, game.by_id[1], 100) == 20)
 	await advance(0.30)
 	await capture("04_takeoff")
 	await advance(4.0)
@@ -109,11 +119,11 @@ func _run() -> void:
 	await fresh()
 	home = own(15, 80.0)
 	assert(game.cast_skill(2, home))
-	assert(game.issue_order(home, game.by_id[16], 100) == 60)
+	assert(game.pig.airlifts.size() == 1)
 	focus(Vector3(0, 4.5, -7), 24.0)
 	game.hud.hide()
 	await advance(1.65)
-	await capture("06_dense_formation")
+	await capture("06_airlift_batches")
 
 	await fresh()
 	var target: WarBuilding = game.by_id[10]

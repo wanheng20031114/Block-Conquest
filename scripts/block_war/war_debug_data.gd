@@ -9,6 +9,7 @@ static func capture(game: Node3D) -> Dictionary:
 	var garrison := 0.0
 	var queued := 0
 	var marching := 0
+	var airlifting: int = game.pig.pending_for(faction)
 	for building: WarBuilding in game.buildings:
 		if building.faction == faction:
 			counts[building.kind] += 1
@@ -52,7 +53,7 @@ static func capture(game: Node3D) -> Dictionary:
 		"morale_level": level, "morale_points": game.morale.points(faction),
 		"morale_next": game.MORALE.THRESHOLDS[level + 1] if level < 5 else -1.0,
 		"buildings": counts, "forges_active": forges, "energy_towers_active": game.energy_tower_count(faction),
-		"garrison": garrison, "marching": marching, "queued": queued, "army_total": garrison + marching,
+		"garrison": garrison, "marching": marching, "queued": queued, "airlifting": airlifting, "army_total": garrison + marching + airlifting,
 		"energy": game.faction_skills[faction].energy, "energy_max": game.ENERGY_MAX, "energy_regen": game.energy_regen_for(faction),
 		"energy_natural_regen": game.SKILL_RULES.natural_energy_regen(game.elapsed),
 		"combat_energy_per_loss": game.SKILL_RULES.combat_energy_per_loss(game.morale.stars(faction)),

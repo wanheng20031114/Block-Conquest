@@ -1,7 +1,7 @@
 extends "res://tests/block_war_loudness_capture.gd"
 ## Run with --real-time: native bus taps retain the actual 0.65 s pig landing.
 const PIG_CUES: Array[StringName] = [
-	&"war_pig_charge", &"war_pig_fly", &"war_pig_formation", &"war_pig_drop", &"war_pig_impact",
+	&"war_pig_charge", &"war_pig_fly", &"war_pig_airlift", &"war_pig_drop", &"war_pig_impact",
 ]
 var game: Node3D
 var drive_game := false
@@ -71,6 +71,7 @@ func _run() -> void:
 				timeline.append({"seconds": step * 0.1, "kind": kind})
 			if stress and step == 30:
 				for faction: int in 6:
+					audio.play_world(&"war_pig_airlift", Vector3(faction * 3 - 8, 0, 0))
 					audio.play_world(&"war_pig_impact", Vector3(faction * 3 - 8, 0, 0))
 			await create_timer(0.1).timeout
 		_save("pig_maximum_overlap" if stress else "pig_battle_default", {"type": "mix", "stress": stress, "timeline": timeline})

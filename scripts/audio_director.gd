@@ -39,8 +39,10 @@ func stop_all() -> Array[WeakRef]:
 func set_world_paused(value: bool) -> void:
 	_world_paused = value
 	for branch: StringName in [&"Combat", &"Foley"]:
-		for voice: AudioStreamPlayer3D in _pools[branch]:
-			voice.stream_paused = value
+		# 3D play() waits for its first internal physics callback. stream_paused
+		# alone is forgotten before that playback reaches AudioServer. Native
+		# process suspension holds pending starts and pauses existing playbacks.
+		get_node(NodePath(branch)).process_mode = Node.PROCESS_MODE_DISABLED if value else Node.PROCESS_MODE_PAUSABLE
 
 func play_ui(kind: StringName) -> void:
 	_play(kind, Vector3.ZERO, false)
@@ -94,7 +96,8 @@ func _play(kind: StringName, at: Vector3, spatial: bool) -> void:
 	voice.stop()
 	voice.stream = choices[index]
 	voice.volume_db = float(info.gain_db)
-	voice.pitch_scale = float(info.get("pitch", 1.0)) * randf_range(0.97, 1.03)
+	var pitch_variation := float(info.get("pitch_variation", 0.03))
+	voice.pitch_scale = float(info.get("pitch", 1.0)) * randf_range(1.0 - pitch_variation, 1.0 + pitch_variation)
 	voice.set_meta("kind", kind)
 	voice.set_meta("priority", info.priority)
 	voice.set_meta("started", now)
