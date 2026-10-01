@@ -32,6 +32,7 @@ class MarchOrder extends RefCounted:
 	# Issued-order provenance survives conversion, capture, tunnels and recall.
 	var energy_origin := false
 	var pig_charge := false
+	var rabbit_burrow := false
 	var airborne := false
 	var dense := false
 	# Fox panic remains visible for the entire march, including recall/conversion.
@@ -247,6 +248,7 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 	if count <= 0:
 		return
 	var order := _make_order(source_id, target_id, faction, route, 1.0, energy_origin)
+	order.rabbit_burrow = true
 	# Retain the complete surface guide even when only its final metres are walked.
 	# A recalled tunnel squad can then retrace the safe bridges all the way home.
 	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
@@ -270,6 +272,7 @@ func queue_tunnel_departure(source_id: int, target_id: int, faction: int, count:
 
 func send_tunnel(source_id: int, target_id: int, faction: int, count: int, route: PackedVector3Array, interval: float, energy_origin: bool = false) -> void:
 	var order := _make_order(source_id, target_id, faction, route, 1.0, energy_origin)
+	order.rabbit_burrow = true
 	order.departure_distance = maxf(0.0, order.length - RULES.BURROW_EXIT_DISTANCE)
 	for index: int in count:
 		var unit := MarchUnit.new()
@@ -294,6 +297,7 @@ func return_order(outbound: MarchOrder) -> MarchOrder:
 	order.strength = outbound.strength
 	order.energy_origin = outbound.energy_origin
 	order.pig_charge = outbound.pig_charge
+	order.rabbit_burrow = outbound.rabbit_burrow
 	order.airborne = outbound.airborne
 	order.dense = outbound.dense
 	order.panicked = outbound.panicked
@@ -315,6 +319,7 @@ func transfer_order(original: MarchOrder, faction: int) -> MarchOrder:
 	order.strength = original.strength
 	order.energy_origin = original.energy_origin
 	order.pig_charge = original.pig_charge
+	order.rabbit_burrow = original.rabbit_burrow
 	order.airborne = original.airborne
 	order.dense = original.dense
 	order.panicked = original.panicked
@@ -718,6 +723,8 @@ func create_slow_zone(faction: int, at: Vector3, radius: float, duration: float)
 
 func projected_attack_bonus(unit: MarchUnit) -> float:
 	var bonus := RULES.PIG_CHARGE_ATTACK_BONUS if unit.order.pig_charge else 0.0
+	if unit.order.rabbit_burrow:
+		bonus += RULES.BURROW_ATTACK_BONUS
 	if unit.rush_remaining > 0.0 and unit.distance + movement_distance(unit, unit.rush_remaining) > unit.order.length + 0.000001:
 		bonus += RULES.RABBIT_RUSH_ATTACK_BONUS
 	if unit.weakened or _touches_mist(unit, INF):

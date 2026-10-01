@@ -218,7 +218,7 @@ func _cast_example() -> void:
 func _outcome_caption() -> String:
 	match demo_commander:
 		&"squirrel": return ["持续征召，住宅驻军增加。", "圈内己军移速 +%d%%，离开后恢复。" % roundi((SKILL_RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "建筑防御力 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.SHIELD_DEFENSE * 100.0), SKILL_RULES.DURATIONS[2]], "火焰消灭接触的敌我行军部队，并伤害敌方驻军。"][demo_skill]
-		&"rabbit": return ["攻击力 +%d%%，移速 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]], "敌方炮塔停止射击，停工结束后恢复。", "范围内双方行军返回各自出发建筑。", "下次派兵先掘地，再逐排从目标附近出洞。"][demo_skill]
+		&"rabbit": return ["攻击力 +%d%%，移速 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]], "敌方炮塔停止射击，停工结束后恢复。", "范围内双方行军返回各自出发建筑。", "兔洞派兵攻击力 +%d%%，持续至进入建筑。" % roundi(SKILL_RULES.BURROW_ATTACK_BONUS * 100.0)][demo_skill]
 		&"bear":
 			if demo_skill == 3 and bear_hostile:
 				return "敌方防御 -%d%%，无护罩；火球每 %.2f 秒攻击敌军。" % [roundi(absf(SKILL_RULES.BEAR_CURSE_DEFENSE) * 100.0), SKILL_RULES.BEAR_HOSTILE_ORB_INTERVAL]

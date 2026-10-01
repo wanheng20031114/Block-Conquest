@@ -28,7 +28,7 @@ func _run() -> void:
 	host.marches.queue_departure(0, 1, 0, 6, route, true, true, true, true)
 	var state := writer.capture(host, 300)
 	check(Snapshot.valid(state, host), "A complete pig snapshot validates with reserved flying troops and an unlanded giant pig")
-	check(state.schema == 10 and state.counters.size() == 6 and state.counters[4] == 6 and state.counters[5] == 8, "Current schema contains independent giant-pig and airlift identity counters")
+	check(state.schema == Snapshot.SCHEMA and state.counters.size() == 6 and state.counters[4] == 6 and state.counters[5] == 8, "Current schema contains independent giant-pig and airlift identity counters")
 	check(state.pig_ready["2"] == [2, 24.75, 18.5, 0.0], "Only charge and flight preparation have independent deadlines")
 	check(state.pig_drops["5"][2] == 9.75 and not state.pig_drops["5"][3], "The giant pig transmits one start time and an authoritative impact flag")
 	check(state.pig_airlifts["7"].slice(0, 2) == [0, 1] and state.pig_airlifts["7"][3] == 8, "Airlift transmits faction, target and landed population")

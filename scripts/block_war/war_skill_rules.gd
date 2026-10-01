@@ -33,6 +33,7 @@ const RABBIT_RUSH_ATTACK_BONUS := 0.5
 const DISABLE_DURATION := 6.0
 const RECALL_RADIUS := 6.0
 const BURROW_LIMIT := 50
+const BURROW_ATTACK_BONUS := 0.5
 const BURROW_READY_DURATION := 15.0
 const BURROW_DIG_SPEED := 45.0
 const BURROW_BATCH_INTERVAL := 0.16
@@ -200,7 +201,7 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 			"攻击力 +%d%%，移速 +%d%%，持续 %d 秒。\n仅作用于施放时半径 %.1f 米内的己方行军部队。\n离开范围后仍生效，同类效果不叠加。" % [roundi(RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), RABBIT_DURATIONS[0], RABBIT_RUSH_RADIUS],
 			"敌方建筑停工 %d 秒。\n暂停产兵、射击、铁匠铺攻防增益和能量塔技力恢复加成。\n不暂停升级或改建，同类效果不叠加。" % DISABLE_DURATION,
 			"半径 %d 米内，所有阵营的行军部队返回各自出发建筑。\n返程途中仍会受到攻击。" % RECALL_RADIUS,
-			"己方建筑获得 %d 秒兔洞待命，强化下一次派兵。\n经兔洞抵达目标附近，两座建筑间需有可通行路线。\n无距离限制，按所选比例最多 %d 人，每 %.2f 秒出洞一排。" % [BURROW_READY_DURATION, BURROW_LIMIT, BURROW_BATCH_INTERVAL]
+			"己方建筑获得 %d 秒兔洞待命，强化下一次派兵。\n经兔洞抵达目标附近，两座建筑间需有可通行路线。\n无距离限制，按所选比例最多 %d 人，攻击力 +%d%%，直至进入建筑。" % [BURROW_READY_DURATION, BURROW_LIMIT, roundi(BURROW_ATTACK_BONUS * 100.0)]
 		][index]
 	return [
 		"每秒征召 %d 人，持续 %d 秒。\n作用于己方或盟友住宅，可超过自然产兵上限。\n同类效果不叠加。" % [RECRUIT_RATE, DURATIONS[0]],

@@ -789,7 +789,7 @@ func _rabbit_turn(game: Node3D) -> void:
 					var arrival: float = plan.dig_duration + SKILL_RULES.BURROW_EXIT_DISTANCE / game.marches.base_speed(faction) + floorf(float(plan.count - 1) / WarMarches.COLUMNS) * SKILL_RULES.BURROW_BATCH_INTERVAL
 					var garrison := INFORMATION.garrison_estimate(game, building, faction)
 					var growth := minf(maxf(0.0, building.capacity - garrison), building.production_rate * maxf(0.0, arrival - building.disruption_remaining))
-					var damage: float = plan.count * _combat_multiplier(game, combat, faction, building)
+					var damage: float = plan.count * _combat_multiplier(game, combat, faction, building, SKILL_RULES.BURROW_ATTACK_BONUS)
 					if not incoming_by_target.has(building.building_id):
 						incoming_by_target[building.building_id] = game.marches.team_incoming_for(building.building_id, faction)
 					var committed := incoming_by_target[building.building_id]

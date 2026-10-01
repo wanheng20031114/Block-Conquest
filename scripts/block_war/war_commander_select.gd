@@ -38,7 +38,7 @@ func _select(index: int, animate: bool = true) -> void:
 		"选中己军攻击力 +%d%%、移速 +%d%%，持续 %d 秒。" % [RULES.RABBIT_RUSH_ATTACK_BONUS * 100, roundi((RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100), RULES.RABBIT_DURATIONS[0]],
 		"让敌方建筑停止运作 %d 秒。" % RULES.DISABLE_DURATION,
 		"让区域内双方部队各自返回出发建筑。",
-		"建筑待命 %d 秒，下次派兵经兔洞突袭。" % RULES.BURROW_READY_DURATION,
+		"兔洞派兵最多 %d 人，攻击力 +%d%%直至入城。" % [RULES.BURROW_LIMIT, roundi(RULES.BURROW_ATTACK_BONUS * 100.0)],
 	])
 	if commander == RULES.BEAR:
 		summaries = PackedStringArray(["友方建筑立即升 1 级，驻军不消耗。", "敌方建筑 %d 秒内无法派兵，取消待出兵任务。" % RULES.BEAR_DURATIONS[1], "连接 %d 秒，双方防御 +%d%%，分担一半伤害。" % [RULES.BEAR_DURATIONS[2], roundi(RULES.BEAR_LINK_DEFENSE * 100.0)], "友方防御 +%d%%、敌方 -%d%%，持续 %d 秒。\n火球分别每 %.1f / %.1f 秒攻击敌兵。" % [roundi(RULES.BEAR_WARD_DEFENSE * 100.0), roundi(-RULES.BEAR_CURSE_DEFENSE * 100.0), RULES.BEAR_DURATIONS[3], RULES.BEAR_ORB_INTERVAL, RULES.BEAR_HOSTILE_ORB_INTERVAL]])

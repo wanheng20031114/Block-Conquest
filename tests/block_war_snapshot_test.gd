@@ -445,7 +445,7 @@ func _energy_towers() -> void:
 		check(not Snapshot.valid_record("orders", order, host), "panic status requires a strict Boolean")
 	order = state.orders.values()[0].duplicate(true)
 	order.pop_back()
-	check(not Snapshot.valid_record("orders", order, host), "legacy march order without panic status is rejected")
+	check(not Snapshot.valid_record("orders", order, host), "legacy march order without tunnel attack status is rejected")
 	invalid = state.duplicate(true)
 	invalid.schema = 6
 	check(not Snapshot.valid(invalid, host), "snapshot schema preceding persistent panic status is explicitly rejected")

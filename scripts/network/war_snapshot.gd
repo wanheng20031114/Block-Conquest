@@ -1,6 +1,6 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 10
+const SCHEMA := 11
 const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "locks", "wards", "remainders", "combat_remainders", "fires", "pig_ready", "pig_drops", "pig_airlifts"]
 const UNIT_SIZE := 15
 const COUNTER_SIZE := 6
@@ -66,7 +66,7 @@ func capture(game: Node, tick: int) -> Dictionary:
 				points.append(v3(order.curve.get_point_position(index)))
 			_order_cache[oid] = [order.source_id, order.target_id, order.faction, order.strength,
 				order.returning, order.departure_distance, points, order.energy_origin,
-				order.pig_charge, order.airborne, order.dense, order.panicked]
+				order.pig_charge, order.airborne, order.dense, order.panicked, order.rabbit_burrow]
 		state.orders[oid] = _order_cache[oid]
 		state.units[str(unit.unit_id)] = [order.order_id, unit.distance, unit.lane, unit.pending_departure,
 			unit.departure_sequence, now + unit.spawn_delay if unit.spawn_delay > 0.0 else 0.0,
@@ -381,9 +381,9 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			return true
 		"factions": return valid_account(row, game)
 		"orders":
-			if not _row(row, 12) or not _building_id(row[0], game) or not _building_id(row[1], game) or not _integer(row[2], 0, game.faction_count - 1): return false
+			if not _row(row, 13) or not _building_id(row[0], game) or not _building_id(row[1], game) or not _integer(row[2], 0, game.faction_count - 1): return false
 			if not _nonnegative(row[3]) or float(row[3]) <= 0.0 or not row[4] is bool or not _nonnegative(row[5]): return false
-			for i: int in range(7, 12):
+			for i: int in range(7, 13):
 				if not row[i] is bool: return false
 			if not row[6] is Array or row[6].size() < 2 or row[6].size() > 2048: return false
 			var length := 0.0
@@ -570,7 +570,7 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 		order.source_id = int(row[0]); order.target_id = int(row[1]); order.faction = int(row[2])
 		order.strength = float(row[3]); order.returning = row[4]; order.departure_distance = float(row[5])
 		order.energy_origin = row[7]
-		order.pig_charge = row[8]; order.airborne = row[9]; order.dense = row[10]; order.panicked = row[11]
+		order.pig_charge = row[8]; order.airborne = row[9]; order.dense = row[10]; order.panicked = row[11]; order.rabbit_burrow = row[12]
 		order.curve = Curve3D.new(); order.curve.bake_interval = 0.12
 		for point: Array in row[6]: order.curve.add_point(vector(point))
 		order.length = order.curve.get_baked_length()

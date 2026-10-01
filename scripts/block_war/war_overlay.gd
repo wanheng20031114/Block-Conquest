@@ -206,17 +206,20 @@ func dispatch_advantage() -> int:
 	if game.drag_source == null or game.hovered == null or game.FACTIONS.allied(game.local_faction, game.hovered.faction):
 		return 0
 	# Integer percentage points avoid floating-point noise at 100/120/140%.
-	var pig_attack: float = game.SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if game.pig.flags_for(game.drag_source.building_id).x > 0.0 else 0.0
-	var multiplier: float = game.combat_multiplier(game.local_faction, game.hovered, pig_attack)
+	var multiplier: float = game.combat_multiplier(game.local_faction, game.hovered, _dispatch_attack_bonus(game.drag_source))
 	if game.drag_sources.size() > 1:
 		var count: int = game.dispatch_preview_count()
 		if count == 0: return 0
 		multiplier = 0.0
 		for preview: Dictionary in game.order_previews:
-			pig_attack = game.SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if game.pig.flags_for(preview.source.building_id).x > 0.0 else 0.0
-			multiplier += game.combat_multiplier(game.local_faction, game.hovered, pig_attack) * int(preview.count) / count
+			multiplier += game.combat_multiplier(game.local_faction, game.hovered, _dispatch_attack_bonus(preview.source)) * int(preview.count) / count
 	var difference := roundi((multiplier - 1.0) * 100.0)
 	return signi(difference) * ceili(absi(difference) / 20.0)
+
+func _dispatch_attack_bonus(source: WarBuilding) -> float:
+	if source.burrow_remaining > 0.0:
+		return game.SKILL_RULES.BURROW_ATTACK_BONUS
+	return game.SKILL_RULES.PIG_CHARGE_ATTACK_BONUS if game.pig.flags_for(source.building_id).x > 0.0 else 0.0
 
 func _cloud_outline(rect: Rect2) -> PackedVector2Array:
 	var profile := _cloud_profile(rect.size)
