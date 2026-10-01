@@ -30,7 +30,7 @@ shader_parameter/path_count = 3
 shader_parameter/paths = PackedVector4Array(-9, 0, 9, 0, -9, 0, -9, -9, 9, 0, 9, -9)
 
 [sub_resource type="PlaneMesh" id="GroundMesh"]
-size = Vector2(58, 44)
+size = Vector2(160, 96)
 
 [node name="DemoWorld" type="Node3D"]
 script = ExtResource("world")
