@@ -46,7 +46,7 @@ func _run() -> void:
 	for commander: StringName in RELEASES:
 		for index: int in 4:
 			await setup(commander)
-			var target: WarBuilding = enemy() if (commander in [&"frog", &"fox"] or (commander == &"rabbit" and index == 1)) else home()
+			var target: WarBuilding = enemy() if (commander in [&"frog", &"fox"] or (commander in [&"rabbit", &"bear"] and index == 1)) else home()
 			if commander == &"fox":
 				game.morale.adjust(target.faction, 1000)
 				game.buildings[3].faction = target.faction
@@ -95,7 +95,7 @@ func _run() -> void:
 				support.faction = 1
 				support.global_position = target.global_position + Vector3(8, 0, 0)
 				if index == 0:
-					target.begin_construction(2, 20)
+					target.begin_construction(-1, 5)
 				else:
 					target.population = 10.0
 					expose(0, 30, target.global_position + Vector3(7, 0, 0), target.global_position + Vector3(2.5, 0, 0), target.building_id)
@@ -114,7 +114,8 @@ func _run() -> void:
 	clear_sounds()
 	check(game.cast_skill(3, enemy()) and heard(&"war_frog_strike") == 1 and release_count() == 1, "strike against a defended target succeeds with one release cue")
 	await setup(&"bear")
-	check(not game.cast_skill(0, home()) and release_count() == 0, "idle building rejects toolbox without success audio")
+	home().level = home().max_level
+	check(not game.cast_skill(0, home()) and release_count() == 0, "maximum-level building rejects toolbox without success audio")
 	# Shared event gates must not swallow a second faction's legal simultaneous cast.
 	for commander: StringName in RELEASES:
 		for kind: StringName in RELEASES[commander]:

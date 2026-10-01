@@ -2,6 +2,7 @@ extends "res://tests/block_war_replication_test.gd"
 ## Lingering slow survives reliable facts, compact motion anchors and recovery.
 var soldier: WarMarches.MarchUnit
 var soldier_key: String
+const SLOW_SPEED := WarMarches.SPEED * Codec.RULES.BEAR_SLOW_MULTIPLIER
 
 func near(actual: float, expected: float, label: String) -> void:
 	check(absf(actual - expected) < 0.0001, "%s: %s / %s" % [label, actual, expected])
@@ -16,7 +17,7 @@ func _advance(seconds: float) -> void:
 
 func _compare(label: String) -> void:
 	var displayed: WarMarches.MarchUnit = client.codec._objects[soldier_key]
-	near(displayed.distance, soldier.distance, label + " distance")
+	check(absf(displayed.distance - soldier.distance) <= 0.00051, label + " distance respects the compact anchor's millimeter precision")
 	near(displayed.slow_remaining, soldier.slow_remaining, label + " slow timer")
 	near(replica.marches.speed_multiplier(displayed), host.marches.speed_multiplier(soldier), label + " speed")
 	check(Codec.digest(client._mirror) == Codec.digest(authority._published), label + " reliable checksum")
@@ -38,7 +39,7 @@ func _run() -> void:
 	host.marches.send(2, 0, 2, 1, route)
 	soldier = host.marches._units[0]
 	soldier_key = str(soldier.unit_id)
-	host.marches.create_slow_zone(0, Vector3.ZERO, 1.24, 4.0)
+	host.marches.create_slow_zone(0, Vector3.ZERO, SLOW_SPEED, 4.0)
 	host_wire = make_wire(105)
 	client_wire = make_wire(102)
 	authority = Coordinator.new()
@@ -117,10 +118,10 @@ func _stale_prediction() -> void:
 	var reader := Codec.new()
 	reader.install(replica, state, 20.75, true)
 	near(replica.marches._units[0].slow_remaining, 5.0, "historical snapshot refreshes during its predicted interval")
-	near(replica.marches._units[0].distance, 0.93, "historical snapshot predicts slowed motion")
+	near(replica.marches._units[0].distance, SLOW_SPEED * 0.75, "historical snapshot predicts slowed motion")
 	reader.present(replica, state, 1.25)
 	var capped: float = replica.marches._units[0].distance
-	near(capped, 1.24, "movement stops at the existing one-second prediction cap")
+	near(capped, SLOW_SPEED, "movement stops at the existing one-second prediction cap")
 	near(replica.marches._units[0].slow_remaining, 5.0, "a still-active field refreshes the frozen display")
 	reader.present(replica, state, 4.3)
 	near(replica.marches._units[0].distance, capped, "aging a tail cannot bypass the prediction cap")

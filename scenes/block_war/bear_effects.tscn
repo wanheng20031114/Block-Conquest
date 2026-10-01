@@ -7,6 +7,8 @@
 [ext_resource type="Shader" path="res://assets/models/block_war/bear_orb.gdshader" id="orb"]
 [ext_resource type="Shader" path="res://assets/models/block_war/bear_chain.gdshader" id="chain"]
 [ext_resource type="Shader" path="res://assets/models/block_war/bear_link_ground.gdshader" id="link_ground"]
+[ext_resource type="Shader" path="res://assets/models/block_war/bear_upgrade.gdshader" id="upgrade"]
+[ext_resource type="Shader" path="res://assets/models/block_war/bear_fracture.gdshader" id="fracture"]
 
 [sub_resource type="ShaderMaterial" id="GroundMaterial"]
 resource_local_to_scene = true
@@ -24,6 +26,97 @@ use_custom_data = true
 visible_instance_count = 0
 custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("GroundMesh")
+
+[sub_resource type="ShaderMaterial" id="HostileGroundMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("ground")
+[sub_resource type="PlaneMesh" id="HostileGroundMesh"]
+resource_local_to_scene = true
+subdivide_width = 63
+subdivide_depth = 63
+material = SubResource("HostileGroundMaterial")
+size = Vector2(2, 2)
+[sub_resource type="MultiMesh" id="HostileGrounds"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("HostileGroundMesh")
+
+[sub_resource type="ShaderMaterial" id="UpgradeMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("upgrade")
+[sub_resource type="CylinderMesh" id="UpgradeMesh"]
+material = SubResource("UpgradeMaterial")
+top_radius = 2.85
+bottom_radius = 2.85
+height = 4.5
+radial_segments = 48
+rings = 1
+cap_top = false
+cap_bottom = false
+[sub_resource type="MultiMesh" id="UpgradeSweeps"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("UpgradeMesh")
+
+[sub_resource type="ShaderMaterial" id="FractureMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("fracture")
+[sub_resource type="CylinderMesh" id="FractureMesh"]
+material = SubResource("FractureMaterial")
+top_radius = 2.65
+bottom_radius = 2.9
+height = 3.0
+radial_segments = 48
+rings = 1
+cap_top = false
+cap_bottom = false
+[sub_resource type="MultiMesh" id="Fractures"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("FractureMesh")
+
+[sub_resource type="ShaderMaterial" id="LockMaterial"]
+shader = ExtResource("chain")
+shader_parameter/base_tint = Color(0.29, 0.24, 0.16, 1)
+[sub_resource type="TorusMesh" id="LockChainMesh"]
+material = SubResource("LockMaterial")
+inner_radius = 0.14
+outer_radius = 0.23
+rings = 20
+ring_segments = 8
+[sub_resource type="MultiMesh" id="LockChains"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("LockChainMesh")
+[sub_resource type="BoxMesh" id="LockSealMesh"]
+material = SubResource("LockMaterial")
+size = Vector3(0.72, 0.58, 0.26)
+[sub_resource type="MultiMesh" id="LockSeals"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("LockSealMesh")
+[sub_resource type="MultiMesh" id="LockShackles"]
+resource_local_to_scene = true
+transform_format = 1
+use_custom_data = true
+visible_instance_count = 0
+custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
+mesh = SubResource("LockChainMesh")
 
 [sub_resource type="ShaderMaterial" id="ChainMaterial"]
 shader = ExtResource("chain")
@@ -123,6 +216,7 @@ custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("OrbMesh")
 
 [sub_resource type="StandardMaterial3D" id="Brass"]
+vertex_color_use_as_albedo = true
 albedo_color = Color(0.46, 0.32, 0.13, 1)
 metallic = 0.65
 roughness = 0.3
@@ -135,6 +229,7 @@ ring_segments = 6
 [sub_resource type="MultiMesh" id="Bands"]
 resource_local_to_scene = true
 transform_format = 1
+use_colors = true
 visible_instance_count = 0
 custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
 mesh = SubResource("BandMesh")
@@ -189,8 +284,26 @@ angular_velocity_max = 150.0
 
 [node name="Bear" type="Node3D"]
 script = ExtResource("script")
-[node name="Ground" type="MultiMeshInstance3D" parent="."]
+[node name="LockGrounds" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Ground")
+cast_shadow = 0
+[node name="LockChains" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("LockChains")
+cast_shadow = 0
+[node name="LockSeals" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("LockSeals")
+cast_shadow = 0
+[node name="LockShackles" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("LockShackles")
+cast_shadow = 0
+[node name="HostileGrounds" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("HostileGrounds")
+cast_shadow = 0
+[node name="Fractures" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Fractures")
+cast_shadow = 0
+[node name="UpgradeSweeps" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("UpgradeSweeps")
 cast_shadow = 0
 [node name="Chains" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Chains")

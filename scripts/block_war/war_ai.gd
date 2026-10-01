@@ -73,17 +73,17 @@ func take_turn(game: Node3D) -> void:
 		var economy_score: float = maxf(development.get("score", -INF), expansion.get("score", -INF))
 		var ahead: bool = homes >= 3 and INFORMATION.team_strength(game, faction, faction) >= INFORMATION.team_strength(game, 1 - faction % 2, faction) * 1.25
 		if not attack.is_empty() and (economy_score == -INF or (ahead and attack.score > economy_score)):
-			game.issue_order(attack.source, attack.target, attack.percent, faction)
-			_next_attack_at = game.elapsed + ATTACK_INTERVAL
-			return
+			if game.issue_order(attack.source, attack.target, attack.percent, faction) > 0:
+				_next_attack_at = game.elapsed + ATTACK_INTERVAL
+				return
 	if not development.is_empty() and (expansion.is_empty() or development.score >= expansion.score):
 		var building: WarBuilding = development.building
 		game.begin_building_construction(building, development.kind, faction)
 		return
 	if not expansion.is_empty():
-		game.issue_order(expansion.source, expansion.target, expansion.percent, faction)
-		_next_expansion_at = game.elapsed + EXPANSION_INTERVAL
-		return
+		if game.issue_order(expansion.source, expansion.target, expansion.percent, faction) > 0:
+			_next_expansion_at = game.elapsed + EXPANSION_INTERVAL
+			return
 	_consolidate(game)
 
 func _base_reserve(game: Node3D, building: WarBuilding) -> float:
@@ -128,7 +128,7 @@ func _reinforce(game: Node3D) -> bool:
 		if missing <= 0.0:
 			continue
 		for source: WarBuilding in game.buildings:
-			if source == target or source.faction != faction:
+			if source == target or source.faction != faction or game.bear.is_locked(source.building_id):
 				continue
 			var percent := _dispatch_percent(source, _reserves[source.building_id], missing)
 			if percent == 0 or floori(source.available_population * percent / 100.0) < 5:
@@ -185,7 +185,7 @@ func _conquest(game: Node3D, neutral: bool) -> Dictionary:
 	var environment_attack: float = 1.0 + game.attack_bonus(faction)
 	var defenses: Dictionary[int, PackedFloat64Array] = {}
 	for source: WarBuilding in game.buildings:
-		if source.faction != faction:
+		if source.faction != faction or game.bear.is_locked(source.building_id):
 			continue
 		var reserve: float = _reserves[source.building_id]
 		for target: WarBuilding in game.buildings:
@@ -310,7 +310,7 @@ func _consolidate(game: Node3D) -> void:
 		return
 	var best := {}
 	for source: WarBuilding in game.buildings:
-		if source.faction != faction or source == front:
+		if source.faction != faction or source == front or game.bear.is_locked(source.building_id):
 			continue
 		var reserve: float = _reserves[source.building_id]
 		if source.kind == 0:

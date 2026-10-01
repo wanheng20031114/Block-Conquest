@@ -6,7 +6,7 @@ func clean() -> void:
 	game.elapsed = 0.0
 	game.winner_team = -2
 	game.shields.clear(); game.fire_states.clear()
-	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear()
+	game.bear.links.clear(); game.bear.locks.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear()
 	game.morale.configure(game.faction_count)
 	for state: RefCounted in game.faction_skills:
 		state.commander = &"squirrel"
@@ -23,7 +23,6 @@ func _run() -> void:
 	game.configure_match(config(), 105)
 	_shield_boundaries()
 	_toolbox_stalemates()
-	_toolbox_energy_boundaries()
 	await game.prepare_shutdown()
 	print("RULE_BOUNDARIES checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)
@@ -77,66 +76,34 @@ func _toolbox_stalemates() -> void:
 	for faction: int in [0, 1, 5]:
 		var home := _exhausted_bear(faction)
 		game.simulate(1.0 / 30.0)
-		check(not game.finished and home.population == 0.0 and home.is_constructing, "available toolbox prevents a premature draw for any faction seat")
-		check(game.cast_skill(0, home, faction) and home.population == 15.0, "player can recover fifteen real soldiers after the simulation frame")
+		check(game.finished and game.winner_team == -1 and home.population == 0.0,
+			"instant upgrading cannot promise nonexistent refund soldiers to avert a draw")
+	for energy: float in [0.0, 20.0, 100.0]:
+		var home := _exhausted_bear()
+		game.faction_skills[0].energy = energy
 		game._check_victory()
-		check(not game.finished, "refunded soldiers keep the battle playable")
+		check(game.finished and game.winner_team == -1 and home.population == 0.0,
+			"energy availability does not manufacture a garrison recovery path")
 	var home := _exhausted_bear()
-	game.faction_skills[0].energy = 24.5
-	game.faction_skills[0].cooldowns[0] = 0.6
+	check(game.cast_skill(0, home, 0) and home.population == 0.0 and home.level == 2,
+		"completing a paid upgrade restores no population")
 	game._check_victory()
-	check(not game.finished, "energy and cooldown becoming ready before construction ends preserve recovery")
-	game.simulate(0.6)
-	check(game.cast_skill(0, home, 0) and home.population == 15.0, "the predicted recovery path is an actually legal cast")
-	for unavailable: String in ["wrong_commander", "no_energy_in_time", "cooldown_at_completion", "no_receipt", "no_construction"]:
-		home = _exhausted_bear()
-		match unavailable:
-			"wrong_commander": game.faction_skills[0].commander = &"rabbit"
-			"no_energy_in_time": game.faction_skills[0].energy = 0.0
-			"cooldown_at_completion": game.faction_skills[0].cooldowns[0] = home.construction_remaining
-			"no_receipt": home.construction_cost = 0
-			"no_construction": home.cancel_construction()
-		game._check_victory()
-		check(game.finished and game.winner_team == -1, "no feasible population recovery still ends in a draw: " + unavailable)
+	check(game.finished and game.winner_team == -1, "completed empty towers still stalemate")
 	home = _exhausted_bear()
 	game.by_id[1].faction = -1
 	game._check_victory()
-	check(game.finished and game.winner_team == 0, "elimination takes priority over a potential toolbox refund")
+	check(game.finished and game.winner_team == 0, "elimination still takes priority over stalemate")
 	home = _exhausted_bear()
-	game.simulate(home.construction_remaining + 1.0 / 30.0)
-	check(game.finished and game.winner_team == -1 and not home.is_constructing,
-		"declining the toolbox only postpones the draw until natural completion consumes its receipt")
-
-func _toolbox_energy_boundaries() -> void:
-	for recovery: String in ["disruption_ends", "energy_conversion_finishes"]:
-		var home := _exhausted_bear()
-		var supply: WarBuilding = game.by_id[2]
-		supply.faction = 0
-		if recovery == "disruption_ends":
-			supply.begin_disruption(1.0)
-		else:
-			supply.kind = 2; supply.population = 20.0
-			check(game.begin_building_construction(supply, 3, 0), "spare forge pays for energy conversion")
-			supply.construction_remaining = 1.0
-		game.faction_skills[0].energy = 19.0
-		game._check_victory()
-		check(not game.finished, "scheduled energy recovery preserves a real toolbox window: " + recovery)
-		# One second at +1, then +1.5: Q becomes affordable after 4 1/3
-		# seconds, before the current five-second first upgrade completes.
-		game.simulate(4.5)
-		check(home.is_constructing and game.cast_skill(0, home, 0) and home.population == 15.0,
-			"predicted energy recovery permits the actual paid cast: " + recovery)
-	var home := _exhausted_bear()
-	var supply: WarBuilding = game.by_id[2]
-	supply.faction = 0; supply.population = 20.0
-	check(game.begin_building_construction(supply, 2, 0), "energy tower pays for conversion away from energy production")
-	supply.construction_remaining = 1.0
-	game.faction_skills[0].energy = 14.0
+	home.cancel_construction()
+	home.kind = 0
 	game._check_victory()
-	check(game.finished and game.winner_team == -1, "temporary current energy bonus cannot promise an impossible refund")
+	check(not game.finished, "an empty residence can naturally grow a real soldier")
+	check(game.cast_skill(0, home, 0), "a zero-garrison residence can receive a free upgrade")
+	game.simulate(1.0)
+	check(not game.finished and is_equal_approx(home.population, home.production_rate),
+		"free upgrades retain normal residential production and victory rules")
 	home = _exhausted_bear()
-	supply = game.by_id[2]
-	supply.faction = 2
-	game.faction_skills[0].energy = 15.0
+	home.cancel_construction()
+	home.begin_construction(0)
 	game._check_victory()
-	check(game.finished and game.winner_team == -1, "a teammate's energy tower does not fund this commander's refund")
+	check(not game.finished, "a residence conversion remains a genuine future production path")

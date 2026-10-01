@@ -75,18 +75,23 @@ func _run() -> void:
 	create_timer(110.0, true, false, true).timeout.connect(func(): quit(3))
 	await reset()
 	check(game.faction_skills[0].commander == RULES.BEAR, "bear reaches battle")
-	game.energy = 30.0
-	check(game.can_cast_skill(0), "Q available from the funded thirty-energy fixture")
+	game.energy = RULES.ENERGY_INITIAL
+	check(game.can_cast_skill(0), "Q available immediately from the global starting energy")
 	for i: int in 4:
-		check(game.skill_is_ground(i) == (i == 1), "bear target kind %d" % i)
+		check(not game.skill_is_ground(i), "all bear skills target buildings %d" % i)
 		check(game.hud.get_node("UI/Skills/Row/Skill%d/Icon" % i).texture == RULES.BEAR_ICONS[i], "bottom icon %d" % i)
 	var home: WarBuilding = game.buildings[0]
-	check(not game.cast_skill(0, home), "idle construction rejects Q")
-	near(game.energy, 30.0, "invalid Q is free")
 	for kind: int in [0, 1]:
-		for level: int in range(1, 4 if kind == 0 else 3):
+		for level: int in range(1, 4):
 			refill()
 			home.kind = kind
+			home.level = level
+			home.population = 0.0
+			check(game.cast_skill(0, home), "Q directly upgrades without population %d/%d" % [kind, level])
+			near(home.population, 0.0, "free Q creates no soldiers or refunds")
+			check(home.level == level + 1 and not home.is_constructing, "direct Q finishes one level immediately")
+			near(game.energy, 100.0 - RULES.BEAR_COSTS[0], "direct Q pays its skill cost")
+			refill()
 			home.level = level
 			home.population = 100.0
 			game.select_building(home)
@@ -94,24 +99,25 @@ func _run() -> void:
 			game.upgrade_selected()
 			check(home.construction_cost == cost and home.is_constructing, "player records actual paid cost")
 			check(game.cast_skill(0, home), "Q completes paid upgrade %d/%d" % [kind, level])
-			near(home.population, 100.0 - cost + floorf(cost * 0.5), "half refund from actual cost rounds down to whole troops")
+			near(home.population, 100.0 - cost, "paid upgrade completion never refunds soldiers")
 			check(home.level == level + 1 and not home.is_constructing and home.construction_cost == 0, "level changes immediately and consumes receipt")
-			refill()
-			check(not game.cast_skill(0, home), "completed task cannot refund twice")
-			near(game.energy, 100.0, "duplicate invalid Q stays free")
+		refill()
+		check(not game.cast_skill(0, home), "max-level building rejects Q")
+		near(game.energy, 100.0, "max-level rejection spends no energy")
 	for kind: int in [2, 0, 1]:
 		refill()
 		home.population = 100.0
 		game.convert_selected(kind)
-		check(game.cast_skill(0, home), "Q completes conversion %d" % kind)
-		near(home.population, 90.0, "conversion always refunds 10 of paid 20")
-		check(home.kind == kind and home.level == 1, "conversion shape/function takes effect immediately")
+		check(not game.cast_skill(0, home), "Q rejects conversion %d" % kind)
+		near(home.population, 80.0, "invalid Q does not refund a paid conversion")
+		near(game.energy, 100.0, "conversion rejection spends no energy")
+		home.advance_construction(home.construction_remaining)
 	refill()
 	home.population = 100.0
 	game.upgrade_selected()
 	game._on_unit_arrived(home.building_id, 1, 300)
 	check(home.construction_cost == 0 and not home.is_constructing, "capture invalidates construction receipt")
-	check(not game.cast_skill(0, home), "enemy captured building cannot be refunded")
+	check(not game.cast_skill(0, home), "enemy captured building cannot be upgraded")
 
 	await reset()
 	var buildings := pair()
@@ -197,8 +203,8 @@ func _run() -> void:
 	game.cast_skill(3, a)
 	game.world_effects.start_fire(a.global_position, 4.5, 1)
 	game._tick_fire_buildings()
-	near(a.population, 82, "ward halves the next fire hit before integer link sharing")
-	near(b.population, 81, "warded target shares the reduced fire damage with support")
+	near(a.population, 82, "ward reduces the next fire hit before cumulative integer link sharing")
+	near(b.population, 82, "cumulative odd casualty distribution preserves the previous support rounding")
 
 	await reset("highland")
 	var center := Vector3(-22, 0, 10)
@@ -206,7 +212,7 @@ func _run() -> void:
 	game.marches.send(1, 0, 1, 1, route)
 	game.marches.send(0, 1, 0, 1, route)
 	game.marches.send(2, 1, 2, 1, route)
-	check(game.cast_ground_skill(1, center), "W ground drag casts")
+	game.marches.create_slow_zone(0, center, RULES.BEAR_SLOW_RADIUS, 4.0)
 	near(game.marches.speed_multiplier(game.marches._units[0]), 0.4, "W slow immediate")
 	game.marches.tick(1.0)
 	near(game.marches._units[0].distance, WarMarches.SPEED * 0.4, "enemy is 60 percent slower")
@@ -238,8 +244,13 @@ func _run() -> void:
 		game.faction_skills[1].cooldowns.fill(100.0)
 		game.faction_skills[1].cooldowns[ability] = 0.0
 		if ability == 0:
-			a.population -= 20
-			a.begin_construction(0, 20)
+			a.kind = 0
+			a.level = 2
+		elif ability == 1:
+			game.by_id[1].faction = 0
+			game.by_id[1].population = 100
+			game.issue_order(game.by_id[1], a, 100, 0)
+			game.marches.tick(0.7)
 		else:
 			a.population = 10
 			var start := a.global_position + Vector3(7, 0, 0)
@@ -255,22 +266,24 @@ func _run() -> void:
 	a = buildings[0]
 	b = buildings[1]
 	game.select_building(a)
-	game.convert_selected(0)
+	a.kind = 0
+	a.level = 1
 	root.size = Vector2i(1600, 900)
 	await create_timer(0.6).timeout
 	await physics_frame
 	var aim: Vector2 = game.camera.unproject_position(a.get_node("PopulationBadge").global_position)
 	drag_skill(0, aim)
-	check(not a.is_constructing and game.cooldowns[0] > 0.0, "native Q release completes construction")
+	check(a.level == 2 and not a.is_constructing and game.cooldowns[0] > 0.0, "native Q release directly upgrades the picked building")
 	refill()
-	drag_skill(1, game.camera.unproject_position(Vector3(-22, 0, 10)))
-	check(game.marches.slow_zones.has(0), "native W release creates ground slow")
+	var hostile: WarBuilding = game.by_id[1]
+	drag_skill(1, game.camera.unproject_position(hostile.get_node("PopulationBadge").global_position))
+	check(game.bear.locks.has(hostile.building_id), "native W release locks the picked enemy building")
 	refill()
 	drag_skill(2, aim)
 	check(game.bear.links.has(a.building_id), "native E release connects buildings")
 	refill()
 	drag_skill(3, aim)
-	check(game.bear.wards.has(a.building_id) and is_equal_approx(game.skill_defense_bonus(a), 1.0), "native R release raises the picked building's skill defense")
+	check(game.bear.wards.has(a.building_id) and is_equal_approx(game.skill_defense_bonus(a), 1.2), "native R release raises the picked building's skill defense")
 	check(game.armed_skill == -1 and not game.hud.get_node("%SkillDrag").visible, "release clears held icon without lingering aim state")
 	await game.prepare_shutdown()
 	print("Bear checks: %d, failures: %d" % [checks, failures.size()])
@@ -281,27 +294,27 @@ func _ward_defense_checks() -> void:
 	var a := pair()[0]
 	check(RULES.names_for(&"bear")[3] == "震庭威慑", "R uses its revised name")
 	check(game.cast_skill(3, a), "R casts on own building")
-	near(game.energy, 30.0, "R keeps its seventy-energy cost")
-	near(game.cooldowns[3], 70.0, "R keeps its seventy-second cooldown")
-	near(game.active_durations[3], 5.0, "R lasts five seconds")
+	near(game.energy, 100.0 - RULES.BEAR_COSTS[3], "R pays its ultimate energy cost")
+	near(game.cooldowns[3], RULES.BEAR_COOLDOWNS[3], "R uses the ultimate cooldown")
+	near(game.active_durations[3], RULES.BEAR_DURATIONS[3], "R uses its complete duration")
 	near(game.defense_bonus(a), 0.0, "ward does not enter the environment defense group")
-	near(game.skill_defense_bonus(a), 1.0, "ward grants plus one skill defense")
-	near(game.combat_multiplier(1, a), 0.5, "ward halves otherwise unmodified incoming melee")
-	game._on_unit_arrived(a.building_id, 1, 20.0)
+	near(game.skill_defense_bonus(a), 1.2, "ward grants plus 120 percent skill defense")
+	near(game.combat_multiplier(1, a), 1.0 / 2.2, "ward divides otherwise unmodified incoming melee by 2.2")
+	game._on_unit_arrived(a.building_id, 1, 22.0)
 	near(a.population, 90.0, "ordinary attackers inflict reduced damage during R")
 	game.shields[a.building_id] = 10.0
-	near(game.skill_defense_bonus(a), 1.25, "ward and shield add inside the skill group")
-	near(game.combat_multiplier(1, a), 1.0 / 2.25, "combined defenses divide by 2.25 rather than multiply 2 by 1.25")
-	game._on_unit_arrived(a.building_id, 1, 22.5)
+	near(game.skill_defense_bonus(a), 1.45, "ward and shield add inside the skill group")
+	near(game.combat_multiplier(1, a), 1.0 / 2.45, "combined defenses divide by 2.45")
+	game._on_unit_arrived(a.building_id, 1, 24.5)
 	near(a.population, 80.0, "actual shield-plus-ward casualties use the additive skill group")
 	game.set_paused(true)
 	game.simulate(2.0)
-	near(game.bear.wards[a.building_id].remaining, 5.0, "pause freezes ward expiration")
+	near(game.bear.wards[a.building_id].remaining, RULES.BEAR_DURATIONS[3], "pause freezes ward expiration")
 	game.set_paused(false)
-	game.simulate(4.999)
-	check(game.bear.wards.has(a.building_id), "ward remains active immediately before five seconds")
+	game.simulate(RULES.BEAR_DURATIONS[3] - 0.001)
+	check(game.bear.wards.has(a.building_id), "ward remains active immediately before expiration")
 	game.simulate(0.001)
-	check(not game.bear.wards.has(a.building_id), "ward expires at five seconds")
+	check(not game.bear.wards.has(a.building_id), "ward expires at its exact endpoint")
 	near(game.active_durations[3], 0.0, "expiration clears the R HUD timer")
 	near(game.skill_defense_bonus(a), 0.25, "ward expiration preserves the longer shield")
 	near(game.combat_multiplier(1, a), 1.0 / 1.25, "expired ward no longer reduces incoming damage")
@@ -312,7 +325,7 @@ func _ward_defense_checks() -> void:
 	game.shields[a.building_id] = 10.0
 	game._on_unit_arrived(a.building_id, 1, 30.0)
 	check(a.faction == 1, "a defended building can be captured during the ward")
-	near(a.population, 7.5, "capture survivors account for the combined 2.25 defense divisor")
+	near(a.population, 5.5, "capture survivors account for the combined 2.45 defense divisor")
 	check(not game.bear.wards.has(a.building_id) and not game.shields.has(a.building_id), "capture clears both temporary defenses")
 	near(game.skill_defense_bonus(a), 0.0, "new owner inherits no old-owner skill defense")
 	near(game.faction_skills[0].durations[3], 0.0, "capture clears the previous owner's R timer")
@@ -342,15 +355,15 @@ func _ward_projectile_checks() -> void:
 	check(first == [boundary, far_unit, middle], "first volley takes the three farthest legal targets including exactly eighteen meters")
 	check(not outside.reserved and not near_unit.reserved, "outside eighteen meters and the fourth-nearest unit stay unreserved")
 	check(not own.reserved and not ally.reserved and not pending.reserved, "friendly, allied and unexposed soldiers are excluded")
-	game.bear.advance(game, 0.499)
-	check(game.bear.shots.size() == 3, "no second volley before half a second")
+	game.bear.advance(game, RULES.BEAR_ORB_INTERVAL - 0.001)
+	check(game.bear.shots.size() == 3, "no second volley before the friendly interval")
 	game.bear.advance(game, 0.001)
-	check(game.bear.shots.size() == 4 and game.bear.shots[-1].target == near_unit, "half-second volley takes only the remaining legal target")
+	check(game.bear.shots.size() == 4 and game.bear.shots[-1].target == near_unit, "next volley takes only the remaining legal target")
 	var extras: Array[WarMarches.MarchUnit] = []
 	for distance: float in [6.0, 8.0, 9.0]:
 		extras.append(_orb_soldier(a, distance))
-	game.bear.advance(game, 0.5)
-	check(game.bear.shots.size() == 7, "next half-second fires another complete three-target volley")
+	game.bear.advance(game, RULES.BEAR_ORB_INTERVAL)
+	check(game.bear.shots.size() == 7, "next friendly interval fires another complete three-target volley")
 	var targeted := {}
 	for shot: Dictionary in game.bear.shots:
 		check(not targeted.has(shot.target.unit_id), "outstanding projectiles never reserve the same soldier twice")
@@ -371,7 +384,7 @@ func _ward_arrival_checks() -> void:
 	game.simulate(0.8 / WarMarches.SPEED + 0.01)
 	check(game.bear.wards.has(a.building_id), "arrivals resolve while the ward remains active")
 	check(game.marches.total_for(1) == 0, "real incoming soldiers enter immediately without waiting outside")
-	near(a.population, 85.0, "thirty real arrivals inflict fifteen garrison casualties during R")
+	near(a.population, 100.0 - 30.0 / 2.2, "thirty real arrivals use the 120 percent R defense")
 
 func _ally_pair() -> Array[WarBuilding]:
 	for building: WarBuilding in game.buildings:
@@ -387,22 +400,22 @@ func _ally_support_checks() -> void:
 	var buildings := _ally_pair()
 	var target := buildings[0]
 	var support := buildings[1]
-	for index: int in [0, 2, 3]:
+	for index: int in [0, 2]:
 		check(not game.cast_skill(index, game.by_id[1]), "bear support rejects an enemy for skill %d" % index)
 		check(not game.cast_skill(index, game.by_id[6]), "bear support rejects neutral buildings for skill %d" % index)
 	near(game.energy, 100.0, "invalid allied support never charges the caster")
-	check(not game.cast_skill(0, target), "ally without paid construction rejects toolbox")
-	check(game.begin_building_construction(target, 0, 2), "ally pays for a real conversion")
-	check(game.cast_skill(0, target), "toolbox completes an ally's conversion")
-	near(target.population, 90.0, "ally keeps the ten refunded conversion soldiers")
-	check(target.faction == 2 and target.kind == 0 and not target.is_constructing, "toolbox preserves ally ownership and applies the new form")
-	near(game.energy, 75.0, "only the bear pays toolbox energy")
+	target.kind = 0
+	target.level = 1
+	check(game.cast_skill(0, target), "toolbox directly upgrades an idle ally residence")
+	near(target.population, 100.0, "ally pays no population for the direct upgrade")
+	check(target.faction == 2 and target.kind == 0 and target.level == 2 and not target.is_constructing, "toolbox preserves ally ownership and upgrades exactly once")
+	near(game.energy, 80.0, "only the bear pays toolbox energy")
 	near(game.faction_skills[2].energy, 100.0, "receiving ally pays no energy")
 	refill()
-	check(game.begin_building_construction(target, -1, 2), "ally pays five for a real first house upgrade")
+	check(game.begin_building_construction(target, -1, 2), "ally pays fifteen for a real second house upgrade")
 	check(game.cast_skill(0, target), "toolbox also completes an ally's upgrade")
-	near(target.population, 87.0, "odd five-person upgrade refunds two whole soldiers to the ally")
-	check(target.level == 2, "ally receives completed upgrade immediately")
+	near(target.population, 85.0, "already paid population is not refunded to the ally")
+	check(target.level == 3, "ally receives completed upgrade immediately")
 
 	await reset("highland")
 	buildings = _ally_pair()
@@ -442,11 +455,11 @@ func _ally_support_checks() -> void:
 	check(not game._valid_skill_target(3, target, 4), "another allied bear cannot stack the same ward")
 	game.bear.tick_projectiles(game, 0.5)
 	check(not enemy.alive and ally.alive, "ally's orb kills an enemy and spares allied troops")
-	game._on_unit_arrived(target.building_id, 1, 20.0)
+	game._on_unit_arrived(target.building_id, 1, 22.0)
 	near(target.population, 90.0, "allied ward reduces ordinary garrison damage")
-	near(game.energy, 30.0, "bear pays ward cost without spending teammate energy")
-	game.bear.advance(game, 4.75)
-	check(game.bear.wards.is_empty(), "allied ward ends at five seconds")
+	near(game.energy, 100.0 - RULES.BEAR_COSTS[3], "bear pays ward cost without spending teammate energy")
+	game.bear.advance(game, RULES.BEAR_DURATIONS[3] - 0.25)
+	check(game.bear.wards.is_empty(), "allied ward ends at its exact duration")
 	near(game.active_durations[3], 0.0, "ward expiry clears the caster's timer")
 	refill()
 	check(game.cast_skill(3, target), "ally receives a fresh ward after expiry")
@@ -461,7 +474,12 @@ func _ally_support_checks() -> void:
 		game.faction_skills[0].cooldowns.fill(100.0)
 		game.faction_skills[0].cooldowns[ability] = 0.0
 		if ability == 0:
-			game.begin_building_construction(target, 0, 2)
+			target.kind = 0
+			target.level = 2
+		elif ability == 1:
+			game.by_id[1].population = 100
+			game.issue_order(game.by_id[1], target, 100, 1)
+			game.marches.tick(0.7)
 		else:
 			target.population = 10.0
 			var start := target.global_position + Vector3(7, 0, 0)

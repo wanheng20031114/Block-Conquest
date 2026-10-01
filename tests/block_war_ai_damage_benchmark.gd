@@ -126,7 +126,7 @@ func _fixture(label: String, count: int) -> void:
 		for target: int in [0, 1, 4]: game.shields[target] = 2.0
 	if label in ["ward", "mixed"]:
 		for target: int in [0, 3, 5]:
-			game.bear.wards[target] = {"faction": game.by_id[target].faction, "remaining": 2.0, "shot_clock": 1.0, "pulse": 0.0}
+			game.bear.wards[target] = {"faction": game.by_id[target].faction, "remaining": 2.0, "shot_clock": 1.0, "pulse": 0.0, "hostile": false}
 	game.marches.end_render_batch()
 
 func _clear_prediction_caches() -> void:

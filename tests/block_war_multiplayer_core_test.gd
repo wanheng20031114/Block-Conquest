@@ -111,11 +111,12 @@ func _run() -> void:
 	check(not game.execute_network_command(5, {"type": "skill_ground", "skill": 1, "x": INF, "z": 0}).accepted, "nonfinite skill point rejected")
 	check(not game.execute_network_command(5, {"type": "skill_ground", "skill": 99, "x": 0, "z": 0}).accepted, "invalid skill index safely rejected")
 	check(not game.execute_network_command(5, {"type": "skill_ground", "skill": 1, "x": 999999, "z": 0}).accepted, "out of map skill point rejected")
+	var upgraded_population: float = game.by_id[5].population - game.by_id[5].upgrade_cost
 	check(game.execute_network_command(5, {"type": "upgrade", "building": 5.0}).accepted, "integral JSON numeric identifier accepted")
-	check(game.by_id[5].population == 50.0 and game.by_id[5].is_constructing, "host pays construction once through shared action")
-	check(not game.execute_network_command(5, {"type": "upgrade", "building": 5}).accepted and game.by_id[5].population == 50.0, "busy construction rejects second payment")
+	check(game.by_id[5].population == upgraded_population and game.by_id[5].is_constructing, "host pays construction once through shared action")
+	check(not game.execute_network_command(5, {"type": "upgrade", "building": 5}).accepted and game.by_id[5].population == upgraded_population, "busy construction rejects second payment")
 	check(game.cast_skill(0, game.by_id[5]), "default skill faction resolves to local seat five")
-	check(game.by_id[5].level == 2 and game.by_id[5].population == 55.0, "bear completion refund survives command routing")
+	check(game.by_id[5].level == 2 and game.by_id[5].population == upgraded_population, "bear completion does not refund paid soldiers through command routing")
 	check(presentations.any(func(event: Dictionary): return event.kind == "skill" and event.payload.faction == 5 and event.payload.target == 5), "successful skill produces primitive event for own seat")
 	check(presentations.any(func(event: Dictionary): return event.kind == "construction_complete"), "instant skill completion publishes construction fact")
 

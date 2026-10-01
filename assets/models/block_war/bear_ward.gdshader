@@ -6,7 +6,7 @@ varying vec3 direction;
 void vertex() { effect = INSTANCE_CUSTOM; direction = normalize(VERTEX); }
 void fragment() {
     vec3 d = normalize(direction);
-    float age = (1.0 - effect.a) * 5.0;
+    float age = effect.b;
     float rim = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 3.0);
     vec3 light = normalize(vec3(cos(visual_time * 0.8), 0.75, sin(visual_time * 0.8)));
     float sheen = pow(max(dot(d, light), 0.0), 32.0);

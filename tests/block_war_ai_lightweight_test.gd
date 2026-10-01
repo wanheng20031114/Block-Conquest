@@ -69,7 +69,7 @@ func snapshot_lifecycle() -> void:
 	game.morale.adjust(4, 1000.25)
 	game.morale.adjust(1, 490.5)
 	game.shields[1] = 2.0
-	game.bear.wards[1] = {"faction": 1, "remaining": 2.0, "shot_clock": 1.0, "pulse": 0.0}
+	game.bear.wards[1] = {"faction": 1, "remaining": 2.0, "shot_clock": 1.0, "pulse": 0.0, "hostile": false}
 	game.by_id[1].kind = 1
 	game.by_id[1].level = 3
 	for observer: int in [0, 1, 4, 3, 1]:
@@ -165,7 +165,7 @@ func conquest_modifier_lifecycle() -> void:
 		if variant % 2 == 0:
 			game.shields[0] = 2.0
 		if variant % 3 == 0:
-			game.bear.wards[0] = {"faction": 0, "remaining": 2.0, "shot_clock": 1.0, "pulse": 0.0}
+			game.bear.wards[0] = {"faction": 0, "remaining": 2.0, "shot_clock": 1.0, "pulse": 0.0, "hostile": false}
 		for ai: RefCounted in [candidate, live]:
 			ai._reserves.clear()
 			ai._incoming_teams.clear()

@@ -810,7 +810,7 @@ func _play_presentation(event: Dictionary) -> void:
 				elif skill == 2: game.world_effects.get_node("Rabbit").start_recall(faction, at, game.SKILL_RULES.RECALL_RADIUS)
 			elif commander == "bear":
 				if skill == 0: game.world_effects.get_node("Bear").toolbox(faction, at)
-				elif skill == 1: game.world_effects.get_node("Bear").stomp(faction, at)
+				elif skill == 1: game.world_effects.get_node("Bear").lock(faction, at)
 			elif commander == "frog": game.world_effects.get_node("Frog").release(skill, faction, at)
 			elif commander == "fox":
 				if skill != 2 and (not Snapshot._integer(payload.get("target"), 0, 2147483647) or not game.by_id.has(int(payload.target))): return

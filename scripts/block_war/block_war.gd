@@ -566,6 +566,7 @@ func _begin_dispatch(source: Node3D, screen: Vector2) -> void:
 	hovered = null
 
 func dispatch_count(source: WarBuilding, amount_percent: int) -> int:
+	if bear.is_locked(source.building_id): return 0
 	var count := floori(source.available_population * amount_percent / 100.0)
 	if source.burrow_remaining > 0.0: count = mini(count, SKILL_RULES.BURROW_LIMIT)
 	return mini(count, pig.limit_for(source.building_id))
@@ -666,7 +667,7 @@ func defense_bonus(building: Node3D) -> float:
 func skill_defense_bonus(building: Node3D) -> float:
 	var bonus: float = SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
 	if bear.wards.has(building.building_id) and bear.wards[building.building_id].remaining > 0.0:
-		bonus += SKILL_RULES.BEAR_WARD_DEFENSE
+		bonus += SKILL_RULES.BEAR_CURSE_DEFENSE if bear.wards[building.building_id].hostile else SKILL_RULES.BEAR_WARD_DEFENSE
 	return bonus
 
 func combat_multiplier(faction: int, target: Node3D, unit_attack_bonus: float = 0.0) -> float:
@@ -937,7 +938,7 @@ func skill_radius(index: int, faction: int = -2) -> float:
 	if faction_skills[faction].commander == SKILL_RULES.FROG:
 		return SKILL_RULES.FROG_RADII[index]
 	if faction_skills[faction].commander == SKILL_RULES.BEAR:
-		return SKILL_RULES.BEAR_SLOW_RADIUS
+		return 0.0
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
 		return SKILL_RULES.RABBIT_RUSH_RADIUS if index == 0 else SKILL_RULES.RECALL_RADIUS
 	return SKILL_RULES.HASTE_RADIUS if index == 1 else IMPACT_RADIUS
@@ -1102,15 +1103,6 @@ func cast_ground_skill(index: int, at: Vector3, faction: int = -2) -> bool:
 		_present_skill(index, faction, center)
 		var frog_sounds: Array[StringName] = [&"war_frog_mist", &"war_frog_float", &"war_frog_cloak"]
 		audio.play_world(frog_sounds[index], center)
-		update_hud()
-		return true
-	if faction_skills[faction].commander == SKILL_RULES.BEAR:
-		marches.create_slow_zone(faction, center, SKILL_RULES.BEAR_SLOW_RADIUS, SKILL_RULES.BEAR_DURATIONS[1])
-		world_effects.get_node("Bear").stomp(faction, center)
-		world_effects.get_node("Bear").sync(bear, marches, by_id, 0.0)
-		_commit_skill(index, faction)
-		_present_skill(index, faction, center)
-		audio.play_world(&"war_bear_stomp", center)
 		update_hud()
 		return true
 	if faction_skills[faction].commander == SKILL_RULES.RABBIT:
@@ -1312,45 +1304,6 @@ func total_for(faction: int) -> int:
 			count += building.available_population
 	return floori(count)
 
-func _toolbox_can_restore_population(building: WarBuilding) -> bool:
-	if not building.is_constructing or has_surrendered(building.faction): return false
-	var state := faction_skills[building.faction]
-	if state.commander != SKILL_RULES.BEAR or building.construction_cost <= 0: return false
-	if building.population + floori(float(building.construction_cost) / 2.0) < 1.0: return false
-	# Waiting for energy/cooldown is a real recovery path only while the paid
-	# receipt still exists. Natural completion consumes it before a new command.
-	var deadline := building.construction_remaining
-	if state.cooldowns[0] >= deadline: return false
-	if state.energy >= SKILL_RULES.BEAR_COSTS[0]: return true
-	# Known tower restorations/conversions can change regeneration before this
-	# receipt expires. Integrate only those authored building clocks, preserving
-	# the diminishing bonus for the number of simultaneously active towers.
-	var changes: Dictionary[float, int] = {0.0: 0, deadline: 0}
-	for supply: WarBuilding in buildings:
-		if supply.faction != building.faction: continue
-		var start := supply.disruption_remaining
-		var end := deadline
-		if supply.kind == 3:
-			if supply.is_constructing and supply.conversion_target >= 0:
-				end = minf(end, supply.construction_remaining)
-		elif supply.is_constructing and supply.conversion_target == 3:
-			start = maxf(start, supply.construction_remaining)
-		else:
-			continue
-		if start >= end: continue
-		changes[start] = changes.get(start, 0) + 1
-		changes[end] = changes.get(end, 0) - 1
-	var times := changes.keys()
-	times.sort()
-	var count := 0
-	var previous := 0.0
-	var energy_at_completion := state.energy + SKILL_RULES.natural_energy_between(elapsed, deadline)
-	for time: float in times:
-		energy_at_completion += SKILL_RULES.energy_tower_bonus(count) * (time - previous)
-		count += changes[time]
-		previous = time
-	return energy_at_completion > SKILL_RULES.BEAR_COSTS[0]
-
 func _check_victory() -> void:
 	if finished:
 		return
@@ -1363,8 +1316,6 @@ func _check_victory() -> void:
 		# Fractions in separate garrisons cannot be combined without a full soldier
 		# leaving one doorway. An existing or unfinished residence can still grow it.
 		if building.kind == 0 or building.conversion_target == 0 or floori(building.population) >= 1:
-			can_make_progress = true
-		elif not can_make_progress and _toolbox_can_restore_population(building):
 			can_make_progress = true
 	# Living productive buildings already prove that ordinary battles continue.
 	# Only inspect marching armies when elimination/stalemate is possible.

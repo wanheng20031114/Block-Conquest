@@ -216,7 +216,7 @@ func _ward_arrival() -> void:
 	soldier.distance = soldier.order.length - 0.12
 	soldier.gait = 42.0
 	host.marches._update_pose(soldier)
-	host.bear.wards[1] = {"faction": 1, "remaining": 2.0, "shot_clock": 3.0, "pulse": 0.0}
+	host.bear.wards[1] = {"faction": 1, "remaining": 2.0, "shot_clock": 3.0, "pulse": 0.0, "hostile": false}
 	tracked.assign([soldier.unit_id])
 	authority._publish_step(0.0); flush()
 	client.process(0.0)
@@ -235,11 +235,11 @@ func _ward_arrival() -> void:
 		_sample()
 	check(replica.bear.wards.has(1) and displayed.alive and sampled_visible_count == 1, "ward prediction preserves the soldier until an authoritative arrival")
 	check(displayed.distance > distance + 0.10 and displayed.gait + displayed.presentation_gait_offset > gait, "defense ward advances through the old gate limit: distance %.6f -> %.6f, gait %.6f -> %.6f" % [distance, displayed.distance, gait, displayed.gait + displayed.presentation_gait_offset])
-	check(is_equal_approx(replica.skill_defense_bonus(replica.by_id[1]), 1.0), "client mirrors the active defense bonus")
+	check(is_equal_approx(replica.skill_defense_bonus(replica.by_id[1]), host.SKILL_RULES.BEAR_WARD_DEFENSE), "client mirrors the active defense bonus")
 	if readback_enabled: check(readback_errors == errors_before, "advancing doorway pose and gait reach the real MultiMesh unchanged")
 	host.simulate(0.1)
 	check(not soldier.alive and host.marches._units.is_empty(), "authority settles entry during the defense ward")
-	check(is_equal_approx(host.by_id[1].population, 99.5), "ward halves ordinary arrival damage instead of rejecting it")
+	check(is_equal_approx(host.by_id[1].population, 100.0 - 1.0 / (1.0 + host.SKILL_RULES.BEAR_WARD_DEFENSE)), "ward reduces ordinary arrival damage instead of rejecting it")
 	authority._publish_step(0.0); flush()
 	client.process(0.0)
 	check(replica.marches._units.is_empty() and not client.codec._objects.has(str(soldier.unit_id)), "arrival fact removes the displayed soldier exactly once")

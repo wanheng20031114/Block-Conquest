@@ -38,17 +38,19 @@ const BURROW_DIG_SPEED := 45.0
 const BURROW_BATCH_INTERVAL := 0.16
 const BURROW_EXIT_DISTANCE := 3.0
 const BEAR := &"bear"
-const BEAR_NAMES: Array[String] = ["工具箱", "重重跺脚", "链式防守", "震庭威慑"]
-const BEAR_COSTS: Array[float] = [25.0, 25.0, 30.0, 70.0]
-const BEAR_COOLDOWNS: Array[float] = [30.0, 25.0, 35.0, 70.0]
-const BEAR_DURATIONS: Array[float] = [0.0, 4.0, 8.0, 5.0]
+const BEAR_NAMES: Array[String] = ["工具箱", "困兽之斗", "链式防守", "震庭威慑"]
+const BEAR_COSTS: Array[float] = [20.0, 25.0, 30.0, 90.0]
+const BEAR_COOLDOWNS: Array[float] = [40.0, 30.0, 35.0, 90.0]
+const BEAR_DURATIONS: Array[float] = [0.0, 6.0, 8.0, 6.0]
 const BEAR_SLOW_RADIUS := 4.5
 const BEAR_SLOW_MULTIPLIER := 0.4
 const BEAR_SLOW_LINGER := 5.0
 const BEAR_LINK_RADIUS := 18.0
-const BEAR_WARD_DEFENSE := 1.0
+const BEAR_WARD_DEFENSE := 1.2
+const BEAR_CURSE_DEFENSE := -0.3
 const BEAR_ORB_RANGE := 18.0
-const BEAR_ORB_INTERVAL := 0.5
+const BEAR_ORB_INTERVAL := 0.3
+const BEAR_HOSTILE_ORB_INTERVAL := 0.2
 const BEAR_ORB_TARGETS := 3
 const FROG := &"frog"
 const FROG_NAMES: Array[String] = ["弱化雾气", "浮力薄隔", "隐身", "致命打击"]
@@ -140,7 +142,7 @@ static func is_ground(index: int, commander: StringName) -> bool:
 	if commander == PIG: return index == 3
 	if commander == FOX: return index == 2
 	if commander == FROG: return index in [0, 1, 2]
-	if commander == BEAR: return index == 1
+	if commander == BEAR: return false
 	return index in [0, 2] if commander == RABBIT else index in [1, 3]
 
 static func name_for(commander: StringName) -> String:
@@ -181,10 +183,10 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 		][index]
 	if commander == BEAR:
 		return [
-			"立即完成自己或盟友建筑的升级或改建。\n返还本次消耗人口的 50%，补入该建筑驻军。",
-			"移速 -%d%%，作用于区域内的敌军。\n震地区域半径 %.1f 米，持续 %d 秒。\n出圈或区域消失后仍减速 %d 秒，重新入圈刷新；己方与盟友不受影响。" % [roundi((1.0 - BEAR_SLOW_MULTIPLIER) * 100.0), BEAR_SLOW_RADIUS, BEAR_DURATIONS[1], BEAR_SLOW_LINGER],
+			"自己或盟友建筑立即升 1 级，不消耗驻军。\n正在升级则立即完工，不返还已付人口。\n满级或正在改建的建筑无法施放。",
+			"敌方建筑 %d 秒内无法派兵。\n取消所有尚未离楼的出兵任务，驻军留守；到期需重新下令。\n已出门部队、产兵、射击和增援不受影响。" % BEAR_DURATIONS[1],
 			"自己或盟友的建筑，由最近的另一座同队建筑分担 50%% 驻军伤害，持续 %d 秒。\n连接距离最多 %d 米，奇数伤亡由支援方多承担 1 人。\n支援兵力不足或一端失守时断开。" % [BEAR_DURATIONS[2], BEAR_LINK_RADIUS],
-			"防御力 +%d%%，作用于自己或盟友建筑，持续 %d 秒。\n法术球立即开火，每 %.1f 秒攻击 %d 米内最多 %d 名敌兵。\n优先选择最远目标。" % [roundi(BEAR_WARD_DEFENSE * 100.0), BEAR_DURATIONS[3], BEAR_ORB_INTERVAL, BEAR_ORB_RANGE, BEAR_ORB_TARGETS]
+			"持续 %d 秒：友方建筑防御力 +%d%%并获得护罩；敌方防御力 -%d%%，无护罩。\n头顶火球攻击 %d 米内最多 %d 名施法方敌兵，优先最远目标。\n友方每 %.1f 秒、敌方每 %.2f 秒开火。" % [BEAR_DURATIONS[3], roundi(BEAR_WARD_DEFENSE * 100.0), roundi(absf(BEAR_CURSE_DEFENSE) * 100.0), BEAR_ORB_RANGE, BEAR_ORB_TARGETS, BEAR_ORB_INTERVAL, BEAR_HOSTILE_ORB_INTERVAL]
 		][index]
 	if commander == RABBIT:
 		return [

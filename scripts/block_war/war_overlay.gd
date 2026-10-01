@@ -69,6 +69,8 @@ func _draw() -> void:
 	elif game.armed_skill >= 0:
 		var valid: bool = game._valid_skill_target(game.armed_skill, game.hovered)
 		var reticle_color := Color(0.95, 0.85, 0.48, 0.9) if valid else Color(0.9, 0.93, 0.87, 0.7)
+		if valid and game.faction_skills[game.local_faction].commander == game.SKILL_RULES.BEAR and game.FACTIONS.hostile(game.hovered.faction, game.local_faction):
+			reticle_color = Color(1.0, 0.46, 0.25, 0.9)
 		var mouse := get_viewport().get_mouse_position()
 		draw_arc(mouse, 13.0, 0, TAU, 32, reticle_color, 1.5, true)
 		if valid and game.hovered != null:
@@ -90,9 +92,9 @@ func _draw() -> void:
 					var to := camera.unproject_position(support.global_position + Vector3.UP)
 					draw_dashed_line(from, to, reticle_color, 2.0, 7.0, true)
 				elif game.armed_skill == 0:
-					_draw_skill_number(game.hovered.construction_cost / 2, camera.unproject_position(game.hovered.global_position + Vector3(3, 2, 0)))
+					_draw_skill_number(game.hovered.level + 1, camera.unproject_position(game.hovered.global_position + Vector3(3, 2, 0)), "↑")
 				elif game.armed_skill == 3:
-					_ring(game.hovered.global_position, game.SKILL_RULES.BEAR_ORB_RANGE, Color(0.94, 0.77, 0.43, 0.48), 1.5)
+					_ring(game.hovered.global_position, game.SKILL_RULES.BEAR_ORB_RANGE, Color(reticle_color, 0.48), 1.5)
 	if game.box_selecting and game._gesture_moved:
 		var rect: Rect2 = game.box_selection_rect()
 		draw_rect(rect, Color(1.0, 0.99, 0.96, 0.04))
@@ -171,9 +173,9 @@ func _draw_world_path(route: PackedVector3Array, color: Color) -> void:
 	if points.size() >= 2:
 		draw_polyline(points, color, 1.7, true)
 
-func _draw_skill_number(count: int, at: Vector2) -> void:
+func _draw_skill_number(count: int, at: Vector2, prefix: String = "") -> void:
 	var font := hint_label.get_theme_font("font")
-	var value := str(count)
+	var value := prefix + str(count)
 	var width := font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
 	var rect := Rect2(at - Vector2(width * 0.5 + 10, 24), Vector2(width + 20, 34))
 	draw_colored_polygon(_cloud_outline(rect), CLOUD_FILL)

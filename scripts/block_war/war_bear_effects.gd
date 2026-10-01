@@ -4,6 +4,7 @@ const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const EMIT := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_ROTATION_SCALE | GPUParticles3D.EMIT_FLAG_VELOCITY | GPUParticles3D.EMIT_FLAG_COLOR
 var time := 0.0
 var tool_ages: Array[float] = [2, 2, 2, 2, 2, 2]
+var tool_targets: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
 var emission_clock := 0.0
 var serial := 0
 var map_definition := WarMapDefinition.new()
@@ -16,12 +17,14 @@ const LINK_BODY_CENTERS: Array[Vector3] = [Vector3(0, 1.0, -0.066), Vector3(0, 0
 
 func configure_surface(definition: WarMapDefinition) -> void:
 	map_definition = definition
-	WarSurfaceEffects.configure($Ground.multimesh.mesh.material, definition)
+	WarSurfaceEffects.configure($LockGrounds.multimesh.mesh.material, definition)
+	WarSurfaceEffects.configure($HostileGrounds.multimesh.mesh.material, definition)
 	WarSurfaceEffects.configure($LinkGrounds.multimesh.mesh.material, definition)
 
 func _ready() -> void:
-	for path: String in ["Ground", "Wards", "Orbs", "OrbBands"]:
+	for path: String in ["LockGrounds", "LockSeals", "LockShackles", "HostileGrounds", "Fractures", "UpgradeSweeps", "Wards", "Orbs", "OrbBands"]:
 		get_node(path).multimesh.instance_count = 6
+	$LockChains.multimesh.instance_count = 288
 	$Chains.multimesh.instance_count = 512
 	for path: String in ["LinkAnchors", "LinkPlates", "LinkGrounds"]:
 		get_node(path).multimesh.instance_count = 12
@@ -29,6 +32,7 @@ func _ready() -> void:
 
 func toolbox(faction: int, at: Vector3) -> void:
 	tool_ages[faction] = 0.0
+	tool_targets[faction] = at
 	var tool: Node3D = $Tools.get_child(faction)
 	tool.position = WarSurfaceEffects.offset_point(map_definition, at, Vector3(2.2, 0.18, 0.65))
 	tool.show()
@@ -37,33 +41,37 @@ func toolbox(faction: int, at: Vector3) -> void:
 		var origin := WarSurfaceEffects.offset_point(map_definition, at, Vector3(cos(a), 0.2, sin(a)) * 2.3)
 		$Dust.emit_particle(Transform3D(Basis.IDENTITY, origin), Vector3(cos(a) * 0.6, 1.3, sin(a) * 0.6), Color("c99c60"), Color(), EMIT)
 
-func stomp(_faction: int, at: Vector3) -> void:
-	for i: int in 48:
+func lock(_faction: int, at: Vector3) -> void:
+	for i: int in 24:
 		var a := i * 2.399963
-		var r := 1.0 + 3.2 * sqrt(float(i) / 48.0)
 		var radial := Vector3(cos(a), 0, sin(a))
-		var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * r + Vector3.UP * 0.12)
-		var basis := Basis.from_euler(Vector3(a * 0.7, a, a * 0.3)).scaled(Vector3.ONE * (1.1 + float(i % 3) * 0.25))
-		$Dust.emit_particle(Transform3D(basis, origin), radial * 1.6 + Vector3.UP * (1.4 + float(i % 3) * 0.5), Color("bdaa76"), Color(), EMIT)
+		var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * 2.75 + Vector3.UP * 0.12)
+		$Dust.emit_particle(Transform3D(Basis.IDENTITY, origin), -radial * 0.5 + Vector3.UP * 1.2, Color("8b7561"), Color(), EMIT)
 
 func spark(at: Vector3) -> void:
 	for i: int in 8:
 		var a := i * TAU / 8.0
 		$Motes.emit_particle(Transform3D(Basis.IDENTITY, at), Vector3(cos(a), 1.0, sin(a)) * 1.3, Color("ffdc80"), Color(), EMIT)
 
-func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float) -> void:
+func sync(bear: RefCounted, _marches: WarMarches, by_id: Dictionary, delta: float) -> void:
 	time += delta
 	emission_clock += delta
 	var emit := emission_clock >= 0.16
 	if emit:
 		emission_clock = fmod(emission_clock, 0.16)
-	for path: String in ["Ground", "Wards", "Orbs", "LinkGrounds"]:
+	for path: String in ["LockGrounds", "HostileGrounds", "Fractures", "UpgradeSweeps", "Wards", "Orbs", "LinkGrounds"]:
 		get_node(path).multimesh.mesh.material.set_shader_parameter("visual_time", time)
+	var upgrades: MultiMesh = $UpgradeSweeps.multimesh
+	var upgrade_count := 0
 	for faction: int in 6:
 		var previous_age := tool_ages[faction]
 		tool_ages[faction] += delta
 		var tool: Node3D = $Tools.get_child(faction)
 		var age := tool_ages[faction]
+		if age < 1.1:
+			upgrades.set_instance_transform(upgrade_count, Transform3D(Basis.IDENTITY, tool_targets[faction] + Vector3.UP * 2.25))
+			upgrades.set_instance_custom_data(upgrade_count, Color(age / 1.1, 0, 0, 1))
+			upgrade_count += 1
 		tool.visible = age < 1.0
 		if tool.visible:
 			var pop := minf(1.0, age / 0.07) * (1.0 - smoothstep(0.75, 1.0, age))
@@ -74,40 +82,48 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 			tool.get_node("Hammer").position.y = 1.1 - strike * 0.18 + rebound * 0.06
 			if previous_age < 0.19 and age >= 0.19:
 				spark(tool.global_position + Vector3(0.7, 1.0, 0))
-	var fields: MultiMesh = $Ground.multimesh
-	var count := 0
-	for faction: int in marches.slow_zones:
-		var zone: Dictionary = marches.slow_zones[faction]
-		fields.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * zone.radius), zone.at + Vector3.UP * 0.095))
-		fields.set_instance_custom_data(count, Color(0, 0, 0, zone.remaining / zone.duration))
-		count += 1
-		if emit:
-			serial += 1
-			var angle := serial * 2.399963
-			var p := WarSurfaceEffects.offset_point(map_definition, zone.at, Vector3(cos(angle), 0.03, sin(angle)) * zone.radius * 0.92)
-			$Dust.emit_particle(Transform3D(Basis.IDENTITY, p), Vector3.UP * 0.2, Color("b9a679"), Color(), EMIT)
-	fields.visible_instance_count = count
+	upgrades.visible_instance_count = upgrade_count
+	_sync_locks(bear.locks, by_id)
 	_sync_links(bear.links, by_id)
 	var walls: MultiMesh = $Wards.multimesh
+	var hostile_grounds: MultiMesh = $HostileGrounds.multimesh
+	var fractures: MultiMesh = $Fractures.multimesh
 	var orbs: MultiMesh = $Orbs.multimesh
 	var rings: MultiMesh = $OrbBands.multimesh
-	count = 0
+	var count := 0
+	var friendly_count := 0
+	var hostile_count := 0
 	for id: int in bear.wards:
 		var ward: Dictionary = bear.wards[id]
+		if ward.remaining <= 0.0: continue
 		var at: Vector3 = by_id[id].global_position
-		walls.set_instance_transform(count, Transform3D(Basis.IDENTITY, at + Vector3.UP * 1.1))
-		walls.set_instance_custom_data(count, Color(0, 0, 0, ward.remaining / RULES.BEAR_DURATIONS[3]))
+		var hostile: bool = ward.hostile
+		var custom := Color(float(hostile), ward.pulse, RULES.BEAR_DURATIONS[3] - ward.remaining, ward.remaining / RULES.BEAR_DURATIONS[3])
+		if hostile:
+			hostile_grounds.set_instance_transform(hostile_count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 3.4), at + Vector3.UP * 0.095))
+			hostile_grounds.set_instance_custom_data(hostile_count, custom)
+			fractures.set_instance_transform(hostile_count, Transform3D(Basis.IDENTITY, at + Vector3.UP * 1.5))
+			fractures.set_instance_custom_data(hostile_count, custom)
+			hostile_count += 1
+		else:
+			walls.set_instance_transform(friendly_count, Transform3D(Basis.IDENTITY, at + Vector3.UP * 1.1))
+			walls.set_instance_custom_data(friendly_count, custom)
+			friendly_count += 1
 		var orb_at := at + Vector3(0, 6.1 + sin(time * 2.0) * 0.10, 0)
 		var scale_factor: float = (1.0 - ward.pulse * 0.13) * smoothstep(0.0, 0.22, ward.remaining)
-		orbs.set_instance_transform(count, Transform3D(Basis(Vector3.UP, time * 0.45).scaled(Vector3.ONE * scale_factor), orb_at))
-		orbs.set_instance_custom_data(count, Color(ward.pulse, 0, 0, ward.remaining / 5.0))
-		rings.set_instance_transform(count, Transform3D((Basis(Vector3.FORWARD, 0.55) * Basis(Vector3.RIGHT, time * 0.75)).scaled(Vector3.ONE * scale_factor), orb_at))
+		var spin := 1.8 if hostile else 0.75
+		orbs.set_instance_transform(count, Transform3D(Basis(Vector3.UP, time * spin).scaled(Vector3.ONE * scale_factor), orb_at))
+		orbs.set_instance_custom_data(count, Color(ward.pulse, float(hostile), 0, ward.remaining / RULES.BEAR_DURATIONS[3]))
+		rings.set_instance_transform(count, Transform3D((Basis(Vector3.FORWARD, 0.55) * Basis(Vector3.RIGHT, time * spin)).scaled(Vector3.ONE * scale_factor), orb_at))
+		rings.set_instance_color(count, Color("ce6031") if hostile else Color.WHITE)
 		count += 1
 		if emit:
 			serial += 1
 			var a := serial * 2.399963
-			$Motes.emit_particle(Transform3D(Basis.IDENTITY, orb_at + Vector3(cos(a), sin(a * 2.0) * 0.3, sin(a)) * 0.65), Vector3.UP * 0.3, Color("eac77e"), Color(), EMIT)
-	walls.visible_instance_count = count
+			$Motes.emit_particle(Transform3D(Basis.IDENTITY, orb_at + Vector3(cos(a), sin(a * 2.0) * 0.3, sin(a)) * 0.65), Vector3.UP * (0.65 if hostile else 0.3), Color("ff7735") if hostile else Color("eac77e"), Color(), EMIT)
+	walls.visible_instance_count = friendly_count
+	hostile_grounds.visible_instance_count = hostile_count
+	fractures.visible_instance_count = hostile_count
 	orbs.visible_instance_count = count
 	rings.visible_instance_count = count
 	var bolts: MultiMesh = $Bolts.multimesh
@@ -117,6 +133,43 @@ func sync(bear: RefCounted, marches: WarMarches, by_id: Dictionary, delta: float
 		bolts.set_instance_transform(count, Transform3D(Basis.looking_at(direction), shot.position))
 		count += 1
 	bolts.visible_instance_count = count
+
+func _sync_locks(locks: Dictionary, by_id: Dictionary) -> void:
+	var grounds: MultiMesh = $LockGrounds.multimesh
+	var chains: MultiMesh = $LockChains.multimesh
+	var seals: MultiMesh = $LockSeals.multimesh
+	var shackles: MultiMesh = $LockShackles.multimesh
+	var count := 0
+	var pieces := 0
+	for id: int in locks:
+		var state: Dictionary = locks[id]
+		if state.remaining <= 0.0: continue
+		var at: Vector3 = by_id[id].global_position
+		var age: float = RULES.BEAR_DURATIONS[1] - state.remaining
+		var settle := smoothstep(0.0, 0.22, age)
+		var fade := smoothstep(0.0, 0.28, state.remaining)
+		grounds.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 3.15), at + Vector3.UP * 0.095))
+		grounds.set_instance_custom_data(count, Color(0, 0, age, state.remaining / RULES.BEAR_DURATIONS[1]))
+		# A low belt around the doors leaves roofs, population and production readable.
+		for index: int in 48:
+			var angle := TAU * float(index) / 48.0
+			var radial := Vector3(cos(angle), 0, sin(angle))
+			var origin := WarSurfaceEffects.offset_point(map_definition, at, radial * lerpf(3.15, 2.65, settle) + Vector3.UP * (0.55 + sin(angle * 4.0) * 0.12))
+			var basis := Basis.looking_at(Vector3(-sin(angle), 0, cos(angle))) * Basis(Vector3.FORWARD, PI * (0.25 + 0.5 * float(index % 2)))
+			basis *= Basis.from_scale(Vector3(0.82, 0.82, 1.1) * fade)
+			chains.set_instance_transform(pieces, Transform3D(basis, origin))
+			chains.set_instance_custom_data(pieces, Color((1.0 - settle) * 0.55, 0, 0, 1))
+			pieces += 1
+		var seal_at := WarSurfaceEffects.offset_point(map_definition, at, Vector3(0, 0.88, 2.65))
+		seals.set_instance_transform(count, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * fade * settle), seal_at))
+		seals.set_instance_custom_data(count, Color((1.0 - settle) * 0.55, 0, 0, 1))
+		shackles.set_instance_transform(count, Transform3D(Basis(Vector3.RIGHT, PI * 0.5).scaled(Vector3.ONE * 1.25 * fade * settle), seal_at + Vector3.UP * 0.35))
+		shackles.set_instance_custom_data(count, Color((1.0 - settle) * 0.55, 0, 0, 1))
+		count += 1
+	grounds.visible_instance_count = count
+	seals.visible_instance_count = count
+	shackles.visible_instance_count = count
+	chains.visible_instance_count = pieces
 
 func _link_mount(building: WarBuilding, toward: Vector3) -> Dictionary:
 	var body: MeshInstance3D = building.get_node("Visual/" + LINK_BODY_PATHS[building.kind])

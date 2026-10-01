@@ -103,7 +103,7 @@ func _run() -> void:
 	check(game.cast_skill(0, target), "bomb respects chain link")
 	near(target.population, 32, "21 damage keeps 10 at target")
 	near(game.by_id[3].population, 29, "support takes 11")
-	refill(); game.bear.wards[1] = {"faction": 1, "remaining": 5.0, "shot_clock": 0.5, "pulse": 0.0}
+	refill(); game.bear.wards[1] = {"faction": 1, "remaining": 5.0, "shot_clock": 0.5, "pulse": 0.0, "hostile": false}
 	check(game.cast_skill(0, target), "warded target remains vulnerable to proportional bomb damage")
 	near(target.population, 24, "ward does not reduce the bomb before ordinary link sharing")
 	near(game.by_id[3].population, 21, "linked support pays its full assigned bomb share")

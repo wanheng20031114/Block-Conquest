@@ -244,7 +244,9 @@ func _seed_host() -> void:
 	host.shields[0] = 0.55
 	host.morale.adjust(0, 500.0)
 	host.bear.links[2] = {"target": 2, "support": 4, "faction": 2, "remaining": 0.7, "settled": 3, "pulse": 0.8}
-	host.bear.wards[3] = {"faction": 3, "remaining": 0.36, "shot_clock": 0.5, "pulse": 0.5}
+	host.bear.locks[1] = {"faction": 2, "remaining": 0.21}
+	host.bear.wards[3] = {"faction": 3, "remaining": 0.36, "shot_clock": 0.5, "pulse": 0.5, "hostile": false}
+	host.bear.wards[1] = {"faction": 2, "remaining": 0.36, "shot_clock": 0.5, "pulse": 0.5, "hostile": true}
 	var target: WarMarches.MarchUnit = host.marches._units[4]
 	target.reserved = true
 	target.intercepted_by = 1
@@ -283,7 +285,7 @@ func _compare(label: String) -> void:
 	check(_shots(optimized) == _shots(reference), label + ": projectile trails tracking and references")
 	check(optimized.effects == reference.effects, label + ": presentation effect lifetimes")
 	check(_meshes(optimized.marches, ["Militia", "CloakedMilitia"]) == _meshes(reference.marches, ["Militia", "CloakedMilitia"]), label + ": rendered soldier transforms and shader data")
-	var effect_paths: Array[String] = ["Frog/Mist", "Frog/Bubbles", "Bear/Ground", "Bear/Chains", "Bear/Wards", "Bear/Bolts"]
+	var effect_paths: Array[String] = ["Frog/Mist", "Frog/Bubbles", "Bear/LockGrounds", "Bear/LockChains", "Bear/LockSeals", "Bear/LockShackles", "Bear/HostileGrounds", "Bear/Fractures", "Bear/UpgradeSweeps", "Bear/Chains", "Bear/Wards", "Bear/Bolts"]
 	check(_meshes(optimized.world_effects, effect_paths) == _meshes(reference.world_effects, effect_paths), label + ": native field and projectile mesh output")
 
 func _units(game: Node3D) -> Dictionary:
@@ -304,7 +306,7 @@ func _distances(game: Node3D) -> Dictionary:
 	return rows
 
 func _fields(game: Node3D) -> Array:
-	return [game.marches.haste_zones, game.marches.slow_zones, game.marches.weak_zones, game.shields, game.bear.wards, game.marches.environment_speed]
+	return [game.marches.haste_zones, game.marches.slow_zones, game.marches.weak_zones, game.shields, game.bear.locks, game.bear.wards, game.marches.environment_speed]
 
 func _shots(game: Node3D) -> Array:
 	var rows: Array = []

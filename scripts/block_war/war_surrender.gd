@@ -22,6 +22,14 @@ static func transfer(game: Node3D, faction: int, recipients: Array[int]) -> Dict
 	# Paid construction, hostile disruption and building shields remain intact.
 	game._cancel_recruitment(faction)
 	game.faction_skills[faction].durations.fill(0.0)
+	# A bear may have cast on buildings owned by teammates or enemies. Clear
+	# those caster-owned effects as well as the transferred buildings above.
+	for id: int in game.bear.links.keys():
+		if game.bear.links[id].faction == faction: game.bear.links.erase(id)
+	for id: int in game.bear.locks.keys():
+		if game.bear.locks[id].faction == faction: game.bear.locks.erase(id)
+	for id: int in game.bear.wards.keys():
+		if game.bear.wards[id].faction == faction: game.bear.wards.erase(id)
 	game.marches.haste_zones.erase(faction)
 	game.marches.slow_zones.erase(faction)
 	game.marches.weak_zones.erase(faction)

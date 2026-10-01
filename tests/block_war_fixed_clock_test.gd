@@ -78,9 +78,9 @@ func _run() -> void:
 func run_case(label: String, fps: int) -> Dictionary:
 	seed(740219)
 	host = make_game(105)
-	# This timing fixture schedules a paid toolbox on tick two; fund that cast
+	# This timing fixture completes a paid upgrade on tick two; fund that cast
 	# explicitly instead of depending on a commander's opening energy balance.
-	host.faction_skills[5].energy = 25.0
+	host.faction_skills[5].energy = host.SKILL_RULES.BEAR_COSTS[0]
 	host.ai_enabled = true
 	host_wire = make_wire(105)
 	var clock := ScheduledAuthority.new()

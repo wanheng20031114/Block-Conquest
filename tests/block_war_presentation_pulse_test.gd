@@ -45,7 +45,7 @@ func _run() -> void:
 		building.clear_burrow()
 	host.by_id[2].faction = 0
 	host.bear.links[0] = {"target": 0, "support": 2, "faction": 0, "remaining": 8.0, "settled": 1, "pulse": 1.0}
-	host.bear.wards[1] = {"faction": 1, "remaining": 5.0, "shot_clock": 0.5, "pulse": 1.0}
+	host.bear.wards[1] = {"faction": 1, "remaining": 5.0, "shot_clock": 0.5, "pulse": 1.0, "hostile": false}
 	var state: Dictionary = Snapshot.new().capture(host, 300)
 	var digest: String = Snapshot.digest(state)
 	check(Snapshot.valid(state, replica), "pulse fixture is a valid complete authority snapshot")

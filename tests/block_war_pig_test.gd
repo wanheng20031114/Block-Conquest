@@ -138,7 +138,7 @@ func _run() -> void:
 	game.pig.advance(game, 1.0)
 	check(game.pig.drops.is_empty(), "Effect record retires")
 	reset(); home.population = 31
-	game.bear.wards[0] = {"faction": 0, "remaining": 5.0, "shot_clock": 0.5, "pulse": 0.0}
+	game.bear.wards[0] = {"faction": 0, "remaining": 5.0, "shot_clock": 0.5, "pulse": 0.0, "hostile": false}
 	game.cast_ground_skill(3, home.position); game.pig.advance(game, 2.0)
 	near(home.population, 15.5, "Direct population effect halves odd garrison, ignores protection")
 	check(game.pig.drops.is_empty(), "Long step impacts then retires once")

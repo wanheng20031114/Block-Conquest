@@ -65,7 +65,7 @@ func _run() -> void:
 	host.morale.adjust(4, 2371.125)
 	host.bear.links[2] = {"target": 2, "support": 4, "faction": 2, "remaining": 5.5, "settled": 21, "pulse": 0.7}
 	host.bear.damage_remainders[2] = 0.375
-	host.bear.wards[3] = {"faction": 3, "remaining": 2.0, "shot_clock": 0.25, "pulse": 1.0}
+	host.bear.wards[3] = {"faction": 3, "remaining": 2.0, "shot_clock": 0.25, "pulse": 1.0, "hostile": false}
 	var route := PackedVector3Array([Vector3.ZERO, Vector3(30, 0, 0)])
 	host.marches.send(4, 1, 4, 1, route, 0.625, false, true)
 	var troop: WarMarches.MarchUnit = host.marches._units[-1]
@@ -96,7 +96,7 @@ func _run() -> void:
 	check(replica_events == 0, "install emits no skill damage construction or casualty facts")
 	check(replica.by_id[0].queued_population == host.by_id[0].queued_population and replica.by_id[0].population == 70.0, "hidden departure reservations do not pre-deduct displayed garrison")
 	check(replica.bear.links[2].settled == 21 and replica.bear.damage_remainders[2] == 0.375, "bear cumulative split and fractional debt survive")
-	near(replica.skill_defense_bonus(replica.by_id[3]), 1.0, "replicated bear ward adds one hundred percent skill defense")
+	near(replica.skill_defense_bonus(replica.by_id[3]), 1.2, "replicated bear ward adds one hundred twenty percent skill defense")
 	check(replica.fire_states[0].effect_id == fire.effect_id and replica.fire_states[0].hit_buildings.has(1), "fire identity and per-building hit ledger survive")
 	check(replica.projectiles[0].target == replica.bear.shots[0].target and replica.projectiles[0].target.unit_id == troop.unit_id, "both projectile kinds share stable restored soldier references")
 	check(reader._objects[str(troop.unit_id)].cloaked and reader._objects[str(troop.unit_id)].weakened, "persistent frog flags survive snapshots")

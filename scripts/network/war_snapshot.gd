@@ -1,7 +1,7 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 8
-const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "wards", "remainders", "combat_remainders", "fires", "pig_ready", "pig_drops"]
+const SCHEMA := 9
+const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "locks", "wards", "remainders", "combat_remainders", "fires", "pig_ready", "pig_drops"]
 const UNIT_SIZE := 15
 const COUNTER_SIZE := 5
 const MAX_ID := 2147483647
@@ -88,9 +88,12 @@ func capture(game: Node, tick: int) -> Dictionary:
 	for id: int in game.bear.links:
 		var link: Dictionary = game.bear.links[id]
 		state.links[str(id)] = [link.target, link.support, link.faction, deadline(now, link.remaining), link.settled, link.pulse]
+	for id: int in game.bear.locks:
+		var lock: Dictionary = game.bear.locks[id]
+		state.locks[str(id)] = [lock.faction, deadline(now, lock.remaining)]
 	for id: int in game.bear.wards:
 		var ward: Dictionary = game.bear.wards[id]
-		state.wards[str(id)] = [ward.faction, deadline(now, ward.remaining), deadline(now, ward.shot_clock), ward.pulse]
+		state.wards[str(id)] = [ward.faction, deadline(now, ward.remaining), deadline(now, ward.shot_clock), ward.pulse, ward.hostile]
 	for id: int in game.bear.damage_remainders:
 		state.remainders[str(id)] = game.bear.damage_remainders[id]
 	for id: int in game.bear.combat_damage_remainders:
@@ -232,7 +235,9 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 	if group == "wards":
 		for i: int in 3:
 			if absf(float(old[i]) - float(next[i])) > 0.00001: return true
-		return false
+		return old[4] != next[4]
+	if group == "locks":
+		return old[0] != next[0] or absf(float(old[1]) - float(next[1])) > 0.00001
 	if group == "shots":
 		return old[6] != next[6]
 	if group == "fires":
@@ -286,13 +291,19 @@ static func valid(state: Dictionary, game: Node) -> bool:
 			if group == "fields":
 				if not key is String or key != str(row[0]) + ":" + str(int(row[1])): return false
 			elif not _id(key): return false
-			elif group in ["buildings", "wards", "remainders", "combat_remainders", "links", "pig_ready"]:
+			elif group in ["buildings", "wards", "locks", "remainders", "combat_remainders", "links", "pig_ready"]:
 				if not game.by_id.has(int(key)): return false
 			elif group == "factions":
 				if int(key) >= game.faction_count: return false
 			elif int(key) < 1: return false
 			if group == "units" and not state.orders.has(str(int(row[0]))): return false
 			if group == "links" and int(key) != int(row[0]): return false
+			if group == "locks":
+				if not game.FACTIONS.hostile(int(row[0]), int(state.buildings[key][0])): return false
+				if float(row[1]) > float(state.time) + RULES.BEAR_DURATIONS[1] + 0.00001: return false
+			if group == "wards":
+				var target_faction := int(state.buildings[key][0])
+				if (row[4] and not game.FACTIONS.hostile(int(row[0]), target_faction)) or (not row[4] and not game.FACTIONS.allied(int(row[0]), target_faction)): return false
 			if group == "pig_ready" and int(row[0]) != int(state.buildings[key][0]): return false
 			if group == "pig_ready":
 				for i: int in range(1, 4):
@@ -391,7 +402,9 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 			if not _row(row, 6) or not _building_id(row[0], game) or not _building_id(row[1], game) or int(row[0]) == int(row[1]) or not _integer(row[2], 0, game.faction_count - 1): return false
 			return _nonnegative(row[3]) and _integer(row[4], 0, MAX_ID) and _nonnegative(row[5]) and float(row[5]) <= 1.0
 		"wards":
-			return _row(row, 4) and _integer(row[0], 0, game.faction_count - 1) and _nonnegative(row[1]) and _nonnegative(row[2]) and _nonnegative(row[3]) and float(row[3]) <= 1.0
+			return _row(row, 5) and _integer(row[0], 0, game.faction_count - 1) and _nonnegative(row[1]) and _nonnegative(row[2]) and _nonnegative(row[3]) and float(row[3]) <= 1.0 and row[4] is bool
+		"locks":
+			return _row(row, 2) and _integer(row[0], 0, game.faction_count - 1) and _nonnegative(row[1])
 		"remainders", "combat_remainders": return _nonnegative(row) and float(row) < 1.000001
 		"shots":
 			return _row(row, 7) and row[0] in ["tower", "orb"] and _integer(row[1], 1, MAX_ID) and _vector(row[2]) and _vector(row[3]) and _number(row[4]) and absf(float(row[4])) <= MAX_TIME and _number(row[5]) and float(row[5]) > 0 and float(row[5]) <= 10 and row[6] is bool
@@ -615,16 +628,21 @@ func install(game: Node, state: Dictionary, at_time: float = -1.0, public_view: 
 	if _render_pending and not defer_render:
 		game.marches._render()
 		_render_pending = false
-	game.bear.links.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear()
+	game.bear.links.clear(); game.bear.locks.clear(); game.bear.wards.clear(); game.bear.damage_remainders.clear(); game.bear.combat_damage_remainders.clear()
 	for key: String in state.links:
 		var row: Array = state.links[key]
 		var pulse := _pulse_at(_link_pulses, key, row, 5, float(state.time), now, 3.0)
 		game.bear.links[int(key)] = {"target": int(row[0]), "support": int(row[1]), "faction": int(row[2]), "remaining": remaining(row[3], now), "settled": int(row[4]), "pulse": pulse}
+	for key: String in state.locks:
+		var row: Array = state.locks[key]
+		var duration := remaining(row[1], now)
+		if duration <= 0.0: continue
+		game.bear.locks[int(key)] = {"faction": int(row[0]), "remaining": duration}
 	for key: String in state.wards:
 		var row: Array = state.wards[key]
 		if remaining(row[1], now) <= 0.0: continue
 		var pulse := _pulse_at(_ward_pulses, key, row, 3, float(state.time), now, 5.0)
-		game.bear.wards[int(key)] = {"faction": int(row[0]), "remaining": remaining(row[1], now), "shot_clock": remaining(row[2], now), "pulse": pulse}
+		game.bear.wards[int(key)] = {"faction": int(row[0]), "remaining": remaining(row[1], now), "shot_clock": remaining(row[2], now), "pulse": pulse, "hostile": row[4]}
 	for key: String in _link_pulses.keys():
 		if not state.links.has(key): _link_pulses.erase(key)
 	for key: String in _ward_pulses.keys():
@@ -834,6 +852,10 @@ func present(game: Node, _state: Dictionary, delta: float) -> void:
 		if game.shields[key] <= 0: game.shields.erase(key)
 	for link: Dictionary in game.bear.links.values():
 		link.remaining = maxf(0.0, link.remaining - delta); link.pulse = maxf(0.0, link.pulse - delta * 3)
+	for id: int in game.bear.locks.keys():
+		var lock: Dictionary = game.bear.locks[id]
+		lock.remaining = maxf(0.0, lock.remaining - delta)
+		if lock.remaining <= 0.0: game.bear.locks.erase(id)
 	for id: int in game.bear.wards.keys():
 		var ward: Dictionary = game.bear.wards[id]
 		ward.remaining = maxf(0.0, ward.remaining - delta); ward.pulse = maxf(0.0, ward.pulse - delta * 5)

@@ -79,12 +79,15 @@ func _run() -> void:
 	await clip("toolbox", 26)
 	await reset_game()
 	game.hud.hide()
-	var center := Vector3(-23, 0, 7)
-	focus(center, 20.0)
-	game.marches.send(1, 0, 1, 48, PackedVector3Array([center - Vector3(6, 0, 0), center + Vector3(26, 0, 0)]))
-	game.marches.tick(1.2)
-	assert(game.cast_ground_skill(1, center))
-	await clip("stomp", 72)
+	var locked: WarBuilding = game.buildings[6]
+	locked.faction = 1
+	locked.population = 80
+	locked.refresh_visual()
+	focus(locked.global_position, 20.0)
+	assert(game.issue_order(locked, game.buildings[0], 100, 1) > 0)
+	game.marches.tick(0.2)
+	assert(game.cast_skill(1, locked))
+	await clip("lock", 150)
 	await reset_game()
 	home = game.buildings[0]
 	var support: WarBuilding = game.buildings[6]
@@ -110,7 +113,7 @@ func _run() -> void:
 	game.marches.send(1, 0, 1, 50, PackedVector3Array([home.global_position + Vector3(11, 0, 4), home.global_position + Vector3(2.6, 0, 0)]))
 	game.marches.tick(0.6)
 	assert(game.cast_skill(3, home))
-	await clip("fortress", 126)
+	await clip("fortress", 150)
 	game.camera.size = 58.0
 	game.hud.show()
 	game.faction_skills[0].cooldowns[3] = 0

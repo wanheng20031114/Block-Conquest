@@ -90,7 +90,10 @@ func _transfer_rules() -> void:
 	game.by_id[6].begin_burrow(15.0)
 	game.shields[0] = 7.0
 	game.bear.links[0] = {"target": 0, "support": 6, "faction": 0, "remaining": 5.0, "settled": 21, "pulse": 0.0}
-	game.bear.wards[8] = {"faction": 0, "remaining": 5.0, "shot_clock": 0.25, "pulse": 0.0}
+	game.bear.wards[8] = {"faction": 0, "remaining": 5.0, "shot_clock": 0.25, "pulse": 0.0, "hostile": false}
+	# These targets are not owned by the surrendering caster: they must expire too.
+	game.bear.locks[1] = {"faction": 0, "remaining": 6.0}
+	game.bear.wards[3] = {"faction": 0, "remaining": 6.0, "shot_clock": 0.2, "pulse": 0.0, "hostile": true}
 	game.bear.damage_remainders[0] = 0.375
 	game.faction_skills[0].recruit_target_id = 2
 	game.faction_skills[0].durations.fill(5.0)
@@ -136,6 +139,7 @@ func _transfer_rules() -> void:
 	check(game.by_id[10].is_constructing and game.by_id[10].conversion_target == 3 and game.by_id[10].construction_cost == 20, "paid energy-tower construction survives transfer")
 	check(game.by_id[0].disruption_remaining == 4.0 and game.shields[0] == 7.0, "hostile disruption and attached shield persist")
 	check(game.by_id[6].burrow_remaining == 0.0 and game.bear.links.is_empty() and game.bear.wards.is_empty(), "caster-bound building skills end without stale ownership")
+	check(game.bear.locks.is_empty(), "surrender clears the caster's lock on another player's building")
 	check(game.bear.damage_remainders.is_empty() and game.faction_skills[0].recruit_target_id == -1, "former bear debt and surrendered caster recruitment clear")
 	check(game.faction_skills[4].recruit_target_id == 0 and game.faction_skills[2].energy == 44.0, "other teammates' skills and energy are not overwritten")
 	check(not game.marches.haste_zones.has(0) and not game.marches.slow_zones.has(0) and not game.marches.weak_zones.has(0), "surrendered caster ground fields expire")

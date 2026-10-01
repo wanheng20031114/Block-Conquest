@@ -82,10 +82,41 @@ func _run() -> void:
 			# Run through arrivals and expiry as well as the first impact frame.
 			game._process(7.0 - game.elapsed)
 			check(is_equal_approx(game.elapsed, 7.0) and not game.finished, label + " actual arrival and duration simulation remains live")
+			if hero == &"bear" and index == 1:
+				check(not game.bear.is_locked(1) and game.away.queued_population == 0, "bear lock expires without reviving a cancelled order")
+				game._process(0.6)
+				check(game.followup_dispatched and game.marches.total_for(1) > 0, "bear lock demonstration explicitly issues a new order after expiry")
 			game.set_running(false)
 			var stopped: float = game.elapsed
 			await frames(2)
 			check(is_equal_approx(game.elapsed, stopped), label + " paused simulation freezes")
+	# The ultimate alternates two genuine casts across separate clean worlds.
+	# Each variant must pay its own ordinary cost and choose the correct target.
+	var bear_row := CATALOG.HEROES.find(&"bear")
+	page.get_node("%Entries").select(bear_row)
+	page._select_entry(bear_row)
+	page._select_skill(3, false)
+	demo.bear_hostile = true
+	demo.replay()
+	demo.set_playing(false)
+	var hostile_game: Node3D = demo.world
+	hostile_game.set_running(true)
+	hostile_game.set_process(false)
+	demo.viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	hostile_game._process(hostile_game.cast_at + 0.001)
+	check(hostile_game.cast_succeeded and hostile_game.bear.wards.has(1), "bear hostile demonstration casts onto the enemy building")
+	check(hostile_game.bear.wards[1].hostile and hostile_game.bear.wards[1].faction == 0, "hostile fireball belongs to the casting side")
+	check(is_equal_approx(hostile_game.skill_defense_bonus(hostile_game.away), hostile_game.SKILL_RULES.BEAR_CURSE_DEFENSE), "hostile demonstration uses actual defense reduction")
+	check(is_equal_approx(hostile_game.energy, 100.0 - hostile_game.SKILL_RULES.BEAR_COSTS[3] + 0.001), "hostile demonstration pays its full energy cost")
+	for frame: int in 12:
+		hostile_game._process(1.0 / 24.0)
+		demo._update_caption()
+		await frames(1)
+	await save("bear_4_hostile")
+	hostile_game.set_running(false)
+	demo._repeat()
+	await frames(2)
+	check(not demo.bear_hostile and not demo.world.bear_hostile, "automatic repeat returns to the friendly demonstration")
 	page._set_category(1)
 	await frames(3)
 	check(demo.viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED and demo.world.process_mode == Node.PROCESS_MODE_DISABLED, "reading mechanics disables rendering and simulation")
@@ -115,7 +146,12 @@ func verify_effect(game: Node3D, hero: StringName, index: int, label: String) ->
 			elif index == 2:
 				for unit: WarMarches.MarchUnit in game.marches._units: active = active or unit.order.target_id == unit.order.source_id
 			else: active = game.home.burrow_remaining > 0.0
-		&"bear": active = [game.home.level == 2 and not game.home.is_constructing, game.marches.slow_zones.has(0), game.bear.links.has(0), game.bear.wards.has(0)][index]
+		&"bear":
+			active = [game.home.level == 2 and not game.home.is_constructing, game.bear.locks.has(1), game.bear.links.has(0), game.bear.wards.has(1 if game.bear_hostile else 0)][index]
+			if index == 0:
+				check(game.home.population >= 20.0, "bear Q demonstration upgrades without paying population")
+			elif index == 1:
+				check(game.away.queued_population == 0 and game.marches.total_for(1) > 0, "bear W cancels doorway queues while departed soldiers continue")
 		&"frog":
 			if index == 0: active = game.marches.weak_zones.has(0)
 			elif index in [1, 2]:

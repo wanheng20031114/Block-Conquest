@@ -2,9 +2,10 @@ extends RefCounted
 ## Bear state belongs to the simulation; authored scenes only display it.
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
-# Active effects retain the caster's faction for skill timers and presentation;
-# their buildings can belong to any player on that team.
+# Active effects retain the caster's faction. A ward's allegiance is fixed at
+# placement, so capturing its building clears it instead of reversing its role.
 var links: Dictionary[int, Dictionary] = {}
+var locks: Dictionary[int, Dictionary] = {}
 var wards: Dictionary[int, Dictionary] = {}
 var shots: Array[Dictionary] = []
 # Sub-unit attack coefficients accrue until a whole casualty can be settled.
@@ -35,32 +36,49 @@ func partner(game: Node3D, target: WarBuilding) -> WarBuilding:
 	return closest
 
 func valid_target(game: Node3D, index: int, target: WarBuilding, faction: int) -> bool:
+	if index == 1:
+		return FACTIONS.hostile(target.faction, faction) and not is_locked(target.building_id)
+	if index == 3:
+		return target.faction >= 0 and not wards.has(target.building_id)
 	if not FACTIONS.allied(target.faction, faction):
 		return false
 	match index:
-		0: return target.is_constructing and target.construction_cost > 0
+		0: return target.level < target.max_level and target.conversion_target < 0
 		2: return partner(game, target) != null
-		3: return not wards.has(target.building_id)
 	return false
+
+func is_locked(id: int) -> bool:
+	return locks.has(id) and locks[id].remaining > 0.0
+
+func orb_interval(ward: Dictionary) -> float:
+	return RULES.BEAR_HOSTILE_ORB_INTERVAL if ward.hostile else RULES.BEAR_ORB_INTERVAL
 
 func cast(game: Node3D, index: int, target: WarBuilding, faction: int) -> void:
 	match index:
 		0:
-			var refund := target.construction_cost / 2
-			var converting := target.conversion_target >= 0
+			# Reuse the native completion path for its model, morale and signals.
+			# A paid upgrade finishes once; an idle building starts a free upgrade.
+			if not target.is_constructing: target.begin_construction()
 			target.advance_construction(target.construction_remaining)
-			target.population += refund
-			if converting and target.kind != 0:
-				game._cancel_building_recruitment(target.building_id)
 			game.world_effects.get_node("Bear").toolbox(faction, target.global_position)
 			game.audio.play_world(&"war_bear_toolbox", target.global_position)
+		1:
+			locks[target.building_id] = {"faction": faction, "remaining": RULES.BEAR_DURATIONS[1]}
+			# Pending troops still belong to the garrison. Cancel reservations only;
+			# soldiers already outside continue their original orders.
+			game.marches.trim_departures(target.building_id, target.faction, 0)
+			game.world_effects.get_node("Bear").lock(faction, target.global_position)
+			game.audio.play_world(&"war_bear_stomp", target.global_position)
 		2:
 			var support := partner(game, target)
 			links[target.building_id] = {"target": target.building_id, "support": support.building_id,
 				"faction": faction, "remaining": RULES.BEAR_DURATIONS[2], "settled": 0, "pulse": 0.0}
 			game.audio.play_world(&"war_bear_link", target.global_position)
 		3:
-			wards[target.building_id] = {"faction": faction, "remaining": RULES.BEAR_DURATIONS[3], "shot_clock": RULES.BEAR_ORB_INTERVAL, "pulse": 0.0}
+			var hostile := FACTIONS.hostile(target.faction, faction)
+			var ward := {"faction": faction, "remaining": RULES.BEAR_DURATIONS[3], "shot_clock": 0.0, "pulse": 0.0, "hostile": hostile}
+			ward.shot_clock = orb_interval(ward)
+			wards[target.building_id] = ward
 			fire_orb(game, target)
 			game.audio.play_world(&"war_bear_ward", target.global_position)
 	game.world_effects.get_node("Bear").sync(self, game.marches, game.by_id, 0.0)
@@ -126,6 +144,9 @@ func clear_building(game: Node3D, id: int) -> void:
 	for key: int in links.keys():
 		if links[key].target == id or links[key].support == id:
 			_end_link(game, key)
+	if locks.has(id):
+		game.faction_skills[locks[id].faction].durations[1] = 0.0
+	locks.erase(id)
 	if wards.has(id):
 		game.faction_skills[wards[id].faction].durations[3] = 0.0
 	wards.erase(id)
@@ -136,11 +157,19 @@ func step_limit() -> float:
 	var limit := 0.05 if not shots.is_empty() else INF
 	for link: Dictionary in links.values():
 		limit = minf(limit, link.remaining)
+	for locked: Dictionary in locks.values():
+		limit = minf(limit, locked.remaining)
 	for ward: Dictionary in wards.values():
 		limit = minf(limit, minf(ward.remaining, ward.shot_clock))
 	return maxf(0.000001, limit)
 
 func advance(game: Node3D, delta: float) -> void:
+	for id: int in locks.keys():
+		var locked := locks[id]
+		locked.remaining = maxf(0.0, locked.remaining - delta)
+		if locked.remaining < 0.000001 or not FACTIONS.hostile(game.by_id[id].faction, locked.faction):
+			game.faction_skills[locked.faction].durations[1] = 0.0
+			locks.erase(id)
 	for id: int in links.keys():
 		var link := links[id]
 		link.remaining = maxf(0.0, link.remaining - delta)
@@ -152,23 +181,26 @@ func advance(game: Node3D, delta: float) -> void:
 		ward.remaining = maxf(0.0, ward.remaining - delta)
 		ward.pulse = maxf(0.0, ward.pulse - delta * 5.0)
 		ward.shot_clock -= delta
-		if ward.remaining < 0.000001 or not FACTIONS.allied(game.by_id[id].faction, ward.faction):
+		var owner: int = game.by_id[id].faction
+		var same_relation: bool = FACTIONS.hostile(owner, ward.faction) if ward.hostile else FACTIONS.allied(owner, ward.faction)
+		if ward.remaining < 0.000001 or not same_relation:
 			game.faction_skills[ward.faction].durations[3] = 0.0
 			wards.erase(id)
 		elif ward.shot_clock < 0.000001:
-			ward.shot_clock += RULES.BEAR_ORB_INTERVAL
+			ward.shot_clock += orb_interval(ward)
 			fire_orb(game, game.by_id[id])
 	game.world_effects.get_node("Bear").sync(self, game.marches, game.by_id, delta)
 
 func fire_orb(game: Node3D, building: WarBuilding) -> void:
-	var targets: Array[WarMarches.MarchUnit] = game.marches.acquire_targets(building.global_position, building.faction, RULES.BEAR_ORB_RANGE, RULES.BEAR_ORB_TARGETS, true)
+	var faction: int = wards[building.building_id].faction
+	var targets: Array[WarMarches.MarchUnit] = game.marches.acquire_targets(building.global_position, faction, RULES.BEAR_ORB_RANGE, RULES.BEAR_ORB_TARGETS, true)
 	if targets.is_empty():
 		return
 	var origin := building.global_position + Vector3(0, 6.1, 0)
 	for target: WarMarches.MarchUnit in targets:
 		shots.append({"target": target, "origin": origin, "position": origin, "previous": origin,
 			"to": target.position + Vector3.UP * 0.65, "age": 0.0, "duration": clampf(origin.distance_to(target.position) / 38.0, 0.09, 0.42)})
-		game.presentation_event.emit("bear_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": game._vector_values(origin), "to": game._vector_values(target.position + Vector3.UP * 0.65), "duration": shots[-1].duration})
+		game.presentation_event.emit("bear_shot", {"building": building.building_id, "faction": faction, "unit": target.unit_id, "at": game._vector_values(origin), "to": game._vector_values(target.position + Vector3.UP * 0.65), "duration": shots[-1].duration})
 	wards[building.building_id].pulse = 1.0
 
 func tick_projectiles(game: Node3D, delta: float) -> void:

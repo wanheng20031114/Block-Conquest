@@ -7,9 +7,11 @@ signal cycle_completed
 const CYCLE_SECONDS := 10.5
 var demo_commander: StringName = &"squirrel"
 var demo_skill := 0
+var bear_hostile := false
 var cast_succeeded := false
 var cast_count := 0
 var dispatched := false
+var followup_dispatched := false
 var cast_at := 1.8
 var dispatch_at := 0.5
 var _cycle_done := false
@@ -93,17 +95,20 @@ func _setup_example() -> void:
 			home.population = 42.0
 	elif demo_commander == &"bear":
 		if demo_skill == 0:
-			home.population = 40.0
-			var started := begin_building_construction(home, -1, 0)
-			assert(started)
+			home.population = 20.0
 			cast_at = 1.2
-			caption = "住宅正在升级，施放万能工具箱。"
+			caption = "把工具箱拖到己方住宅，直接升 1 级。"
+		elif demo_skill == 1:
+			away.population = 100.0
+			home.population = 80.0
+			cast_at = 0.9
+			caption = "敌军开始出门，封住出兵建筑。"
 		elif demo_skill == 2:
 			cast_at = 1.3
 		elif demo_skill == 3:
 			away.population = 120.0
 			cast_at = 1.3
-			caption = "敌军接近，强化建筑防御并召出法术球。"
+			caption = "对敌方建筑施放：削弱防御，火球攻击敌军。" if bear_hostile else "对友方建筑施放：提高防御，火球拦截敌军。"
 	elif demo_commander == &"frog":
 		if demo_skill == 0:
 			home.kind = 1
@@ -140,11 +145,20 @@ func _process(delta: float) -> void:
 			_dispatch_example()
 		if cast_count == 0 and elapsed >= cast_at - 0.000001:
 			_cast_example()
+		# Cancellation never resumes the old queue. Show a second, new order
+		# only after the entire lock expires, using the same ordinary command.
+		var next_order_at: float = cast_at + SKILL_RULES.BEAR_DURATIONS[1] + 0.6
+		if demo_commander == &"bear" and demo_skill == 1 and not followup_dispatched and elapsed >= next_order_at - 0.000001:
+			followup_dispatched = true
+			assert(issue_order(away, home, 50, 1) > 0)
+			caption = "封锁结束，重新下令后才会继续出兵。"
 		var step := remaining
 		if not dispatched:
 			step = minf(step, maxf(0.000001, dispatch_at - elapsed))
 		if cast_count == 0:
 			step = minf(step, maxf(0.000001, cast_at - elapsed))
+		if demo_commander == &"bear" and demo_skill == 1 and not followup_dispatched:
+			step = minf(step, maxf(0.000001, next_order_at - elapsed))
 		simulate(step)
 		remaining -= step
 	if elapsed >= CYCLE_SECONDS:
@@ -180,7 +194,7 @@ func _cast_example() -> void:
 			center = (_army_center(0) + _army_center(1)) * 0.5
 		cast_succeeded = cast_ground_skill(demo_skill, center, 0)
 	else:
-		var enemy_target := demo_commander in [&"frog", &"fox"] or (demo_commander == &"rabbit" and demo_skill == 1)
+		var enemy_target := demo_commander in [&"frog", &"fox"] or (demo_commander == &"rabbit" and demo_skill == 1) or (demo_commander == &"bear" and (demo_skill == 1 or (demo_skill == 3 and bear_hostile)))
 		cast_succeeded = cast_skill(demo_skill, away if enemy_target else home, 0)
 	after_population = away.population
 	assert(cast_succeeded, "Every codex example must pass the actual skill target and energy rules.")
@@ -190,7 +204,10 @@ func _outcome_caption() -> String:
 	match demo_commander:
 		&"squirrel": return ["持续征召，住宅驻军增加。", "圈内己军移速 +%d%%，离开后恢复。" % roundi((SKILL_RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "建筑防御力 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.SHIELD_DEFENSE * 100.0), SKILL_RULES.DURATIONS[2]], "火焰消灭接触的敌我行军部队，并伤害敌方驻军。"][demo_skill]
 		&"rabbit": return ["攻击力 +%d%%，移速 +%d%%，持续 %d 秒。" % [roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]], "敌方炮塔停止射击，停工结束后恢复。", "范围内双方行军返回各自出发建筑。", "下次派兵先掘地，再逐排从目标附近出洞。"][demo_skill]
-		&"bear": return ["升级立即完成，返还 50% 施工人口。", "圈内敌军移速 -%d%%，出圈后仍持续 %d 秒。" % [roundi((1.0 - SKILL_RULES.BEAR_SLOW_MULTIPLIER) * 100.0), SKILL_RULES.BEAR_SLOW_LINGER], "相连建筑分担 50% 驻军伤害。", "建筑防御力 +%d%%，法术球每轮攻击最多 %d 人。" % [roundi(SKILL_RULES.BEAR_WARD_DEFENSE * 100.0), SKILL_RULES.BEAR_ORB_TARGETS]][demo_skill]
+		&"bear":
+			if demo_skill == 3 and bear_hostile:
+				return "敌方防御 -%d%%，无护罩；火球每 %.2f 秒攻击敌军。" % [roundi(absf(SKILL_RULES.BEAR_CURSE_DEFENSE) * 100.0), SKILL_RULES.BEAR_HOSTILE_ORB_INTERVAL]
+			return ["立即升 1 级，驻军不消耗。", "出兵任务已取消，未出门士兵留守 %d 秒。" % SKILL_RULES.BEAR_DURATIONS[1], "相连建筑分担 50% 驻军伤害。", "友方防御 +%d%%并获得护罩；火球每 %.1f 秒攻击敌军。" % [roundi(SKILL_RULES.BEAR_WARD_DEFENSE * 100.0), SKILL_RULES.BEAR_ORB_INTERVAL]][demo_skill]
 		&"frog": return ["敌军攻击力 -%d%%，持续至进入建筑；炮塔无法攻击雾内士兵。" % roundi(SKILL_RULES.FROG_WEAKNESS * 100.0), "选中的双方士兵滞空，落地后继续行军。", "己方士兵隐身，避开炮塔攻击直至进入建筑。", "敌方驻军减少 %d%%，建筑降至 1 级。" % roundi(SKILL_RULES.FROG_STRIKE_FRACTION * 100.0)][demo_skill]
 		&"fox": return ["炸弹削减敌方驻军。", "敌方士气转移至己方，双方星级随之变化。", "选中的敌军归属转为己方，沿原路线行军。", "敌方驻军离开据点，前往同阵营避难建筑。"][demo_skill]
 		&"pig": return ["攻击力 +%d%%，移速 +%d%%，持续至进入建筑。" % [roundi(SKILL_RULES.PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(SKILL_RULES.PIG_CHARGE_SPEED_BONUS * 100.0)], "下次派兵直线飞行，最多 %d 人。" % SKILL_RULES.PIG_FLIGHT_LIMIT, "下次派兵缩短排距和列距，最多 %d 人。" % SKILL_RULES.PIG_FORMATION_LIMIT, "范围内敌我行军部队全部死亡，建筑驻军减少 50%。"][demo_skill]
