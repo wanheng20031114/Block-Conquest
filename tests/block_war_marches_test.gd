@@ -26,7 +26,7 @@ func _run() -> void:
 	var straight := PackedVector3Array([Vector3(0, 0, 0), Vector3(0, 0, -30)])
 	marches.send(0, 1, 0, 1, straight)
 	marches.tick(1.0)
-	_check(marches.get_units()[0].position.is_equal_approx(Vector3(0, 0, -2.015)), "Default marching covers 2.015 metres in one second, 65 percent of the former speed")
+	_check(marches.get_units()[0].position.is_equal_approx(Vector3(0, 0, -2.2)), "Default marching covers 2.2 metres in one second")
 	marches.clear()
 	marches.send(0, 1, 0, 42, straight, 1.25)
 	_check(marches.total_for(0) == 42, "Queued and visible population are both conserved")

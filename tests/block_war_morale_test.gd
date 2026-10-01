@@ -146,7 +146,7 @@ func _interceptions() -> void:
 	near(game.morale.points(1), 180.0, "a reinforcement was not on an attack order")
 
 func _movement() -> void:
-	near(WarMarches.SPEED, 2.015, "default movement is 65 percent of the previous 3.1 metres per second")
+	near(WarMarches.SPEED, 2.2, "default movement is 2.2 metres per second")
 	var thresholds := [0.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0]
 	var speeds := [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
 	for level: int in thresholds.size():
@@ -170,7 +170,7 @@ func _movement() -> void:
 	var ordinary: WarMarches.MarchUnit = game.marches._units[0]
 	var charged: WarMarches.MarchUnit = game.marches._units[1]
 	game.marches.tick(1.0)
-	near(ordinary.distance, 2.015, "zero stars move exactly 2.015 metres in one actual simulation second")
+	near(ordinary.distance, 2.2, "zero stars move exactly 2.2 metres in one actual simulation second")
 	near(charged.distance, WarMarches.SPEED * 1.4, "four stars change actual route travel")
 	game.morale.adjust(1, 4000.0)
 	charged.rush_remaining = 2.0
