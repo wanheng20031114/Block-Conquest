@@ -65,7 +65,9 @@ func _run() -> void:
 	var home: WarBuilding = game.by_id[0]
 	var enemy: WarBuilding = game.by_id[1]
 	game.energy = RULES.ENERGY_INITIAL
-	check(game.can_cast_skill(0), "Opening Q affordable")
+	check(not game.can_cast_skill(0), "Opening Q waits for energy")
+	game.energy = RULES.PIG_COSTS[0]
+	check(game.can_cast_skill(0), "Q affordable at its ordinary cost")
 	for index: int in 4:
 		check(game.skill_is_ground(index) == (index == 3), "Target mode %d" % index)
 		check(not RULES.description(index, RULES.PIG).is_empty(), "Tooltip %d" % index)

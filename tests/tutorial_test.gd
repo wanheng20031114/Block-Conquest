@@ -76,6 +76,11 @@ func _run() -> void:
 		await physics_frame
 		for frame: int in 8: await process_frame
 		check(game.simulation_paused and not game.ai_enabled and game.network_match == null, id + " opens paused and offline")
+		if id not in ["recruit", "drum", "shield", "fire"]:
+			check(game.energy == 0.0, id + " starts with the ordinary zero-energy account")
+		else:
+			var skill_index := ["recruit", "drum", "shield", "fire"].find(id)
+			check(game.energy >= game.SKILL_RULES.COSTS[skill_index], id + " retains enough teaching supplies for its demonstrated skill")
 		check(game.map.get_node("Ground").layers & (1 << 19) != 0, id + " ground receives the real tower range decal")
 		var time_before: float = game.elapsed
 		var population_before: float = game.by_id[0].population

@@ -43,14 +43,14 @@ func _run() -> void:
 		if game.marches.total_for(0) == 0:
 			break
 	check(ally.faction == 2 and ally.population == 90.0 and ally.level == 2, "arrivals add to the recipient without capturing or downgrading its building")
-	check(ally.is_constructing and ally.construction_remaining == 10.0, "receiving allied troops never interrupts the recipient's construction")
+	check(ally.is_constructing and ally.construction_remaining == 15.0, "receiving allied troops never interrupts the recipient's construction")
 	check(game.total_for(0) == 30 and game.total_for(2) == 90 and game.team_total_for(0) == team_total, "arrival transfers personal strength while conserving the alliance's total")
 	check(game.issue_order(ally, player, 100) == 0, "the player cannot command troops after they join an ally")
 	game.select_building(ally)
 	var before: float = ally.population
 	game.upgrade_selected()
 	game.convert_selected(0)
-	check(ally.population == before and ally.kind == 1 and ally.construction_remaining == 10.0, "selecting a teammate never grants construction controls")
+	check(ally.population == before and ally.kind == 1 and ally.construction_remaining == 15.0, "selecting a teammate never grants construction controls")
 	check(game.hud.get_node("%Upgrade").disabled, "the native upgrade control is disabled for allied buildings")
 	check(game.issue_order(ally, player, 50, 2) == 45, "the recipient AI can dispatch its combined army")
 	for step: int in 1200:

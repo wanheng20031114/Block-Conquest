@@ -31,9 +31,8 @@ func reset_match(starting_energy: float = 100.0) -> void:
 	game.ai_enabled = false
 	game.audio.muted = true
 	for faction: int in game.faction_skills.size():
-		near(game.faction_skills[faction].energy, 20.0, "fresh or restarted commander %d starts with twenty energy" % faction)
-		if starting_energy != 20.0:
-			game.faction_skills[faction].energy = starting_energy
+		near(game.faction_skills[faction].energy, 0.0, "fresh or restarted commander %d starts with zero energy" % faction)
+		game.faction_skills[faction].energy = starting_energy
 	deaths.clear()
 	game.marches.unit_defeated.connect(func(at: Vector3, _heading: Vector3, faction: int, _impulse: Vector3, burning: bool):
 		deaths.append({"at": at, "faction": faction, "burning": burning})

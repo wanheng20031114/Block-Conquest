@@ -55,14 +55,21 @@ func _run() -> void:
 	var chips: GPUParticles3D = home.get_node("Construction/Chips")
 	var completion: GPUParticles3D = home.get_node("Construction/Complete")
 	var original_nodes := home.find_children("*", "", true, false).size()
+	fixture(1, 1, 19.99)
+	game.upgrade_selected()
+	check(not home.is_constructing and home.population == 19.99, "first tower upgrade rejects a fractional twenty-person shortfall")
+	home.population = 20.0
+	game.upgrade_selected()
+	check(home.is_constructing and home.population == 0.0 and home.construction_remaining == 15.0, "exactly twenty soldiers can fund the first fifteen-second tower upgrade")
 	for kind: int in [0, 1, 2]:
 		var max_level: int = [4, 4, 1][kind]
 		for tier: int in range(1, max_level):
 			fixture(kind, tier)
-			var duration: float = [5.0, 10.0, 20.0][tier - 1] if kind == 0 else (5.0 if tier == 1 else 10.0)
+			var duration: float = [5.0, 10.0, 20.0][tier - 1] if kind == 0 else 15.0
 			var path: String = "Visual/%s/Stone" % ["House", "Tower", "Smithy"][kind]
 			var old_mesh: Mesh = home.get_node(path).mesh
 			var cost := home.upgrade_cost
+			check(cost == ([5, 15, 30] if kind == 0 else [20, 60, 90])[tier - 1], "each upgrade exposes its exact authored population cost")
 			var defense: float = game.defense_bonus(home)
 			var attack: float = game.attack_bonus(0)
 			game.upgrade_selected()

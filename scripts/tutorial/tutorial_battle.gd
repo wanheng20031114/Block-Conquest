@@ -46,8 +46,6 @@ func _enter_tree() -> void:
 	for faction: int in faction_count:
 		var state := SkillState.new()
 		state.commander = &"squirrel"
-		# Explicit teaching supplies, independent of competitive starting energy.
-		state.energy = 20.0
 		faction_skills.append(state)
 	ai_enabled = false
 

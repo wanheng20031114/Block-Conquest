@@ -56,7 +56,7 @@ func fixture() -> void:
 
 func regeneration() -> void:
 	for faction: int in game.faction_count:
-		near(energy_for(faction), 20.0, "every new faction starts with twenty energy")
+		near(energy_for(faction), 0.0, "every new faction starts with zero energy")
 	fixture()
 	near(game.energy_regen_for(0), 1.0, "opening natural regeneration is one per second")
 	game.simulate(0.25)
@@ -64,22 +64,22 @@ func regeneration() -> void:
 	fixture()
 	game.elapsed = 99.75
 	game.simulate(0.5)
-	near(energy_for(0), 10.75, "a frame crossing one hundred seconds integrates both rates")
+	near(energy_for(0), 10.625, "a frame crossing one hundred seconds integrates both rates")
 	near(game.elapsed, 100.25, "crossing the rate boundary preserves all simulation time")
-	near(game.energy_regen_for(0), 2.0, "natural regeneration is two after one hundred seconds")
+	near(game.energy_regen_for(0), 1.5, "natural regeneration is one-point-five after one hundred seconds")
 	fixture()
 	game.elapsed = 99.0
 	game.simulate(1.0)
 	near(energy_for(0), 11.0, "time ending exactly at one hundred still earned the opening rate")
-	near(game.energy_regen_for(0), 2.0, "the displayed rate changes exactly at one hundred")
+	near(game.energy_regen_for(0), 1.5, "the displayed rate changes exactly at one hundred")
 	game.simulate(0.5)
-	near(energy_for(0), 12.0, "time beginning at one hundred uses the later rate")
+	near(energy_for(0), 11.75, "time beginning at one hundred uses the later rate")
 	fixture()
 	game.elapsed = 90.0
 	game.energy = 0.0
 	game.simulate(20.0)
 	var whole: float = game.energy
-	near(whole, 30.0, "one long interval gets ten opening plus twenty later energy")
+	near(whole, 25.0, "one long interval gets ten opening plus fifteen later energy")
 	fixture()
 	game.elapsed = 90.0
 	game.energy = 0.0
@@ -91,8 +91,8 @@ func regeneration() -> void:
 	game.by_id[6].kind = 3
 	game.elapsed = 99.75
 	game.simulate(0.5)
-	near(energy_for(0), 11.0, "energy tower bonus remains additive across the boundary")
-	near(energy_for(2), 10.75, "allies do not share the owner's tower bonus")
+	near(energy_for(0), 10.875, "energy tower bonus remains additive across the boundary")
+	near(energy_for(2), 10.625, "allies do not share the owner's tower bonus")
 	fixture()
 	game.elapsed = 99.0
 	game.set_paused(true)
@@ -102,7 +102,7 @@ func regeneration() -> void:
 	game.set_paused(false)
 	game.set_process(false)
 	game.simulate(2.0)
-	near(game.energy, 13.0, "resume integrates only actual active time")
+	near(game.energy, 12.5, "resume integrates only actual active time")
 	game.energy = 99.9
 	game.simulate(1.0)
 	near(game.energy, 100.0, "natural regeneration retains the hundred-energy cap")

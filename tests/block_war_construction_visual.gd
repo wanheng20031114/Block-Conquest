@@ -69,7 +69,7 @@ func _run() -> void:
 		await _capture("default_zoom")
 		game.camera.size = 30.0
 		game.camera_rig.focus_at(Vector3(-24, 0, -4), true)
-		game.simulate(6.0)
+		game.simulate(11.0)
 		await create_timer(0.22).timeout
 		await _capture("complete")
 		game.upgrade_selected()

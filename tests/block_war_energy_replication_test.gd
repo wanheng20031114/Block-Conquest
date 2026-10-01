@@ -8,7 +8,7 @@ func _run() -> void:
 	root.get_node("Session").block_war_map_id = "highland"
 	host = make_game(105)
 	replica = make_game(102)
-	check(host.faction_skills[2].energy == 20.0, "all commanders begin with twenty energy")
+	check(host.faction_skills[2].energy == 0.0, "all commanders begin with zero energy")
 	host.elapsed = 99.75
 	host.faction_skills[2].energy = 2.999
 	host.morale.adjust(2, WarMorale.points_for_stars(2.999))
@@ -37,20 +37,21 @@ func _run() -> void:
 	check(not Codec.valid(malformed, host), "combat share requires the corresponding total remainder")
 	var row: Array = initial.factions["2"].duplicate(true)
 	check(Codec.valid_account(row, host) and float(row[9]) == 1.0, "pre-boundary account accepts one energy per second")
-	check(is_equal_approx(Codec.energy_at(row, 100.25), 3.749), "old anchor integrates both sides of the hundred-second boundary")
+	check(is_equal_approx(Codec.energy_at(row, 100.25), 3.624), "old anchor integrates both sides of the hundred-second boundary")
 	row[9] = 1.5
-	check(is_equal_approx(Codec.energy_at(row, 100.25), 3.999), "tower bonus remains additive across the boundary")
+	check(is_equal_approx(Codec.energy_at(row, 100.25), 3.874), "tower bonus remains additive across the boundary")
 	row[8] = 100.0
-	row[9] = 2.0
-	check(Codec.valid_account(row, host), "post-boundary account accepts two energy per second")
+	row[9] = 1.5
+	check(Codec.valid_account(row, host), "post-boundary account accepts one-point-five energy per second")
+	check(is_equal_approx(Codec.energy_at(row, 100.25), 3.374), "an anchor at exactly one hundred uses the new rate immediately")
 	row[9] = 1.0
 	check(not Codec.valid_account(row, host), "post-boundary account rejects the old natural rate")
-	row[9] = 2.0 + ENERGY_RULES.energy_tower_bonus(host.buildings.size()) + 0.01
+	row[9] = 1.5 + ENERGY_RULES.energy_tower_bonus(host.buildings.size()) + 0.01
 	check(not Codec.valid_account(row, host), "account rejects income above the possible tower budget")
 	client.codec.present(replica, client._mirror, 0.5)
-	check(is_equal_approx(replica.faction_skills[2].energy, 3.749), "client presentation crosses the boundary without waiting for a packet")
+	check(is_equal_approx(replica.faction_skills[2].energy, 3.624), "client presentation crosses the boundary without waiting for a packet")
 	host.simulate(0.5)
-	check(is_equal_approx(host.faction_skills[2].energy, 3.749), "authority agrees with boundary prediction")
+	check(is_equal_approx(host.faction_skills[2].energy, 3.624), "authority agrees with boundary prediction")
 	authority._tick += 15
 	authority._publish_step(0.5)
 	flush()

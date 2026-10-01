@@ -278,6 +278,11 @@ func _run() -> void:
 	_check(is_equal_approx(demo.progress, guide_progress), "hidden skill stage remains stopped while reading mechanics")
 	for index: int in guides.size():
 		var entry: Dictionary = guides[index]
+		if entry.id == &"skills":
+			_check("开局 0 点技力" in entry.sections[0].body and "之后 1.5 点/秒" in entry.sections[0].body, "energy guide retains zero opening and fractional late regeneration")
+		elif entry.id == &"tower":
+			for tier: int in 3:
+				_check(entry.table.rows[tier][5] == str([20, 60, 90][tier]) and entry.table.rows[tier][6] == "15", "tower guide shows current cost and duration at tier %d" % (tier + 1))
 		await _search(entry.title)
 		# Titles also match other guides' tags and summaries. Select the exact
 		# result through native input instead of requiring a unique search hit.

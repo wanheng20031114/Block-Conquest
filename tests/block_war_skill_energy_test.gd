@@ -35,7 +35,7 @@ func reset_match(full_energy: bool = true) -> void:
 	game.camera_rig.keyboard_pan = false
 	game.camera_rig.set_process(false)
 	for state in game.faction_skills:
-		near(state.energy, 20.0, "Every new commander starts with twenty energy")
+		near(state.energy, 0.0, "Every new commander starts with zero energy")
 	if full_energy:
 		game.energy = 100.0
 		game.update_hud()
@@ -115,10 +115,10 @@ func _run() -> void:
 
 
 func _energy_and_cooldowns() -> void:
-	near(game.energy, 20.0, "New match starts with twenty shared energy")
+	near(game.energy, 0.0, "New match starts with zero shared energy")
 	check(game.SKILL_ENERGY_COSTS == [30.0, 30.0, 35.0, 70.0], "Squirrel Q/W/E/R expose their balanced energy costs")
 	game.simulate(0.25)
-	near(game.energy, 20.25, "Opening energy regenerates from twenty")
+	near(game.energy, 0.25, "Opening energy regenerates from zero")
 	game.energy = 100.0
 	game.simulate(0.25)
 	near(game.energy, 100.0, "Regeneration cannot exceed the energy cap")
@@ -428,8 +428,9 @@ func _native_selection_and_hud() -> void:
 	var r: Button = game.hud.get_node("UI/Skills/Row/Skill3")
 	var ghost: Control = game.hud.get_node("%SkillDrag")
 	var energy_bar: ProgressBar = game.hud.get_node("%EnergyBar")
-	near(energy_bar.value, 20.0, "HUD initially exposes twenty shared energy")
-	check(q.hint.energy.contains("20 / 100"), "hover hints show the real initial energy")
+	near(energy_bar.value, 0.0, "HUD initially exposes zero shared energy")
+	check(q.hint.energy.contains("0 / 100"), "hover hints show the real initial energy")
+	check(energy_bar.tooltip_text.contains("之后 +1.5 点/秒"), "natural regeneration tooltip preserves the fractional late rate")
 	check(q.disabled and w.disabled and e.disabled and r.disabled, "Opening energy cannot yet fund any squirrel skill")
 	game.energy = 100.0
 	game.update_hud()

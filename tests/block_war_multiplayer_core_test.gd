@@ -63,7 +63,7 @@ func _run() -> void:
 	for slot: Dictionary in config().slots:
 		check(game.faction_skills[slot.faction_id].commander == StringName(slot.commander), "commander belongs to individual seat %d" % slot.faction_id)
 	game.energy = 71.0
-	check(game.faction_skills[5].energy == 71.0 and game.faction_skills[0].energy == 20.0, "local HUD energy reads and writes own account")
+	check(game.faction_skills[5].energy == 71.0 and game.faction_skills[0].energy == 0.0, "local HUD energy reads and writes own account")
 	check(game.faction_name(5) == "Seat 5（你）" and game.faction_name(0) == "Seat 0", "names follow player identity instead of faction zero")
 	clean()
 	game.select_building(game.by_id[5])

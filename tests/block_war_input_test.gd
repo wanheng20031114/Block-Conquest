@@ -134,7 +134,7 @@ func run() -> void:
 	game = current_scene
 	check(game.scene_file_path == "res://scenes/block_war/block_war.tscn", "native start click enters the selected battlefield")
 	check(not root.use_taa, "war mode avoids temporal ghosting on population badges")
-	check(game.energy == 20.0, "native start opens with twenty energy")
+	check(game.energy == 0.0, "native start opens with zero energy")
 	while root.get_node("Session").transition.busy:
 		await process_frame
 	game.ai_enabled = false
@@ -153,6 +153,9 @@ func run() -> void:
 	home.population = 60.0
 	key(KEY_3)
 	check(game.percentage == 75, "percentage shortcut routes through HUD")
+	# The match preselects home; clear it before testing a fresh selection press.
+	mouse(source_screen, MOUSE_BUTTON_RIGHT, true)
+	mouse(source_screen, MOUSE_BUTTON_RIGHT, false)
 	mouse(source_screen, MOUSE_BUTTON_LEFT, true)
 	check(game.drag_source == home, "mouse press selects allied drag source")
 	check(home._selection_body_tween != null and home._selection_body_tween.is_running(), "native building press starts the selected rebound animation")
@@ -213,7 +216,7 @@ func run() -> void:
 	game.ai_enabled = false
 	while root.get_node("Session").transition.busy:
 		await process_frame
-	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == 20.0, "restart resets match, cooldowns and energy to twenty")
+	check(game.by_id[0].population < 62.0 and game.marches.total_for(0) == 0 and game.cooldowns[3] == 0.0 and game.energy == 0.0, "restart resets match, cooldowns and energy to zero")
 	game.exit_to_lobby()
 	await scene_changed
 	while root.get_node("Session").transition.busy:

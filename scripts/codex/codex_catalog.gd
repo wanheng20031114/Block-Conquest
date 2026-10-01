@@ -116,9 +116,9 @@ static func guides() -> Array[Dictionary]:
 			"table": {
 				"headers": ["等级", "射程\n米", "攻击间隔\n秒", "每轮目标\n人", "防御力", "升级消耗\n人", "升级耗时\n秒"],
 				"rows": [
-					["1", "%d" % (9.0 + 1 * 2.0), str(COMBAT.tower_attack_interval(1)), "1", "+%d%%" % roundi(COMBAT.tower_defense_bonus(1) * 100.0), str(1 * 30), "%d" % BUILDING.upgrade_duration(1, 1)],
-					["2", "%d" % (9.0 + 2 * 2.0), str(COMBAT.tower_attack_interval(2)), "2", "+%d%%" % roundi(COMBAT.tower_defense_bonus(2) * 100.0), str(2 * 30), "%d" % BUILDING.upgrade_duration(1, 2)],
-					["3", "%d" % (9.0 + 3 * 2.0), str(COMBAT.tower_attack_interval(3)), "3", "+%d%%" % roundi(COMBAT.tower_defense_bonus(3) * 100.0), str(3 * 30), "%d" % BUILDING.upgrade_duration(1, 3)],
+					["1", "%d" % (9.0 + 1 * 2.0), str(COMBAT.tower_attack_interval(1)), "1", "+%d%%" % roundi(COMBAT.tower_defense_bonus(1) * 100.0), str(BUILDING.upgrade_cost_for(1, 1)), "%d" % BUILDING.upgrade_duration(1, 1)],
+					["2", "%d" % (9.0 + 2 * 2.0), str(COMBAT.tower_attack_interval(2)), "2", "+%d%%" % roundi(COMBAT.tower_defense_bonus(2) * 100.0), str(BUILDING.upgrade_cost_for(1, 2)), "%d" % BUILDING.upgrade_duration(1, 2)],
+					["3", "%d" % (9.0 + 3 * 2.0), str(COMBAT.tower_attack_interval(3)), "3", "+%d%%" % roundi(COMBAT.tower_defense_bonus(3) * 100.0), str(BUILDING.upgrade_cost_for(1, 3)), "%d" % BUILDING.upgrade_duration(1, 3)],
 					["4", "%d" % (9.0 + 4 * 2.0), str(COMBAT.tower_attack_interval(4)), "4", "+%d%%" % roundi(COMBAT.tower_defense_bonus(4) * 100.0), "—", "—"],
 				],
 			},
@@ -154,9 +154,9 @@ static func guides() -> Array[Dictionary]:
 			"id": &"construction", "title": "升级与改建", "tag": "据点经营",
 			"summary": "消耗驻军提升建筑等级，或更换据点功能。",
 			"sections": [
-				{"title": "升级", "body": "住宅：升至 2 级消耗 %d 人，3 级消耗 %d 人，4 级消耗 %d 人。\n炮塔：升至 2 级消耗 30 人，3 级消耗 60 人，4 级消耗 90 人。\n只能使用尚未编入出发队列的驻军。" % BUILDING.HOUSE_UPGRADE_COSTS},
+				{"title": "升级", "body": "住宅：升至 2 级消耗 %d 人，3 级消耗 %d 人，4 级消耗 %d 人。\n炮塔：升至 2 级消耗 %d 人，3 级消耗 %d 人，4 级消耗 %d 人。\n只能使用尚未编入出发队列的驻军。" % (BUILDING.HOUSE_UPGRADE_COSTS + BUILDING.TOWER_UPGRADE_COSTS)},
 				{"title": "改建", "body": "改建消耗 20 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。"},
-				{"title": "施工", "body": "住宅：1 → 2 级 %d 秒，2 → 3 级 %d 秒，3 → 4 级 %d 秒。\n炮塔：1 → 2 级 %d 秒，后续升级各 %d 秒。改建均需 %d 秒。\n期间保留原有功能与防御力；失守中断施工，消耗不返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.upgrade_duration(0, 3), BUILDING.upgrade_duration(1, 1), BUILDING.upgrade_duration(1, 2), BUILDING.CONSTRUCTION_DURATION]},
+				{"title": "施工", "body": "住宅：1 → 2 级 %d 秒，2 → 3 级 %d 秒，3 → 4 级 %d 秒。\n炮塔：每次升级均需 %d 秒。改建均需 %d 秒。\n期间保留原有功能与防御力；失守中断施工，消耗不返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.upgrade_duration(0, 3), BUILDING.TOWER_UPGRADE_DURATION, BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "封条急件暂停建筑运作，不暂停升级或改建计时。",
 			"icon": GUIDE_ICONS.get_meta(&"construction"),
@@ -187,7 +187,7 @@ static func guides() -> Array[Dictionary]:
 			"id": &"skills", "title": "技力与施法", "tag": "指挥官技能",
 			"summary": "技力决定施法资源，冷却限制技能使用频率。",
 			"sections": [
-				{"title": "自然恢复", "body": "开局 %d 点技力，上限 %d 点。前 %d 秒自然恢复 %d 点/秒，之后 %d 点/秒；暂停不计时。能量塔额外加速恢复，悬停技力条可查看当前数值。" % [RULES.ENERGY_INITIAL, RULES.ENERGY_MAX, RULES.ENERGY_ACCELERATION_TIME, RULES.ENERGY_REGEN, RULES.ENERGY_LATE_REGEN]},
+				{"title": "自然恢复", "body": "开局 %d 点技力，上限 %d 点。前 %d 秒自然恢复 %s 点/秒，之后 %s 点/秒；暂停不计时。能量塔额外加速恢复，悬停技力条可查看当前数值。" % [RULES.ENERGY_INITIAL, RULES.ENERGY_MAX, RULES.ENERGY_ACCELERATION_TIME, RULES.ENERGY_REGEN, RULES.ENERGY_LATE_REGEN]},
 				{"title": "战损回能", "body": "建筑交战中，己方每实际损失 1 人：\n战前士气不足 3 星：技力 +0.2；\n3 星至不足 5 星：技力 +0.15；5 星：技力 +0.1。\n攻守均计，包含进攻中立和链式分担；技能直接杀伤、路上伤亡不计。"},
 				{"title": "施法与取消", "body": "四项技能共用技力、独立冷却。拖动图标或按住 Q/W/E/R 瞄准，松手施放，右键取消。取消或无效施放不扣技力、不进冷却；电脑遵循相同规则。"},
 			],

@@ -46,9 +46,9 @@ func _upgrade_choices() -> void:
 	bear_fixture(0, game.SKILL_RULES.BEAR_COSTS[0])
 	game.by_id[1].population = 0.0
 	TACTICS.new(1).take_turn(game)
-	check(game.by_id[1].level == 2, "opening bear upgrades an empty idle residence")
+	check(game.by_id[1].level == 2, "funded bear upgrades an empty idle residence")
 	near(game.by_id[1].population, 0.0, "AI instant upgrade does not invent or spend soldiers")
-	near(game.faction_skills[1].energy, 0.0, "opening upgrade pays exactly its affordable cost")
+	near(game.faction_skills[1].energy, 0.0, "funded upgrade pays exactly its affordable cost")
 	near(game.faction_skills[1].cooldowns[0], game.SKILL_RULES.BEAR_COOLDOWNS[0], "AI uses ordinary Q cooldown")
 	bear_fixture(0)
 	check(game.begin_building_construction(game.by_id[1], -1, 1), "paid upgrade fixture begins")

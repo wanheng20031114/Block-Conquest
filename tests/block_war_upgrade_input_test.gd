@@ -81,11 +81,11 @@ func _run() -> void:
 			continue
 		check(not game.hud.get_node("%ConvertEnergy").visible, "residence and tower expose only the two original conversion choices")
 		check(upgrade.is_visible_in_tree() and not upgrade.disabled, "kind %d exposes upgrade beside the selected building" % kind)
-		var expected_costs := [5, 15, 30] if kind == 0 else [30, 60, 90]
+		var expected_costs := [5, 15, 30] if kind == 0 else [20, 60, 90]
 		var expected_max := 4
 		var remaining: float = building.population
 		for tier: int in expected_costs.size():
-			var duration: float = [5.0, 10.0, 20.0][tier] if kind == 0 else [5.0, 10.0, 10.0][tier]
+			var duration: float = [5.0, 10.0, 20.0][tier] if kind == 0 else 15.0
 			check(next_level.text == str(tier + 2) and cost.text == str(expected_costs[tier]) and upgrade.text.is_empty(), "kind %d tier %d shows the actual next level and cost" % [kind, tier + 1])
 			check(upgrade.tooltip_text.contains("%d 秒" % int(duration)), "kind %d tier %d tooltip shows its actual construction duration" % [kind, tier + 1])
 			await click(center(upgrade))
@@ -145,15 +145,15 @@ func _run() -> void:
 	home.population = 90.0
 	game.update_hud()
 	await click(center(upgrade))
-	check(home.level == 1 and home.is_constructing and home.population == 60.0 and home.construction_remaining == 5.0, "converted level-one building starts a five-second upgrade through the same direct button")
-	game.simulate(5.0)
+	check(home.level == 1 and home.is_constructing and home.population == 70.0 and home.construction_remaining == 15.0, "converted level-one tower starts a fifteen-second upgrade for twenty soldiers through the same direct button")
+	game.simulate(15.0)
 	game.update_hud()
 	game.set_paused(true)
 	game.update_hud()
 	await frames()
 	check(upgrade.disabled and not menu.visible, "pause hides and disables the contextual actions")
 	await click(center(upgrade))
-	check(home.level == 2 and home.population == 60.0 and game._local_menu, "pause overlay rejects an actual upgrade click")
+	check(home.level == 2 and home.population == 70.0 and game._local_menu, "pause overlay rejects an actual upgrade click")
 	game.set_paused(false)
 	game.update_hud()
 	check(not upgrade.disabled, "resume restores an affordable upgrade")
@@ -197,9 +197,9 @@ func _run() -> void:
 	check(point(covered).distance_to(at) < 1.0 and game.pick_building(at) == covered, "upgrade overlap fixture contains a real building underneath")
 	check(game.hud.is_pointer_blocked(at), "upgrade coordinates are explicitly blocked from world dispatch")
 	await click(at)
-	check(home.level == 2 and home.is_constructing and home.population == 0.0 and game.selected == home and game.marches.total_for(0) == 0, "upgrade over another building neither selects it nor sends troops")
-	game.simulate(10.0)
-	check(home.level == 3, "overlapping upgrade still completes its ten-second construction")
+	check(home.level == 2 and home.is_constructing and home.population == 10.0 and game.selected == home and game.marches.total_for(0) == 0, "upgrade over another building neither selects it nor sends troops")
+	game.simulate(15.0)
+	check(home.level == 3, "overlapping tower upgrade still completes its fifteen-second construction")
 	# A map drag ending on this action cannot upgrade or dispatch to its backdrop.
 	home.level = 1
 	home.population = 120.0
