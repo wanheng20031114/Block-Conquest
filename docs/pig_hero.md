@@ -23,6 +23,6 @@ R 按落地瞬间的水平距离结算，包括隐身和空中部队。建筑减
 
 电脑会先找合适的出兵目标再施放 Q/W。E 优先救援受威胁的己方或盟友建筑，也会根据可观察的守军估计夺取合适的敌方或中立据点；空投不伪装成出兵命令。现有空投会计入公开可见的援军与威胁，避免重复支援，松鼠和熊也会提前防守。R 预测下落后的落点，扣除友军损失。敌方隐藏人口、私有技能账户与隐身部队不参与作弊式决策。
 
-百科演示使用真实战斗模拟。E 先向己方建筑补入 40 人，下一轮向敌方建筑空降并完成占领，全程没有来源建筑扣兵或普通行军。摄像机为完整下降保留上方空间，小窗口仍可看到起始高度、风迹与落地点。
+百科演示使用真实战斗模拟。E 先向己方建筑补入 40 人，下一轮向敌方建筑空降并完成占领，全程没有来源建筑扣兵或普通行军。士兵从目标建筑正上方垂直落入楼体，不在外围落地或步行进门。摄像机为完整下降保留上方空间，小窗口仍可看到起始高度、风迹与入楼过程。
 
-验证脚本：`block_war_pig_test`、`block_war_pig_marches_test`、`block_war_pig_airlift_test`、`block_war_pig_ai_test`、`block_war_pig_snapshot_test`、`block_war_pig_replication_test`、`block_war_pig_airlift_replication_test`、`codex_native_demo_test`。AI 专项 1190 项通过，百科原生演示 540 项通过，包括 E 完整下降取景、己方补兵、敌方占领以及自动轮播。`block_war_pig_visual` 与 `block_war_pig_airlift_visual` 在隔离桌面输出原生渲染截图，覆盖待命、飞行、空降批次、坡面落点和 R 预警圈。
+验证脚本：`block_war_pig_test`、`block_war_pig_marches_test`、`block_war_pig_airlift_test`、`block_war_pig_ai_test`、`block_war_pig_snapshot_test`、`block_war_pig_replication_test`、`block_war_pig_airlift_replication_test`、`codex_native_demo_test`。AI 专项 1190 项通过，百科原生演示 540 项通过，包括 E 完整下降取景、己方补兵、敌方占领以及自动轮播。`block_war_pig_visual` 与 `block_war_pig_airlift_visual` 在隔离桌面输出原生渲染截图，覆盖待命、飞行、空降批次、四类建筑入屋、升级时的屋顶变化和 R 预警圈。

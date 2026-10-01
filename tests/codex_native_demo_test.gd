@@ -3,6 +3,7 @@ extends SceneTree
 ## All 24 cases must cast successfully and change the corresponding rule state.
 
 const CATALOG := preload("res://scripts/codex/codex_catalog.gd")
+const AIRLIFT := preload("res://scripts/block_war/war_pig_airlift.gd")
 var checks := 0
 var failures: Array[String] = []
 var output := ""
@@ -194,13 +195,17 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func verify_airlift_framing(game: Node3D, demo: Control, label: String) -> void:
-	# Include the entire perimeter and the wind above soldiers' initial height.
+	# Include roof entry and the full column above each possible destination.
 	var frame := Rect2(Vector2.ZERO, Vector2(demo.viewport.size)).grow(-8)
 	for building: WarBuilding in game.buildings:
-		for height: float in [0.0, 9.0]:
-			for index: int in 8:
-				var angle := TAU * index / 8.0
-				var point := building.position + Vector3(cos(angle) * 3.2, height, sin(angle) * 3.2)
+		var entries := AIRLIFT.entry_points_for(building)
+		var roof := 0.0
+		for entry: Vector3 in entries:
+			roof = maxf(roof, entry.y)
+		var top := roof + AIRLIFT.DROP_HEIGHT + maxf(2.25, AIRLIFT.SOLDIER.get_aabb().end.y * WarMarches.MODEL_SCALE)
+		for entry: Vector3 in entries:
+			for height: float in [entry.y, top]:
+				var point := building.global_position + Vector3(entry.x, height, entry.z)
 				check(frame.has_point(game.camera.unproject_position(point)), label + " complete descent stays inside camera")
 
 func verify_effect(game: Node3D, hero: StringName, index: int, label: String) -> void:

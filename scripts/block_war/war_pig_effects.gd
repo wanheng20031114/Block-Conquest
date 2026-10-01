@@ -18,8 +18,6 @@ func configure_surface(definition: WarMapDefinition) -> void:
 		slot.configure_surface(definition)
 	for slot: Node3D in $Drops.get_children():
 		slot.configure_surface(definition)
-	for slot: Node3D in $Airlifts.get_children():
-		slot.configure_surface(definition)
 
 func update_ready(buildings: Array, ready: Dictionary) -> void:
 	_buildings = buildings

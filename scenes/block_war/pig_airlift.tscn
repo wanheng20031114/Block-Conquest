@@ -4,7 +4,6 @@
 [ext_resource type="ArrayMesh" path="res://assets/models/block_war/militia.res" id="soldier"]
 [ext_resource type="Shader" path="res://assets/models/block_war/pig_airlift_unit.gdshader" id="unit_shader"]
 [ext_resource type="Shader" path="res://assets/models/block_war/pig_airlift_wind.gdshader" id="wind_shader"]
-[ext_resource type="Shader" path="res://assets/models/block_war/pig_airlift_mark.gdshader" id="mark_shader"]
 
 [sub_resource type="ShaderMaterial" id="UnitMaterial"]
 shader = ExtResource("unit_shader")
@@ -13,7 +12,7 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-6, -3, -6, 12, 16, 12)
+custom_aabb = AABB(-2, -1, -2, 4, 20, 4)
 mesh = ExtResource("soldier")
 
 [sub_resource type="ShaderMaterial" id="WindMaterial"]
@@ -26,49 +25,8 @@ resource_local_to_scene = true
 transform_format = 1
 use_custom_data = true
 visible_instance_count = 0
-custom_aabb = AABB(-6, -3, -6, 12, 16, 12)
+custom_aabb = AABB(-2, -1, -2, 4, 20, 4)
 mesh = SubResource("WindMesh")
-
-[sub_resource type="ShaderMaterial" id="MarkMaterial"]
-resource_local_to_scene = true
-shader = ExtResource("mark_shader")
-[sub_resource type="PlaneMesh" id="MarkMesh"]
-resource_local_to_scene = true
-material = SubResource("MarkMaterial")
-size = Vector2(2, 2)
-subdivide_width = 7
-subdivide_depth = 7
-[sub_resource type="MultiMesh" id="Marks"]
-resource_local_to_scene = true
-transform_format = 1
-use_custom_data = true
-visible_instance_count = 0
-custom_aabb = AABB(-90, -3, -70, 180, 26, 140)
-mesh = SubResource("MarkMesh")
-
-[sub_resource type="Gradient" id="DustFade"]
-offsets = PackedFloat32Array(0, 0.12, 1)
-colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.35, 1, 1, 1, 0)
-[sub_resource type="GradientTexture1D" id="DustRamp"]
-gradient = SubResource("DustFade")
-[sub_resource type="ParticleProcessMaterial" id="DustProcess"]
-gravity = Vector3(0, 0.6, 0)
-color = Color(0.82, 0.77, 0.64, 1)
-color_ramp = SubResource("DustRamp")
-scale_min = 0.45
-scale_max = 0.75
-damping_min = 1.0
-damping_max = 1.5
-[sub_resource type="StandardMaterial3D" id="DustMaterial"]
-transparency = 1
-vertex_color_use_as_albedo = true
-roughness = 1.0
-[sub_resource type="SphereMesh" id="DustMesh"]
-material = SubResource("DustMaterial")
-radius = 0.28
-height = 0.30
-radial_segments = 8
-rings = 4
 
 [node name="Airlift" type="Node3D"]
 visible = false
@@ -78,17 +36,4 @@ material_override = SubResource("UnitMaterial")
 multimesh = SubResource("Soldiers")
 [node name="Wind" type="MultiMeshInstance3D" parent="."]
 multimesh = SubResource("Wind")
-cast_shadow = 0
-[node name="Marks" type="MultiMeshInstance3D" parent="."]
-top_level = true
-multimesh = SubResource("Marks")
-cast_shadow = 0
-[node name="Dust" type="GPUParticles3D" parent="."]
-emitting = false
-amount = 64
-lifetime = 0.18
-local_coords = true
-visibility_aabb = AABB(-6, -3, -6, 12, 16, 12)
-process_material = SubResource("DustProcess")
-draw_pass_1 = SubResource("DustMesh")
 cast_shadow = 0

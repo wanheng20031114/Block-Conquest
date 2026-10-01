@@ -169,8 +169,8 @@ static func icons_for(commander: StringName) -> Array[Texture2D]:
 static func description(index: int, commander: StringName = COMMANDER_ID) -> String:
 	if commander == PIG:
 		return [
-			"下次最多派出 %d 人，攻击力 +%d%%、移速 +%d%%，直至进入建筑。\n待命 %d 秒，可叠加飞行。" % [PIG_CHARGE_LIMIT, roundi(PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(PIG_CHARGE_SPEED_BONUS * 100.0), PIG_READY_DURATION],
-			"下次最多派出 %d 人，直线飞行，无视地形。\n待命 %d 秒；叠加冲锋时最多 %d 人，余兵留守。" % [PIG_FLIGHT_LIMIT, PIG_READY_DURATION, PIG_CHARGE_LIMIT],
+			"下次最多派出 %d 人，攻击力 +%d%%、移速 +%d%%，直至进入建筑。" % [PIG_CHARGE_LIMIT, roundi(PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(PIG_CHARGE_SPEED_BONUS * 100.0)],
+			"下次最多派出 %d 人，直线飞行，无视地形。" % PIG_FLIGHT_LIMIT,
 			"选择一座建筑，在 %d 秒内空投 %d 名新兵。" % [PIG_AIRLIFT_DURATION, PIG_AIRLIFT_COUNT],
 			"半径 %.1f 米内，敌我行军部队全部死亡，建筑驻军减少 50%%。\n选择落点后 %.2f 秒砸下，无视防御力和链式分伤。\n不直接占领建筑，空地也可施放。" % [PIG_DROP_RADIUS, PIG_DROP_FALL_TIME]
 		][index]
