@@ -46,6 +46,7 @@ const BEAR_SLOW_RADIUS := 4.5
 const BEAR_SLOW_MULTIPLIER := 0.4
 const BEAR_SLOW_LINGER := 5.0
 const BEAR_LINK_RADIUS := 18.0
+const BEAR_LINK_DEFENSE := 0.2
 const BEAR_WARD_DEFENSE := 1.2
 const BEAR_CURSE_DEFENSE := -0.3
 const BEAR_ORB_RANGE := 18.0
@@ -191,7 +192,7 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 		return [
 			"自己或盟友建筑立即升 1 级，不消耗驻军。\n正在升级则立即完工，不返还已付人口。\n满级或正在改建的建筑无法施放。",
 			"敌方建筑 %d 秒内无法派兵。\n取消所有尚未离楼的出兵任务，驻军留守；到期需重新下令。\n已出门部队、产兵、射击和增援不受影响。" % BEAR_DURATIONS[1],
-			"自己或盟友的建筑，由最近的另一座同队建筑分担 50%% 驻军伤害，持续 %d 秒。\n连接距离最多 %d 米，奇数伤亡由支援方多承担 1 人。\n支援兵力不足或一端失守时断开。" % [BEAR_DURATIONS[2], BEAR_LINK_RADIUS],
+			"连接两座同队建筑，双方防御力 +%d%%，支援方分担 50%% 驻军伤害，持续 %d 秒。\n连接最近的同队建筑，距离最多 %d 米。\n支援兵力不足或一端失守时断开。" % [roundi(BEAR_LINK_DEFENSE * 100.0), BEAR_DURATIONS[2], BEAR_LINK_RADIUS],
 			"持续 %d 秒：友方建筑防御力 +%d%%并获得护罩；敌方防御力 -%d%%，无护罩。\n头顶火球攻击 %d 米内最多 %d 名施法方敌兵，优先最远目标。\n友方每 %.1f 秒、敌方每 %.2f 秒开火。" % [BEAR_DURATIONS[3], roundi(BEAR_WARD_DEFENSE * 100.0), roundi(absf(BEAR_CURSE_DEFENSE) * 100.0), BEAR_ORB_RANGE, BEAR_ORB_TARGETS, BEAR_ORB_INTERVAL, BEAR_HOSTILE_ORB_INTERVAL]
 		][index]
 	if commander == RABBIT:

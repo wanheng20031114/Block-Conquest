@@ -20,6 +20,15 @@ func participates(id: int) -> bool:
 			return true
 	return false
 
+func link_defense_bonus(game: Node3D, id: int) -> float:
+	for link: Dictionary in links.values():
+		if (id == link.target or id == link.support) and link.remaining > 0.0:
+			var target: WarBuilding = game.by_id[link.target]
+			var support: WarBuilding = game.by_id[link.support]
+			if FACTIONS.allied(target.faction, link.faction) and FACTIONS.allied(support.faction, link.faction) and support.population >= 1.0:
+				return RULES.BEAR_LINK_DEFENSE
+	return 0.0
+
 func partner(game: Node3D, target: WarBuilding) -> WarBuilding:
 	if target == null or participates(target.building_id):
 		return null

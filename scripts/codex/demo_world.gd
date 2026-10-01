@@ -222,7 +222,7 @@ func _outcome_caption() -> String:
 		&"bear":
 			if demo_skill == 3 and bear_hostile:
 				return "敌方防御 -%d%%，无护罩；火球每 %.2f 秒攻击敌军。" % [roundi(absf(SKILL_RULES.BEAR_CURSE_DEFENSE) * 100.0), SKILL_RULES.BEAR_HOSTILE_ORB_INTERVAL]
-			return ["立即升 1 级，驻军不消耗。", "出兵任务已取消，未出门士兵留守 %d 秒。" % SKILL_RULES.BEAR_DURATIONS[1], "相连建筑分担 50% 驻军伤害。", "友方防御 +%d%%并获得护罩；火球每 %.1f 秒攻击敌军。" % [roundi(SKILL_RULES.BEAR_WARD_DEFENSE * 100.0), SKILL_RULES.BEAR_ORB_INTERVAL]][demo_skill]
+			return ["立即升 1 级，驻军不消耗。", "出兵任务已取消，未出门士兵留守 %d 秒。" % SKILL_RULES.BEAR_DURATIONS[1], "双方防御力 +%d%%，支援方分担一半伤害。" % roundi(SKILL_RULES.BEAR_LINK_DEFENSE * 100.0), "友方防御 +%d%%并获得护罩；火球每 %.1f 秒攻击敌军。" % [roundi(SKILL_RULES.BEAR_WARD_DEFENSE * 100.0), SKILL_RULES.BEAR_ORB_INTERVAL]][demo_skill]
 		&"frog":
 			if demo_skill == 0 and frog_siege:
 				return "雾内敌方建筑防御力 -%d%%；雾散后恢复。" % roundi(-SKILL_RULES.FROG_BUILDING_DEFENSE * 100.0)

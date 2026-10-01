@@ -41,7 +41,7 @@ func _select(index: int, animate: bool = true) -> void:
 		"建筑待命 %d 秒，下次派兵经兔洞突袭。" % RULES.BURROW_READY_DURATION,
 	])
 	if commander == RULES.BEAR:
-		summaries = PackedStringArray(["施工立即完成，返还 50% 消耗人口。", "区域内敌军移速 -60%，持续 4 秒。", "连接附近己方建筑，分担一半伤害，持续 8 秒。", "己方建筑防御力 +100%，持续 5 秒；法球优先攻击远处敌兵。"])
+		summaries = PackedStringArray(["友方建筑立即升 1 级，驻军不消耗。", "敌方建筑 %d 秒内无法派兵，取消待出兵任务。" % RULES.BEAR_DURATIONS[1], "连接 %d 秒，双方防御 +%d%%，分担一半伤害。" % [RULES.BEAR_DURATIONS[2], roundi(RULES.BEAR_LINK_DEFENSE * 100.0)], "友方防御 +%d%%、敌方 -%d%%，持续 %d 秒。\n火球分别每 %.1f / %.1f 秒攻击敌兵。" % [roundi(RULES.BEAR_WARD_DEFENSE * 100.0), roundi(-RULES.BEAR_CURSE_DEFENSE * 100.0), RULES.BEAR_DURATIONS[3], RULES.BEAR_ORB_INTERVAL, RULES.BEAR_HOSTILE_ORB_INTERVAL]])
 	elif commander == RULES.FROG:
 		summaries = PackedStringArray(["敌军攻击力 -20%，持续至进入建筑；雾内避开炮塔。", "双方士兵滞空 3 秒，停步并避开炮塔。", "己军隐身至进入建筑，避开炮塔的攻击。", "削减当前驻军 80%，建筑降至 1 级。"])
 	elif commander == RULES.FOX:

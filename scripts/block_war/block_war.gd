@@ -669,6 +669,7 @@ func defense_bonus(building: Node3D) -> float:
 
 func skill_defense_bonus(building: Node3D) -> float:
 	var bonus: float = SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
+	bonus += bear.link_defense_bonus(self, building.building_id)
 	bonus += FROG_SKILLS.mist_defense_bonus(self, building)
 	if bear.wards.has(building.building_id) and bear.wards[building.building_id].remaining > 0.0:
 		bonus += SKILL_RULES.BEAR_CURSE_DEFENSE if bear.wards[building.building_id].hostile else SKILL_RULES.BEAR_WARD_DEFENSE
