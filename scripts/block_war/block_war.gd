@@ -368,6 +368,8 @@ func simulate(delta: float) -> void:
 		step = minf(step, pig.step_limit())
 		for shield_remaining: float in shields.values():
 			step = minf(step, shield_remaining)
+		for mist: Dictionary in marches.weak_zones.values():
+			step = minf(step, mist.remaining)
 		for building: WarBuilding in buildings:
 			if building.is_constructing:
 				step = minf(step, building.construction_remaining)
@@ -398,7 +400,7 @@ func _simulate_step(delta: float) -> void:
 			if tower_clocks[building.building_id] <= 0.0 and building.disruption_remaining <= 0.0:
 				_fire_tower(building)
 		building.refresh_visual()
-	marches.tick(delta, world_effects.fire_segments(delta))
+	marches.tick(delta, world_effects.fire_segments(delta), true)
 	_tick_projectiles(delta)
 	bear.tick_projectiles(self, delta)
 	audio.tick_marches(delta, marches)
@@ -406,8 +408,9 @@ func _simulate_step(delta: float) -> void:
 	world_effects.tick(delta)
 	_tick_fire_buildings()
 	pig.advance(self, delta)
-	# Damage in this interval still belongs to the shield's last active span.
+	# Damage in this interval still belongs to each defense effect's active span.
 	# The next substep starts after its expiry, with protection already removed.
+	marches.advance_mist(delta)
 	for id: int in shields.keys():
 		shields[id] = maxf(0.0, float(shields[id]) - delta)
 		if shields[id] <= 0.0:
@@ -666,6 +669,7 @@ func defense_bonus(building: Node3D) -> float:
 
 func skill_defense_bonus(building: Node3D) -> float:
 	var bonus: float = SKILL_RULES.SHIELD_DEFENSE if shields.has(building.building_id) else 0.0
+	bonus += FROG_SKILLS.mist_defense_bonus(self, building)
 	if bear.wards.has(building.building_id) and bear.wards[building.building_id].remaining > 0.0:
 		bonus += SKILL_RULES.BEAR_CURSE_DEFENSE if bear.wards[building.building_id].hostile else SKILL_RULES.BEAR_WARD_DEFENSE
 	return bonus
@@ -880,18 +884,18 @@ func _update_skill_drag(screen: Vector2, refresh_preview: bool = false) -> void:
 	if faction_skills[local_faction].commander == SKILL_RULES.FROG and skill_is_ground(armed_skill):
 		frog_preview.clear()
 		if ground_skill_target.is_finite():
-			frog_preview = marches.frog_targets(armed_skill, local_faction, ground_skill_target)
+			frog_preview = marches.frog_targets(armed_skill, local_faction, ground_skill_target).filter(func(unit: WarMarches.MarchUnit): return not unit.cloaked)
 		if armed_skill in [1, 2]:
 			valid = not frog_preview.is_empty()
 	if faction_skills[local_faction].commander == SKILL_RULES.RABBIT:
 		if armed_skill == 0:
-			rush_preview = marches.rush_targets(local_faction, ground_skill_target, SKILL_RULES.RABBIT_RUSH_RADIUS)
+			rush_preview = marches.rush_targets(local_faction, ground_skill_target, SKILL_RULES.RABBIT_RUSH_RADIUS).filter(func(unit: WarMarches.MarchUnit): return not unit.cloaked)
 			valid = not rush_preview.is_empty()
 		elif armed_skill == 2:
 			_refresh_rabbit_preview(refresh_preview)
 			valid = not recall_preview.is_empty()
 	if faction_skills[local_faction].commander == SKILL_RULES.FOX and armed_skill == 2:
-		fox_preview = FOX_SKILLS.conversion_targets(self, ground_skill_target, local_faction)
+		fox_preview = FOX_SKILLS.conversion_targets(self, ground_skill_target, local_faction).filter(func(unit: WarMarches.MarchUnit): return not unit.cloaked)
 		valid = not fox_preview.is_empty()
 	hud.set_skill_drag_target(valid, screen)
 	overlay.queue_redraw()
@@ -944,12 +948,14 @@ func skill_radius(index: int, faction: int = -2) -> float:
 	return SKILL_RULES.HASTE_RADIUS if index == 1 else IMPACT_RADIUS
 
 func _refresh_rabbit_preview(force: bool = false) -> void:
+	# A cloak can arrive between cached route refreshes, including over the wire.
+	recall_preview = recall_preview.filter(func(plan: Dictionary): return not plan.unit.cloaked)
 	var changed := ground_skill_target != _recall_preview_center
 	if not force and not changed and elapsed - _rabbit_preview_time < 0.1:
 		return
 	_rabbit_preview_time = elapsed
 	_recall_preview_center = ground_skill_target
-	recall_preview = RABBIT_SKILLS.recall_plan(self, ground_skill_target)
+	recall_preview = RABBIT_SKILLS.recall_plan(self, ground_skill_target).filter(func(plan: Dictionary): return not plan.unit.cloaked)
 
 func _clear_building_burrow(building: WarBuilding) -> void:
 	if building.burrow_remaining > 0.0 and building.faction >= 0:

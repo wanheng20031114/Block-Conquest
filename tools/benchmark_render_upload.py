@@ -57,35 +57,27 @@ def prepare(source_ref: str = "current") -> dict:
     baseline = prefix + "## Frozen selected render body; all inherited dependencies are current.\n\n" + render
     candidate_render = replace_once(render, "\tvar slot := 0\n", "\t_prepare_upload_buffers()\n\tvar slot := 0\n")
     candidate_render = replace_once(candidate_render,
-        "\t\tvar mesh := _cloaked_mesh if unit.cloaked else _multimesh\n",
-        "\t\tvar buffer := _cloaked_upload if unit.cloaked else _normal_upload\n")
-    candidate_render = replace_once(candidate_render,
-        "\t\tmesh.set_instance_transform(index, Transform3D(basis, _presentation_position(unit)))\n",
+        "\t\t_multimesh.set_instance_transform(slot, Transform3D(basis, _presentation_position(unit)))\n",
         "\t\tvar transform := Transform3D(basis, _presentation_position(unit))\n")
-    candidate_render = replace_once(candidate_render, "\t\tmesh.set_instance_custom_data(index, color)\n",
-        "\t\tvar offset := index * 16\n" + "".join(
-            f"\t\tbuffer[offset + {index}] = {expression}\n" for index, expression in enumerate([
+    candidate_render = replace_once(candidate_render, "\t\t_multimesh.set_instance_custom_data(slot, color)\n",
+        "\t\tvar offset := slot * 16\n" + "".join(
+            f"\t\t_normal_upload[offset + {index}] = {expression}\n" for index, expression in enumerate([
                 "transform.basis.x.x", "transform.basis.y.x", "transform.basis.z.x", "transform.origin.x",
                 "transform.basis.x.y", "transform.basis.y.y", "transform.basis.z.y", "transform.origin.y",
                 "transform.basis.x.z", "transform.basis.y.z", "transform.basis.z.z", "transform.origin.z",
                 "color.r", "color.g", "color.b", "color.a"])))
     candidate_render = replace_once(candidate_render, "\t_multimesh.visible_instance_count = slot\n",
         "\tif slot > 0:\n\t\t_multimesh.buffer = _normal_upload\n"
-        "\tif cloaked_slot > 0:\n\t\t_cloaked_mesh.buffer = _cloaked_upload\n"
         "\t_multimesh.visible_instance_count = slot\n")
     candidate = prefix + '''## 3D transform + custom data, no vertex-color stream: 16 floats/instance.
 ## https://docs.godotengine.org/en/stable/classes/class_renderingserver.html#class-renderingserver-method-multimesh-set-buffer
-## Initial two 4096-slot CPU buffers occupy 512 KiB in total.
+## The initial 4096-slot CPU buffer occupies 256 KiB; hidden units are omitted.
 var _normal_upload := PackedFloat32Array()
-var _cloaked_upload := PackedFloat32Array()
 
 func _prepare_upload_buffers() -> void:
 	var floats := _multimesh.instance_count * 16
 	if _normal_upload.size() != floats:
 		_normal_upload.resize(floats)
-	floats = _cloaked_mesh.instance_count * 16
-	if _cloaked_upload.size() != floats:
-		_cloaked_upload.resize(floats)
 
 ''' + candidate_render
     OUT.mkdir(parents=True, exist_ok=True)
@@ -105,7 +97,7 @@ func _prepare_upload_buffers() -> void:
                                         "tracked_worktree_changes": git_output("status", "--porcelain", "--untracked-files=no").splitlines(),
                                         "exact_historical_project_replay": False},
                 "initial_capacity_per_mesh": 4096, "stride_floats": 16,
-                "initial_additional_cpu_buffers_bytes": 2 * 4096 * 16 * 4,
+                "initial_additional_cpu_buffers_bytes": 4096 * 16 * 4,
                 "baseline_render_body_is_exact_selected_source_copy": baseline.endswith(render),
                 "selected_source_matches_current_production": source == current_source}
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

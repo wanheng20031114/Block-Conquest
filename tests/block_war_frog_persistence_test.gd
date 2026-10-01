@@ -58,22 +58,23 @@ func verify_lifetime() -> void:
 	check(game.marches.apply_frog_field(2, 0, center) == 0, "already hidden squad cannot consume another cloak")
 	var late := soldier(0, center)
 	check(not late.cloaked, "late entrants do not inherit the instant cloak cast")
-	game.marches.tick(1.2)
+	var exit_time := 4.0 / WarMarches.SPEED
+	game.marches.tick(exit_time)
 	check(not game.marches.weak_zones.is_empty(), "cloud is still active after squad leaves")
 	check(game.marches.tower_can_target(enemy), "uncloaked enemy can be targeted after leaving cloud")
 	check(enemy.weakened, "leaving the cloud does not remove weakness")
-	game.marches.tick(18.8)
+	game.marches.tick(20.0 - exit_time)
 	check(game.marches.weak_zones.is_empty(), "the cloud itself still lasts only three seconds")
 	check(own.alive and own.cloaked and not game.marches.tower_can_target(own), "cloak remains effective after twenty seconds and leaving selection circle")
 	check(enemy.weakened, "weakness persists long after the cloud expires")
-	near(game.marches.projected_attack_bonus(enemy), -0.2, "lasting weakness is included in arrival prediction")
+	near(game.marches.projected_attack_bonus(enemy), -0.3, "lasting weakness is included in arrival prediction")
 	var population: float = game.by_id[0].population
-	game.marches.tick(20.0)
+	game.marches.tick(100.0 / WarMarches.SPEED + 1.0 - 20.0)
 	check(game.marches._units.is_empty(), "all four march objects are consumed at entry")
-	near(game.by_id[0].population, population + 3.0 - 0.8, "weak enemy attack and full allied transport resolve once")
+	near(game.by_id[0].population, population + 3.0 - 0.7, "weak enemy attack and full allied transport resolve once")
 	var fresh := soldier(0, center)
 	check(not fresh.cloaked and not fresh.weakened, "new departures start without old march statuses")
-	check(game.marches.get_node("CloakedMilitia").multimesh.visible_instance_count == 0, "entry removes all transparent instances")
+	check(game.marches._multimesh.visible_instance_count == 1, "only the fresh visible departure is rendered after entry")
 
 func verify_crossings() -> void:
 	var center := Vector3(-22, 0, 10)
@@ -84,10 +85,11 @@ func verify_crossings() -> void:
 			if boosted:
 				unit.rush_remaining = 8.0
 			game.marches.apply_frog_field(0, 0, center)
-			near(game.marches.projected_attack_bonus(unit), -0.2, "AI predicts weakness acquired while crossing cloud")
+			near(game.marches.projected_attack_bonus(unit), -0.3, "AI predicts weakness acquired while crossing cloud")
 			check(not unit.weakened, "prediction does not prematurely apply future weakness")
-			for step: int in (80 if small_steps else 1):
-				game.marches.tick(0.05 if small_steps else 4.0)
+			var crossing_time := 10.0 / WarMarches.SPEED
+			for step: int in (100 if small_steps else 1):
+				game.marches.tick(crossing_time / 100.0 if small_steps else crossing_time)
 			check(unit.weakened and unit.alive and unit.position.x > center.x + 3.5, "whole-cloud crossing persists with rush and long/short ticks")
 			check(game.marches.weak_zones.is_empty(), "crossing result survives the same tick expiring fog")
 	await reset()
@@ -113,7 +115,7 @@ func verify_crossings() -> void:
 	await reset()
 	var replaced := soldier(1, center - Vector3(5, 0, 0))
 	game.marches.apply_frog_field(0, 0, center)
-	near(game.marches.projected_attack_bonus(replaced), -0.2, "original cloud is cached in route forecast")
+	near(game.marches.projected_attack_bonus(replaced), -0.3, "original cloud is cached in route forecast")
 	game.marches.apply_frog_field(0, 0, center + Vector3(25, 0, 0))
 	near(game.marches.projected_attack_bonus(replaced), 0.0, "replacing a cloud invalidates previous path intersections")
 

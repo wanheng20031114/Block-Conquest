@@ -43,8 +43,8 @@ static func hero_profile(id: StringName) -> Dictionary:
 		&"frog": {
 			"title": RULES.name_for(id),
 			"subtitle": "控制与法术削弱",
-			"summary": "运用弱化、滞空与隐身干扰行军，再以法术削弱据点。",
-			"note": "隐身与滞空可避开炮塔，但仍会受到火焰和法术伤害。",
+			"summary": "雾气削弱敌兵与建筑，借滞空和隐身调动部队，以法术重击据点。",
+			"note": "敌兵虚弱持续至入城；建筑减防随雾散恢复。隐身不免疫法术。",
 		},
 	}
 	return profiles[id]

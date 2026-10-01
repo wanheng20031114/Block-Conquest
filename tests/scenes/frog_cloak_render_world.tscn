@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.35, 0.44, 0.23, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.91, 0.94, 0.85, 1)
+ambient_light_energy = 0.7
+reflected_light_source = 2
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.44, 0.53, 0.29, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Floor"]
+material = SubResource("FloorMaterial")
+size = Vector2(80, 80)
+
+[node name="World" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-49, -38, 0)
+light_color = Color(1, 0.955, 0.83, 1)
+light_energy = 1.06
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+directional_shadow_mode = 0
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+mesh = SubResource("Floor")
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(0, 30, 23.43)
+rotation_degrees = Vector3(-52, 0, 0)
+projection = 1
+size = 15.0
+current = true

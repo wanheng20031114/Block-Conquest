@@ -80,7 +80,6 @@ class MarchUnit extends RefCounted:
 		return alive and not pending_departure and distance >= 0.0 and spawn_delay <= 0.0
 
 @onready var _multimesh: MultiMesh = $Militia.multimesh
-@onready var _cloaked_mesh: MultiMesh = $CloakedMilitia.multimesh
 @onready var _panic_mesh: MultiMesh = $PanicMarks.multimesh
 var _units: Array[MarchUnit] = []
 var _render_batch_depth := 0
@@ -101,8 +100,6 @@ func base_speed(faction: int) -> float:
 func _ready() -> void:
 	_multimesh.instance_count = 4096
 	_multimesh.visible_instance_count = 0
-	_cloaked_mesh.instance_count = 4096
-	_cloaked_mesh.visible_instance_count = 0
 	_panic_mesh.instance_count = 4096
 	_panic_mesh.visible_instance_count = 0
 
@@ -350,8 +347,24 @@ func return_preview(unit: MarchUnit, order: MarchOrder) -> PackedVector3Array:
 		route.append(_formation_position(order, distance, -unit.lane, _route_heading(order, distance)))
 	return route
 
-func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
+func tick(delta: float, fire_segments: Array[Dictionary] = [], defer_mist_expiry: bool = false) -> void:
 	if delta <= 0.0:
+		return
+	# Resolve contacts inside each mist's active span before removing its building
+	# defense penalty. Direct long ticks use the same boundary as game.simulate.
+	var span := delta
+	for zone: Dictionary in weak_zones.values():
+		if zone.remaining > 0.0:
+			span = minf(span, zone.remaining)
+	# The game defers the clock until building fire damage has also settled. Its
+	# simulation already clips this interval to every active mist deadline.
+	assert(not defer_mist_expiry or span >= delta, "Deferred mist expiry requires a simulation span ending before its deadline.")
+	if span < delta:
+		var split := span / delta
+		begin_render_batch()
+		tick(span, _slice_fire_segments(fire_segments, 0.0, split))
+		tick(delta - span, _slice_fire_segments(fire_segments, split, 1.0))
+		end_render_batch()
 		return
 	var arrivals: Array[Dictionary] = []
 	var index := 0
@@ -427,15 +440,31 @@ func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
 		slow_zones[faction].remaining -= delta
 		if slow_zones[faction].remaining <= 0.000001:
 			slow_zones.erase(faction)
-	for faction: int in weak_zones.keys():
-		weak_zones[faction].remaining -= delta
-		if weak_zones[faction].remaining <= 0.000001:
-			weak_zones.erase(faction)
 	_render()
 	# Emitting after iteration lets capture/victory handlers safely clear the march.
 	for arrival: Dictionary in arrivals:
 		var order: MarchOrder = arrival.order
 		unit_arrived.emit(order.target_id, order.faction, order.strength, arrival.attack_bonus, order.energy_origin)
+	if not defer_mist_expiry:
+		advance_mist(delta)
+
+func advance_mist(delta: float) -> void:
+	for faction: int in weak_zones.keys():
+		weak_zones[faction].remaining -= delta
+		if weak_zones[faction].remaining <= 0.000001:
+			weak_zones.erase(faction)
+
+static func _slice_fire_segments(segments: Array[Dictionary], start: float, end: float) -> Array[Dictionary]:
+	var slices: Array[Dictionary] = []
+	for fire: Dictionary in segments:
+		if fire.active_fraction <= start:
+			continue
+		var slice := fire.duplicate()
+		slice.from_radius = lerpf(fire.from_radius, fire.to_radius, start)
+		slice.to_radius = lerpf(fire.from_radius, fire.to_radius, end)
+		slice.active_fraction = minf(1.0, (fire.active_fraction - start) / (end - start))
+		slices.append(slice)
+	return slices
 
 func total_for(faction: int) -> int:
 	var total := 0
@@ -619,7 +648,10 @@ func _ground_fire_spans(order: MarchOrder, lane: float) -> PackedVector2Array:
 
 func _defeat(index: int, impulse: Vector3, burning: bool, killer_faction: int = -1) -> void:
 	var unit := _units[index]
-	unit_defeated.emit(unit.position, unit.heading, unit.order.faction, impulse, burning)
+	# Cloaking hides the body throughout this march, including its death. Keep
+	# casualties authoritative without spawning a revealing corpse or death cue.
+	if not unit.cloaked:
+		unit_defeated.emit(unit.position, unit.heading, unit.order.faction, impulse, burning)
 	combat_death.emit(unit.order.faction, unit.order.target_id, killer_faction)
 	_remove_unit(index)
 
@@ -991,7 +1023,6 @@ func clear() -> void:
 	slow_zones.clear()
 	weak_zones.clear()
 	_multimesh.visible_instance_count = 0
-	_cloaked_mesh.visible_instance_count = 0
 	_panic_mesh.visible_instance_count = 0
 
 func snapshot_incoming() -> Dictionary[Vector2i, int]:
@@ -1017,7 +1048,6 @@ func _ensure_capacity(required: int) -> void:
 	while capacity < required:
 		capacity *= 2
 	_multimesh.instance_count = capacity
-	_cloaked_mesh.instance_count = capacity
 	_panic_mesh.instance_count = capacity
 
 func _update_pose(unit: MarchUnit) -> void:
@@ -1086,30 +1116,23 @@ func _render() -> void:
 		return
 	_render_pending = false
 	var slot := 0
-	var cloaked_slot := 0
 	var panic_slot := 0
 	for unit: MarchUnit in _units:
-		if not unit.is_exposed():
+		if not unit.is_exposed() or unit.cloaked:
 			continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * MODEL_SCALE)
-		var mesh := _cloaked_mesh if unit.cloaked else _multimesh
-		var index := cloaked_slot if unit.cloaked else slot
-		mesh.set_instance_transform(index, Transform3D(basis, _presentation_position(unit)))
+		_multimesh.set_instance_transform(slot, Transform3D(basis, _presentation_position(unit)))
 		var color := FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		var gait := unit.gait + unit.presentation_gait_offset
 		color.a = -(gait + 1.0) if unit.rush_remaining > 0.0 else gait
-		mesh.set_instance_custom_data(index, color)
-		if unit.order.panicked and not unit.cloaked:
+		_multimesh.set_instance_custom_data(slot, color)
+		if unit.order.panicked:
 			# Share the body's interpolated position and simulation-driven gait:
 			# marks follow network corrections and freeze with the fleeing soldier.
 			_panic_mesh.set_instance_transform(panic_slot, Transform3D(Basis.IDENTITY, _presentation_position(unit) + Vector3.UP * 1.85))
 			_panic_mesh.set_instance_custom_data(panic_slot, Color(0, 0, 0, gait))
 			panic_slot += 1
-		if unit.cloaked:
-			cloaked_slot += 1
-		else:
-			slot += 1
+		slot += 1
 	_multimesh.visible_instance_count = slot
-	_cloaked_mesh.visible_instance_count = cloaked_slot
 	_panic_mesh.visible_instance_count = panic_slot

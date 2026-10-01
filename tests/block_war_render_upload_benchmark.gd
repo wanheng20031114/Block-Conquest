@@ -108,15 +108,15 @@ func _floats(transform: Transform3D, custom: Color) -> PackedFloat32Array:
 		custom.r, custom.g, custom.b, custom.a])
 
 func _expected(marches: WarMarches) -> Array[PackedFloat32Array]:
-	var streams: Array[PackedFloat32Array] = [PackedFloat32Array(), PackedFloat32Array()]
+	var streams: Array[PackedFloat32Array] = [PackedFloat32Array()]
 	for unit: WarMarches.MarchUnit in marches._units:
-		if not unit.is_exposed(): continue
+		if not unit.is_exposed() or unit.cloaked: continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * WarMarches.MODEL_SCALE)
 		var color := WarMarches.FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		var gait := unit.gait + unit.presentation_gait_offset
 		color.a = -(gait + 1.0) if unit.rush_remaining > 0.0 else gait
-		streams[1 if unit.cloaked else 0].append_array(_floats(Transform3D(basis, marches._presentation_position(unit)), color))
+		streams[0].append_array(_floats(Transform3D(basis, marches._presentation_position(unit)), color))
 	return streams
 
 func _native_readback(mesh: MultiMesh) -> PackedFloat32Array:
@@ -149,8 +149,8 @@ func _verify(variant: String) -> void:
 		marches._render()
 		check(_state_hash(marches) == before, variant + " " + label + " render never mutates unit state")
 		if native_renderer: await RenderingServer.frame_post_draw
-		var meshes: Array[MultiMesh] = [marches._multimesh, marches._cloaked_mesh]
-		for index: int in 2:
+		var meshes: Array[MultiMesh] = [marches._multimesh]
+		for index: int in meshes.size():
 			var key := label + ":" + str(index)
 			var mesh := meshes[index]
 			check(mesh.instance_count == (8192 if label in ["expanded", "expanded_cloaked", "shrink", "empty", "repopulate"] else 4096), variant + " " + key + " capacity")
@@ -161,7 +161,7 @@ func _verify(variant: String) -> void:
 				if variant == "baseline": reference_readback[key] = native
 				else: float_checks += _compare_stream(native, reference_readback[key], variant + " " + key + " native A/B")
 			if variant == "candidate":
-				var buffer: PackedFloat32Array = marches.get("_normal_upload" if index == 0 else "_cloaked_upload")
+				var buffer: PackedFloat32Array = marches.get("_normal_upload")
 				check(buffer.size() == mesh.instance_count * 16, key + " full-capacity CPU buffer")
 				float_checks += _compare_stream(buffer.slice(0, expected[index].size()), expected[index], key + " packed CPU expected")
 		if variant == "baseline": reference_states[label] = before
@@ -201,15 +201,15 @@ func _benchmark(variant: String, count: int, mixture: String, round_index: int) 
 	var key := "%d:%s:%d" % [count, mixture, round_index]
 	if reference_states.has(key): check(state == reference_states[key], key + " A/B final state hash")
 	else: reference_states[key] = state
-	check(marches._multimesh.visible_instance_count + marches._cloaked_mesh.visible_instance_count == count, variant + " all units still visible")
+	check(marches._multimesh.visible_instance_count == marches._units.filter(func(unit: WarMarches.MarchUnit): return unit.is_exposed() and not unit.cloaked).size(), variant + " only exposed non-cloaked units are visible")
 	var report := _context(variant)
 	report.merge({"mode": "performance_no_readbacks", "round": round_index, "soldiers": count, "mixture": mixture,
 		"warmup_frames": benchmark_warmup, "measured_frames": benchmark_frames,
 		"pose_cpu_ms": _statistics(pose_times), "render_construct_pack_upload_cpu_ms": _statistics(render_times),
 		"pose_and_render_cpu_ms": _statistics(total_times), "wall_frame_ms": _statistics(wall_times),
 		"final_state_hash": state, "visible_normal": marches._multimesh.visible_instance_count,
-		"visible_cloaked": marches._cloaked_mesh.visible_instance_count, "capacity_each": marches._multimesh.instance_count,
-		"additional_cpu_buffers_bytes": marches._multimesh.instance_count * 16 * 4 * 2 if variant == "candidate" else 0})
+		"capacity_each": marches._multimesh.instance_count,
+		"additional_cpu_buffers_bytes": marches._multimesh.instance_count * 16 * 4 if variant == "candidate" else 0})
 	print("UPLOAD_AB ", JSON.stringify(report))
 	await game.prepare_shutdown()
 	game.free()

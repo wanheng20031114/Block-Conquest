@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/scenes/frog_cloak_render_world.tscn" id="world"]
+
+[node name="CloakComparison" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ActualTitle" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 624.0
+offset_bottom = 50.0
+text = "实际行军单位：隐身展示"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="ReferenceTitle" type="Label" parent="."]
+offset_left = 656.0
+offset_top = 12.0
+offset_right = 1264.0
+offset_bottom = 50.0
+text = "空场景对照：相同灯光与地面"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="Actual" type="SubViewportContainer" parent="."]
+offset_left = 16.0
+offset_top = 62.0
+offset_right = 624.0
+offset_bottom = 704.0
+
+[node name="Viewport" type="SubViewport" parent="Actual"]
+size = Vector2i(608, 642)
+own_world_3d = true
+render_target_update_mode = 4
+
+[node name="World" parent="Actual/Viewport" instance=ExtResource("world")]
+
+[node name="Reference" type="SubViewportContainer" parent="."]
+offset_left = 656.0
+offset_top = 62.0
+offset_right = 1264.0
+offset_bottom = 704.0
+
+[node name="Viewport" type="SubViewport" parent="Reference"]
+size = Vector2i(608, 642)
+own_world_3d = true
+render_target_update_mode = 4
+
+[node name="World" parent="Reference/Viewport" instance=ExtResource("world")]

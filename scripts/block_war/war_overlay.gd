@@ -59,8 +59,7 @@ func _draw() -> void:
 				_draw_skill_number(game.rush_preview.size(), camera.unproject_position(center + Vector3(game.skill_radius(game.armed_skill), 1, 0)))
 			elif game.faction_skills[game.local_faction].commander == game.SKILL_RULES.FOX:
 				for unit: WarMarches.MarchUnit in game.fox_preview:
-					if not unit.cloaked:
-						_ring(unit.position, 0.32, color, 1.1)
+					_ring(unit.position, 0.32, color, 1.1)
 				_draw_skill_number(game.fox_preview.size(), camera.unproject_position(center + Vector3(game.skill_radius(game.armed_skill), 1, 0)))
 			elif game.faction_skills[game.local_faction].commander == game.SKILL_RULES.FROG:
 				for unit: WarMarches.MarchUnit in game.frog_preview:

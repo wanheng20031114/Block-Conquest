@@ -117,6 +117,33 @@ func _run() -> void:
 	demo._repeat()
 	await frames(2)
 	check(not demo.bear_hostile and not demo.world.bear_hostile, "automatic repeat returns to the friendly demonstration")
+	var frog_row := CATALOG.HEROES.find(&"frog")
+	page.get_node("%Entries").select(frog_row)
+	page._select_entry(frog_row)
+	page._select_skill(0, false)
+	demo.frog_siege = true
+	demo.replay()
+	demo.set_playing(false)
+	var siege_game: Node3D = demo.world
+	siege_game.set_running(true)
+	siege_game.set_process(false)
+	demo.viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	siege_game._process(siege_game.cast_at + 0.001)
+	check(siege_game.cast_succeeded and siege_game.marches.weak_zones.has(0), "frog siege demonstration casts actual mist")
+	check(is_equal_approx(siege_game.skill_defense_bonus(siege_game.away), siege_game.SKILL_RULES.FROG_BUILDING_DEFENSE), "siege demonstration weakens its enemy building")
+	check(siege_game.marches.total_for(0) > 0 and siege_game.away.faction == 1, "siege cast precedes the real army's arrival")
+	for frame: int in 12:
+		siege_game._process(1.0 / 24.0)
+		demo._update_caption()
+		await frames(1)
+	await save("frog_1_siege")
+	siege_game._process(10.0 - siege_game.elapsed)
+	check(siege_game.away.faction == 0, "real troops capture the weakened siege-demo building")
+	check(is_zero_approx(siege_game.skill_defense_bonus(siege_game.away)), "siege demo does not retain a stale building debuff")
+	siege_game.set_running(false)
+	demo._repeat()
+	await frames(2)
+	check(not demo.frog_siege and not demo.world.frog_siege, "automatic repeat returns to mist's field-weakening demonstration")
 	page._set_category(1)
 	await frames(3)
 	check(demo.viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED and demo.world.process_mode == Node.PROCESS_MODE_DISABLED, "reading mechanics disables rendering and simulation")
@@ -156,6 +183,11 @@ func verify_effect(game: Node3D, hero: StringName, index: int, label: String) ->
 			if index == 0: active = game.marches.weak_zones.has(0)
 			elif index in [1, 2]:
 				for unit: WarMarches.MarchUnit in game.marches._units: active = active or (unit.levitation_remaining > 0.0 if index == 1 else unit.cloaked)
+				if index == 2:
+					var complete_column := true
+					for unit: WarMarches.MarchUnit in game.marches._units:
+						complete_column = complete_column and unit.is_exposed() and unit.cloaked
+					check(game.marches.total_for(0) == 20 and complete_column, "cloak demonstration selects the entire departed column")
 			else: active = game.away.level == 1 and game.after_population < game.before_population * 0.3
 		&"fox":
 			if index == 0: active = game.after_population < game.before_population

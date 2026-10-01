@@ -58,17 +58,18 @@ const FROG_COSTS: Array[float] = [20.0, 30.0, 20.0, 85.0]
 const FROG_COOLDOWNS: Array[float] = [20.0, 32.0, 26.0, 95.0]
 const FROG_DURATIONS: Array[float] = [3.0, 3.0, 0.0, 0.0]
 const FROG_RADII: Array[float] = [3.5, 3.5, 4.5, 0.0]
-const FROG_WEAKNESS := 0.20
+const FROG_WEAKNESS := 0.30
+const FROG_BUILDING_DEFENSE := -0.25
 const FROG_STRIKE_FRACTION := 0.80
 const FOX := &"fox"
 const FOX_NAMES: Array[String] = ["从天而降", "顺手牵星", "临阵招降", "惊慌失措"]
-const FOX_COSTS: Array[float] = [25.0, 40.0, 60.0, 70.0]
+const FOX_COSTS: Array[float] = [25.0, 50.0, 60.0, 70.0]
 const FOX_COOLDOWNS: Array[float] = [30.0, 50.0, 65.0, 70.0]
 const FOX_DURATIONS: Array[float] = [0.0, 0.0, 0.0, 0.0]
 const FOX_BOMB_FRACTION := 0.5
 const FOX_BOMB_CAP := 30
 const FOX_STEAL_STARS := 1.0
-const FOX_CONVERT_RADIUS := 3.0
+const FOX_CONVERT_RADIUS := 2.0
 const FOX_PANIC_FRACTION := 0.8
 const FOX_PANIC_DESTINATIONS := 3
 const PIG := &"pig"
@@ -176,9 +177,9 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 		][index]
 	if commander == FROG:
 		return [
-			"攻击力 -%d%%，作用于接触薄雾的敌军，持续至进入建筑。\n薄雾半径 %.1f 米，持续 %d 秒；炮塔无法攻击雾内士兵。\n增援人数不变。" % [roundi(FROG_WEAKNESS * 100.0), FROG_RADII[0], FROG_DURATIONS[0]],
+			"敌军攻击力 -%d%%，持续至入城；雾中敌方建筑防御力 -%d%%。\n薄雾半径 %.1f 米，持续 %d 秒，雾散后建筑恢复。\n炮塔无法攻击雾内士兵，增援人数不变。" % [roundi(FROG_WEAKNESS * 100.0), roundi(absf(FROG_BUILDING_DEFENSE) * 100.0), FROG_RADII[0], FROG_DURATIONS[0]],
 			"半径 %.1f 米内，施放时的敌我行军部队滞空 %d 秒。\n期间无法移动，也不会被炮塔命中。\n落地后继续原路线，其他技能仍可影响。" % [FROG_RADII[1], FROG_DURATIONS[1]],
-			"半径 %.1f 米内，施放时的己方行军部队隐身，持续至进入建筑。\n仅留下极淡轮廓，炮塔无法攻击。\n仍会受到火焰和法术伤害。" % FROG_RADII[2],
+			"半径 %.1f 米内的己方行军部队完全隐形，持续至入城。\n无轮廓和影子，炮塔无法攻击。\n仍会受到火焰和法术伤害。" % FROG_RADII[2],
 			"敌方或中立建筑损失当前驻军的 %d%%，等级降至 1 级。\n损失按整个人口计算，中断施工，不直接占领。\n无视防御力，链式防守无法分担。" % roundi(FROG_STRIKE_FRACTION * 100.0)
 		][index]
 	if commander == BEAR:

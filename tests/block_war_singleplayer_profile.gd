@@ -275,12 +275,12 @@ class ProfileMarches extends WarMarches:
 		super.create_haste_zone(faction, at, radius, duration, multiplier, style)
 		if profile_enabled: new_haste_zones += 1
 
-	func tick(delta: float, fire_segments: Array[Dictionary] = []) -> void:
+	func tick(delta: float, fire_segments: Array[Dictionary] = [], defer_mist_expiry: bool = false) -> void:
 		if not profile_enabled:
-			super.tick(delta, fire_segments)
+			super.tick(delta, fire_segments, defer_mist_expiry)
 			return
 		var begun := Time.get_ticks_usec()
-		super.tick(delta, fire_segments)
+		super.tick(delta, fire_segments, defer_mist_expiry)
 		tick_us += Time.get_ticks_usec() - begun
 		tick_calls += 1
 

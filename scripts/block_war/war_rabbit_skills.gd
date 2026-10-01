@@ -49,7 +49,8 @@ static func burrow_plan(game: Node3D, source: WarBuilding, target: WarBuilding, 
 static func recall(game: Node3D, center: Vector3, faction: int) -> int:
 	var plans := recall_plan(game, center)
 	for plan: Dictionary in plans:
-		game.world_effects.get_node("Rabbit").return_dust(plan.unit.position, -plan.unit.heading)
+		if not plan.unit.cloaked:
+			game.world_effects.get_node("Rabbit").return_dust(plan.unit.position, -plan.unit.heading)
 		game.marches.redirect(plan.unit, plan.order)
 	if not plans.is_empty():
 		game.world_effects.get_node("Rabbit").start_recall(faction, center, RULES.RECALL_RADIUS)

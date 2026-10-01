@@ -355,6 +355,11 @@ func _fox_turn(game: Node3D) -> void:
 
 func _frog_turn(game: Node3D) -> void:
 	var best := {"index": -1, "score": 12.0, "target": null, "at": Vector3.ZERO}
+	var can_mist: bool = game.can_cast_skill(0, faction)
+	var siege_damage: Dictionary[int, float] = {}
+	var siege_targets: Array[WarBuilding] = []
+	var siege_values := PackedFloat64Array()
+	var combat: Dictionary[Vector2i, Dictionary] = {}
 	var cells: Dictionary[Vector2i, Dictionary] = {}
 	var positions: Array[Vector2] = []
 	var q_values := PackedFloat64Array()
@@ -372,6 +377,11 @@ func _frog_turn(game: Node3D) -> void:
 		var incoming: bool = game.FACTIONS.allied(destination.faction, faction) and hostile
 		var friendly_attack: bool = not hostile and game.FACTIONS.hostile(unit.order.faction, destination.faction)
 		var close: bool = (incoming or friendly_attack) and game.marches.movement_distance(unit, 3.0) > unit.order.length - unit.distance
+		if can_mist and friendly_attack and close:
+			# Only arrivals inside this short cloud can benefit from weaker walls.
+			# Their damage uses public type/level and visible buffs, never the
+			# enemy garrison or a hidden enemy departure queue.
+			siege_damage[destination.building_id] = siege_damage.get(destination.building_id, 0.0) + unit.order.strength * _combat_multiplier(game, combat, unit.order.faction, destination, game.marches.projected_attack_bonus(unit))
 		var q_value := SKILL_RULES.FROG_WEAKNESS if hostile and not unit.weakened and not game.FACTIONS.allied(unit.order.faction, destination.faction) else 0.0
 		var floating := 1.3 if incoming and close else 0.0
 		var can_cloak := unit.order.faction == faction and not unit.cloaked
@@ -411,7 +421,15 @@ func _frog_turn(game: Node3D) -> void:
 	for building: WarBuilding in game.buildings:
 		if game.FACTIONS.allied(building.faction, faction):
 			candidates.append(game.map.definition.surface_point(building.global_position))
-		elif game.can_cast_skill(3, faction):
+		else:
+			if can_mist and game.FACTIONS.hostile(building.faction, faction) and float(siege_damage.get(building.building_id, 0.0)) >= 8.0 and is_zero_approx(game.FROG_SKILLS.mist_defense_bonus(game, building)):
+				var defense: float = 1.0 + game.skill_defense_bonus(building)
+				var extra: float = siege_damage[building.building_id] * -SKILL_RULES.FROG_BUILDING_DEFENSE / (defense + SKILL_RULES.FROG_BUILDING_DEFENSE)
+				siege_targets.append(building)
+				siege_values.append(extra)
+				candidates.append(game.map.definition.surface_point(building.global_position))
+			if not game.can_cast_skill(3, faction):
+				continue
 			# Target choice uses the public garrison estimate. The paid cast path
 			# still rejects a truly empty, level-one target without charging us.
 			var loss := floori(INFORMATION.garrison_estimate(game, building, faction) * SKILL_RULES.FROG_STRIKE_FRACTION)
@@ -436,6 +454,10 @@ func _frog_turn(game: Node3D) -> void:
 		var q_total := 0.0
 		var floating_total := 0.0
 		var cloak_total := 0.0
+		if available[0]:
+			for target_index: int in siege_targets.size():
+				if _xz(siege_targets[target_index].global_position).distance_squared_to(_xz(at)) <= radii_squared[0]:
+					q_total += siege_values[target_index]
 		for soldier: int in positions.size():
 			var p := positions[soldier]
 			var distance_squared := Vector2(p.x - at.x, p.y - at.z).length_squared()

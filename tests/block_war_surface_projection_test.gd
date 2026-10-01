@@ -130,7 +130,7 @@ func _case(map_id: String, definition: WarMapDefinition, scenario: String) -> vo
 	nodes.baseline._render()
 	nodes.candidate._render()
 	for variant: String in ["baseline", "candidate"]:
-		_check(nodes[variant]._multimesh.visible_instance_count == inputs[variant].normal.size() and nodes[variant]._cloaked_mesh.visible_instance_count == inputs[variant].cloaked.size(), label + " " + variant + " submits both expected instance counts")
+		_check(nodes[variant]._multimesh.visible_instance_count == inputs[variant].normal.size(), label + " " + variant + " submits only visible soldiers")
 	var gpu_samples := 0
 	if readback:
 		await RenderingServer.frame_post_draw
@@ -172,22 +172,21 @@ func _case(map_id: String, definition: WarMapDefinition, scenario: String) -> vo
 	await process_frame
 
 func _render_inputs(marches: Node3D) -> Dictionary:
-	var result := {"normal": [], "cloaked": []}
+	var result := {"normal": []}
 	for unit: RefCounted in marches._units:
-		if not unit.is_exposed(): continue
+		if not unit.is_exposed() or unit.cloaked: continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var transform := Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3.ONE * marches.MODEL_SCALE), marches._presentation_position(unit))
 		var color: Color = marches.FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		var gait: float = unit.gait + unit.presentation_gait_offset
 		color.a = -(gait + 1.0) if unit.rush_remaining > 0.0 else gait
-		if unit.cloaked: result.cloaked.append([transform, color])
-		else: result.normal.append([transform, color])
+		result.normal.append([transform, color])
 	return result
 
 func _compare_inputs(first: Dictionary, second: Dictionary, label: String) -> float:
 	var max_error := 0.0
 	var exact_other := true
-	for bucket: String in ["normal", "cloaked"]:
+	for bucket: String in ["normal"]:
 		_check(first[bucket].size() == second[bucket].size() and not first[bucket].is_empty(), label + " keeps nonempty " + bucket + " bucket")
 		for index: int in first[bucket].size():
 			var left: Array = first[bucket][index]
@@ -200,8 +199,8 @@ func _compare_inputs(first: Dictionary, second: Dictionary, label: String) -> fl
 func _verify_readback(marches: Node3D, inputs: Dictionary, label: String) -> int:
 	var samples := 0
 	var errors := 0
-	for bucket: String in ["normal", "cloaked"]:
-		var mesh: MultiMesh = marches._multimesh if bucket == "normal" else marches._cloaked_mesh
+	for bucket: String in ["normal"]:
+		var mesh: MultiMesh = marches._multimesh
 		_check(mesh.visible_instance_count == inputs[bucket].size(), label + " actual visible count matches " + bucket)
 		for index: int in inputs[bucket].size():
 			var expected: Transform3D = inputs[bucket][index][0]
@@ -215,7 +214,7 @@ func _verify_readback(marches: Node3D, inputs: Dictionary, label: String) -> int
 
 func _render_resources(marches: Node3D) -> Array:
 	var result: Array = []
-	for child: String in ["Militia", "CloakedMilitia"]:
+	for child: String in ["Militia"]:
 		var node: MultiMeshInstance3D = marches.get_node(child)
 		result.append([node.material_override.get_instance_id(), node.multimesh.mesh.get_instance_id(), node.cast_shadow,
 			node.multimesh.transform_format, node.multimesh.use_custom_data, node.multimesh.use_colors, node.multimesh.custom_aabb,

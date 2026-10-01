@@ -58,16 +58,7 @@ func run() -> void:
 	game.marches.tick(2.8)
 	await capture("cloak_before")
 	assert(game.cast_ground_skill(2, center))
-	# Compare old and new alpha on the exact same animated models and terrain.
-	var mesh: MultiMeshInstance3D = game.marches.get_node("CloakedMilitia")
-	var material: ShaderMaterial = mesh.material_override
-	var old_material: ShaderMaterial = material.duplicate()
-	var old_shader: Shader = material.shader.duplicate()
-	old_shader.code = old_shader.code.replace("ALPHA = 0.012 + rim * 0.075;", "ALPHA = 0.025 + rim * 0.12;")
-	old_material.shader = old_shader
-	mesh.material_override = old_material
-	await capture("cloak_previous")
-	mesh.material_override = material
+	assert(game.marches._multimesh.visible_instance_count == 0)
 	await capture("cloak_current")
 	game.camera.size = 58.0
 	await capture("cloak_normal_zoom")
@@ -79,7 +70,7 @@ func run() -> void:
 		await capture("cloak_%03d" % frame)
 	step(8.0)
 	game.camera_rig.focus_at(game.marches._units[12].position, true)
-	assert(game.marches.get_node("CloakedMilitia").multimesh.visible_instance_count == 24)
+	assert(game.marches._units.size() == 24 and game.marches._multimesh.visible_instance_count == 0)
 	await capture("cloak_after_11_seconds")
 	await reset()
 	game.hud.hide()

@@ -8,6 +8,7 @@ const CYCLE_SECONDS := 10.5
 var demo_commander: StringName = &"squirrel"
 var demo_skill := 0
 var bear_hostile := false
+var frog_siege := false
 var cast_succeeded := false
 var cast_count := 0
 var dispatched := false
@@ -111,13 +112,19 @@ func _setup_example() -> void:
 			caption = "对敌方建筑施放：削弱防御，火球攻击敌军。" if bear_hostile else "对友方建筑施放：提高防御，火球拦截敌军。"
 	elif demo_commander == &"frog":
 		if demo_skill == 0:
-			home.kind = 1
-			cast_at = 1.3
+			if frog_siege:
+				away.population = 16.0
+				cast_at = 5.7
+				caption = "部队接近敌方住宅，雾气削弱建筑防御。"
+			else:
+				home.kind = 1
+				cast_at = 1.3
 		elif demo_skill == 1:
 			cast_at = 2.3
 		elif demo_skill == 2:
 			away.kind = 1
-			cast_at = 1.3
+			# Select the whole visible column, after its last row leaves the gate.
+			cast_at = 2.2
 		else:
 			away.level = 3
 			away.population = 100.0
@@ -166,8 +173,8 @@ func _process(delta: float) -> void:
 		cycle_completed.emit()
 
 func _dispatch_example() -> void:
-	var own_attack := (demo_commander == &"squirrel" and demo_skill == 1) or (demo_commander == &"rabbit" and demo_skill in [0, 1, 2, 3]) or (demo_commander == &"frog" and demo_skill in [1, 2]) or (demo_commander == &"pig" and demo_skill < 3)
-	var enemy_attack := (demo_commander == &"squirrel" and demo_skill in [2, 3]) or (demo_commander == &"rabbit" and demo_skill == 2) or (demo_commander == &"bear" and demo_skill > 0) or (demo_commander == &"frog" and demo_skill in [0, 1]) or (demo_commander == &"fox" and demo_skill == 2) or (demo_commander == &"pig" and demo_skill == 3)
+	var own_attack := (demo_commander == &"squirrel" and demo_skill == 1) or (demo_commander == &"rabbit" and demo_skill in [0, 1, 2, 3]) or (demo_commander == &"frog" and (demo_skill in [1, 2] or (demo_skill == 0 and frog_siege))) or (demo_commander == &"pig" and demo_skill < 3)
+	var enemy_attack := (demo_commander == &"squirrel" and demo_skill in [2, 3]) or (demo_commander == &"rabbit" and demo_skill == 2) or (demo_commander == &"bear" and demo_skill > 0) or (demo_commander == &"frog" and (demo_skill == 1 or (demo_skill == 0 and not frog_siege))) or (demo_commander == &"fox" and demo_skill == 2) or (demo_commander == &"pig" and demo_skill == 3)
 	if own_attack:
 		var sent := issue_order(home, away, 100 if demo_commander == &"pig" else 50, 0)
 		assert(sent > 0)
@@ -188,8 +195,10 @@ func _army_center(faction: int) -> Vector3:
 func _cast_example() -> void:
 	cast_count += 1
 	if skill_is_ground(demo_skill, 0):
-		var friendly := (demo_commander == &"squirrel" and demo_skill == 1) or (demo_commander == &"rabbit" and demo_skill == 0) or (demo_commander == &"frog" and demo_skill == 2)
+		var friendly := (demo_commander == &"squirrel" and demo_skill == 1) or (demo_commander == &"rabbit" and demo_skill == 0) or (demo_commander == &"frog" and (demo_skill == 2 or (demo_skill == 0 and frog_siege)))
 		var center := _army_center(0 if friendly else 1)
+		if demo_commander == &"frog" and demo_skill == 0 and frog_siege:
+			center = away.global_position
 		if (demo_commander == &"rabbit" and demo_skill == 2) or (demo_commander == &"frog" and demo_skill == 1):
 			center = (_army_center(0) + _army_center(1)) * 0.5
 		cast_succeeded = cast_ground_skill(demo_skill, center, 0)
@@ -208,7 +217,10 @@ func _outcome_caption() -> String:
 			if demo_skill == 3 and bear_hostile:
 				return "敌方防御 -%d%%，无护罩；火球每 %.2f 秒攻击敌军。" % [roundi(absf(SKILL_RULES.BEAR_CURSE_DEFENSE) * 100.0), SKILL_RULES.BEAR_HOSTILE_ORB_INTERVAL]
 			return ["立即升 1 级，驻军不消耗。", "出兵任务已取消，未出门士兵留守 %d 秒。" % SKILL_RULES.BEAR_DURATIONS[1], "相连建筑分担 50% 驻军伤害。", "友方防御 +%d%%并获得护罩；火球每 %.1f 秒攻击敌军。" % [roundi(SKILL_RULES.BEAR_WARD_DEFENSE * 100.0), SKILL_RULES.BEAR_ORB_INTERVAL]][demo_skill]
-		&"frog": return ["敌军攻击力 -%d%%，持续至进入建筑；炮塔无法攻击雾内士兵。" % roundi(SKILL_RULES.FROG_WEAKNESS * 100.0), "选中的双方士兵滞空，落地后继续行军。", "己方士兵隐身，避开炮塔攻击直至进入建筑。", "敌方驻军减少 %d%%，建筑降至 1 级。" % roundi(SKILL_RULES.FROG_STRIKE_FRACTION * 100.0)][demo_skill]
+		&"frog":
+			if demo_skill == 0 and frog_siege:
+				return "雾内敌方建筑防御力 -%d%%；雾散后恢复。" % roundi(-SKILL_RULES.FROG_BUILDING_DEFENSE * 100.0)
+			return ["敌军攻击力 -%d%%，持续至进入建筑；炮塔无法攻击雾内士兵。" % roundi(SKILL_RULES.FROG_WEAKNESS * 100.0), "选中的双方士兵滞空，落地后继续行军。", "己方士兵完全隐身，避开炮塔攻击直至进入建筑。", "敌方驻军减少 %d%%，建筑降至 1 级。" % roundi(SKILL_RULES.FROG_STRIKE_FRACTION * 100.0)][demo_skill]
 		&"fox": return ["炸弹削减敌方驻军。", "敌方士气转移至己方，双方星级随之变化。", "选中的敌军归属转为己方，沿原路线行军。", "敌方驻军离开据点，前往同阵营避难建筑。"][demo_skill]
 		&"pig": return ["攻击力 +%d%%，移速 +%d%%，持续至进入建筑。" % [roundi(SKILL_RULES.PIG_CHARGE_ATTACK_BONUS * 100.0), roundi(SKILL_RULES.PIG_CHARGE_SPEED_BONUS * 100.0)], "下次派兵直线飞行，最多 %d 人。" % SKILL_RULES.PIG_FLIGHT_LIMIT, "下次派兵缩短排距和列距，最多 %d 人。" % SKILL_RULES.PIG_FORMATION_LIMIT, "范围内敌我行军部队全部死亡，建筑驻军减少 50%。"][demo_skill]
 	return ""

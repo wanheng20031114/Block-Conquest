@@ -102,7 +102,8 @@ func _run() -> void:
 	game.hud.hide()
 	await capture("cloak_before")
 	assert(game.cast_ground_skill(2, center))
-	assert(game.marches.get_node("CloakedMilitia").multimesh.visible_instance_count == 24)
+	assert(game.marches._units.filter(func(unit: WarMarches.MarchUnit): return unit.cloaked).size() == 24)
+	assert(game.marches._multimesh.visible_instance_count == 12)
 	game.camera.size = 58.0
 	await capture("cloak_normal_zoom")
 	game.camera.size = 32.0

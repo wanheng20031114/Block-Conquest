@@ -219,21 +219,21 @@ func _unit_state(marches: Node3D) -> Array:
 	return rows
 
 func _render_inputs(marches: Node3D) -> Array[Array]:
-	var pools: Array[Array] = [[], []]
+	var pools: Array[Array] = [[]]
 	for unit: WarMarches.MarchUnit in marches._units:
-		if not unit.is_exposed(): continue
+		if not unit.is_exposed() or unit.cloaked: continue
 		var yaw := atan2(-unit.heading.x, -unit.heading.z)
 		var basis := Basis(Vector3.UP, yaw).scaled(Vector3.ONE * WarMarches.MODEL_SCALE)
 		var transform := Transform3D(basis, marches._presentation_position(unit))
 		var color := WarMarches.FACTION_COLORS[unit.order.faction].srgb_to_linear()
 		var gait := unit.gait + unit.presentation_gait_offset
 		color.a = -(gait + 1.0) if unit.rush_remaining > 0.0 else gait
-		pools[1 if unit.cloaked else 0].append([transform, color])
+		pools[0].append([transform, color])
 	return pools
 
 func _check_readback(marches: Node3D, pools: Array[Array], label: String) -> void:
-	var meshes: Array[MultiMesh] = [marches._multimesh, marches._cloaked_mesh]
-	for pool: int in 2:
+	var meshes: Array[MultiMesh] = [marches._multimesh]
+	for pool: int in meshes.size():
 		var mesh: MultiMesh = meshes[pool]
 		var valid := mesh.visible_instance_count == pools[pool].size()
 		for index: int in mini(maxi(0, mesh.visible_instance_count), pools[pool].size()):
@@ -290,7 +290,7 @@ func _boundaries() -> void:
 		marches.end_render_batch()
 		check(marches.render_calls == before + (1 if fixture.variant == "candidate" else 2), fixture.variant + " nested batch expected commits")
 		var inputs := _render_inputs(marches)
-		check(inputs[1].size() == 1, fixture.variant + " nested boundary actually exercises visible cloaked pool")
+		check(marches._units.filter(func(unit: WarMarches.MarchUnit): return unit.is_exposed() and not unit.cloaked).size() == inputs[0].size(), fixture.variant + " nested boundary excludes cloaked soldiers from rendering")
 		check(inputs[0].any(func(row: Array): return row[1].a < 0.0), fixture.variant + " nested boundary actually exercises rush shader encoding")
 	await _compare(pair, "nested cloaked/rush pool")
 	# A dispatch followed by pause breaks Host's fixed-step loop before simulate.
@@ -325,7 +325,7 @@ func _boundaries() -> void:
 		fixture.game.simulate(1.0)
 		fixture.coordinator.process(1.0)
 		check(marches.render_calls == before and marches._units.is_empty(), fixture.variant + " finished empty tail stays empty")
-		check(marches._multimesh.visible_instance_count == 0 and marches._cloaked_mesh.visible_instance_count == 0, fixture.variant + " both empty visible pools cleared")
+		check(marches._multimesh.visible_instance_count == 0, fixture.variant + " empty visible pool cleared")
 	await _compare(pair, "finished empty dirty tail")
 	await _dispose(pair)
 	capture_events = false

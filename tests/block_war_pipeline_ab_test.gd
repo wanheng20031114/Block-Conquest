@@ -335,7 +335,6 @@ func _compare_ab(pair: Array[Dictionary], label: String) -> void:
 		check(first._units.size() == second._units.size(), label + " " + side + " render pool size")
 		var valid: bool = first._units.size() == second._units.size()
 		var normal := 0
-		var cloaked := 0
 		for index: int in mini(first._units.size(), second._units.size()):
 			var unit: WarMarches.MarchUnit = first._units[index]
 			var other: WarMarches.MarchUnit = second._units[index]
@@ -346,8 +345,6 @@ func _compare_ab(pair: Array[Dictionary], label: String) -> void:
 			valid = valid and position_error <= RENDER_TOLERANCE
 			valid = valid and unit.cloaked == other.cloaked and unit.order.faction == other.order.faction
 			valid = valid and unit.heading == other.heading and unit.gait + unit.presentation_gait_offset == other.gait + other.presentation_gait_offset
-			if unit.cloaked: cloaked += 1
-			else: normal += 1
+			if not unit.cloaked: normal += 1
 		check(valid, label + " " + side + " final render inputs within 2e-6")
 		check(first._multimesh.visible_instance_count == normal and second._multimesh.visible_instance_count == normal, label + " " + side + " normal visible count")
-		check(first._cloaked_mesh.visible_instance_count == cloaked and second._cloaked_mesh.visible_instance_count == cloaked, label + " " + side + " cloak visible count")

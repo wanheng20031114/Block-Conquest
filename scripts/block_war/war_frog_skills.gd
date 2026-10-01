@@ -3,6 +3,14 @@ extends RefCounted
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 
+static func mist_defense_bonus(game: Node3D, building: Node3D) -> float:
+	# Derive coverage from the same fields on host and replica. Allegiance is
+	# checked against the current owner, so capture cannot retain an old curse.
+	for faction: int in game.marches.weak_zones:
+		if FACTIONS.hostile(faction, building.faction) and game.marches._inside_mist(building.global_position, game.marches.weak_zones[faction]):
+			return RULES.FROG_BUILDING_DEFENSE
+	return 0.0
+
 static func strike_loss(building: WarBuilding) -> int:
 	return floori(building.population * RULES.FROG_STRIKE_FRACTION + 0.000001)
 

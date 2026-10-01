@@ -113,7 +113,12 @@ func _run() -> void:
 	check(game.marches.total_for(1) == 19, "all nineteen displaced soldiers are real friendly refugees")
 	reset()
 	game.morale.adjust(1, 8000)
+	game.energy = 49.99
+	check(not game.can_cast_skill(1) and not game.cast_skill(1, target), "W requires the full fifty energy")
+	near(game.morale.stars(1), 5, "unaffordable W does not steal morale")
+	game.energy = 50.0
 	check(game.cast_skill(1, target), "steal via building owner")
+	near(game.energy, 0.0, "W costs exactly fifty energy")
 	near(game.morale.stars(1), 4, "five-star victim loses one")
 	near(game.morale.stars(0), 1, "zero-star thief gains only one")
 	check(sounds.has(&"war_fox_steal"), "W sound")
@@ -138,7 +143,8 @@ func _run() -> void:
 		var unit := soldier(1, Vector3((i % 4) * 0.45, 0, (i / 4) * 0.45))
 		unit.rush_remaining = 3.0; unit.weakened = true
 		originals.append({"unit": unit, "at": unit.position, "distance": unit.distance, "lane": unit.lane, "curve": unit.order.curve})
-	var far := soldier(1, Vector3(3.1, 0, 0))
+	var edge := soldier(1, Vector3(2.0, 0, 0))
+	var far := soldier(1, Vector3(2.01, 0, 0))
 	var ally := soldier(2, Vector3(1, 0, 0))
 	var friend := soldier(0, Vector3(1, 0, 1))
 	var pending := soldier(1, Vector3(1, 0, 1)); pending.spawn_delay = 2
@@ -149,6 +155,7 @@ func _run() -> void:
 		check(unit.position == entry.at and unit.distance == entry.distance and unit.lane == entry.lane and unit.order.curve == entry.curve, "identity/formation/position kept")
 		check(unit.rush_remaining == 3.0 and unit.weakened, "existing statuses retained")
 	check(far.order.faction == 1 and pending.order.faction == 1 and ally.order.faction == 2 and friend.order.faction == 0, "area, team and exposure boundaries")
+	check(edge.order.faction == 0, "conversion includes a hostile unit exactly two meters from the center")
 	check(sounds.has(&"war_fox_convert"), "E sound")
 	var recruited: WarMarches.MarchUnit = originals[0].unit
 	recruited.reserved = true; recruited.intercepted_by = 0
@@ -160,7 +167,7 @@ func _run() -> void:
 	refill(); check(not game.cast_ground_skill(2, Vector3(70, 0, 60)), "empty conversion free refusal")
 	reset()
 	game.marches.send(1, 0, 1, 36, PackedVector3Array([Vector3(-6, 0, 0), Vector3(30, 0, 0)]))
-	game.marches.tick(1.7)
+	game.marches.tick(5.0 / WarMarches.SPEED)
 	var original_order: WarMarches.MarchOrder = game.marches._units[0].order
 	var selected: Array[WarMarches.MarchUnit] = FOX.conversion_targets(game, Vector3.ZERO, 0)
 	check(selected.size() > 0 and selected.size() < 36, "part of a shared formation selected")
@@ -268,6 +275,8 @@ func _panic_marker_checks() -> void:
 func _network_check() -> void:
 	reset(); game.morale.adjust(1, 2000)
 	check(game.cast_skill(1, game.by_id[1]), "network W setup")
+	near(game.energy, 50, "network setup retains the new W cost")
+	refill()
 	soldier(1, Vector3.ZERO)
 	check(game.cast_ground_skill(2, Vector3.ZERO), "network E setup")
 	game.energy = 100

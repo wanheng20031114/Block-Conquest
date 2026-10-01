@@ -109,10 +109,10 @@ func _march_surface() -> void:
 	drawn = marches._presentation_position(first)
 	near(drawn.y, definition.surface_height(Vector2(drawn.x, drawn.z)) + lift + 0.035, "cloaked presentation follows the same elevated surface")
 	if DisplayServer.get_name() != "headless":
-		check(marches._cloaked_mesh.get_instance_transform(0).origin.distance_to(drawn) < 0.002, "native cloaked militia receives the same surface-adjusted position")
+		check(marches._multimesh.visible_instance_count == 5, "cloaked soldier contributes no surface mesh or shadow")
 	var mote := WarSurfaceEffects.offset_point(definition, first.position, Vector3(0, 0.2, 2.0))
 	near(mote.y, definition.surface_height(Vector2(mote.x, mote.z)) + lift + 0.2, "offset effects retain intended clearance and existing levitation")
-	for mesh: MultiMesh in [marches._multimesh, marches._cloaked_mesh]:
+	for mesh: MultiMesh in [marches._multimesh]:
 		check(mesh.custom_aabb.has_point(Vector3(78, 18, 60)) and mesh.custom_aabb.has_point(Vector3(-78, 0, -60)), "march culling contains the widest map and high floating units")
 	marches.clear()
 	marches.send(0, 1, 1, 1, PackedVector3Array([Vector3(10.8, 4, 0), Vector3(10.8, 4.8, 4)]))
@@ -132,7 +132,7 @@ func _materials() -> void:
 		effects.get_node("RecruitRings").multimesh.mesh.material,
 		effects.get_node("HasteFields").multimesh.mesh.material,
 		effects.get_node("Rabbit/RushBursts").multimesh.mesh.material,
-		effects.get_node("Bear/Ground").multimesh.mesh.material,
+		effects.get_node("Bear/LockGrounds").multimesh.mesh.material,
 		effects.get_node("Frog/Mist").multimesh.mesh.material,
 	]
 	for rally: Node3D in effects.get_node("Rabbit/Rallies").get_children():
@@ -163,7 +163,7 @@ func _scene_material_isolation() -> void:
 	definition.terrain = _synthetic_surface(Vector2(-1, -1), 2, 2, PackedFloat32Array([0, 2, 4, 10]))
 	elevated.configure_surface(definition)
 	flat.configure_surface(WarMapDefinition.new())
-	for path: String in ["RecruitRings", "HasteFields", "Rabbit/RushBursts", "Bear/Ground", "Frog/Mist"]:
+	for path: String in ["RecruitRings", "HasteFields", "Rabbit/RushBursts", "Bear/LockGrounds", "Frog/Mist"]:
 		var high_material: ShaderMaterial = elevated.get_node(path).multimesh.mesh.material
 		var flat_material: ShaderMaterial = flat.get_node(path).multimesh.mesh.material
 		check(high_material != flat_material, "separate battle scenes own their nested ground material: " + path)

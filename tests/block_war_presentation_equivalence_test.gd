@@ -284,7 +284,7 @@ func _compare(label: String) -> void:
 	check(_fields(optimized) == _fields(reference), label + ": live field clocks and skill defense state")
 	check(_shots(optimized) == _shots(reference), label + ": projectile trails tracking and references")
 	check(optimized.effects == reference.effects, label + ": presentation effect lifetimes")
-	check(_meshes(optimized.marches, ["Militia", "CloakedMilitia"]) == _meshes(reference.marches, ["Militia", "CloakedMilitia"]), label + ": rendered soldier transforms and shader data")
+	check(_meshes(optimized.marches, ["Militia"]) == _meshes(reference.marches, ["Militia"]), label + ": rendered soldier transforms and shader data")
 	var effect_paths: Array[String] = ["Frog/Mist", "Frog/Bubbles", "Bear/LockGrounds", "Bear/LockChains", "Bear/LockSeals", "Bear/LockShackles", "Bear/HostileGrounds", "Bear/Fractures", "Bear/UpgradeSweeps", "Bear/Chains", "Bear/Wards", "Bear/Bolts"]
 	check(_meshes(optimized.world_effects, effect_paths) == _meshes(reference.world_effects, effect_paths), label + ": native field and projectile mesh output")
 

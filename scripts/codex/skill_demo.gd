@@ -11,6 +11,7 @@ const WORLD := preload("res://scenes/codex/demo_world.tscn")
 var commander: StringName = &"squirrel"
 var skill_index := 0
 var bear_hostile := false
+var frog_siege := false
 var playing := true
 var world: Node3D
 var progress: float:
@@ -27,6 +28,7 @@ func configure(next_commander: StringName, next_skill_index: int) -> void:
 	commander = next_commander
 	skill_index = next_skill_index
 	bear_hostile = false
+	frog_siege = false
 	if is_node_ready(): replay()
 
 func set_playing(enabled: bool) -> void:
@@ -42,6 +44,7 @@ func replay() -> void:
 	world.demo_commander = commander
 	world.demo_skill = skill_index
 	world.bear_hostile = bear_hostile
+	world.frog_siege = frog_siege
 	viewport.add_child(world)
 	_fit_stage()
 	world.cycle_completed.connect(_repeat)
@@ -51,6 +54,8 @@ func replay() -> void:
 func _repeat() -> void:
 	if commander == &"bear" and skill_index == 3:
 		bear_hostile = not bear_hostile
+	if commander == &"frog" and skill_index == 0:
+		frog_siege = not frog_siege
 	replay.call_deferred()
 
 func _sync_playback() -> void:
