@@ -18,6 +18,8 @@ func _run() -> void:
 	var viewport: SubViewport = diorama.get_node("World")
 	viewport.get_texture().get_image().save_png(output.path_join("meadow.png"))
 	for shot: Dictionary in [
+		{"name": "hydrangeas-detail", "at": Vector3(-26.8, 9.1, 8.6), "distance": 12.0},
+		{"name": "hydrangeas", "at": Vector3(-22, 8.8, 10), "distance": 30.0},
 		{"name": "village", "at": Vector3(18, 10, 22), "distance": 68.0},
 		{"name": "castle", "at": Vector3(-7, 13, 6), "distance": 48.0},
 		{"name": "river", "at": Vector3(63, 10, 20), "distance": 70.0},

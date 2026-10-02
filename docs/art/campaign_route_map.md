@@ -25,13 +25,23 @@
 
 `tools/railway_reference/src/` 保存九个原始建模文件的逐字节快照：`builder.js`、`config.js`、`mesher.js`、`noise.js`、`path.js`、`props.js`、`track.js`、`train.js`、`world.js`。已与用户原目录逐一核对 SHA-256；源文件不修改。`source-package.json` 保存原 Three.js 版本和 ISC 许可声明，`assets/campaign/reference_railway/manifest.json` 记录各源码 SHA、资产 SHA、范围、顶点数和三角形数。
 
-导出器真实执行原 `TrackPath`、`World`、`meshTerrain`、`meshWater`、`buildProps`、`buildTrack` 和 `Train`，通过 Three.js 0.170.0 官方 GLTFExporter 生成 GLB。保留原城堡、教堂、村屋、露天市场、风车、果园、麦田、薰衣草田、树林、跨河桥、隧道和雪山；原铁路圆弯与爬坡一并保留。九节原列车完整导入：机车、煤水车、两节客车、货车、花卉货车、罐车、木材车和守车。
+导出器真实执行原 `TrackPath`、`World`、`meshTerrain`、`meshWater`、`buildProps`、`buildTrack` 和 `Train`，通过 Three.js 0.170.0 官方 GLTFExporter 生成 GLB。保留原城堡、教堂、村屋、露天市场、风车、果园、麦田、树林、跨河桥、隧道和雪山；原铁路圆弯与爬坡一并保留。九节原列车完整导入：机车、煤水车、两节客车、货车、花卉货车、罐车、木材车和守车。
 
 花田、橡木镇和雪峰站保留原站台。新增三站直接执行原 `haltPlatform`，完整复用木板、雨棚、长椅、箱子、灯柱和站牌，沿原铁路布置。曲线与坡道上的复制站台先沿长度每 0.4 单位细分，再映射到原轨道，避免整块长台基用直弦切入铁路；坡下补同色石柱。新增占地在原植被生成前留出。没有缩小整个地图或重画简化版场景。
 
+## 紫阳花海
+
+按用户要求，最左侧四块花田已局部重建为 196 丛紫阳花。移除原先的扁紫色盒与平行土垄，采用蓝、紫、淡粉分区和两条弯曲小径；保留站台、铁路及其他场景布局。原生成函数仍消费相同随机序列，因此这次替换不会重新排列其他区域的树木和道具。
+
+每丛有三个高低错落的圆簇花球和宽叶。近景每个花球包含 47 朵小花，每朵四瓣、每瓣七个细小体素，并带淡黄花心；单瓣不再是一个平整方块。九种共享模型变体保存为原生场景，`GeometryInstance3D` 的 35 单位可见距离切换近远精度，相机最近距离降到 12，允许近看花瓣颗粒。花海模型独立位于 `native/hydrangeas.scn`。
+
+![紫阳花的细颗粒花瓣](campaign/hydrangeas-detail.png)
+
+![站台旁的紫阳花海](campaign/hydrangeas.png)
+
 ## 配色和光照
 
-仅四种地表草地采用较低饱和的明亮鼠尾草色，保留地层、树木、屋顶、花朵、水面与列车原色：
+仅四种地表草地采用较低饱和的明亮鼠尾草色，保留地层、树木、屋顶、水面与列车原色：
 
 | 草地 | 顶面 | 侧面 |
 | --- | --- | --- |
@@ -57,7 +67,7 @@
 - `scenes/campaign/campaign_map.tscn`：选站、关卡状态、进度和出战按钮。
 - `scenes/campaign/campaign_diorama.tscn`：3D 视口、相机、灯光和相机动画。
 - `scenes/campaign/campaign_landscape.tscn`：原场景实例、六站标记、九节列车和字牌。
-- `assets/campaign/reference_railway/`：14 个 GLB 及来源清单；`native/` 为离线烘焙后的原生 PackedScene。
+- `assets/campaign/reference_railway/`：15 个 GLB 及来源清单；`native/` 为离线烘焙后的原生 PackedScene。
 - `data/campaign/journey_3d.tres`：按原路径每 0.2 单位采样的 Curve3D，保留原 +0.27 轨面车轮偏移。
 - `scripts/session.gd`：顺序解锁、通关存档与战役场景切换。
 
@@ -71,7 +81,7 @@ node tools/import_reference_railway.mjs
 & '.local/network/runtime/Godot_v4.7.2-stable_win64.exe' --headless --path . --log-file .local/reference-bake.log --script res://tools/bake_reference_railway.gd
 ```
 
-第一步仅用于准备缺失的本地依赖。Node 工具导出真实几何、来源清单和原字牌元数据；Godot 工具用 `GLTFDocument` 转为原生资源，并保存铁路、站点、列车和 `Label3D`。草色或新增站台修改在 `import_reference_railway.mjs` / `campaign_stations.mjs` 中维护；原快照仅在用户明确更换参考源后更新。相机、灯光和界面在对应场景中维护。
+第一步仅用于准备缺失的本地依赖。Node 工具导出真实几何、来源清单和原字牌元数据；Godot 工具用 `GLTFDocument` 转为原生资源，并保存铁路、站点、列车和 `Label3D`。草色或新增站台修改在 `import_reference_railway.mjs` / `campaign_stations.mjs` 中维护，花丛造型在 `hydrangea_garden.mjs` 中维护；原快照仅在用户明确更换参考源后更新。相机、灯光和界面在对应场景中维护。
 
 旧 `build_campaign_railway.py` 和 `build_campaign_diorama.py` 已退役为明确报错的提示入口，不能覆盖新场景。旧造型代码可从 Git 历史恢复；旧 `campaign_railway_models.py` 仅对应历史 `railway_models/`，不参与当前构建链。
 
@@ -85,4 +95,4 @@ node tools/import_reference_railway.mjs
 - `tests/campaign_model_visual.gd`：实际 GPU 渲染的花田、城镇、城堡、河岸、山麓、雪峰与全图截图。
 - `tools/validate_product.py`：运行资源引用和产品边界检查。
 
-本次结果：进度测试 84 项、原生场景测试 483 项、GPU 交互测试 208 项全部通过；产品引用检查 327 个运行源文件、0 项失败。截图由同一 Godot 场景通过 Forward+ 实际渲染，包含 1600×900 与 1280×720 界面。验证结束后用命令核实并关闭本任务的辅助进程，保留用户正常编辑器。
+铁路首次重建时进度测试 84 项通过；本次紫阳花改建后原生场景测试 1666 项、GPU 交互测试 202 项全部通过；产品引用检查 327 个运行源文件、0 项失败。截图由同一 Godot 场景通过 Forward+ 实际渲染，包含 1600×900 与 1280×720 界面。验证结束后用命令核实并关闭本任务的辅助进程，保留用户正常编辑器。

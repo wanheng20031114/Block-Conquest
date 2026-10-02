@@ -6,7 +6,7 @@ signal view_changed
 
 const STATION_DISTANCE := 70.0
 const OVERVIEW_DISTANCE := 202.0
-const MIN_DISTANCE := 30.0
+const MIN_DISTANCE := 12.0
 const MAX_DISTANCE := 220.0
 const PITCH := 1.0
 

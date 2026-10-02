@@ -6,6 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildCampaignStations } from './railway_reference/campaign_stations.mjs';
+import { adaptReferenceFlowers, prepareHydrangeaGround, buildHydrangeaGarden } from './railway_reference/hydrangea_garden.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const snapshots = path.join(root, 'tools/railway_reference/src');
@@ -50,6 +51,7 @@ for (const name of sourceFiles) {
     }
   }
   if (name === 'props.js') {
+    source = adaptReferenceFlowers(source);
     const begin = source.indexOf('function signMesh(text, w, h,');
     const end = source.indexOf('\nfunction townStation(ctx)', begin);
     if (begin < 0 || end < 0 || !source.slice(begin, end).includes("document.createElement('canvas')")) {
@@ -74,6 +76,7 @@ const [{ TrackPath }, { World }, { meshTerrain, meshWater }, { buildProps, haltP
 for (const [name, colors] of Object.entries(grassPalette)) config.MAT_COLORS[config.MAT[name]] = colors;
 const railPath = new TrackPath();
 const world = new World(railPath);
+prepareHydrangeaGround(world, config);
 const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
 material.name = 'ReferenceVoxelColors';
 const waterMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0, transparent: true, opacity: 0.86 });
@@ -85,6 +88,7 @@ water.name = 'ReferenceWater';
 const campaign = buildCampaignStations({ THREE, BoxBuilder, World, haltPlatform, C, world, path: railPath, material });
 const propScene = new THREE.Scene();
 const props = buildProps(world, propScene, material);
+const hydrangeas = buildHydrangeaGarden({ THREE, BoxBuilder, world, config, material });
 props.mesh.name = 'ReferenceBuildingsTreesFlowers';
 props.dyn.group.name = 'ReferenceDynamicProps';
 props.dyn.flags.forEach((flag, index) => { flag.grp.name = `ReferenceFlag${index}`; });
@@ -156,6 +160,7 @@ await exportAsset('water', water);
 await exportAsset('props', propScene);
 await exportAsset('track', track);
 await exportAsset('campaign_stations', campaign.scene);
+await exportAsset('hydrangeas', hydrangeas.group);
 const cars = [];
 for (const [index, car] of train.cars.entries()) {
   const name = `car_${String(index).padStart(2, '0')}`;
@@ -172,7 +177,8 @@ const manifest = {
   source_project: 'medieval-voxel-railway', source_license: 'ISC', source_files_sha256: sourceHashes,
   importer: 'tools/import_reference_railway.mjs', three_version: THREE.REVISION,
   godot_reference: 'https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/index.html',
-  geometry_policy: 'Original TrackPath, World, meshTerrain, meshWater, buildProps, buildTrack and Train generate the actual source models. Three added platforms directly reuse haltPlatform geometry along the original track and reserve their vegetation cells. Canvas sign rendering is replaced by colored planes plus Label3D metadata. Only four terrain grass materials and their two grass-only highlight colors use a brighter muted sage palette; all trees, roofs, flowers, stone, water and train colors remain original. No vertex color color-space conversion.',
+  geometry_policy: 'Original TrackPath, World, meshTerrain, meshWater, buildProps, buildTrack and Train generate the source scene. Three added platforms reuse haltPlatform. At the user request, the four western flat flower rows are replaced by separate modeled hydrangea shrubs and winding garden paths; the original random streams and other scenery are preserved. Canvas signs use colored planes plus Label3D metadata. Four terrain grass materials use a muted sage palette; trees, roofs, stone, water and train colors remain original. No vertex color color-space conversion.',
+  hydrangea_garden: hydrangeas.metadata,
   grass_palette: Object.fromEntries(Object.entries(grassPalette).map(([name, colors]) => [name, colors.map(color => '#' + color.toString(16).padStart(6, '0'))])),
   grass_highlights: Object.fromEntries(Object.entries(grassHighlights).map(([name, [, color]]) => [name, '#' + color.toString(16).padStart(6, '0')])),
   coordinates: { up: '+Y', train_forward: '+X', world_width: config.WT, world_depth: config.D, x_min: config.X0, x_max: config.X1, terrain_ground_y: config.GROUND, train_rail_y_offset: 0.27 },

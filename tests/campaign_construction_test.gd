@@ -9,6 +9,7 @@ const MAP_IDS := ["rift", "lake", "rivers", "ridges", "switchback", "crown"]
 const GEOMETRY := {
 	"ReferenceTerrain": "terrain", "ReferenceProps": "props", "ReferenceTrack": "track",
 	"ReferenceWater": "water", "ReferenceStations": "campaign_stations",
+	"HydrangeaGarden": "hydrangeas",
 }
 var checks := 0
 var failures: Array[String] = []
@@ -82,7 +83,7 @@ func verify_geometry(landscape: Node3D) -> void:
 		var expected: Dictionary = manifest.assets[GEOMETRY[node_name]].bounds
 		check(actual.position.distance_to(vector(expected.min)) < 0.05, node_name + " preserves the source minimum bounds")
 		check(actual.end.distance_to(vector(expected.max)) < 0.05, node_name + " preserves the source maximum bounds")
-	check(manifest.assets.props.triangles > 150000, "complete village, castle, church, woodland, and decorative props are retained")
+	check(manifest.assets.props.triangles > 145000, "village, castle, church and woodland remain after replacing the old flat flower rows")
 	check(manifest.assets.terrain.bounds.max[1] == 34, "original high snow peaks remain present")
 	check(manifest.additional_stations.size() == 3, "three added stations supplement the three original stations")
 	for station: Dictionary in manifest.additional_stations:

@@ -326,7 +326,7 @@ offset_bottom = 98.0
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 17
 theme_override_constants/line_spacing = 0
-text = "在薰衣草田旁集结，开启铁路远征。"
+text = "在紫阳花海旁集结，开启铁路远征。"
 
 [node name="Footer" type="Control" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true

@@ -1,35 +1,36 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/terrain.scn" id="1_ix4pl"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/props.scn" id="2_1wksw"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/track.scn" id="3_2ylfk"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/water.scn" id="4_quelp"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/campaign_stations.scn" id="5_vgcdc"]
-[ext_resource type="Curve3D" path="res://data/campaign/journey_3d.tres" id="6_xn0l3"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_00.scn" id="7_dghj6"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_01.scn" id="8_uhsrs"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_02.scn" id="9_j25ja"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_03.scn" id="10_bdeu4"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_04.scn" id="11_3ot0h"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_05.scn" id="12_defkg"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_06.scn" id="13_e2lw6"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_07.scn" id="14_d3fio"]
-[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_08.scn" id="15_b7n2a"]
-[ext_resource type="SystemFont" path="res://assets/ui/medieval/fonts/body.tres" id="16_my78m"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/terrain.scn" id="1_1wksw"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/props.scn" id="2_2ylfk"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/track.scn" id="3_quelp"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/water.scn" id="4_vgcdc"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/campaign_stations.scn" id="5_xn0l3"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/hydrangeas.scn" id="6_dghj6"]
+[ext_resource type="Curve3D" path="res://data/campaign/journey_3d.tres" id="7_uhsrs"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_00.scn" id="8_j25ja"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_01.scn" id="9_bdeu4"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_02.scn" id="10_3ot0h"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_03.scn" id="11_defkg"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_04.scn" id="12_e2lw6"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_05.scn" id="13_d3fio"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_06.scn" id="14_b7n2a"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_07.scn" id="15_my78m"]
+[ext_resource type="PackedScene" path="res://assets/campaign/reference_railway/native/car_08.scn" id="16_hcvkw"]
+[ext_resource type="SystemFont" path="res://assets/ui/medieval/fonts/body.tres" id="17_qhydc"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hcvkw"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nc6kq"]
 transparency = 1
 shading_mode = 0
 albedo_color = Color(0.92, 0.93, 0.94, 0.55)
 
-[sub_resource type="SphereMesh" id="SphereMesh_qhydc"]
-material = SubResource("StandardMaterial3D_hcvkw")
+[sub_resource type="SphereMesh" id="SphereMesh_l0hp2"]
+material = SubResource("StandardMaterial3D_nc6kq")
 radius = 0.18
 height = 0.36
 radial_segments = 6
 rings = 3
 
-[sub_resource type="Animation" id="Animation_nc6kq"]
+[sub_resource type="Animation" id="Animation_0hc26"]
 length = 12.0
 loop_mode = 1
 tracks/0/type = "value"
@@ -93,12 +94,12 @@ tracks/4/keys = {
 "values": [0.007761600443292696, -0.054449587313024496, -0.007761600443292704, 0.054449587313024496, 0.00776160044329271, -0.054449587313024496, -0.007761600443292716, 0.054449587313024496, 0.007761600443292724, -0.05444958731302451, -0.00776160044329273, 0.05444958731302448, 0.007761600443292738]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_l0hp2"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_50kif"]
 _data = {
-&"breeze": SubResource("Animation_nc6kq")
+&"breeze": SubResource("Animation_0hc26")
 }
 
-[sub_resource type="Animation" id="Animation_0hc26"]
+[sub_resource type="Animation" id="Animation_x58oh"]
 length = 2.0
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -113,87 +114,89 @@ tracks/0/keys = {
 "values": [Vector3(0, -1.2, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_50kif"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_cg8t1"]
 _data = {
-&"unfold": SubResource("Animation_0hc26")
+&"unfold": SubResource("Animation_x58oh")
 }
 
-[node name="Landscape" type="Node3D" unique_id=1652866231]
+[node name="Landscape" type="Node3D" unique_id=1263825011]
 metadata/source = "medieval-voxel-railway / original geometry"
 metadata/world_size = Vector2(168, 40)
 
-[node name="ReferenceTerrain" type="Node3D" parent="." unique_id=587909534 instance=ExtResource("1_ix4pl")]
+[node name="ReferenceTerrain" type="Node3D" parent="." unique_id=225259489 instance=ExtResource("1_1wksw")]
 
-[node name="ReferenceProps" type="Node3D" parent="." unique_id=1129424047 instance=ExtResource("2_1wksw")]
+[node name="ReferenceProps" type="Node3D" parent="." unique_id=1299027278 instance=ExtResource("2_2ylfk")]
 
-[node name="ReferenceTrack" type="Node3D" parent="." unique_id=1943171199 instance=ExtResource("3_2ylfk")]
+[node name="ReferenceTrack" type="Node3D" parent="." unique_id=1943171199 instance=ExtResource("3_quelp")]
 
-[node name="ReferenceWater" type="Node3D" parent="." unique_id=1250220881 instance=ExtResource("4_quelp")]
+[node name="ReferenceWater" type="Node3D" parent="." unique_id=1250220881 instance=ExtResource("4_vgcdc")]
 
-[node name="ReferenceStations" type="Node3D" parent="." unique_id=1753868609 instance=ExtResource("5_vgcdc")]
+[node name="ReferenceStations" type="Node3D" parent="." unique_id=1753868609 instance=ExtResource("5_xn0l3")]
 
-[node name="StageAnchors" type="Node3D" parent="." unique_id=2015015040]
+[node name="HydrangeaGarden" type="Node3D" parent="." unique_id=1317587260 instance=ExtResource("6_dghj6")]
 
-[node name="Stage01" type="Marker3D" parent="StageAnchors" unique_id=1283291930]
+[node name="StageAnchors" type="Node3D" parent="." unique_id=1094432393]
+
+[node name="Stage01" type="Marker3D" parent="StageAnchors" unique_id=1256485096]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.5, 9.070001, 18.2)
 
-[node name="Stage02" type="Marker3D" parent="StageAnchors" unique_id=1430359032]
+[node name="Stage02" type="Marker3D" parent="StageAnchors" unique_id=1943822584]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 9.070001, 26.2)
 
-[node name="Stage03" type="Marker3D" parent="StageAnchors" unique_id=583514462]
+[node name="Stage03" type="Marker3D" parent="StageAnchors" unique_id=163825010]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52, 9.070001, 17.2)
 
-[node name="Stage04" type="Marker3D" parent="StageAnchors" unique_id=831977205]
+[node name="Stage04" type="Marker3D" parent="StageAnchors" unique_id=427146208]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.75, 9.070001, 17.2)
 
-[node name="Stage05" type="Marker3D" parent="StageAnchors" unique_id=711235651]
+[node name="Stage05" type="Marker3D" parent="StageAnchors" unique_id=876810318]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82.81127, 11.417926, 29.138271)
 
-[node name="Stage06" type="Marker3D" parent="StageAnchors" unique_id=1984140667]
+[node name="Stage06" type="Marker3D" parent="StageAnchors" unique_id=1083891972]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101, 14.070001, 21.2)
 
-[node name="ParkAnchors" type="Node3D" parent="." unique_id=224638353]
+[node name="ParkAnchors" type="Node3D" parent="." unique_id=2110385562]
 
-[node name="Stage01" type="Marker3D" parent="ParkAnchors" unique_id=1816139264]
+[node name="Stage01" type="Marker3D" parent="ParkAnchors" unique_id=1697213209]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.135198, 8.27, 18.340315)
 metadata/source_s = 26.0
 
-[node name="Stage02" type="Marker3D" parent="ParkAnchors" unique_id=1610151635]
+[node name="Stage02" type="Marker3D" parent="ParkAnchors" unique_id=1651296682]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.3, 8.27, 24.5)
 metadata/source_s = 75.36412780356204
 
-[node name="Stage03" type="Marker3D" parent="ParkAnchors" unique_id=469429259]
+[node name="Stage03" type="Marker3D" parent="ParkAnchors" unique_id=1807661347]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52, 8.27, 15.5)
 metadata/source_s = 100.628256
 
-[node name="Stage04" type="Marker3D" parent="ParkAnchors" unique_id=359011270]
+[node name="Stage04" type="Marker3D" parent="ParkAnchors" unique_id=392275112]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 8.27, 15.5)
 metadata/source_s = 122.628256
 
-[node name="Stage05" type="Marker3D" parent="ParkAnchors" unique_id=773487928]
+[node name="Stage05" type="Marker3D" parent="ParkAnchors" unique_id=714201580]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 88.32714, 11.865584, 26.32714)
 metadata/source_s = 145.833415
 
-[node name="Stage06" type="Marker3D" parent="ParkAnchors" unique_id=15210940]
+[node name="Stage06" type="Marker3D" parent="ParkAnchors" unique_id=971126504]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.6, 13.27, 19.5)
 metadata/source_s = 170.35651121424797
 
-[node name="Journey" type="Path3D" parent="." unique_id=557540241]
-curve = ExtResource("6_xn0l3")
+[node name="Journey" type="Path3D" parent="." unique_id=2020078429]
+curve = ExtResource("7_uhsrs")
 
-[node name="Train" type="PathFollow3D" parent="Journey" unique_id=804243201]
+[node name="Train" type="PathFollow3D" parent="Journey" unique_id=52160853]
 progress = 55.99863
 loop = false
 metadata/rail_offset = 0.0
 
-[node name="Model" type="Node3D" parent="Journey/Train" unique_id=2091185272 instance=ExtResource("7_dghj6")]
+[node name="Model" type="Node3D" parent="Journey/Train" unique_id=2091185272 instance=ExtResource("8_j25ja")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Steam" type="CPUParticles3D" parent="Journey/Train/Model" unique_id=1047438475]
+[node name="Steam" type="CPUParticles3D" parent="Journey/Train/Model" unique_id=519449299]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.98, 1.72, 0)
 amount = 14
 lifetime = 2.8
-mesh = SubResource("SphereMesh_qhydc")
+mesh = SubResource("SphereMesh_l0hp2")
 direction = Vector3(0, 1, 0)
 spread = 12.0
 gravity = Vector3(-0.04, 0.1, 0)
@@ -202,155 +205,155 @@ initial_velocity_max = 0.85
 scale_amount_min = 0.5
 scale_amount_max = 1.3
 
-[node name="Tender" type="PathFollow3D" parent="Journey" unique_id=65199224]
+[node name="Tender" type="PathFollow3D" parent="Journey" unique_id=584755840]
 progress = 53.54863
 loop = false
 metadata/rail_offset = 2.45
 
-[node name="Model" type="Node3D" parent="Journey/Tender" unique_id=1798830584 instance=ExtResource("8_uhsrs")]
+[node name="Model" type="Node3D" parent="Journey/Tender" unique_id=1798830584 instance=ExtResource("9_bdeu4")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Coach" type="PathFollow3D" parent="Journey" unique_id=1653417933]
+[node name="Coach" type="PathFollow3D" parent="Journey" unique_id=831813005]
 progress = 51.19863
 loop = false
 metadata/rail_offset = 4.8
 
-[node name="Model" type="Node3D" parent="Journey/Coach" unique_id=1685332799 instance=ExtResource("9_j25ja")]
+[node name="Model" type="Node3D" parent="Journey/Coach" unique_id=1685332799 instance=ExtResource("10_3ot0h")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Car04" type="PathFollow3D" parent="Journey" unique_id=507685904]
+[node name="Car04" type="PathFollow3D" parent="Journey" unique_id=2088424887]
 progress = 48.49863
 loop = false
 metadata/rail_offset = 7.5
 
-[node name="Model" type="Node3D" parent="Journey/Car04" unique_id=1697621975 instance=ExtResource("10_bdeu4")]
+[node name="Model" type="Node3D" parent="Journey/Car04" unique_id=1697621975 instance=ExtResource("11_defkg")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Car05" type="PathFollow3D" parent="Journey" unique_id=936194437]
+[node name="Car05" type="PathFollow3D" parent="Journey" unique_id=198515042]
 progress = 45.898632
 loop = false
 metadata/rail_offset = 10.1
 
-[node name="Model" type="Node3D" parent="Journey/Car05" unique_id=1809643640 instance=ExtResource("11_3ot0h")]
+[node name="Model" type="Node3D" parent="Journey/Car05" unique_id=1809643640 instance=ExtResource("12_e2lw6")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Car06" type="PathFollow3D" parent="Journey" unique_id=898264828]
+[node name="Car06" type="PathFollow3D" parent="Journey" unique_id=65618638]
 progress = 43.398632
 loop = false
 metadata/rail_offset = 12.6
 
-[node name="Model" type="Node3D" parent="Journey/Car06" unique_id=1577421324 instance=ExtResource("12_defkg")]
+[node name="Model" type="Node3D" parent="Journey/Car06" unique_id=1577421324 instance=ExtResource("13_d3fio")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Car07" type="PathFollow3D" parent="Journey" unique_id=107782790]
+[node name="Car07" type="PathFollow3D" parent="Journey" unique_id=1861478880]
 progress = 40.99863
 loop = false
 metadata/rail_offset = 15.0
 
-[node name="Model" type="Node3D" parent="Journey/Car07" unique_id=669999275 instance=ExtResource("13_e2lw6")]
+[node name="Model" type="Node3D" parent="Journey/Car07" unique_id=669999275 instance=ExtResource("14_b7n2a")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Car08" type="PathFollow3D" parent="Journey" unique_id=1490806290]
+[node name="Car08" type="PathFollow3D" parent="Journey" unique_id=291453183]
 progress = 38.59863
 loop = false
 metadata/rail_offset = 17.4
 
-[node name="Model" type="Node3D" parent="Journey/Car08" unique_id=1176637838 instance=ExtResource("14_d3fio")]
+[node name="Model" type="Node3D" parent="Journey/Car08" unique_id=1176637838 instance=ExtResource("15_my78m")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Car09" type="PathFollow3D" parent="Journey" unique_id=900392887]
+[node name="Car09" type="PathFollow3D" parent="Journey" unique_id=898739553]
 progress = 36.24863
 loop = false
 metadata/rail_offset = 19.75
 
-[node name="Model" type="Node3D" parent="Journey/Car09" unique_id=273138850 instance=ExtResource("15_b7n2a")]
+[node name="Model" type="Node3D" parent="Journey/Car09" unique_id=273138850 instance=ExtResource("16_hcvkw")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="Signs" type="Node3D" parent="." unique_id=744923141]
+[node name="Signs" type="Node3D" parent="." unique_id=1414130357]
 
-[node name="Sign00" type="Label3D" parent="Signs" unique_id=1431254838]
+[node name="Sign00" type="Label3D" parent="Signs" unique_id=2066617296]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.9, 10, 32.162003)
 pixel_size = 0.005078125
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "酒馆"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign01" type="Label3D" parent="Signs" unique_id=897304110]
+[node name="Sign01" type="Label3D" parent="Signs" unique_id=1842420403]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.5, 9.08, 31.907999)
 pixel_size = 0.0056875
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "橡木镇"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign02" type="Label3D" parent="Signs" unique_id=1089272944]
+[node name="Sign02" type="Label3D" parent="Signs" unique_id=1114005969]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.5, 14.08, 25.907999)
 pixel_size = 0.0056875
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "雪峰站"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign03" type="Label3D" parent="Signs" unique_id=1584100867]
+[node name="Sign03" type="Label3D" parent="Signs" unique_id=766431961]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 8.75, 27.596998)
 pixel_size = 0.005078125
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
-text = "薰衣草田"
-font = ExtResource("16_my78m")
+text = "紫阳花海"
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign04" type="Label3D" parent="Signs" unique_id=1345619491]
+[node name="Sign04" type="Label3D" parent="Signs" unique_id=1308619920]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 9.59, 18.696999)
 pixel_size = 0.004875
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "花田站"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign05" type="Label3D" parent="Signs" unique_id=1673025813]
+[node name="Sign05" type="Label3D" parent="Signs" unique_id=1062815801]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.153847, 9.59, 17.696999)
 pixel_size = 0.004875
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "林间驿站"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign06" type="Label3D" parent="Signs" unique_id=1532740552]
+[node name="Sign06" type="Label3D" parent="Signs" unique_id=546464420]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74.03846, 9.59, 17.696999)
 pixel_size = 0.004875
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "河岸驿站"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Sign07" type="Label3D" parent="Signs" unique_id=923906949]
+[node name="Sign07" type="Label3D" parent="Signs" unique_id=997931447]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.23069, 12.469031, 29.696999)
 pixel_size = 0.004875
 shaded = true
 modulate = Color(1, 0.95686275, 0.8392157, 1)
 text = "山麓驿站"
-font = ExtResource("16_my78m")
+font = ExtResource("17_qhydc")
 font_size = 64
 outline_size = 0
 
-[node name="Ambient" type="AnimationPlayer" parent="." unique_id=1584000101]
-libraries/ = SubResource("AnimationLibrary_l0hp2")
+[node name="Ambient" type="AnimationPlayer" parent="." unique_id=371574716]
+libraries/ = SubResource("AnimationLibrary_50kif")
 autoplay = &"breeze"
 
-[node name="Entrance" type="AnimationPlayer" parent="." unique_id=264525637]
-libraries/ = SubResource("AnimationLibrary_50kif")
+[node name="Entrance" type="AnimationPlayer" parent="." unique_id=84343151]
+libraries/ = SubResource("AnimationLibrary_cg8t1")

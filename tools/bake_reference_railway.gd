@@ -11,7 +11,13 @@ func _initialize() -> void:
 func _run() -> void:
 	manifest = JSON.parse_string(FileAccess.get_file_as_string(DIRECTORY + "manifest.json"))
 	DirAccess.make_dir_recursive_absolute(DIRECTORY + "native")
+	var selected_assets := PackedStringArray()
+	for argument: String in OS.get_cmdline_user_args():
+		if argument.begins_with("--only="):
+			selected_assets = argument.trim_prefix("--only=").split(",")
 	for key: String in manifest.assets:
+		if not selected_assets.is_empty() and key not in selected_assets:
+			continue
 		var document := GLTFDocument.new()
 		var state := GLTFState.new()
 		var error := document.append_from_file(DIRECTORY + manifest.assets[key].file, state)
@@ -32,6 +38,12 @@ func _run() -> void:
 
 func _prepare_materials(node: Node) -> void:
 	if node is MeshInstance3D:
+		# Native visibility ranges keep grain-level flower geometry close to the
+		# camera. Both levels are saved resources, never generated at runtime.
+		if String(node.name).begins_with("DetailedFlowers"):
+			node.visibility_range_end = 35.0
+		if String(node.name).begins_with("DistantFlowers"):
+			node.visibility_range_begin = 35.0
 		for index: int in node.mesh.get_surface_count():
 			var material: StandardMaterial3D = node.mesh.surface_get_material(index)
 			if material:
@@ -65,7 +77,7 @@ func _build_landscape() -> void:
 	scene.name = "Landscape"
 	scene.set_meta("source", "medieval-voxel-railway / original geometry")
 	scene.set_meta("world_size", Vector2(168, 40))
-	for pair: Array in [["terrain", "ReferenceTerrain"], ["props", "ReferenceProps"], ["track", "ReferenceTrack"], ["water", "ReferenceWater"], ["campaign_stations", "ReferenceStations"]]:
+	for pair: Array in [["terrain", "ReferenceTerrain"], ["props", "ReferenceProps"], ["track", "ReferenceTrack"], ["water", "ReferenceWater"], ["campaign_stations", "ReferenceStations"], ["hydrangeas", "HydrangeaGarden"]]:
 		var packed: PackedScene = load(DIRECTORY + "native/" + pair[0] + ".scn")
 		_add(scene, packed.instantiate(), pair[1], scene)
 	var anchors := _add(scene, Node3D.new(), "StageAnchors", scene)
