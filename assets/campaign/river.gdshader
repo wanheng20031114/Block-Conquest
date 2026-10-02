@@ -1,10 +1,12 @@
 shader_type spatial;
 render_mode diffuse_burley;
+#include "res://assets/campaign/unfold.gdshaderinc"
 
 varying vec3 world_position;
 
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	VERTEX = (inverse(MODEL_MATRIX) * vec4(unfold_column(world_position, MODEL_MATRIX[3].xyz), 1.0)).xyz;
 }
 
 void fragment() {

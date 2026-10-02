@@ -1,5 +1,5 @@
 extends SceneTree
-## Render authored model details and six-stop motion on a private desktop.
+## Render the native unfolding intro, model details and six-stop motion.
 ## Run with tools/run_godot_private_desktop.py; output path is its first argument.
 
 func _initialize() -> void:
@@ -12,7 +12,16 @@ func _run() -> void:
 	change_scene_to_file("res://scenes/campaign/campaign_map.tscn")
 	await scene_changed
 	var output := OS.get_cmdline_user_args()[0]
-	await create_timer(1.6).timeout
+	var motion := OS.get_cmdline_user_args().has("--motion")
+	if motion:
+		DirAccess.make_dir_recursive_absolute(output.path_join("intro"))
+		for frame: int in 90:
+			await process_frame
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(output.path_join("intro/frame-%04d.png" % frame))
+	elif current_scene.diorama.intro_running:
+		await current_scene.diorama.intro_finished
+	await create_timer(0.5).timeout
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(output.path_join("route-map.png"))
 	var diorama: SubViewportContainer = current_scene.diorama
@@ -20,7 +29,7 @@ func _run() -> void:
 	var rig: Node3D = camera.get_parent()
 	var viewport: SubViewport = diorama.get_node("World")
 	viewport.get_texture().get_image().save_png(output.path_join("landscape.png"))
-	if OS.get_cmdline_user_args().has("--motion"):
+	if motion:
 		root.size = Vector2i(1280, 720)
 		DirAccess.make_dir_recursive_absolute(output.path_join("motion"))
 		for frame: int in 168:

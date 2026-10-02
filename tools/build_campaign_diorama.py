@@ -8,6 +8,11 @@ from pathlib import Path
 from collections import defaultdict
 import math
 import random
+from campaign_intro_authoring import author_intro
+from campaign_ground import (GRID, BRIDGE_WALK_Y, HEIGHTS, SURVEY, ROUTE_XZ,
+                             STOP_INDICES, cell_key, ground, ground_edge,
+                             in_river, inside, on_bridge, path_height,
+                             survey_at, terrain_tiles)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "scenes/campaign/models"
@@ -22,7 +27,7 @@ COLORS = {
     "slate": "4b7280", "slate_light": "678e98", "dark": "2f4950",
     "gold": "e3b65c", "blue": "568c98", "white": "eaf0d9",
     "grass": "8da966", "earth": "8d8262", "rock": "819492",
-    "road": "cfc197", "flower": "e9d592", "water": "4e9fa6",
+    "road": "bcae8b", "road_edge": "a0aa7a", "road_snow": "aabdc1", "flower": "e9d592", "water": "4e9fa6",
 }
 
 
@@ -69,6 +74,25 @@ class Blocks:
                 f'instance_count = {len(self.parts)}\nmesh = SubResource("Cube")\n'
                 'buffer = PackedFloat32Array(' + ', '.join(fmt(n) for p in self.parts for n in p) + ')\n\n')
 
+    def voxel_shell(self, step, top_relief=0):
+        """Union aligned crown lobes, keeping only exposed small solid cubes."""
+        occupied = {}
+        for part in self.parts:
+            sx, sy, sz, x, y, z = part[0], part[5], part[10], part[3], part[7], part[11]
+            for ix in range(math.floor((x-sx/2)/step), math.ceil((x+sx/2)/step)):
+                for iy in range(math.floor((y-sy/2)/step), math.ceil((y+sy/2)/step)):
+                    for iz in range(math.floor((z-sz/2)/step), math.ceil((z+sz/2)/step)):
+                        if (abs((ix+.5)*step-x) <= sx/2 + .015 and abs((iy+.5)*step-y) <= sy/2 + .015 and abs((iz+.5)*step-z) <= sz/2 + .015):
+                            occupied[(ix, iy, iz)] = part[12:15]
+        self.parts.clear()
+        for (ix, iy, iz), rgb in occupied.items():
+            if all((ix+dx, iy+dy, iz+dz) in occupied for dx, dy, dz in [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]):
+                continue
+            tone = 1.0 + .045 * math.sin(ix * 7.1 + iy * 9.3 + iz * 4.7)
+            lift = top_relief * (.5+.5*math.sin(ix*2.7+iz*4.1)) if (ix, iy+1, iz) not in occupied else 0
+            self.parts.append((step, 0, 0, (ix+.5)*step, 0, step+lift, 0, (iy+.5)*step+lift/2,
+                               0, 0, step, (iz+.5)*step, *(c*tone for c in rgb), 1))
+        return occupied
 
 def model(name, groups, extra_resources="", extra_nodes="", extra_imports=""):
     text = '[gd_scene format=3]\n\n'
@@ -105,6 +129,9 @@ def oak(name, variant):
         leaves.box((w * .87, .12, w * .79), (x - .045, y + .47 if i != 2 else y + .40, z - .035), "leaf_light", variation=variant * .015)
         if i in (0, 1, 3):
             leaves.box((.32, .22, .37), (x - w * .37, y + .22, z + w * .43), "leaf_light")
+    for i in range(9):
+        wood.box((.075, .15, .025), (-.10 + (i % 3) * .075, .31 + i*.15, .176), "bark_light")
+    leaves.voxel_shell(.22, top_relief=.035)
     model(name, {"Trunk": wood, "Crown": leaves})
 
 
@@ -119,13 +146,16 @@ def pine(name, snow=False):
                 target.box((width * .57, height, width * .215), (0, at, sign * width * .3925), tint)
         cross(leaves, w, .42, y, "pine")
         cross(leaves, w * .81, .30, y + .31, "pine_light")
-        if snow:
-            cross(caps, w * .86, .13, y + .515, "snow")
         if i < 3:
             for sign in (-1, 1):
                 leaves.box((.20, .21, .29), (sign * w * .45, y - .25, .13), "pine")
+    occupied = leaves.voxel_shell(.18)
     groups = {"Trunk": wood, "Crown": leaves}
     if snow:
+        caps = Blocks()
+        for ix, iy, iz in occupied:
+            if (ix, iy+1, iz) not in occupied:
+                caps.box((.18, .045, .18), ((ix+.5)*.18, (iy+1)*.18+.017, (iz+.5)*.18), "snow")
         groups["SnowCaps"] = caps
     model(name, groups)
 
@@ -144,19 +174,30 @@ def cottage(name, snowy=False):
         b.box((.29, .32, .045), (x, 1.02, .8), "gold")
         b.box((.055, .43, .05), (x, 1.03, .83), "wood_dark")
         b.box((.43, .09, .14), (x, .78, .82), "wood_light")
+        b.box((.36, .045, .055), (x, 1.03, .84), "wood_dark")
+        for side in (-1, 1):
+            for row in range(4):
+                b.box((.09, .073, .06), (x+side*.235, .88+row*.095, .82), "wood")
     b.box((.38, .86, .06), (0, .72, .81), "wood_dark")
     for x in (-.12, 0, .12):
         b.box((.06, .76, .04), (x, .72, .845), "wood")
     b.box((.06, .06, .05), (.1, .72, .88), "gold")
     for i in range(3):
         b.box((.70, .11, .30), (0, .06 + .095 * i, 1.37 - i * .23), "stone_light")
+    for side in (-1, 1):
+        for row in range(5):
+            for col in range(6):
+                b.box((.025, .11, .20), (side * .916, .52 + row*.19, -.60 + col*.235), "plaster", variation=.015*((row+col)%3-1))
+    for x in range(8):
+        b.box((.23, .13, .055), (-.86+x*.245, .16, .872), "stone_light", variation=-.025*(x%2))
     for i in range(6):
         width = 2.14 - i * .31
         b.box((width, .19, 1.93), (0, 1.66 + i * .155, 0), "slate" if snowy else "roof")
-        for z in range(6):
+        for z in range(10):
             for sign in (-1, 1):
-                b.box((.20, .045, .28), (sign * (width / 2 - .08), 1.78 + i * .155, -.79 + z * .32), "snow" if snowy else "roof_light")
-    b.box((.30, .16, 2.02), (0, 2.60, 0), "snow" if snowy else "wood_light")
+                b.box((.20, .045, .175), (sign * (width / 2 - .08), 1.78 + i * .155, -.865 + z * .192), "snow" if snowy else "roof_light")
+    for cap in range(12):
+        b.box((.30, .16, .16), (0, 2.60, -.935 + cap*.17), "snow" if snowy else "wood_light")
     b.box((.30, .77, .32), (.48, 2.2, -.37), "stone_dark")
     for y in range(5):
         b.box((.32, .11, .34), (.48, 1.91 + y * .14, -.37), "stone_light")
@@ -211,10 +252,16 @@ def bridge():
     for i in range(27):
         x = -3.38 + i * .26
         b.box((.24, .16, 1.72), (x, -.04, 0), "wood_light", variation=.014 * (i % 3))
+        for z in (-.66, .66):
+            b.box((.042, .021, .042), (x, .050, z), "stone_dark")
+        if i % 3 == 0:
+            b.box((.024, .013, .46), (x+.075, .046, -.18), "wood")
     for x in (-3.3, -2.2, -1.1, 0, 1.1, 2.2, 3.3):
         for z in (-.88, .88):
             b.box((.15, 1.05, .15), (x, .41, z), "wood_dark")
             b.box((.23, .09, .23), (x, .975, z), "wood_light")
+            for y in (.08, .78):
+                b.box((.164, .055, .168), (x, y, z), "stone_dark")
     for z in (-.89, .89):
         b.box((6.9, .12, .12), (0, .82, z), "wood_light")
         b.box((6.9, .085, .10), (0, .36, z), "wood")
@@ -259,10 +306,23 @@ def fort():
         for y in (1.49, 2.55):
             b.box((.25, .60, .06), (x, y, .67), "dark")
             b.box((.15, .38, .07), (x, y - .06, .71), "gold")
+    for row in range(10):
+        y = .58 + row*.29
+        for col in range(7):
+            x = -.75 + col*.30
+            if any(abs(x-wx)<.22 and abs(y-wy)<.36 for wx in (-.43,.62) for wy in (1.49,2.55)):
+                continue
+            b.box((.275, .25, .035), (x, y, .651), "stone_light", variation=.012*((row+col)%3-1))
+        for col in range(6):
+            b.box((.035, .25, .28), (1.25, y, -1.12+col*.31), "stone", variation=.016*((row+col)%3-1))
     for i in range(6):
         w = 2.65 - i * .35
         b.box((w, .19, 2.51 - i * .32), (.16, 3.67 + i * .20, -.35), "slate")
         b.box((w * .94, .09, (2.51 - i * .32) * .94), (.12, 3.82 + i * .20, -.40), "snow")
+        for j in range(max(2, int(w/.22))):
+            x = .16-w/2+.10+j*.22
+            for side in (-1, 1):
+                b.box((.19, .07, .19), (x, 3.79+i*.20, -.35+side*(2.51-i*.32)/2), "ice")
     model("summit_fort", {"Citadel": b}, extra_imports='[ext_resource type="PackedScene" path="res://scenes/campaign/models/snow_tower.tscn" id="tower"]\n\n', extra_nodes='''[node name="WestTower" parent="." instance=ExtResource("tower")]
 position = Vector3(-2.23, 0.12, -1.55)
 scale = Vector3(0.73, 0.9, 0.73)
@@ -296,142 +356,61 @@ material_override = SubResource("FlagMaterial")
           extra_imports='[ext_resource type="Shader" path="res://assets/campaign/banner.gdshader" id="flag_shader"]\n\n')
 
 
-# A single shared terrain definition is used for model placement and the road.
-def river_x(z):
-    return -3.2 + 1.3 * math.sin(z * .29)
-
-
-def in_river(x, z):
-    return abs(x - river_x(z)) < (1.40 + .2 * math.cos(z * .6))
-
-
-def inside(x, z):
-    return (abs(x / 28.0) ** 4 + abs((z + .2) / 12.4) ** 4 < 1.0
-            and abs(z) < 11.5 + .75 * math.sin(x * .31))
-
-
-def terrain_height(x, z):
-    # Spatial scales are deliberate: calm meadow shelves, then rugged peaks.
-    base = .8 if x < -1 else .8 + min(3.15, max(0, x) * .19)
-    hill = max(0, 1 - ((x + 17) / 9) ** 2 - ((z + 7.5) / 5) ** 2) * 1.8
-    hill = max(hill, max(0, 1 - ((x + 13) / 6) ** 2 - ((z - 7.8) / 3.7) ** 2) * 1.1)
-    peaks = 0
-    for px, pz, height, radius in [(4, -8, 6.0, 4.8), (11, -9, 8, 5.6),
-                                  (18, -10, 8.8, 5.1), (25, -7, 7.2, 4.4),
-                                  (23, 7.5, 3.5, 4), (6, 8, 2.4, 3.4)]:
-        distance = max(abs(x - px) * .87, abs(z - pz)) + min(abs(x - px), abs(z - pz)) * .20
-        peaks = max(peaks, height * max(0, 1 - distance / radius))
-    h = base + max(hill, peaks)
-    # Authored level pads at the gate, winter hamlet and final citadel.
-    for px, pz, rx, rz, target in [(-14, -5.3, 3, 1.8, 1.6), (5, -3.8, 2.9, 2.8, 2.4), (13, 2.5, 3.0, 2.6, 3.6), (21, -3.7, 4.1, 4.1, 6.4)]:
-        if abs(x - px) < rx and abs(z - pz) < rz:
-            h = target
-    # A broad approach makes the summit reachable on real stone stairs.
-    if 14 < x < 18.1 and -.8 < z < 2.8:
-        h = max(h, 3.6 + (x - 14) * .70)
-    return round(h / .4) * .4
-
-
-HEIGHTS = {(x, z): terrain_height(x + .5, z + .5)
-           for x in range(-28, 28) for z in range(-12, 12) if inside(x + .5, z + .5)}
-
-
-def ground(x, z):
-    return HEIGHTS[(math.floor(x), math.floor(z))]
-
-
-ROUTE_XZ = [(-23, 5), (-21, 4.8), (-19.2, 3.5), (-18.5, 1.3),
-            (-17, -1), (-14, -2.6), (-12.5, -3), (-10, -2), (-8, .1),
-            (-7, 2.5), (-6, 2.5), (-3, 2.5), (.3, 2.5), (2, 1.2),
-            (3, -1), (5, -2.5), (7.5, -1.2), (8.8, 1), (10, 3.8),
-            (13, 4), (15, 3.2), (16, 1), (17, .4), (18, -.7),
-            (20, -.7), (21, -1.2)]
-STOP_INDICES = [0, 6, 11, 15, 19, 25]
-
-
-def path_height(x, z):
-    return 1.22 if -6.5 < x < .55 and abs(z - 2.5) < .4 else ground(x, z) + .14
-
-
-def interpolate_route():
-    result = []
-    for i in range(len(ROUTE_XZ) - 1):
-        a, b = ROUTE_XZ[max(0, i - 1)], ROUTE_XZ[i]
-        c, d = ROUTE_XZ[i + 1], ROUTE_XZ[min(len(ROUTE_XZ) - 1, i + 2)]
-        count = max(4, math.ceil(math.dist(b, c) / .17))
-        for step in range(count):
-            t = step / count
-            p = tuple(.5 * ((2*b[k]) + (-a[k]+c[k])*t + (2*a[k]-5*b[k]+4*c[k]-d[k])*t*t + (-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t) for k in (0, 1))
-            result.append(p)
-    result.append(ROUTE_XZ[-1])
-    return result
-
-
 def build_world():
-    route = interpolate_route()
-    # The least raised grade envelope stays above the terrain without vertical
-    # jumps. Quantized risers turn it into a continuous, supported stone stair.
+    route = [(x, z) for x, z, _ in SURVEY]
     elevations = [path_height(x, z) for x, z in route]
-    for traversal in (range(1, len(route)), range(len(route) - 2, -1, -1)):
-        forward = traversal.step > 0
-        for i in traversal:
-            neighbor = i - 1 if forward else i + 1
-            elevations[i] = max(elevations[i], elevations[neighbor] - .64 * math.dist(route[i], route[neighbor]))
-    elevations = [math.ceil((y - 1e-7) / .14) * .14 for y in elevations]
-    for i, (x, z) in enumerate(route):
-        if -6.5 < x < .55 and abs(z - 2.5) < .4:
-            elevations[i] = 1.22
     assert max(abs(a - b) for a, b in zip(elevations, elevations[1:])) < .29
     groups = defaultdict(Blocks)
-    for (ix, iz), h in HEIGHTS.items():
-        x, z = ix + .5, iz + .5
+    for x, z, width, h in terrain_tiles():
         river = in_river(x, z)
         section = "West" if x < -5 else "Valley" if x < 7 else "Alpine"
         top = -.28 if river else h - .16
-        variation = .012 * math.sin(x * .49) * math.cos(z * .37)
-        groups[section + "Bedrock"].box((1, top + 2.5, 1), (x, (top - 2.5) / 2, z), "stone_dark" if x > 0 else "earth", variation=variation)
+        variation = .009 * math.sin(x * .49) * math.cos(z * .37)
+        groups[section + "Bedrock"].box((width, top + 2.5, width), (x, (top - 2.5) / 2, z), "stone_dark" if x > 0 else "earth", variation=variation)
         if river:
-            groups["River"].box((1, .08, 1), (x, .035, z), "water")
+            groups["River"].box((width, .08, width), (x, .035, z), "water")
             continue
         snow = x > 10 + 1.2 * math.sin(z * .45) or h > 5.2
         rocky = h > 4.7 or (x > 1 and z < -5)
-        tint = "snow" if snow else "grass"
-        if not snow and rocky:
-            tint = "stone"
-        # Only exposed cliffs receive separate strata; no lawn checkerboard.
-        exposed = any(HEIGHTS.get((ix + dx, iz + dz), -3) < h - .3 or in_river(x + dx, z + dz) for dx, dz in [(1, 0), (-1, 0), (0, 1), (0, -1)])
+        tint = "snow" if snow else "stone" if rocky else "grass"
+        exposed = any(ground_edge(x + dx * (width/2 + .02), z + dz * (width/2 + .02)) < h - .15 for dx, dz in [(1, 0), (-1, 0), (0, 1), (0, -1)])
         if exposed:
-            groups[section + "Strata"].box((1.005, .25, 1.005), (x, h - .38, z), "ice" if snow else "stone" if rocky else "bark_light", variation=variation)
-        groups[section + "Surface"].box((1, .20 if snow else .16, 1), (x, h - .08, z), tint, variation=variation)
-        if exposed and x > 1:
-            below = HEIGHTS.get((ix, iz + 1), -2.5)
-            fissure = math.sin(ix * 2.31 + iz * 5.17)
-            if h - below > .65 and fissure > -.25:
-                relief = min(h - below - .24, .72 + .65 * abs(fissure))
-                groups["CliffRelief"].box((.46 + .28 * abs(fissure), relief, .12), (x - .11 * fissure, h - .27 - relief / 2, z + .49), "stone", variation=.016 * math.sin(ix))
+            groups[section + "Strata"].box((width + .004, .18, width + .004), (x, h - .29, z), "ice" if snow else "stone" if rocky else "bark_light", variation=variation)
+        thickness = .20 if snow else .16
+        groups[section + "Surface"].box((width, thickness, width), (x, h - thickness/2, z), tint, variation=variation)
+        below = ground_edge(x, z + width/2 + .02)
+        if exposed and x > 1 and h - below > .6:
+            fissure = math.sin(x * 2.31 + z * 5.17)
+            if fissure > -.15:
+                relief = min(h - below - .2, .45 + .65 * abs(fissure))
+                groups["CliffRelief"].box((width * .76, relief, .08), (x, h - .23 - relief / 2, z + width/2 + .018), "stone", variation=.012 * math.sin(x))
     for x, z in [(4.5, -8.5), (11.5, -9.5), (18.5, -10.5), (25.5, -7.5)]:
         y = ground(x, z)
         groups["PeakCrests"].box((.95, 1.15, .95), (x, y + .46, z), "stone")
         groups["PeakCrests"].box((1, .18, .99), (x - .025, y + 1.10, z - .02), "snow")
         groups["PeakCrests"].box((.58, .42, .61), (x - .11, y + 1.32, z - .06), "stone_light")
         groups["PeakCrests"].box((.62, .10, .65), (x - .12, y + 1.58, z - .08), "snow")
-    # Walking surface is small warm flagstones that follow all terraces.
-    for i, ((x, z), (nx, nz)) in enumerate(zip(route, route[1:])):
-        if -6.45 < x < .48 and abs(z - 2.5) < .4:
-            continue
-        y, ny = elevations[i], elevations[i + 1]
-        length = math.dist((x, z), (nx, nz))
-        level = max(y, ny)
-        tangent_x, tangent_z = (nx - x) / length, (nz - z) / length
-        footprint = [(px + sign * tangent_z * .35, pz - sign * tangent_x * .35)
-                     for px, pz in [(x, z), (nx, nz)] for sign in (-1, 1)]
-        base = min(ground(px, pz) for px, pz in footprint) - .04
-        groups["TrailSupports"].box((.62, level - base - .07, length), ((x + nx) / 2, (level + base) / 2 - .035, (z + nz) / 2), "stone", math.atan2(nx - x, nz - z))
-        groups["Trail"].box((.68 + .02 * math.sin(i * .39), .09, length), ((x + nx) / 2, level - .035, (z + nz) / 2), "road", math.atan2(nx - x, nz - z), variation=.006 * (i % 3))
+    # Fine paving is embedded 36 mm into the actual graded earth. Each brick
+    # fits within one terrain cell, including every shoulder and stair riser.
+    # The road has no elevated support strips and no floating 2D outline.
+    for ix in range(-192, 176):
+        for iz in range(-30, 46):
+            x, z = (ix + .5) * .125, (iz + .5) * .125
+            if cell_key(x, z) not in HEIGHTS or on_bridge(x, z) or in_river(x, z):
+                continue
+            distance, _ = survey_at(x, z)
+            edge = .37 + .045 * math.sin(x * 2.6 + z * 3.7)
+            if distance > edge + .10:
+                continue
+            y = ground(x, z)
+            border = distance > edge
+            tint = "road_snow" if x > 10 else "road_edge" if border else "road"
+            groups["TrailShoulder" if border else "Trail"].box((.123, .044, .123), (x, y - .014 - (.006 if border else 0), z), tint,
+                                                           variation=.007 * math.sin(ix * 5.3 + iz * 7.1))
     # Sparse reeds, flowers and fallen logs; the broad meadow remains quiet.
     for i in range(230):
         x, z = RNG.uniform(-26, 25), RNG.uniform(-10.5, 10)
-        if not inside(x, z) or (math.floor(x), math.floor(z)) not in HEIGHTS or in_river(x, z):
+        if not inside(x, z) or cell_key(x, z) not in HEIGHTS or in_river(x, z):
             continue
         if min(math.dist((x, z), p) for p in route) < .8:
             continue
@@ -439,9 +418,13 @@ def build_world():
         if x < 8 and y < 3.5:
             for j in range(3):
                 dx, dz = RNG.uniform(-.25, .25), RNG.uniform(-.2, .2)
-                groups["MeadowDetails"].box((.035, .16 + j * .04, .06), (x + dx, y + .09, z + dz), "leaf_dark")
+                px, pz = x + dx, z + dz
+                if cell_key(px, pz) not in HEIGHTS or in_river(px, pz):
+                    continue
+                base, stem = ground(px, pz), .16 + j * .04
+                groups["MeadowDetails"].box((.035, stem, .06), (px, base + stem/2 - .008, pz), "leaf_dark")
                 if i % 3 == 0:
-                    groups["MeadowDetails"].box((.12, .065, .12), (x + dx, y + .20, z + dz), "flower")
+                    groups["MeadowDetails"].box((.12, .065, .12), (px, base + stem + .013, pz), "flower")
         elif x > 9 and i % 3 == 0:
             groups["SnowDetails"].box((.55, .15, .43), (x, y + .025, z), "ice")
             groups["SnowDetails"].box((.51, .08, .39), (x - .03, y + .13, z), "snow")
@@ -449,7 +432,7 @@ def build_world():
     rocks = []
     for i in range(48):
         x, z = RNG.uniform(-25, 25), RNG.uniform(-10.5, 10.3)
-        if (math.floor(x), math.floor(z)) not in HEIGHTS or in_river(x, z) or min(math.dist((x, z), p) for p in route) < 1.4:
+        if cell_key(x, z) not in HEIGHTS or in_river(x, z) or min(math.dist((x, z), p) for p in route) < 1.4:
             continue
         if any(abs(x - px) < 3 and abs(z - pz) < 2.5 for px, pz in [(-23, 1), (-13, -5), (5, -4), (13, 1), (21, -4)]):
             continue
@@ -480,19 +463,18 @@ def build_world():
             groups["PassGate"].box((.56, .30, .69), (x, y + .16 + step * .32, -2.8), "stone_light" if step % 2 else "stone")
     groups["PassGate"].box((3.45, .35, .83), (5.08, 4.58, -2.8), "wood_dark")
     groups["PassGate"].box((3.6, .12, .90), (5.08, 4.82, -2.8), "stone_light")
-    # Small bank shelves and stepping foam marks sit above water, below grass.
-    for iz in range(-11, 12):
-        river_cells = [x for (x, z) in HEIGHTS if z == iz and in_river(x + .5, z + .5)]
-        if not river_cells:
-            continue
-        for x in (min(river_cells) + .08, max(river_cells) + .90):
-            if iz % 2 == 0:
-                groups["RiverEdges"].box((.12, .035, .58), (x, .10, iz + .5), "ice")
-    # Trim the bedrock behind the river mouth into an actual falling-water lip.
+    # Banks and the waterfall follow the same fine shoreline as the land.
     for ix, iz in HEIGHTS:
-        if in_river(ix + .5, iz + .5) and iz > 8 and (ix, iz + 1) not in HEIGHTS:
-            groups["Falls"].box((1, 2.55, .08), (ix + .5, -1.20, iz + .96), "water")
-            groups["FallsFoam"].box((1, .09, .38), (ix + .5, -2.48, iz + 1.08), "ice")
+        x, z = (ix + .5) * GRID, (iz + .5) * GRID
+        if not in_river(x, z):
+            continue
+        if iz % 4 == 0:
+            for side in (-1, 1):
+                if not in_river(x + side * GRID, z):
+                    groups["RiverEdges"].box((.06, .025, .19), (x + side * .10, .092, z), "ice")
+        if z > 8 and (ix, iz + 1) not in HEIGHTS:
+            groups["Falls"].box((GRID, 2.55, .07), (x, -1.20, z + GRID/2 - .025), "water")
+            groups["FallsFoam"].box((GRID, .09, .25), (x, -2.48, z + GRID/2 + .06), "ice")
 
     text = '[gd_scene format=3]\n\n'
     models = ['oak_a', 'oak_b', 'pine', 'snow_pine', 'cottage', 'winter_cottage', 'timber_tower', 'snow_tower', 'bridge', 'summit_fort', 'flag']
@@ -500,36 +482,44 @@ def build_world():
         text += f'[ext_resource type="PackedScene" path="res://scenes/campaign/models/{m}.tscn" id="{m}"]\n'
     text += '[ext_resource type="Shader" path="res://assets/campaign/river.gdshader" id="water_shader"]\n'
     text += '[ext_resource type="Shader" path="res://assets/campaign/waterfall.gdshader" id="fall_shader"]\n'
+    text += '[ext_resource type="Shader" path="res://assets/campaign/terrain.gdshader" id="terrain_shader"]\n'
     text += '[ext_resource type="Curve3D" path="res://data/campaign/journey_3d.tres" id="journey"]\n\n'
     text += '[sub_resource type="BoxMesh" id="Cube"]\nsize = Vector3(1, 1, 1)\n\n'
-    text += '[sub_resource type="StandardMaterial3D" id="Matte"]\nvertex_color_use_as_albedo = true\nroughness = 0.92\n\n'
-    text += '[sub_resource type="ShaderMaterial" id="Water"]\nshader = ExtResource("water_shader")\n\n'
-    text += '[sub_resource type="ShaderMaterial" id="FallingWater"]\nshader = ExtResource("fall_shader")\n\n'
+    text += '[sub_resource type="ShaderMaterial" id="Matte"]\nresource_local_to_scene = true\nshader = ExtResource("terrain_shader")\n\n'
+    text += '[sub_resource type="StandardMaterial3D" id="Props"]\nvertex_color_use_as_albedo = true\nroughness = 0.90\n\n'
+    text += '[sub_resource type="ShaderMaterial" id="Water"]\nresource_local_to_scene = true\nshader = ExtResource("water_shader")\n\n'
+    text += '[sub_resource type="ShaderMaterial" id="FallingWater"]\nresource_local_to_scene = true\nshader = ExtResource("fall_shader")\n\n'
     for group, blocks in groups.items():
         text += blocks.res(group)
     text += '[node name="Landscape" type="Node3D"]\n\n'
     text += '[node name="Terrain" type="Node3D" parent="."]\n\n'
+    animation_items = []
     for group in groups:
+        if group == "PassGate":
+            continue
         mat = "Water" if group == "River" else "FallingWater" if group == "Falls" else "Matte"
-        text += f'[node name="{group}" type="MultiMeshInstance3D" parent="Terrain"]\nmultimesh = SubResource("{group}")\nmaterial_override = SubResource("{mat}")\n\n'
+        text += f'[node name="{group}" type="MultiMeshInstance3D" parent="Terrain"]\nextra_cull_margin = 15.0\nmultimesh = SubResource("{group}")\nmaterial_override = SubResource("{mat}")\n\n'
 
     text += '[node name="Landmarks" type="Node3D" parent="."]\n\n'
+    text += '[node name="PassGate" type="MultiMeshInstance3D" parent="Landmarks"]\nmultimesh = SubResource("PassGate")\nmaterial_override = SubResource("Props")\n\n'
+    animation_items.append(("Landmarks/PassGate", (0, 0, 0), 1, "building", 5))
     def place(name, asset, x, z, scale=1, angle=0, y=None, parent="Landmarks"):
         nonlocal text
         if y is None:
-            y = ground(x, z) + .04
+            y = ground(x, z) - .015
         text += f'[node name="{name}" parent="{parent}" instance=ExtResource("{asset}")]\nposition = {vec((x, y, z))}\nrotation = {vec((0, angle, 0))}\nscale = {vec((scale, scale, scale))}\n\n'
+        animation_items.append((parent + "/" + name, (x, y, z), scale, "tree" if parent.startswith("Groves") else "building", x))
 
     place("CampLodge", "cottage", -23.4, 1.8, 1.0, -.12)
     place("CampBarn", "cottage", -20.7, 1.1, .86, .20)
     place("CampCabin", "cottage", -25.2, 3.7, .74, -.18)
     place("WoodlandWatch", "timber_tower", -12.6, -5.2, 1.05)
     place("WatchLodge", "cottage", -15.2, -4.9, .75, .17)
-    place("Crossing", "bridge", -3, 2.5, y=1.22)
+    place("Crossing", "bridge", -3, 2.5, y=BRIDGE_WALK_Y - .04)
     place("PassWatch", "snow_tower", 5.1, -4.6, .86)
     place("WinterLodge", "winter_cottage", 12.7, 1.0, 1.0, -.12)
     place("WinterCabin", "winter_cottage", 15.1, 1.9, .77, .19)
-    place("SnowCrown", "summit_fort", 21, -4.2, .92, y=6.46)
+    place("SnowCrown", "summit_fort", 21, -4.2, .92, y=6.385)
     for i, (x, z) in enumerate([(-21.1, 3.6), (-11.3, -4.2), (-6.45, 1.35), (6.3, -3.4), (11.6, 2.6), (21.15, -4.52)]):
         place(f"Banner{i+1}", "flag", x, z, .7, y=11.15 if i == 5 else None)
 
@@ -553,7 +543,7 @@ def build_world():
                 break
             angle, r = RNG.uniform(0, 2*math.pi), math.sqrt(RNG.random())
             x, z = cx + rx*r*math.cos(angle), cz + rz*r*math.sin(angle)
-            if (math.floor(x), math.floor(z)) not in HEIGHTS or not inside(x, z) or in_river(x, z):
+            if cell_key(x, z) not in HEIGHTS or not inside(x, z) or in_river(x, z):
                 continue
             scale = RNG.uniform(.60, 1.0)
             radius = scale * .83
@@ -569,8 +559,8 @@ def build_world():
                 continue
             # Avoid hanging tree roots over a terrace or a river bank.
             y = ground(x, z)
-            foot_cells = [(math.floor(x + dx), math.floor(z + dz)) for dx, dz in [(-.38, 0), (.38, 0), (0, -.38), (0, .38)]]
-            if any(HEIGHTS.get(cell, -100) != y or in_river(cell[0]+.5, cell[1]+.5) for cell in foot_cells):
+            foot_cells = [cell_key(x + dx, z + dz) for dx, dz in [(-.38, 0), (.38, 0), (0, -.38), (0, .38)]]
+            if any(HEIGHTS.get(cell, -100) != y or in_river((cell[0]+.5)*GRID, (cell[1]+.5)*GRID) for cell in foot_cells):
                 continue
             asset = "snow_pine" if x > 9 or y > 5.2 else "pine" if x > -5 or RNG.random() < .16 else RNG.choice(["oak_a", "oak_b"])
             place(f"Tree{tree_count:03}", asset, x, z, scale, RNG.uniform(-.22, .22), parent=group)
@@ -582,12 +572,15 @@ def build_world():
         x, z = ROUTE_XZ[index]
         sample = min(range(len(route)), key=lambda n: math.dist(route[n], (x, z)))
         assert math.dist(route[sample], (x, z)) < 1e-5
-        text += f'[node name="Stage{i+1:02}" type="Marker3D" parent="StageAnchors"]\nposition = {vec((x, elevations[sample] + .09, z))}\n\n'
+        text += f'[node name="Stage{i+1:02}" type="Marker3D" parent="StageAnchors"]\nposition = {vec((x, elevations[sample] + .012, z))}\n\n'
     text += '[node name="Journey" type="Path3D" parent="."]\ncurve = ExtResource("journey")\n'
+    resources, player = author_intro(animation_items)
+    text = text.replace('[node name="Landscape"', resources + '[node name="Landscape"', 1)
+    text += '\n' + player
     write(ROOT / "scenes/campaign/campaign_landscape.tscn", text)
     curve = []
     for (x, z), y in zip(route, elevations):
-        curve.extend([0, 0, 0, 0, 0, 0, x, y + .09, z])
+        curve.extend([0, 0, 0, 0, 0, 0, x, y + .012, z])
     write(ROOT / "data/campaign/journey_3d.tres", '[gd_resource type="Curve3D" format=3]\n\n[resource]\nbake_interval = 0.10\n_data = {\n"points": PackedVector3Array(' + ', '.join(map(fmt, curve)) + '),\n"tilts": PackedFloat32Array(' + ', '.join('0' for _ in route) + f')\n}}\npoint_count = {len(route)}\n')
     print(f"Authored {tree_count} trees in {len(grove_centers)} groves; {sum(len(b.parts) for b in groups.values())} terrain/detail blocks; {len(route)} 3D route points.")
 

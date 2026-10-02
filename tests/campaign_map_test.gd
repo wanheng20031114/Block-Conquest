@@ -66,6 +66,8 @@ func _run() -> void:
 		click(lobby.get_node("%Campaign"))
 		await scene_changed
 		await session.transition.completed
+		if current_scene.diorama.intro_running:
+			await current_scene.diorama.intro_finished
 		await settle()
 		check(current_scene.scene_file_path == "res://scenes/campaign/campaign_map.tscn", "home opens the campaign route")
 		var atlas: Control = current_scene
@@ -150,6 +152,8 @@ func _run() -> void:
 		click(current_scene.get_node("%Campaign"))
 		await scene_changed
 		await session.transition.completed
+		if current_scene.diorama.intro_running:
+			await current_scene.diorama.intro_finished
 		await settle()
 		check(current_scene.selected_index == 5, "returning remembers the inspected stop without recording a completed mission")
 		click(current_scene.get_node("%Back"))
@@ -159,6 +163,8 @@ func _run() -> void:
 	# Wider and taller windows retain every route marker without stretching art.
 	change_scene_to_file("res://scenes/campaign/campaign_map.tscn")
 	await scene_changed
+	if current_scene.diorama.intro_running:
+		await current_scene.diorama.intro_finished
 	for resolution: Vector2i in [Vector2i(1920, 820), Vector2i(1440, 1080)]:
 		root.size = resolution
 		await settle()

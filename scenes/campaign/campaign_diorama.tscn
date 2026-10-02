@@ -40,6 +40,19 @@ size = Vector2(200, 200)
 albedo_color = Color(0.976, 0.965, 0.92, 1)
 roughness = 1.0
 
+[sub_resource type="Animation" id="CameraUnfold"]
+resource_name = "unfold"
+length = 2.55
+tracks/0/type = "value"
+tracks/0/path = NodePath("World/Stage/CameraRig:rotation_degrees")
+tracks/0/keys = {"times": PackedFloat32Array(0, 1.9, 2.55), "transitions": PackedFloat32Array(0.4, 1, 1), "update": 0, "values": [Vector3(-72, -8, 0), Vector3(-48, -8, 0), Vector3(-48, -8, 0)]}
+tracks/1/type = "position_3d"
+tracks/1/path = NodePath("World/Stage/CameraRig")
+tracks/1/keys = PackedFloat32Array(0, 0.4, 0, -0.8, 0, 1.9, 1, 0, 3.8, 0, 2.55, 1, 0, 3.8, 0)
+
+[sub_resource type="AnimationLibrary" id="CameraLibrary"]
+_data = {&"unfold": SubResource("CameraUnfold")}
+
 [node name="Diorama" type="SubViewportContainer"]
 offset_right = 1600.0
 offset_bottom = 900.0
@@ -88,3 +101,6 @@ mesh = SubResource("Floor")
 material_override = SubResource("Paper")
 
 [node name="Landscape" parent="World/Stage" instance=ExtResource("landscape")]
+
+[node name="CameraMotion" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("CameraLibrary")}

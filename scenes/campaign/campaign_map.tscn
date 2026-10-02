@@ -4,7 +4,6 @@
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_diorama.tscn" id="diorama"]
 [ext_resource type="Shader" path="res://assets/ui/campaign/atlas_veil.gdshader" id="veil"]
-[ext_resource type="Texture2D" path="res://assets/ui/campaign/route_dash.svg" id="dash"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_stop.tscn" id="stop"]
 [ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
 [ext_resource type="Resource" path="res://data/campaign/01_woodland.tres" id="stage1"]
@@ -104,6 +103,7 @@ mouse_filter = 2
 
 [node name="Pollen" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
+visible = false
 position = Vector2(350, 415)
 amount = 20
 lifetime = 12.0
@@ -113,6 +113,7 @@ process_material = SubResource("PollenMotion")
 
 [node name="Snow" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
+visible = false
 position = Vector2(1310, 325)
 amount = 65
 lifetime = 16.0
@@ -120,25 +121,9 @@ preprocess = 16.0
 visibility_rect = Rect2(-390, -280, 800, 790)
 process_material = SubResource("SnowMotion")
 
-[node name="RouteShadow" type="Line2D" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-width = 4.0
-default_color = Color(0.21, 0.28, 0.18, 0.22)
-begin_cap_mode = 2
-end_cap_mode = 2
-antialiased = true
-
-[node name="Route" type="Line2D" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-texture_repeat = 2
-width = 3.0
-default_color = Color(1, 0.97, 0.82, 0.90)
-texture = ExtResource("dash")
-texture_mode = 1
-antialiased = true
-
 [node name="Journey" type="Path2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
+visible = false
 
 [node name="Traveler" type="PathFollow2D" parent="MapFit/MapViewport/Atlas/Journey"]
 unique_name_in_owner = true
@@ -156,6 +141,8 @@ color = Color(1, 0.87, 0.39, 1)
 antialiased = true
 
 [node name="Stops" type="Control" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+visible = false
 offset_right = 1600.0
 offset_bottom = 900.0
 mouse_filter = 2
@@ -280,6 +267,7 @@ metadata/ui_sound = &"cancel"
 
 [node name="Details" type="Control" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
+visible = false
 offset_left = 48.0
 offset_top = 722.0
 offset_right = 900.0
@@ -325,6 +313,8 @@ theme_override_constants/line_spacing = 5
 text = "从林边的村落集结，沿着草地小径出发。"
 
 [node name="Footer" type="Control" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+visible = false
 offset_left = 1040.0
 offset_top = 737.0
 offset_right = 1552.0
@@ -382,7 +372,18 @@ horizontal_alignment = 2
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
 
+[node name="IntroHint" type="Label" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+offset_left = 1050.0
+offset_top = 823.0
+offset_right = 1552.0
+offset_bottom = 858.0
+text = "地貌展开中 · 空格跳过"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
+
 [node name="MenuEntrance" type="Node" parent="."]
 script = ExtResource("entrance")
-sections = Array[NodePath]([NodePath("MapFit/MapViewport/Atlas/Header"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage01"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage02"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage03"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage04"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage05"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage06"), NodePath("MapFit/MapViewport/Atlas/Details"), NodePath("MapFit/MapViewport/Atlas/Footer")])
+sections = Array[NodePath]([NodePath("MapFit/MapViewport/Atlas/Header"), NodePath("MapFit/MapViewport/Atlas/IntroHint")])
 stagger = 0.035
