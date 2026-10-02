@@ -8,4 +8,3 @@ number = 2
 title = "密林边境"
 region = "西境 · 森林与丘陵"
 description = "穿过浓密树冠间的空地，抵达森林边境。\n狭窄的林间通道，连接着开阔的丘陵。"
-atlas_position = Vector2(425, 394)

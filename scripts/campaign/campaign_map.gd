@@ -1,21 +1,26 @@
 extends Control
-## A six-stop route preview, with native curves, input, particles and scene nodes.
+## Six stops projected from an authored block-built 3D landscape.
 
 const DESIGN_SIZE := Vector2(1600, 900)
 @onready var session: Node = get_node("/root/Session")
 @onready var stops: Array[Button] = [%Stage01, %Stage02, %Stage03, %Stage04, %Stage05, %Stage06]
-@onready var route: Curve2D = %Journey.curve
+@onready var diorama: SubViewportContainer = %Landscape
+var route: Curve2D
+var stage_positions: PackedVector2Array
 var selected_index := 0
 var _travel: Tween
 
 func _ready() -> void:
 	%MapViewport.resized.connect(_fit_atlas)
 	_fit_atlas()
+	route = diorama.projected_route()
+	%Journey.curve = route
 	%RouteShadow.points = route.get_baked_points()
 	%Route.points = route.get_baked_points()
 	for index: int in stops.size():
 		var stop := stops[index]
-		stop.position = stop.stage.atlas_position - Vector2(38, 66)
+		stage_positions.append(diorama.stage_position(index))
+		stop.position = stage_positions[index] - Vector2(38, 66)
 		stop.pressed.connect(_select.bind(index))
 		stop.focus_entered.connect(_focus_stop.bind(index))
 	%Back.pressed.connect(_back)
@@ -56,7 +61,7 @@ func _select(index: int, animated: bool = true) -> void:
 	%PageNumber.text = "%02d / 06" % stage.number
 	%Previous.disabled = index == 0
 	%Next.disabled = index == stops.size() - 1
-	var destination := route.get_closest_offset(stage.atlas_position)
+	var destination := route.get_closest_offset(stage_positions[index])
 	if _travel and _travel.is_valid():
 		_travel.kill()
 	if animated:
@@ -72,6 +77,7 @@ func _step(direction: int) -> void:
 	stops[index].grab_focus(true)
 
 func _set_ambient(active: bool) -> void:
+	diorama.set_ambient(active)
 	%Snow.speed_scale = 1.0 if active else 0.0
 	%Pollen.speed_scale = 1.0 if active else 0.0
 

@@ -1,0 +1,43 @@
+extends SceneTree
+## Render authored model details and six-stop motion on a private desktop.
+## Run with tools/run_godot_private_desktop.py; output path is its first argument.
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+func _run() -> void:
+	create_timer(90.0, true, false, true).timeout.connect(func(): quit(3))
+	root.size = Vector2i(1600, 900)
+	root.get_node("Session").set_meta("campaign_selected_stage", 0)
+	change_scene_to_file("res://scenes/campaign/campaign_map.tscn")
+	await scene_changed
+	var output := OS.get_cmdline_user_args()[0]
+	await create_timer(1.6).timeout
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(output.path_join("route-map.png"))
+	var diorama: SubViewportContainer = current_scene.diorama
+	var camera: Camera3D = diorama.camera
+	var rig: Node3D = camera.get_parent()
+	var viewport: SubViewport = diorama.get_node("World")
+	viewport.get_texture().get_image().save_png(output.path_join("landscape.png"))
+	if OS.get_cmdline_user_args().has("--motion"):
+		root.size = Vector2i(1280, 720)
+		DirAccess.make_dir_recursive_absolute(output.path_join("motion"))
+		for frame: int in 168:
+			if frame in [24, 48, 72, 96, 120]:
+				current_scene._select(frame / 24)
+			await process_frame
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(output.path_join("motion/frame-%04d.png" % frame))
+	for shot: Dictionary in [
+		{"name": "woodland", "at": Vector3(-21, 1.3, 2), "size": 12.0},
+		{"name": "bridge", "at": Vector3(-3, 1, 2.5), "size": 10.0},
+		{"name": "summit", "at": Vector3(21, 7.2, -4), "size": 12.0},
+	]:
+		rig.position = shot.at
+		camera.size = shot.size
+		await create_timer(0.6).timeout
+		await RenderingServer.frame_post_draw
+		viewport.get_texture().get_image().save_png(output.path_join(shot.name + ".png"))
+	print("CAMPAIGN_MODEL_VISUAL_COMPLETE")
+	quit()

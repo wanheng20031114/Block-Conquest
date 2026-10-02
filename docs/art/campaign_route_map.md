@@ -1,53 +1,55 @@
-# 单人战役路线大地图（2026-10-02）
+# 单人战役：积木地貌大地图（2026-10-02）
 
-主菜单新增「单人战役」，进入从西侧草地森林过渡至东侧雪山的 2D 路线地图。原来的自由选地图对战保留为「自由对战」。
+主菜单「单人战役」进入真实渲染的 3D 积木微缩景观。采用正交俯视，保留 2D 地图清晰、安静的浏览方式。西侧森林村落经过溪谷木桥、群峰隘口，抵达东侧雪原与雪冠要塞，六处关卡保持原有顺序。
 
-这次完成路线与选关界面。六处关卡都可浏览，当前明确显示「关卡制作中」，没有接入战斗、虚构通关记录或提前解锁内容。关卡名称和风景描述作为后续关卡制作的第一版定位。
+当前完成大地图建模与选关预览，六个战斗关卡仍待制作。界面明确显示「路线已展开 · 关卡制作中」，浏览选择不会记录通关或修改玩家偏好。
 
-| 顺序 | 关卡 | 地域 |
-| --- | --- | --- |
-| 01 | 林间营地 | 草地与村落 |
-| 02 | 密林边境 | 森林与丘陵 |
-| 03 | 溪谷渡口 | 河流与桥梁 |
-| 04 | 群峰隘口 | 高地与山口 |
-| 05 | 霜林雪原 | 雪原与针叶林 |
-| 06 | 雪冠要塞 | 雪山与要塞 |
+![实际渲染](campaign/route-map.png)
 
-![实机路线图](campaign/route-map.png)
+## 模型与风格
 
-## 交互与表现
+以用户提供的积木场景为造型参考，重做几何、结构和材质：连接成簇的方块树冠、分层针叶与积雪、草皮和岩层厚度、连续弯曲的石径与台阶、木桥的桥板与桩柱、房屋的木梁窗框与屋瓦、要塞的院落、城门、塔楼和垛口。使用原创建筑与布景，未复制参考图中的列车、角色或界面。
 
-地图是一张连续的插画，原生六边形关卡标记与虚线路径叠加其上。悬停轻抬，选中变为暖金色并抬升，光点沿路线在 0.38 秒内抵达选择位置，详情短暂淡入。森林有稀疏浮尘，雪域有轻微飘雪；设置弹窗打开时暂停环境粒子。
+90 棵树编排成 11 处疏密不同的树群。模型摆放检查树根跨台地、道路、建筑和岩石的净空。地形、植被、房屋和桥梁都是可独立查看的三维几何；没有用图片平面冒充建模。
 
-鼠标可选择六个节点或前后翻页；方向键沿关卡顺序移动，数字行与数字小键盘 1–6 直接选择，Esc 返回主菜单。返回后恢复关卡选择与入口焦点。选择仅保存在本次运行的 Session 元数据中，不写入战役进度或用户偏好。
+![森林村落细节](campaign/woodland.png)
+![溪谷木桥细节](campaign/bridge.png)
+![雪冠要塞细节](campaign/summit.png)
 
-地图以 1600 × 900 设计坐标制作，使用原生 AspectRatioContainer 等比适配；宽屏和 4:3 窗口保留完整路线。文字、关卡、路线及界面没有烘焙进底图。
+定向光、柔和阴影、SSAO 和少量 SSIL 表现接触与层次。草地保持大面积干净色面，低幅空间色差只用于区分缓慢变化的区域。水面采用世界坐标波纹、天空反射与屏幕空间反射；河口有连续落水面。旗帜、树冠与流水保持轻微动态，雪域保留稀疏飘雪。
 
-## 编辑入口
+## 原生场景结构
 
-- 场景：`scenes/campaign/campaign_map.tscn`。
-- 关卡标记：`scenes/campaign/campaign_stop.tscn`。
-- 六份关卡资源：`data/campaign/01_woodland.tres` 至 `06_summit.tres`；名称、地域、描述和 `atlas_position` 在资源内编辑。
-- 路线：`data/campaign/journey_curve.tres`，原生 Curve2D 控制点。移动关卡时同步调整对应曲线点。
-- 美术：`assets/ui/campaign/forest_to_summit.png`，独立无文字底图。
-- 原生 GPUParticles2D、Line2D、Path2D、PathFollow2D 均直接保存在场景中，没有运行时创建节点。
+- `scenes/campaign/campaign_map.tscn`：UI、六个独立标记和输入。
+- `scenes/campaign/campaign_diorama.tscn`：SubViewportContainer → SubViewport → 独立 World3D、环境光、正交相机与地貌场景。
+- `scenes/campaign/campaign_landscape.tscn`：Terrain、Landmarks、Groves、StageAnchors 和原生 Path3D。编辑器中可单独调整地标与树木实例。
+- `scenes/campaign/models/`：阔叶树、松树、雪松、村屋、雪屋、瞭望塔、木桥、要塞与旗帜的可复用 PackedScene。
+- `assets/campaign/`：树冠、旗帜、河水与瀑布着色器。
+- `data/campaign/journey_3d.tres`：真实地形上的 Curve3D。六个 Marker3D 位于这条路线的准确节点，Camera3D.unproject_position 投影到 UI，替代插画时代的手写屏幕坐标。
+- `data/campaign/01_woodland.tres` 至 `06_summit.tres`：关卡名称、地区、说明文字。
 
-采用 Godot 官方文档确认 [AspectRatioContainer](https://docs.godotengine.org/en/stable/classes/class_aspectratiocontainer.html)、[Curve2D](https://docs.godotengine.org/en/stable/classes/class_curve2d.html)、[Line2D](https://docs.godotengine.org/en/stable/classes/class_line2d.html)、[PathFollow2D](https://docs.godotengine.org/en/stable/classes/class_pathfollow2d.html) 和 [GPUParticles2D](https://docs.godotengine.org/en/stable/classes/class_gpuparticles2d.html) 的适配、采样、纹理平铺及粒子行为。
+所有节点和 MultiMesh 均已保存在场景里。游戏运行时只加载与渲染，不生成地形、树木或建筑节点。MultiMesh 将同一模型的重复积木合批，避免每块屋瓦和树叶都成为运行时节点。
 
-## 验证
+`tools/build_campaign_diorama.py` 是离线建模源文件，只依赖 Python 标准库。运行它可确定性重建模型、地形场景与三维路线。修改生成内容前，应同步修改该文件以保留可再现的建模源；手工场景调整也可直接在 Godot 内完成，但重建时会覆盖生成文件。它不修改相机、UI 或关卡文案。
 
-Godot 4.7.2 / Forward+。在独立 Windows 桌面运行，不发送系统输入，不抢占用户窗口。
+建模时查阅 Godot 官方 [MultiMesh](https://docs.godotengine.org/en/stable/classes/class_multimesh.html)、[SubViewport](https://docs.godotengine.org/en/stable/classes/class_subviewport.html)、[Camera3D](https://docs.godotengine.org/en/stable/classes/class_camera3d.html)、[Curve3D](https://docs.godotengine.org/en/stable/classes/class_curve3d.html)、[Environment](https://docs.godotengine.org/en/stable/classes/class_environment.html) 的批量渲染、投影与环境表现能力。
 
-- `tests/campaign_map_test.gd`：173 项通过；包括真实入口、六节点点击、两种数字键、原生方向键、快速打断动效、弹窗输入隔离、返回与选择记忆、两档截图、宽屏与 4:3 完整性。
-- `tests/lobby_ui_test.gd`：64 项通过；新增入口布局、主菜单设置、原对战入口与返回流程。
-- `tools/validate_product.py`：运行时资源引用与产品边界检查通过。
-- 查看 1600 × 900 与 1280 × 720 的森林端、雪山端实拍，录制 168 帧、24 FPS 的六关切换预览。最终渲染日志无脚本或着色器错误。
-- 新增菜单项后缩短大厅入场错峰间隔，保持所有按钮及时就位。
+## 操作与验证
 
-## 生图来源与提示词
+鼠标、方向键、数字行和数字小键盘 1–6 选择关卡；光点沿三维路线的屏幕投影在 0.38 秒内抵达目标。Esc 返回，保留本次运行的选择。设置弹窗打开时冻结地图渲染和环境粒子。1600 × 900 设计画面在其他比例下等比完整显示。
 
-底图使用内置 `image_gen` 工具（imagegen 技能）生成，未使用 CLI/API 兜底。生成结果原样复制至 `assets/ui/campaign/forest_to_summit.png`；关卡控制、虚线和微小粒子使用代码及原生节点，底图不通过脚本绘制或修改。附件仅作为氛围参考，未复制其中的列车、角色或 UI。
+Godot 4.7.2 / Forward+，隔离 Windows 桌面实机检查，不操作用户窗口。
 
-最终使用的提示词：
+- `tests/campaign_map_test.gd`：221 项通过，覆盖选关、快速打断、投影与三维路线一致性、连续小台阶、设置隔离、返回记忆、1600 × 900 / 1280 × 720 截图、超宽和 4:3 适配。
+- `tests/campaign_model_visual.gd`：全图、森林、木桥、要塞实拍；传入 `--motion` 保存 168 帧的六关切换。
+- `tools/validate_product.py`：310 个运行时文件，资源引用与产品边界检查无错误。
 
-> Use case: stylized-concept. Asset type: production 2D illustrated overworld background for a Chinese indie strategy game's six-stage single-player campaign, without UI. Create one very wide 16:9 landscape image, high resolution 2560x1440 or higher. A continuous charming handcrafted atlas landscape seen from a high oblique top-down view, filling the canvas, with no horizon: LEFT is rich soft sage/olive meadows and clustered broadleaf forests; MIDDLE transitions through winding turquoise creeks, a small timber bridge, warm grassy foothills and grey-green rocky mountain passes; RIGHT becomes alpine fir forests, pale blue snowfields and layered majestic snowy mountains. Make the progression west to east unmistakable, with the final snow summit on the upper right. Six visually calm small clearings along a gentle winding journey, approximately at these fractions of the canvas: (0.12,0.67), (0.27,0.43), (0.43,0.62), (0.58,0.37), (0.74,0.53), (0.89,0.29). A thin pale earth footpath meanders naturally through these places and crosses a timber bridge near the third. Give the first clearing a tiny welcoming settlement of a few cream houses with warm ochre roofs; the final clearing a small elegant snow-covered watchfort. Leave open breathing room around all six locations for game controls to be added later. Style: sophisticated flat 2D storybook cartography, crisp softly irregular cut-paper silhouettes, restrained stepped/faceted tree crowns and rocks suggesting a block-built world, selective layered shading, delicate almost invisible paper grain, warm ivory highlights, muted olive/teal/icy blue palette. The forest is composed in dense harmonious groves alternating with clear meadows, not an evenly scattered noisy field. Snow peaks feel sculpted and dimensional through a few elegant flat blue shadow shapes. Good readable large shapes and abundant negative space, beautiful crafted game art, soft daylight from upper left. Terrain continues naturally to every edge; quieter top-left and bottom edges for overlaid interface text. NO text, NO letters, NO numbers, NO UI, NO buttons, NO pins, NO level circles, NO banners, NO compass, NO frame, NO watermark, NO railways, NO characters, NO photorealism, NO 3D voxel render. This is the original usable art asset itself, not a mockup inside a screen.
+可复现视觉检查：
+
+```powershell
+python tools/run_godot_private_desktop.py res://tests/campaign_model_visual.gd --output artifacts/campaign_model_final --script-arg=--motion --godot .local/network/runtime/Godot_v4.7.2-stable_win64.exe --timeout 110
+```
+
+## 插画参考的定位
+
+之前由内置 image_gen 生成的 `assets/ui/campaign/forest_to_summit.png` 保留为构图参考。它帮助确定森林、溪谷、雪山的连续布局，当前运行场景不再引用它。最终画面来自上述真实三维场景的渲染。

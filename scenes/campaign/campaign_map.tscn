@@ -2,10 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/campaign/campaign_map.gd" id="script"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
-[ext_resource type="Texture2D" path="res://assets/ui/campaign/forest_to_summit.png" id="art"]
+[ext_resource type="PackedScene" path="res://scenes/campaign/campaign_diorama.tscn" id="diorama"]
 [ext_resource type="Shader" path="res://assets/ui/campaign/atlas_veil.gdshader" id="veil"]
 [ext_resource type="Texture2D" path="res://assets/ui/campaign/route_dash.svg" id="dash"]
-[ext_resource type="Curve2D" path="res://data/campaign/journey_curve.tres" id="curve"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_stop.tscn" id="stop"]
 [ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
 [ext_resource type="Resource" path="res://data/campaign/01_woodland.tres" id="stage1"]
@@ -96,13 +95,12 @@ offset_right = 1600.0
 offset_bottom = 900.0
 mouse_filter = 2
 
-[node name="Landscape" type="TextureRect" parent="MapFit/MapViewport/Atlas"]
+[node name="Landscape" parent="MapFit/MapViewport/Atlas" instance=ExtResource("diorama")]
+unique_name_in_owner = true
 layout_mode = 0
 offset_right = 1600.0
 offset_bottom = 900.0
 mouse_filter = 2
-texture = ExtResource("art")
-expand_mode = 1
 
 [node name="Pollen" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
@@ -124,8 +122,8 @@ process_material = SubResource("SnowMotion")
 
 [node name="RouteShadow" type="Line2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
-width = 7.0
-default_color = Color(0.21, 0.28, 0.18, 0.16)
+width = 4.0
+default_color = Color(0.21, 0.28, 0.18, 0.22)
 begin_cap_mode = 2
 end_cap_mode = 2
 antialiased = true
@@ -133,15 +131,14 @@ antialiased = true
 [node name="Route" type="Line2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
 texture_repeat = 2
-width = 6.0
-default_color = Color(1, 0.96, 0.77, 0.94)
+width = 3.0
+default_color = Color(1, 0.97, 0.82, 0.90)
 texture = ExtResource("dash")
 texture_mode = 1
 antialiased = true
 
 [node name="Journey" type="Path2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
-curve = ExtResource("curve")
 
 [node name="Traveler" type="PathFollow2D" parent="MapFit/MapViewport/Atlas/Journey"]
 unique_name_in_owner = true

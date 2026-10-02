@@ -8,4 +8,3 @@ number = 5
 title = "霜林雪原"
 region = "北境 · 雪原与针叶林"
 description = "松林覆上薄雪，白色山谷在眼前展开。\n穿过雪原，寻找通往雪峰的最后一段路。"
-atlas_position = Vector2(1206, 414)

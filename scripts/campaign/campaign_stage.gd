@@ -6,4 +6,3 @@ extends Resource
 @export var title := ""
 @export var region := ""
 @export_multiline var description := ""
-@export var atlas_position := Vector2.ZERO

@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://assets/campaign/block_foliage.gdshader" id="leaves"]
+
+[ext_resource type="Shader" path="res://assets/campaign/banner.gdshader" id="flag_shader"]
+
+[sub_resource type="BoxMesh" id="Cube"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Matte"]
+vertex_color_use_as_albedo = true
+roughness = 0.88
+
+[sub_resource type="ShaderMaterial" id="Foliage"]
+shader = ExtResource("leaves")
+
+[sub_resource type="MultiMesh" id="Pole"]
+transform_format = 1
+use_colors = true
+instance_count = 2
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(0.075, 0, 0, 0, 0, 2.2, 0, 1.1, 0, 0, 0.075, 0, 0.09306, 0.06663, 0.04667, 1, 0.15, 0, 0, 0, 0, 0.15, 0, 2.22, 0, 0, 0.15, 0, 0.76815, 0.46778, 0.10702, 1)
+
+[sub_resource type="PlaneMesh" id="Cloth"]
+size = Vector2(0.88, 0.54)
+orientation = 2
+subdivide_width = 10
+subdivide_depth = 3
+
+[sub_resource type="ShaderMaterial" id="FlagMaterial"]
+shader = ExtResource("flag_shader")
+
+[node name="flag" type="Node3D"]
+
+[node name="Pole" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Pole")
+material_override = SubResource("Matte")
+
+[node name="Banner" type="MeshInstance3D" parent="."]
+position = Vector3(0.43, 1.84, 0)
+mesh = SubResource("Cloth")
+material_override = SubResource("FlagMaterial")
