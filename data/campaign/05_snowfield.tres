@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CampaignStage" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/campaign_stage.gd" id="stage"]
+
+[resource]
+script = ExtResource("stage")
+number = 5
+title = "霜林雪原"
+region = "北境 · 雪原与针叶林"
+description = "松林覆上薄雪，白色山谷在眼前展开。\n穿过雪原，寻找通往雪峰的最后一段路。"
+atlas_position = Vector2(1206, 414)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CampaignStage" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/campaign_stage.gd" id="stage"]
+
+[resource]
+script = ExtResource("stage")
+number = 3
+title = "溪谷渡口"
+region = "中境 · 河流与桥梁"
+description = "山溪从岩壁间汇入河谷，一座木桥连通两岸。\n渡过河流，山地之行由此开始。"
+atlas_position = Vector2(733, 459)

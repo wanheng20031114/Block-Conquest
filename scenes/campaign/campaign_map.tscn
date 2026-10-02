@@ -1,0 +1,391 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/campaign_map.gd" id="script"]
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/campaign/forest_to_summit.png" id="art"]
+[ext_resource type="Shader" path="res://assets/ui/campaign/atlas_veil.gdshader" id="veil"]
+[ext_resource type="Texture2D" path="res://assets/ui/campaign/route_dash.svg" id="dash"]
+[ext_resource type="Curve2D" path="res://data/campaign/journey_curve.tres" id="curve"]
+[ext_resource type="PackedScene" path="res://scenes/campaign/campaign_stop.tscn" id="stop"]
+[ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
+[ext_resource type="Resource" path="res://data/campaign/01_woodland.tres" id="stage1"]
+[ext_resource type="Resource" path="res://data/campaign/02_forest.tres" id="stage2"]
+[ext_resource type="Resource" path="res://data/campaign/03_crossing.tres" id="stage3"]
+[ext_resource type="Resource" path="res://data/campaign/04_pass.tres" id="stage4"]
+[ext_resource type="Resource" path="res://data/campaign/05_snowfield.tres" id="stage5"]
+[ext_resource type="Resource" path="res://data/campaign/06_summit.tres" id="stage6"]
+
+[sub_resource type="ShaderMaterial" id="Veil"]
+shader = ExtResource("veil")
+
+[sub_resource type="Gradient" id="SnowFade"]
+offsets = PackedFloat32Array(0, 0.15, 0.78, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.65, 1, 1, 1, 0.5, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="SnowColor"]
+gradient = SubResource("SnowFade")
+
+[sub_resource type="ParticleProcessMaterial" id="SnowMotion"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(280, 255, 1)
+direction = Vector3(-0.3, 1, 0)
+spread = 15.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 8.0
+initial_velocity_max = 17.0
+scale_min = 1.8
+scale_max = 3.5
+color_ramp = SubResource("SnowColor")
+
+[sub_resource type="ParticleProcessMaterial" id="PollenMotion"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(290, 185, 1)
+direction = Vector3(1, -0.3, 0)
+spread = 30.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 3.0
+initial_velocity_max = 8.0
+scale_min = 1.2
+scale_max = 2.4
+color = Color(1, 0.91, 0.6, 0.65)
+color_ramp = SubResource("SnowColor")
+
+[node name="CampaignMap" type="Control" groups=["animated_menu"]]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("theme")
+script = ExtResource("script")
+
+[node name="Paper" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.976, 0.965, 0.92, 1)
+
+[node name="MapFit" type="AspectRatioContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+ratio = 1.7777778
+stretch_mode = 2
+
+[node name="MapViewport" type="Control" parent="MapFit"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+clip_contents = true
+
+[node name="Atlas" type="Control" parent="MapFit/MapViewport"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 1600.0
+offset_bottom = 900.0
+mouse_filter = 2
+
+[node name="Landscape" type="TextureRect" parent="MapFit/MapViewport/Atlas"]
+layout_mode = 0
+offset_right = 1600.0
+offset_bottom = 900.0
+mouse_filter = 2
+texture = ExtResource("art")
+expand_mode = 1
+
+[node name="Pollen" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+position = Vector2(350, 415)
+amount = 20
+lifetime = 12.0
+preprocess = 12.0
+visibility_rect = Rect2(-340, -250, 760, 500)
+process_material = SubResource("PollenMotion")
+
+[node name="Snow" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+position = Vector2(1310, 325)
+amount = 65
+lifetime = 16.0
+preprocess = 16.0
+visibility_rect = Rect2(-390, -280, 800, 790)
+process_material = SubResource("SnowMotion")
+
+[node name="RouteShadow" type="Line2D" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+width = 7.0
+default_color = Color(0.21, 0.28, 0.18, 0.16)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Route" type="Line2D" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+texture_repeat = 2
+width = 6.0
+default_color = Color(1, 0.96, 0.77, 0.94)
+texture = ExtResource("dash")
+texture_mode = 1
+antialiased = true
+
+[node name="Journey" type="Path2D" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+curve = ExtResource("curve")
+
+[node name="Traveler" type="PathFollow2D" parent="MapFit/MapViewport/Atlas/Journey"]
+unique_name_in_owner = true
+rotates = false
+loop = false
+
+[node name="Glow" type="Polygon2D" parent="MapFit/MapViewport/Atlas/Journey/Traveler"]
+polygon = PackedVector2Array(0, -13, 16, 0, 0, 13, -16, 0)
+color = Color(1, 0.83, 0.35, 0.25)
+antialiased = true
+
+[node name="Spark" type="Polygon2D" parent="MapFit/MapViewport/Atlas/Journey/Traveler"]
+polygon = PackedVector2Array(0, -5, 7, 0, 0, 5, -7, 0)
+color = Color(1, 0.87, 0.39, 1)
+antialiased = true
+
+[node name="Stops" type="Control" parent="MapFit/MapViewport/Atlas"]
+offset_right = 1600.0
+offset_bottom = 900.0
+mouse_filter = 2
+
+[node name="Stage01" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+unique_name_in_owner = true
+offset_left = 130.0
+offset_top = 497.0
+offset_right = 206.0
+offset_bottom = 609.0
+focus_neighbor_left = NodePath("../Stage01")
+focus_neighbor_right = NodePath("../Stage02")
+stage = ExtResource("stage1")
+
+[node name="Stage02" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+unique_name_in_owner = true
+offset_left = 387.0
+offset_top = 328.0
+offset_right = 463.0
+offset_bottom = 440.0
+focus_neighbor_left = NodePath("../Stage01")
+focus_neighbor_right = NodePath("../Stage03")
+stage = ExtResource("stage2")
+
+[node name="Stage03" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+unique_name_in_owner = true
+offset_left = 695.0
+offset_top = 393.0
+offset_right = 771.0
+offset_bottom = 505.0
+focus_neighbor_left = NodePath("../Stage02")
+focus_neighbor_right = NodePath("../Stage04")
+stage = ExtResource("stage3")
+
+[node name="Stage04" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+unique_name_in_owner = true
+offset_left = 904.0
+offset_top = 253.0
+offset_right = 980.0
+offset_bottom = 365.0
+focus_neighbor_left = NodePath("../Stage03")
+focus_neighbor_right = NodePath("../Stage05")
+stage = ExtResource("stage4")
+
+[node name="Stage05" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+unique_name_in_owner = true
+offset_left = 1168.0
+offset_top = 348.0
+offset_right = 1244.0
+offset_bottom = 460.0
+focus_neighbor_left = NodePath("../Stage04")
+focus_neighbor_right = NodePath("../Stage06")
+stage = ExtResource("stage5")
+
+[node name="Stage06" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+unique_name_in_owner = true
+offset_left = 1392.0
+offset_top = 166.0
+offset_right = 1468.0
+offset_bottom = 278.0
+focus_neighbor_left = NodePath("../Stage05")
+focus_neighbor_right = NodePath("../Stage06")
+stage = ExtResource("stage6")
+
+[node name="ReadingVeil" type="ColorRect" parent="MapFit/MapViewport/Atlas"]
+offset_right = 1600.0
+offset_bottom = 900.0
+mouse_filter = 2
+material = SubResource("Veil")
+
+[node name="Header" type="Control" parent="MapFit/MapViewport/Atlas"]
+offset_left = 48.0
+offset_top = 30.0
+offset_right = 1552.0
+offset_bottom = 142.0
+mouse_filter = 2
+
+[node name="Eyebrow" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
+offset_right = 500.0
+offset_bottom = 25.0
+text = "积木战争   /   单人战役"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.27, 0.35, 0.28, 1)
+
+[node name="Title" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
+offset_top = 31.0
+offset_right = 620.0
+offset_bottom = 83.0
+theme_type_variation = &"MenuTitle"
+theme_override_font_sizes/font_size = 44
+text = "从林野，向雪巅"
+
+[node name="Subtitle" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
+offset_top = 89.0
+offset_right = 620.0
+offset_bottom = 117.0
+theme_override_font_sizes/font_size = 18
+text = "一条远征之路 · 六段不同风景"
+
+[node name="Navigation" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Header"]
+unique_name_in_owner = true
+offset_left = 1280.0
+offset_top = 5.0
+offset_right = 1504.0
+offset_bottom = 53.0
+theme_override_constants/separation = 12
+
+[node name="Settings" type="Button" parent="MapFit/MapViewport/Atlas/Header/Navigation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "设置"
+mouse_default_cursor_shape = 2
+
+[node name="Back" type="Button" parent="MapFit/MapViewport/Atlas/Header/Navigation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "返回"
+mouse_default_cursor_shape = 2
+metadata/ui_sound = &"cancel"
+
+[node name="Details" type="Control" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+offset_left = 48.0
+offset_top = 722.0
+offset_right = 900.0
+offset_bottom = 870.0
+mouse_filter = 2
+
+[node name="StageNumber" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
+unique_name_in_owner = true
+offset_top = 4.0
+offset_right = 80.0
+offset_bottom = 95.0
+theme_override_font_sizes/font_size = 64
+theme_override_colors/font_color = Color(0.53, 0.47, 0.29, 0.70)
+text = "01"
+
+[node name="Region" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
+unique_name_in_owner = true
+offset_left = 99.0
+offset_right = 700.0
+offset_bottom = 25.0
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.36, 0.42, 0.34, 1)
+text = "西境 · 草地与村落"
+
+[node name="StageTitle" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
+unique_name_in_owner = true
+offset_left = 97.0
+offset_top = 30.0
+offset_right = 700.0
+offset_bottom = 74.0
+theme_type_variation = &"MenuTitle"
+theme_override_font_sizes/font_size = 33
+text = "林间营地"
+
+[node name="Description" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
+unique_name_in_owner = true
+offset_left = 99.0
+offset_top = 84.0
+offset_right = 830.0
+offset_bottom = 146.0
+theme_override_font_sizes/font_size = 19
+theme_override_constants/line_spacing = 5
+text = "从林边的村落集结，沿着草地小径出发。"
+
+[node name="Footer" type="Control" parent="MapFit/MapViewport/Atlas"]
+offset_left = 1040.0
+offset_top = 737.0
+offset_right = 1552.0
+offset_bottom = 872.0
+mouse_filter = 2
+
+[node name="Pager" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Footer"]
+unique_name_in_owner = true
+offset_left = 236.0
+offset_right = 512.0
+offset_bottom = 46.0
+theme_override_constants/separation = 18
+
+[node name="Previous" type="Button" parent="MapFit/MapViewport/Atlas/Footer/Pager"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(66, 46)
+layout_mode = 2
+text = "←"
+tooltip_text = "上一关"
+mouse_default_cursor_shape = 2
+
+[node name="PageNumber" type="Label" parent="MapFit/MapViewport/Atlas/Footer/Pager"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(98, 0)
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "01 / 06"
+theme_override_font_sizes/font_size = 20
+
+[node name="Next" type="Button" parent="MapFit/MapViewport/Atlas/Footer/Pager"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(66, 46)
+layout_mode = 2
+text = "→"
+tooltip_text = "下一关"
+mouse_default_cursor_shape = 2
+
+[node name="Status" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
+unique_name_in_owner = true
+offset_top = 62.0
+offset_right = 512.0
+offset_bottom = 89.0
+text = "路线已展开 · 关卡制作中"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.32, 0.38, 0.32, 1)
+
+[node name="Hints" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
+offset_top = 105.0
+offset_right = 512.0
+offset_bottom = 132.0
+text = "1–6 选关    ← → 巡览    Esc 返回"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
+
+[node name="MenuEntrance" type="Node" parent="."]
+script = ExtResource("entrance")
+sections = Array[NodePath]([NodePath("MapFit/MapViewport/Atlas/Header"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage01"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage02"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage03"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage04"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage05"), NodePath("MapFit/MapViewport/Atlas/Stops/Stage06"), NodePath("MapFit/MapViewport/Atlas/Details"), NodePath("MapFit/MapViewport/Atlas/Footer")])
+stagger = 0.035
