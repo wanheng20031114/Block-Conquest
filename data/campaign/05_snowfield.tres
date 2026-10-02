@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 5
-title = "霜林雪原"
-region = "北境 · 雪原与针叶林"
-description = "松林覆上薄雪，白色山谷在眼前展开。\n穿过雪原，寻找通往雪峰的最后一段路。"
+title = "霜林站"
+region = "北境 · 霜林山站"
+description = "松林覆上薄霜，列车驶入山间车站。\n携一名电脑盟友攻上盘山双关，识破狐狸的反击。"
+map_id = "switchback"
+opponent_commander = &"fox"

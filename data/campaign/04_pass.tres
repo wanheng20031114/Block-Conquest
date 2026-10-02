@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 4
-title = "群峰隘口"
-region = "中境 · 高地与山口"
-description = "沿山径攀上群峰之间的隘口。\n越过这道山脊，草色渐退，初雪将至。"
+title = "山麓站"
+region = "中境 · 山口驿站"
+description = "山麓的石砌月台，是进入群峰的必经之处。\n与一名电脑盟友配合，沿断脊山道突破熊的防线。"
+map_id = "ridges"
+opponent_commander = &"bear"

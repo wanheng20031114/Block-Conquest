@@ -1,0 +1,96 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="Cube"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Matte"]
+vertex_color_use_as_albedo = true
+roughness = 0.9
+
+[sub_resource type="MultiMesh" id="Chassis"]
+transform_format = 1
+use_colors = true
+instance_count = 9
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(0, 0, 0.5888, 0, 0, 0.0896, 0, 0.2304, -1.472, 0, 0, 0, 0.059753, 0.065001, 0.080276, 1, 0, 0, 0.064, 0, 0, 0.0512, 0, 0.2304, -0.1024, 0, 0, 0.8064, 0.060059, 0.065335, 0.080688, 1, 0, 0, 0.6656, 0, 0, 0.1152, 0, 0.2304, -0.0512, 0, 0, 0.7424, 0.415646, 0.129439, 0.083924, 1, 0, 0, 0.064, 0, 0, 0.0512, 0, 0.2304, -0.1024, 0, 0, -0.8064, 0.061809, 0.067238, 0.083039, 1, 0, 0, 0.6656, 0, 0, 0.1152, 0, 0.2304, -0.0512, 0, 0, -0.7424, 0.410336, 0.127786, 0.082852, 1, 0, 0, 0.0832, -0.3296, 0, 0.032, 0, 0.128, -0.1152, 0, 0, 0.48, 0.417885, 0.130136, 0.084376, 1, 0, 0, 0.0832, 0.3296, 0, 0.032, 0, 0.128, -0.1152, 0, 0, 0.48, 0.417885, 0.130136, 0.084376, 1, 0, 0, 0.0832, -0.3296, 0, 0.032, 0, 0.128, -0.1152, 0, 0, -0.48, 0.417885, 0.130136, 0.084376, 1, 0, 0, 0.0832, 0.3296, 0, 0.032, 0, 0.128, -0.1152, 0, 0, -0.48, 0.417885, 0.130136, 0.084376, 1)
+
+[sub_resource type="MultiMesh" id="PassengerCabin"]
+transform_format = 1
+use_colors = true
+instance_count = 14
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(0, 0, 0.64, 0, 0, 0.2304, 0, 0.3968, -1.472, 0, 0, 0, 0.409056, 0.127387, 0.082593, 1, 0, 0, 0.64, 0, 0, 0.3712, 0, 0.6912, -1.472, 0, 0, 0, 0.850798, 0.757152, 0.562947, 1, 0, 0, 0.6528, 0, 0, 0.032, 0, 0.5248, -1.4848, 0, 0, 0, 0.578329, 0.398021, 0.137069, 1, 0, 0, 0.7296, 0, 0, 0.064, 0, 0.9088, -1.5744, 0, 0, 0, 0.037628, 0.159047, 0.141202, 1, 0, 0, 0.5504, 0, 0, 0.064, 0, 0.9728, -1.472, 0, 0, 0, 0.029551, 0.119516, 0.107003, 1, 0, 0, 0.32, 0, 0, 0.0384, 0, 1.024, -1.344, 0, 0, 0, 0.037296, 0.157644, 0.139956, 1, 0, 0, 0.0128, -0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, 0.4992, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, -0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, 0.1664, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, -0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, -0.1664, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, -0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, -0.4992, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, 0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, 0.4992, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, 0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, 0.1664, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, 0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, -0.1664, 0.124772, 0.198069, 0.242281, 1, 0, 0, 0.0128, 0.3232, 0, 0.1792, 0, 0.704, -0.2048, 0, 0, -0.4992, 0.124772, 0.198069, 0.242281, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_Wheel0_0"]
+albedo_color = Color(0.27451, 0.286275, 0.317647, 1)
+roughness = 0.84
+
+[sub_resource type="CylinderMesh" id="Mesh_Wheel0_0"]
+material = SubResource("Mat_Wheel0_0")
+top_radius = 0.128
+bottom_radius = 0.128
+height = 0.064
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_Wheel0_1"]
+albedo_color = Color(0.27451, 0.286275, 0.317647, 1)
+roughness = 0.84
+
+[sub_resource type="CylinderMesh" id="Mesh_Wheel0_1"]
+material = SubResource("Mat_Wheel0_1")
+top_radius = 0.128
+bottom_radius = 0.128
+height = 0.064
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_Wheel1_0"]
+albedo_color = Color(0.27451, 0.286275, 0.317647, 1)
+roughness = 0.84
+
+[sub_resource type="CylinderMesh" id="Mesh_Wheel1_0"]
+material = SubResource("Mat_Wheel1_0")
+top_radius = 0.128
+bottom_radius = 0.128
+height = 0.064
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_Wheel1_1"]
+albedo_color = Color(0.27451, 0.286275, 0.317647, 1)
+roughness = 0.84
+
+[sub_resource type="CylinderMesh" id="Mesh_Wheel1_1"]
+material = SubResource("Mat_Wheel1_1")
+top_radius = 0.128
+bottom_radius = 0.128
+height = 0.064
+radial_segments = 8
+
+[node name="Coach" type="Node3D"]
+
+[node name="Chassis" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Chassis")
+material_override = SubResource("Matte")
+
+[node name="PassengerCabin" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("PassengerCabin")
+material_override = SubResource("Matte")
+
+[node name="Wheel0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.32, 0.128, 0.48)
+rotation = Vector3(0, 0, 1.570796)
+mesh = SubResource("Mesh_Wheel0_0")
+
+[node name="Wheel0_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.32, 0.128, 0.48)
+rotation = Vector3(0, 0, 1.570796)
+mesh = SubResource("Mesh_Wheel0_1")
+
+[node name="Wheel1_0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.32, 0.128, -0.48)
+rotation = Vector3(0, 0, 1.570796)
+mesh = SubResource("Mesh_Wheel1_0")
+
+[node name="Wheel1_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.32, 0.128, -0.48)
+rotation = Vector3(0, 0, 1.570796)
+mesh = SubResource("Mesh_Wheel1_1")

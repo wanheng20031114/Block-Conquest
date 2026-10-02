@@ -6,7 +6,7 @@
 
 [node name="CampaignStop" type="Button"]
 offset_right = 76.0
-offset_bottom = 112.0
+offset_bottom = 96.0
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("Empty")
@@ -16,22 +16,22 @@ script = ExtResource("script")
 
 [node name="Badge" type="Control" parent="."]
 offset_right = 76.0
-offset_bottom = 72.0
+offset_bottom = 44.0
 mouse_filter = 2
 
 [node name="Shadow" type="Polygon2D" parent="Badge"]
 position = Vector2(0, 5)
-polygon = PackedVector2Array(18, 2, 58, 2, 70, 16, 70, 50, 38, 69, 6, 50, 6, 16)
+polygon = PackedVector2Array(6, 4, 29, 4, 38, -6, 47, 4, 70, 4, 70, 40, 6, 40)
 color = Color(0.13, 0.22, 0.17, 0.26)
 antialiased = true
 
 [node name="Paper" type="Polygon2D" parent="Badge"]
-polygon = PackedVector2Array(18, 2, 58, 2, 70, 16, 70, 50, 38, 69, 6, 50, 6, 16)
+polygon = PackedVector2Array(6, 4, 29, 4, 38, -6, 47, 4, 70, 4, 70, 40, 6, 40)
 color = Color(0.988, 0.973, 0.914, 1)
 antialiased = true
 
 [node name="Edge" type="Line2D" parent="Badge"]
-points = PackedVector2Array(18, 2, 58, 2, 70, 16, 70, 50, 38, 69, 6, 50, 6, 16)
+points = PackedVector2Array(6, 4, 29, 4, 38, -6, 47, 4, 70, 4, 70, 40, 6, 40)
 closed = true
 width = 2.0
 default_color = Color(0.27, 0.38, 0.33, 1)
@@ -39,7 +39,7 @@ antialiased = true
 
 [node name="Focus" type="Line2D" parent="Badge"]
 visible = false
-points = PackedVector2Array(16, -4, 60, -4, 76, 14, 76, 54, 38, 76, 0, 54, 0, 14)
+points = PackedVector2Array(1, -1, 27, -1, 38, -12, 49, -1, 75, -1, 75, 45, 1, 45)
 closed = true
 width = 2.0
 default_color = Color(1, 0.99, 0.91, 1)
@@ -49,24 +49,36 @@ antialiased = true
 offset_left = 6.0
 offset_top = 3.0
 offset_right = 70.0
-offset_bottom = 54.0
+offset_bottom = 40.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.2, 0.29, 0.24, 1)
-theme_override_font_sizes/font_size = 25
+theme_override_font_sizes/font_size = 22
 text = "01"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Caption" type="Label" parent="."]
 offset_left = -42.0
-offset_top = 78.0
+offset_top = 46.0
 offset_right = 118.0
-offset_bottom = 112.0
+offset_bottom = 74.0
 mouse_filter = 2
 theme_type_variation = &"MenuTitle"
 theme_override_colors/font_color = Color(0.2, 0.29, 0.24, 1)
 theme_override_colors/font_outline_color = Color(0.99, 0.98, 0.91, 0.96)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 22
-text = "林间营地"
+theme_override_font_sizes/font_size = 18
+text = "林野始发站"
+horizontal_alignment = 1
+
+[node name="State" type="Label" parent="."]
+offset_left = -42.0
+offset_top = 73.0
+offset_right = 118.0
+offset_bottom = 95.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_outline_color = Color(0.99, 0.98, 0.91, 0.96)
+theme_override_constants/outline_size = 6
+text = "待解锁"
 horizontal_alignment = 1

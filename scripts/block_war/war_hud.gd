@@ -75,6 +75,11 @@ func _ready() -> void:
 	_online_menu = not online.match_config.is_empty()
 	if _online_menu:
 		_configure_online_menu(online)
+	elif get_node("/root/Session").campaign_active_stage >= 0:
+		%PauseExit.text = "返回战役铁路"
+		%ResultExit.text = "返回战役铁路"
+		%PauseRestart.text = "重试本站"
+		%ResultRestart.text = "重玩本站"
 	%DebugPanel.close_requested.connect(set_debug_visible.bind(false))
 	%DebugRefresh.timeout.connect(func(): debug_refresh_requested.emit())
 	%Upgrade.pressed.connect(func(): upgrade_requested.emit())
@@ -227,6 +232,20 @@ func show_draw() -> void:
 	%ResultDetail.text = "双方均已没有可出征的民兵与产兵住宅。重整旗鼓，再战一局。"
 	%ResultOverlay.show()
 	UIMotion.reveal(%ResultCard, Vector2(0, 28))
+
+func show_campaign_result(won: bool, save_error: Error) -> void:
+	var session := get_node("/root/Session")
+	var stage: Resource = session.CAMPAIGN_STAGES[session.campaign_active_stage]
+	%ResultEyebrow.text = "铁路战役  /  第 %d 站 · %s" % [stage.number, stage.title]
+	if not won:
+		%ResultDetail.text += "\n列车仍在最新进度的车站等候，可返回铁路或重试本站。"
+	elif save_error != OK:
+		%ResultDetail.text = "本站获胜，但战役进度保存失败。请检查磁盘空间与存档目录后重玩本站。"
+	elif session.campaign_completed_count == session.CAMPAIGN_STAGES.size():
+		%ResultDetail.text = "六站全线通关！列车停靠终点站，所有已通过的车站仍可重玩。"
+	else:
+		var next: Resource = session.CAMPAIGN_STAGES[session.campaign_current_stage()]
+		%ResultDetail.text = "本站已通过。列车停靠%s，返回铁路即可继续前进或重玩已过关车站。" % next.title
 
 func track_building(building: Node3D, camera: Camera3D, buildings: Array[Node3D]) -> void:
 	if building != _selection_target:

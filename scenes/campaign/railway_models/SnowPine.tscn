@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="Cube"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Matte"]
+vertex_color_use_as_albedo = true
+roughness = 0.9
+
+[sub_resource type="MultiMesh" id="Trunk"]
+transform_format = 1
+use_colors = true
+instance_count = 1
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(0.2, 0, 0, 0, 0, 0.45, 0, 0.225, 0, 0, 0.2, 0, 0.189872, 0.106792, 0.056396, 1)
+
+[sub_resource type="MultiMesh" id="SteppedCrown"]
+transform_format = 1
+use_colors = true
+instance_count = 5
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(1.25, 0, 0, 0, 0, 0.42, 0, 0.61, 0, 0, 1.25, 0, 0.072646, 0.167819, 0.127387, 1, 0.98, 0, 0, 0, 0, 0.42, 0, 1.03, 0, 0, 0.98, 0, 0.128273, 0.231192, 0.172147, 1, 0.72, 0, 0, 0, 0, 0.42, 0, 1.45, 0, 0, 0.72, 0, 0.073483, 0.169754, 0.128855, 1, 0.46, 0, 0, 0, 0, 0.42, 0, 1.87, 0, 0, 0.46, 0, 0.132741, 0.239244, 0.178142, 1, 0.22, 0, 0, 0, 0, 0.3, 0, 2.23, 0, 0, 0.22, 0, 0.0742, 0.171409, 0.130112, 1)
+
+[sub_resource type="MultiMesh" id="SnowCaps"]
+transform_format = 1
+use_colors = true
+instance_count = 5
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(1.15, 0, 0, 0, 0, 0.07, 0, 0.85, 0, 0, 1.15, 0, 0.786293, 0.849851, 0.833691, 1, 0.88, 0, 0, 0, 0, 0.07, 0, 1.27, 0, 0, 0.88, 0, 0.788718, 0.852472, 0.836263, 1, 0.62, 0, 0, 0, 0, 0.07, 0, 1.69, 0, 0, 0.62, 0, 0.795957, 0.860296, 0.843938, 1, 0.36, 0, 0, 0, 0, 0.07, 0, 2.11, 0, 0, 0.36, 0, 0.774813, 0.837443, 0.821519, 1, 0.12, 0, 0, 0, 0, 0.07, 0, 2.41, 0, 0, 0.12, 0, 0.789487, 0.853304, 0.837078, 1)
+
+[node name="SnowPine" type="Node3D"]
+
+[node name="Trunk" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Trunk")
+material_override = SubResource("Matte")
+
+[node name="SteppedCrown" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("SteppedCrown")
+material_override = SubResource("Matte")
+
+[node name="SnowCaps" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("SnowCaps")
+material_override = SubResource("Matte")

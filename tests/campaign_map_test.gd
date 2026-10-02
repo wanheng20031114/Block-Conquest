@@ -1,5 +1,5 @@
 extends SceneTree
-## Native input and real rendered scenes exercise the route preview end to end.
+## Native input verifies railway browsing, unlock states and progress parking.
 
 var checks := 0
 var failures: Array[String] = []
@@ -51,6 +51,8 @@ func _run() -> void:
 		capture_directory = args[0]
 		DirAccess.make_dir_recursive_absolute(capture_directory)
 	var session := root.get_node("Session")
+	var saved_progress: int = session.campaign_completed_count
+	session.campaign_completed_count = 3
 	var preferences: Dictionary = session.settings.snapshot()
 	var had_selection: bool = session.has_meta("campaign_selected_stage")
 	var previous_selection: int = session.get_meta("campaign_selected_stage", 0)
@@ -84,7 +86,10 @@ func _run() -> void:
 		check(maximum_riser < 0.29, "the trail crosses terraces on small risers without vertical jumps")
 		check(atlas.selected_index == 0, "first visit starts at the woodland")
 		check(is_equal_approx(atlas.get_node("%MapViewport").size.aspect(), 16.0 / 9.0), "atlas keeps its 16:9 proportions")
-		check(atlas.get_node("%Status").text.contains("关卡制作中"), "unimplemented missions are explicitly presented as a route preview")
+		check(atlas.get_node("%Start").text.contains("再次挑战"), "cleared stations offer replay")
+		check(atlas.get_node("%Progress").text.contains("03 / 06"), "saved progress is displayed")
+		var parked_at: Vector3 = diorama.anchors[3].global_position
+		check(diorama.train.global_position.distance_to(parked_at) < 0.02, "train parks at latest unlocked station")
 		await capture("campaign-%d" % resolution.x)
 		for index: int in 6:
 			var stop: Button = atlas.stops[index]
@@ -101,7 +106,9 @@ func _run() -> void:
 			check(atlas.selected_index == index, "native click selects stage %d" % index)
 			check(atlas.get_node("%StageTitle").text == stop.stage.title, "detail title matches the chosen stage")
 			check(atlas.get_node("%Description").text == stop.stage.description, "detail copy matches the chosen stage")
-			check(atlas.get_node("%Traveler").position.distance_to(point) < 1.0, "selection traveler reaches the chosen stop")
+			check(diorama.train.global_position.distance_to(parked_at) < 0.02, "browsing any station preserves train progress")
+			check(atlas.get_node("%Start").disabled == (index > 3), "only reached stations can launch")
+			check(stop.completed == (index < 3), "completed badges reflect saved wins")
 			check(atlas.stops.filter(func(item: Button): return item.selected).size() == 1, "only one marker is selected")
 			check(is_equal_approx(stop.get_node("Badge").position.y, -9.0), "selected marker settles at a stable height")
 		check(atlas.get_node("%Next").disabled and not atlas.get_node("%Previous").disabled, "pager respects the last stop")
@@ -128,10 +135,10 @@ func _run() -> void:
 			key(code)
 		await settle()
 		check(atlas.selected_index == 5, "rapid input preserves the final requested stop")
-		check(atlas.get_node("%Traveler").position.distance_to(atlas.stage_positions[5]) < 1.0, "rapidly interrupted motion reaches its final destination")
+		check(diorama.train.global_position.distance_to(parked_at) < 0.02, "rapid input never moves the progress train")
 		for index: int in atlas.stops.size():
 			var stop: Button = atlas.stops[index]
-			check(stop.position.distance_to(atlas.stage_positions[index] - Vector2(38, 66)) < 0.1, "selection never moves the projected hit area")
+			check(stop.position.distance_to(atlas.stage_positions[index] + Vector2(-38, 28)) < 0.1, "selection never moves the projected hit area")
 		click(atlas.get_node("%Settings"))
 		await settle()
 		check(session.settings.is_open(), "settings opens from the campaign")
@@ -172,6 +179,8 @@ func _run() -> void:
 		for stop: Button in current_scene.stops:
 			check(current_scene.get_global_rect().encloses(stop.get_global_rect()), "nonstandard aspect ratio retains each marker")
 	check(session.settings.snapshot() == preferences, "route browsing never changes player preferences")
+	check(session.campaign_completed_count == 3, "browsing and leaving never changes campaign progress")
+	session.campaign_completed_count = saved_progress
 	if not had_selection:
 		session.remove_meta("campaign_selected_stage")
 	else:

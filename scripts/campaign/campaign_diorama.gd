@@ -9,10 +9,14 @@ signal intro_finished
 @onready var world_route: Path3D = $World/Stage/Landscape/Journey
 @onready var entrance: AnimationPlayer = $World/Stage/Landscape/Entrance
 @onready var camera_motion: AnimationPlayer = $CameraMotion
+@onready var train: PathFollow3D = $World/Stage/Landscape/Journey/Train
+@onready var tender: PathFollow3D = $World/Stage/Landscape/Journey/Tender
+@onready var coach: PathFollow3D = $World/Stage/Landscape/Journey/Coach
 var intro_running := true
 var _started := false
 
 func _ready() -> void:
+	park_train(get_node("/root/Session").campaign_current_stage())
 	# Apply the authored flat pose before the first render, then wait until the
 	# shared scene curtain has uncovered the map. No runtime model construction.
 	for player: AnimationPlayer in [entrance, camera_motion]:
@@ -64,6 +68,13 @@ func projected_route() -> Curve2D:
 		var point := world_route.to_global(world_route.curve.get_point_position(index))
 		result.add_point(camera.unproject_position(point))
 	return result
+
+func park_train(index: int) -> void:
+	# Native followers keep each authored carriage on the same physical rails.
+	var offset := world_route.curve.get_closest_offset(world_route.to_local(anchors[index].global_position))
+	train.progress = offset
+	tender.progress = maxf(0.0, offset - 1.51)
+	coach.progress = maxf(0.0, offset - 2.94)
 
 func set_ambient(active: bool) -> void:
 	# Freezing the viewport also freezes shader-driven flags, leaves and water.

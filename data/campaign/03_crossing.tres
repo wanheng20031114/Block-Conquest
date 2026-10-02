@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 3
-title = "溪谷渡口"
-region = "中境 · 河流与桥梁"
-description = "山溪从岩壁间汇入河谷，一座木桥连通两岸。\n渡过河流，山地之行由此开始。"
+title = "溪桥站"
+region = "中境 · 溪谷桥头"
+description = "铁路跨过山溪，桥头车站守望着两岸。\n与一名电脑盟友并肩作战，突破双河平原的青蛙守军。"
+map_id = "rivers"
+opponent_commander = &"frog"

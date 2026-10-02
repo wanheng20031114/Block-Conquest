@@ -1,10 +1,20 @@
 extends Node
 ## Persistent preferences, selected commanders and native scene transitions.
 signal load_failed(message: String)
+signal campaign_progress_changed
 
 const LOBBY_SCENE := "res://scenes/lobby.tscn"
 const COMMANDER_SCENE := "res://scenes/block_war/commander_select.tscn"
 const BATTLE_SCENE := "res://scenes/block_war/block_war.tscn"
+const CAMPAIGN_SCENE := "res://scenes/campaign/campaign_map.tscn"
+const CAMPAIGN_STAGES: Array[Resource] = [
+	preload("res://data/campaign/01_woodland.tres"),
+	preload("res://data/campaign/02_forest.tres"),
+	preload("res://data/campaign/03_crossing.tres"),
+	preload("res://data/campaign/04_pass.tres"),
+	preload("res://data/campaign/05_snowfield.tres"),
+	preload("res://data/campaign/06_summit.tres"),
+]
 const ONLINE_SCENE := "res://scenes/network/war_room.tscn"
 const TUTORIAL_MENU_SCENE := "res://scenes/tutorial/tutorial_menu.tscn"
 const TUTORIAL_BATTLE_SCENE := "res://scenes/tutorial/tutorial_battle.tscn"
@@ -15,6 +25,9 @@ var block_war_commander: StringName = &"squirrel"
 var block_war_opponent_commander: StringName = &"squirrel"
 var online_nickname := "指挥官"
 var online_notice := ""
+var campaign_save_path := "user://campaign.cfg"
+var campaign_completed_count := 0
+var campaign_active_stage := -1
 var _online_active := false
 var _pending_online_scene := ""
 var _returning_online := false
@@ -24,6 +37,7 @@ var _online_battle_requested := false
 @onready var online: Node = $Online
 
 func _ready() -> void:
+	load_campaign_progress()
 	transition.failed.connect(_on_transition_failed)
 	transition.completed.connect(_flush_online_scene)
 	online.match_preparing.connect(_prepare_online_match)
@@ -32,12 +46,81 @@ func _ready() -> void:
 	record_diagnostic("startup", {"engine": Engine.get_version_info().string, "display": DisplayServer.get_name()})
 
 func start_war(direct_launch: bool = false) -> Error:
+	campaign_active_stage = -1
 	_online_active = false
 	return change_scene(BATTLE_SCENE if direct_launch else COMMANDER_SCENE)
 
 func start_online() -> Error:
+	campaign_active_stage = -1
 	_online_active = true
 	return change_scene(ONLINE_SCENE)
+
+func campaign_current_stage() -> int:
+	# The train follows saved progress, never the station being inspected or replayed.
+	return mini(campaign_completed_count, CAMPAIGN_STAGES.size() - 1)
+
+func campaign_stage_unlocked(index: int) -> bool:
+	return index >= 0 and index < CAMPAIGN_STAGES.size() and index <= campaign_completed_count
+
+func campaign_stage_completed(index: int) -> bool:
+	return index >= 0 and index < campaign_completed_count
+
+func load_campaign_progress() -> Error:
+	var config := ConfigFile.new()
+	var error := config.load(campaign_save_path)
+	if error == ERR_FILE_NOT_FOUND:
+		campaign_completed_count = 0
+		return OK
+	if error != OK:
+		push_warning("战役进度无法读取，错误码 %d" % error)
+		return error
+	var completed: Variant = config.get_value("campaign", "completed_count", 0)
+	if not completed is int or completed < 0 or completed > CAMPAIGN_STAGES.size():
+		push_warning("战役存档中的通关数量无效。")
+		return ERR_INVALID_DATA
+	campaign_completed_count = completed
+	return OK
+
+func start_campaign_stage(index: int) -> Error:
+	if transition.busy:
+		return ERR_BUSY
+	if not campaign_stage_unlocked(index):
+		return ERR_INVALID_PARAMETER
+	get_tree().paused = false
+	_online_active = false
+	_pending_online_scene = ""
+	_online_battle_requested = false
+	online.disconnect_relay()
+	campaign_active_stage = index
+	block_war_map_id = CAMPAIGN_STAGES[index].map_id
+	block_war_opponent_commander = CAMPAIGN_STAGES[index].opponent_commander
+	var error := change_scene(COMMANDER_SCENE)
+	if error != OK:
+		campaign_active_stage = -1
+	return error
+
+func complete_campaign_stage() -> Error:
+	if _online_active or not campaign_stage_unlocked(campaign_active_stage):
+		return ERR_INVALID_PARAMETER
+	var completed := maxi(campaign_completed_count, campaign_active_stage + 1)
+	if completed == campaign_completed_count:
+		return OK
+	var config := ConfigFile.new()
+	config.set_value("campaign", "completed_count", completed)
+	var error := config.save(campaign_save_path)
+	if error != OK:
+		return error
+	campaign_completed_count = completed
+	set_meta("campaign_selected_stage", campaign_current_stage())
+	campaign_progress_changed.emit()
+	return OK
+
+func back_to_campaign() -> Error:
+	if transition.busy:
+		return ERR_BUSY
+	get_tree().paused = false
+	campaign_active_stage = -1
+	return change_scene(CAMPAIGN_SCENE)
 
 func start_tutorial(lesson_id: String = "") -> Error:
 	if transition.busy:
@@ -45,6 +128,7 @@ func start_tutorial(lesson_id: String = "") -> Error:
 	if not lesson_id.is_empty() and not TUTORIAL_CATALOG.IDS.has(lesson_id):
 		return ERR_INVALID_PARAMETER
 	get_tree().paused = false
+	campaign_active_stage = -1
 	_online_active = false
 	_pending_online_scene = ""
 	_online_battle_requested = false
@@ -117,6 +201,7 @@ func back_to_lobby() -> void:
 	if transition.busy:
 		return
 	get_tree().paused = false
+	campaign_active_stage = -1
 	_online_active = false
 	_pending_online_scene = ""
 	_online_battle_requested = false

@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 2
-title = "密林边境"
-region = "西境 · 森林与丘陵"
-description = "穿过浓密树冠间的空地，抵达森林边境。\n狭窄的林间通道，连接着开阔的丘陵。"
+title = "橡木镇站"
+region = "西境 · 森林小镇"
+description = "列车穿过橡树林，在镇边的月台停靠。\n迎战兔子守军，沿林湖回廊两侧夺取据点。"
+map_id = "lake"
+opponent_commander = &"rabbit"

@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 1
-title = "林间营地"
-region = "西境 · 草地与村落"
-description = "从林边的村落集结，沿着草地小径出发。\n森林的另一端，是通往群山的第一条路。"
+title = "林野始发站"
+region = "西境 · 村落始发站"
+description = "从林野村落集结，在裂谷交汇夺取桥头据点。\n击败松鼠守军，开启通往橡木镇的铁路。"
+map_id = "rift"
+opponent_commander = &"squirrel"

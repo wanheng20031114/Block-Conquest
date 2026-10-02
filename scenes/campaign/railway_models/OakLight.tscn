@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="Cube"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Matte"]
+vertex_color_use_as_albedo = true
+roughness = 0.9
+
+[sub_resource type="MultiMesh" id="Trunk"]
+transform_format = 1
+use_colors = true
+instance_count = 1
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(0.24, 0, 0, 0, 0, 0.85, 0, 0.425, 0, 0, 0.24, 0, 0.189872, 0.106792, 0.056396, 1)
+
+[sub_resource type="MultiMesh" id="SquareCrown"]
+transform_format = 1
+use_colors = true
+instance_count = 4
+mesh = SubResource("Cube")
+buffer = PackedFloat32Array(1.15, 0, 0, 0, 0, 1.035, 0, 1.3675, 0, 0, 1.15, 0, 0.237162, 0.307354, 0.190506, 1, 0.759, 0, 0, 0.045, 0, 0.47058, 0, 2.1127, 0, 0, 0.759, -0.025, 0.283325, 0.365922, 0.227436, 1, 0.529, 0, 0, -0.483, 0, 0.4232, 0, 1.285, 0, 0, 0.529, 0.12, 0.206583, 0.263734, 0.163507, 1, 0.529, 0, 0, 0.483, 0, 0.4232, 0, 1.285, 0, 0, 0.529, -0.14, 0.212812, 0.271686, 0.168437, 1)
+
+[node name="OakLight" type="Node3D"]
+
+[node name="Trunk" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("Trunk")
+material_override = SubResource("Matte")
+
+[node name="SquareCrown" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("SquareCrown")
+material_override = SubResource("Matte")

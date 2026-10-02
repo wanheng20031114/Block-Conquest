@@ -13,6 +13,10 @@ func _ready() -> void:
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(session.settings.open_menu)
 	_select(PLAYABLE.find_key(session.block_war_commander), false)
+	if session.campaign_active_stage >= 0:
+		var stage: Resource = session.CAMPAIGN_STAGES[session.campaign_active_stage]
+		$Margin/Column/Header/Heading/Eyebrow.text = "铁路战役  /  第 %d 站 · %s" % [stage.number, stage.title]
+		%Hint.text = "选择伙伴后出战本站，获胜即可继续铁路旅程。"
 	UIMotion.bind_menu_buttons(self)
 	session.get_node("UIFeedback").bind_buttons(self)
 
@@ -68,12 +72,19 @@ func _animate_selection() -> void:
 func _next() -> void:
 	if session.transition.busy or session.settings.is_open():
 		return
+	if session.campaign_active_stage >= 0:
+		if session.change_scene(session.BATTLE_SCENE) != OK:
+			%Hint.text = "本站战场暂时无法载入，请重试。"
+		return
 	if session.change_scene("res://scenes/block_war/map_select.tscn") != OK:
 		%Hint.text = "战场选择暂时无法载入，请重试。"
 
 func _back() -> void:
 	if not session.transition.busy:
-		session.back_to_lobby()
+		if session.campaign_active_stage >= 0:
+			session.back_to_campaign()
+		else:
+			session.back_to_lobby()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if session.settings.is_open():

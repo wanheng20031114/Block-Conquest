@@ -121,25 +121,6 @@ preprocess = 16.0
 visibility_rect = Rect2(-390, -280, 800, 790)
 process_material = SubResource("SnowMotion")
 
-[node name="Journey" type="Path2D" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-
-[node name="Traveler" type="PathFollow2D" parent="MapFit/MapViewport/Atlas/Journey"]
-unique_name_in_owner = true
-rotates = false
-loop = false
-
-[node name="Glow" type="Polygon2D" parent="MapFit/MapViewport/Atlas/Journey/Traveler"]
-polygon = PackedVector2Array(0, -13, 16, 0, 0, 13, -16, 0)
-color = Color(1, 0.83, 0.35, 0.25)
-antialiased = true
-
-[node name="Spark" type="Polygon2D" parent="MapFit/MapViewport/Atlas/Journey/Traveler"]
-polygon = PackedVector2Array(0, -5, 7, 0, 0, 5, -7, 0)
-color = Color(1, 0.87, 0.39, 1)
-antialiased = true
-
 [node name="Stops" type="Control" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
 visible = false
@@ -233,14 +214,36 @@ offset_right = 620.0
 offset_bottom = 83.0
 theme_type_variation = &"MenuTitle"
 theme_override_font_sizes/font_size = 44
-text = "从林野，向雪巅"
+text = "沿着铁道，向雪巅"
 
 [node name="Subtitle" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
 offset_top = 89.0
 offset_right = 620.0
 offset_bottom = 117.0
 theme_override_font_sizes/font_size = 18
-text = "一条远征之路 · 六段不同风景"
+text = "六座车站，一段远征。每到一站，赢下一场战役。"
+
+[node name="Progress" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
+unique_name_in_owner = true
+offset_left = 1120.0
+offset_top = 70.0
+offset_right = 1504.0
+offset_bottom = 99.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.27, 0.35, 0.28, 1)
+text = "已通过 00 / 06 站"
+
+[node name="TrainLocation" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
+unique_name_in_owner = true
+offset_left = 1030.0
+offset_top = 105.0
+offset_right = 1504.0
+offset_bottom = 133.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
+text = "列车停靠 · 林野始发站"
 
 [node name="Navigation" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Header"]
 unique_name_in_owner = true
@@ -300,7 +303,7 @@ offset_right = 700.0
 offset_bottom = 74.0
 theme_type_variation = &"MenuTitle"
 theme_override_font_sizes/font_size = 33
-text = "林间营地"
+text = "林野始发站"
 
 [node name="Description" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
 unique_name_in_owner = true
@@ -308,9 +311,10 @@ offset_left = 99.0
 offset_top = 84.0
 offset_right = 830.0
 offset_bottom = 146.0
+autowrap_mode = 2
 theme_override_font_sizes/font_size = 19
 theme_override_constants/line_spacing = 5
-text = "从林边的村落集结，沿着草地小径出发。"
+text = "在林野的小站集结，开启铁路远征。"
 
 [node name="Footer" type="Control" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
@@ -353,12 +357,26 @@ text = "→"
 tooltip_text = "下一关"
 mouse_default_cursor_shape = 2
 
+[node name="Actions" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Footer"]
+unique_name_in_owner = true
+offset_right = 218.0
+offset_bottom = 46.0
+
+[node name="Start" type="Button" parent="MapFit/MapViewport/Atlas/Footer/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(218, 46)
+layout_mode = 2
+text = "进入关卡  →"
+theme_type_variation = &"MenuPrimary"
+theme_override_font_sizes/font_size = 21
+mouse_default_cursor_shape = 2
+
 [node name="Status" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
 unique_name_in_owner = true
 offset_top = 62.0
 offset_right = 512.0
 offset_bottom = 89.0
-text = "路线已展开 · 关卡制作中"
+text = "当前关卡 · 胜利后前往下一站"
 horizontal_alignment = 2
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.32, 0.38, 0.32, 1)
@@ -367,7 +385,7 @@ theme_override_colors/font_color = Color(0.32, 0.38, 0.32, 1)
 offset_top = 105.0
 offset_right = 512.0
 offset_bottom = 132.0
-text = "1–6 选关    ← → 巡览    Esc 返回"
+text = "1–6 选站    ← → 巡览    Esc 返回"
 horizontal_alignment = 2
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)

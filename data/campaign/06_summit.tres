@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 6
-title = "雪冠要塞"
-region = "北境 · 雪山与要塞"
-description = "盘山小径尽头，要塞矗立于皑皑群峰之间。\n从林野而来的远征，将在雪冠之下抵达终点。"
+title = "雪冠终点站"
+region = "北境 · 高山终点站"
+description = "终点站依山而建，皑皑雪峰俯瞰整段铁路。\n与两名电脑盟友攻克云冠盆地，击败猪猪军团，完成六站远征。"
+map_id = "crown"
+opponent_commander = &"pig"

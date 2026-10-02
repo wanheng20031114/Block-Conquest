@@ -1362,6 +1362,12 @@ func _finish_match(winner: int) -> void:
 		hud.show_draw()
 	else:
 		hud.show_result(winner == local_team)
+	var session := get_node("/root/Session")
+	if match_config.is_empty() and session.campaign_active_stage >= 0:
+		var save_error: Error = OK
+		if winner == local_team:
+			save_error = session.complete_campaign_stage()
+		hud.show_campaign_result(winner == local_team, save_error)
 	audio.set_world_paused(true)
 	world_effects.set_running(false)
 	map.set_visual_paused(true)
@@ -1500,7 +1506,11 @@ func exit_to_lobby() -> void:
 		return
 	get_node("/root/Session/UIFeedback").play(&"cancel")
 	await prepare_shutdown()
-	get_node("/root/Session").back_to_lobby()
+	var session := get_node("/root/Session")
+	if match_config.is_empty() and session.campaign_active_stage >= 0:
+		session.back_to_campaign()
+	else:
+		session.back_to_lobby()
 
 func prepare_shutdown() -> void:
 	_closing = true

@@ -1,5 +1,5 @@
 extends Control
-## Six stops projected from an authored block-built 3D landscape.
+## Six railway stations; inspecting a station never moves the progress train.
 
 const DESIGN_SIZE := Vector2(1600, 900)
 @onready var session: Node = get_node("/root/Session")
@@ -8,7 +8,6 @@ const DESIGN_SIZE := Vector2(1600, 900)
 var route: Curve2D
 var stage_positions: PackedVector2Array
 var selected_index := 0
-var _travel: Tween
 
 func _ready() -> void:
 	%MapViewport.resized.connect(_fit_atlas)
@@ -23,31 +22,34 @@ func _ready() -> void:
 	%Settings.pressed.connect(session.settings.open_menu)
 	%Previous.pressed.connect(_step.bind(-1))
 	%Next.pressed.connect(_step.bind(1))
+	%Start.pressed.connect(_start_stage)
+	session.campaign_progress_changed.connect(_refresh_progress)
 	session.settings.opened.connect(_set_ambient.bind(false))
 	session.settings.closed.connect(_set_ambient.bind(true))
 	session.load_failed.connect(_show_error)
 	UIMotion.bind_menu_buttons(%Navigation)
 	UIMotion.bind_menu_buttons(%Pager)
+	UIMotion.bind_menu_buttons(%Actions)
 	session.get_node("UIFeedback").bind_buttons(%Navigation)
 	session.get_node("UIFeedback").bind_buttons(%Pager)
-	selected_index = clampi(int(session.get_meta("campaign_selected_stage", 0)), 0, stops.size() - 1)
+	session.get_node("UIFeedback").bind_buttons(%Actions)
+	selected_index = clampi(int(session.get_meta("campaign_selected_stage", session.campaign_current_stage())), 0, stops.size() - 1)
 
 func _reveal_journey() -> void:
 	route = diorama.projected_route()
-	%Journey.curve = route
 	stage_positions.clear()
 	for index: int in stops.size():
 		var stop := stops[index]
 		stage_positions.append(diorama.stage_position(index))
-		stop.position = stage_positions[index] - Vector2(38, 66)
+		stop.position = stage_positions[index] + Vector2(-38, 28)
 		stop.disabled = false
 	%IntroHint.hide()
 	%Stops.show()
-	%Journey.show()
 	%Pollen.show()
 	%Snow.show()
 	%Details.show()
 	%Footer.show()
+	_refresh_progress()
 	_select(selected_index, false)
 	for index: int in stops.size():
 		# Fade the complete marker without competing with its selection lift.
@@ -82,15 +84,39 @@ func _select(index: int, animated: bool = true) -> void:
 	%PageNumber.text = "%02d / 06" % stage.number
 	%Previous.disabled = index == 0
 	%Next.disabled = index == stops.size() - 1
-	var destination := route.get_closest_offset(stage_positions[index])
-	if _travel and _travel.is_valid():
-		_travel.kill()
+	_refresh_departure()
 	if animated:
-		_travel = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-		_travel.tween_property(%Traveler, "progress", destination, 0.38)
 		UIMotion.reveal_menu(%Details, Vector2(0, 6))
+
+func _refresh_progress() -> void:
+	var current: int = session.campaign_current_stage()
+	diorama.park_train(current)
+	for index: int in stops.size():
+		stops[index].set_progress(session.campaign_stage_unlocked(index), session.campaign_stage_completed(index), index == current)
+	%Progress.text = "已通过 %02d / 06 站" % session.campaign_completed_count
+	%TrainLocation.text = "列车停靠 · " + stops[current].stage.title
+	_refresh_departure()
+
+func _refresh_departure() -> void:
+	var unlocked: bool = session.campaign_stage_unlocked(selected_index)
+	var completed: bool = session.campaign_stage_completed(selected_index)
+	%Start.disabled = not unlocked
+	%Start.text = "再次挑战  →" if completed else ("进入关卡  →" if unlocked else "尚未抵达")
+	if not unlocked:
+		%Status.text = "通过第 %02d 站后解锁" % selected_index
+	elif completed:
+		%Status.text = "已通关 · 可自由重玩，列车保留进度"
 	else:
-		%Traveler.progress = destination
+		%Status.text = "当前关卡 · 胜利后前往下一站" if selected_index < 5 else "终点关卡 · 完成最后一战"
+
+func _start_stage() -> void:
+	if diorama.intro_running or session.settings.is_open() or session.transition.busy:
+		return
+	if not session.campaign_stage_unlocked(selected_index):
+		return
+	var error: Error = session.start_campaign_stage(selected_index)
+	if error != OK:
+		_show_error("无法进入关卡，请重试。")
 
 func _step(direction: int) -> void:
 	if diorama.intro_running:
