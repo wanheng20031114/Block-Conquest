@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("stage")
 number = 1
-title = "林野始发站"
-region = "西境 · 村落始发站"
-description = "从林野村落集结，在裂谷交汇夺取桥头据点。\n击败松鼠守军，开启通往橡木镇的铁路。"
+title = "花田站"
+region = "西境 · 薰衣草花田"
+description = "列车驶出西山隧道，在薰衣草田旁的木月台集结。\n击败裂谷交汇的松鼠守军，开启通往橡木镇的铁路。"
 map_id = "rift"
 opponent_commander = &"squirrel"

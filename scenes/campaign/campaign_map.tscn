@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://scripts/campaign/campaign_map.gd" id="script"]
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_diorama.tscn" id="diorama"]
-[ext_resource type="Shader" path="res://assets/ui/campaign/atlas_veil.gdshader" id="veil"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_stop.tscn" id="stop"]
 [ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
 [ext_resource type="Resource" path="res://data/campaign/01_woodland.tres" id="stage1"]
@@ -12,9 +11,6 @@
 [ext_resource type="Resource" path="res://data/campaign/04_pass.tres" id="stage4"]
 [ext_resource type="Resource" path="res://data/campaign/05_snowfield.tres" id="stage5"]
 [ext_resource type="Resource" path="res://data/campaign/06_summit.tres" id="stage6"]
-
-[sub_resource type="ShaderMaterial" id="Veil"]
-shader = ExtResource("veil")
 
 [sub_resource type="Gradient" id="SnowFade"]
 offsets = PackedFloat32Array(0, 0.15, 0.78, 1)
@@ -100,6 +96,14 @@ layout_mode = 0
 offset_right = 1600.0
 offset_bottom = 900.0
 mouse_filter = 2
+
+
+[node name="MapInput" type="Control" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+offset_top = 132.0
+offset_right = 1600.0
+offset_bottom = 742.0
+mouse_default_cursor_shape = 13
 
 [node name="Pollen" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
@@ -188,81 +192,88 @@ focus_neighbor_left = NodePath("../Stage05")
 focus_neighbor_right = NodePath("../Stage06")
 stage = ExtResource("stage6")
 
-[node name="ReadingVeil" type="ColorRect" parent="MapFit/MapViewport/Atlas"]
+[node name="HeaderPaper" type="ColorRect" parent="MapFit/MapViewport/Atlas"]
+offset_right = 1600.0
+offset_bottom = 132.0
+mouse_filter = 2
+color = Color(0.976, 0.98, 0.952, 0.91)
+
+[node name="FooterPaper" type="ColorRect" parent="MapFit/MapViewport/Atlas"]
+offset_top = 742.0
 offset_right = 1600.0
 offset_bottom = 900.0
 mouse_filter = 2
-material = SubResource("Veil")
+color = Color(0.976, 0.98, 0.952, 0.97)
 
 [node name="Header" type="Control" parent="MapFit/MapViewport/Atlas"]
-offset_left = 48.0
-offset_top = 30.0
-offset_right = 1552.0
-offset_bottom = 142.0
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 1568.0
+offset_bottom = 128.0
 mouse_filter = 2
 
 [node name="Eyebrow" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
 offset_right = 500.0
-offset_bottom = 25.0
+offset_bottom = 22.0
 text = "积木战争   /   单人战役"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.27, 0.35, 0.28, 1)
 
 [node name="Title" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
-offset_top = 31.0
+offset_top = 24.0
 offset_right = 620.0
-offset_bottom = 83.0
+offset_bottom = 68.0
 theme_type_variation = &"MenuTitle"
-theme_override_font_sizes/font_size = 44
-text = "沿着铁道，向雪巅"
+theme_override_font_sizes/font_size = 35
+text = "铁道上的六站远征"
 
 [node name="Subtitle" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
-offset_top = 89.0
+offset_top = 73.0
 offset_right = 620.0
-offset_bottom = 117.0
-theme_override_font_sizes/font_size = 18
-text = "六座车站，一段远征。每到一站，赢下一场战役。"
+offset_bottom = 99.0
+theme_override_font_sizes/font_size = 17
+text = "穿过花田、镇落与雪山。每一座车站，都是一场新的战役。"
 
 [node name="Progress" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
 unique_name_in_owner = true
-offset_left = 1120.0
-offset_top = 70.0
-offset_right = 1504.0
-offset_bottom = 99.0
+offset_left = 755.0
+offset_top = 7.0
+offset_right = 1240.0
+offset_bottom = 33.0
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 19
 theme_override_colors/font_color = Color(0.27, 0.35, 0.28, 1)
 text = "已通过 00 / 06 站"
 
 [node name="TrainLocation" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
 unique_name_in_owner = true
-offset_left = 1030.0
-offset_top = 105.0
-offset_right = 1504.0
-offset_bottom = 133.0
+offset_left = 755.0
+offset_top = 40.0
+offset_right = 1240.0
+offset_bottom = 66.0
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
-text = "列车停靠 · 林野始发站"
+text = "列车停靠 · 花田站"
 
 [node name="Navigation" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Header"]
 unique_name_in_owner = true
-offset_left = 1280.0
-offset_top = 5.0
-offset_right = 1504.0
-offset_bottom = 53.0
+offset_left = 1312.0
+offset_top = 0.0
+offset_right = 1536.0
+offset_bottom = 44.0
 theme_override_constants/separation = 12
 
 [node name="Settings" type="Button" parent="MapFit/MapViewport/Atlas/Header/Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 48)
+custom_minimum_size = Vector2(100, 44)
 layout_mode = 2
 text = "设置"
 mouse_default_cursor_shape = 2
 
 [node name="Back" type="Button" parent="MapFit/MapViewport/Atlas/Header/Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 48)
+custom_minimum_size = Vector2(100, 44)
 layout_mode = 2
 text = "返回"
 mouse_default_cursor_shape = 2
@@ -271,58 +282,59 @@ metadata/ui_sound = &"cancel"
 [node name="Details" type="Control" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
 visible = false
-offset_left = 48.0
-offset_top = 722.0
-offset_right = 900.0
-offset_bottom = 870.0
+offset_left = 32.0
+offset_top = 799.0
+offset_right = 930.0
+offset_bottom = 896.0
 mouse_filter = 2
 
 [node name="StageNumber" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
 unique_name_in_owner = true
-offset_top = 4.0
-offset_right = 80.0
-offset_bottom = 95.0
-theme_override_font_sizes/font_size = 64
+offset_top = 3.0
+offset_right = 76.0
+offset_bottom = 88.0
+theme_override_font_sizes/font_size = 58
 theme_override_colors/font_color = Color(0.53, 0.47, 0.29, 0.70)
 text = "01"
 
 [node name="Region" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
 unique_name_in_owner = true
-offset_left = 99.0
-offset_right = 700.0
-offset_bottom = 25.0
-theme_override_font_sizes/font_size = 17
+offset_left = 350.0
+offset_right = 810.0
+offset_bottom = 32.0
+theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.36, 0.42, 0.34, 1)
 text = "西境 · 草地与村落"
 
+offset_top = 10.0
 [node name="StageTitle" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
 unique_name_in_owner = true
-offset_left = 97.0
-offset_top = 30.0
-offset_right = 700.0
-offset_bottom = 74.0
+offset_left = 90.0
+offset_top = 0.0
+offset_right = 400.0
+offset_bottom = 38.0
 theme_type_variation = &"MenuTitle"
-theme_override_font_sizes/font_size = 33
-text = "林野始发站"
+theme_override_font_sizes/font_size = 28
+text = "花田站"
 
 [node name="Description" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
 unique_name_in_owner = true
-offset_left = 99.0
-offset_top = 84.0
-offset_right = 830.0
-offset_bottom = 146.0
+offset_left = 92.0
+offset_top = 42.0
+offset_right = 920.0
+offset_bottom = 98.0
 autowrap_mode = 2
-theme_override_font_sizes/font_size = 19
-theme_override_constants/line_spacing = 5
-text = "在林野的小站集结，开启铁路远征。"
+theme_override_font_sizes/font_size = 17
+theme_override_constants/line_spacing = 0
+text = "在薰衣草田旁集结，开启铁路远征。"
 
 [node name="Footer" type="Control" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
 visible = false
-offset_left = 1040.0
-offset_top = 737.0
-offset_right = 1552.0
-offset_bottom = 872.0
+offset_left = 1056.0
+offset_top = 799.0
+offset_right = 1568.0
+offset_bottom = 896.0
 mouse_filter = 2
 
 [node name="Pager" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Footer"]
@@ -373,33 +385,148 @@ mouse_default_cursor_shape = 2
 
 [node name="Status" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
 unique_name_in_owner = true
-offset_top = 62.0
+offset_top = 52.0
 offset_right = 512.0
-offset_bottom = 89.0
+offset_bottom = 76.0
 text = "当前关卡 · 胜利后前往下一站"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.32, 0.38, 0.32, 1)
 
 [node name="Hints" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
-offset_top = 105.0
+offset_top = 78.0
 offset_right = 512.0
-offset_bottom = 132.0
-text = "1–6 选站    ← → 巡览    Esc 返回"
+offset_bottom = 99.0
+text = "1–6 选站    ← → 切换    Esc 返回"
 horizontal_alignment = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
 
 [node name="IntroHint" type="Label" parent="MapFit/MapViewport/Atlas"]
 unique_name_in_owner = true
-offset_left = 1050.0
-offset_top = 823.0
-offset_right = 1552.0
-offset_bottom = 858.0
-text = "地貌展开中 · 空格跳过"
+offset_left = 1080.0
+offset_top = 754.0
+offset_right = 1568.0
+offset_bottom = 782.0
+text = "沿线风景展开中 · 空格跳过"
 horizontal_alignment = 2
 theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
+
+
+[node name="CameraControls" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Header"]
+unique_name_in_owner = true
+visible = false
+offset_left = 1312.0
+offset_top = 60.0
+offset_right = 1536.0
+offset_bottom = 102.0
+theme_override_constants/separation = 12
+
+[node name="Overview" type="Button" parent="MapFit/MapViewport/Atlas/Header/CameraControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+toggle_mode = true
+text = "全线风景"
+theme_override_font_sizes/font_size = 16
+mouse_default_cursor_shape = 2
+
+[node name="ReturnTrain" type="Button" parent="MapFit/MapViewport/Atlas/Header/CameraControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 40)
+layout_mode = 2
+text = "回到列车"
+theme_override_font_sizes/font_size = 16
+mouse_default_cursor_shape = 2
+
+[node name="StationShortcuts" type="HBoxContainer" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+visible = false
+offset_left = 32.0
+offset_top = 751.0
+offset_right = 832.0
+offset_bottom = 787.0
+theme_override_constants/separation = 10
+
+[node name="Stop01" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+toggle_mode = true
+text = "01 · 未达"
+theme_override_font_sizes/font_size = 16
+focus_neighbor_left = NodePath("../Stop01")
+focus_neighbor_right = NodePath("../Stop02")
+mouse_default_cursor_shape = 2
+
+[node name="Stop02" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+toggle_mode = true
+text = "02 · 未达"
+theme_override_font_sizes/font_size = 16
+focus_neighbor_left = NodePath("../Stop01")
+focus_neighbor_right = NodePath("../Stop03")
+mouse_default_cursor_shape = 2
+
+[node name="Stop03" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+toggle_mode = true
+text = "03 · 未达"
+theme_override_font_sizes/font_size = 16
+focus_neighbor_left = NodePath("../Stop02")
+focus_neighbor_right = NodePath("../Stop04")
+mouse_default_cursor_shape = 2
+
+[node name="Stop04" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+toggle_mode = true
+text = "04 · 未达"
+theme_override_font_sizes/font_size = 16
+focus_neighbor_left = NodePath("../Stop03")
+focus_neighbor_right = NodePath("../Stop05")
+mouse_default_cursor_shape = 2
+
+[node name="Stop05" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+toggle_mode = true
+text = "05 · 未达"
+theme_override_font_sizes/font_size = 16
+focus_neighbor_left = NodePath("../Stop04")
+focus_neighbor_right = NodePath("../Stop06")
+mouse_default_cursor_shape = 2
+
+[node name="Stop06" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+toggle_mode = true
+text = "06 · 未达"
+theme_override_font_sizes/font_size = 16
+focus_neighbor_left = NodePath("../Stop05")
+focus_neighbor_right = NodePath("../Stop06")
+mouse_default_cursor_shape = 2
+
+[node name="ExploreHint" type="Label" parent="MapFit/MapViewport/Atlas"]
+unique_name_in_owner = true
+visible = false
+offset_left = 890.0
+offset_top = 755.0
+offset_right = 1568.0
+offset_bottom = 782.0
+mouse_filter = 2
+text = "拖拽浏览沿线  ·  滚轮缩放  ·  点击车站查看关卡"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.35, 0.42, 0.38, 1)
 
 [node name="MenuEntrance" type="Node" parent="."]
 script = ExtResource("entrance")

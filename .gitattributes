@@ -3,3 +3,4 @@
 
 # Preserve third-party originals, including the authors' license line endings.
 assets/audio/sources/** -text whitespace=-blank-at-eol
+tools/railway_reference/src/** -text whitespace=-blank-at-eol
