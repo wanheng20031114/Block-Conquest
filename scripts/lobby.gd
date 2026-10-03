@@ -37,6 +37,18 @@ func _ready() -> void:
 	if OS.get_cmdline_user_args().has("--block-war") and not session.get_meta("block_war_cli_consumed", false):
 		session.set_meta("block_war_cli_consumed", true)
 		_start.call_deferred(true)
+		return
+	$TutorialWelcome.dismissed.connect(_set_presentation_active.bind(true))
+	$MenuEntrance.completed.connect(_offer_tutorial)
+
+func _offer_tutorial() -> void:
+	if not session.first_run.pending or not $MenuEntrance.finished or session.settings.is_open() or session.transition.busy:
+		return
+	_set_presentation_active(false)
+	$TutorialWelcome.present(%Tutorial)
+	var error: Error = session.first_run.mark_shown()
+	if error != OK:
+		push_warning("新手推荐状态保存失败，错误码 %d" % error)
 
 func _start(direct_launch: bool = false) -> void:
 	if session.settings.is_open() or session.transition.busy:
@@ -49,6 +61,8 @@ func _start(direct_launch: bool = false) -> void:
 func _settings_closed() -> void:
 	_set_presentation_active(true)
 	%Settings.grab_focus(true)
+	# Settings restores its previous focus after emitting closed.
+	_offer_tutorial.call_deferred()
 
 func _open_codex() -> void:
 	if session.settings.is_open() or session.transition.busy:
@@ -77,6 +91,7 @@ func _start_campaign() -> void:
 func _start_tutorial() -> void:
 	if session.settings.is_open() or session.transition.busy:
 		return
+	$TutorialWelcome.dismiss()
 	_set_presentation_active(false)
 	if session.start_tutorial() != OK:
 		_set_presentation_active(true)

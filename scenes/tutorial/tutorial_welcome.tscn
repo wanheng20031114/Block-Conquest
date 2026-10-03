@@ -1,0 +1,100 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tutorial/tutorial_welcome.gd" id="script"]
+[ext_resource type="Script" path="res://scripts/tutorial/tutorial_dimmer.gd" id="dimmer"]
+[ext_resource type="Shader" path="res://assets/ui/tutorial/spotlight.gdshader" id="spotlight"]
+[ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
+
+[sub_resource type="ShaderMaterial" id="Spotlight"]
+resource_local_to_scene = true
+shader = ExtResource("spotlight")
+
+[sub_resource type="StyleBoxFlat" id="Paper"]
+content_margin_left = 28.0
+content_margin_top = 24.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+bg_color = Color(0.984, 0.976, 0.915, 1)
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.82, 0.84, 0.68, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 32
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 32
+corner_detail = 16
+shadow_color = Color(0.025, 0.06, 0.035, 0.25)
+shadow_size = 22
+shadow_offset = Vector2(0, 8)
+
+[node name="TutorialWelcome" type="CanvasLayer"]
+layer = 80
+visible = false
+script = ExtResource("script")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("theme")
+
+[node name="Dimmer" type="ColorRect" parent="UI"]
+material = SubResource("Spotlight")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+mouse_force_pass_scroll_events = false
+script = ExtResource("dimmer")
+
+[node name="Card" type="PanelContainer" parent="UI"]
+layout_mode = 0
+offset_right = 460.0
+offset_bottom = 300.0
+custom_minimum_size = Vector2(460, 0)
+theme_override_styles/panel = SubResource("Paper")
+
+[node name="Content" type="VBoxContainer" parent="UI/Card"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Eyebrow" type="Label" parent="UI/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.40, 0.48, 0.31, 1)
+theme_override_font_sizes/font_size = 18
+text = "新手推荐"
+
+[node name="Title" type="Label" parent="UI/Card/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "先从入门教程开始"
+
+[node name="Body" type="Label" parent="UI/Card/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+text = "第一次来到积木战争？\n建议先跟随教程学会部署、建造与指挥，\n再开启你的第一场战役。"
+autowrap_mode = 2
+
+[node name="Hint" type="Label" parent="UI/Card/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.32, 0.43, 0.28, 1)
+text = "← 点击亮起的「入门教程」"
+
+[node name="Dismiss" type="Button" parent="UI/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_default_cursor_shape = 2
+text = "稍后再说"
+theme_override_font_sizes/font_size = 20
+metadata/ui_sound = &"cancel"

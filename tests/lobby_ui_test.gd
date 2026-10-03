@@ -32,6 +32,8 @@ func click(button: Button) -> void:
 func _run() -> void:
 	create_timer(30.0, true, false, true).timeout.connect(func(): quit(3))
 	var session: Node = root.get_node("Session")
+	# This regression exercises normal navigation; first-run input has its own test.
+	session.first_run.pending = false
 	var original: Dictionary = session.settings.snapshot()
 	check(not session.has_node("RelayClient") and not session.has_node("Rogue"), "standalone session has no other product services")
 	for resolution: Vector2i in [Vector2i(1600, 900), Vector2i(1280, 720)]:

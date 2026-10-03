@@ -120,6 +120,8 @@ func _run() -> void:
 	var user_bytes := FileAccess.get_file_as_bytes(PROGRESS.SAVE_PATH) if user_existed else PackedByteArray()
 	scene_changed.connect(_isolate_progress)
 	var session: Node = root.get_node("Session")
+	# Keep navigation fixtures independent of a player's first-run invitation.
+	session.first_run.pending = false
 	var original_preferences: Array = [session.block_war_map_id, session.block_war_commander, session.block_war_opponent_commander]
 	root.size = Vector2i(1600, 900)
 	check(change_scene_to_file(session.LOBBY_SCENE) == OK, "lobby loads")

@@ -2,6 +2,10 @@
 
 主菜单新增「入门教程」，提供 11 个独立练习场景。课程按基础指挥、建筑、松鼠技能分组，全部开放，支持继续学习、单独重练和完成记录。进度保存于独立的 `user://tutorial_progress.cfg`，不覆盖单人选图、指挥官或联机偏好。
 
+新玩家首次进入主菜单时，菜单入场完成后会复用教程的柔和暗化遮罩，框出可直接点击的「入门教程」入口，推荐先熟悉部署、建造与指挥。可以点击「稍后再说」或按 Esc 关闭；提示期间键盘和手柄焦点只在教程入口与关闭按钮之间切换。高亮窗口跟随按钮的实际位置和悬停缩放。
+
+提示实际显示后，独立的 `user://onboarding.cfg` 记录已提示状态，返回主菜单或重启不再重复。已有本产品设置、战役或教程记录的玩家跳过提示；首次资格在旧产品通用设置迁移前确定。提示不会修改课程完成记录，命令行直接进入战斗也不会消耗未显示的提示。
+
 ## 课程设计
 
 | 课程 | 玩家实际完成的目标 |
@@ -41,6 +45,14 @@
 布局在 1600×900、1280×720、1024×576 的原生逻辑视口分别检查，并检查 1024×768 实际窗口的留边缩放和键盘导航。小屏降低密度、保留可读文字；说明卡避开目标建筑和操作轨迹；讲解百分比时目标卡移到按钮列右侧。提示条按文字重新计算高度，不覆盖整个左侧战场。
 
 原生能力参考：[CanvasLayer](https://docs.godotengine.org/en/stable/classes/class_canvaslayer.html)、[Control](https://docs.godotengine.org/en/stable/classes/class_control.html)、[AnimationPlayer](https://docs.godotengine.org/en/stable/classes/class_animationplayer.html)、[PackedScene](https://docs.godotengine.org/en/stable/classes/class_packedscene.html)、[ConfigFile](https://docs.godotengine.org/en/stable/classes/class_configfile.html)。
+
+## 首次推荐验证（2026-10-04）
+
+- `tests/first_run_state_test.gd`：56 项通过；新档、历史档、重启读取、设置迁移顺序与保存失败均使用隔离目录。
+- `tests/first_run_welcome_test.gd`：260 项原生 GPU 检查通过；四种窗口尺寸、悬停高亮、背景点击拦截、键盘焦点、稍后与 Esc、提前打开设置、进入教程后返回。追加 `-- --block-war` 分支 7 项通过，直启战斗不消费推荐状态。
+- `tests/lobby_ui_test.gd` 与 `tests/tutorial_navigation_test.gd`：64 项、61 项回归通过；验证普通菜单、设置、选课、暂停、完成与下一课导航。
+
+以上使用 Godot 4.6.3；测试未改变玩家的设置、战役、课程进度或首次推荐记录。
 
 ## 验证记录（2026-09-30）
 

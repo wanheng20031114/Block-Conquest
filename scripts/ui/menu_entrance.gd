@@ -1,11 +1,13 @@
 extends Node
 ## Scene-authored menu choreography. Sections stay hidden beneath a transition,
 ## then enter after its completed signal instead of animating behind the sheet.
+signal completed
 
 @export var sections: Array[NodePath] = []
 @export_range(0.0, 0.1) var stagger: float = 0.045
 
 var started := false
+var finished := false
 var _controls: Array[Control] = []
 var _alphas: PackedFloat32Array = []
 
@@ -37,4 +39,12 @@ func _play() -> void:
 	for index: int in _controls.size():
 		var control := _controls[index]
 		control.modulate.a = _alphas[index]
-		UIMotion.reveal_menu(control, Vector2(0, 18), index * stagger)
+		var tween := UIMotion.reveal_menu(control, Vector2(0, 18), index * stagger)
+		if index == _controls.size() - 1:
+			tween.finished.connect(_complete)
+	if _controls.is_empty():
+		_complete()
+
+func _complete() -> void:
+	finished = true
+	completed.emit()

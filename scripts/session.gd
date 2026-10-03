@@ -19,6 +19,8 @@ const ONLINE_SCENE := "res://scenes/network/war_room.tscn"
 const TUTORIAL_MENU_SCENE := "res://scenes/tutorial/tutorial_menu.tscn"
 const TUTORIAL_BATTLE_SCENE := "res://scenes/tutorial/tutorial_battle.tscn"
 const TUTORIAL_CATALOG := preload("res://scripts/tutorial/tutorial_catalog.gd")
+const FIRST_RUN_STATE := preload("res://scripts/tutorial/first_run_state.gd")
+var first_run: RefCounted
 var tutorial_lesson_id: String = "basics"
 var block_war_map_id := "rift"
 var block_war_commander: StringName = &"squirrel"
@@ -37,6 +39,9 @@ var _online_battle_requested := false
 @onready var settings: GameSettings = $Settings
 @onready var transition: UITransition = $Transition
 @onready var online: Node = $Online
+
+func _enter_tree() -> void:
+	first_run = FIRST_RUN_STATE.new()
 
 func _ready() -> void:
 	load_campaign_progress()

@@ -5,6 +5,7 @@
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="Shader" path="res://assets/ui/block_war/lobby_backdrop.gdshader" id="backdrop"]
 [ext_resource type="PackedScene" path="res://scenes/ui/lobby_diorama.tscn" id="diorama"]
+[ext_resource type="PackedScene" path="res://scenes/tutorial/tutorial_welcome.tscn" id="welcome"]
 
 [sub_resource type="ShaderMaterial" id="Background"]
 shader = ExtResource("backdrop")
@@ -23,6 +24,8 @@ script = ExtResource("script")
 script = ExtResource("entrance")
 stagger = 0.035
 sections = Array[NodePath]([NodePath("Margin/Column/Body/Welcome/Brand"), NodePath("Margin/Column/Body/Welcome/Menu/Campaign"), NodePath("Margin/Column/Body/Welcome/Menu/BlockWarMode"), NodePath("Margin/Column/Body/Welcome/Menu/OnlineMode"), NodePath("Margin/Column/Body/Welcome/Menu/Tutorial"), NodePath("Margin/Column/Body/Welcome/Menu/Codex"), NodePath("Margin/Column/Body/Welcome/Menu/Settings"), NodePath("Margin/Column/Body/Welcome/Menu/Quit"), NodePath("Margin/Column/Footer")])
+
+[node name="TutorialWelcome" parent="." instance=ExtResource("welcome")]
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
