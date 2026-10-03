@@ -44,7 +44,7 @@ func _run() -> void:
 	check(reference.get_node("Row1/Key").text.contains("Q / W / E / R"), "skill reference follows the battle key contract")
 	check(reference.get_node("Row5/Key").text == "Esc" and reference.get_node("Row6/Key").text == "F1", "pause and help reference follows the battle key contract")
 	check(reference.get_node("Row7/Key").text == "Space", "focus reference follows the battle key contract")
-	check(reference.get_node("Row9/DebugShortcut").text == "F4", "data panel reference follows the native debug action")
+	check(reference.get_node("Row9/DebugShortcut").text == "F12", "data panel reference follows the native debug action")
 	await process_frame
 	check(reference.get_global_rect().encloses(reference.get_node("Row9").get_global_rect()), "data panel shortcut fits the settings hotkey page")
 	settings.menu.show_page("Audio")

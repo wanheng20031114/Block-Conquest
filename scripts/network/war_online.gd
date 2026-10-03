@@ -42,6 +42,7 @@ var _intent: Dictionary = {}
 var _hello := false
 var _connecting_at := 0
 var _last_received := 0
+var _loss_epoch_at_connect := -1.0
 var _heartbeat_at := 0
 var _retry_at := 0
 var _reconnect_deadline := 0
@@ -55,6 +56,31 @@ var _loaded_match_id := ""
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if content_hash.is_empty(): content_hash = P.content_hash()
+
+func transport_diagnostics() -> Dictionary:
+	# Read existing ENet statistics only: no ping, service, flush or reset here.
+	# Byte counters are application payload totals for this Online instance; the
+	# queue is our throttled snapshot queue, not ENet's retransmission backlog.
+	var connected := _hello and _peer != null and _peer.is_active() and _peer.get_state() == ENetPacketPeer.STATE_CONNECTED
+	var result := {"connected": connected, "relay_rtt_ms": -1.0, "relay_jitter_ms": -1.0,
+		"loss_percent": -1.0, "sent_bytes": sent_bytes, "received_bytes": received_bytes,
+		"bulk_queue_bytes": _bulk_bytes, "last_received_age_ms": -1}
+	if not connected:
+		return result
+	result.last_received_age_ms = maxi(0, Time.get_ticks_msec() - _last_received)
+	# ENet initializes RTT to 500 ms. Its throttle epoch is first set by a real
+	# reliable ACK; before that, even a connected peer has no measured RTT.
+	if _peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE_EPOCH) > 0.0:
+		result.relay_rtt_ms = _peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
+		# ENet calls this "variance", but computes a smoothed absolute deviation
+		# in milliseconds, not a squared statistical variance.
+		result.relay_jitter_ms = _peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME_VARIANCE)
+	# Reliable-packet loss is a smoothed ratio, refreshed about every 10 seconds.
+	# The initial epoch only starts the window; its zero loss is not a sample.
+	var loss_epoch := _peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS_EPOCH)
+	if _loss_epoch_at_connect > 0.0 and loss_epoch != _loss_epoch_at_connect:
+		result.loss_percent = _peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS) * 100.0 / ENetPacketPeer.PACKET_LOSS_SCALE
+	return result
 
 func connect_relay(endpoint: String = DEFAULT_ADDRESS, endpoint_port: int = P.PORT) -> Error:
 	disconnect_relay()
@@ -218,6 +244,7 @@ func _process(delta: float) -> void:
 				ENetConnection.EVENT_NONE: break
 				ENetConnection.EVENT_CONNECT:
 					_peer.throttle_configure(500, 4, 1)
+					_loss_epoch_at_connect = _peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS_EPOCH)
 					_send({"op": "hello", "version": P.VERSION, "content_hash": content_hash, "token": _token})
 				ENetConnection.EVENT_RECEIVE:
 					var bytes: PackedByteArray = _peer.get_packet()
@@ -409,6 +436,7 @@ func _close_transport() -> void:
 	_connection = null
 	_peer = null
 	_hello = false
+	_loss_epoch_at_connect = -1.0
 	_bulk_queue.clear()
 	_bulk_bytes = 0
 

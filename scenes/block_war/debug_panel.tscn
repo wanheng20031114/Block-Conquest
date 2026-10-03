@@ -151,14 +151,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("title")
 theme_override_font_sizes/font_size = 21
-text = "战场数据"
+text = "调试与战场数据"
 
 [node name="Close" type="Button" parent="Column/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 mouse_default_cursor_shape = 2
-text = "F4  关闭"
+text = "F12  关闭"
 tooltip_text = "关闭数据面板，对局继续进行。"
 
 [node name="Metrics" type="PanelContainer" parent="Column"]
@@ -280,6 +280,17 @@ theme_type_variation = &"DebugMuted"
 text = "当前玩家 · 本地数据"
 autowrap_mode = 2
 
+[node name="PerformanceHeading" type="Label" parent="Column/Scroll/Details"]
+layout_mode = 2
+theme_type_variation = &"DebugHeading"
+text = "链路与本地计算"
+
+[node name="PerformanceValue" type="Label" parent="Column/Scroll/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 FPS  ·  0.00 ms / 帧\n对局时间 00:00"
+autowrap_mode = 2
+
 [node name="MoraleHeading" type="Label" parent="Column/Scroll/Details"]
 layout_mode = 2
 theme_type_variation = &"DebugHeading"
@@ -358,19 +369,8 @@ autowrap_mode = 2
 [node name="Separator3" type="HSeparator" parent="Column/Scroll/Details"]
 layout_mode = 2
 
-[node name="PerformanceHeading" type="Label" parent="Column/Scroll/Details"]
-layout_mode = 2
-theme_type_variation = &"DebugHeading"
-text = "运行状态"
-
-[node name="PerformanceValue" type="Label" parent="Column/Scroll/Details"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "0 FPS  ·  0.00 ms / 帧\n对局时间 00:00"
-autowrap_mode = 2
-
 [node name="Footer" type="Label" parent="Column/Scroll/Details"]
 layout_mode = 2
 theme_type_variation = &"DebugMuted"
-text = "面板只读，打开时对局照常进行。"
+text = "面板只读，关闭后停止额外计时。\n耗时按每次调用统计，子项有包含关系，不可相加；不含 GPU 耗时。\n房主 RTT 包含中继转发与主机响应处理；丢包率是 ENet 的定期估计。"
 autowrap_mode = 2

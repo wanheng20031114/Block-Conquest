@@ -58,4 +58,13 @@ static func capture(game: Node3D) -> Dictionary:
 		"energy_natural_regen": game.SKILL_RULES.natural_energy_regen(game.elapsed),
 		"combat_energy_per_loss": game.SKILL_RULES.combat_energy_per_loss(game.morale.stars(faction)),
 		"selected": selected, "fps": fps, "frame_ms": 1000.0 / fps if fps > 0.0 else 0.0, "sim_time": game.elapsed,
+		"timings": game.debug_metrics.snapshot(), "network": _network(game),
 	}
+
+
+static func _network(game: Node3D) -> Dictionary:
+	if game.network_match == null:
+		return {}
+	var online: Node = game.get_node("/root/Session/Online")
+	return {"transport": online.transport_diagnostics(), "match": game.network_match.diagnostics(),
+		"connection_state": online.connection_state}

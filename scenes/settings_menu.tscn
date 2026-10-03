@@ -711,4 +711,4 @@ text = "数据面板"
 [node name="DebugShortcut" type="Label" parent="Menu/Center/Panel/Layout/Body/Content/Pages/Hotkeys/Row9"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "F4"
+text = "F12"

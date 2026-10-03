@@ -9,6 +9,7 @@ var panel: Control
 var checks := 0
 var failures: Array[String] = []
 var output := ""
+var network_example: Dictionary = {}
 
 
 func _initialize() -> void:
@@ -182,8 +183,11 @@ func population_checks() -> void:
 
 
 func input_checks() -> void:
-	check(InputMap.has_action("debug") and InputMap.action_get_events("debug").any(func(event: InputEvent): return event is InputEventKey and event.physical_keycode == KEY_F4), "debug is a native project action bound to physical F4")
+	check(InputMap.has_action("debug") and InputMap.action_get_events("debug").any(func(event: InputEvent): return event is InputEventKey and event.physical_keycode == KEY_F12), "debug is a native project action bound to physical F12")
+	check(not InputMap.action_get_events("debug").any(func(event: InputEvent): return event is InputEventKey and event.physical_keycode == KEY_F4), "former physical F4 is no longer bound to debug")
 	check(not game.hud.debug_visible() and not panel.visible, "inspector is hidden at match startup")
+	tap(KEY_F4)
+	check(not game.hud.debug_visible() and not panel.visible, "former F4 cannot open the inspector")
 	check(not game.hud.has_node("UI/Player/ForgeBonus") and not game.hud.has_node("UI/QuickHint"), "both obsolete HUD text regions are absent")
 	var timer: Timer = game.hud.get_node("%DebugRefresh")
 	near(timer.wait_time, 0.25, "data refresh uses the authored quarter-second timer")
@@ -193,21 +197,23 @@ func input_checks() -> void:
 	game.drag_source = game.by_id[0]
 	game.camera_rig.dragging = true
 	var energy_before: float = game.energy
-	key(KEY_F4, true)
-	check(game.hud.debug_visible() and not game._local_menu, "F4 opens a local non-pausing inspector")
+	key(KEY_F12, true)
+	check(game.hud.debug_visible() and not game._local_menu, "F12 opens a local non-pausing inspector")
 	check(game.armed_skill == -1 and game.drag_source == null and not game.camera_rig.dragging and game.energy == energy_before, "opening cancels all unfinished gestures without spending energy")
-	key(KEY_F4, true, true)
-	key(KEY_F4, false)
+	key(KEY_F12, true, true)
+	key(KEY_F12, false)
 	check(game.hud.debug_visible(), "key echo and release do not toggle the inspector")
 	tap(KEY_F4)
+	check(game.hud.debug_visible(), "former F4 cannot close the inspector")
+	tap(KEY_F12)
 	check(not game.hud.debug_visible(), "second physical press closes the inspector")
 	var events := InputMap.action_get_events("debug")
 	InputMap.action_erase_events("debug")
 	var alternate := InputEventKey.new()
 	alternate.physical_keycode = KEY_F8
 	InputMap.action_add_event("debug", alternate)
-	tap(KEY_F4)
-	check(not game.hud.debug_visible(), "unbound F4 is inert")
+	tap(KEY_F12)
+	check(not game.hud.debug_visible(), "unbound F12 is inert")
 	tap(KEY_F8)
 	check(game.hud.debug_visible(), "remapped F8 drives the same native action")
 	check(panel.get_node("%Close").text.contains("F8"), "remapping also updates the visible close shortcut")
@@ -215,23 +221,23 @@ func input_checks() -> void:
 	InputMap.action_erase_events("debug")
 	for event: InputEvent in events:
 		InputMap.action_add_event("debug", event)
-	tap(KEY_F4)
+	tap(KEY_F12)
 	tap(KEY_ESCAPE)
 	check(not game.hud.debug_visible() and not game._local_menu, "Esc closes debug before opening the local pause menu")
 	game.set_paused(true)
-	tap(KEY_F4)
-	check(game.hud.debug_visible() and game._local_menu, "F4 is available over the local pause menu")
+	tap(KEY_F12)
+	check(game.hud.debug_visible() and game._local_menu, "F12 is available over the local pause menu")
 	tap(KEY_ESCAPE)
 	check(not game.hud.debug_visible() and game._local_menu, "Esc closes debug while preserving local pause")
 	game.set_paused(false)
 	game.match_paused = true
 	game.update_hud()
-	tap(KEY_F4)
+	tap(KEY_F12)
 	check(game.hud.debug_visible() and game.match_paused, "global pause permits inspection without altering authority")
-	tap(KEY_F4)
+	tap(KEY_F12)
 	game.match_paused = false
 	game.update_hud()
-	tap(KEY_F4)
+	tap(KEY_F12)
 	await frames()
 	var obscured_close := screen_center(panel.get_node("%Close"))
 	tap(KEY_F1)
@@ -250,25 +256,25 @@ func input_checks() -> void:
 	mouse(obscured_close, MOUSE_BUTTON_LEFT, true)
 	mouse(obscured_close, MOUSE_BUTTON_LEFT, false)
 	check(game.hud.help_visible() and game.hud.debug_visible(), "clicking the obscured debug close position cannot close the lower panel")
-	tap(KEY_F4)
-	check(game.hud.help_visible() and game.hud.debug_visible(), "help ignores F4 while preserving the already open inspector")
+	tap(KEY_F12)
+	check(game.hud.help_visible() and game.hud.debug_visible(), "help ignores F12 while preserving the already open inspector")
 	tap(KEY_ESCAPE)
 	check(not game.hud.help_visible() and game.hud.debug_visible() and not game._local_menu, "first Esc closes help and restores the still-open inspector")
 	tap(KEY_ESCAPE)
 	check(not game.hud.debug_visible() and not game._local_menu, "second Esc closes restored debug without opening pause")
 	var settings: GameSettings = root.get_node("Session/Settings")
-	tap(KEY_F4)
+	tap(KEY_F12)
 	settings.open_menu()
-	tap(KEY_F4)
-	check(settings.is_open() and game.hud.debug_visible(), "settings ignores F4 while preserving the already open inspector")
+	tap(KEY_F12)
+	check(settings.is_open() and game.hud.debug_visible(), "settings ignores F12 while preserving the already open inspector")
 	tap(KEY_ESCAPE)
 	check(not settings.is_open() and game.hud.debug_visible() and not game._local_menu, "settings owns the first Esc and leaves debug open")
 	tap(KEY_ESCAPE)
 	check(not game.hud.debug_visible() and not game._local_menu, "next Esc closes debug after settings without pausing")
-	tap(KEY_F4)
+	tap(KEY_F12)
 	game.hud._show_online_confirm("leave", "确认离开？", "测试确认窗口", "确认离开")
-	tap(KEY_F4)
-	check(game.hud.get_node("%OnlineConfirm").visible and game.hud.debug_visible(), "online confirmation ignores F4 while preserving the already open inspector")
+	tap(KEY_F12)
+	check(game.hud.get_node("%OnlineConfirm").visible and game.hud.debug_visible(), "online confirmation ignores F12 while preserving the already open inspector")
 	tap(KEY_ESCAPE)
 	check(not game.hud.get_node("%OnlineConfirm").visible and game.hud.debug_visible(), "confirmation owns the first Esc and leaves debug open")
 	tap(KEY_ESCAPE)
@@ -298,6 +304,7 @@ func pointer_and_layout_checks() -> void:
 	mouse(outside, MOUSE_BUTTON_MIDDLE, false)
 	check(not game.camera_rig.dragging, "middle release does not latch after inspecting data")
 	for resolution: Vector2i in [Vector2i(1600, 900), Vector2i(1280, 720), Vector2i(960, 540), Vector2i(2560, 1080)]:
+		panel.get_node("%Scroll").scroll_vertical = 0
 		root.size = resolution
 		await frames(5)
 		game.by_id[0].population = 99999.75
@@ -310,10 +317,17 @@ func pointer_and_layout_checks() -> void:
 			var value: Label = panel.get_node("%" + value_name)
 			check(panel.get_global_rect().encloses(value.get_global_rect()), value_name + " stays within panel at " + str(resolution))
 		await capture("debug_%dx%d" % [resolution.x, resolution.y])
+		if not output.is_empty():
+			game.hud.get_node("%DebugRefresh").stop()
+			panel.update_data(network_example)
+			await frames()
+			await capture("debug_network_%dx%d" % [resolution.x, resolution.y])
+			panel.update_data(DATA.capture(game))
+			game.hud.get_node("%DebugRefresh").start()
 		var scroll: ScrollContainer = panel.get_node("%Scroll")
 		scroll.scroll_vertical = 100000
 		await frames()
-		var final_detail: Label = panel.get_node("%PerformanceValue")
+		var final_detail: Label = panel.get_node("%SelectionValue")
 		check(scroll.get_global_rect().intersects(final_detail.get_global_rect()), "scroll reaches the final data section at " + str(resolution))
 		if resolution == Vector2i(960, 540):
 			await capture("debug_960x540_scrolled")
@@ -326,10 +340,58 @@ func pointer_and_layout_checks() -> void:
 	check(not game.hud.debug_visible(), "native close button dismisses the inspector")
 	check(not game.hud.is_pointer_blocked(screen_center(panel)), "hidden panel leaves no invisible input shield")
 	game._finish_match(game.local_team)
-	tap(KEY_F4)
+	tap(KEY_F12)
 	check(game.hud.debug_visible() and game.finished, "completed match remains inspectable")
 	tap(KEY_ESCAPE)
 	check(not game.hud.debug_visible() and game.finished and game.hud.get_node("%ResultOverlay").visible, "Esc closes final inspection without disturbing results")
+
+
+func diagnostic_text_checks() -> void:
+	var data: Dictionary = DATA.capture(game)
+	panel.update_data(data)
+	var text: String = panel.get_node("%PerformanceValue").text
+	check(text.contains("单人对局 · 无网络链路"), "offline mode does not display invented network latency")
+	data.network = {"connection_state": "match", "transport": {"connected": true, "relay_rtt_ms": 25.0,
+		"relay_jitter_ms": 3.0, "loss_percent": -1.0, "sent_bytes": 1024, "received_bytes": 2048,
+		"bulk_queue_bytes": 1024, "last_received_age_ms": 10},
+		"match": {"ready": true, "authority_age_ms": 15, "is_host": false, "host_rtt_ms": 90.0, "snapshot_loading": false,
+		"recovery_waiting": false, "pending_events": 2, "outbox_bytes": 2048, "resync_count": 3}}
+	data.timings.ready = true
+	data.timings.window_seconds = 0.5
+	data.timings.stages.frame = {"count": 5, "mean_ms": 2.5, "peak_since_open_ms": 18.0}
+	panel.update_data(data)
+	text = panel.get_node("%PerformanceValue").text
+	check(text.contains("中继 RTT 25 ms") and text.contains("到房主 RTT：90 ms"), "relay leg and host path latency are labeled separately")
+	check(text.contains("估计丢包 待采样"), "loss without a completed ENet window is not a false zero")
+	check(text.contains("待处理事件 2") and text.contains("重同步 3"), "sync backlog and recovery counters are visible")
+	check(text.contains("战场帧脚本：2.50 / 18.00 ms") and text.contains("AI 决策：— / — ms"), "timings distinguish real measured work and stages without calls")
+	network_example = data.duplicate(true)
+	data.network.connection_state = "host_lost"
+	panel.update_data(data)
+	text = panel.get_node("%PerformanceValue").text
+	check(text.contains("等待房主恢复") and not text.contains("已同步"), "relay connectivity alone never claims sync while the host is offline")
+	data.network.connection_state = "match"
+	data.network.match.ready = false
+	panel.update_data(data)
+	check(panel.get_node("%PerformanceValue").text.contains("同步未就绪"), "match initialization is distinct from completed synchronization")
+	data.network.match.ready = true
+	data.network.match.authority_age_ms = 3000
+	panel.update_data(data)
+	check(panel.get_node("%PerformanceValue").text.contains("等待房主数据"), "stale authority time is distinct from healthy relay transport")
+	data.network.match.authority_age_ms = 15
+	data.network.match.is_host = true
+	panel.update_data(data)
+	text = panel.get_node("%PerformanceValue").text
+	check(text.contains("本机为房主") and not text.contains("到房主 RTT"), "host does not claim zero latency to remote clients")
+	data.network.connection_state = "reconnecting"
+	data.network.transport.connected = false
+	data.network.transport.relay_rtt_ms = -1.0
+	data.network.transport.relay_jitter_ms = -1.0
+	data.network.transport.last_received_age_ms = -1
+	panel.update_data(data)
+	text = panel.get_node("%PerformanceValue").text
+	check(text.contains("网络：重连中") and text.contains("中继 RTT 待采样") and text.contains("连接中断"), "reconnect presentation clears healthy latency and sync claims")
+	panel.update_data(DATA.capture(game))
 
 
 func _run() -> void:
@@ -351,6 +413,7 @@ func _run() -> void:
 	await frames(8)
 	numeric_checks()
 	population_checks()
+	diagnostic_text_checks()
 	await input_checks()
 	await pointer_and_layout_checks()
 	await game.prepare_shutdown()

@@ -66,10 +66,23 @@ var _result_sent := false
 var _presentation: Array[Dictionary] = []
 var _time_requests: Dictionary = {}
 var rtt_ms := 0.0
+var _rtt_sample_at_ms := -1
 var sent_rule_bytes := 0
 var received_rule_bytes := 0
 var resync_count := 0
 var resync_reasons: Dictionary = {}
+
+func diagnostics() -> Dictionary:
+	var remote_clock_valid: bool = not online.is_host and _started and not _aborted and _host_received_ms > 0 and online.connection_state in ["match", "finished"]
+	var rtt_valid := remote_clock_valid and _rtt_sample_at_ms >= 0 and Time.get_ticks_msec() - _rtt_sample_at_ms <= 6000
+	return {
+		"ready": _started and not _aborted, "is_host": online.is_host,
+		"host_rtt_ms": rtt_ms if rtt_valid and is_finite(rtt_ms) else -1.0,
+		"authority_age_ms": Time.get_ticks_msec() - _host_received_ms if remote_clock_valid else -1,
+		"snapshot_loading": _snapshot_loading, "recovery_waiting": _recovery_waiting,
+		"applied_seq": _applied, "pending_events": _pending.size(),
+		"outbox_bytes": _outbox_bytes, "resync_count": resync_count,
+	}
 
 func setup(battle: Node, transport: Node) -> void:
 	game = battle; online = transport
@@ -104,6 +117,7 @@ func _on_started(config: Dictionary) -> void:
 func _on_connection(state: String) -> void:
 	if game._closing: return
 	if state in ["connecting", "reconnecting", "disconnected", "host_lost"]:
+		_rtt_sample_at_ms = -1
 		if online.is_host:
 			# Native transport teardown loses its unsent reliable stream. Fresh
 			# per-peer snapshots on recovery supersede all pre-disconnect facts.
@@ -210,12 +224,14 @@ func process(delta: float) -> void:
 			_request_resync("authority_silence")
 			return
 		if not _snapshot_loading and not _mirror.is_empty():
+			var presentation_begun: int = game.debug_metrics.begin()
 			_set_transport_paused(_recovery_waiting)
 			game.hud.set_network_status("正在追上战况" if _recovery_waiting else "", "等待后续战斗事件确认" if _recovery_waiting else "")
 			_apply_view(true)
 			codec.present(game, _view, _presentation_step(delta))
 			_apply_account()
 			_maybe_finish()
+			game.debug_metrics.end(&"presentation", presentation_begun)
 
 func submit(command: Dictionary) -> Dictionary:
 	if not _started or _snapshot_loading or _recovery_waiting or game.finished or game.simulation_paused or _aborted:
@@ -284,6 +300,7 @@ func _reply(player: int, result: Dictionary) -> void:
 	else: online.send_match("command_result", result, player, 1, true)
 
 func _publish_step(delta: float) -> void:
+	var replication_begun: int = game.debug_metrics.begin()
 	var complete := codec.capture(game, _tick)
 	var current := Snapshot.for_player(complete, -1)
 	_since_anchor += delta; _since_digest += delta
@@ -310,6 +327,7 @@ func _publish_step(delta: float) -> void:
 		_since_digest = 0.0
 		# Hash the reliable committed mirror, not independently delivered anchors.
 		online.send_match("digest", {"seq": _seq, "hash": Snapshot.digest(_published)})
+	game.debug_metrics.end(&"replication", replication_begun)
 
 func _send_accounts(state: Dictionary, only_change: bool = false) -> void:
 	for slot: Dictionary in online.room.get("slots", []):
@@ -346,6 +364,13 @@ func _flush_anchors(delta: float) -> void:
 		online.send_match("anchors", _anchor_outbox.pop_front(), -1, 4, false)
 
 func _on_message(sender: int, kind: String, payload: Dictionary) -> void:
+	# Delivery is called from Online's process callback, outside the battle frame.
+	# Keep all early-return paths inside the measured handler.
+	var replication_begun: int = game.debug_metrics.begin()
+	_handle_message(sender, kind, payload)
+	game.debug_metrics.end(&"replication", replication_begun)
+
+func _handle_message(sender: int, kind: String, payload: Dictionary) -> void:
 	if game._closing: return
 	if online.is_host:
 		match kind:
@@ -380,6 +405,7 @@ func _on_message(sender: int, kind: String, payload: Dictionary) -> void:
 			if _time_requests.has(stamp):
 				var sample := float(Time.get_ticks_msec() - stamp)
 				rtt_ms = sample if rtt_ms <= 0.0 else lerpf(rtt_ms, sample, 0.125)
+				_rtt_sample_at_ms = Time.get_ticks_msec()
 				_time_requests.erase(stamp)
 			_set_clock(float(payload.time), int(payload.tick))
 		"finished":
@@ -486,6 +512,8 @@ func _receive_anchor(payload: Dictionary) -> void:
 			# fixed tail. Compact motion anchors share the aura's new sample time.
 			if Snapshot.slow_is_refreshing(row):
 				row[14] = float(payload.time) + Snapshot.RULES.BEAR_SLOW_LINGER
+			if Snapshot.haste_is_refreshing(row):
+				row[15] = float(payload.time) + Snapshot.RULES.HASTE_LINGER
 			row[12] = float(payload.time)
 		if not Snapshot.valid_record(group, row, game): continue
 		# Do not let an old anchor replace a newer reliable structural transition.
@@ -850,9 +878,10 @@ func _play_presentation(event: Dictionary) -> void:
 		"casualty":
 			if Snapshot._vector(payload.get("at")) and Snapshot._vector(payload.get("heading")) and Snapshot._vector(payload.get("impulse")) and Snapshot._integer(payload.get("faction"), 0, game.faction_count - 1) and payload.get("burning") is bool:
 				game.world_effects.casualty(at, Snapshot.vector(payload.heading), int(payload.faction), Snapshot.vector(payload.impulse), payload.burning)
-		"tower_shot":
-			if not Snapshot._vector(payload.get("to")) or not Snapshot._vector(payload.get("at")): return
-			game.world_effects.hit(at, (Snapshot.vector(payload.to) - at).normalized(), true)
-			game.audio.play_world(&"cannon_shot", at)
+		"tower_volley":
+			if not Snapshot._building_id(payload.get("building"), game) or not Snapshot._vector(payload.get("aim")): return
+			var building: WarBuilding = game.by_id[int(payload.building)]
+			if building.kind != 1: return
+			game.present_tower_volley(building, Snapshot.vector(payload.aim))
 		"bear_shot":
 			if Snapshot._vector(payload.get("at")): game.world_effects.get_node("Bear").spark(at)

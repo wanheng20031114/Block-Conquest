@@ -22,6 +22,7 @@ var _last_capture := ""
 var _finishing := false
 var _public_mode := false
 var _skip_captures := false
+var _debug_mode := false
 var _controls_mode := false
 var _leave_controls := false
 var _left_battle := false
@@ -76,6 +77,7 @@ func _run() -> void:
 			_forward_options.append(argument)
 			if argument == "--public": _public_mode = true
 			elif argument == "--skip-captures": _skip_captures = true
+			elif argument == "--debug": _debug_mode = true
 			elif argument == "--controls": _controls_mode = true
 			elif argument == "--leave-controls":
 				_controls_mode = true
@@ -134,10 +136,20 @@ func _run() -> void:
 	while session.transition.busy: await process_frame
 	check(game.local_faction == {"host": 5, "ally": 3, "enemy": 2}[role], "local faction matches nonzero authored seat")
 	_check_garrison_visibility("baseline")
+	if _debug_mode: game.hud.set_debug_visible(true)
 	if role == "host":
 		await _host_review()
 	else:
 		await _guest_review()
+	if _debug_mode:
+		var debug: Dictionary = game.DEBUG_DATA.capture(game)
+		check(debug.timings.enabled and debug.timings.ready and debug.timings.stages.replication.peak_since_open_ms > 0.0, "open inspector records real native match processing")
+		check(debug.network.transport.connected and debug.network.transport.relay_rtt_ms >= 0.0, "inspector reads measured live relay RTT")
+		check(debug.network.match.is_host == (role == "host"), "inspector reports the local authority role")
+		check(debug.network.match.host_rtt_ms < 0.0 if role == "host" else debug.network.match.host_rtt_ms >= 0.0, "host path RTT is measured only on guests")
+		game.hud.set_debug_visible(false)
+		check(not game.debug_metrics.enabled, "closing inspector disables additional timing")
+		if role != "host": _write_peer_metrics(_peer_metrics())
 	await _finish()
 
 func _host_setup() -> void:
@@ -445,7 +457,7 @@ func _guest_review() -> void:
 		check(observed_visuals.has("skill"), "client receives replicated skill presentation events")
 	else:
 		check(observed_cursors.is_empty(), "enemy transport receives zero allied cursor packets")
-	_write_peer_metrics(_peer_metrics())
+	if not _debug_mode: _write_peer_metrics(_peer_metrics())
 
 func _peer_metrics() -> Dictionary:
 	return {"resyncs": game.network_match.resync_count, "resync_reasons": game.network_match.resync_reasons,

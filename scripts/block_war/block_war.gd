@@ -22,6 +22,8 @@ const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
 const MAP_CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
 const MORALE := preload("res://scripts/block_war/war_morale.gd")
 const DEBUG_DATA := preload("res://scripts/block_war/war_debug_data.gd")
+const DEBUG_METRICS := preload("res://scripts/block_war/war_debug_metrics.gd")
+var debug_metrics := DEBUG_METRICS.new()
 var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
@@ -335,6 +337,7 @@ func _exit_tree() -> void:
 	get_tree().auto_accept_quit = _previous_auto_quit
 
 func _process(delta: float) -> void:
+	var frame_begun := debug_metrics.begin()
 	if network_match != null:
 		network_match.process(delta)
 	elif not is_rule_paused() and not finished:
@@ -350,10 +353,12 @@ func _process(delta: float) -> void:
 	elif armed_skill >= 0:
 		_update_skill_drag(get_viewport().get_mouse_position())
 	overlay.queue_redraw()
+	debug_metrics.finish_frame(frame_begun)
 
 func simulate(delta: float) -> void:
 	if not is_authority() or is_rule_paused() or finished or delta <= 0.0:
 		return
+	var simulation_begun := debug_metrics.begin()
 	# Integrate up to each completion before applying the next level's rules.
 	# Long frames and multiple simultaneous builds keep the same production as
 	# small steps, including a recruitment skill crossing the completion time.
@@ -385,6 +390,7 @@ func simulate(delta: float) -> void:
 		_simulate_step(step)
 		remaining = maxf(0.0, remaining - step)
 	marches.end_render_batch()
+	debug_metrics.end(&"simulation", simulation_begun)
 
 func _simulate_step(delta: float) -> void:
 	sync_environment_bonuses()
@@ -451,7 +457,9 @@ func _simulate_step(delta: float) -> void:
 		ai_clock -= delta
 		if ai_clock <= 0.000001:
 			ai_clock = AI_STRATEGY.TURN_INTERVAL
+			var ai_begun := debug_metrics.begin()
 			_ai_turn()
+			debug_metrics.end(&"ai", ai_begun)
 
 func _tick_recruitment(delta: float) -> Dictionary[int, bool]:
 	var recruiting: Dictionary[int, bool] = {}
@@ -803,16 +811,24 @@ func _fire_tower(building: Node3D) -> void:
 	if targets.is_empty():
 		return
 	tower_clocks[building.building_id] = tower_interval(building)
-	building.fire_at(targets[0].position)
-	var muzzle: Vector3 = building.muzzle_position()
-	world_effects.hit(muzzle, (targets[0].position - muzzle).normalized(), true)
+	# A volley has one primary aim and one firing presentation, even when
+	# higher tiers launch several independently tracked projectiles.
+	var aim: Vector3 = targets[0].position
+	var muzzle := present_tower_volley(building, aim)
+	presentation_event.emit("tower_volley", {"building": building.building_id, "faction": building.faction, "aim": _vector_values(aim)})
 	for target: WarMarches.MarchUnit in targets:
 		var destination := target.position + Vector3(0, 0.65, 0)
-		presentation_event.emit("tower_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": _vector_values(muzzle), "to": _vector_values(destination), "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 		projectiles.append({"target": target, "at": muzzle, "position": muzzle, "previous": muzzle,
 			"to": destination, "tracking": true, "age": 0.0, "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 	world_effects.render_projectiles(projectiles)
+
+func present_tower_volley(building: WarBuilding, aim: Vector3) -> Vector3:
+	# Shared by authority and replicas; target selection and damage stay in simulation.
+	building.fire_at(aim)
+	var muzzle := building.muzzle_position()
+	world_effects.hit(muzzle, (aim - muzzle).normalized(), true)
 	audio.play_world(&"cannon_shot", building.global_position)
+	return muzzle
 
 func _tick_projectiles(delta: float) -> void:
 	for index: int in range(projectiles.size() - 1, -1, -1):
@@ -1391,6 +1407,7 @@ func refresh_debug_panel() -> void:
 		hud.get_node("%DebugPanel").update_data(DEBUG_DATA.capture(self))
 
 func _on_debug_visibility_changed(visible: bool) -> void:
+	debug_metrics.set_enabled(visible)
 	if visible:
 		_cancel_drag()
 		_cancel_skill_drag()
@@ -1479,7 +1496,6 @@ func update_hud() -> void:
 		"conversion_target": selected.conversion_target if selected != null else -1,
 		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": CONVERSION_COST,
 		"can_upgrade": selected != null and selected.faction == local_faction and not selected.is_constructing and selected.level < selected.max_level and selected.available_population >= selected.upgrade_cost})
-	refresh_debug_panel()
 
 func set_paused(value: bool) -> void:
 	if finished or _closing:
