@@ -12,11 +12,12 @@ from __future__ import annotations
 import argparse
 import math
 import random
+import re
 from pathlib import Path
 
 from author_natural_terrain_sources import source
 from block_war_height_authoring import height_at, supported_footprint, surface_segment_clear
-from block_war_nature_authoring import PALETTES, author_nature
+from block_war_nature_authoring import PALETTES, author_nature, _distance_to_path
 from build_block_war_maps import vec, write_definition
 from build_natural_terrain import bake
 
@@ -25,46 +26,47 @@ ENV = "res://assets/block_war/environment/"
 
 
 def layout():
-    buildings = [(-51, 0, 0, 0, 60)]
-    for lane in (-21, 21):
+    buildings = [(-38, 0, 0, 0, 60)]
+    for lane in (-16.5, 16.5):
         buildings += [(x, lane, (2 if lane < 0 else 1) if x == 0 else 0, -1,
-                       24 if x == 0 else 14 if abs(x) == 39 else 18)
-                      for x in (-39, -13, 0, 13, 39)]
-    buildings += [(51, -12, 0, 1, 48), (51, 12, 0, 1, 42), (51, 0, 2, 1, 32)]
-    return dict(id="forest_fork", title="双径幽林", size=0, half=(60, 38), team=1,
+                       24 if x == 0 else 14 if abs(x) == 28 else 18)
+                      for x in (-28, -10, 0, 10, 28)]
+    buildings += [(38, -10, 0, 1, 48), (38, 10, 0, 1, 42), (38, 0, 2, 1, 32)]
+    return dict(id="forest_fork", title="双径森林", size=0, half=(46, 31), team=1,
                 color=(.405, .49, .335), water=[], bridges=[],
-                mountains=[(-25, -10, 50, 20)], terrain=True, buildings=buildings,
+                mountains=[(-19, -7, 38, 14)], terrain=True, buildings=buildings,
+                building_pad_radius=5.0, building_pad_blend=1.4,
                 description="古老的林脊将战场分成南北两路，四条宽坡通向中央高地。青蛙守军掌握两座住宅和一间工坊，选择一路突破，也可在两端换线牵制。")
 
 
 def author_source(spec):
-    shoulder = [(0, -31), (16, -31), (25, -27), (27, -17), (26, 0),
-                (27, 17), (25, 28), (14, 31), (0, 31), (-14, 31),
-                (-25, 28), (-27, 17), (-26, 0), (-27, -17), (-25, -27), (-16, -31)]
-    ridge = [(0, -9), (12, -9.5), (22, -6.5), (24, 0), (21, 7), (11, 9),
-             (0, 8.5), (-11, 9), (-21, 7), (-24, 0), (-22, -6.5), (-12, -9.5)]
+    shoulder = [(0, -25), (12, -25), (19, -22), (20, -14), (19, 0),
+                (20, 14), (19, 22), (11, 25), (0, 25), (-11, 25),
+                (-19, 22), (-20, 14), (-19, 0), (-20, -14), (-19, -22), (-12, -25)]
+    ridge = [(0, -6.5), (9, -6.7), (16, -4.7), (18, 0), (15.5, 5), (8, 6.5),
+             (0, 6.2), (-8, 6.5), (-15.5, 5), (-18, 0), (-16, -4.7), (-9, -6.7)]
     ramps = []
-    for z in (-21, 21):
+    for z in (-16.5, 16.5):
         for sign in (-1, 1):
-            ramps.append(([(sign * 33, z), (sign * 28, z + .2),
-                           (sign * 23, z - .2), (sign * 19, z)], (0, 3.5), (8.4, 7.5)))
-    levels = [0] + [0, 3.5, 3.5, 3.5, 0] * 2 + [0] * 3
-    source(spec["id"], [(shoulder, 3.5, 1.7), (ridge, 9.5, 1.9)], [], ramps,
-           levels, [(0, 3.5, -21), (0, 9.5, 0), (0, 3.5, 21)])
+            ramps.append(([(sign * 24, z), (sign * 21, z),
+                           (sign * 18, z), (sign * 14, z)], (0, 2.7), (7.5, 7.0)))
+    levels = [0] + [0, 2.7, 2.7, 2.7, 0] * 2 + [0] * 3
+    source(spec["id"], [(shoulder, 2.7, 1.5), (ridge, 8.5, 1.65)], [], ramps,
+           levels, [(0, 2.7, -16.5), (0, 8.5, 0), (0, 2.7, 16.5)])
 
 
 def roads(spec):
     paths = []
     def line(*points):
         paths.extend((*a, *b) for a, b in zip(points, points[1:]))
-    for z in (-21, 21):
+    for z in (-16.5, 16.5):
         lane = z + 3.5
-        line((-51, 2.5), (-46, z * .55 + 2.5), (-39, lane), (-26, lane),
-             (-13, lane), (0, lane), (13, lane), (26, lane), (39, lane),
-             (47, z * .6 + 2.5), (51, 2.5))
-        for x in (-39, -13, 0, 13, 39):
+        line((-38, 2.5), (-34, z * .55 + 2.5), (-28, lane), (-19, lane),
+             (-10, lane), (0, lane), (10, lane), (19, lane), (28, lane),
+             (34, z * .6 + 2.5), (38, 2.5))
+        for x in (-28, -10, 0, 10, 28):
             line((x, z + 2.5), (x, lane))
-    line((51, -9.5), (51, 14.5))
+    line((38, -7.5), (38, 12.5))
     assert len(paths) <= 64
     assert all(surface_segment_clear(spec, segment) for segment in paths), "Forest road crosses an authored cliff"
     return paths
@@ -78,35 +80,110 @@ def authored_woodland(spec, paths):
     PALETTES[spec["id"]] = ("wind_pine", "silver_birch", "canopy_oak", "wind_pine")
     ext, sub, nodes = author_nature(nature_spec, paths)
     rng = random.Random(39127)
-    # A joined canopy atop the impassable ridge makes the lane split readable
-    # from the normal camera. Tree sizes taper at both ends and at the rim.
-    for index in range(55):
-        x = rng.uniform(-21, 21)
-        z = rng.uniform(-5.4, 5.4)
-        scale = rng.uniform(.64, 1.02)
-        if not supported_footprint(spec, x, z, 1.0, .3):
+    # Fill genuine interior woodland pockets. The earlier border groves alone
+    # made the battlefield read as a bare lawn despite its overall tree count.
+    occupied = []
+    for node in nodes:
+        if any(f'instance=ExtResource("nature_{name}")' in node
+               for name in ("wind_pine", "canopy_oak", "silver_birch", "weeping_willow")):
+            position = re.search(r'position = Vector3\(([^)]+)\)', node)
+            if position:
+                x, _, z = map(float, position[1].split(','))
+                occupied.append((x, z, .85))
+    added_trees = []
+
+    def road_distance(x, z):
+        return min(_distance_to_path(x, z, segment) for segment in paths)
+
+    def planting_site(x, z, radius, road_gap=3.1, yard=5.8):
+        return (supported_footprint(spec, x, z, min(radius, 1.0), .22)
+                and road_distance(x, z) >= radius + road_gap
+                and all(math.hypot(x-b[0], z-b[1]) >= radius + yard for b in spec["buildings"]))
+
+    def plant_tree(x, z, size, species, label):
+        if not planting_site(x, z, 1.9*size):
+            return False
+        if any(math.hypot(x-ox, z-oz) < 1.12*(size+old_size) for ox, oz, old_size in occupied):
+            return False
+        occupied.append((x, z, size))
+        added_trees.append((x, z, size))
+        node = (f'[node name="{label}{len(added_trees):03d}" parent="Nature" instance=ExtResource("nature_{species}")]\n'
+                f'position = {vec((x, height_at(spec,x,z), z))}\n'
+                f'rotation = {vec((0, rng.uniform(0, math.tau), 0))}\n'
+                f'scale = {vec((size, size*rng.uniform(.94,1.12), size))}')
+        # The ridge is already a blocked terrain area. Only traversable
+        # interior tree trunks need navigation radii in the saved scene.
+        if abs(x) < spec["half"][0] and abs(z) < spec["half"][1] and not (abs(x) < 19 and abs(z) < 7):
+            node += '\nmetadata/route_radius = 0.72'
+        nodes.append(node)
+        return True
+
+    # The long ridge is now a densely joined mixed canopy with real sapling
+    # edges; no randomly stacked trunks and no trees rooted on a cliff face.
+    for _ in range(700):
+        x, z = rng.uniform(-16.4,16.4), rng.uniform(-4.4,4.4)
+        size = rng.uniform(.62,.90) if abs(z)>2.8 or abs(x)>13.5 else rng.uniform(.90,1.18)
+        plant_tree(x,z,size,("wind_pine","canopy_oak","silver_birch")[rng.randrange(3)],"RidgeCanopy")
+
+    # Layered groves occupy the valley pockets and both actual lane verges,
+    # then merge naturally into the outer forest. Building scale is unchanged.
+    grove_centers = [(x,z) for x in (-26,26) for z in (-1.5,3.2)]
+    grove_centers += [(x,z) for x in (-33,-18,-5,8,22,35) for z in (-28.5,29)]
+    grove_centers += [(x,z) for x in (-39,-22,-5,12,29,44) for z in (-37,37)]
+    for grove_index,(cx,cz) in enumerate(grove_centers):
+        for index in range(22):
+            angle = index*2.399963 + grove_index*.81
+            radius = 1.18*math.sqrt(index)
+            x,z = cx+math.cos(angle)*radius, cz+math.sin(angle)*radius*.76
+            size = rng.uniform(.55,.76) if index>=10 else rng.uniform(.85,1.1)
+            species = ("wind_pine","silver_birch","canopy_oak","wind_pine")[(index+grove_index)%4]
+            plant_tree(x,z,size,species,"LaneWoodland")
+
+    # Ferns, bluebells, thickets and moss stones anchor every new grove. Low
+    # groundcover uses shared native MultiMeshes, with clear walking surfaces.
+    groups = {"fern_patch": [], "bluebells": [], "meadow_tuft": [], "daisies": []}
+    def cover(species,x,z,size):
+        if not supported_footprint(spec,x,z,.48*size,.25) or road_distance(x,z)<1.9:
+            return
+        if any(math.hypot(x-b[0],z-b[1])<4.4 for b in spec["buildings"]):
+            return
+        yaw = rng.uniform(0,math.tau)
+        c,s=math.cos(yaw)*size,math.sin(yaw)*size
+        groups[species].append((c,0,s,x,0,size,0,height_at(spec,x,z)-.015,-s,0,c,z))
+
+    detail_count=0
+    for index,(x,z,size) in enumerate(added_trees):
+        for part in range(5):
+            angle = part*2.399963+index*.74
+            distance = rng.uniform(.65,1.75)
+            cover(("fern_patch","bluebells","meadow_tuft","fern_patch","daisies")[part],
+                  x+math.cos(angle)*distance,z+math.sin(angle)*distance,size*rng.uniform(.55,.85))
+        if index % 4:
             continue
-        species = ("wind_pine", "canopy_oak", "silver_birch")[index % 3]
-        nodes.append(f'[node name="RidgeCanopy{index:02d}" parent="Nature" instance=ExtResource("nature_{species}")]\n'
-                     f'position = {vec((x, height_at(spec, x, z), z))}\n'
-                     f'rotation = {vec((0, rng.uniform(0, math.tau), 0))}\nscale = {vec((scale, scale, scale))}')
-    # Low groundcover enriches the rock shoulders without hiding either lane.
-    # Shared native MultiMeshes keep these numerous small plants inexpensive.
-    groups = {"fern_patch": [], "bluebells": [], "meadow_tuft": []}
-    for index in range(230):
-        north = index % 2 == 0
-        x = rng.uniform(-22, 22)
-        z = (-28.2 if north else 28.7) + rng.uniform(-.65, .65)
-        if not supported_footprint(spec, x, z, .42, .25):
+        dx,dz=x+.9,z+1.15
+        prop_size = size*rng.uniform(.43,.64)
+        if not planting_site(dx,dz,prop_size,.0 if abs(x)<19 and abs(z)<7 else 3.5,5):
             continue
-        if any(math.hypot(x-b[0], z-b[1]) < 5.2 for b in spec["buildings"]):
+        species="moss_boulder" if index%12==0 else "hazel_thicket"
+        detail_count+=1
+        node=(f'[node name="WoodlandDetail{detail_count:03d}" parent="Nature" instance=ExtResource("nature_{species}")]\n'
+              f'position = {vec((dx,height_at(spec,dx,dz)-(.08 if species=="moss_boulder" else 0),dz))}\n'
+              f'rotation = {vec((0,rng.uniform(0,math.tau),0))}\nscale = {vec((prop_size,prop_size,prop_size))}')
+        if abs(dx)<46 and abs(dz)<31 and not(abs(dx)<19 and abs(dz)<7):
+            node+='\nmetadata/route_radius = 0.7'
+        nodes.append(node)
+    for segment in paths:
+        ax,az,bx,bz=segment
+        length=math.hypot(bx-ax,bz-az)
+        if length<3:
             continue
-        species = tuple(groups)[index % 3]
-        scale = rng.uniform(.58, 1.12)
-        yaw = rng.uniform(0, math.tau)
-        c, s = math.cos(yaw)*scale, math.sin(yaw)*scale
-        groups[species].append((c, 0, s, x, 0, scale, 0, height_at(spec,x,z)-.015,
-                                -s, 0, c, z))
+        nx,nz=-(bz-az)/length,(bx-ax)/length
+        for index in range(max(2,int(length*1.4))):
+            t=rng.uniform(.05,.95)
+            side=-1 if index%2 else 1
+            spread=side*rng.uniform(2.7,5.5)
+            cover(("fern_patch","bluebells","meadow_tuft")[index%3],
+                  ax+(bx-ax)*t+nx*spread,az+(bz-az)*t+nz*spread,rng.uniform(.45,.82))
     for species, transforms in groups.items():
         values = ", ".join(f"{v:.6f}" for row in transforms for v in row)
         sub.append(f'[sub_resource type="MultiMesh" id="ForestVerge_{species}"]\ntransform_format = 1\n'
@@ -115,6 +192,8 @@ def authored_woodland(spec, paths):
         nodes.append(f'[node name="ForestVerge_{species}" type="MultiMeshInstance3D" parent="Nature"]\n'
                      f'multimesh = SubResource("ForestVerge_{species}")\n'
                      'material_override = ExtResource("nature_grass_material")\ncast_shadow = 0')
+    inside=sum(abs(x)<46 and abs(z)<31 for x,z,_ in occupied)
+    print(f"FOREST_PLANTING trees={len(occupied)} interior_trees={inside} added_cover={sum(map(len,groups.values()))} details={detail_count}")
     return ext, sub, nodes
 
 

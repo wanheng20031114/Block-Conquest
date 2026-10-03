@@ -2,8 +2,14 @@ extends SceneTree
 ## Audit the saved first two battlefields, including actual six-file march poses.
 
 const MAP_IDS := ["flower_pool", "forest_fork"]
+const EXPECTED_ROUTE_PAIRS := {"flower_pool": 66, "forest_fork": 91}
 const MARCHES := preload("res://scenes/block_war/marches.tscn")
 const PREVIEW := preload("res://scripts/block_war/war_map_preview.gd")
+## Mean horizontal edge length in the minimum spanning tree of building sites,
+## measured from bc48965 (the first published version of these two maps).
+## A connected adjacency graph includes river crossings and both woodland lanes;
+## nearest-neighbor samples alone would omit the long gaps between their clusters.
+const PREVIOUS_ADJACENT_SPACING := {"flower_pool": 20.3831618702, "forest_fork": 17.8748881915}
 var checks := 0
 var failures: Array[String] = []
 
@@ -29,6 +35,7 @@ func _run() -> void:
 			map.set_visual_paused(true)
 			var buildings := map.get_node("Buildings").get_children()
 			_check_layout(map, buildings)
+			_check_compact_spacing(map, buildings)
 			_check_saved_routes(map, buildings)
 			if map_id == "flower_pool":
 				_check_flower_pool(map, buildings)
@@ -73,6 +80,12 @@ func _check_curved_water() -> void:
 	diamond.water_polygons = [PackedVector2Array([Vector2(-3, 0), Vector2(0, 3), Vector2(3, 0), Vector2(0, -3)])]
 	for point: Vector2 in [Vector2(0, 3), Vector2(0, -3), Vector2(1, 2), Vector2(-1, -2)]:
 		check(diamond.is_water(point), "curved-water boundaries include pointed extrema and sloped edges")
+	# This fixed regression fixture is independent of the flower map's live layout.
+	# A ray through consecutive bank vertices must count each shared edge only once.
+	var winding := WarMapDefinition.new()
+	winding.water_polygons = [PackedVector2Array([Vector2(-3, -4), Vector2(-2, -2), Vector2(-3, 0), Vector2(-2, 2), Vector2(-3, 4), Vector2(1, 4), Vector2(2, 2), Vector2(1, 0), Vector2(2, -2), Vector2(1, -4)])]
+	for point: Vector2 in [Vector2(-5, 0), Vector2(5, 0), Vector2(-5, 2), Vector2(5, 2)]:
+		check(not winding.is_water(point) and winding.is_walkable(point), "a shared ray vertex cannot turn dry land into an isolated water obstacle")
 
 func _check_layout(map: WarMap, buildings: Array[Node]) -> void:
 	var definition: WarMapDefinition = map.definition
@@ -98,6 +111,37 @@ func _check_layout(map: WarMap, buildings: Array[Node]) -> void:
 			neutral_count += 1
 	check(player_count == 1 and enemy_count > player_count, "enemy starts with more buildings than the single player residence")
 	check(neutral_count >= 7, "the middle offers many neutral capture decisions")
+
+func _check_compact_spacing(map: WarMap, buildings: Array[Node]) -> void:
+	var connected: Array[int] = [0]
+	var adjacent_total := 0.0
+	var closest_pair := INF
+	var models_unchanged := true
+	for building: WarBuilding in buildings:
+		models_unchanged = models_unchanged and building.scene_file_path == "res://scenes/block_war/building.tscn" and building.scale.is_equal_approx(Vector3.ONE)
+	while connected.size() < buildings.size():
+		var nearest := INF
+		var next := -1
+		for source: int in connected:
+			for target: int in buildings.size():
+				if target in connected:
+					continue
+				var a: Vector3 = buildings[source].position
+				var b: Vector3 = buildings[target].position
+				var distance := Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
+				if distance < nearest:
+					nearest = distance
+					next = target
+		connected.append(next)
+		adjacent_total += nearest
+		closest_pair = minf(closest_pair, nearest)
+	var average := adjacent_total / float(buildings.size() - 1)
+	var ratio: float = average / PREVIOUS_ADJACENT_SPACING[map.definition.map_id]
+	# Half a percentage point tolerance permits deliberate fractional lane offsets.
+	check(ratio >= 0.645 and ratio <= 0.755, "%s adjacent objectives are about 25–35 percent closer than the original map (%.2f percent reduction)" % [map.definition.map_id, (1.0 - ratio) * 100.0])
+	check(closest_pair >= 8.0, "nearby buildings retain distinct entrances, approach room and selectable silhouettes")
+	check(models_unchanged, "compact spacing preserves the original full-size building scene")
+	print("CAMPAIGN_SPACING ", map.definition.map_id, " original=", PREVIOUS_ADJACENT_SPACING[map.definition.map_id], " current=", average, " reduction=", (1.0 - ratio) * 100.0, " percent closest=", closest_pair)
 
 func _check_saved_routes(map: WarMap, buildings: Array[Node]) -> void:
 	var definition: WarMapDefinition = map.definition
@@ -156,7 +200,7 @@ func _check_saved_routes(map: WarMap, buildings: Array[Node]) -> void:
 							off_bridge += int(not on_bridge)
 							if not on_bridge and off_bridge <= 5:
 								print("ROUTE_BRIDGE_FAILURE ", definition.map_id, " ", i, " -> ", j, " point=", world, " pose=", unit.position)
-	check(pairs == buildings.size() * (buildings.size() - 1) / 2 and missing == 0, "%s has saved routes for every building pair" % definition.map_id)
+	check(pairs == EXPECTED_ROUTE_PAIRS[definition.map_id] and pairs == buildings.size() * (buildings.size() - 1) / 2 and missing == 0, "%s retains the complete expected set of saved building-pair routes" % definition.map_id)
 	check(bad_reverse == 0 and bad_distance == 0, "reverse routes and AI distances match the real march guide")
 	check(illegal == 0, "%s six-file soldier footprints never enter water, cliffs or tree trunks: %s" % [definition.map_id, first_failure])
 	check(floating == 0, "%s actual soldier poses follow the rendered height surface" % definition.map_id)
@@ -168,10 +212,6 @@ func _check_saved_routes(map: WarMap, buildings: Array[Node]) -> void:
 
 func _check_flower_pool(map: WarMap, buildings: Array[Node]) -> void:
 	var definition: WarMapDefinition = map.definition
-	# Actual soldier footprint positions that exposed the native shared-vertex
-	# ray-count bug. Both are roughly three metres inland, far from bridge edges.
-	for point: Vector2 in [Vector2(21.743156433, -10.022915840), Vector2(14.268754005, 11.492527962)]:
-		check(not definition.is_water(point) and definition.is_walkable(point), "a shared ray vertex cannot turn dry land into an isolated water obstacle")
 	check(definition.title == "水间花池", "the first dedicated battlefield retains its requested name")
 	check(definition.water_polygons.size() >= 2 and definition.bridges.size() >= 4, "several curved streams offer separate carefully placed crossings")
 	var enemy_count := 0
@@ -184,11 +224,13 @@ func _check_flower_pool(map: WarMap, buildings: Array[Node]) -> void:
 
 func _check_forest_fork(map: WarMap, buildings: Array[Node]) -> void:
 	var definition: WarMapDefinition = map.definition
+	check(definition.title == "双径森林", "the second dedicated battlefield uses the requested forest name")
 	check(definition.has_elevation(), "woodland elevation is shared by visible ground and movement")
 	check(not definition.is_walkable(Vector2.ZERO), "the forested central ridge blocks a direct third lane")
-	for z: float in [-21, 21]:
-		check(definition.surface_height(Vector2(0, z)) >= 3.0, "both lanes ascend to the central high ground")
-		check(definition.surface_height(Vector2(0, z)) - definition.surface_height(Vector2(-39, z)) >= 3.0, "the raised center differs materially from its entrance")
+	check(definition.surface_height(Vector2.ZERO) >= 8.0, "the woodland ridge remains visibly higher than both playable lanes")
+	for z: float in [-16.5, 16.5]:
+		check(definition.surface_height(Vector2(0, z)) >= 2.6, "both compact lanes ascend to the central high ground")
+		check(definition.surface_height(Vector2(0, z)) - definition.surface_height(Vector2(-28, z)) >= 2.6, "the raised center differs materially from its entrance")
 		var left: WarBuilding = null
 		var right: WarBuilding = null
 		for building: WarBuilding in buildings:
@@ -204,14 +246,14 @@ func _check_forest_fork(map: WarMap, buildings: Array[Node]) -> void:
 		var stays_in_lane := not route.is_empty()
 		var reaches_high_ground := false
 		for point: Vector3 in route:
-			stays_in_lane = stays_in_lane and point.z * signf(z) > 12.0
-			reaches_high_ground = reaches_high_ground or point.y >= 3.0
+			stays_in_lane = stays_in_lane and point.z * signf(z) > 10.0
+			reaches_high_ground = reaches_high_ground or point.y >= 2.6
 		check(stays_in_lane and reaches_high_ground, "a cross-map forest route climbs its own lane without jumping to the other path")
 	var illegal_middle_crossing := false
 	for i: int in buildings.size():
 		for j: int in range(i + 1, buildings.size()):
 			var route := map.get_building_route(buildings[i], buildings[j])
 			for point: Vector3 in route:
-				if absf(point.x) < 1.0 and absf(point.z) <= 12.0:
+				if absf(point.x) < 1.0 and absf(point.z) <= 10.0:
 					illegal_middle_crossing = true
 	check(not illegal_middle_crossing, "every cached route respects the forest ridge separating both lanes")

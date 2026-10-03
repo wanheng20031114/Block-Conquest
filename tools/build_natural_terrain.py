@@ -103,9 +103,11 @@ def bake(layout):
         guides.extend([*points[0],*points[-1]])
     site_heights=packed(text,'building_heights')
     assert len(site_heights)==len(layout['buildings'])
+    pad_radius=layout.get('building_pad_radius',6.1)
+    pad_blend=layout.get('building_pad_blend',1.9)
     for building,level in zip(layout['buildings'],site_heights):
         distance=np.maximum(np.abs(x-building[0]),np.abs(z-building[1]))
-        blend=1-smooth((distance-6.1)/1.9)
+        blend=1-smooth((distance-pad_radius)/pad_blend)
         height=height*(1-blend)+level*blend
     height=(height+height[:,::-1])*.5
     height[height<1e-5]=0

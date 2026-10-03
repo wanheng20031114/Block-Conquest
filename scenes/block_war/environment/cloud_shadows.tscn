@@ -1,0 +1,215 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/block_war/environment/cloud_shadow_shape.tscn" id="cloud"]
+[ext_resource type="Script" path="res://scripts/block_war/war_cloud_shadows.gd" id="script"]
+
+[sub_resource type="Animation" id="drift"]
+resource_name = "drift"
+length = 400.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Drift:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 400),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(96, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="animations"]
+_data = {
+&"drift": SubResource("drift")
+}
+
+[node name="CloudShadows" type="Node3D"]
+script = ExtResource("script")
+position = Vector3(-22, 40, 28)
+rotation_degrees = Vector3(0, -18, 0)
+metadata/purpose = "Invisible native shadow casters: 0.24 m/s diagonal drift, 400 s seamless periodic field."
+
+[node name="Drift" type="Node3D" parent="."]
+
+[node name="Cloud00" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-183, 0, -76)
+rotation_degrees = Vector3(0, 12, 0)
+scale = Vector3(1.0120, 1, 1.0120)
+
+[node name="Cloud01" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-135, 0, -71)
+rotation_degrees = Vector3(0, 46, 0)
+scale = Vector3(1.1880, 1, 1.1880)
+
+[node name="Cloud02" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-87, 0, -76)
+rotation_degrees = Vector3(0, 12, 0)
+scale = Vector3(1.0120, 1, 1.0120)
+
+[node name="Cloud03" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-39, 0, -71)
+rotation_degrees = Vector3(0, 46, 0)
+scale = Vector3(1.1880, 1, 1.1880)
+
+[node name="Cloud04" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(9, 0, -76)
+rotation_degrees = Vector3(0, 12, 0)
+scale = Vector3(1.0120, 1, 1.0120)
+
+[node name="Cloud05" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(57, 0, -71)
+rotation_degrees = Vector3(0, 46, 0)
+scale = Vector3(1.1880, 1, 1.1880)
+
+[node name="Cloud06" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(105, 0, -76)
+rotation_degrees = Vector3(0, 12, 0)
+scale = Vector3(1.0120, 1, 1.0120)
+
+[node name="Cloud10" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-165, 2, -38)
+rotation_degrees = Vector3(0, -24, 0)
+scale = Vector3(0.8464, 1, 0.8464)
+
+[node name="Cloud11" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-117, 2, -33)
+rotation_degrees = Vector3(0, 10, 0)
+scale = Vector3(0.9936, 1, 0.9936)
+
+[node name="Cloud12" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-69, 2, -38)
+rotation_degrees = Vector3(0, -24, 0)
+scale = Vector3(0.8464, 1, 0.8464)
+
+[node name="Cloud13" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-21, 2, -33)
+rotation_degrees = Vector3(0, 10, 0)
+scale = Vector3(0.9936, 1, 0.9936)
+
+[node name="Cloud14" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(27, 2, -38)
+rotation_degrees = Vector3(0, -24, 0)
+scale = Vector3(0.8464, 1, 0.8464)
+
+[node name="Cloud15" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(75, 2, -33)
+rotation_degrees = Vector3(0, 10, 0)
+scale = Vector3(0.9936, 1, 0.9936)
+
+[node name="Cloud16" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(123, 2, -38)
+rotation_degrees = Vector3(0, -24, 0)
+scale = Vector3(0.8464, 1, 0.8464)
+
+[node name="Cloud20" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-192, 0, 0)
+rotation_degrees = Vector3(0, 19, 0)
+scale = Vector3(0.9568, 1, 0.9568)
+
+[node name="Cloud21" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-144, 0, 5)
+rotation_degrees = Vector3(0, 53, 0)
+scale = Vector3(1.1232, 1, 1.1232)
+
+[node name="Cloud22" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-96, 0, 0)
+rotation_degrees = Vector3(0, 19, 0)
+scale = Vector3(0.9568, 1, 0.9568)
+
+[node name="Cloud23" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-48, 0, 5)
+rotation_degrees = Vector3(0, 53, 0)
+scale = Vector3(1.1232, 1, 1.1232)
+
+[node name="Cloud24" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(0, 0, 0)
+rotation_degrees = Vector3(0, 19, 0)
+scale = Vector3(0.9568, 1, 0.9568)
+
+[node name="Cloud25" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(48, 0, 5)
+rotation_degrees = Vector3(0, 53, 0)
+scale = Vector3(1.1232, 1, 1.1232)
+
+[node name="Cloud26" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(96, 0, 0)
+rotation_degrees = Vector3(0, 19, 0)
+scale = Vector3(0.9568, 1, 0.9568)
+
+[node name="Cloud30" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-173, 2, 38)
+rotation_degrees = Vector3(0, -9, 0)
+scale = Vector3(1.0672, 1, 1.0672)
+
+[node name="Cloud31" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-125, 2, 43)
+rotation_degrees = Vector3(0, 25, 0)
+scale = Vector3(1.2528, 1, 1.2528)
+
+[node name="Cloud32" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-77, 2, 38)
+rotation_degrees = Vector3(0, -9, 0)
+scale = Vector3(1.0672, 1, 1.0672)
+
+[node name="Cloud33" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-29, 2, 43)
+rotation_degrees = Vector3(0, 25, 0)
+scale = Vector3(1.2528, 1, 1.2528)
+
+[node name="Cloud34" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(19, 2, 38)
+rotation_degrees = Vector3(0, -9, 0)
+scale = Vector3(1.0672, 1, 1.0672)
+
+[node name="Cloud35" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(67, 2, 43)
+rotation_degrees = Vector3(0, 25, 0)
+scale = Vector3(1.2528, 1, 1.2528)
+
+[node name="Cloud36" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(115, 2, 38)
+rotation_degrees = Vector3(0, -9, 0)
+scale = Vector3(1.0672, 1, 1.0672)
+
+[node name="Cloud40" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-185, 0, 76)
+rotation_degrees = Vector3(0, 31, 0)
+scale = Vector3(0.9016, 1, 0.9016)
+
+[node name="Cloud41" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-137, 0, 81)
+rotation_degrees = Vector3(0, 65, 0)
+scale = Vector3(1.0584, 1, 1.0584)
+
+[node name="Cloud42" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-89, 0, 76)
+rotation_degrees = Vector3(0, 31, 0)
+scale = Vector3(0.9016, 1, 0.9016)
+
+[node name="Cloud43" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(-41, 0, 81)
+rotation_degrees = Vector3(0, 65, 0)
+scale = Vector3(1.0584, 1, 1.0584)
+
+[node name="Cloud44" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(7, 0, 76)
+rotation_degrees = Vector3(0, 31, 0)
+scale = Vector3(0.9016, 1, 0.9016)
+
+[node name="Cloud45" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(55, 0, 81)
+rotation_degrees = Vector3(0, 65, 0)
+scale = Vector3(1.0584, 1, 1.0584)
+
+[node name="Cloud46" parent="Drift" instance=ExtResource("cloud")]
+position = Vector3(103, 0, 76)
+rotation_degrees = Vector3(0, 31, 0)
+scale = Vector3(0.9016, 1, 0.9016)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("animations")
+}
+autoplay = "drift"

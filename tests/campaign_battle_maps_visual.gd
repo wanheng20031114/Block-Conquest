@@ -35,7 +35,7 @@ func _run() -> void:
 		var home_point: Vector2 = game.camera.unproject_position(game.buildings[0].global_position + Vector3(0, 2, 0))
 		assert(Rect2(140, 130, 1320, 620).has_point(home_point), "The real opening camera must keep the player's first residence clearly on screen.")
 		await _capture(output, session.block_war_map_id + "-opening")
-		game.camera.size = 76 if index == 0 else 83
+		game.camera.size = 58 if index == 0 else 64
 		game.camera_rig.zoom_target = game.camera.size
 		game.camera_rig.focus_at(Vector3.ZERO, true)
 		await _capture(output, session.block_war_map_id + "-gameplay")
@@ -45,9 +45,9 @@ func _run() -> void:
 		if index == 0:
 			game.camera.size = 24
 			game.camera_rig.zoom_target = 24
-			game.camera_rig.focus_at(Vector3(-14, 0, 18), true)
+			game.camera_rig.focus_at(Vector3(-11, 0, 13), true)
 			await _capture(output, "flower_pool-bridge")
-			game.camera_rig.focus_at(Vector3(-5, 0, -30), true)
+			game.camera_rig.focus_at(Vector3(-4, 0, -23), true)
 			await _capture(output, "flower_pool-hydrangeas")
 		await game.prepare_shutdown()
 	session.campaign_active_stage = -1

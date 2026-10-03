@@ -28,6 +28,10 @@ func _run() -> void:
 		var mesh := ArrayMesh.new()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		assert(ResourceSaver.save(mesh, directory + key + ".res", ResourceSaver.FLAG_COMPRESS) == OK)
+	if OS.get_cmdline_user_args().has("--terrain-only"):
+		print("FLOWER_POOL_TERRAIN_BAKED ", payload.keys())
+		quit()
+		return
 	var garden: Node3D = load("res://assets/campaign/reference_railway/native/hydrangeas.scn").instantiate()
 	var variants := {}
 	for shrub: Node3D in garden.find_children("Hydrangea_*", "Node3D", true, false):

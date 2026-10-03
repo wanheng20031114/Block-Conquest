@@ -4,7 +4,7 @@ extends SceneTree
 const MAP := "res://scenes/campaign/campaign_map.tscn"
 const LANDSCAPE := preload("res://scenes/campaign/campaign_landscape.tscn")
 const MANIFEST := "res://assets/campaign/reference_railway/manifest.json"
-const STATION_NAMES := ["水间花池", "双径幽林", "林间驿站", "河岸驿站", "山麓驿站", "雪峰站"]
+const STATION_NAMES := ["水间花池", "双径森林", "林间驿站", "河岸驿站", "山麓驿站", "雪峰站"]
 const MAP_IDS := ["flower_pool", "forest_fork", "rivers", "ridges", "switchback", "crown"]
 const GEOMETRY := {
 	"ReferenceTerrain": "terrain", "ReferenceProps": "props", "ReferenceTrack": "track",

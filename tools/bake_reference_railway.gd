@@ -4,7 +4,7 @@ extends SceneTree
 
 const DIRECTORY := "res://assets/campaign/reference_railway/"
 ## Campaign station names adapt the reference signs without changing its source.
-const CAMPAIGN_SIGN_NAMES := {"花田站": "水间花池", "橡木镇": "双径幽林"}
+const CAMPAIGN_SIGN_NAMES := {"花田站": "水间花池", "橡木镇": "双径森林"}
 var manifest: Dictionary
 
 func _initialize() -> void:

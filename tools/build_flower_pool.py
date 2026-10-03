@@ -14,25 +14,26 @@ from build_block_war_maps import vec, rects
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = "res://assets/block_war/flower_pool/"
 ENV = "res://assets/block_war/environment/"
-BUILDINGS = [(-43, 0, 0, 0, 60, 1), (43, -12, 0, 1, 40, 2), (43, 12, 0, 1, 40, 2),
-             (-31, -20, 0, -1, 10, 1), (-31, 20, 0, -1, 10, 1), (-30, 0, 2, -1, 16, 1),
-             (0, -21, 0, -1, 12, 1), (0, 21, 0, -1, 12, 1), (0, 0, 0, -1, 18, 1),
-             (29, -21, 0, -1, 16, 1), (29, 21, 0, -1, 16, 1), (29, 0, 1, -1, 22, 1)]
+# Compact the settlement centres, retaining full-size houses and army clearance.
+BUILDINGS = [(-32, 0, 0, 0, 60, 1), (32, -8, 0, 1, 40, 2), (32, 8, 0, 1, 40, 2),
+             (-22, -14.5, 0, -1, 10, 1), (-22, 14.5, 0, -1, 10, 1), (-22, 0, 2, -1, 16, 1),
+             (0, -14.5, 0, -1, 12, 1), (0, 14.5, 0, -1, 12, 1), (0, 0, 0, -1, 18, 1),
+             (22, -14.5, 0, -1, 16, 1), (22, 14.5, 0, -1, 16, 1), (22, 0, 1, -1, 22, 1)]
 
 
 def channel(i, z):
     if i == 0:
-        return -17 + 2.8 * math.sin(z * .115) + .6 * math.sin(z * .27), 2.25 + .3 * math.cos(z * .19)
-    return 17 + 3.0 * math.sin(z * .105 + .6), 2.25 + 1.4 * math.exp(-((z - 1) / 8) ** 2)
+        return -12 + 1.6 * math.sin(z * .14) + .3 * math.sin(z * .31), 1.9 + .2 * math.cos(z * .2)
+    return 12 + 1.6 * math.sin(z * .13 + .6), 1.9 + 1.05 * math.exp(-((z - 1) / 6) ** 2)
 
 
-BRIDGES = [(channel(i, z)[0] - 4.0, z - 3.6, 8.0, 7.2) for i in range(2) for z in (-13, 13)]
+BRIDGES = [(channel(i, z)[0] - 4.0, z - 3.6, 8.0, 7.2) for i in range(2) for z in (-8.5, 8.5)]
 PATHS = []
-for z in (-13, 13):
-    PATHS += [(-43, 0, -31, z), (-31, z, 0, z), (0, z, 29, z), (29, z, 43, z)]
+for z in (-8.5, 8.5):
+    PATHS += [(-32, 0, -22, z), (-22, z, 0, z), (0, z, 22, z), (22, z, 32, z)]
 for x, z, *_ in BUILDINGS:
-    if x not in (-43, 43):
-        for lane in ([-13, 13] if z == 0 else [-13 if z < 0 else 13]):
+    if x not in (-32, 32):
+        for lane in ([-8.5, 8.5] if z == 0 else [-8.5 if z < 0 else 8.5]):
             PATHS.append((x, z, x, lane))
 
 
@@ -56,15 +57,15 @@ class Mesh:
 
 def meshes():
     land, grass, stone, water = [Mesh() for _ in range(4)]
-    for step in range(224):
-        z, zz = -56 + step * .5, -56 + (step + 1) * .5
+    for step in range(192):
+        z, zz = -48 + step * .5, -48 + (step + 1) * .5
         row, next_row = [], []
         for at, edges in ((z, row), (zz, next_row)):
-            edges.append(-76)
+            edges.append(-64)
             for i in range(2):
                 c, w = channel(i, at)
                 edges.extend([c-w-.8, c+w+.8])
-            edges.append(76)
+            edges.append(64)
         for j in (0, 2, 4):
             land.quad((row[j], 0, z), (row[j+1], 0, z), (next_row[j+1], 0, zz), (next_row[j], 0, zz))
         for i in range(2):
@@ -115,7 +116,7 @@ def main():
     polygons = []
     for i in range(2):
         points = []
-        for side, values in ((-1, range(-112,113)), (1, range(112,-113,-1))):
+        for side, values in ((-1, range(-96,97)), (1, range(96,-97,-1))):
             for step in values:
                 z = step*.5
                 c,w = channel(i,z)
@@ -134,8 +135,8 @@ asymmetric_start = true
 scene_path = "res://scenes/block_war/maps/flower_pool.tscn"
 routes_path = "res://data/block_war/routes/flower_pool.res"
 description = "紫阳花沿两条曲水盛开，四座拱石桥连接花池之间的九处中立建筑。左侧一座初级住宅，对阵右侧两座二级住宅；适合逐桥推进的非对称 1v1 战场。"
-half_size = Vector2(52, 32)
-camera_bounds = Rect2(-76, -56, 152, 112)
+half_size = Vector2(40, 24)
+camera_bounds = Rect2(-64, -48, 128, 96)
 ground_color = Color(0.42, 0.53, 0.36, 1)
 water_polygons = Array[PackedVector2Array]([{', '.join(polygons)}])
 bridges = {rects(BRIDGES)}
@@ -158,7 +159,7 @@ building_factions = PackedInt32Array({', '.join(str(b[3]) for b in BUILDINGS)})
     resources = ['''[sub_resource type="ShaderMaterial" id="Ground"]
 shader = ExtResource("ground_shader")
 shader_parameter/meadow_noise = ExtResource("noise")
-shader_parameter/half_size = Vector2(52, 32)
+shader_parameter/half_size = Vector2(40, 24)
 shader_parameter/meadow = Color(0.43, 0.54, 0.365, 1)
 shader_parameter/grass_shadow = Color(0.413, 0.515, 0.35, 1)
 shader_parameter/grass_sunlit = Color(0.45, 0.558, 0.388, 1)
@@ -181,7 +182,7 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])''']
     for name,asset,material in [("Land","land",'SubResource("Ground")'), ("SoftBanks","bank_grass",'SubResource("Ground")'),
                                ("BankStone","bank_stone",'ExtResource("rock")'), ("Water","water",'SubResource("Water")')]:
         nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="Terrain"]\nlayers = 524289\nmesh = ExtResource("{asset}")\nmaterial_override = {material}')
-    ext, sub, children = author_bridges(dict(id="flower_pool", bridges=BRIDGES, water=[(-22,-56,10,112),(11,-56,12,112)]))
+    ext, sub, children = author_bridges(dict(id="flower_pool", bridges=BRIDGES, water=[(-16,-48,8,96),(8,-48,10,96)]))
     externals += ext
     resources += sub
     nodes += children
@@ -194,8 +195,8 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])''']
         externals.append(f'[ext_resource type="PackedScene" path="res://assets/models/block_war/nature/{name}.tscn" id="{name}"]')
     rng=random.Random(41026)
     placed=[]
-    beds=[(-39,-30,13,7),(-32,31,16,8),(-6,-32,10,9),(5,33,9,9),(-8,3,4,9),
-          (8,-3,3.8,9),(32,-34,14,7),(37,33,14,8),(-52,10,6,20),(55,-4,5,23)]
+    beds=[(-28,-25,11,7),(-26,25,13,8),(-4,-26,7,8),(3,27,7,8),(-6,0,3,5),
+          (6,0,3,5),(25,-27,11,7),(28,27,11,7),(-41,7,5,17),(41,-3,5,18)]
     for bed_id,(cx,cz,rx,rz) in enumerate(beds):
         for _ in range(650):
             x,z=cx+rng.uniform(-rx,rx),cz+rng.uniform(-rz,rz)
@@ -207,8 +208,8 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])''']
             nodes.append(f'[node name="Hydrangea{len(placed):03}" parent="Nature" instance=ExtResource("hydrangea_{palette}_{rng.randrange(3)}")]\nposition = {vec((x,0,z))}\nrotation = {vec((0,rng.uniform(0,6.28),0))}\nscale = {vec((size,size,size))}')
     trees=[]
     for j in range(750):
-        x,z=rng.uniform(-69,69),rng.uniform(-48,48)
-        if abs(x)<52 and abs(z)<36: continue
+        x,z=rng.uniform(-58,58),rng.uniform(-41,41)
+        if abs(x)<40 and abs(z)<28: continue
         if not clear(x,z,2) or any(math.hypot(x-a,z-b)<5.5 for a,b in trees): continue
         if any(math.hypot(x-a,z-b)<2.7 for a,b in placed): continue
         trees.append((x,z))
@@ -216,7 +217,7 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])''']
         tree=species[j%3]
         nodes.append(f'[node name="GardenTree{j}" parent="Nature" instance=ExtResource("{tree}")]\nposition = {vec((x,0,z))}\nrotation = {vec((0,rng.uniform(0,6.28),0))}\nscale = {vec((size,size,size))}\nmetadata/route_radius = 1.35')
     for j in range(460):
-        x,z=rng.uniform(-57,57),rng.uniform(-40,40)
+        x,z=rng.uniform(-46,46),rng.uniform(-34,34)
         if not clear(x,z,.1): continue
         if any(math.hypot(x-a,z-b)<1 for a,b in placed): continue
         name=("daisies","bluebells","fern_patch")[j%3]
@@ -224,8 +225,8 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])''']
         nodes.append(f'[node name="Meadow{j}" parent="Nature" instance=ExtResource("{name}")]\nposition = {vec((x,0,z))}\nrotation = {vec((0,rng.uniform(0,6.28),0))}\nscale = {vec((size,size,size))}')
     # Broken limestone and reeds follow both curved edges, leaving bridge mouths clear.
     for i in range(2):
-        for j in range(68):
-            z=-48+j*1.43+rng.uniform(-.5,.5)
+        for j in range(58):
+            z=-41+j*1.43+rng.uniform(-.5,.5)
             c,w=channel(i,z)
             for side in (-1,1):
                 if rng.random()<.4: continue

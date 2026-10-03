@@ -245,6 +245,7 @@ func sync_match_control_presentation() -> void:
 	audio.set_world_paused(paused)
 	world_effects.set_running(not paused)
 	map.set_visual_paused(paused)
+	$CloudShadows/AnimationPlayer.speed_scale = 0.0 if paused else 1.0
 	for building: WarBuilding in buildings: building.set_visual_paused(paused)
 	update_hud()
 
@@ -1377,6 +1378,7 @@ func _finish_match(winner: int) -> void:
 	audio.set_world_paused(true)
 	world_effects.set_running(false)
 	map.set_visual_paused(true)
+	$CloudShadows/AnimationPlayer.speed_scale = 0.0
 	for building: Node3D in buildings:
 		building.set_visual_paused(true)
 	if winner >= 0:
@@ -1492,6 +1494,7 @@ func set_paused(value: bool) -> void:
 	audio.set_world_paused(pause_world)
 	world_effects.set_running(not pause_world)
 	map.set_visual_paused(pause_world)
+	$CloudShadows/AnimationPlayer.speed_scale = 0.0 if pause_world else 1.0
 	for building: Node3D in buildings:
 		building.set_visual_paused(pause_world)
 	hud.set_paused(value)

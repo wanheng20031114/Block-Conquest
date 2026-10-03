@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("stage")
 number = 2
-title = "双径幽林"
+title = "双径森林"
 region = "西境 · 林间高地"
 description = "两条林间道路绕过中央高地，在森林东端汇合。\n青蛙守军抢先占领了更多据点；选择进军路线，留意另一侧的敌军动向。"
 map_id = "forest_fork"

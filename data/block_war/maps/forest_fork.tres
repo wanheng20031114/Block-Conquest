@@ -7,20 +7,20 @@
 [resource]
 script = ExtResource("script")
 map_id = "forest_fork"
-title = "双径幽林"
+title = "双径森林"
 size_class = 0
 team_size = 1
 asymmetric_start = true
 scene_path = "res://scenes/block_war/maps/forest_fork.tscn"
 routes_path = "res://data/block_war/routes/forest_fork.res"
 description = "古老的林脊将战场分成南北两路，四条宽坡通向中央高地。青蛙守军掌握两座住宅和一间工坊，选择一路突破，也可在两端换线牵制。"
-half_size = Vector2(60, 38)
-camera_bounds = Rect2(-84, -62, 168, 124)
+half_size = Vector2(46, 31)
+camera_bounds = Rect2(-70, -55, 140, 110)
 ground_color = Color(0.405, 0.49, 0.335, 1)
 water_regions = Array[Rect2]([])
-mountain_regions = Array[Rect2]([Rect2(-25, -10, 50, 20)])
+mountain_regions = Array[Rect2]([Rect2(-19, -7, 38, 14)])
 bridges = Array[Rect2]([])
 terrain = ExtResource("terrain")
-building_positions = PackedVector3Array(-51, 0.0, 0, -39, 0.0, -21, -13, 3.5, -21, 0, 3.5, -21, 13, 3.5, -21, 39, 0.0, -21, -39, 0.0, 21, -13, 3.5, 21, 0, 3.5, 21, 13, 3.5, 21, 39, 0.0, 21, 51, 0.0, -12, 51, 0.0, 12, 51, 0.0, 0)
+building_positions = PackedVector3Array(-38, 0.0, 0, -28, 0.0, -16.5, -10, 2.700000047683716, -16.5, 0, 2.700000047683716, -16.5, 10, 2.700000047683716, -16.5, 28, 0.0, -16.5, -28, 0.0, 16.5, -10, 2.700000047683716, 16.5, 0, 2.700000047683716, 16.5, 10, 2.700000047683716, 16.5, 28, 0.0, 16.5, 38, 0.0, -10, 38, 0.0, 10, 38, 0.0, 0)
 building_kinds = PackedInt32Array(0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
 building_factions = PackedInt32Array(0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1)
