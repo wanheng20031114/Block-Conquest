@@ -811,24 +811,16 @@ func _fire_tower(building: Node3D) -> void:
 	if targets.is_empty():
 		return
 	tower_clocks[building.building_id] = tower_interval(building)
-	# A volley has one primary aim and one firing presentation, even when
-	# higher tiers launch several independently tracked projectiles.
-	var aim: Vector3 = targets[0].position
-	var muzzle := present_tower_volley(building, aim)
-	presentation_event.emit("tower_volley", {"building": building.building_id, "faction": building.faction, "aim": _vector_values(aim)})
+	building.fire_at(targets[0].position)
+	var muzzle: Vector3 = building.muzzle_position()
+	world_effects.hit(muzzle, (targets[0].position - muzzle).normalized(), true)
 	for target: WarMarches.MarchUnit in targets:
 		var destination := target.position + Vector3(0, 0.65, 0)
+		presentation_event.emit("tower_shot", {"building": building.building_id, "faction": building.faction, "unit": target.unit_id, "at": _vector_values(muzzle), "to": _vector_values(destination), "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 		projectiles.append({"target": target, "at": muzzle, "position": muzzle, "previous": muzzle,
 			"to": destination, "tracking": true, "age": 0.0, "duration": clampf(muzzle.distance_to(destination) / 32.0, 0.07, 0.48)})
 	world_effects.render_projectiles(projectiles)
-
-func present_tower_volley(building: WarBuilding, aim: Vector3) -> Vector3:
-	# Shared by authority and replicas; target selection and damage stay in simulation.
-	building.fire_at(aim)
-	var muzzle := building.muzzle_position()
-	world_effects.hit(muzzle, (aim - muzzle).normalized(), true)
 	audio.play_world(&"cannon_shot", building.global_position)
-	return muzzle
 
 func _tick_projectiles(delta: float) -> void:
 	for index: int in range(projectiles.size() - 1, -1, -1):
