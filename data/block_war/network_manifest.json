@@ -123,7 +123,7 @@
     "scripts/block_war/war_marches.gd": "92eda365fc5882eea3694590e75630fe98e1a9f99afebe67565d5a431dd64ef1",
     "scripts/block_war/war_morale.gd": "653565d37311e55c7bab65326c3062f7524da95f4295718859948aac01e31dbd",
     "scripts/block_war/war_morale_star.gd": "ac0c6b4a4d91f3a2bd14eb63b169058c2747b672bf6fe0abbb15183343439fe5",
-    "scripts/block_war/war_overlay.gd": "d5c6eb7b6f11aae34a318e19e4a889f197d9767979efdfc8f9a1f9d2d2a17e6b",
+    "scripts/block_war/war_overlay.gd": "75b6e81b9ea750cd9f3720908f9841e246530218ebca8b2f414f47c9fce20d29",
     "scripts/block_war/war_percentage_button.gd": "8b090b17fe9bec85605d982129b49464a5a4dab2cce76eb0e30d6edaadbb9270",
     "scripts/block_war/war_pig_airlift.gd": "5a25a32bf5b347069e800f4b775ad37d2a5dcec43b09b2b4d297964f259f20aa",
     "scripts/block_war/war_pig_drop.gd": "18fa2a78f582a416ad94de46624d1786208e42285adf8b2e728d8250d9a48579",

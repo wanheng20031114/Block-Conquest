@@ -86,7 +86,6 @@ func _settings_focus_checks(origin: Button, context: String) -> void:
 
 func _route_color_checks(source: Node3D, target: Node3D) -> void:
 	var original := [source.faction, target.faction, game.local_faction]
-	var teams: Array[Array] = [[0, 2, 4], [1, 3, 5]]
 	game.drag_source = source
 	game.hovered = target
 	for faction: int in 6:
@@ -94,14 +93,15 @@ func _route_color_checks(source: Node3D, target: Node3D) -> void:
 		source.faction = faction
 		for owner: int in range(-1, 6):
 			target.faction = owner
-			var friendly: bool = owner in teams[0 if faction in teams[0] else 1]
-			var expected := Color(0.55, 0.93, 0.7, 0.9) if friendly else Color(1.0, 0.81, 0.32, 0.9)
-			check(game.overlay.dispatch_route_color().is_equal_approx(expected), "seat %d route toward faction %d uses the correct own ally enemy or neutral color" % [faction, owner])
+			target.refresh_visual()
+			var building_color: Color = target.get_node("Visual/House/Roof").get_instance_shader_parameter("team_tint")
+			check(game.overlay.dispatch_route_color().is_equal_approx(Color(building_color, 0.9)), "seat %d route matches target faction %d building color" % [faction, owner])
 	game.hovered = null
 	check(game.overlay.dispatch_route_color().is_equal_approx(Color(1.0, 0.81, 0.32, 0.9)), "dragging over open terrain keeps the pending attack color")
 	game.drag_source = null
 	source.faction = original[0]
 	target.faction = original[1]
+	target.refresh_visual()
 	game.local_faction = original[2]
 
 func run() -> void:

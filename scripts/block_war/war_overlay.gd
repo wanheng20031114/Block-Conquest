@@ -116,7 +116,10 @@ func _draw() -> void:
 		_ring(effect.at, radius, color, 2.5)
 
 func dispatch_route_color() -> Color:
-	return Color(0.55, 0.93, 0.7, 0.9) if game.hovered != null and game.FACTIONS.allied(game.hovered.faction, game.local_faction) else Color(1.0, 0.81, 0.32, 0.9)
+	if game.hovered == null:
+		return Color(1.0, 0.81, 0.32, 0.9)
+	var color: Color = WarBuilding.NEUTRAL_COLOR if game.hovered.faction < 0 else game.faction_color(game.hovered.faction)
+	return Color(color, 0.9)
 
 func _draw_dispatch_routes(camera: Camera3D) -> void:
 	var grouped: bool = game.drag_sources.size() > 1
