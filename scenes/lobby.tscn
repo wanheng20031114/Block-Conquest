@@ -139,7 +139,7 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(400, 50)
 mouse_default_cursor_shape = 2
-text = "战地手册    图鉴"
+text = "图鉴"
 metadata/ui_motion_hover_scale = 1.018
 
 [node name="Settings" type="Button" parent="Margin/Column/Body/Welcome/Menu"]

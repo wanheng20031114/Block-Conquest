@@ -184,7 +184,7 @@ theme_override_colors/font_color = Color(0.32, 0.4, 0.28, 1)
 
 [node name="Title" type="Label" parent="Margin/Column/Header/Titles"]
 layout_mode = 2
-text = "战地手册"
+text = "图鉴"
 theme_override_font_sizes/font_size = 36
 theme_type_variation = &"MenuHeading"
 
