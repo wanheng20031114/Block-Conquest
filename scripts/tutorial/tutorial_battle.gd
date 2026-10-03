@@ -2,10 +2,11 @@ extends "res://scripts/block_war/block_war.gd"
 ## A guided course around the real battle rules, isolated from match selection.
 const LESSONS := preload("res://scripts/tutorial/tutorial_catalog.gd")
 const PROGRESS := preload("res://scripts/tutorial/tutorial_progress.gd")
-const DIRECT_ACTIONS := ["capture", "dispatch", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit", "ratio", "zoom", "pan"]
+const CORE_SCENARIO := preload("res://scripts/tutorial/tutorial_core_scenario.gd")
+const DIRECT_ACTIONS := ["capture", "dispatch", "reinforce_tower", "upgrade", "convert", "cast_building", "cast_ground", "fire_hit", "ratio", "zoom", "pan"]
 const RESULT_HOLD := 0.75
 const OBSERVED_ACTIONS := ["capture", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit"]
-var lesson_id := "basics"
+var lesson_id := "core_command"
 var progress_path := PROGRESS.SAVE_PATH
 var lesson_steps: Array[Dictionary] = []
 var phase_index := -1
@@ -14,6 +15,7 @@ var practicing := false
 var lesson_complete := false
 var tutorial_ready := false
 var advance_queued := false
+var step_retry_pending := false
 var practice_seconds := 0.0
 var accepted_action := false
 var wave_started := false
@@ -25,6 +27,8 @@ var shield_damage_seen := false
 var phase_start_energy := 0.0
 var phase_start_zoom := 0.0
 var phase_start_camera := Vector3.ZERO
+var phase_start_ratio := 50
+var core_scenario: RefCounted
 var recruit_result_population := 0.0
 var result_ready_at := -1.0
 var observation_hint := ""
@@ -51,11 +55,13 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	super._ready()
+	if progress_path == PROGRESS.SAVE_PATH:
+		progress_path = get_node("/root/Session").tutorial_progress_path
+	if lesson_id == "core_buildings":
+		core_scenario = CORE_SCENARIO.new(self)
+		get_viewport().size_changed.connect(_restore_teaching_view)
 	camera_rig.edge_scroll = false
-	camera_rig.focus_at(Vector3(0, 0, 1), true)
-	camera.size = 45.0
-	camera_rig.zoom_target = camera.size
-	camera_rig.clamp_destination()
+	_restore_teaching_view()
 	hud.get_node("%PauseRestart").text = "重新练习本课"
 	hud.get_node("%PauseExit").text = "返回课程列表"
 	hud.get_node("%Resume").text = "继续教程"
@@ -77,11 +83,24 @@ func _ready() -> void:
 		issue_order(by_id[2], by_id[1], 100, 1)
 		simulate(2.1)
 	tutorial_ready = true
+	var started_error := PROGRESS.mark_started(progress_path)
+	if started_error != OK:
+		push_warning("教程进入记录保存失败：%s" % error_string(started_error))
 	_next_phase()
 
 func _check_victory() -> void:
 	# Course objectives own completion; empty opposing seats are intentional.
 	pass
+
+func _restore_teaching_view() -> void:
+	camera.size = 45.0
+	camera_rig.zoom_target = camera.size
+	# On narrow logical canvases, reserve a reading column on the left while
+	# keeping the actual building size readable. The whole battlefield shifts
+	# together; projected targets and native hit tests still use the same camera.
+	var focus := Vector3(-6, 0, 1) if core_scenario != null and get_viewport().get_visible_rect().size.x < 1150.0 else Vector3(0, 0, 1)
+	camera_rig.focus_at(focus, true)
+	camera_rig.clamp_destination()
 
 func _process(delta: float) -> void:
 	super._process(delta)
@@ -98,6 +117,11 @@ func _process(delta: float) -> void:
 			if _result_visible_long_enough(): _queue_advance()
 		else:
 			result_ready_at = -1.0
+		if core_scenario != null:
+			var failure: String = core_scenario.failure_reason()
+			if not failure.is_empty():
+				_show_step_retry(failure)
+				return
 		var hint := _observation_hint()
 		if not hint.is_empty() and hint != observation_hint:
 			observation_hint = hint
@@ -129,11 +153,17 @@ func _simulate_step(delta: float) -> void:
 
 func _next_phase() -> void:
 	advance_queued = false
+	step_retry_pending = false
 	phase_index += 1
 	if phase_index >= lesson_steps.size():
 		_complete_lesson()
 		return
 	phase = lesson_steps[phase_index]
+	if core_scenario != null:
+		core_scenario.prepare()
+		_restore_teaching_view()
+	if phase.get("reset_view", false):
+		_restore_teaching_view()
 	practicing = false
 	practice_seconds = 0.0
 	accepted_action = false
@@ -143,11 +173,15 @@ func _next_phase() -> void:
 	phase_start_energy = energy
 	phase_start_zoom = camera.size
 	phase_start_camera = camera_rig.position
-	select_building(by_id[0] if phase.focus in ["upgrade", "selection"] else null)
+	phase_start_ratio = percentage
+	select_building(by_id[int(phase.get("target", 0))] if phase.focus in ["upgrade", "selection", "convert"] else null)
 	_set_teaching_pause(true)
-	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
-	tutor.show_instruction(phase.title, phase.body, "继续" if phase.action == "read" else "开始观察", _is_direct_action())
+	tutor.set_objective(_chapter_label(), phase.goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
+	tutor.show_instruction(phase.title, phase.body, "继续" if phase.action == "read" else "开始观察", _is_direct_action(), phase.get("stats", []))
 	_update_guidance()
+
+func _chapter_label() -> String:
+	return ("核心教学 · " if lesson_id in LESSONS.CORE_IDS else "进阶教学 · ") + LESSONS.title(lesson_id)
 
 func _queue_advance() -> void:
 	if advance_queued: return
@@ -157,27 +191,45 @@ func _queue_advance() -> void:
 
 func _continue() -> void:
 	if _closing or lesson_complete or advance_queued or _local_menu: return
+	if step_retry_pending:
+		core_scenario.retry_current()
+		phase_index -= 1
+		_next_phase()
+		return
 	if phase.action == "read":
 		_queue_advance()
 		return
 	practicing = true
 	tutor.dismiss_instruction()
 	_set_teaching_pause(false)
+	if core_scenario != null:
+		core_scenario.begin_observation()
 	var goal := str(phase.get("watch_goal", phase.goal)) if accepted_action else str(phase.goal)
 	if accepted_action and phase.action == "capture": goal = "观察占领与部队入驻"
 	if accepted_action and phase.action == "upgrade": goal = "观察住宅升级完成"
-	tutor.set_objective("%02d / %02d  ·  %s" % [LESSONS.IDS.find(lesson_id) + 1, LESSONS.IDS.size(), LESSONS.title(lesson_id)], goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
+	if accepted_action and phase.action == "convert": goal = "改建中 · 即将完成"
+	tutor.set_objective(_chapter_label(), goal, "%d / %d" % [phase_index + 1, lesson_steps.size()])
 	_update_guidance()
+
+func _show_step_retry(message: String) -> void:
+	step_retry_pending = true
+	practicing = false
+	_set_teaching_pause(true)
+	var regions: Array[Rect2] = []
+	var annotations: Array[Dictionary] = []
+	tutor.set_spotlights(regions)
+	tutor.set_annotations(annotations)
+	tutor.set_interaction_regions(regions)
+	tutor.clear_gesture()
+	tutor.show_instruction("再试一次", message, "重试这一步")
 
 func _replay() -> void:
 	if lesson_complete or _closing or advance_queued: return
 	_set_teaching_pause(true)
 	if phase.action not in ["zoom", "pan"]:
 		# Restore a useful teaching view if a new player has panned away.
-		camera.size = 45.0
-		camera_rig.zoom_target = camera.size
-		camera_rig.focus_at(Vector3(0, 0, 1), true)
-	tutor.show_instruction(phase.title, phase.body, "继续" if phase.action == "read" else "继续观察", _is_direct_action() and not accepted_action)
+		_restore_teaching_view()
+	tutor.show_instruction(phase.title, phase.body, "继续" if phase.action == "read" else "继续观察", _is_direct_action() and not accepted_action, phase.get("stats", []))
 	_update_guidance()
 
 func _is_direct_action() -> bool:
@@ -256,7 +308,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not event is InputEventMouseButton or not event.pressed: return
 		match event.button_index:
 			MOUSE_BUTTON_LEFT:
-				if phase.action not in ["capture", "dispatch", "reinforce_tower", "upgrade"]: return
+				if phase.action not in ["capture", "dispatch", "reinforce_tower", "upgrade", "convert"]: return
 			MOUSE_BUTTON_MIDDLE:
 				if phase.action != "pan": return
 			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
@@ -300,9 +352,11 @@ func set_percentage(value: int) -> void:
 		super.set_percentage(value)
 		return
 	if not _can_direct_interact(): return
+	# These two authored trials ask for exactly 20 of the supplied 40 soldiers.
+	if phase.get("beat", "") in ["forge_trial", "counterattack"] and value != 50: return
 	if simulation_paused and phase.action != "ratio" and drag_source == null: return
 	super.set_percentage(value)
-	if phase.action == "ratio" and percentage == 25:
+	if phase.action == "ratio" and (percentage != phase_start_ratio if phase.get("any_ratio", false) else percentage == 25):
 		accepted_action = true
 		_continue()
 
@@ -314,8 +368,12 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 	match phase.action:
 		"capture", "dispatch", "reinforce_tower":
 			allowed = kind == "dispatch" and command.get("source") == phase.source and command.get("target") == phase.target
+			if phase.get("beat", "") in ["forge_trial", "counterattack"]:
+				allowed = allowed and command.get("percent") == 50
 		"upgrade":
 			allowed = kind == "upgrade" and command.get("building") == phase.target
+		"convert":
+			allowed = kind == "convert" and command.get("building") == phase.target and command.get("kind") == phase.kind
 		"cast_building":
 			allowed = kind == "skill_building" and command.get("skill") == phase.skill and command.get("target") == phase.target
 		"cast_ground", "fire_hit":
@@ -339,7 +397,9 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 		if phase.action == "cast_building" and int(phase.skill) == 0:
 			recruit_result_population = recruitment_population + RECRUIT_RATE * SKILL_DURATIONS[0]
 		if teaching_pause: _continue()
-		if (phase.action == "reinforce_tower" or (phase.action == "cast_building" and int(phase.skill) == 2)) and not wave_started:
+		if core_scenario != null:
+			core_scenario.after_command()
+		elif (phase.action == "reinforce_tower" or (phase.action == "cast_building" and int(phase.skill) == 2)) and not wave_started:
 			wave_started = true
 			issue_order(by_id[2], by_id[1], 100, 1)
 	return result
@@ -349,22 +409,24 @@ func _record_event(kind: String, payload: Dictionary) -> void:
 	if kind == "casualty" and payload.faction == 1 and payload.burning: burned_enemies += 1
 
 func _record_arrival(target: int, faction: int, _strength: float, _bonus: float, _energy_origin: bool) -> void:
-	if faction == 0 and target == 1 and haste_seen: haste_arrived = true
+	if faction == 0 and target == (3 if core_scenario != null else 1) and haste_seen: haste_arrived = true
 	# The native arrival handler has applied damage, and the shield has not yet
 	# ticked down. This also witnesses damage in a frame crossing shield expiry.
-	if lesson_id == "shield" and target == 1 and faction == 1 and shields.has(1) and by_id[1].faction == 0:
+	if (lesson_id == "shield" or phase.get("beat", "") == "shield_defense") and target == int(phase.get("target", 1)) and faction == 1 and shields.has(target) and by_id[target].faction == 0:
 		shield_damage_seen = true
 
 func _observe_practice() -> void:
-	if lesson_id == "drum":
+	if lesson_id == "drum" or phase.get("beat", "") == "haste_attack":
 		for unit: WarMarches.MarchUnit in marches._units:
 			if unit.order.faction == 0 and unit.is_exposed() and marches.speed_multiplier(unit) > morale.speed(0) + 0.1:
 				haste_seen = true
 
 func _objective_met() -> bool:
+	if core_scenario != null:
+		return core_scenario.objective_met()
 	match phase.action:
 		"capture": return accepted_action and by_id[int(phase.target)].faction == 0 and marches.incoming_for(int(phase.target), 0) == 0 and (lesson_id != "morale" or morale.level(0) >= 1)
-		"ratio": return percentage == 25
+		"ratio": return percentage != phase_start_ratio if phase.get("any_ratio", false) else percentage == 25
 		"zoom": return absf(camera.size - phase_start_zoom) >= 0.8
 		"pan": return camera_rig.position.distance_to(phase_start_camera) >= 1.0 and not camera_rig.dragging
 		"upgrade": return accepted_action and by_id[0].level >= 2 and not by_id[0].is_constructing
@@ -381,6 +443,8 @@ func _objective_met() -> bool:
 	return false
 
 func _result_visible_long_enough() -> bool:
+	if core_scenario != null:
+		return elapsed - result_ready_at >= 0.4
 	if phase.action not in OBSERVED_ACTIONS: return true
 	var hold := RESULT_HOLD
 	# Hand-emitted motes outlive their ring. Their authored lifetime, rather
@@ -480,7 +544,7 @@ func _population_rect(building: WarBuilding) -> Rect2:
 	return Rect2(center - half_size, half_size * 2.0).grow(4.0)
 
 func _update_guidance() -> void:
-	if phase.is_empty() or lesson_complete or _local_menu: return
+	if phase.is_empty() or lesson_complete or _local_menu or step_retry_pending: return
 	var rectangles: Array[Rect2] = []
 	var labels: Array[Dictionary] = []
 	# Once the real action starts, leave its result unobstructed. Reviewing the
@@ -523,8 +587,8 @@ func _update_guidance() -> void:
 	else:
 		match focus:
 			"buildings":
-				rectangles.append(_world_rect(by_id[0].global_position))
-				rectangles.append(_world_rect(by_id[1].global_position))
+				rectangles.append(_world_rect(by_id[int(phase.get("source", 0))].global_position))
+				rectangles.append(_world_rect(by_id[int(phase.get("target", 1))].global_position))
 				if "ownership" in teaching_labels:
 					labels.append(_ownership_label(by_id[0]))
 					labels.append(_ownership_label(by_id[1]))
@@ -554,6 +618,11 @@ func _update_guidance() -> void:
 			"ratios":
 				rectangles.append(_ui_rect("UI/Percentages"))
 				labels.append({"text": "出兵比例", "target": rectangles[0], "side": "above"})
+			"convert":
+				var action_path := _conversion_action_path()
+				rectangles.append(_world_rect(by_id[int(phase.target)].global_position))
+				rectangles.append(_ui_rect(action_path))
+				labels.append({"text": KIND_NAMES[int(phase.kind)], "target": _ui_rect(action_path + "/Icon"), "side": "above", "obstacle": hud.get_node("UI/Selection/BuildingActions").get_global_rect()})
 			"selection", "upgrade":
 				rectangles.append(_world_rect(by_id[0].global_position))
 				if focus == "upgrade":
@@ -580,7 +649,7 @@ func _update_guidance() -> void:
 			if building.is_population_visible():
 				bounds = bounds.merge(_population_rect(building))
 			annotation_obstacles.append(bounds)
-		if focus in ["selection", "upgrade"]:
+		if focus in ["selection", "upgrade", "convert"]:
 			for action: Control in hud.get_node("UI/Selection/BuildingActions").get_children():
 				if action.visible:
 					annotation_obstacles.append(action.get_global_rect())
@@ -588,8 +657,8 @@ func _update_guidance() -> void:
 	var regions: Array[Rect2] = []
 	if simulation_paused and _can_direct_interact():
 		match phase.action:
-			"capture", "dispatch", "reinforce_tower", "upgrade", "cast_building", "cast_ground", "fire_hit": regions.assign(rectangles)
-			"ratio": regions.append(_ui_rect("UI/Percentages/Stack/P25"))
+			"capture", "dispatch", "reinforce_tower", "upgrade", "convert", "cast_building", "cast_ground", "fire_hit": regions.assign(rectangles)
+			"ratio": regions.append(_ui_rect("UI/Percentages" if phase.get("any_ratio", false) else "UI/Percentages/Stack/P25"))
 			"zoom", "pan":
 				var view := get_viewport().get_visible_rect().size
 				regions.append(Rect2(Vector2(160, 170), view - Vector2(320, 320)))
@@ -602,6 +671,9 @@ func _update_guidance() -> void:
 		"upgrade":
 			var at := _ui_rect("UI/Selection/BuildingActions/Upgrade").get_center()
 			tutor.set_gesture(at, at, "click")
+		"convert":
+			var at := _ui_rect(_conversion_action_path()).get_center()
+			tutor.set_gesture(at, at, "click")
 		"ratio":
 			var at := _ui_rect("UI/Percentages/Stack/P25").get_center()
 			tutor.set_gesture(at, at, "click")
@@ -613,6 +685,9 @@ func _update_guidance() -> void:
 			tutor.set_gesture(at, at + Vector2(100, -45), "pan")
 		_: tutor.clear_gesture()
 
+func _conversion_action_path() -> String:
+	return "UI/Selection/BuildingActions/Convert" + ["House", "Tower", "Forge", "Energy"][int(phase.kind)]
+
 func _aim_position() -> Vector3:
 	if phase.has("army"): return _army_center(int(phase.army))
 	return by_id[int(phase.get("target", 0))].global_position + Vector3.UP * 1.5
@@ -623,11 +698,18 @@ func _complete_lesson() -> void:
 	_set_teaching_pause(true)
 	tutor.clear_gesture()
 	var saved := PROGRESS.mark_completed(lesson_id, progress_path)
-	var has_next := LESSONS.IDS.find(lesson_id) + 1 < LESSONS.IDS.size()
+	var has_next := lesson_id == "core_command" or (lesson_id in LESSONS.ADVANCED_IDS and LESSONS.IDS.find(lesson_id) + 1 < LESSONS.IDS.size())
 	var body := LESSONS.summary(lesson_id)
 	if saved != OK: body += "\n进度保存失败，可重试本课。"
 	tutor.set_objective(LESSONS.title(lesson_id), "本课目标已完成", "%d / %d" % [lesson_steps.size(), lesson_steps.size()])
-	tutor.show_completion("完成 · " + LESSONS.title(lesson_id), body, has_next)
+	if lesson_id == "core_command":
+		body = "继续第二章，亲手体验建筑与四个技能？" + ("\n进度保存失败，可重试本课。" if saved != OK else "")
+		tutor.show_completion("基础指挥已掌握", body, true, "继续：建筑与技能", "先到这里")
+	elif lesson_id == "core_buildings":
+		body = "炮塔守路、铁匠增益、能量塔回技力。\n补兵、加速、护盾与火焰，你都已亲手完成。" + ("\n进度保存失败，可重试本课。" if saved != OK else "")
+		tutor.show_completion("核心教学完成", body, false, "", "查看进阶教学")
+	else:
+		tutor.show_completion("完成 · " + LESSONS.title(lesson_id), body, has_next)
 
 func restart() -> void:
 	if _closing: return
@@ -637,7 +719,7 @@ func restart() -> void:
 func exit_to_lobby() -> void:
 	if _closing: return
 	await prepare_shutdown()
-	get_node("/root/Session").start_tutorial()
+	get_node("/root/Session").show_tutorial_menu()
 
 func _next_lesson() -> void:
 	if _closing or not lesson_complete: return

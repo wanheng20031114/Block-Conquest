@@ -60,6 +60,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(output)
 	root.size = Vector2i(1600, 900)
 	var session: Node = root.get_node("Session")
+	session.tutorial_progress_path = output.path_join("boundary_progress_%d.cfg" % OS.get_process_id())
 	var settings: GameSettings = session.settings
 	var settings_before := settings.snapshot()
 	var quiet := settings.defaults()
@@ -67,7 +68,7 @@ func _run() -> void:
 	settings._apply_values(quiet, false)
 	var selections := [session.block_war_map_id, session.block_war_commander, session.block_war_opponent_commander, session.online_nickname, session.online.address, session.online.port]
 
-	await open_lesson("basics")
+	await open_lesson("core_command")
 	var elapsed: float = game.elapsed
 	key(KEY_ESCAPE)
 	await process_frame
@@ -85,7 +86,7 @@ func _run() -> void:
 	key(KEY_ESCAPE)
 	await process_frame
 	check(not game._local_menu and game.simulation_paused, "Esc from menu returns to lecture safely")
-	await select_phase(2)
+	await select_phase(3)
 	check(game.simulation_paused and not game.practicing and not game.tutor.continue_button.visible, "direct capture opens frozen with no start gate")
 	key(KEY_ESCAPE)
 	await process_frame
@@ -226,22 +227,23 @@ func _run() -> void:
 	check(game.by_id[0].construction_remaining < construction_before, "resume after review continues existing construction")
 	await close_lesson()
 
-	await open_lesson("interface")
-	await select_phase(3)
+	await open_lesson("core_command")
+	await select_phase(6)
 	key(KEY_2)
-	check(not game.accepted_action and game.simulation_paused and game.phase_index == 3, "wrong ratio shortcut does not complete the 25-percent objective")
+	check(not game.accepted_action and game.simulation_paused and game.phase_index == 6, "unchanged ratio does not complete the adjustment objective")
 	key(KEY_1)
 	check(game.percentage == 25 and game.accepted_action and not game.simulation_paused, "number 1 selects 25 percent directly from the explanation")
 	game._process(0.0)
 	await process_frame
-	check(game.phase_index == 4 and game.simulation_paused, "ratio shortcut advances once into the frozen zoom step")
+	check(game.phase_index == 7 and game.simulation_paused, "ratio shortcut advances once into the frozen skill explanation")
+	await select_phase(0)
 	for frame: int in 6: await process_frame
 	var view_start: Vector2 = game.tutor.gesture._from
 	mouse(view_start, true, MOUSE_BUTTON_WHEEL_UP)
 	game.camera_rig._process(0.2)
 	game._process(0.0)
 	await process_frame
-	check(game.phase_index == 5 and game.simulation_paused and game.elapsed == 0.0, "direct wheel zoom completes without starting world time")
+	check(game.phase_index == 1 and game.simulation_paused and game.elapsed == 0.0, "direct wheel zoom completes without starting world time")
 	for frame: int in 6: await process_frame
 	view_start = game.tutor.gesture._from
 	mouse(view_start, true, MOUSE_BUTTON_MIDDLE)

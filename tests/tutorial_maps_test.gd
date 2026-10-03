@@ -4,7 +4,7 @@ extends SceneTree
 ## Run on the private-desktop renderer; an optional first argument selects the
 ## screenshot directory. The fixture never opens or simulates a player battle.
 
-const LESSONS := ["basics", "interface", "house", "tower", "forge", "energy", "morale", "recruit", "drum", "shield", "fire"]
+const CATALOG := preload("res://scripts/tutorial/tutorial_catalog.gd")
 var route_checks := 0
 
 func _initialize() -> void:
@@ -19,7 +19,7 @@ func _run() -> void:
 	var output := "res://.local/tutorial/maps-review"
 	if not OS.get_cmdline_user_args().is_empty(): output = OS.get_cmdline_user_args()[0]
 	DirAccess.make_dir_recursive_absolute(output)
-	for lesson: String in LESSONS:
+	for lesson: String in CATALOG.IDS:
 		var packed: PackedScene = load("res://scenes/tutorial/maps/%s.tscn" % lesson)
 		assert(packed != null)
 		var map: WarMap = packed.instantiate()
@@ -46,5 +46,5 @@ func _run() -> void:
 		print("TUTORIAL_MAP ", lesson, " buildings=", ids.size(), " render=true routes=true")
 		map.queue_free()
 		await process_frame
-	print("TUTORIAL_MAPS_TEST maps=11 directed_routes=", route_checks)
+	print("TUTORIAL_MAPS_TEST maps=", CATALOG.IDS.size(), " directed_routes=", route_checks)
 	quit()

@@ -18,10 +18,10 @@
 
 [sub_resource type="StyleBoxFlat" id="Section"]
 bg_color = Color(0.861, 0.897, 0.808, 1)
-content_margin_left = 18.0
-content_margin_right = 18.0
-content_margin_top = 18.0
-content_margin_bottom = 18.0
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 14.0
+content_margin_bottom = 14.0
 corner_radius_top_left = 28
 corner_radius_top_right = 28
 corner_radius_bottom_left = 28
@@ -31,10 +31,10 @@ corner_detail = 12
 
 [sub_resource type="StyleBoxFlat" id="Continue"]
 bg_color = Color(0.981, 0.961, 0.892, 1)
-content_margin_left = 18.0
-content_margin_right = 18.0
-content_margin_top = 18.0
-content_margin_bottom = 18.0
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 14.0
+content_margin_bottom = 14.0
 corner_radius_top_left = 26
 corner_radius_top_right = 26
 corner_radius_bottom_left = 26
@@ -148,7 +148,7 @@ script = ExtResource("script")
 
 [node name="MenuEntrance" type="Node" parent="."]
 script = ExtResource("entrance")
-sections = Array[NodePath]([NodePath("Margin/Column/Header"), NodePath("Margin/Column/ContinuePanel"), NodePath("Margin/Column/LessonScroll/Sections/Foundations"), NodePath("Margin/Column/LessonScroll/Sections/Buildings"), NodePath("Margin/Column/LessonScroll/Sections/Hero")])
+sections = Array[NodePath]([NodePath("Margin/Column/Header"), NodePath("Margin/Column/ContinuePanel"), NodePath("Margin/Column/LessonScroll/Sections/Core"), NodePath("Margin/Column/LessonScroll/Sections/Advanced")])
 stagger = 0.055
 
 [node name="Background" type="ColorRect" parent="."]
@@ -175,7 +175,7 @@ theme_override_constants/margin_bottom = 20
 
 [node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Header" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -196,19 +196,19 @@ theme_override_colors/font_color = Color(0.32, 0.4, 0.28, 1)
 layout_mode = 2
 text = "入门教程"
 theme_type_variation = &"MenuHeading"
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 32
 
 [node name="Learning" type="VBoxContainer" parent="Margin/Column/Header"]
 layout_mode = 2
-custom_minimum_size = Vector2(178, 0)
+custom_minimum_size = Vector2(224, 0)
 size_flags_vertical = 4
 theme_override_constants/separation = 8
 
 [node name="Progress" type="Label" parent="Margin/Column/Header/Learning"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "0 / 11  已完成"
-theme_override_font_sizes/font_size = 18
+text = "核心 0 / 2 · 进阶 0 / 9"
+theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 
 [node name="ProgressBar" type="ProgressBar" parent="Margin/Column/Header/Learning"]
@@ -240,7 +240,7 @@ theme_override_constants/separation = 22
 
 [node name="Portrait" type="TextureRect" parent="Margin/Column/ContinuePanel/Content"]
 layout_mode = 2
-custom_minimum_size = Vector2(68, 64)
+custom_minimum_size = Vector2(56, 56)
 texture = ExtResource("squirrel")
 expand_mode = 1
 stretch_mode = 5
@@ -257,7 +257,9 @@ theme_override_constants/separation = 5
 unique_name_in_owner = true
 layout_mode = 2
 text = "第一次指挥，从这里开始"
-theme_override_font_sizes/font_size = 25
+theme_override_font_sizes/font_size = 23
+
+autowrap_mode = 2
 
 [node name="ContinueNote" type="Label" parent="Margin/Column/ContinuePanel/Content/Copy"]
 unique_name_in_owner = true
@@ -269,7 +271,7 @@ autowrap_mode = 2
 [node name="Continue" type="Button" parent="Margin/Column/ContinuePanel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(216, 60)
+custom_minimum_size = Vector2(196, 54)
 size_flags_vertical = 4
 theme_type_variation = &"MenuPrimary"
 text = "开始第一课  →"
@@ -283,53 +285,53 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 follow_focus = true
 
-[node name="Sections" type="HBoxContainer" parent="Margin/Column/LessonScroll"]
+[node name="Sections" type="VBoxContainer" parent="Margin/Column/LessonScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 
-[node name="Foundations" type="PanelContainer" parent="Margin/Column/LessonScroll/Sections"]
+[node name="Core" type="PanelContainer" parent="Margin/Column/LessonScroll/Sections"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 0
-size_flags_stretch_ratio = 1.0
 theme_override_styles/panel = SubResource("Section")
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="Heading" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column"]
+[node name="Heading" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column"]
 layout_mode = 2
-text = "01   迈出第一步"
-theme_type_variation = &"MenuHeading"
-theme_override_font_sizes/font_size = 26
+text = "核心教学"
+theme_override_font_sizes/font_size = 24
 
-[node name="Note" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column"]
+[node name="Note" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column"]
 layout_mode = 2
-text = "从第一次拖动，到看懂整片战场。"
-theme_override_font_sizes/font_size = 17
+text = "两章连贯练习，掌握指挥部队与建设据点。"
 theme_type_variation = &"MenuMuted"
+theme_override_font_sizes/font_size = 16
 autowrap_mode = 2
 
-[node name="Rule" type="HSeparator" parent="Margin/Column/LessonScroll/Sections/Foundations/Column"]
-layout_mode = 2
-
-[node name="LessonBasics" type="Button" parent="Margin/Column/LessonScroll/Sections/Foundations/Column"]
+[node name="CoreCards" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="LessonCoreCommand" type="Button" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 112)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
 theme_override_styles/hover = SubResource("CardHover")
 theme_override_styles/pressed = SubResource("CardPressed")
 theme_override_styles/focus = SubResource("CardFocus")
-metadata/lesson_id = "basics"
+metadata/lesson_id = "core_command"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -339,86 +341,79 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("basics")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column/Headline"]
-layout_mode = 2
-text = "01"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonBasics/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreCommand/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonInterface" type="Button" parent="Margin/Column/LessonScroll/Sections/Foundations/Column"]
+[node name="LessonCoreBuildings" type="Button" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 112)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
 theme_override_styles/hover = SubResource("CardHover")
 theme_override_styles/pressed = SubResource("CardPressed")
 theme_override_styles/focus = SubResource("CardFocus")
-metadata/lesson_id = "interface"
+metadata/lesson_id = "core_buildings"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -428,191 +423,97 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("interface")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column/Headline"]
-layout_mode = 2
-text = "02"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonInterface/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Core/Column/CoreCards/LessonCoreBuildings/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonMorale" type="Button" parent="Margin/Column/LessonScroll/Sections/Foundations/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
-size_flags_horizontal = 3
-mouse_default_cursor_shape = 2
-theme_override_styles/normal = SubResource("Card")
-theme_override_styles/hover = SubResource("CardHover")
-theme_override_styles/pressed = SubResource("CardPressed")
-theme_override_styles/focus = SubResource("CardFocus")
-metadata/lesson_id = "morale"
-metadata/ui_sound = &"order"
-metadata/ui_motion_hover_scale = 1.008
-
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 5
-
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 10
-
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column/Headline"]
-layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
-texture = ExtResource("morale")
-expand_mode = 1
-stretch_mode = 5
-mouse_filter = 2
-self_modulate = Color(0.34, 0.46, 0.29, 1)
-
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column/Headline"]
+[node name="Advanced" type="PanelContainer" parent="Margin/Column/LessonScroll/Sections"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "课程"
-theme_override_font_sizes/font_size = 23
-mouse_filter = 2
-
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column/Headline"]
-layout_mode = 2
-text = "07"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column"]
-layout_mode = 2
-size_flags_vertical = 3
-text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
-autowrap_mode = 2
-mouse_filter = 2
-
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column/Meta"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Foundations/Column/LessonMorale/Margin/Column/Meta"]
-layout_mode = 2
-text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
-mouse_filter = 2
-
-[node name="Buildings" type="PanelContainer" parent="Margin/Column/LessonScroll/Sections"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 0
-size_flags_stretch_ratio = 1.0
 theme_override_styles/panel = SubResource("Section")
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="Heading" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
+[node name="Heading" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column"]
 layout_mode = 2
-text = "02   认识四种建筑"
-theme_type_variation = &"MenuHeading"
-theme_override_font_sizes/font_size = 26
+text = "进阶教学"
+theme_override_font_sizes/font_size = 24
 
-[node name="Note" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
+[node name="Note" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column"]
 layout_mode = 2
-text = "扩张领土，也为军队做好后勤。"
-theme_override_font_sizes/font_size = 17
+text = "九项专题练习，按需选择，随时重练。"
 theme_type_variation = &"MenuMuted"
+theme_override_font_sizes/font_size = 16
 autowrap_mode = 2
 
-[node name="Rule" type="HSeparator" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
-layout_mode = 2
-
-[node name="LessonHouse" type="Button" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
+[node name="AdvancedCards" type="GridContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+size_flags_horizontal = 3
+columns = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 10
+
+[node name="LessonHouse" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -623,7 +524,7 @@ metadata/lesson_id = "house"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -633,75 +534,150 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("house")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column/Headline"]
-layout_mode = 2
-text = "03"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonHouse/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonHouse/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonTower" type="Button" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
+[node name="LessonMorale" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("Card")
+theme_override_styles/hover = SubResource("CardHover")
+theme_override_styles/pressed = SubResource("CardPressed")
+theme_override_styles/focus = SubResource("CardFocus")
+metadata/lesson_id = "morale"
+metadata/ui_sound = &"order"
+metadata/ui_motion_hover_scale = 1.008
+
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column/Headline"]
+layout_mode = 2
+custom_minimum_size = Vector2(24, 24)
+texture = ExtResource("morale")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+self_modulate = Color(0.34, 0.46, 0.29, 1)
+
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column/Headline"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "课程"
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "在独立地图中学习并完成目标。"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
+autowrap_mode = 2
+mouse_filter = 2
+
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column/Meta"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "约 2 分钟"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
+mouse_filter = 2
+
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonMorale/Margin/Column/Meta"]
+layout_mode = 2
+text = "进入练习  →"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
+mouse_filter = 2
+
+[node name="LessonTower" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -712,7 +688,7 @@ metadata/lesson_id = "tower"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -722,75 +698,68 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("tower")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column/Headline"]
-layout_mode = 2
-text = "04"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonTower/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonTower/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonForge" type="Button" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
+[node name="LessonForge" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -801,7 +770,7 @@ metadata/lesson_id = "forge"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -811,75 +780,68 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("forge")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column/Headline"]
-layout_mode = 2
-text = "05"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonForge/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonForge/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonEnergy" type="Button" parent="Margin/Column/LessonScroll/Sections/Buildings/Column"]
+[node name="LessonEnergy" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -890,7 +852,7 @@ metadata/lesson_id = "energy"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -900,102 +862,68 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("energy")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column/Headline"]
-layout_mode = 2
-text = "06"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Buildings/Column/LessonEnergy/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonEnergy/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="Hero" type="PanelContainer" parent="Margin/Column/LessonScroll/Sections"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 0
-size_flags_stretch_ratio = 1.0
-theme_override_styles/panel = SubResource("Section")
-
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Heading" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
-layout_mode = 2
-text = "03   跟松鼠学技能"
-theme_type_variation = &"MenuHeading"
-theme_override_font_sizes/font_size = 26
-
-[node name="Note" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
-layout_mode = 2
-text = "四个专属战场，练习四种好时机。"
-theme_override_font_sizes/font_size = 17
-theme_type_variation = &"MenuMuted"
-autowrap_mode = 2
-
-[node name="Rule" type="HSeparator" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
-layout_mode = 2
-
-[node name="LessonRecruit" type="Button" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
+[node name="LessonRecruit" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -1006,7 +934,7 @@ metadata/lesson_id = "recruit"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1016,75 +944,68 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("recruit")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column/Headline"]
-layout_mode = 2
-text = "08"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonRecruit/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonRecruit/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonDrum" type="Button" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
+[node name="LessonDrum" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -1095,7 +1016,7 @@ metadata/lesson_id = "drum"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1105,75 +1026,68 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("drum")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column/Headline"]
-layout_mode = 2
-text = "09"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonDrum/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonDrum/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonShield" type="Button" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
+[node name="LessonShield" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -1184,7 +1098,7 @@ metadata/lesson_id = "shield"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1194,75 +1108,68 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("shield")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column/Headline"]
-layout_mode = 2
-text = "10"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonShield/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonShield/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 
-[node name="LessonFire" type="Button" parent="Margin/Column/LessonScroll/Sections/Hero/Column"]
+[node name="LessonFire" type="Button" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 119)
+custom_minimum_size = Vector2(0, 102)
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Card")
@@ -1273,7 +1180,7 @@ metadata/lesson_id = "fire"
 metadata/ui_sound = &"order"
 metadata/ui_motion_hover_scale = 1.008
 
-[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire"]
+[node name="Margin" type="MarginContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1283,68 +1190,61 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin"]
+[node name="Column" type="VBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column"]
+[node name="Headline" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column/Headline"]
+[node name="Icon" type="TextureRect" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column/Headline"]
 layout_mode = 2
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(24, 24)
 texture = ExtResource("fire")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 self_modulate = Color(0.34, 0.46, 0.29, 1)
 
-[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column/Headline"]
+[node name="Title" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column/Headline"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "课程"
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 mouse_filter = 2
 
-[node name="Number" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column/Headline"]
-layout_mode = 2
-text = "11"
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
-mouse_filter = 2
-
-[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column"]
+[node name="Summary" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 text = "在独立地图中学习并完成目标。"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.39, 0.43, 0.34, 1)
 autowrap_mode = 2
 mouse_filter = 2
 
-[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column"]
+[node name="Meta" type="HBoxContainer" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column/Meta"]
+[node name="Duration" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column/Meta"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "约 2 分钟"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.49, 0.53, 0.42, 1)
 mouse_filter = 2
 
-[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Hero/Column/LessonFire/Margin/Column/Meta"]
+[node name="State" type="Label" parent="Margin/Column/LessonScroll/Sections/Advanced/Column/AdvancedCards/LessonFire/Margin/Column/Meta"]
 layout_mode = 2
 text = "进入练习  →"
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.31, 0.46, 0.32, 1)
 mouse_filter = 2
 

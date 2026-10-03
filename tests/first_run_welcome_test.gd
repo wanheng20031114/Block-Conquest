@@ -11,6 +11,7 @@ var session: Node
 var state_script: Script
 var profile := ""
 var user_files: Dictionary = {}
+var tutorial_progress_path := ""
 
 func _initialize() -> void:
 	_run.call_deferred()
@@ -177,6 +178,8 @@ func check_direct_launch() -> void:
 		check(state_script.new(profile).pending, "command-line battle launch does not persist an unseen recommendation")
 
 func _finish() -> void:
+	if FileAccess.file_exists(tutorial_progress_path):
+		check(DirAccess.remove_absolute(tutorial_progress_path) == OK, "isolated tutorial visit file is removed")
 	for filename: String in SAVE_FILES:
 		var path := "user://".path_join(filename)
 		var current_bytes: Variant = FileAccess.get_file_as_bytes(path) if FileAccess.file_exists(path) else null
@@ -192,6 +195,8 @@ func _run() -> void:
 		var path := "user://".path_join(filename)
 		user_files[filename] = FileAccess.get_file_as_bytes(path) if FileAccess.file_exists(path) else null
 	session = root.get_node("Session")
+	tutorial_progress_path = output.path_join("tutorial_progress.cfg")
+	session.tutorial_progress_path = tutorial_progress_path
 	state_script = session.first_run.get_script()
 	root.size = Vector2i(1600, 900)
 	if OS.get_cmdline_user_args().has("--block-war"):
@@ -238,10 +243,16 @@ func _run() -> void:
 	await check_early_settings()
 	guide = await fresh_lobby("tutorial")
 	click(current_scene.get_node("%Tutorial"))
+	if not await expect_scene(session.TUTORIAL_BATTLE_SCENE):
+		_finish()
+		return
+	check(current_scene.lesson_id == "core_command" and current_scene.tutorial_ready, "real spotlight target opens the first core chapter directly")
+	check(current_scene.progress_path == tutorial_progress_path, "ready first chapter uses isolated tutorial storage")
+	click(current_scene.tutor.get_node("%Exit"))
 	if not await expect_scene(session.TUTORIAL_MENU_SCENE):
 		_finish()
 		return
-	check(current_scene.cards.size() == 11, "real spotlight target opens the existing full tutorial menu")
+	check(current_scene.cards.size() == 11, "tutorial course action opens both core chapters and advanced exercises")
 	click(current_scene.get_node("%Back"))
 	if not await expect_scene(session.LOBBY_SCENE):
 		_finish()

@@ -6,11 +6,14 @@
 
 - `scenes/lobby.tscn` 为首页，`scenes/session.tscn` 只持有设置、转场与菜单反馈。
 - `scripts/block_war/` 为战斗、行军、AI、气势、指挥官技能和地图逻辑；`scenes/block_war/` 为原生菜单、地图和战场。
+- `scripts/tutorial/` 与 `scenes/tutorial/` 提供两章核心教学和九项进阶练习；详细流程见 [入门教程](docs/tutorials.md)。首次入口、章节进度与实际场景就绪分开处理，测试须在切场景前设置 `Session.tutorial_progress_path`。
 - `data/block_war/maps/` 保存六图定义，`data/block_war/routes/` 保存烘焙路由。
 - `assets/block_war/`、`assets/models/block_war/`、`assets/ui/block_war/` 与 `assets/audio/block_war/` 为产品资源。通用字体、音效池、相机和菜单动效以本仓库副本维护。
 - `tools/war_geometry.py` 只提供建筑与植被的离线几何工具；民兵烘焙输入位于 `assets/models/block_war/militia_parts/`，无需 RTS 的单位目录。
 
 节点优先直接编辑 .tscn；使用原生 Control、Container、Tween、AnimationPlayer 和 Resource。保持已有战斗手感，不将菜单的长动效应用到战斗 HUD。
+
+教程可在 `tutorial_core_scenario.gd` 内按步骤调配人口、技力、敌军波次及改建时长。操作、行军、伤害与技能效果仍使用正式规则；不得将教学加速或补给写入正常对局。原生节点保存在场景中，说明数据表使用固定四行 GridContainer。
 
 ## 地图制作
 
@@ -27,6 +30,8 @@ Python 美术制作依赖 numpy、trimesh、shapely；音效制作额外依赖 s
 先运行 `python tools/validate_product.py` 检查独立产品边界和静态资源引用，再进行 Godot 导入及实际场景回归。无头命令须指定本项目内的 --log-file；测试应使用独立临时设置文件，避免覆盖玩家偏好。
 
 重点回归：lobby_ui_test.gd、settings_test.gd、user_data_migration_test.gd、menu_motion_test.gd、block_war_menu_flow_test.gd、block_war_maps_test.gd、block_war_map_select_test.gd、block_war_test.gd 与改动涉及的技能/气势测试。原生渲染可使用 tools/run_godot_private_desktop.py，退出时会关闭自身进程树。
+
+教程重构回归入口：`tutorial_core_test.gd`（两章完整操作、失手重试、普通施工不变）、`tutorial_progress_test.gd`（旧记录与首次路由）、`tutorial_menu_test.gd`、`tutorial_navigation_test.gd`、`tutorial_callout_layout_test.gd`、`tutorial_boundaries_test.gd`、`tutorial_effect_completion_test.gd`。`tutorial_test.gd` 专门完整验证九项进阶练习。
 
 使用 tools/build_windows.ps1 导出独立 Windows 程序。测试、文档、源音频、离线工具和模型烘焙输入不进入成品。不要使用 Block-RTS 的网络内容指纹或发布检查器验证本产品。
 

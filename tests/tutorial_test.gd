@@ -1,5 +1,5 @@
 extends SceneTree
-## Complete all eleven authored lessons through native input and real rules.
+## Complete the advanced lessons through native input and real rules.
 const CATALOG := preload("res://scripts/tutorial/tutorial_catalog.gd")
 const BATTLE := preload("res://scenes/tutorial/tutorial_battle.tscn")
 const PROGRESS := preload("res://scripts/tutorial/tutorial_progress.gd")
@@ -66,7 +66,7 @@ func _run() -> void:
 	var preferences := settings.defaults()
 	preferences.music_enabled = false
 	settings._apply_values(preferences, false)
-	for id: String in CATALOG.IDS:
+	for id: String in CATALOG.ADVANCED_IDS:
 		session.tutorial_lesson_id = id
 		game = BATTLE.instantiate()
 		game.progress_path = isolated_progress
@@ -160,7 +160,7 @@ func _run() -> void:
 		game.free()
 		game = null
 		await process_frame
-	check(PROGRESS.completed_lessons(isolated_progress).size() == 11, "all eleven completions saved separately")
+	check(PROGRESS.completed_lessons(isolated_progress).size() == CATALOG.ADVANCED_IDS.size(), "all advanced completions saved separately")
 	DirAccess.remove_absolute(isolated_progress)
 	check(session.block_war_map_id == original_map and session.block_war_commander == original_commander, "lessons preserve skirmish map and commander")
 	settings._apply_values(settings_before, false)

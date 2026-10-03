@@ -49,9 +49,18 @@ func gesture_bounds() -> Rect2:
 	# Use the swept area rather than this animation frame, so nearby callouts
 	# do not jump as the cursor travels from source to destination.
 	var path := Rect2(_from, Vector2.ZERO).expand(_to).expand(_from + Vector2(-26.0, 26.0))
-	var bounds := path.grow_individual(56.0, 80.0, 284.0, 84.0)
+	var bounds := path.grow_individual(56.0, 40.0, 284.0, 84.0)
 	if path.end.x + 282.0 > size.x:
-		bounds = bounds.expand(Vector2(path.position.x - 254.0, bounds.position.y))
+		# Only the part of the path past the right-edge flip threshold places
+		# the legend on its left. Expanding from the source would reserve blank
+		# space a legend never enters during a long left-to-right gesture.
+		var first_flipped_x := maxf(path.position.x, size.x - 282.0)
+		bounds = bounds.expand(Vector2(first_flipped_x - 254.0, bounds.position.y))
+	if path.end.y + 84.0 > size.y:
+		# The bottom-edge legend moves above only the final part of its path;
+		# keep space for the cursor's 36px press ring everywhere else.
+		var first_flipped_y := maxf(path.position.y, size.y - 84.0)
+		bounds = bounds.expand(Vector2(bounds.position.x, first_flipped_y - 72.0))
 	return bounds.intersection(Rect2(Vector2.ZERO, size))
 
 

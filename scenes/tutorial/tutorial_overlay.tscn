@@ -71,6 +71,17 @@ corner_radius_top_right = 18
 corner_radius_bottom_left = 18
 corner_radius_bottom_right = 16
 
+[sub_resource type="StyleBoxFlat" id="Stats"]
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+bg_color = Color(0.915, 0.938, 0.859, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 12
+
 [sub_resource type="StyleBoxFlat" id="TinyButton"]
 content_margin_left = 8.0
 content_margin_top = 7.0
@@ -393,6 +404,89 @@ theme_override_font_sizes/font_size = 21
 text = "先跟着鼠标示范看看。\n按住自己的建筑，拖到目标建筑，再松开左键。"
 autowrap_mode = 3
 
+[node name="Stats" type="PanelContainer" parent="UI/Instruction/Column"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Stats")
+
+[node name="StatsGrid" type="GridContainer" parent="UI/Instruction/Column/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+columns = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 7
+
+[node name="Label1" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35, 0.43, 0.31, 1)
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+
+[node name="Value1" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.17, 0.34, 0.23, 1)
+theme_override_font_sizes/font_size = 21
+horizontal_alignment = 2
+
+[node name="Label2" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35, 0.43, 0.31, 1)
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+
+[node name="Value2" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.17, 0.34, 0.23, 1)
+theme_override_font_sizes/font_size = 21
+horizontal_alignment = 2
+
+[node name="Label3" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35, 0.43, 0.31, 1)
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+
+[node name="Value3" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.17, 0.34, 0.23, 1)
+theme_override_font_sizes/font_size = 21
+horizontal_alignment = 2
+
+[node name="Label4" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.35, 0.43, 0.31, 1)
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+
+[node name="Value4" type="Label" parent="UI/Instruction/Column/Stats/StatsGrid"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.17, 0.34, 0.23, 1)
+theme_override_font_sizes/font_size = 21
+horizontal_alignment = 2
+
 [node name="Continue" type="Button" parent="UI/Instruction/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
@@ -401,27 +495,11 @@ size_flags_horizontal = 3
 theme_type_variation = &"MenuPrimary"
 text = "继续"
 
-[node name="CompletionActions" type="HBoxContainer" parent="UI/Instruction/Column"]
+[node name="CompletionActions" type="VBoxContainer" parent="UI/Instruction/Column"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
-
-[node name="CompletionExit" type="Button" parent="UI/Instruction/Column/CompletionActions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-text = "课程"
-
-[node name="CompletionRetry" type="Button" parent="UI/Instruction/Column/CompletionActions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-text = "再练一次"
 
 [node name="Next" type="Button" parent="UI/Instruction/Column/CompletionActions"]
 unique_name_in_owner = true
@@ -431,6 +509,26 @@ size_flags_horizontal = 3
 theme_type_variation = &"MenuPrimary"
 theme_override_font_sizes/font_size = 18
 text = "下一课"
+
+[node name="Secondary" type="HBoxContainer" parent="UI/Instruction/Column/CompletionActions"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CompletionExit" type="Button" parent="UI/Instruction/Column/CompletionActions/Secondary"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "课程"
+
+[node name="CompletionRetry" type="Button" parent="UI/Instruction/Column/CompletionActions/Secondary"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "再练一次"
 
 [node name="Hint" type="PanelContainer" parent="UI"]
 unique_name_in_owner = true

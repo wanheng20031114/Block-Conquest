@@ -9,6 +9,7 @@ signal exit_requested
 signal next_requested
 
 const MAX_SPOTLIGHTS := 8
+const MAX_STATS_ROWS := 4
 const CALLOUT_GAP := 24.0
 const SCREEN_MARGIN := 20.0
 
@@ -21,10 +22,12 @@ const SCREEN_MARGIN := 20.0
 @onready var instruction: PanelContainer = %Instruction
 @onready var instruction_title: Label = %InstructionTitle
 @onready var instruction_body: Label = %InstructionBody
+@onready var stats_panel: PanelContainer = %Stats
+@onready var stats_grid: GridContainer = %StatsGrid
 @onready var pause_note: Label = %PauseNote
 @onready var continue_button: Button = %Continue
 @onready var next_button: Button = %Next
-@onready var completion_actions: HBoxContainer = %CompletionActions
+@onready var completion_actions: VBoxContainer = %CompletionActions
 @onready var gesture: Control = %Gesture
 @onready var hint: PanelContainer = %Hint
 @onready var hint_text: Label = %HintText
@@ -34,6 +37,7 @@ const SCREEN_MARGIN := 20.0
 var _spotlights: Array[Rect2] = []
 var _annotation_obstacles: Array[Rect2] = []
 var _completion := false
+var _direct_action := false
 var _layout_pending := false
 var _layout_profile := -1
 
@@ -54,6 +58,7 @@ func _ready() -> void:
 	# label's old width must never leave its parent at a one-character column.
 	hint_text.minimum_size_changed.connect(_queue_layout)
 	instruction_body.minimum_size_changed.connect(_queue_layout)
+	stats_panel.minimum_size_changed.connect(_queue_layout)
 	UIMotion.bind_menu_buttons(ui)
 	get_node("/root/Session/UIFeedback").bind_buttons(ui)
 	instruction.add_theme_stylebox_override("panel", instruction.get_theme_stylebox("panel").duplicate())
@@ -68,10 +73,12 @@ func set_objective(chapter: String, title: String, progress: String) -> void:
 	_queue_layout()
 
 
-func show_instruction(title: String, body: String, button_text: String = "继续", direct_action: bool = false) -> void:
+func show_instruction(title: String, body: String, button_text: String = "继续", direct_action: bool = false, stats: Array = []) -> void:
 	_completion = false
+	_direct_action = direct_action
 	instruction_title.text = title
 	instruction_body.text = body
+	set_stats(stats)
 	continue_button.text = button_text
 	continue_button.visible = not direct_action
 	completion_actions.hide()
@@ -91,12 +98,28 @@ func show_instruction(title: String, body: String, button_text: String = "继续
 
 func dismiss_instruction() -> void:
 	instruction.hide()
+	set_stats([])
 	dimmer.hide()
 	%Replay.disabled = false
 	%Retry.disabled = false
 	continue_button.release_focus()
 	next_button.release_focus()
 	set_interaction_regions([])
+
+
+## Up to four [label, value] pairs, held by the scene's fixed two-column grid.
+func set_stats(rows: Array) -> void:
+	var count := mini(rows.size(), MAX_STATS_ROWS)
+	for index: int in MAX_STATS_ROWS:
+		var label: Label = stats_grid.get_child(index * 2)
+		var value: Label = stats_grid.get_child(index * 2 + 1)
+		var occupied := index < count
+		label.text = str(rows[index][0]) if occupied else ""
+		value.text = str(rows[index][1]) if occupied else ""
+		label.visible = occupied
+		value.visible = occupied
+	stats_panel.visible = count > 0
+	_queue_layout()
 
 
 func set_interaction_regions(rects: Array[Rect2]) -> void:
@@ -133,19 +156,23 @@ func clear_gesture() -> void:
 	gesture.clear_gesture()
 
 
-func show_completion(title: String, body: String, has_next: bool) -> void:
+func show_completion(title: String, body: String, has_next: bool, next_text: String = "下一课", exit_text: String = "课程") -> void:
 	_completion = true
+	_direct_action = false
 	clear_gesture()
 	set_spotlights([])
 	set_annotations([])
 	set_interaction_regions([])
 	instruction_title.text = title
 	instruction_body.text = body
+	set_stats([])
 	continue_button.hide()
 	completion_actions.show()
 	%Replay.disabled = true
 	%Retry.disabled = true
 	next_button.visible = has_next
+	next_button.text = next_text
+	%CompletionExit.text = exit_text
 	pause_note.text = "本课完成"
 	instruction.show()
 	dimmer.show()
@@ -200,7 +227,12 @@ func _layout() -> void:
 	hint.position = objective.position + Vector2(0.0, objective.size.y + 10.0)
 	hint.size.x = objective.size.x
 	hint.size.y = hint.get_combined_minimum_size().y
-	instruction.size.x = minf(440.0 if compact else 500.0, viewport_size.x - 48.0)
+	var preferred_width := 440.0 if compact else 500.0
+	if stats_panel.visible or _direct_action or gesture.visible:
+		# Tables and hands-on steps keep a narrow reading column beside the
+		# highlighted buildings, leaving room for the whole mouse demonstration.
+		preferred_width = 300.0 if small else (340.0 if compact else 420.0)
+	instruction.size.x = minf(preferred_width, viewport_size.x - 48.0)
 	instruction.size.y = instruction.get_combined_minimum_size().y
 	instruction.pivot_offset = instruction.size * 0.5
 	if _completion:
@@ -293,6 +325,12 @@ func _configure_density(profile: int) -> void:
 	instruction_title.add_theme_font_size_override("font_size", 23 if small else (25 if compact else 28))
 	instruction_body.add_theme_font_size_override("font_size", 17 if small else (18 if compact else 20))
 	instruction_body.add_theme_constant_override("line_spacing", 3 if compact else 4)
+	stats_grid.add_theme_constant_override("v_separation", 5 if compact else 7)
+	var stat_label_size := 16 if small else (17 if compact else 19)
+	var stat_value_size := 18 if small else (19 if compact else 21)
+	for index: int in stats_grid.get_child_count():
+		var cell: Label = stats_grid.get_child(index)
+		cell.add_theme_font_size_override("font_size", stat_label_size if index % 2 == 0 else stat_value_size)
 	continue_button.custom_minimum_size.y = 42.0 if small else (46.0 if compact else 50.0)
 	continue_button.add_theme_font_size_override("font_size", 19 if small else (20 if compact else 22))
 	objective_title.add_theme_font_size_override("font_size", 20 if small else (22 if compact else 25))

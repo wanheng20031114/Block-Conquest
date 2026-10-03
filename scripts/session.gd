@@ -19,9 +19,11 @@ const ONLINE_SCENE := "res://scenes/network/war_room.tscn"
 const TUTORIAL_MENU_SCENE := "res://scenes/tutorial/tutorial_menu.tscn"
 const TUTORIAL_BATTLE_SCENE := "res://scenes/tutorial/tutorial_battle.tscn"
 const TUTORIAL_CATALOG := preload("res://scripts/tutorial/tutorial_catalog.gd")
+const TUTORIAL_PROGRESS := preload("res://scripts/tutorial/tutorial_progress.gd")
 const FIRST_RUN_STATE := preload("res://scripts/tutorial/first_run_state.gd")
 var first_run: RefCounted
-var tutorial_lesson_id: String = "basics"
+var tutorial_lesson_id: String = "core_command"
+var tutorial_progress_path: String = TUTORIAL_PROGRESS.SAVE_PATH
 var block_war_map_id := "rift"
 var block_war_commander: StringName = &"squirrel"
 var block_war_opponent_commander: StringName = &"squirrel"
@@ -139,15 +141,24 @@ func start_tutorial(lesson_id: String = "") -> Error:
 		return ERR_BUSY
 	if not lesson_id.is_empty() and not TUTORIAL_CATALOG.IDS.has(lesson_id):
 		return ERR_INVALID_PARAMETER
+	if lesson_id.is_empty() and TUTORIAL_PROGRESS.has_started(tutorial_progress_path):
+		return show_tutorial_menu()
+	tutorial_lesson_id = TUTORIAL_CATALOG.CORE_IDS[0] if lesson_id.is_empty() else lesson_id
+	return _open_tutorial_scene(TUTORIAL_BATTLE_SCENE)
+
+func show_tutorial_menu() -> Error:
+	if transition.busy:
+		return ERR_BUSY
+	return _open_tutorial_scene(TUTORIAL_MENU_SCENE)
+
+func _open_tutorial_scene(path: String) -> Error:
 	get_tree().paused = false
 	campaign_active_stage = -1
 	_online_active = false
 	_pending_online_scene = ""
 	_online_battle_requested = false
 	online.disconnect_relay()
-	if not lesson_id.is_empty():
-		tutorial_lesson_id = lesson_id
-	return change_scene(TUTORIAL_MENU_SCENE if lesson_id.is_empty() else TUTORIAL_BATTLE_SCENE)
+	return change_scene(path)
 
 func back_to_online_room() -> void:
 	if transition.busy:

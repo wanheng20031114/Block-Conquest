@@ -169,7 +169,7 @@ func test_fire() -> void:
 	await close_lesson()
 
 func test_capture() -> void:
-	await open_lesson("basics", "capture")
+	await open_lesson("core_command", "capture")
 	var index: int = game.phase_index
 	check(dispatch(100).accepted, "capture sends a full multi-row column")
 	for tick: int in 600:
@@ -186,7 +186,7 @@ func test_capture() -> void:
 	await close_lesson()
 
 func test_capture_recovery() -> void:
-	await open_lesson("basics", "capture")
+	await open_lesson("core_command", "capture")
 	# A stronger neutral building isolates a legitimate under-strength first order.
 	game.by_id[1].population = 18.0
 	check(dispatch(25).accepted, "an under-strength opening order is accepted")
@@ -207,7 +207,7 @@ func has_capture_ring(target: int) -> bool:
 	return false
 
 func test_short_capture_effect() -> void:
-	await open_lesson("basics", "capture")
+	await open_lesson("core_command", "capture")
 	var index: int = game.phase_index
 	# Five soldiers exactly resolve four defenders and occupy the neutral house.
 	# No long queue can incidentally give the 1.1-second capture ring time to fade.
@@ -285,6 +285,11 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(output)
 	root.size = Vector2i(1600, 900)
 	progress_file = output.path_join("effect_progress_%d.cfg" % OS.get_process_id())
+	# Native retry recreates the battle through Session, before this fixture can
+	# assign its instance fields. Isolate that initial mark_started write too.
+	var session: Node = root.get_node("Session")
+	var previous_progress: String = session.tutorial_progress_path
+	session.tutorial_progress_path = progress_file
 	var settings: GameSettings = root.get_node("Session").settings
 	var settings_before := settings.snapshot()
 	var quiet := settings.defaults()
@@ -300,6 +305,7 @@ func _run() -> void:
 	await test_tower_and_upgrade()
 	await test_unsuccessful_fire_retry()
 	settings._apply_values(settings_before, false)
+	session.tutorial_progress_path = previous_progress
 	if FileAccess.file_exists(progress_file): DirAccess.remove_absolute(progress_file)
 	print("TUTORIAL_EFFECT_COMPLETION_TEST checks=%d failures=%d" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

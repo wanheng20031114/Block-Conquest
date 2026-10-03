@@ -15,7 +15,9 @@ func check(value: bool, message: String) -> void:
 		printerr("FAIL ", message)
 
 func settle() -> void:
-	for frame: int in 12: await process_frame
+	# Menu reveals use real time; a fixed frame count is too short at high FPS.
+	await create_timer(0.4, true, false, true).timeout
+	for frame: int in 3: await process_frame
 
 func load_lesson(id: String) -> void:
 	if game != null: await game.prepare_shutdown()
@@ -29,12 +31,17 @@ func load_lesson(id: String) -> void:
 func inspect_phase(index: int, label: String, side: String = "") -> void:
 	game.phase_index = index - 1
 	game._next_phase()
+	await inspect_current(label, side)
+
+func inspect_current(label: String, side: String = "") -> void:
 	await settle()
 	var panel: Rect2 = game.tutor.instruction.get_global_rect()
 	var anchor: Rect2 = game.tutor._spotlights[0]
 	check(root.get_visible_rect().encloses(panel), label + " stays on screen")
 	check(not panel.intersects(game.tutor.objective.get_global_rect()), label + " leaves objective visible")
 	for target: Rect2 in game.tutor._spotlights:
+		if panel.intersects(target.grow(-1.0)):
+			print("CALLOUT_OVERLAP ", label, " panel=", panel, " spotlight=", target)
 		check(not panel.intersects(target.grow(-1.0)), label + " leaves highlighted subject visible")
 	match side:
 		"below":
@@ -46,6 +53,8 @@ func inspect_phase(index: int, label: String, side: String = "") -> void:
 		"right":
 			check(panel.position.x >= anchor.end.x and panel.position.x - anchor.end.x <= 284.0, label + " sits beside the percentage column and its mouse caption")
 	if game.tutor.gesture.visible:
+		if panel.intersects(game.tutor.gesture.gesture_bounds()):
+			print("CALLOUT_OVERLAP ", label, " panel=", panel, " gesture=", game.tutor.gesture.gesture_bounds())
 		check(not panel.intersects(game.tutor.gesture.gesture_bounds()), label + " leaves demonstration visible")
 	inspect_annotations(label)
 	var position_before: Vector2 = game.tutor.instruction.position
@@ -83,25 +92,145 @@ func inspect_annotations(label: String) -> void:
 				check(not annotations._crosses_rect(line[0], line[1], obstacle), name + " leader avoids neighboring buildings and their population")
 		check(line[0].distance_to(line[1]) <= 180.0, name + " uses a short leader (" + str(snappedf(line[0].distance_to(line[1]), 1.0)) + "px)")
 
+func advance_core(label: String, command: Dictionary = {}, review_label: String = "") -> void:
+	var before: int = game.phase_index
+	if command.is_empty():
+		game._continue()
+	else:
+		check(game.submit_player_command(command).accepted, label + " accepts the actual teaching command")
+	if not review_label.is_empty():
+		game._replay()
+		await inspect_current(review_label)
+		if root.get_visible_rect().size.x < 1150.0:
+			inspect_flipping_gesture(review_label)
+		game._continue()
+	for tick: int in 600:
+		if game.phase_index > before: break
+		game._process(0.1)
+		await process_frame
+	check(game.phase_index > before, label + " reaches its actual simulation result")
+
+func inspect_stats(label: String) -> void:
+	await inspect_current(label)
+	check(game.tutor.stats_panel.visible, label + " shows its authored data table")
+	var grid: GridContainer = game.tutor.stats_grid
+	check(grid.columns == 2 and grid.get_child_count() == 8, label + " keeps the fixed four-row two-column layout")
+	for index: int in game.phase.stats.size():
+		var name_cell: Label = grid.get_child(index * 2)
+		var value_cell: Label = grid.get_child(index * 2 + 1)
+		check(name_cell.visible and value_cell.visible, label + " row is visible")
+		check(absf(name_cell.get_rect().get_center().y - value_cell.get_rect().get_center().y) <= 1.0, label + " aligns each label and value")
+		check(not name_cell.get_rect().intersects(value_cell.get_rect()), label + " separates labels from numbers")
+		check(game.tutor.instruction.get_global_rect().encloses(value_cell.get_global_rect()), label + " keeps numerical values within the callout")
+	for index: int in range(game.phase.stats.size() * 2, grid.get_child_count()):
+		check(not grid.get_child(index).visible, label + " hides unused table cells")
+	if game.phase.get("beat", "") == "forge_trial" and root.get_visible_rect().size.x < 1150.0:
+		inspect_flipping_gesture(label)
+
+func inspect_flipping_gesture(label: String) -> void:
+	var diagram: Control = game.tutor.gesture
+	var previous_phase: float = diagram.phase
+	var bounds: Rect2 = diagram.gesture_bounds()
+	var panel: Rect2 = game.tutor.instruction.get_global_rect()
+	var showed_left := false
+	var showed_right := false
+	# Sample both sides of the legend's flip threshold without advancing the
+	# AnimationPlayer clock or changing the permanent layout exclusions.
+	for tick: int in range(1, 100):
+		diagram.phase = float(tick) / 100.0
+		diagram._update_diagram()
+		showed_left = showed_left or diagram.mouse.position.x < diagram.cursor.position.x
+		showed_right = showed_right or diagram.mouse.position.x > diagram.cursor.position.x
+		check(bounds.encloses(diagram.mouse.get_global_rect()), label + " swept bounds contain mouse at " + str(tick))
+		check(bounds.encloses(diagram.caption.get_global_rect()), label + " swept bounds contain caption at " + str(tick))
+		check(not panel.intersects(diagram.mouse.get_global_rect()), label + " callout leaves mouse visible at " + str(tick))
+		check(not panel.intersects(diagram.caption.get_global_rect()), label + " callout leaves caption visible at " + str(tick))
+		var cursor_bounds := Rect2(diagram.cursor.global_position, Vector2.ZERO)
+		for shape: Polygon2D in diagram.cursor.get_children():
+			for point: Vector2 in shape.polygon:
+				cursor_bounds = cursor_bounds.expand(shape.to_global(point))
+		check(bounds.encloses(cursor_bounds), label + " swept bounds contain cursor and shadow at " + str(tick))
+		check(not panel.intersects(cursor_bounds), label + " callout leaves cursor visible at " + str(tick))
+		check(diagram.gesture_bounds() == bounds, label + " swept bounds stay fixed at " + str(tick))
+	for at: Vector2 in [diagram._from, diagram._to]:
+		# Maximum 36px click ripple, its stroke, and one pixel of antialiasing.
+		var ripple := Rect2(at - Vector2.ONE * 38.0, Vector2.ONE * 76.0)
+		check(bounds.encloses(ripple), label + " swept bounds contain the click ripple")
+		check(not panel.intersects(ripple), label + " callout leaves the click ripple visible")
+	check(showed_left and showed_right, label + " checks both sides of the native legend flip")
+	diagram.phase = previous_phase
+	diagram._update_diagram()
+
+func inspect_core_tables(width: int) -> void:
+	await load_lesson("core_buildings")
+	game.set_process(false)
+	await advance_core("core tower conversion", {"type": "convert", "building": 1, "kind": 1})
+	check(game.by_id[1].kind == 1, "core tower table follows native construction")
+	await inspect_stats("core_tower_stats_%d" % width)
+	await advance_core("core tower defense")
+	check(not game.tutor.stats_panel.visible, "next construction step removes the previous table")
+	await advance_core("core forge conversion", {"type": "convert", "building": 1, "kind": 2})
+	check(game.by_id[1].kind == 2, "core forge table follows native construction")
+	await inspect_stats("core_forge_stats_%d" % width)
+	await advance_core("core forge comparison", {"type": "dispatch", "source": 0, "target": 2, "percent": 50})
+	await advance_core("core energy conversion", {"type": "convert", "building": 1, "kind": 3})
+	check(game.by_id[1].kind == 3, "core energy table follows native construction")
+	await inspect_stats("core_energy_stats_%d" % width)
+	await advance_core("core energy recovery")
+	await inspect_current("core_recruit_drag_%d" % width)
+	await advance_core("core recruitment defense", {"type": "skill_building", "skill": 0, "target": 2}, "core_recruit_review_%d" % width)
+	await inspect_current("core_counterattack_drag_%d" % width)
+	await advance_core("core counterattack", {"type": "dispatch", "source": 2, "target": 3, "percent": 50})
+	await inspect_current("core_haste_drag_%d" % width)
+	var aim: Vector3 = game._aim_position()
+	await advance_core("core haste attack", {"type": "skill_ground", "skill": 1, "x": aim.x, "z": aim.z})
+	await inspect_current("core_shield_drag_%d" % width)
+	await advance_core("core shield defense", {"type": "skill_building", "skill": 2, "target": 2})
+	await inspect_current("core_fire_drag_%d" % width)
+	aim = game._aim_position()
+	await advance_core("core fire defense", {"type": "skill_ground", "skill": 3, "x": aim.x, "z": aim.z})
+	check(game.lesson_complete, "core layout walkthrough completes through real skills")
+
+func finish_validation(previous_progress: String, progress_file: String) -> void:
+	await game.prepare_shutdown()
+	root.get_node("Session").tutorial_progress_path = previous_progress
+	if FileAccess.file_exists(progress_file): DirAccess.remove_absolute(progress_file)
+	print("TUTORIAL_CALLOUT checks=", checks, " failures=", failures.size())
+	quit(0 if failures.is_empty() else 1)
+
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
+	var session: Node = root.get_node("Session")
+	var previous_progress: String = session.tutorial_progress_path
+	var progress_file := "res://.local/tutorial-layout-progress-%d.cfg" % OS.get_process_id()
+	check(DirAccess.make_dir_recursive_absolute("res://.local") == OK, "isolated progress directory exists")
+	session.tutorial_progress_path = progress_file
+	var user_args := OS.get_cmdline_user_args()
+	var core_only := user_args.has("--core-only")
 	for resolution: Vector2i in [Vector2i(1600, 900), Vector2i(1280, 720), Vector2i(1024, 768)]:
+		# An optional second user argument scopes visual follow-up to one width.
+		if user_args.size() > 1 and user_args[1] != "--core-only" and resolution.x != int(user_args[1]):
+			continue
 		root.size = resolution
 		root.content_scale_size = resolution
-		await load_lesson("interface")
+		if core_only:
+			await inspect_core_tables(resolution.x)
+			continue
+		await load_lesson("core_command")
 		await settle()
-		await inspect_phase(0, "top_%d" % resolution.x, "below")
-		await inspect_phase(1, "morale_%d" % resolution.x, "below")
-		await inspect_phase(2, "skills_%d" % resolution.x, "above")
-		await inspect_phase(3, "ratios_%d" % resolution.x, "right")
+		await inspect_phase(4, "top_%d" % resolution.x, "below")
+		await inspect_phase(5, "morale_%d" % resolution.x, "below")
+		await inspect_phase(7, "skills_%d" % resolution.x, "above")
+		await inspect_phase(6, "ratios_%d" % resolution.x, "right")
 		game._continue()
 		check(not game.tutor.is_instruction_visible(), "practice dismisses callout")
 		game._replay()
 		await settle()
 		check(game.tutor.is_instruction_visible(), "replay restores callout")
-		await load_lesson("basics")
-		await inspect_phase(1, "ownership_%d" % resolution.x)
-		await inspect_phase(2, "building_drag_%d" % resolution.x)
+		await load_lesson("core_command")
+		await inspect_phase(2, "ownership_%d" % resolution.x)
+		await inspect_phase(3, "building_drag_%d" % resolution.x)
+		await inspect_core_tables(resolution.x)
 		await load_lesson("house")
 		await inspect_phase(1, "upgrade_%d" % resolution.x)
 		check(game.tutor.annotations._items.size() == 1 and game.tutor.annotations._items[0].text == "升级", "upgrade only identifies its current action")
@@ -122,6 +251,9 @@ func _run() -> void:
 				game.simulate(0.25)
 				check(game._army_exposed(0) > 0, "drum layout labels exposed units")
 			await inspect_phase(1, "%s_drag_%d" % [lesson, resolution.x])
+	if core_only:
+		await finish_validation(previous_progress, progress_file)
+		return
 	root.size = Vector2i(1600, 900)
 	root.content_scale_size = root.size
 	await load_lesson("recruit")
@@ -142,6 +274,4 @@ func _run() -> void:
 	game.tutor.show_completion("完成", "可以继续下一课。", true)
 	await settle()
 	check(game.tutor.instruction.get_global_rect().get_center().is_equal_approx(root.get_visible_rect().get_center()), "completion resets to screen center")
-	await game.prepare_shutdown()
-	print("TUTORIAL_CALLOUT checks=", checks, " failures=", failures.size())
-	quit(0 if failures.is_empty() else 1)
+	await finish_validation(previous_progress, progress_file)

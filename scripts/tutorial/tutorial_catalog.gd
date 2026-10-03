@@ -1,11 +1,13 @@
 extends RefCounted
-## Authored lessons: one concept, one real practice, then a clear result.
+## Two continuous core chapters and optional focused advanced practice.
 const BUILDING := preload("res://scripts/block_war/war_building.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const COMBAT := preload("res://scripts/block_war/war_combat_rules.gd")
-const IDS: Array[String] = ["basics", "interface", "house", "tower", "forge", "energy", "morale", "recruit", "drum", "shield", "fire"]
-const TITLES: Array[String] = ["第一道军令", "读懂战场", "住宅：壮大军团", "炮塔：守住路口", "铁匠铺：武装全军", "能量塔：积攒技力", "士气：越战越勇", "征召军令：补足兵力", "疾行战鼓：抢先增援", "防护罩：守住前哨", "天降冲击：截断敌军"]
-const SUMMARIES: Array[String] = ["拖动派兵，占领据点。", "认识界面，调整出兵比例与视野。", "了解产兵，升级住宅。", "增援炮塔，守住路口。", "占领铁匠铺，提高全军攻防。", "占领能量塔，加快技力恢复。", "占领据点，点亮第一颗士气星星。", "突破住宅产兵上限，补兵扩张。", "在援军路线上放置加速区域。", "给前哨加盾，减少守军损失。", "瞄准密集敌军，避开己军。"]
+const CORE_IDS: Array[String] = ["core_command", "core_buildings"]
+const ADVANCED_IDS: Array[String] = ["house", "morale", "tower", "forge", "energy", "recruit", "drum", "shield", "fire"]
+const IDS: Array[String] = ["core_command", "core_buildings", "house", "morale", "tower", "forge", "energy", "recruit", "drum", "shield", "fire"]
+const TITLES: Array[String] = ["第一章 · 基础指挥", "第二章 · 建筑与技能", "住宅升级", "士气与战果", "炮塔防线", "铁匠铺加成", "技力恢复", "征召军令", "疾行战鼓", "防护罩", "天降冲击"]
+const SUMMARIES: Array[String] = ["移动视野、拖动调兵，读懂战场面板。", "亲手改建三种建筑，连贯使用四个技能。", "了解产兵与容量，亲手升级住宅。", "占领据点，点亮士气星星。", "增援炮塔，守住路口。", "占领铁匠铺，提高全军攻防。", "占领能量塔，加快技力恢复。", "突破产兵上限，补兵扩张。", "加速行军，及时增援。", "给前哨加盾，减少守军损失。", "瞄准密集敌军，避开己军。"]
 
 static func title(id: String) -> String:
 	return TITLES[IDS.find(id)]
@@ -17,7 +19,9 @@ static func ids() -> Array[String]:
 	return IDS.duplicate()
 
 static func minutes(id: String) -> String:
-	return "约 2 分钟" if id in ["interface", "house", "recruit"] else "约 1 分钟"
+	if id == "core_command": return "约 2 分钟"
+	if id == "core_buildings": return "约 4 分钟"
+	return "约 2 分钟" if id in ["house", "recruit"] else "约 1 分钟"
 
 static func step(heading: String, body: String, goal: String, action: String, focus: String, extra: Dictionary = {}) -> Dictionary:
 	var result := {"title": heading, "body": body, "goal": goal, "action": action, "focus": focus, "labels": []}
@@ -26,18 +30,28 @@ static func step(heading: String, body: String, goal: String, action: String, fo
 
 static func steps(id: String) -> Array[Dictionary]:
 	match id:
-		"basics": return [
-			step("你的住宅", "金色旗帜表示己方，住宅会自动产兵。\n讲解时战场暂停，操作示范会继续播放。", "认识己方住宅", "read", "building:0", {"labels": ["ownership"]}),
-			step("己方与中立", "金旗是己方，灰旗是中立；花瓣里的数字是驻军。\n士兵离开时数字逐批减少，敌方驻军不公开。", "区分己方与中立建筑", "read", "buildings", {"labels": ["ownership", "population"]}),
-			step("拖动派兵", "按住己方住宅，左键拖到中立住宅后松开。\n默认派出 50% 驻军；拖错时按右键取消。", "拖动己方住宅，攻占中立住宅", "capture", "buildings", {"source": 0, "target": 1}),
-			step("占领成功", "旗帜变金，剩余士兵成为驻军。\n这座住宅也会为你产兵。", "已占领第一座据点", "read", "building:1")]
-		"interface": return [
-			step("顶部战况", "数字是总兵力，色条是兵力占比，下方是对局时间。\n总兵力包含建筑驻军和行军部队。", "认识兵力条与计时", "read", "top"),
-			step("士气星星", "兵力条下的星星是士气，能提高攻防和移速。\n左侧是己方士气，右侧是敌方士气。", "找到士气星星", "read", "morale"),
-			step("技能与技力", "四个图标是技能，下方细条是共用的技力。\n施法消耗技力，每个技能有独立冷却。", "区分技能图标与技力条", "read", "skills"),
-			step("出兵比例", "点击左侧 25%，每次只派出四分之一可用驻军。\n100% 会派出全部可用驻军。", "点击左侧 25%", "ratio", "ratios"),
-			step("滚轮缩放", "在地图空白处滚动滚轮，拉近或拉远视野。\n拖动建筑时，滚轮会改出兵比例。", "在地图空白处滚动滚轮", "zoom", "world"),
-			step("移动视野", "在地图空白处按住中键拖动，再松开。\n也可用方向键移动；视野不会越出地图。", "中键拖动地图，或按方向键", "pan", "world")]
+		"core_command": return [
+			step("先看清战场", "在地图空白处滚动滚轮，试着拉近视野。", "滚动滚轮，缩放视野", "zoom", "world"),
+			step("移动视野", "按住中键拖动地图，再松开。\n也可以按方向键移动。", "中键拖动，或按方向键", "pan", "world"),
+			step("认出你的部队", "金旗是己方，灰旗是中立。\n建筑上的数字是驻军，住宅会自动产兵。", "找到己方住宅与中立据点", "read", "buildings", {"labels": ["ownership", "population"], "reset_view": true}),
+			step("拖动调兵", "按住金旗住宅，拖到灰旗据点后松开。\n默认派出一半驻军；右键可取消。", "拖动派兵，占领中立据点", "capture", "buildings", {"source": 0, "target": 1}),
+			step("顶部：战况", "两侧数字是总兵力，色条显示兵力占比。\n下方计时记录对局时长。", "认识兵力与计时", "read", "top"),
+			step("星星：士气", "占领与防守能提高士气。\n星星越多，全军攻防和移速越高。", "找到双方士气", "read", "morale"),
+			step("左侧：出兵比例", "比例决定每次派出多少驻军。\n尝试一次调节比例，点击任意其他比例。", "尝试一次调节比例", "ratio", "ratios", {"any_ratio": true}),
+			step("下方：技能与技力", "四个图标是技能，细条是共用技力。\n施法消耗技力，冷却结束后才能再用。", "认识技能栏与技力条", "read", "skills"),
+			step("建筑旁：升级与改建", "选中己方建筑，就能升级或改建。\n第二章会带你逐一试用建筑与技能。", "已掌握基础指挥", "read", "selection")]
+		"core_buildings": return [
+			step("先建一座炮塔", "点击炮塔图标，改建选中的住宅。\n本章已备好兵力，改建只需 1.2 秒。", "点击炮塔图标", "convert", "convert", {"beat": "make_tower", "target": 1, "kind": 1}),
+			step("炮塔：守住路口", "炮塔会自动射击射程内的敌军。\n一小队敌人即将来袭，看看它怎样守住路口。", "观察炮塔击退敌军", "tower_watch", "building:1", {"beat": "tower_demo", "labels": ["range"], "stats": [["射击间隔", "%s 秒" % COMBAT.tower_attack_interval(1)], ["防御加成", "+%d%%" % roundi(COMBAT.tower_defense_bonus(1) * 100)], ["自然产兵", "不产兵"]]}),
+			step("换成铁匠铺", "这次点击铁匠铺图标，改建刚才的炮塔。", "将炮塔改建为铁匠铺", "convert", "convert", {"beat": "make_forge", "target": 1, "kind": 2}),
+			step("铁匠铺：以少胜多", "全军攻防已提高。\n从后方住宅派出 20 人，攻下驻军 24 人的据点。", "拖动后方住宅，用 20 人攻下 24 人据点", "capture", "buildings", {"beat": "forge_trial", "source": 0, "target": 2, "stats": [["全军攻击", "+%d%%" % roundi(COMBAT.forge_attack_bonus(1) * 100)], ["全军防御", "+%d%%" % roundi(COMBAT.forge_defense_bonus(1) * 100)], ["自然产兵", "不产兵"]]}),
+			step("再改建能量塔", "铁匠铺可以改建为能量塔。\n点击能量塔图标试一试。", "将铁匠铺改建为能量塔", "convert", "convert", {"beat": "make_energy", "target": 1, "kind": 3}),
+			step("能量塔：更快恢复技力", "看下方的技力条，恢复速度已经提高。", "观察技力条增长", "energy_watch", "energy", {"beat": "energy_demo", "stats": [["基础恢复", "%s 点/秒" % RULES.ENERGY_REGEN], ["首座塔额外恢复", "+%s 点/秒" % RULES.ENERGY_TOWER_BONUSES[0]], ["自然产兵", "不产兵"]]}),
+			step("一技能：征召守城", "前哨兵力不足。把一技能拖到前哨，立即补兵。\n敌军将在施法后进攻。", "把征召军令拖到前哨", "cast_building", "skill:0", {"beat": "recruit_defense", "skill": 0, "target": 2, "watch_goal": "观察征召补兵，守住前哨"}),
+			step("守住了，立刻反击", "援军已经补齐。\n从前哨拖向敌方据点，派兵反击。", "从前哨向敌方据点派兵", "dispatch", "buildings", {"beat": "counterattack", "source": 2, "target": 3}),
+			step("二技能：加速进攻", "把二技能拖到己方队伍中央，加快推进。\n这次先削弱守军，敌方据点还会反击。", "用疾行战鼓加速进攻部队", "cast_ground", "skill:1", {"beat": "haste_attack", "skill": 1, "army": 0, "watch_goal": "观察加速进攻，削弱敌方驻军"}),
+			step("三技能：挡住反扑", "敌军反扑了！\n把三技能拖到前哨，用防护罩减少损失。", "给前哨施放防护罩", "cast_building", "skill:2", {"beat": "shield_defense", "skill": 2, "target": 2, "watch_goal": "观察护盾抵挡敌军，守住前哨"}),
+			step("四技能：截断大军", "更多敌军正在靠近。\n把四技能拖到敌军中央，烧毁这支部队。", "用天降冲击清除敌军，守住前哨", "fire_hit", "skill:3", {"beat": "fire_defense", "skill": 3, "army": 1, "watch_goal": "观察火焰清除敌军"})]
 		"house": return [
 			step("住宅产兵", "1 级住宅产兵 %s 人/秒，驻扎容量 %d 人。\n达到容量只停自然产兵，增援和征召人数不限。" % [BUILDING.HOUSE_PRODUCTION_RATES[0], BUILDING.HOUSE_PRODUCTION_LIMITS[0]], "观察住宅驻军", "read", "building:0", {"labels": ["population"]}),
 			step("点击升级", "选中己方住宅，点击向上箭头升级到 2 级。\n消耗 %d 人，%d 秒完成；施工仍按原等级产兵和防守。" % [BUILDING.HOUSE_UPGRADE_COSTS[0], BUILDING.upgrade_duration(0, 1)], "点击升级，等待住宅升到 2 级", "upgrade", "upgrade", {"target": 0}),
