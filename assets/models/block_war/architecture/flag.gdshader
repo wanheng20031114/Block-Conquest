@@ -4,6 +4,7 @@ render_mode cull_disabled;
 instance uniform vec4 team_color : source_color = vec4(0.75, 0.51, 0.22, 1.0);
 instance uniform int building_level : hint_range(1, 4) = 1;
 uniform float visual_time = 0.0;
+uniform float cloth_fill_energy : hint_range(0.0, 0.3, 0.01) = 0.14;
 
 void vertex() {
 	float free_edge = clamp(VERTEX.x / 2.25, 0.0, 1.0);
@@ -32,6 +33,8 @@ void fragment() {
 	ALBEDO = mix(team_color.rgb, vec3(0.66, 0.49, 0.25), border);
 	ALBEDO = mix(ALBEDO, vec3(0.035, 0.055, 0.05), outline);
 	ALBEDO = mix(ALBEDO, ivory, crest);
-	EMISSION = ivory * crest * 0.12;
+	// A small cloth-only fill keeps faction colors readable in shade.
+	// Retain normal lighting and shadows, and the crest's existing brightness.
+	EMISSION = ALBEDO * cloth_fill_energy * (1.0 - crest) + ivory * crest * 0.12;
 	ROUGHNESS = 0.92;
 }
