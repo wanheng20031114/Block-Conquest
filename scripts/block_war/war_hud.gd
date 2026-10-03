@@ -238,14 +238,17 @@ func show_campaign_result(won: bool, save_error: Error) -> void:
 	var stage: Resource = session.CAMPAIGN_STAGES[session.campaign_active_stage]
 	%ResultEyebrow.text = "铁路战役  /  第 %d 站 · %s" % [stage.number, stage.title]
 	if not won:
-		%ResultDetail.text += "\n列车仍在最新进度的车站等候，可返回铁路或重试本站。"
+		%ResultDetail.text += "\n本次未推进战役进度，可返回铁路或重试本站。"
 	elif save_error != OK:
 		%ResultDetail.text = "本站获胜，但战役进度保存失败。请检查磁盘空间与存档目录后重玩本站。"
 	elif session.campaign_completed_count == session.CAMPAIGN_STAGES.size():
 		%ResultDetail.text = "六站全线通关！列车停靠终点站，所有已通过的车站仍可重玩。"
 	else:
 		var next: Resource = session.CAMPAIGN_STAGES[session.campaign_current_stage()]
-		%ResultDetail.text = "本站已通过。列车停靠%s，返回铁路即可继续前进或重玩已过关车站。" % next.title
+		if session.campaign_travel_from >= 0:
+			%ResultDetail.text = "本站已通过。返回铁路后，列车将驶往%s。" % next.title
+		else:
+			%ResultDetail.text = "本站已通过。列车停靠%s，返回铁路即可继续前进或重玩已过关车站。" % next.title
 
 func track_building(building: Node3D, camera: Camera3D, buildings: Array[Node3D]) -> void:
 	if building != _selection_target:

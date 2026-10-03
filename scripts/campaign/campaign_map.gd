@@ -18,6 +18,7 @@ func _ready() -> void:
 		stops[index].pressed.connect(_activate_station.bind(index))
 	diorama.intro_finished.connect(_reveal_journey)
 	diorama.view_changed.connect(_project_stops)
+	diorama.train_arrived.connect(_train_arrived)
 	%MapInput.gui_input.connect(_map_input)
 	%Back.pressed.connect(_back)
 	%Settings.pressed.connect(_open_settings)
@@ -29,6 +30,10 @@ func _ready() -> void:
 	session.load_failed.connect(_show_error)
 	%LoadError.visibility_changed.connect(_sync_ambient)
 	selected_index = clampi(int(session.get_meta("campaign_selected_stage", session.campaign_current_stage())), 0, stops.size() - 1)
+	var departure: int = session.campaign_travel_from
+	if departure >= 0:
+		selected_index = departure
+	diorama.park_train(departure if departure >= 0 else session.campaign_current_stage())
 	diorama.focus_station(selected_index, false)
 
 func _exit_tree() -> void:
@@ -38,8 +43,8 @@ func _reveal_journey() -> void:
 	for stop: Button in stops:
 		stop.disabled = false
 	%Stops.show()
-	_refresh_progress()
 	_select(selected_index, false, false)
+	_refresh_progress()
 	_project_stops()
 
 func _process(_delta: float) -> void:
@@ -57,7 +62,7 @@ func _project_stops() -> void:
 		stops[index].visible = not diorama.camera.is_position_behind(diorama.anchors[index].global_position) and viewport_rect.has_point(point)
 
 func _select(index: int, animated: bool = true, move_camera: bool = true) -> void:
-	if diorama.intro_running or (animated and _navigation_blocked()):
+	if diorama.intro_running or (animated and (_navigation_blocked() or diorama.train_moving)):
 		return
 	selected_index = index
 	session.set_meta("campaign_selected_stage", index)
@@ -67,7 +72,7 @@ func _select(index: int, animated: bool = true, move_camera: bool = true) -> voi
 		diorama.focus_station(index, animated)
 
 func _activate_station(index: int) -> void:
-	if diorama.intro_running or _navigation_blocked():
+	if diorama.intro_running or diorama.train_moving or _navigation_blocked():
 		return
 	var available: bool = session.campaign_stage_unlocked(index)
 	_select(index, true, not available)
@@ -76,12 +81,26 @@ func _activate_station(index: int) -> void:
 
 func _refresh_progress() -> void:
 	var current: int = session.campaign_current_stage()
-	diorama.park_train(current)
+	# A victory carries its departure across the battle scene. Loading a save
+	# without a pending trip can initialize at its already reached station.
+	if session.campaign_travel_from >= 0:
+		if not diorama.intro_running and not diorama.train_moving:
+			diorama.travel_to_station(current)
+	elif diorama.parked_station != current:
+		diorama.park_train(current)
+	_refresh_stop_states()
+
+func _refresh_stop_states() -> void:
 	for index: int in stops.size():
-		stops[index].set_progress(session.campaign_stage_unlocked(index), session.campaign_stage_completed(index), index == current)
+		stops[index].set_progress(session.campaign_stage_unlocked(index), session.campaign_stage_completed(index), index == diorama.parked_station)
+
+func _train_arrived(index: int) -> void:
+	session.campaign_travel_from = -1
+	_select(index, false, false)
+	_refresh_stop_states()
 
 func _map_input(event: InputEvent) -> void:
-	if diorama.intro_running or _navigation_blocked():
+	if diorama.intro_running or diorama.train_moving or _navigation_blocked():
 		_end_drag()
 		return
 	if event is InputEventMouseButton:
@@ -104,7 +123,7 @@ func _end_drag() -> void:
 	%MapInput.mouse_default_cursor_shape = Control.CURSOR_MOVE
 
 func _start_stage() -> void:
-	if diorama.intro_running or _navigation_blocked():
+	if diorama.intro_running or diorama.train_moving or _navigation_blocked():
 		return
 	if not session.campaign_stage_unlocked(selected_index):
 		return
@@ -117,7 +136,7 @@ func _step(direction: int) -> void:
 	_select(clampi(selected_index + direction, 0, stops.size() - 1))
 
 func _return_to_train() -> void:
-	if _navigation_blocked():
+	if _navigation_blocked() or diorama.train_moving:
 		return
 	diorama.skip_intro()
 	_select(session.campaign_current_stage())

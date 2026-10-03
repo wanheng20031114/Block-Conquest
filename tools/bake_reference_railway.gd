@@ -99,6 +99,7 @@ func _build_landscape() -> void:
 	assert(ResourceSaver.save(curve, "res://data/campaign/journey_3d.tres") == OK)
 	curve.take_over_path("res://data/campaign/journey_3d.tres")
 	var journey: Path3D = _add(scene, Path3D.new(), "Journey", scene)
+	journey.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	journey.curve = curve
 	var names := ["Train", "Tender", "Coach", "Car04", "Car05", "Car06", "Car07", "Car08", "Car09"]
 	for car: Dictionary in manifest.train.cars:

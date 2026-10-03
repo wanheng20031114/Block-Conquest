@@ -3,6 +3,7 @@ extends SubViewportContainer
 
 signal intro_finished
 signal view_changed
+signal train_arrived(index: int)
 
 # The imported heightfield is solid down to the river bed, including the tunnels.
 # Reference: tools/railway_reference/src/config.js and world.js.
@@ -12,6 +13,7 @@ const GROUND_PLANE := Plane(Vector3.UP, GROUND_HEIGHT)
 const EDGE_INSET := 0.25
 # Keeps the camera above the highest terrain (34) even when fully zoomed in.
 const MIN_DISTANCE := 37.0
+const TRAIN_TRAVEL_SPEED := 8.0
 
 @onready var camera: Camera3D = $World/Stage/CameraRig/Camera3D
 @onready var camera_rig: Node3D = $World/Stage/CameraRig
@@ -25,6 +27,9 @@ const MIN_DISTANCE := 37.0
 var intro_running := true
 var overview := true
 var _view_tween: Tween
+var train_moving := false
+var parked_station := -1
+var _train_tween: Tween
 
 func _ready() -> void:
 	# A moving ground plane would expose the world edges during entry. The screen
@@ -33,9 +38,6 @@ func _ready() -> void:
 	entrance.play(&"unfold")
 	entrance.seek(entrance.get_animation(&"unfold").length, true)
 	entrance.pause()
-	var current: int = get_node("/root/Session").campaign_current_stage()
-	park_train(current)
-	focus_station(current, false)
 	$World.size_changed.connect(_viewport_resized)
 	_begin_after_transition.call_deferred()
 
@@ -65,9 +67,42 @@ func projected_route() -> Curve2D:
 	return result
 
 func park_train(index: int) -> void:
-	var offset := world_route.curve.get_closest_offset(world_route.to_local(parking_anchors[index].global_position))
+	if _train_tween and _train_tween.is_valid():
+		_train_tween.kill()
+	train_moving = false
+	parked_station = index
+	_set_train_progress(_station_progress(index))
+
+func _station_progress(index: int) -> float:
+	return world_route.curve.get_closest_offset(world_route.to_local(parking_anchors[index].global_position))
+
+func _set_train_progress(offset: float) -> void:
 	for carriage: PathFollow3D in world_route.get_children():
 		carriage.progress = maxf(0.0, offset - float(carriage.get_meta(&"rail_offset")))
+
+func travel_to_station(index: int) -> void:
+	_stop_view_tween()
+	var departure := train.progress
+	var destination := _station_progress(index)
+	# Follow the actual curved railway, preserving the station framing at both
+	# ends instead of jumping the camera to the destination ahead of the train.
+	var stage: Node3D = camera_rig.get_parent_node_3d()
+	var from_offset := camera_rig.position - stage.to_local(train.global_position)
+	var to_offset := stage.to_local(anchors[index].global_position) - stage.to_local(parking_anchors[index].global_position)
+	train_moving = true
+	parked_station = -1
+	_train_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_train_tween.tween_method(func(weight: float):
+		_set_train_progress(lerpf(departure, destination, weight))
+		camera_rig.position = stage.to_local(train.global_position) + from_offset.lerp(to_offset, weight)
+		_constrain_view()
+		view_changed.emit()
+	, 0.0, 1.0, maxf((destination - departure) / TRAIN_TRAVEL_SPEED, 3.0))
+	_train_tween.tween_callback(func():
+		train_moving = false
+		parked_station = index
+		train_arrived.emit(index)
+	)
 
 func ground_footprint(distance: float = -1.0) -> Rect2:
 	# Native projection includes the live SubViewport aspect ratio. With the rig
@@ -183,3 +218,8 @@ func set_ambient(active: bool) -> void:
 			_view_tween.play()
 		else:
 			_view_tween.pause()
+	if _train_tween and _train_tween.is_valid():
+		if active:
+			_train_tween.play()
+		else:
+			_train_tween.pause()

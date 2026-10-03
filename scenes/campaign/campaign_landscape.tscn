@@ -182,6 +182,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.6, 13.27, 19.5)
 metadata/source_s = 170.35651121424797
 
 [node name="Journey" type="Path3D" parent="." unique_id=2020078429]
+physics_interpolation_mode = 2
 curve = ExtResource("7_uhsrs")
 
 [node name="Train" type="PathFollow3D" parent="Journey" unique_id=52160853]

@@ -28,6 +28,8 @@ var online_notice := ""
 var campaign_save_path := "user://campaign.cfg"
 var campaign_completed_count := 0
 var campaign_active_stage := -1
+# A saved victory unlocks its destination before the map presents the journey.
+var campaign_travel_from := -1
 var _online_active := false
 var _pending_online_scene := ""
 var _returning_online := false
@@ -56,7 +58,7 @@ func start_online() -> Error:
 	return change_scene(ONLINE_SCENE)
 
 func campaign_current_stage() -> int:
-	# The train follows saved progress, never the station being inspected or replayed.
+	# The destination follows saved progress, never the station being replayed.
 	return mini(campaign_completed_count, CAMPAIGN_STAGES.size() - 1)
 
 func campaign_stage_unlocked(index: int) -> bool:
@@ -70,6 +72,7 @@ func load_campaign_progress() -> Error:
 	var error := config.load(campaign_save_path)
 	if error == ERR_FILE_NOT_FOUND:
 		campaign_completed_count = 0
+		campaign_travel_from = -1
 		return OK
 	if error != OK:
 		push_warning("战役进度无法读取，错误码 %d" % error)
@@ -79,6 +82,7 @@ func load_campaign_progress() -> Error:
 		push_warning("战役存档中的通关数量无效。")
 		return ERR_INVALID_DATA
 	campaign_completed_count = completed
+	campaign_travel_from = -1
 	return OK
 
 func start_campaign_stage(index: int) -> Error:
@@ -110,7 +114,10 @@ func complete_campaign_stage() -> Error:
 	var error := config.save(campaign_save_path)
 	if error != OK:
 		return error
+	var departure := campaign_current_stage()
 	campaign_completed_count = completed
+	if campaign_current_stage() != departure and campaign_travel_from < 0:
+		campaign_travel_from = departure
 	set_meta("campaign_selected_stage", campaign_current_stage())
 	campaign_progress_changed.emit()
 	return OK
