@@ -67,7 +67,7 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("补兵后扩张", "从住宅拖到中立据点，派出一半驻军进攻。", "派兵占领前方据点", "capture", "buildings", {"source": 0, "target": 1})]
 		"drum": return [
 			step("先派出援军", "从住宅拖到前方己方据点，派出援军。\n疾行战鼓可加速路上的己方部队。", "从住宅向前方据点派兵", "dispatch", "buildings", {"source": 0, "target": 1}),
-			step("拖动二技能", "把第二个技能拖到金色队伍中央。\n圈内己军移速 +%d%%，离开后恢复；加速圈固定不动。" % roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0), "将战鼓放在己方队伍中央", "cast_ground", "skill:1", {"skill": 1, "army": 0, "watch_goal": "观察加速圈消散、援军全部抵达"}),
+			step("拖动二技能", "把第二个技能拖到金色队伍中央。\n己军移速 +%d%%，离圈后延续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100.0), RULES.HASTE_LINGER], "将战鼓放在己方队伍中央", "cast_ground", "skill:1", {"skill": 1, "army": 0, "watch_goal": "观察加速圈消散、援军全部抵达"}),
 			step("援军到达", "加速圈已消散，援军全部进入前方据点。", "确认增援后的驻军", "read", "building:1")]
 		"shield": return [
 			step("防护罩", "建筑防御力 +%d%%，持续 %d 秒。\n本课在施法成功后开始敌军进攻。" % [roundi(RULES.SHIELD_DEFENSE * 100.0), RULES.DURATIONS[2]], "认识防护罩的用途", "read", "building:1"),

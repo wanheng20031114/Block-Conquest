@@ -79,16 +79,17 @@ func _run() -> void:
 	var crossing := soldier(0, Vector3(-12, 0, 0), Vector3(35, 0, 0))
 	game.cast_ground_skill(1, Vector3.ZERO)
 	game.marches.tick(8.0)
-	near(crossing.distance, WarMarches.SPEED * 8.0 + 9.0 * (1.0 - 1.0 / 1.6), "long tick integrates ordinary entry, nine boosted metres, then ordinary exit")
-	near(game.marches.speed_multiplier(crossing), 1.0, "leaving the field removes speed immediately")
+	near(crossing.distance, 7.5 + (WarMarches.SPEED * 8.0 - 7.5) * 1.6, "long tick retains haste after crossing the nine-metre field")
+	near(game.marches.speed_multiplier(crossing), 1.6, "leaving the field retains its speed bonus for three seconds")
 	var previous := crossing.distance
+	var tail := crossing.haste_remaining
 	game.marches.tick(1.0)
-	near(crossing.distance - previous, WarMarches.SPEED, "no residual speed buff after field expiry")
+	near(crossing.distance - previous, WarMarches.SPEED * (1.0 + 0.6 * minf(1.0, tail)), "tail expires at the exact time after leaving the field")
 	reset()
 	var expiring := soldier(0, Vector3.ZERO, Vector3(35, 0, 0))
 	game.marches.create_haste_zone(0, Vector3.ZERO, 4.5, 0.25, 1.6)
 	game.marches.tick(1.0)
-	near(expiring.distance, WarMarches.SPEED * (1.0 + 0.6 * 0.25), "field expiring mid-tick accelerates only its first quarter second")
+	near(expiring.distance, WarMarches.SPEED * 1.6, "field expiring mid-tick retains acceleration throughout its three-second tail")
 	reset()
 	var queued := soldier(0, Vector3.ZERO, Vector3(35, 0, 0))
 	queued.distance = -WarMarches.SPEED * 0.3

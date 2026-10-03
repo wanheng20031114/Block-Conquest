@@ -86,7 +86,7 @@ func _charge_and_doorway() -> void:
 	unit = marches._units[0]
 	marches.create_haste_zone(0, Vector3.ZERO, 100.0, 0.5, 1.6)
 	marches.create_slow_zone(1, Vector3.ZERO, 100.0, 0.25)
-	near(marches.movement_distance(unit, 1.0), marches.SPEED * (1.3 + 0.6 * 0.5 - 0.6), "Charge retains exact haste expiry and the slow's ongoing five-second tail")
+	near(marches.movement_distance(unit, 1.0), marches.SPEED * (1.3 + 0.6 - 0.6), "Charge combines the ongoing haste and slow tails without double counting either field")
 
 func _dense_queue() -> void:
 	reset()

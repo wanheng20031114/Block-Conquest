@@ -226,10 +226,10 @@ func update_skills(delta: float, states: Array, shields: Dictionary, by_id: Dict
 				$HasteMotes.emit_particle(Transform3D(Basis(Vector3.UP, angle), at), wind * 0.8, Color("c0d8a4").srgb_to_linear(), Color(), EMIT_FLAGS)
 	fields.visible_instance_count = count
 	$Rabbit.update_rush(delta, marches)
-	if emit and not marches.haste_zones.is_empty():
+	if emit:
 		var active: Array[WarMarches.MarchUnit] = []
 		for unit: WarMarches.MarchUnit in marches._units:
-			if unit.is_exposed() and not unit.cloaked and unit.rush_remaining <= 0.0 and marches.haste_zones.has(unit.order.faction) and marches.speed_multiplier(unit) > 1.0 and marches.haste_zones[unit.order.faction].style != SKILL_RULES.RABBIT:
+			if unit.is_exposed() and not unit.cloaked and unit.rush_remaining <= 0.0 and unit.levitation_remaining <= 0.0 and unit.haste_remaining > 0.0 and unit.haste_bonus > 0.0:
 				active.append(unit)
 		if not active.is_empty():
 			for index: int in mini(48, active.size()):

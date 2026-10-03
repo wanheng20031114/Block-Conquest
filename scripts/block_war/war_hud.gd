@@ -158,7 +158,7 @@ func update_state(state: Dictionary) -> void:
 	var armed: int = int(state.armed_skill)
 	%TargetHint.visible = armed >= 0
 	if armed >= 0:
-		var target_text := "拖至地面 · 松手即点燃 · 敌我均伤" if armed == 3 else ("拖至地面 · 圈内己军移速 +%d%%，持续 %d 秒" % [roundi((SKILL_RULES.HASTE_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.DURATIONS[1]] if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
+		var target_text := "拖至地面 · 松手即点燃 · 敌我均伤" if armed == 3 else ("拖至地面 · 己军移速 +%d%% · 离圈后延续 %d 秒" % [roundi((SKILL_RULES.HASTE_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.HASTE_LINGER] if armed == 1 else "拖至自己或盟友建筑 · 松手施放")
 		if commander == SKILL_RULES.RABBIT:
 			target_text = ["圈选自己的行军 · 攻击力 +%d%%、移速 +%d%%，持续 %d 秒" % [roundi(SKILL_RULES.RABBIT_RUSH_ATTACK_BONUS * 100.0), roundi((SKILL_RULES.RABBIT_RUSH_MULTIPLIER - 1.0) * 100.0), SKILL_RULES.RABBIT_DURATIONS[0]], "拖至敌方建筑 · 停工 6 秒", "拖至地面 · 双方部队各自返回出发建筑", "拖至自己的建筑 · 15 秒内下次出兵走兔洞"][armed]
 		elif commander == SKILL_RULES.BEAR:

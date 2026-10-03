@@ -73,6 +73,8 @@ class MarchUnit extends RefCounted:
 	var rush_remaining := 0.0
 	var levitation_remaining := 0.0
 	var slow_remaining := 0.0
+	var haste_remaining := 0.0
+	var haste_bonus := 0.0
 	# These effects belong to this march, ending when the soldier enters a building.
 	var cloaked := false
 	var weakened := false
@@ -377,11 +379,15 @@ func tick(delta: float, fire_segments: Array[Dictionary] = [], defer_mist_expiry
 		var unit := _units[index]
 		var concealed_time := minf(delta, unit.spawn_delay)
 		var slow_remaining := unit.slow_remaining
+		var haste_remaining := unit.haste_remaining
+		var haste_bonus := unit.haste_bonus
 		var step: float
-		if unit.slow_remaining > 0.0 or not slow_zones.is_empty():
-			var slow_motion := movement_with_slow(unit, delta)
-			step = slow_motion[0]
-			slow_remaining = slow_motion[1]
+		if unit.slow_remaining > 0.0 or unit.haste_remaining > 0.0 or not slow_zones.is_empty() or haste_zones.has(unit.order.faction):
+			var motion := movement_with_slow(unit, delta)
+			step = motion[0]
+			slow_remaining = motion[1]
+			haste_remaining = motion[2]
+			haste_bonus = motion[3]
 		else:
 			step = movement_distance(unit, delta)
 		if not unit.weakened and _touches_mist(unit, delta, step):
@@ -390,6 +396,8 @@ func tick(delta: float, fire_segments: Array[Dictionary] = [], defer_mist_expiry
 		# one long frame. Population strength remains independent of combat bonuses.
 		var arrival_bonus := projected_attack_bonus(unit) if unit.distance + step >= unit.order.length else 0.0
 		unit.slow_remaining = slow_remaining
+		unit.haste_remaining = haste_remaining
+		unit.haste_bonus = haste_bonus
 		unit.levitation_remaining = maxf(0.0, unit.levitation_remaining - delta)
 		if unit.levitation_remaining < 0.000001:
 			unit.levitation_remaining = 0.0
@@ -695,6 +703,10 @@ func create_haste_zone(faction: int, at: Vector3, radius: float, duration: float
 	for unit: MarchUnit in _units:
 		if unit.order.faction == faction:
 			unit.order.haste_intervals.clear()
+			if style == &"squirrel" and duration > 0.0 and unit.is_exposed() and _inside_mist(unit.position, haste_zones[faction]):
+				unit.haste_remaining = RULES.HASTE_LINGER
+				unit.haste_bonus = multiplier - 1.0
+	_render()
 
 func rush_targets(faction: int, at: Vector3, radius: float) -> Array[MarchUnit]:
 	var targets: Array[MarchUnit] = []
@@ -796,11 +808,13 @@ func speed_multiplier(unit: MarchUnit) -> float:
 	var multiplier := RULES.RABBIT_RUSH_MULTIPLIER if unit.rush_remaining > 0.0 else 1.0
 	if unit.order.pig_charge:
 		multiplier += RULES.PIG_CHARGE_SPEED_BONUS
+	var haste_bonus := unit.haste_bonus if unit.haste_remaining > 0.0 else 0.0
 	if haste_zones.has(unit.order.faction):
 		var zone := haste_zones[unit.order.faction]
 		var offset := Vector2(unit.position.x - zone.at.x, unit.position.z - zone.at.z)
 		if zone.remaining > 0.0 and offset.length_squared() <= zone.radius * zone.radius:
-			multiplier += zone.multiplier - 1.0
+			haste_bonus = zone.multiplier - 1.0
+	multiplier += haste_bonus
 	if unit.slow_remaining > 0.0:
 		return environment_speed[unit.order.faction] * (multiplier + RULES.BEAR_SLOW_MULTIPLIER - 1.0)
 	for faction: int in slow_zones:
@@ -810,7 +824,7 @@ func speed_multiplier(unit: MarchUnit) -> float:
 	return environment_speed[unit.order.faction] * multiplier
 
 func movement_distance(unit: MarchUnit, delta: float) -> float:
-	if unit.slow_remaining > 0.0 or not slow_zones.is_empty():
+	if unit.slow_remaining > 0.0 or unit.haste_remaining > 0.0 or not slow_zones.is_empty() or haste_zones.has(unit.order.faction):
 		return movement_with_slow(unit, delta)[0]
 	# Timed boosts and fields continue aging while a soldier is held in the air.
 	var concealed_time := minf(delta, maxf(unit.spawn_delay, unit.levitation_remaining))
@@ -825,48 +839,8 @@ func movement_distance(unit: MarchUnit, delta: float) -> float:
 		return queued_step
 	var charge := RULES.PIG_CHARGE_SPEED_BONUS if unit.order.pig_charge else 0.0
 	var rushing := minf(delta, maxf(0.0, unit.rush_remaining - concealed_time))
-	# The ordinary case has no spatial crossings. Integrate the boost's expiry
-	# directly, avoiding two field-segment walks for every soldier each tick.
-	if not haste_zones.has(unit.order.faction):
-		return queued_step + base_speed(unit.order.faction) * (delta * (1.0 + charge) + rushing * (RULES.RABBIT_RUSH_MULTIPLIER - 1.0))
-	var zone_time := 0.0
-	if haste_zones.has(unit.order.faction):
-		zone_time = maxf(0.0, haste_zones[unit.order.faction].remaining - concealed_time)
-	var start := unit.distance + queued_step
-	var step := _movement_segment(unit, start, rushing, RULES.RABBIT_RUSH_MULTIPLIER + charge, zone_time)
-	return queued_step + step + _movement_segment(unit, start + step, delta - rushing, 1.0 + charge, maxf(0.0, zone_time - rushing))
-
-func _movement_segment(unit: MarchUnit, from_distance: float, delta: float, multiplier: float, zone_time: float) -> float:
-	if delta == 0.0:
-		return 0.0
-	# Different skill sources add their percentages within the skill group.
-	# Split both independent expiry times, then integrate route entry/exit exactly.
-	var speed := base_speed(unit.order.faction) * multiplier
-	if delta <= 0.0 or zone_time <= 0.0:
-		return speed * delta
-	var zone := haste_zones[unit.order.faction]
-	var active := minf(delta, zone_time)
-	var remaining := active
-	var distance := from_distance
-	if not unit.order.haste_intervals.has(unit.lane):
-		unit.order.haste_intervals[unit.lane] = _zone_intervals(unit.order, unit.lane, zone)
-	for interval: Vector2 in unit.order.haste_intervals[unit.lane]:
-		if interval.y <= distance:
-			continue
-		var before_time := maxf(0.0, interval.x - distance) / speed
-		var before_step := minf(remaining, before_time)
-		distance += before_step * speed
-		remaining -= before_step
-		if remaining <= 0.0:
-			break
-		var inside_speed: float = base_speed(unit.order.faction) * (multiplier + zone.multiplier - 1.0)
-		var inside_time: float = (interval.y - distance) / inside_speed
-		var inside_step := minf(remaining, inside_time)
-		distance += inside_step * inside_speed
-		remaining -= inside_step
-		if remaining <= 0.0:
-			break
-	return distance - from_distance + speed * (remaining + delta - active)
+	# The ordinary case has no field contacts or lingering statuses.
+	return queued_step + base_speed(unit.order.faction) * (delta * (1.0 + charge) + rushing * (RULES.RABBIT_RUSH_MULTIPLIER - 1.0))
 
 func slow_after_wait(unit: MarchUnit, seconds: float) -> float:
 	# A levitating soldier remains exposed. Queued/tunnel soldiers are protected
@@ -881,13 +855,32 @@ func slow_after_wait(unit: MarchUnit, seconds: float) -> float:
 				until = maxf(until, contact_end + RULES.BEAR_SLOW_LINGER)
 	return maxf(0.0, until - seconds)
 
+func haste_after_wait(unit: MarchUnit, seconds: float) -> PackedFloat64Array:
+	# Floating units stay exposed; hidden queues must first reach their exit.
+	var until := unit.haste_remaining
+	var bonus := unit.haste_bonus
+	if seconds > 0.0 and unit.distance >= 0.0 and not unit.pending_departure and haste_zones.has(unit.order.faction):
+		var zone := haste_zones[unit.order.faction]
+		var contact_end := minf(seconds, zone.remaining)
+		var at := _formation_position(unit.order, unit.distance, unit.lane, _route_heading(unit.order, unit.distance))
+		if zone.get("style", &"squirrel") == &"squirrel" and contact_end > unit.spawn_delay and _inside_mist(at, zone):
+			until = contact_end + RULES.HASTE_LINGER
+			bonus = zone.multiplier - 1.0
+	var remaining := maxf(0.0, until - seconds)
+	if remaining < 0.000001:
+		return PackedFloat64Array([0.0, 0.0])
+	return PackedFloat64Array([remaining, bonus])
+
 func movement_with_slow(unit: MarchUnit, delta: float) -> PackedFloat64Array:
-	# Pure prediction: return [distance, remaining slow], without altering the
-	# soldier. AI queries, authoritative ticks and client motion share this walk.
+	# Pure prediction: [distance, remaining slow, remaining haste, haste bonus].
+	# AI queries, authoritative ticks and client motion share this field walk.
 	if delta <= 0.0:
-		return PackedFloat64Array([0.0, unit.slow_remaining])
+		return PackedFloat64Array([0.0, unit.slow_remaining, unit.haste_remaining, unit.haste_bonus])
 	var held := minf(delta, maxf(unit.spawn_delay, unit.levitation_remaining))
 	var slow_until := held + slow_after_wait(unit, held)
+	var held_haste := haste_after_wait(unit, held)
+	var haste_until := held + held_haste[0]
+	var haste_bonus := held_haste[1]
 	var queued := minf(delta - held, maxf(0.0, -unit.distance / base_speed(unit.order.faction)))
 	var distance := unit.distance + queued * base_speed(unit.order.faction)
 	var elapsed := held + queued
@@ -896,7 +889,8 @@ func movement_with_slow(unit: MarchUnit, delta: float) -> PackedFloat64Array:
 		var haste := haste_zones[unit.order.faction]
 		if not unit.order.haste_intervals.has(unit.lane):
 			unit.order.haste_intervals[unit.lane] = _zone_intervals(unit.order, unit.lane, haste)
-		fields.append({"spans": unit.order.haste_intervals[unit.lane], "until": haste.remaining, "speed": haste.multiplier})
+		fields.append({"spans": unit.order.haste_intervals[unit.lane], "until": haste.remaining, "speed": haste.multiplier, "haste": true,
+			"linger": RULES.HASTE_LINGER if haste.get("style", &"squirrel") == &"squirrel" else 0.0})
 	for faction: int in slow_zones:
 		var slow := slow_zones[faction]
 		if not FACTIONS.hostile(faction, unit.order.faction) or slow.remaining <= elapsed:
@@ -904,12 +898,13 @@ func movement_with_slow(unit: MarchUnit, delta: float) -> PackedFloat64Array:
 		var key := Vector2(faction, unit.lane)
 		if not unit.order.slow_intervals.has(key):
 			unit.order.slow_intervals[key] = _zone_intervals(unit.order, unit.lane, slow)
-		fields.append({"spans": unit.order.slow_intervals[key], "until": slow.remaining, "speed": RULES.BEAR_SLOW_MULTIPLIER})
+		fields.append({"spans": unit.order.slow_intervals[key], "until": slow.remaining, "speed": RULES.BEAR_SLOW_MULTIPLIER, "haste": false})
 	while delta - elapsed > 0.0000001:
 		var next_distance := INF
 		var next_time := delta - elapsed
-		var boost := 1.0
 		var touching_slow := false
+		var touching_haste := false
+		var haste_linger := 0.0
 		var multiplier := 1.0 + (RULES.PIG_CHARGE_SPEED_BONUS if unit.order.pig_charge else 0.0)
 		if unit.rush_remaining > elapsed:
 			multiplier += RULES.RABBIT_RUSH_MULTIPLIER - 1.0
@@ -925,22 +920,38 @@ func movement_with_slow(unit: MarchUnit, delta: float) -> PackedFloat64Array:
 					next_distance = minf(next_distance, span.x)
 				else:
 					next_distance = minf(next_distance, span.y)
-					boost = maxf(boost, field.speed)
-					touching_slow = touching_slow or field.speed < 1.0
+					if field.haste:
+						touching_haste = true
+						haste_bonus = field.speed - 1.0
+						haste_linger = field.linger
+					else:
+						touching_slow = true
 				break
 		if touching_slow:
 			slow_until = elapsed + RULES.BEAR_SLOW_LINGER
 		elif slow_until > elapsed:
 			next_time = minf(next_time, slow_until - elapsed)
+		if touching_haste:
+			haste_until = elapsed + haste_linger
+		elif haste_until > elapsed:
+			next_time = minf(next_time, haste_until - elapsed)
+		else:
+			haste_bonus = 0.0
 		var slow_bonus := RULES.BEAR_SLOW_MULTIPLIER - 1.0 if slow_until > elapsed else 0.0
-		var speed := base_speed(unit.order.faction) * (multiplier + boost - 1.0 + slow_bonus)
+		var speed := base_speed(unit.order.faction) * (multiplier + haste_bonus + slow_bonus)
 		var step := minf(next_time, (next_distance - distance) / speed)
 		distance += step * speed
 		elapsed += step
 		if touching_slow:
 			slow_until = elapsed + RULES.BEAR_SLOW_LINGER
+		if touching_haste:
+			haste_until = elapsed + haste_linger
 	var remaining := maxf(0.0, slow_until - delta)
-	return PackedFloat64Array([distance - unit.distance, 0.0 if remaining < 0.000001 else remaining])
+	var haste_remaining := maxf(0.0, haste_until - delta)
+	if haste_remaining < 0.000001:
+		haste_remaining = 0.0
+		haste_bonus = 0.0
+	return PackedFloat64Array([distance - unit.distance, 0.0 if remaining < 0.000001 else remaining, haste_remaining, haste_bonus])
 
 func _build_zone_geometry(order: MarchOrder) -> void:
 	var count := ceili(order.length / 0.24)

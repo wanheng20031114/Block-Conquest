@@ -18,6 +18,7 @@ const ENERGY_CAPTURE_REWARD := 10.0
 const RECRUIT_RATE := 4.0
 const HASTE_MULTIPLIER := 1.6
 const HASTE_RADIUS := 4.5
+const HASTE_LINGER := 3.0
 const SHIELD_DEFENSE := 0.25
 const FIRE_RADIUS := 4.5
 const FIRE_DAMAGE := 25.0
@@ -205,7 +206,7 @@ static func description(index: int, commander: StringName = COMMANDER_ID) -> Str
 		][index]
 	return [
 		"每秒征召 %d 人，持续 %d 秒。\n作用于己方或盟友住宅，可超过自然产兵上限。\n同类效果不叠加。" % [RECRUIT_RATE, DURATIONS[0]],
-		"移速 +%d%%，作用于区域内的己方行军部队。\n疾行区域半径 %.1f 米，持续 %d 秒。\n离开区域后恢复原速。" % [roundi((HASTE_MULTIPLIER - 1.0) * 100.0), HASTE_RADIUS, DURATIONS[1]],
+		"移速 +%d%%，作用于区域内的己方行军部队。\n疾行区域半径 %.1f 米，持续 %d 秒。\n离开区域或区域消失后，加速延续 %d 秒。" % [roundi((HASTE_MULTIPLIER - 1.0) * 100.0), HASTE_RADIUS, DURATIONS[1], HASTE_LINGER],
 		"防御力 +%d%%，持续 %d 秒。\n作用于己方或盟友建筑，同类效果不叠加。\n与士气、铁匠铺等常驻防御力独立结算。" % [roundi(SHIELD_DEFENSE * 100.0), DURATIONS[2]],
 		"基础伤害 %d，范围半径 %.1f 米。\n火焰从圆心扩散，消灭接触的敌我行军部队。\n伤害敌方和中立建筑驻军，不直接占领。" % [FIRE_DAMAGE, FIRE_RADIUS]
 	][index]

@@ -512,6 +512,8 @@ func _receive_anchor(payload: Dictionary) -> void:
 			# fixed tail. Compact motion anchors share the aura's new sample time.
 			if Snapshot.slow_is_refreshing(row):
 				row[14] = float(payload.time) + Snapshot.RULES.BEAR_SLOW_LINGER
+			if Snapshot.haste_is_refreshing(row):
+				row[15] = float(payload.time) + Snapshot.RULES.HASTE_LINGER
 			row[12] = float(payload.time)
 		if not Snapshot.valid_record(group, row, game): continue
 		# Do not let an old anchor replace a newer reliable structural transition.

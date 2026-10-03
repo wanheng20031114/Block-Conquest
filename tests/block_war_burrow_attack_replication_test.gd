@@ -116,7 +116,7 @@ func _run() -> void:
 func _validate_orders() -> void:
 	var state: Dictionary = authority.codec.capture(host, authority._tick)
 	var key: String = state.orders.keys()[0]
-	check(state.schema == 11 and state.orders[key].size() == 13, "new schema explicitly carries the thirteenth order field")
+	check(state.schema == Codec.SCHEMA and state.orders[key].size() == 13, "current schema explicitly carries the thirteenth order field")
 	for bad: Variant in [0, 1, 0.5, "true", null, {}, []]:
 		var row: Array = state.orders[key].duplicate(true)
 		row[12] = bad

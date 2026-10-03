@@ -103,7 +103,7 @@ func _run() -> void:
 	marches.create_haste_zone(0, Vector3.ZERO, 12.0, 1.0, 2.0)
 	marches.tick(2.0)
 	var boosted: Dictionary = marches.get_units()[0]
-	_check(is_equal_approx(boosted.distance, marches.SPEED * 3.0), "Haste expires at its exact duration within a long tick")
+	_check(is_equal_approx(boosted.distance, marches.SPEED * 4.0), "Haste retains the field's custom multiplier through its three-second tail")
 	marches.clear()
 	marches.send(0, 1, 0, 4200, straight)
 	_check(marches.total_for(0) == 4200 and marches.get_node("Militia").multimesh.instance_count >= 4200, "Renderer expands above its initial capacity without dropping population")
@@ -279,7 +279,7 @@ func _movement_groups(marches: WarMarches) -> void:
 		distances.append(unit.distance)
 		# The slow retains its five-second tail: 0-1 skills 2.0; 1-2 skills 1.0.
 		_check(absf(unit.distance - WarMarches.SPEED * 1.3 * 3.0) < 0.00001, "Both tick partitions integrate rush and haste expiry while the slow tail remains")
-		_check(is_equal_approx(marches.speed_multiplier(unit), 1.3 * 0.4), "Expired haste leaves morale multiplied by the ongoing slow tail")
+		_check(is_equal_approx(marches.speed_multiplier(unit), 1.3), "Expired haste field and expired slow field retain additive tails multiplied by morale")
 	_check(absf(distances[0] - distances[1]) < 0.00001, "Grouped movement bonuses give equal long and short tick distances")
 	marches.clear()
 	marches.environment_speed.fill(1.0)

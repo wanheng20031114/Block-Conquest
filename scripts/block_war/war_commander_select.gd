@@ -35,7 +35,7 @@ func _select(index: int, animate: bool = true) -> void:
 	%Role.text = {0: "增援 · 加速 · 守护 · 范围火攻", 1: "冲刺 · 停工 · 召回 · 兔洞突袭", 2: "赶工 · 牵制 · 互保 · 震庭威慑", 3: "冲锋 · 飞行 · 空降 · 重击", 4: "投弹 · 窃星 · 招降 · 恐慌", 5: "弱化 · 浮力 · 隐身 · 致命打击"}[index]
 	var summaries := PackedStringArray([
 		"每秒增援 %d 人，持续 %d 秒。" % [RULES.RECRUIT_RATE, RULES.DURATIONS[0]],
-		"区域内己军移速 +%d%%，持续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.DURATIONS[1]],
+		"己军移速 +%d%%，离圈后延续 %d 秒。" % [roundi((RULES.HASTE_MULTIPLIER - 1.0) * 100), RULES.HASTE_LINGER],
 		"己方或盟友建筑防御力 +%d%%，持续 %d 秒。" % [RULES.SHIELD_DEFENSE * 100, RULES.DURATIONS[2]],
 		"瞬间点燃区域，火焰对双方士兵都致命。",
 	] if index == 0 else [

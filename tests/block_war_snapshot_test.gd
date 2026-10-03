@@ -175,7 +175,7 @@ func _run() -> void:
 	check(displayed.rush_remaining == 0.0 and displayed.spawn_delay == 0.0 and replica.marches.haste_zones.is_empty(), "expired statuses are visually removed after historical integration")
 	var canonical := Snapshot.digest(state)
 	reader.present(replica, state, 10.0)
-	near(displayed.distance, expected + WarMarches.SPEED * 0.5 * 0.4, "stale movement extrapolates at most one second while retaining the slow tail")
+	near(displayed.distance, expected + WarMarches.SPEED * 0.5, "stale movement extrapolates at most one second while retaining haste and slow tails")
 	check(Snapshot.digest(state) == canonical and replica_events == 0, "presentation cannot mutate canonical mirror or emit gameplay facts")
 	var corrected := state.duplicate(true)
 	var unit_key: String = corrected.units.keys()[0]
@@ -258,20 +258,20 @@ func _environment_speed() -> void:
 	var state := writer.capture(host, 1800)
 	var historical := Snapshot.new()
 	historical.install(replica, state, 10.8)
-	# Held .0-.2; then .3*2 + .1*1 + .2*.4 with the five-second slow tail,
+	# Held .0-.2; then .3*2 + .3*1 with haste and slow tails,
 	# all multiplied by the shared base speed and morale 1.1. Forge recovery at .4
 	# changes combat bonuses only, within the uninterrupted .3-.5 rush segment.
 	for unit: WarMarches.MarchUnit in replica.marches._units:
-		near(unit.distance, WarMarches.SPEED * 1.1 * 0.78, "late snapshot handles every skill boundary without forge recovery adding speed")
+		near(unit.distance, WarMarches.SPEED * 1.1 * 0.9, "late snapshot handles every skill boundary without forge recovery adding speed")
 	near(replica.marches.environment_speed[0], 1.1, "historical integration preserves morale-only environment speed")
 	var stepped := Snapshot.new()
 	stepped.install(replica, state)
 	for index: int in 8: stepped.present(replica, state, 0.1)
 	for unit: WarMarches.MarchUnit in replica.marches._units:
-		near(unit.distance, WarMarches.SPEED * 1.1 * 0.78, "short presentation frames match the historical movement integral")
+		near(unit.distance, WarMarches.SPEED * 1.1 * 0.9, "short presentation frames match the historical movement integral")
 	host.simulate(0.8)
 	for unit: WarMarches.MarchUnit in host.marches._units:
-		near(unit.distance, WarMarches.SPEED * 1.1 * 0.78, "authority movement matches snapshot prediction through forge recovery")
+		near(unit.distance, WarMarches.SPEED * 1.1 * 0.9, "authority movement matches snapshot prediction through forge recovery")
 
 	for change: String in ["conversion", "capture", "disruption"]:
 		fresh(host)

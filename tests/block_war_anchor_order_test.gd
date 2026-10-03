@@ -56,7 +56,7 @@ func _subject() -> Subject:
 	value._mirror.factions["0"] = ["squirrel", 0.0, [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], -1,
 		0.0, 0.0, 10.0, 0.0, Snapshot.RULES.natural_energy_regen(0.0), [1, 1, 1, 1]]
 	value._mirror.orders["1"] = [0, 1, 0, 1.0, false, 0.0, [[0.0, 0.0, 0.0], [100.0, 0.0, 0.0]], false, false, false, false, false, false]
-	value._mirror.units["1"] = [1, 2.0, 0.0, false, 0, 0.0, 0.0, 0.0, false, false, false, -1, 0.0, 0.0, 0.0]
+	value._mirror.units["1"] = [1, 2.0, 0.0, false, 0, 0.0, 0.0, 0.0, false, false, false, -1, 0.0, 0.0, 0.0, 0.0, 0.0]
 	check(Snapshot.valid(value._mirror, value.game), "fixture includes fully validated buildings, order and moving soldier")
 	return value
 
