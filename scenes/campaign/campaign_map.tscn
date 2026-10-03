@@ -4,47 +4,12 @@
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_diorama.tscn" id="diorama"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_stop.tscn" id="stop"]
-[ext_resource type="Script" path="res://scripts/ui/menu_entrance.gd" id="entrance"]
 [ext_resource type="Resource" path="res://data/campaign/01_woodland.tres" id="stage1"]
 [ext_resource type="Resource" path="res://data/campaign/02_forest.tres" id="stage2"]
 [ext_resource type="Resource" path="res://data/campaign/03_crossing.tres" id="stage3"]
 [ext_resource type="Resource" path="res://data/campaign/04_pass.tres" id="stage4"]
 [ext_resource type="Resource" path="res://data/campaign/05_snowfield.tres" id="stage5"]
 [ext_resource type="Resource" path="res://data/campaign/06_summit.tres" id="stage6"]
-
-[sub_resource type="Gradient" id="SnowFade"]
-offsets = PackedFloat32Array(0, 0.15, 0.78, 1)
-colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.65, 1, 1, 1, 0.5, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture1D" id="SnowColor"]
-gradient = SubResource("SnowFade")
-
-[sub_resource type="ParticleProcessMaterial" id="SnowMotion"]
-particle_flag_disable_z = true
-emission_shape = 3
-emission_box_extents = Vector3(280, 255, 1)
-direction = Vector3(-0.3, 1, 0)
-spread = 15.0
-gravity = Vector3(0, 0, 0)
-initial_velocity_min = 8.0
-initial_velocity_max = 17.0
-scale_min = 1.8
-scale_max = 3.5
-color_ramp = SubResource("SnowColor")
-
-[sub_resource type="ParticleProcessMaterial" id="PollenMotion"]
-particle_flag_disable_z = true
-emission_shape = 3
-emission_box_extents = Vector3(290, 185, 1)
-direction = Vector3(1, -0.3, 0)
-spread = 30.0
-gravity = Vector3(0, 0, 0)
-initial_velocity_min = 3.0
-initial_velocity_max = 8.0
-scale_min = 1.2
-scale_max = 2.4
-color = Color(1, 0.91, 0.6, 0.65)
-color_ramp = SubResource("SnowColor")
 
 [node name="CampaignMap" type="Control" groups=["animated_menu"]]
 layout_mode = 3
@@ -56,479 +21,82 @@ grow_vertical = 2
 theme = ExtResource("theme")
 script = ExtResource("script")
 
-[node name="Paper" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.976, 0.965, 0.92, 1)
-
-[node name="MapFit" type="AspectRatioContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-ratio = 1.7777778
-stretch_mode = 2
-
-[node name="MapViewport" type="Control" parent="MapFit"]
+[node name="MapViewport" type="Control" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 clip_contents = true
 
-[node name="Atlas" type="Control" parent="MapFit/MapViewport"]
+[node name="Landscape" parent="MapViewport" instance=ExtResource("diorama")]
 unique_name_in_owner = true
-layout_mode = 0
-offset_right = 1600.0
-offset_bottom = 900.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="Landscape" parent="MapFit/MapViewport/Atlas" instance=ExtResource("diorama")]
+[node name="MapInput" type="Control" parent="MapViewport"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_right = 1600.0
-offset_bottom = 900.0
-mouse_filter = 2
-
-
-[node name="MapInput" type="Control" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-offset_top = 132.0
-offset_right = 1600.0
-offset_bottom = 742.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_default_cursor_shape = 13
 
-[node name="Pollen" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
+[node name="Stops" type="Control" parent="MapViewport"]
 unique_name_in_owner = true
 visible = false
-position = Vector2(350, 415)
-amount = 20
-lifetime = 12.0
-preprocess = 12.0
-visibility_rect = Rect2(-340, -250, 760, 500)
-process_material = SubResource("PollenMotion")
-
-[node name="Snow" type="GPUParticles2D" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-position = Vector2(1310, 325)
-amount = 65
-lifetime = 16.0
-preprocess = 16.0
-visibility_rect = Rect2(-390, -280, 800, 790)
-process_material = SubResource("SnowMotion")
-
-[node name="Stops" type="Control" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-offset_right = 1600.0
-offset_bottom = 900.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="Stage01" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+[node name="Stage01" parent="MapViewport/Stops" instance=ExtResource("stop")]
 unique_name_in_owner = true
-offset_left = 130.0
-offset_top = 497.0
-offset_right = 206.0
-offset_bottom = 609.0
-focus_neighbor_left = NodePath("../Stage01")
-focus_neighbor_right = NodePath("../Stage02")
+focus_mode = 0
 stage = ExtResource("stage1")
 
-[node name="Stage02" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+[node name="Stage02" parent="MapViewport/Stops" instance=ExtResource("stop")]
 unique_name_in_owner = true
-offset_left = 387.0
-offset_top = 328.0
-offset_right = 463.0
-offset_bottom = 440.0
-focus_neighbor_left = NodePath("../Stage01")
-focus_neighbor_right = NodePath("../Stage03")
+focus_mode = 0
 stage = ExtResource("stage2")
 
-[node name="Stage03" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+[node name="Stage03" parent="MapViewport/Stops" instance=ExtResource("stop")]
 unique_name_in_owner = true
-offset_left = 695.0
-offset_top = 393.0
-offset_right = 771.0
-offset_bottom = 505.0
-focus_neighbor_left = NodePath("../Stage02")
-focus_neighbor_right = NodePath("../Stage04")
+focus_mode = 0
 stage = ExtResource("stage3")
 
-[node name="Stage04" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+[node name="Stage04" parent="MapViewport/Stops" instance=ExtResource("stop")]
 unique_name_in_owner = true
-offset_left = 904.0
-offset_top = 253.0
-offset_right = 980.0
-offset_bottom = 365.0
-focus_neighbor_left = NodePath("../Stage03")
-focus_neighbor_right = NodePath("../Stage05")
+focus_mode = 0
 stage = ExtResource("stage4")
 
-[node name="Stage05" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+[node name="Stage05" parent="MapViewport/Stops" instance=ExtResource("stop")]
 unique_name_in_owner = true
-offset_left = 1168.0
-offset_top = 348.0
-offset_right = 1244.0
-offset_bottom = 460.0
-focus_neighbor_left = NodePath("../Stage04")
-focus_neighbor_right = NodePath("../Stage06")
+focus_mode = 0
 stage = ExtResource("stage5")
 
-[node name="Stage06" parent="MapFit/MapViewport/Atlas/Stops" instance=ExtResource("stop")]
+[node name="Stage06" parent="MapViewport/Stops" instance=ExtResource("stop")]
 unique_name_in_owner = true
-offset_left = 1392.0
-offset_top = 166.0
-offset_right = 1468.0
-offset_bottom = 278.0
-focus_neighbor_left = NodePath("../Stage05")
-focus_neighbor_right = NodePath("../Stage06")
+focus_mode = 0
 stage = ExtResource("stage6")
 
-[node name="HeaderPaper" type="ColorRect" parent="MapFit/MapViewport/Atlas"]
-offset_right = 1600.0
-offset_bottom = 132.0
-mouse_filter = 2
-color = Color(0.976, 0.98, 0.952, 0.91)
-
-[node name="FooterPaper" type="ColorRect" parent="MapFit/MapViewport/Atlas"]
-offset_top = 742.0
-offset_right = 1600.0
-offset_bottom = 900.0
-mouse_filter = 2
-color = Color(0.976, 0.98, 0.952, 0.97)
-
-[node name="Header" type="Control" parent="MapFit/MapViewport/Atlas"]
-offset_left = 32.0
-offset_top = 20.0
-offset_right = 1568.0
-offset_bottom = 128.0
-mouse_filter = 2
-
-[node name="Eyebrow" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
-offset_right = 500.0
-offset_bottom = 22.0
-text = "积木战争   /   单人战役"
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.27, 0.35, 0.28, 1)
-
-[node name="Title" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
-offset_top = 24.0
-offset_right = 620.0
-offset_bottom = 68.0
-theme_type_variation = &"MenuTitle"
-theme_override_font_sizes/font_size = 35
-text = "铁道上的六站远征"
-
-[node name="Subtitle" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
-offset_top = 73.0
-offset_right = 620.0
-offset_bottom = 99.0
-theme_override_font_sizes/font_size = 17
-text = "穿过花田、镇落与雪山。每一座车站，都是一场新的战役。"
-
-[node name="Progress" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
+[node name="LoadError" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
-offset_left = 755.0
-offset_top = 7.0
-offset_right = 1240.0
-offset_bottom = 33.0
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 19
-theme_override_colors/font_color = Color(0.27, 0.35, 0.28, 1)
-text = "已通过 00 / 06 站"
-
-[node name="TrainLocation" type="Label" parent="MapFit/MapViewport/Atlas/Header"]
-unique_name_in_owner = true
-offset_left = 755.0
-offset_top = 40.0
-offset_right = 1240.0
-offset_bottom = 66.0
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
-text = "列车停靠 · 水间花池"
-
-[node name="Navigation" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Header"]
-unique_name_in_owner = true
-offset_left = 1312.0
-offset_top = 0.0
-offset_right = 1536.0
-offset_bottom = 44.0
-theme_override_constants/separation = 12
-
-[node name="Settings" type="Button" parent="MapFit/MapViewport/Atlas/Header/Navigation"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 44)
-layout_mode = 2
-text = "设置"
-mouse_default_cursor_shape = 2
-
-[node name="Back" type="Button" parent="MapFit/MapViewport/Atlas/Header/Navigation"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 44)
-layout_mode = 2
-text = "返回"
-mouse_default_cursor_shape = 2
-metadata/ui_sound = &"cancel"
-
-[node name="Details" type="Control" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-offset_left = 32.0
-offset_top = 799.0
-offset_right = 930.0
-offset_bottom = 896.0
-mouse_filter = 2
-
-[node name="StageNumber" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
-unique_name_in_owner = true
-offset_top = 3.0
-offset_right = 76.0
-offset_bottom = 88.0
-theme_override_font_sizes/font_size = 58
-theme_override_colors/font_color = Color(0.53, 0.47, 0.29, 0.70)
-text = "01"
-
-[node name="Region" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
-unique_name_in_owner = true
-offset_left = 350.0
-offset_right = 810.0
-offset_bottom = 32.0
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.36, 0.42, 0.34, 1)
-text = "西境 · 紫阳花海"
-
-offset_top = 10.0
-[node name="StageTitle" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
-unique_name_in_owner = true
-offset_left = 90.0
-offset_top = 0.0
-offset_right = 400.0
-offset_bottom = 38.0
-theme_type_variation = &"MenuTitle"
-theme_override_font_sizes/font_size = 28
-text = "水间花池"
-
-[node name="Description" type="Label" parent="MapFit/MapViewport/Atlas/Details"]
-unique_name_in_owner = true
-offset_left = 92.0
-offset_top = 42.0
-offset_right = 920.0
-offset_bottom = 98.0
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 17
-theme_override_constants/line_spacing = 0
-text = "沿紫阳花与曲水之间的石桥向东推进，夺取花池中央的空置建筑。\n兔子守军占据两座二级住宅，却总是攒满技力后才慢悠悠地考虑施放技能。"
-
-[node name="Footer" type="Control" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-offset_left = 1056.0
-offset_top = 799.0
-offset_right = 1568.0
-offset_bottom = 896.0
-mouse_filter = 2
-
-[node name="Pager" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Footer"]
-unique_name_in_owner = true
-offset_left = 236.0
-offset_right = 512.0
-offset_bottom = 46.0
-theme_override_constants/separation = 18
-
-[node name="Previous" type="Button" parent="MapFit/MapViewport/Atlas/Footer/Pager"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(66, 46)
-layout_mode = 2
-text = "←"
-tooltip_text = "上一关"
-mouse_default_cursor_shape = 2
-
-[node name="PageNumber" type="Label" parent="MapFit/MapViewport/Atlas/Footer/Pager"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(98, 0)
-layout_mode = 2
-horizontal_alignment = 1
-vertical_alignment = 1
-text = "01 / 06"
-theme_override_font_sizes/font_size = 20
-
-[node name="Next" type="Button" parent="MapFit/MapViewport/Atlas/Footer/Pager"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(66, 46)
-layout_mode = 2
-text = "→"
-tooltip_text = "下一关"
-mouse_default_cursor_shape = 2
-
-[node name="Actions" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Footer"]
-unique_name_in_owner = true
-offset_right = 218.0
-offset_bottom = 46.0
-
-[node name="Start" type="Button" parent="MapFit/MapViewport/Atlas/Footer/Actions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(218, 46)
-layout_mode = 2
-text = "进入关卡  →"
-theme_type_variation = &"MenuPrimary"
-theme_override_font_sizes/font_size = 21
-mouse_default_cursor_shape = 2
-
-[node name="Status" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
-unique_name_in_owner = true
-offset_top = 52.0
-offset_right = 512.0
-offset_bottom = 76.0
-text = "当前关卡 · 胜利后前往下一站"
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.32, 0.38, 0.32, 1)
-
-[node name="Hints" type="Label" parent="MapFit/MapViewport/Atlas/Footer"]
-offset_top = 78.0
-offset_right = 512.0
-offset_bottom = 99.0
-text = "1–6 选站    ← → 切换    Esc 返回"
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
-
-[node name="IntroHint" type="Label" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-offset_left = 1080.0
-offset_top = 754.0
-offset_right = 1568.0
-offset_bottom = 782.0
-text = "沿线风景展开中 · 空格跳过"
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 17
-theme_override_colors/font_color = Color(0.42, 0.45, 0.38, 1)
-
-
-[node name="CameraControls" type="HBoxContainer" parent="MapFit/MapViewport/Atlas/Header"]
-unique_name_in_owner = true
-visible = false
-offset_left = 1312.0
-offset_top = 60.0
-offset_right = 1536.0
-offset_bottom = 102.0
-theme_override_constants/separation = 12
-
-[node name="Overview" type="Button" parent="MapFit/MapViewport/Atlas/Header/CameraControls"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-toggle_mode = true
-text = "全线风景"
-theme_override_font_sizes/font_size = 16
-mouse_default_cursor_shape = 2
-
-[node name="ReturnTrain" type="Button" parent="MapFit/MapViewport/Atlas/Header/CameraControls"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 40)
-layout_mode = 2
-text = "回到列车"
-theme_override_font_sizes/font_size = 16
-mouse_default_cursor_shape = 2
-
-[node name="StationShortcuts" type="HBoxContainer" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-offset_left = 32.0
-offset_top = 751.0
-offset_right = 832.0
-offset_bottom = 787.0
-theme_override_constants/separation = 10
-
-[node name="Stop01" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-toggle_mode = true
-text = "01 · 未达"
-theme_override_font_sizes/font_size = 16
-focus_neighbor_left = NodePath("../Stop01")
-focus_neighbor_right = NodePath("../Stop02")
-mouse_default_cursor_shape = 2
-
-[node name="Stop02" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-toggle_mode = true
-text = "02 · 未达"
-theme_override_font_sizes/font_size = 16
-focus_neighbor_left = NodePath("../Stop01")
-focus_neighbor_right = NodePath("../Stop03")
-mouse_default_cursor_shape = 2
-
-[node name="Stop03" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-toggle_mode = true
-text = "03 · 未达"
-theme_override_font_sizes/font_size = 16
-focus_neighbor_left = NodePath("../Stop02")
-focus_neighbor_right = NodePath("../Stop04")
-mouse_default_cursor_shape = 2
-
-[node name="Stop04" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-toggle_mode = true
-text = "04 · 未达"
-theme_override_font_sizes/font_size = 16
-focus_neighbor_left = NodePath("../Stop03")
-focus_neighbor_right = NodePath("../Stop05")
-mouse_default_cursor_shape = 2
-
-[node name="Stop05" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-toggle_mode = true
-text = "05 · 未达"
-theme_override_font_sizes/font_size = 16
-focus_neighbor_left = NodePath("../Stop04")
-focus_neighbor_right = NodePath("../Stop06")
-mouse_default_cursor_shape = 2
-
-[node name="Stop06" type="Button" parent="MapFit/MapViewport/Atlas/StationShortcuts"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-toggle_mode = true
-text = "06 · 未达"
-theme_override_font_sizes/font_size = 16
-focus_neighbor_left = NodePath("../Stop05")
-focus_neighbor_right = NodePath("../Stop06")
-mouse_default_cursor_shape = 2
-
-[node name="ExploreHint" type="Label" parent="MapFit/MapViewport/Atlas"]
-unique_name_in_owner = true
-visible = false
-offset_left = 890.0
-offset_top = 755.0
-offset_right = 1568.0
-offset_bottom = 782.0
-mouse_filter = 2
-text = "拖拽浏览沿线  ·  滚轮缩放  ·  点击车站查看关卡"
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.35, 0.42, 0.38, 1)
-
-[node name="MenuEntrance" type="Node" parent="."]
-script = ExtResource("entrance")
-sections = Array[NodePath]([NodePath("MapFit/MapViewport/Atlas/Header"), NodePath("MapFit/MapViewport/Atlas/IntroHint")])
-stagger = 0.035
+title = "无法进入战役"
+min_size = Vector2i(360, 120)
+ok_button_text = "确定"

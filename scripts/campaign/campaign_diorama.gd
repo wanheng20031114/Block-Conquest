@@ -1,14 +1,17 @@
 extends SubViewportContainer
-## Reference-scale scenery and a native perspective camera for exploring it.
+## A perspective railway whose visible ground always stays inside the landscape.
 
 signal intro_finished
 signal view_changed
 
-const STATION_DISTANCE := 70.0
-const OVERVIEW_DISTANCE := 202.0
-const MIN_DISTANCE := 12.0
-const MAX_DISTANCE := 220.0
-const PITCH := 1.0
+# The imported heightfield is solid down to the river bed, including the tunnels.
+# Reference: tools/railway_reference/src/config.js and world.js.
+const MAP_BOUNDS := Rect2(-40.0, 0.0, 168.0, 40.0)
+const GROUND_HEIGHT := 5.0
+const GROUND_PLANE := Plane(Vector3.UP, GROUND_HEIGHT)
+const EDGE_INSET := 0.25
+# Keeps the camera above the highest terrain (34) even when fully zoomed in.
+const MIN_DISTANCE := 37.0
 
 @onready var camera: Camera3D = $World/Stage/CameraRig/Camera3D
 @onready var camera_rig: Node3D = $World/Stage/CameraRig
@@ -16,59 +19,36 @@ const PITCH := 1.0
 @onready var anchors: Array[Node] = $World/Stage/Landscape/StageAnchors.get_children()
 @onready var parking_anchors: Array[Node] = $World/Stage/Landscape/ParkAnchors.get_children()
 @onready var world_route: Path3D = $World/Stage/Landscape/Journey
-@onready var entrance: AnimationPlayer = $World/Stage/Landscape/Entrance
-@onready var camera_motion: AnimationPlayer = $CameraMotion
 @onready var train: PathFollow3D = $World/Stage/Landscape/Journey/Train
 @onready var tender: PathFollow3D = $World/Stage/Landscape/Journey/Tender
 @onready var coach: PathFollow3D = $World/Stage/Landscape/Journey/Coach
 var intro_running := true
-var overview := false
-var _started := false
-var _active := true
+var overview := true
 var _view_tween: Tween
 
 func _ready() -> void:
+	# A moving ground plane would expose the world edges during entry. The screen
+	# transition provides the entrance, with the complete landscape already in place.
+	var entrance: AnimationPlayer = $World/Stage/Landscape/Entrance
+	entrance.play(&"unfold")
+	entrance.seek(entrance.get_animation(&"unfold").length, true)
+	entrance.pause()
 	var current: int = get_node("/root/Session").campaign_current_stage()
 	park_train(current)
 	focus_station(current, false)
-	for player: AnimationPlayer in [entrance, camera_motion]:
-		player.play(&"unfold")
-		player.advance(0.0)
-		player.pause()
-	entrance.animation_finished.connect(_finish_intro)
+	$World.size_changed.connect(_viewport_resized)
 	_begin_after_transition.call_deferred()
-
-func _process(_delta: float) -> void:
-	if _active and (intro_running or (_view_tween and _view_tween.is_running())):
-		view_changed.emit()
 
 func _begin_after_transition() -> void:
 	var transition: UITransition = get_node("/root/Session/Transition")
 	if transition.busy:
-		transition.completed.connect(_start_intro, CONNECT_ONE_SHOT)
+		transition.completed.connect(skip_intro, CONNECT_ONE_SHOT)
 	else:
-		_start_intro()
-
-func _start_intro() -> void:
-	if not intro_running:
-		return
-	_started = true
-	entrance.play()
-	camera_motion.play()
+		skip_intro()
 
 func skip_intro() -> void:
 	if not intro_running:
 		return
-	for player: AnimationPlayer in [entrance, camera_motion]:
-		player.seek(player.get_animation(&"unfold").length, true)
-		player.pause()
-	_finish_intro(&"unfold")
-
-func _finish_intro(_animation: StringName) -> void:
-	if not intro_running:
-		return
-	camera_motion.seek(camera_motion.get_animation(&"unfold").length, true)
-	camera_motion.pause()
 	intro_running = false
 	view_changed.emit()
 	intro_finished.emit()
@@ -89,47 +69,109 @@ func park_train(index: int) -> void:
 	for carriage: PathFollow3D in world_route.get_children():
 		carriage.progress = maxf(0.0, offset - float(carriage.get_meta(&"rail_offset")))
 
+func ground_footprint(distance: float = -1.0) -> Rect2:
+	# Native projection includes the live SubViewport aspect ratio. With the rig
+	# on the ground plane, this footprint scales linearly with camera distance.
+	camera.force_update_transform()
+	var viewport_size := Vector2($World.size)
+	var offset := Vector3.ZERO
+	if distance >= 0.0:
+		offset = camera.global_basis.z * (distance - camera.position.z)
+	var bounds := Rect2()
+	var first := true
+	for screen_point: Vector2 in [Vector2.ZERO, Vector2(viewport_size.x, 0.0), viewport_size, Vector2(0.0, viewport_size.y)]:
+		var origin := camera.project_ray_origin(screen_point) + offset
+		var intersection: Vector3 = GROUND_PLANE.intersects_ray(origin, camera.project_ray_normal(screen_point))
+		var point := Vector2(intersection.x, intersection.z)
+		if first:
+			bounds = Rect2(point, Vector2.ZERO)
+			first = false
+		else:
+			bounds = bounds.expand(point)
+	return bounds
+
+func maximum_distance() -> float:
+	var unit_footprint := ground_footprint(1.0).size
+	var available := MAP_BOUNDS.grow(-EDGE_INSET).size
+	return minf(available.x / unit_footprint.x, available.y / unit_footprint.y)
+
+func _constrain_view() -> void:
+	# Keep the projection plane invariant, including after large floating-point
+	# pointer deltas or callers supplying a focus point above the ground.
+	camera_rig.position.y = GROUND_HEIGHT
+	var limit := maximum_distance()
+	camera.position.z = clampf(camera.position.z, minf(MIN_DISTANCE, limit), limit)
+	var footprint := ground_footprint()
+	var available := MAP_BOUNDS.grow(-EDGE_INSET)
+	var center := Vector2(camera_rig.position.x, camera_rig.position.z)
+	var low := available.position - (footprint.position - center)
+	var high := available.end - (footprint.end - center)
+	# Roundoff can invert an interval by a few microunits at the exact zoom limit.
+	center.x = clampf(center.x, low.x, maxf(low.x, high.x))
+	center.y = clampf(center.y, low.y, maxf(low.y, high.y))
+	camera_rig.position = Vector3(center.x, GROUND_HEIGHT, center.y)
+	camera.force_update_transform()
+
 func focus_station(index: int, animated: bool = true) -> void:
+	overview = true
 	var station: Vector3 = anchors[index].position
-	overview = false
-	_set_view(Vector3(clampf(station.x - 2.0, -14.0, 112.0), station.y + 3.0, clampf(station.z, 12.0, 30.0)), STATION_DISTANCE, animated)
+	_set_view(Vector3(station.x, GROUND_HEIGHT, station.z), maximum_distance(), animated)
 
 func show_overview(animated: bool = true) -> void:
 	overview = true
-	_set_view(Vector3(44.0, 10.0, 21.0), OVERVIEW_DISTANCE, animated)
+	_set_view(camera_rig.position, maximum_distance(), animated)
 
 func pan_view(delta_pixels: Vector2) -> void:
 	_stop_view_tween()
-	overview = false
-	var units_per_pixel := 2.0 * camera.position.z * tan(deg_to_rad(camera.fov * 0.5)) / 900.0
-	camera_rig.position.x = clampf(camera_rig.position.x - delta_pixels.x * units_per_pixel, -32.0, 120.0)
-	camera_rig.position.z = clampf(camera_rig.position.z - delta_pixels.y * units_per_pixel / sin(PITCH), 4.0, 38.0)
+	# Measure the two screen axes on the native ground plane. The finite one-pixel
+	# rays also keep large drag events from reaching beyond the camera's horizon.
+	var middle := Vector2($World.size) * 0.5
+	var from: Vector3 = GROUND_PLANE.intersects_ray(camera.project_ray_origin(middle), camera.project_ray_normal(middle))
+	var right: Vector3 = GROUND_PLANE.intersects_ray(camera.project_ray_origin(middle + Vector2.RIGHT), camera.project_ray_normal(middle + Vector2.RIGHT))
+	var down: Vector3 = GROUND_PLANE.intersects_ray(camera.project_ray_origin(middle + Vector2.DOWN), camera.project_ray_normal(middle + Vector2.DOWN))
+	camera_rig.position += (from - right) * delta_pixels.x + (from - down) * delta_pixels.y
+	_constrain_view()
 	view_changed.emit()
 
 func zoom_view(wheel_steps: float) -> void:
 	_stop_view_tween()
-	overview = false
-	camera.position.z = clampf(camera.position.z * exp(wheel_steps * 0.12), MIN_DISTANCE, MAX_DISTANCE)
+	var limit := maximum_distance()
+	camera.position.z = clampf(camera.position.z * exp(clampf(wheel_steps, -100.0, 100.0) * 0.12), minf(MIN_DISTANCE, limit), limit)
+	_constrain_view()
+	overview = is_equal_approx(camera.position.z, maximum_distance())
 	view_changed.emit()
 
 func _set_view(target: Vector3, distance: float, animated: bool) -> void:
 	_stop_view_tween()
+	target.y = GROUND_HEIGHT
 	if not animated:
 		camera_rig.position = target
 		camera.position.z = distance
+		_constrain_view()
 		view_changed.emit()
 		return
-	_view_tween = create_tween().set_parallel(true).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	_view_tween.tween_property(camera_rig, "position", target, 0.65)
-	_view_tween.tween_property(camera, "position:z", distance, 0.65)
-	_view_tween.chain().tween_callback(func(): view_changed.emit())
+	var start := camera_rig.position
+	var start_distance := camera.position.z
+	_view_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	_view_tween.tween_method(func(weight: float):
+		camera_rig.position = start.lerp(target, weight)
+		camera.position.z = lerpf(start_distance, distance, weight)
+		_constrain_view()
+		view_changed.emit()
+	, 0.0, 1.0, 0.65)
+
+func _viewport_resized() -> void:
+	_stop_view_tween()
+	if overview:
+		camera.position.z = maximum_distance()
+	_constrain_view()
+	view_changed.emit()
 
 func _stop_view_tween() -> void:
 	if _view_tween and _view_tween.is_valid():
 		_view_tween.kill()
 
 func set_ambient(active: bool) -> void:
-	_active = active
 	$World.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE if active else SubViewport.UPDATE_DISABLED
 	$World/Stage/Landscape/Journey/Train/Model/Steam.emitting = active
 	if active:
@@ -141,9 +183,3 @@ func set_ambient(active: bool) -> void:
 			_view_tween.play()
 		else:
 			_view_tween.pause()
-	if intro_running and _started:
-		for player: AnimationPlayer in [entrance, camera_motion]:
-			if active:
-				player.play()
-			else:
-				player.pause()

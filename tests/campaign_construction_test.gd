@@ -156,7 +156,7 @@ func verify_train(diorama: SubViewportContainer) -> void:
 func verify_finished(diorama: SubViewportContainer) -> void:
 	check(not diorama.intro_running, "intro reports completion")
 	check(diorama.camera.projection == Camera3D.PROJECTION_PERSPECTIVE, "reference landscape uses a perspective camera")
-	check(is_equal_approx(diorama.camera.position.z, diorama.STATION_DISTANCE), "camera settles at the station inspection distance")
+	check(is_equal_approx(diorama.camera.position.z, diorama.maximum_distance()), "camera fits the map's vertical extent")
 	check(diorama.landscape.position.is_equal_approx(Vector3.ZERO), "landscape settles at its authored origin")
 	check(current_scene.get_node("%Stops").visible and current_scene.stops.all(func(stop: Button): return not stop.disabled), "station controls appear after the world settles")
 	for node_name: String in GEOMETRY:
@@ -176,40 +176,28 @@ func _run() -> void:
 	for index: int in 6:
 		check(session.CAMPAIGN_STAGES[index].title == STATION_NAMES[index], "station %d title matches its scenery" % (index + 1))
 		check(session.CAMPAIGN_STAGES[index].map_id == MAP_IDS[index], "station %d opens its authored battlefield" % (index + 1))
-	check(diorama.intro_running, "entering starts a fresh railway reveal")
-	check(not current_scene.get_node("%Stops").visible, "station markers stay hidden while the camera is moving")
-	check(diorama.landscape.position.y < -0.9, "first render uses the authored lowered world pose")
-	check(is_equal_approx(diorama.camera_motion.get_animation(&"unfold").length, 2.0), "camera entrance completes in two seconds")
+	check(diorama.landscape.position.is_zero_approx(), "first render keeps the full terrain at its authored origin")
 	var sun: DirectionalLight3D = diorama.get_node("World/Stage/Sun")
 	var environment: Environment = diorama.get_node("World/Stage/Environment").environment
 	check(sun.shadow_enabled and sun.light_energy > 0.0, "daylight casts clear shadows across the reference landscape")
 	check(environment.ambient_light_energy > 0.0 and environment.ambient_light_color.v > 0.0, "sky fill preserves shaded terrain and building detail")
 	await create_timer(0.55).timeout
+	verify_finished(diorama)
 	session.settings.open_menu()
-	var paused_at: float = diorama.entrance.current_animation_position
-	var camera_time: float = diorama.camera_motion.current_animation_position
 	var camera_at: Transform3D = diorama.camera.get_parent().transform
 	var world_at: Transform3D = diorama.landscape.transform
 	await create_timer(0.35).timeout
-	check(is_equal_approx(diorama.entrance.current_animation_position, paused_at), "settings pauses the landscape timeline")
-	check(is_equal_approx(diorama.camera_motion.current_animation_position, camera_time), "settings pauses the camera timeline")
 	check(diorama.camera.get_parent().transform.is_equal_approx(camera_at), "settings keeps the camera pose unchanged")
 	check(diorama.landscape.transform.is_equal_approx(world_at), "settings keeps the world pose unchanged")
-	key(KEY_SPACE)
-	check(diorama.intro_running, "a modal dialog blocks intro skip")
 	session.settings.menu.get_node("%Close").pressed.emit()
 	await create_timer(0.35).timeout
-	check(diorama.entrance.current_animation_position > paused_at, "closing settings resumes the reveal")
-	check(not current_scene.get_node("%Stops").visible, "markers stay hidden until the reveal completes")
-	if diorama.intro_running:
-		await diorama.intro_finished
 	verify_finished(diorama)
 	verify_train(diorama)
 	for shortcut: Key in [KEY_SPACE, KEY_KP_4]:
 		change_scene_to_file(MAP)
 		await scene_changed
 		await create_timer(0.15).timeout
-		check(current_scene.diorama.intro_running, "a subsequent visit replays the opening")
+		check(not current_scene.diorama.intro_running, "subsequent visits show the complete terrain immediately")
 		key(shortcut)
 		verify_finished(current_scene.diorama)
 		await create_timer(0.5).timeout
@@ -223,7 +211,7 @@ func _run() -> void:
 	await scene_changed
 	while session.transition.busy:
 		await process_frame
-	check(not is_instance_valid(departing), "exiting mid-intro frees its animation players")
-	check(current_scene.scene_file_path == "res://scenes/lobby.tscn", "escape returns to the lobby during the reveal")
+	check(not is_instance_valid(departing), "exiting frees the campaign scene")
+	check(current_scene.scene_file_path == "res://scenes/lobby.tscn", "escape returns to the lobby")
 	print("CAMPAIGN_CONSTRUCTION checks=", checks, " failures=", failures.size())
 	quit(0 if failures.is_empty() else 1)

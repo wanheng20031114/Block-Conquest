@@ -33,16 +33,6 @@ tonemap_mode = 0
 tonemap_exposure = 1.0
 tonemap_white = 6.0
 
-[sub_resource type="Animation" id="CameraUnfold"]
-resource_name = "unfold"
-length = 2.0
-tracks/0/type = "value"
-tracks/0/path = NodePath("World/Stage/CameraRig/Camera3D:position:z")
-tracks/0/keys = {"times": PackedFloat32Array(0, 1.8, 2.0), "transitions": PackedFloat32Array(0.7, 1, 1), "update": 0, "values": [84.0, 70.0, 70.0]}
-
-[sub_resource type="AnimationLibrary" id="CameraLibrary"]
-_data = {&"unfold": SubResource("CameraUnfold")}
-
 [node name="Diorama" type="SubViewportContainer"]
 offset_right = 1600.0
 offset_bottom = 900.0
@@ -79,17 +69,16 @@ light_color = Color(0.7686, 0.8627, 1, 1)
 light_energy = 0.1
 
 [node name="CameraRig" type="Node3D" parent="World/Stage"]
-position = Vector3(-24, 11, 20)
+physics_interpolation_mode = 2
+position = Vector3(-24, 5, 20)
 rotation_degrees = Vector3(-57.29578, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="World/Stage/CameraRig"]
-position = Vector3(0, 0, 70)
+position = Vector3(0, 0, 60)
+keep_aspect = 1
 fov = 30.0
 near = 0.5
 far = 900.0
 current = true
 
 [node name="Landscape" parent="World/Stage" instance=ExtResource("landscape")]
-
-[node name="CameraMotion" type="AnimationPlayer" parent="."]
-libraries = {&"": SubResource("CameraLibrary")}

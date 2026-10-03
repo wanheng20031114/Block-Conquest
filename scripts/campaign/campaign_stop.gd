@@ -29,7 +29,8 @@ func set_progress(available: bool, cleared: bool, parked: bool) -> void:
 	completed = cleared
 	train_here = parked
 	$State.text = "列车停靠" if parked else ("已通关" if cleared else ("可挑战" if available else "待解锁"))
-	tooltip_text = "%02d · %s\n%s" % [stage.number, stage.title, $State.text]
+	var instruction := "点击进入关卡 · Enter 进入所选关卡" if available else "通过第 %02d 站后解锁" % (stage.number - 1)
+	tooltip_text = "%02d · %s\n%s\n%s\n%s\n%s" % [stage.number, stage.title, stage.region, stage.description, $State.text, instruction]
 	_refresh(false)
 
 func _hover(value: bool) -> void:
