@@ -236,17 +236,22 @@ func _host_review() -> void:
 	game.network_match.submit({"type": "upgrade", "building": bear_source.building_id})
 	await pause(0.8)
 	_phase("rush", {})
-	game.network_match.submit({"type": "skill_building", "skill": 0, "target": bear_source.building_id})
+	check(game.network_match.submit({"type": "skill_building", "skill": 0, "target": bear_source.building_id}).accepted, "bear Q command submitted to authority")
 	await pause(0.3)
 	_focus(rabbit_source.global_position + Vector3(-5, 0, 0))
 	await _take("rush")
 	_phase("bear", {})
-	game.network_match.submit({"type": "skill_building", "skill": 2, "target": bear_source.building_id})
+	check(game.network_match.submit({"type": "skill_building", "skill": 2, "target": bear_source.building_id}).accepted, "bear E command submitted to authority")
 	await pause(0.4)
 	game.faction_skills[5].energy = 100.0
-	game.network_match.submit({"type": "skill_building", "skill": 3, "target": bear_source.building_id})
-	game.network_match.submit({"type": "skill_ground", "skill": 1, "x": 50.0, "z": 36.0})
+	check(game.network_match.submit({"type": "skill_building", "skill": 3, "target": bear_source.building_id}).accepted, "bear R command submitted to authority")
+	if not await until(func(): return game.faction_skills[5].cooldowns[3] > 0.0, "bear R authority executes before the W fixture grant"): return
+	# Each skill is verified independently: R costs 90, so grant W its own test
+	# energy after the queued R command has actually settled on the authority.
+	game.faction_skills[5].energy = 100.0
+	check(game.network_match.submit({"type": "skill_building", "skill": 1, "target": enemy_source.building_id}).accepted, "bear W enemy-building command submitted to authority")
 	await pause(0.8)
+	check(game.bear.is_locked(enemy_source.building_id) and game.bear.locks[enemy_source.building_id].faction == 5 and game.bear.locks[enemy_source.building_id].remaining > 0.0, "bear W authority installs the host faction's active enemy-building lock")
 	_focus(bear_source.global_position + Vector3(-5, 0, -5))
 	await _take("bear_ward")
 	game.faction_skills[3].energy = 100.0

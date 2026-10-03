@@ -139,6 +139,9 @@ def templates() -> Path:
 
 def build_relay() -> Path:
     """Produce a server-only PCK and unchanged, checksum-verified release templates."""
+    # Check the selected source tree before downloads or staging. Frozen releases
+    # may override ROOT, so use that tree's generator instead of the working cwd.
+    subprocess.run([sys.executable, str(ROOT / "tools/build_network_manifest.py"), "--check"], cwd=ROOT, check=True)
     folder = LOCAL / "relay-package"
     project = folder / "project"
     project.mkdir(parents=True, exist_ok=True)
