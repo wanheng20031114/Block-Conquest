@@ -27,6 +27,32 @@ func camera_view_inside_map() -> bool:
 				return false
 	return true
 
+func check_rivers_central_routes() -> void:
+	# The five central sites must connect without leaving their own river island.
+	# Check every pair because each intervening house can close a different lane.
+	for source_id: int in range(20, 24):
+		for target_id: int in range(source_id + 1, 25):
+			var source: WarBuilding = game.buildings[source_id]
+			var target: WarBuilding = game.buildings[target_id]
+			var route: PackedVector3Array = game.map.get_building_route(source, target)
+			var label := "rivers central %d -> %d" % [source_id, target_id]
+			check(route.size() >= 2 and Array(route).all(func(point: Vector3): return absf(point.x) < 7.0), "%s stays on the central island" % label)
+			var direct_distance := absf(source.global_position.z - target.global_position.z)
+			check(game.map.get_building_distance(source, target) <= direct_distance + 8.0, "%s avoids an unnecessary bridge detour" % label)
+			var avoids_buildings := true
+			for point: Vector3 in route:
+				for building_id: int in range(20, 25):
+					if building_id == source_id or building_id == target_id:
+						continue
+					if point.distance_to(game.buildings[building_id].global_position) < WarMap.BUILDING_CLEARANCE - 0.001:
+						avoids_buildings = false
+			check(avoids_buildings, "%s goes around intermediate buildings" % label)
+	# Both sides of the two houses need room for all six files, even where the
+	# visible road goes through the building and scenery hugs the river bank.
+	for x: float in [-4.0, 4.0]:
+		for start_z: float in [-22.0, 10.0]:
+			check(game.map._segment_clear(Vector3(x, 0, start_z), Vector3(x, 0, start_z + 12.0)), "rivers central lane x=%s z=%s has full formation clearance" % [x, start_z])
+
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
 	var session := root.get_node("Session")
@@ -67,6 +93,8 @@ func _run() -> void:
 			var central: PackedVector3Array = game.map.get_building_route(game.buildings[10], game.buildings[11])
 			check(central.size() >= 2 and game.map.get_building_distance(game.buildings[10], game.buildings[11]) < 35.0, "baked central route avoids the two-bridge detour")
 			check(not central.is_empty() and Array(central).all(func(point: Vector3): return absf(point.x) < 7.0), "baked central route stays on the central island")
+		if definition.map_id == "rivers":
+			check_rivers_central_routes()
 		game.camera_rig.focus_at(Vector3(1000, 0, -1000), true)
 		check(camera_view_inside_map(), "camera bounds keep the entire viewport inside this map's rendered terrain")
 		check(game._valid_ground_skill_target(Vector3(definition.half_size.x - 1, 0, 0)), "skills reach the edges of every map size")

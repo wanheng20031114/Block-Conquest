@@ -64,6 +64,12 @@ def author_nature(layout, paths):
         # The central road runs through the tower, but armies pass on either
         # side. Keep both actual lanes open between the tower and the coves.
         obstacle_paths.extend((x, -6.0, x, 6.0) for x in (-4.0, 4.0))
+    elif map_id == "rivers":
+        # The two central homes also need side passages. Reserving only the
+        # painted road lets bank stones close the gap around their walls and
+        # sends same-island marches across two bridges.
+        obstacle_paths.extend((x, z - 6.0, x, z + 6.0)
+                              for x in (-4.0, 4.0) for z in (-16.0, 16.0))
     rng = random.Random(925730 + sum((i + 1) * ord(char) for i, char in enumerate(map_id)))
     externals = [f'[ext_resource type="PackedScene" path="{NATURE}{name}.tscn" id="nature_{name}"]' for name in SCENES]
     externals += [f'[ext_resource type="ArrayMesh" path="{NATURE}{name}_combined.res" id="nature_{name}_mesh"]' for name in SMALL if name != "reed_cluster"]
