@@ -15,6 +15,4 @@ dest_files=["res://.godot/imported/train.svg-3409699fdb8e004895af4b1b205e0b79.dp
 base_scale=2.0
 saturation=1.0
 color_map={}
-fix_alpha_border=false
-premult_alpha=false
 compress=true
