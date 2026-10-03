@@ -45,13 +45,33 @@ func _brightness(image: Image, point: Vector2i) -> float:
 			sum += (color.r + color.g + color.b) / 3.0
 	return sum / 25.0
 
-func _core_pixels(clouds: Node3D, sun: DirectionalLight3D, camera: Camera3D) -> Array[Vector2i]:
-	var result: Array[Vector2i] = []
+func _projected_cores(clouds: Node3D, sun: DirectionalLight3D) -> Array[Vector3]:
+	var result: Array[Vector3] = []
 	var direction := -sun.global_basis.z
-	var frame := Rect2(Vector2(12, 12), Vector2(root.size) - Vector2(24, 24))
 	for cloud: Node3D in clouds.get_node("Drift").get_children():
 		var center: Vector3 = cloud.get_node("Core").global_position
-		var projected := center + direction * (-center.y / direction.y)
+		result.append(center + direction * (-center.y / direction.y))
+	return result
+
+func _nearest_projected_core(clouds: Node3D, sun: DirectionalLight3D, focus: Vector3) -> Vector3:
+	# Turning sunlight moves high cloud shadows. Anchor close-up pans to a
+	# real core using geometry alone, never the measured shadow brightness.
+	var closest := Vector3.INF
+	var distance := INF
+	for projected: Vector3 in _projected_cores(clouds, sun):
+		var candidate := projected.distance_squared_to(focus)
+		if candidate < distance:
+			distance = candidate
+			closest = projected
+	_check(closest.is_finite(), "A real cloud core anchors each close-up pan")
+	_check(signf(closest.x) == signf(focus.x), "Close-up pans stay on opposite sides")
+	_check(absf(closest.x) < 140.0 and absf(closest.z) < 140.0, "Close-up pans fit inside the receiver")
+	return closest
+
+func _core_pixels(clouds: Node3D, sun: DirectionalLight3D, camera: Camera3D) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	var frame := Rect2(Vector2(12, 12), Vector2(root.size) - Vector2(24, 24))
+	for projected: Vector3 in _projected_cores(clouds, sun):
 		# Canvas stretch keeps the camera's logical coordinates at the project
 		# viewport size even when the captured window image uses fewer pixels.
 		var screen := camera.unproject_position(projected) * Vector2(root.size) / root.get_visible_rect().size
@@ -102,9 +122,12 @@ func _run() -> void:
 		{"name": "near", "zoom": 24.0, "focus": Vector3.ZERO},
 		{"name": "normal", "zoom": 67.0, "focus": Vector3.ZERO},
 		{"name": "far", "zoom": 95.0, "focus": Vector3.ZERO},
-		{"name": "near-left", "zoom": 24.0, "focus": Vector3(-40, 0, -8)},
-		{"name": "near-right", "zoom": 24.0, "focus": Vector3(40, 0, 16)},
+		{"name": "near-left", "zoom": 24.0, "focus": _nearest_projected_core(clouds, sun, Vector3(-40, 0, -8))},
+		{"name": "near-right", "zoom": 24.0, "focus": _nearest_projected_core(clouds, sun, Vector3(40, 0, 16))},
 	]
+	if failures:
+		quit(1)
+		return
 	var legacy_hollow_cores := 0
 	for view: Dictionary in cases:
 		camera.size = view.zoom
