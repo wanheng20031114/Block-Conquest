@@ -125,6 +125,57 @@ corner_radius_bottom_left = 18
 corner_radius_bottom_right = 18
 corner_detail = 16
 
+[sub_resource type="StyleBoxFlat" id="IndexScrollTrack"]
+bg_color = Color(0.73, 0.8, 0.67, 0.55)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="IndexScrollGrabber"]
+bg_color = Color(0.47, 0.58, 0.4, 1)
+content_margin_left = 4.0
+content_margin_top = 12.0
+content_margin_right = 4.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="IndexScrollHover"]
+bg_color = Color(0.37, 0.49, 0.31, 1)
+content_margin_left = 4.0
+content_margin_top = 12.0
+content_margin_right = 4.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="IndexScrollPressed"]
+bg_color = Color(0.31, 0.43, 0.27, 1)
+content_margin_left = 4.0
+content_margin_top = 12.0
+content_margin_right = 4.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="Theme" id="IndexScrollTheme"]
+VScrollBar/styles/scroll = SubResource("IndexScrollTrack")
+VScrollBar/styles/scroll_focus = SubResource("IndexScrollTrack")
+VScrollBar/styles/grabber = SubResource("IndexScrollGrabber")
+VScrollBar/styles/grabber_highlight = SubResource("IndexScrollHover")
+VScrollBar/styles/grabber_pressed = SubResource("IndexScrollPressed")
+
 [node name="Codex" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -228,7 +279,7 @@ size_flags_vertical = 3
 
 [node name="Sidebar" type="PanelContainer" parent="Margin/Column/Body"]
 layout_mode = 2
-custom_minimum_size = Vector2(246, 0)
+custom_minimum_size = Vector2(260, 0)
 theme_override_styles/panel = SubResource("Sidebar")
 
 [node name="Navigation" type="VBoxContainer" parent="Margin/Column/Body/Sidebar"]
@@ -259,6 +310,7 @@ theme_override_styles/focus = SubResource("Focus")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme = SubResource("IndexScrollTheme")
 texture_filter = 1
 fixed_icon_size = Vector2i(58, 58)
 icon_mode = 1
@@ -266,6 +318,7 @@ allow_reselect = true
 theme_override_font_sizes/font_size = 22
 theme_override_constants/v_separation = 16
 theme_override_constants/h_separation = 12
+theme_override_constants/scrollbar_h_separation = 10
 theme_override_constants/icon_margin = 14
 theme_override_colors/font_color = Color(0.31, 0.3, 0.23, 1)
 theme_override_colors/font_hovered_color = Color(0.31, 0.3, 0.23, 1)
