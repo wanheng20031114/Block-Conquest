@@ -77,6 +77,23 @@ func _run() -> void:
 	var diorama: SubViewportContainer = atlas.diorama
 	check(atlas.stops.size() == 6, "six projected station buttons remain playable")
 	check(atlas.selected_index == 0 and atlas.stops[0].visible, "returning to an inspected station keeps selection and camera together")
+	for index: int in atlas.stops.size():
+		var stop: Button = atlas.stops[index]
+		check(not stop.has_node("State"), "station state no longer uses a permanent text label")
+		check(stop.get_node("Caption").visible == (index == 0), "only the selected station keeps its name visible at rest")
+		check(stop.tooltip_text.split("\n").size() == 1 and not stop.tooltip_text.contains(stop.stage.title), "station hint keeps one necessary action without duplicating the visible name")
+		var expected_icon := "menu_check.svg" if index < 3 else ("station_battle.svg" if index == 3 else "menu_lock.svg")
+		check(stop.get_node("Badge/StateIcon").texture.resource_path.ends_with(expected_icon), "station state has an unambiguous pictogram")
+		check(stop.get_node("Badge/TrainMarker").visible == (index == 3), "train location uses an independent visual badge")
+	session.campaign_completed_count = 6
+	session.campaign_progress_changed.emit()
+	check(atlas.stops[5].get_node("Badge/TrainMarker").visible and atlas.stops[5].get_node("Badge/StateIcon").texture.resource_path.ends_with("menu_check.svg"), "final victory shows completion and train location together")
+	session.campaign_completed_count = 3
+	session.campaign_progress_changed.emit()
+	for control_name: String in ["Back", "Settings", "ReturnTrain"]:
+		var action: Button = atlas.get_node("%" + control_name)
+		check(action.text.is_empty() and action.icon != null, control_name + " uses an icon instead of permanent text")
+		check(not action.tooltip_text.is_empty(), control_name + " keeps a concise discoverable hint")
 	for removed: String in ["Header", "Footer", "Details", "StationShortcuts", "CameraControls", "ExploreHint", "IntroHint"]:
 		check(atlas.find_child(removed, true, false) == null, "fullscreen map removes " + removed)
 	check(diorama.camera.projection == Camera3D.PROJECTION_PERSPECTIVE, "railway retains perspective scenery")
@@ -90,6 +107,8 @@ func _run() -> void:
 		check(diorama.get_global_rect().is_equal_approx(atlas.get_global_rect()), "map fills viewport at " + str(resolution))
 		check(atlas.get_node("%MapInput").get_global_rect().is_equal_approx(atlas.get_global_rect()), "map input covers the entire screen")
 		check(Vector2(diorama.get_node("World").size).is_equal_approx(diorama.size), "3D viewport follows the actual aspect ratio")
+		for control_name: String in ["Back", "Settings", "ReturnTrain"]:
+			check(atlas.get_global_rect().encloses(atlas.get_node("%" + control_name).get_global_rect()), "floating " + control_name + " stays inside the screen")
 		for index: int in 6:
 			key((KEY_1 + index) as Key)
 			var contained := true
@@ -118,6 +137,25 @@ func _run() -> void:
 		await capture("campaign-fullscreen-%d" % resolution.x)
 	root.size = Vector2i(1600, 900)
 	await settle()
+	click(atlas.get_node("%ReturnTrain"))
+	await settle()
+	check(atlas.selected_index == 3 and atlas.stops[3].visible, "train icon returns to the current station without starting battle")
+	check(diorama.train.global_position.distance_to(parked_at) < 0.02, "train navigation icon only moves the view")
+	var hover := InputEventMouseMotion.new()
+	hover.position = atlas.stops[2].get_global_rect().get_center()
+	hover.global_position = hover.position
+	root.push_input(hover, true)
+	await settle()
+	check(atlas.stops[2].get_node("Caption").visible, "hover reveals the nearby station name without changing selection")
+	check(atlas.selected_index == 3, "hover preserves the selected destination")
+	await capture("campaign-hover-hint")
+	hover = InputEventMouseMotion.new()
+	hover.position = Vector2(180, 160)
+	hover.global_position = hover.position
+	root.push_input(hover, true)
+	await settle()
+	check(not atlas.stops[2].get_node("Caption").visible, "leaving the station hides its optional name again")
+	await capture("campaign-visual-language")
 	key(KEY_3)
 	await settle()
 	var middle := Vector2(180, 160)
@@ -157,6 +195,11 @@ func _run() -> void:
 	click(session.settings.menu.get_node("%Close"))
 	await settle()
 	check(diorama.get_node("World").render_target_update_mode == SubViewport.UPDATE_WHEN_VISIBLE, "closing settings resumes map rendering")
+	click(atlas.get_node("%Settings"))
+	await settle()
+	check(session.settings.is_open(), "gear icon opens settings")
+	click(session.settings.menu.get_node("%Close"))
+	await settle()
 	key(KEY_1)
 	await settle()
 	click(atlas.stops[0])
@@ -175,10 +218,10 @@ func _run() -> void:
 	session.back_to_campaign()
 	await scene_changed
 	await settle()
-	key(KEY_ESCAPE)
+	click(current_scene.get_node("%Back"))
 	await scene_changed
 	await settle()
-	check(current_scene.scene_file_path == "res://scenes/lobby.tscn", "Escape returns to the lobby")
+	check(current_scene.scene_file_path == "res://scenes/lobby.tscn", "back icon returns to the lobby")
 	check(root.content_scale_aspect == content_aspect, "leaving the railway restores other menus' scaling")
 	check(current_scene.get_node("%Campaign").has_focus(), "lobby restores campaign entry focus")
 	check(session.settings.snapshot() == preferences, "browsing preserves preferences")

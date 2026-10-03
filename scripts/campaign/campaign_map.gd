@@ -19,6 +19,10 @@ func _ready() -> void:
 	diorama.intro_finished.connect(_reveal_journey)
 	diorama.view_changed.connect(_project_stops)
 	%MapInput.gui_input.connect(_map_input)
+	%Back.pressed.connect(_back)
+	%Settings.pressed.connect(_open_settings)
+	%ReturnTrain.pressed.connect(_return_to_train)
+	session.get_node("UIFeedback").bind_buttons(%MapActions)
 	session.campaign_progress_changed.connect(_refresh_progress)
 	session.settings.opened.connect(_sync_ambient)
 	session.settings.closed.connect(_sync_ambient)
@@ -112,6 +116,16 @@ func _step(direction: int) -> void:
 	diorama.skip_intro()
 	_select(clampi(selected_index + direction, 0, stops.size() - 1))
 
+func _return_to_train() -> void:
+	if _navigation_blocked():
+		return
+	diorama.skip_intro()
+	_select(session.campaign_current_stage())
+
+func _open_settings() -> void:
+	if not _navigation_blocked():
+		session.settings.open_menu()
+
 func _sync_ambient() -> void:
 	_end_drag()
 	diorama.set_ambient(not session.settings.is_open() and not %LoadError.visible)
@@ -131,7 +145,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_back()
 	elif event.keycode == KEY_P or event.is_action_pressed("pause"):
-		session.settings.open_menu()
+		_open_settings()
+	elif event.keycode == KEY_HOME:
+		_return_to_train()
 	elif event.is_action_pressed("ui_left"):
 		_step(-1)
 	elif event.is_action_pressed("ui_right"):

@@ -1,6 +1,10 @@
 extends Button
 ## The hit area stays still while its scene-authored paper marker lifts.
 
+const BATTLE_ICON := preload("res://assets/ui/campaign/station_battle.svg")
+const COMPLETE_ICON := preload("res://assets/ui/block_war/menu_check.svg")
+const LOCKED_ICON := preload("res://assets/ui/block_war/menu_lock.svg")
+
 @export var stage: CampaignStage
 var selected := false
 var unlocked := false
@@ -10,10 +14,12 @@ var _hovered := false
 var _motion: Tween
 
 func _ready() -> void:
-	$Badge/Number.text = "%02d" % stage.number
+	$Badge/Number.text = str(stage.number)
 	$Caption.text = stage.title
-	tooltip_text = "%02d · %s\n%s" % [stage.number, stage.title, stage.region]
-	pressed.connect(func(): get_node("/root/Session/UIFeedback").play(&"order"))
+	pressed.connect(func():
+		if unlocked:
+			get_node("/root/Session/UIFeedback").play(&"order")
+	)
 	mouse_entered.connect(_hover.bind(true))
 	mouse_exited.connect(_hover.bind(false))
 	focus_entered.connect(_refresh)
@@ -28,9 +34,8 @@ func set_progress(available: bool, cleared: bool, parked: bool) -> void:
 	unlocked = available
 	completed = cleared
 	train_here = parked
-	$State.text = "列车停靠" if parked else ("已通关" if cleared else ("可挑战" if available else "待解锁"))
-	var instruction := "点击进入关卡 · Enter 进入所选关卡" if available else "通过第 %02d 站后解锁" % (stage.number - 1)
-	tooltip_text = "%02d · %s\n%s\n%s\n%s\n%s" % [stage.number, stage.title, stage.region, stage.description, $State.text, instruction]
+	tooltip_text = ("重玩关卡" if cleared else "进入关卡") if available else "通过第 %d 站后解锁" % (stage.number - 1)
+	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if available else Control.CURSOR_ARROW
 	_refresh(false)
 
 func _hover(value: bool) -> void:
@@ -41,12 +46,14 @@ func _refresh(animated: bool = true) -> void:
 	if _motion and _motion.is_valid():
 		_motion.kill()
 	var engaged := selected or _hovered or has_focus(true)
-	var lift := -9.0 if selected else (-4.0 if engaged else 0.0)
-	var fill := Color("ddc48d") if selected else (Color("dce3d0") if completed else (Color("fcf8e9") if unlocked else Color("deded5")))
+	var lift := -5.0 if selected else (-3.0 if engaged else 0.0)
+	var fill := Color("f0dfb7") if selected else (Color("e1ead9") if completed else (Color("fcf8e9") if unlocked else Color("deded5")))
 	var edge := Color("886b3d") if selected else (Color("456153") if unlocked else Color("81867d"))
-	$Badge/Focus.visible = has_focus(true)
+	$Badge/Focus.visible = selected or has_focus(true)
+	$Badge/StateIcon.texture = COMPLETE_ICON if completed else (BATTLE_ICON if unlocked else LOCKED_ICON)
+	$Badge/TrainMarker.visible = train_here
+	$Caption.visible = engaged
 	$Caption.add_theme_color_override("font_color", Color("354d41") if not selected else Color("67491f"))
-	$State.add_theme_color_override("font_color", Color("526854") if unlocked else Color("787d75"))
 	if not animated:
 		$Badge.position.y = lift
 		$Badge/Paper.color = fill
