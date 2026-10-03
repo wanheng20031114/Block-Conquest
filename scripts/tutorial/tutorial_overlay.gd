@@ -32,6 +32,7 @@ const SCREEN_MARGIN := 20.0
 @onready var annotations: Control = $UI/Annotations
 
 var _spotlights: Array[Rect2] = []
+var _annotation_obstacles: Array[Rect2] = []
 var _completion := false
 var _layout_pending := false
 var _layout_profile := -1
@@ -102,8 +103,12 @@ func set_interaction_regions(rects: Array[Rect2]) -> void:
 	dimmer.interaction_regions.assign(rects)
 
 
-func set_annotations(items: Array[Dictionary]) -> void:
-	if annotations.set_annotations(items):
+func set_annotations(items: Array[Dictionary], obstacles: Array[Rect2] = []) -> void:
+	var changed: bool = annotations.set_annotations(items)
+	if obstacles != _annotation_obstacles:
+		_annotation_obstacles.assign(obstacles)
+		changed = true
+	if changed:
 		_queue_layout()
 
 
@@ -186,7 +191,7 @@ func _layout() -> void:
 	var small := viewport_size.x < 1150.0
 	_configure_density(2 if small else (1 if compact else 0))
 	objective.size.x = 280.0 if small else (302.0 if compact else 340.0)
-	objective.position = Vector2(24.0, 112.0)
+	objective.position = Vector2(24.0, 80.0)
 	# The left-hand percentage column must remain wholly visible when taught.
 	for target: Rect2 in _spotlights:
 		if target.position.x < 150.0 and target.size.x < 180.0 and target.size.y > 250.0:
@@ -203,6 +208,7 @@ func _layout() -> void:
 	else:
 		instruction.position = _instruction_position(viewport_size)
 	var occupied: Array[Rect2] = [objective.get_rect()]
+	occupied.append_array(_annotation_obstacles)
 	if instruction.visible: occupied.append(instruction.get_rect().grow(10.0))
 	if hint.visible: occupied.append(hint.get_rect())
 	if gesture.visible: occupied.append_array(gesture.annotation_exclusion_rects())

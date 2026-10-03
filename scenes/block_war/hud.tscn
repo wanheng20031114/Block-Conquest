@@ -900,14 +900,14 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 6.0
 offset_right = 200.0
-offset_bottom = 76.0
+offset_bottom = 82.0
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 8
 
 [node name="Upgrade" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(62, 76)
+custom_minimum_size = Vector2(68, 82)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -918,10 +918,10 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/Upgrade"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 3.0
-offset_right = 44.0
-offset_bottom = 45.0
+offset_left = 2.0
+offset_top = 5.0
+offset_right = 40.0
+offset_bottom = 47.0
 mouse_filter = 2
 texture = ExtResource("action_upgrade")
 expand_mode = 1
@@ -929,29 +929,29 @@ stretch_mode = 5
 
 [node name="NextLevel" type="Label" parent="UI/Selection/BuildingActions/Upgrade"]
 layout_mode = 0
-offset_left = 41.0
-offset_top = 7.0
-offset_right = 61.0
-offset_bottom = 39.0
+offset_left = 46.0
+offset_top = 10.0
+offset_right = 66.0
+offset_bottom = 42.0
 mouse_filter = 2
 theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(1, 0.84, 0.45, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 2
 text = "2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/Upgrade"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 45.0
-offset_right = 56.0
-offset_bottom = 72.0
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 60.0
+offset_bottom = 80.0
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/Upgrade/Cost"]
 layout_mode = 2
@@ -969,14 +969,14 @@ theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 2
 text = "10"
 vertical_alignment = 1
 
 [node name="ConvertHouse" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(62, 76)
+custom_minimum_size = Vector2(68, 82)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -987,10 +987,10 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertHouse"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 3.0
-offset_right = 52.0
-offset_bottom = 45.0
+offset_left = 13.0
+offset_top = 5.0
+offset_right = 55.0
+offset_bottom = 47.0
 mouse_filter = 2
 texture = ExtResource("action_house")
 expand_mode = 1
@@ -998,13 +998,13 @@ stretch_mode = 5
 
 [node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertHouse"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 45.0
-offset_right = 56.0
-offset_bottom = 72.0
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 60.0
+offset_bottom = 80.0
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertHouse/Cost"]
 layout_mode = 2
@@ -1022,14 +1022,14 @@ theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 2
 text = "20"
 vertical_alignment = 1
 
 [node name="ConvertTower" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(62, 76)
+custom_minimum_size = Vector2(68, 82)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1040,10 +1040,10 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertTower"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 3.0
-offset_right = 52.0
-offset_bottom = 45.0
+offset_left = 13.0
+offset_top = 5.0
+offset_right = 55.0
+offset_bottom = 47.0
 mouse_filter = 2
 texture = ExtResource("action_tower")
 expand_mode = 1
@@ -1051,13 +1051,13 @@ stretch_mode = 5
 
 [node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertTower"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 45.0
-offset_right = 56.0
-offset_bottom = 72.0
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 60.0
+offset_bottom = 80.0
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertTower/Cost"]
 layout_mode = 2
@@ -1075,14 +1075,14 @@ theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 2
 text = "20"
 vertical_alignment = 1
 
 [node name="ConvertForge" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(62, 76)
+custom_minimum_size = Vector2(68, 82)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1093,10 +1093,10 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertForge"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 3.0
-offset_right = 52.0
-offset_bottom = 45.0
+offset_left = 13.0
+offset_top = 5.0
+offset_right = 55.0
+offset_bottom = 47.0
 mouse_filter = 2
 texture = ExtResource("action_forge")
 expand_mode = 1
@@ -1104,13 +1104,13 @@ stretch_mode = 5
 
 [node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertForge"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 45.0
-offset_right = 56.0
-offset_bottom = 72.0
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 60.0
+offset_bottom = 80.0
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertForge/Cost"]
 layout_mode = 2
@@ -1128,14 +1128,14 @@ theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 2
 text = "20"
 vertical_alignment = 1
 
 [node name="ConvertEnergy" type="Button" parent="UI/Selection/BuildingActions"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(62, 76)
+custom_minimum_size = Vector2(68, 82)
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("Empty")
 theme_override_styles/hover = SubResource("ActionHover")
@@ -1146,10 +1146,10 @@ metadata/ui_motion_hover_scale = 1.0
 
 [node name="Icon" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertEnergy"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 3.0
-offset_right = 52.0
-offset_bottom = 45.0
+offset_left = 13.0
+offset_top = 5.0
+offset_right = 55.0
+offset_bottom = 47.0
 mouse_filter = 2
 texture = ExtResource("action_energy")
 expand_mode = 1
@@ -1157,13 +1157,13 @@ stretch_mode = 5
 
 [node name="Cost" type="HBoxContainer" parent="UI/Selection/BuildingActions/ConvertEnergy"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 45.0
-offset_right = 56.0
-offset_bottom = 72.0
+offset_left = 8.0
+offset_top = 53.0
+offset_right = 60.0
+offset_bottom = 80.0
 mouse_filter = 2
 alignment = 1
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="Population" type="TextureRect" parent="UI/Selection/BuildingActions/ConvertEnergy/Cost"]
 layout_mode = 2
@@ -1181,7 +1181,7 @@ theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(1, 0.97, 0.81, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.17, 0.09, 0.95)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 2
 text = "20"
 vertical_alignment = 1
 

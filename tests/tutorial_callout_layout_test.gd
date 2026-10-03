@@ -70,9 +70,17 @@ func inspect_annotations(label: String) -> void:
 		check(not rect.intersects(game.tutor.objective.get_global_rect()), name + " leaves objective visible")
 		check(not rect.intersects(game.tutor.instruction.get_global_rect()), name + " leaves explanation visible")
 		check(not rect.intersects(item.target), name + " leaves its subject visible")
+		for obstacle: Rect2 in game.tutor._annotation_obstacles:
+			check(not rect.intersects(obstacle), name + " leaves neighboring buildings and their population visible")
+		for subject: Dictionary in annotations._items:
+			if subject.has("obstacle"):
+				check(not rect.intersects(subject.obstacle), name + " leaves the building, population or complete action strip visible")
 		for previous: int in index:
 			check(not rect.intersects(rects[previous]), name + " does not cover another label")
 		var line: PackedVector2Array = annotations._lines[index]
+		for obstacle: Rect2 in game.tutor._annotation_obstacles:
+			if not obstacle.has_point(item.target.get_center()):
+				check(not annotations._crosses_rect(line[0], line[1], obstacle), name + " leader avoids neighboring buildings and their population")
 		check(line[0].distance_to(line[1]) <= 180.0, name + " uses a short leader (" + str(snappedf(line[0].distance_to(line[1]), 1.0)) + "px)")
 
 func _run() -> void:
@@ -96,6 +104,14 @@ func _run() -> void:
 		await inspect_phase(2, "building_drag_%d" % resolution.x)
 		await load_lesson("house")
 		await inspect_phase(1, "upgrade_%d" % resolution.x)
+		check(game.tutor.annotations._items.size() == 1 and game.tutor.annotations._items[0].text == "升级", "upgrade only identifies its current action")
+		game.by_id[0].level = 2
+		game.by_id[0].population = 31.0
+		game.by_id[0].refresh_visual()
+		game.update_hud()
+		await inspect_phase(2, "conversion_%d" % resolution.x)
+		var conversion_labels: Array = game.tutor.annotations._items.map(func(item: Dictionary): return item.text)
+		check(conversion_labels == ["铁匠铺", "炮塔"], "conversion names the two new symbols without repeating ownership or upgrade")
 		await load_lesson("tower")
 		await inspect_phase(0, "tower_range_%d" % resolution.x)
 		for lesson: String in ["recruit", "drum", "shield", "fire"]:

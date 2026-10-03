@@ -446,7 +446,8 @@ func _ui_rect(path: String) -> Rect2:
 
 func _ownership_label(building: WarBuilding) -> Dictionary:
 	return {"text": "中立" if building.faction < 0 else ("己方" if building.faction == local_faction else "敌方"),
-		"target": _mesh_rect(building.get_node("Visual/Flag")), "badge": true, "side": "right"}
+		"target": _mesh_rect(building.get_node("Visual/Flag")), "badge": true, "side": "right",
+		"obstacle": _world_rect(building.global_position).merge(_population_rect(building))}
 
 func _mesh_rect(mesh: MeshInstance3D) -> Rect2:
 	var bounds := mesh.get_aabb()
@@ -491,15 +492,19 @@ func _update_guidance() -> void:
 		tutor.clear_gesture()
 		return
 	var focus := str(phase.focus)
+	# Labels teach the current concept; a highlighted building alone must not
+	# reintroduce ownership and population captions throughout the course.
+	var teaching_labels: Array = phase.labels
 	if focus.begins_with("building:"):
 		var building: WarBuilding = by_id[int(focus.get_slice(":", 1))]
 		rectangles.append(_world_rect(building.global_position))
-		labels.append(_ownership_label(building))
-		if lesson_id in ["basics", "house", "recruit"] and building.is_population_visible():
+		if "ownership" in teaching_labels:
+			labels.append(_ownership_label(building))
+		if "population" in teaching_labels:
 			labels.append({"text": "驻军", "target": _population_rect(building), "side": "above"})
-		else:
+		if "kind" in teaching_labels:
 			labels.append({"text": KIND_NAMES[building.kind], "target": rectangles[0], "side": "below"})
-		if lesson_id == "tower" and building.kind == 1:
+		if "range" in teaching_labels:
 			rectangles.append(_tower_range_rect(building))
 			var edge := camera.unproject_position(building.global_position + Vector3.RIGHT * building.attack_range)
 			labels.append({"text": "射程", "target": Rect2(edge - Vector2.ONE * 4.0, Vector2.ONE * 8.0), "side": "right"})
@@ -515,16 +520,15 @@ func _update_guidance() -> void:
 			var army := _army_rect(int(phase.army))
 			rectangles[1] = army.grow(20.0)
 			labels.append({"text": "己方部队" if int(phase.army) == 0 else "敌方部队", "target": army})
-		else:
-			labels.append(_ownership_label(by_id[int(phase.target)]))
 	else:
 		match focus:
 			"buildings":
 				rectangles.append(_world_rect(by_id[0].global_position))
 				rectangles.append(_world_rect(by_id[1].global_position))
-				labels.append(_ownership_label(by_id[0]))
-				labels.append(_ownership_label(by_id[1]))
-				if lesson_id == "basics" and phase.action == "read":
+				if "ownership" in teaching_labels:
+					labels.append(_ownership_label(by_id[0]))
+					labels.append(_ownership_label(by_id[1]))
+				if "population" in teaching_labels:
 					labels.append({"text": "驻军", "target": _population_rect(by_id[0]), "side": "above"})
 			"top":
 				rectangles.append(_ui_rect("UI/Top/Balance/Segments"))
@@ -538,31 +542,49 @@ func _update_guidance() -> void:
 				rectangles.append(_ui_rect("UI/Top/Balance/Stars/Faction1"))
 				labels.append({"text": "己方士气", "target": rectangles[0], "side": "below"})
 				labels.append({"text": "敌方士气", "target": rectangles[1], "side": "below"})
-			"skills":
+			"skills", "skill_row":
 				rectangles.append(_ui_rect("UI/Skills/Row"))
-				rectangles.append(_ui_rect("UI/Skills/EnergyBar"))
 				labels.append({"text": "技能", "target": rectangles[0], "side": "left"})
-				labels.append({"text": "技力", "target": rectangles[1], "side": "right"})
+				if focus == "skills":
+					rectangles.append(_ui_rect("UI/Skills/EnergyBar"))
+					labels.append({"text": "技力", "target": rectangles[1], "side": "right"})
+			"energy_meter":
+				rectangles.append(_ui_rect("UI/Skills/EnergyBar"))
+				labels.append({"text": "技力", "target": rectangles[0], "side": "right"})
 			"ratios":
 				rectangles.append(_ui_rect("UI/Percentages"))
 				labels.append({"text": "出兵比例", "target": rectangles[0], "side": "above"})
 			"selection", "upgrade":
 				rectangles.append(_world_rect(by_id[0].global_position))
-				rectangles.append(_ui_rect("UI/Selection/BuildingActions/Upgrade"))
-				labels.append(_ownership_label(by_id[0]))
-				labels.append({"text": "升级", "target": rectangles[1], "side": "above"})
-				if focus == "selection":
-					var conversion := _ui_rect("UI/Selection/BuildingActions/ConvertTower").merge(_ui_rect("UI/Selection/BuildingActions/ConvertForge"))
-					rectangles.append(conversion)
-					labels.append({"text": "改建", "target": conversion, "side": "right"})
+				if focus == "upgrade":
+					rectangles.append(_ui_rect("UI/Selection/BuildingActions/Upgrade"))
+					labels.append({"text": "升级", "target": _ui_rect("UI/Selection/BuildingActions/Upgrade/Icon"), "side": "above",
+						"obstacle": hud.get_node("UI/Selection/BuildingActions").get_global_rect()})
+				else:
+					# Reserve space for the wider caption before the shorter one.
+					for kind: String in ["Forge", "Tower"]:
+						var action_path := "UI/Selection/BuildingActions/Convert" + kind
+						rectangles.append(_ui_rect(action_path))
+						labels.append({"text": "炮塔" if kind == "Tower" else "铁匠铺", "target": _ui_rect(action_path + "/Icon"), "side": "above",
+							"obstacle": hud.get_node("UI/Selection/BuildingActions").get_global_rect()})
 			"energy":
 				rectangles.append(_world_rect(by_id[1].global_position))
 				rectangles.append(_ui_rect("UI/Skills/EnergyBar"))
 				labels.append({"text": "能量塔", "target": rectangles[0], "side": "above"})
-				labels.append(_ownership_label(by_id[1]))
 				labels.append({"text": "技力", "target": rectangles[1], "side": "right"})
 	tutor.set_spotlights(rectangles)
-	tutor.set_annotations(labels)
+	var annotation_obstacles: Array[Rect2] = []
+	if not labels.is_empty():
+		for building: WarBuilding in buildings:
+			var bounds := _world_rect(building.global_position)
+			if building.is_population_visible():
+				bounds = bounds.merge(_population_rect(building))
+			annotation_obstacles.append(bounds)
+		if focus in ["selection", "upgrade"]:
+			for action: Control in hud.get_node("UI/Selection/BuildingActions").get_children():
+				if action.visible:
+					annotation_obstacles.append(action.get_global_rect())
+	tutor.set_annotations(labels, annotation_obstacles)
 	var regions: Array[Rect2] = []
 	if simulation_paused and _can_direct_interact():
 		match phase.action:

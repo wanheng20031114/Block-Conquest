@@ -20,15 +20,15 @@ static func minutes(id: String) -> String:
 	return "约 2 分钟" if id in ["interface", "house", "recruit"] else "约 1 分钟"
 
 static func step(heading: String, body: String, goal: String, action: String, focus: String, extra: Dictionary = {}) -> Dictionary:
-	var result := {"title": heading, "body": body, "goal": goal, "action": action, "focus": focus}
-	result.merge(extra)
+	var result := {"title": heading, "body": body, "goal": goal, "action": action, "focus": focus, "labels": []}
+	result.merge(extra, true)
 	return result
 
 static func steps(id: String) -> Array[Dictionary]:
 	match id:
 		"basics": return [
-			step("你的住宅", "金色旗帜表示己方，住宅会自动产兵。\n讲解时战场暂停，操作示范会继续播放。", "认识己方住宅", "read", "building:0"),
-			step("己方与中立", "金旗是己方，灰旗是中立；花瓣里的数字是驻军。\n士兵离开时数字逐批减少，敌方驻军不公开。", "区分己方与中立建筑", "read", "buildings"),
+			step("你的住宅", "金色旗帜表示己方，住宅会自动产兵。\n讲解时战场暂停，操作示范会继续播放。", "认识己方住宅", "read", "building:0", {"labels": ["ownership"]}),
+			step("己方与中立", "金旗是己方，灰旗是中立；花瓣里的数字是驻军。\n士兵离开时数字逐批减少，敌方驻军不公开。", "区分己方与中立建筑", "read", "buildings", {"labels": ["ownership", "population"]}),
 			step("拖动派兵", "按住己方住宅，左键拖到中立住宅后松开。\n默认派出 50% 驻军；拖错时按右键取消。", "拖动己方住宅，攻占中立住宅", "capture", "buildings", {"source": 0, "target": 1}),
 			step("占领成功", "旗帜变金，剩余士兵成为驻军。\n这座住宅也会为你产兵。", "已占领第一座据点", "read", "building:1")]
 		"interface": return [
@@ -39,29 +39,29 @@ static func steps(id: String) -> Array[Dictionary]:
 			step("滚轮缩放", "在地图空白处滚动滚轮，拉近或拉远视野。\n拖动建筑时，滚轮会改出兵比例。", "在地图空白处滚动滚轮", "zoom", "world"),
 			step("移动视野", "在地图空白处按住中键拖动，再松开。\n也可用方向键移动；视野不会越出地图。", "中键拖动地图，或按方向键", "pan", "world")]
 		"house": return [
-			step("住宅产兵", "1 级住宅产兵 %s 人/秒，驻扎容量 %d 人。\n达到容量只停自然产兵，增援和征召人数不限。" % [BUILDING.HOUSE_PRODUCTION_RATES[0], BUILDING.HOUSE_PRODUCTION_LIMITS[0]], "观察住宅驻军", "read", "building:0"),
+			step("住宅产兵", "1 级住宅产兵 %s 人/秒，驻扎容量 %d 人。\n达到容量只停自然产兵，增援和征召人数不限。" % [BUILDING.HOUSE_PRODUCTION_RATES[0], BUILDING.HOUSE_PRODUCTION_LIMITS[0]], "观察住宅驻军", "read", "building:0", {"labels": ["population"]}),
 			step("点击升级", "选中己方住宅，点击向上箭头升级到 2 级。\n消耗 %d 人，%d 秒完成；施工仍按原等级产兵和防守。" % [BUILDING.HOUSE_UPGRADE_COSTS[0], BUILDING.upgrade_duration(0, 1)], "点击升级，等待住宅升到 2 级", "upgrade", "upgrade", {"target": 0}),
-			step("2 级住宅", "产兵 %s 人/秒，驻扎容量 %d 人，防御力 +%d%%。\n旁边的建筑图标用于改建，也会消耗驻军。" % [BUILDING.HOUSE_PRODUCTION_RATES[1], BUILDING.HOUSE_PRODUCTION_LIMITS[1], roundi(COMBAT.house_defense_bonus(2) * 100.0)], "认识升级结果与改建按钮", "read", "selection")]
+			step("2 级住宅", "产兵 %s 人/秒，容量 %d，防御 +%d%%。\n改建消耗驻军，数量见图标下方。" % [BUILDING.HOUSE_PRODUCTION_RATES[1], BUILDING.HOUSE_PRODUCTION_LIMITS[1], roundi(COMBAT.house_defense_bonus(2) * 100.0)], "认识升级结果与改建按钮", "read", "selection")]
 		"tower": return [
-			step("炮塔与射程", "虚线圈是射程，1 级炮塔每 %s 秒射击 1 名敌兵。\n防御力 +%d%%；不产兵，需要住宅增援。" % [COMBAT.tower_attack_interval(1), roundi(COMBAT.tower_defense_bonus(1) * 100.0)], "找到炮塔射程圈", "read", "building:1"),
+			step("炮塔与射程", "虚线圈是射程，1 级炮塔每 %s 秒射击 1 名敌兵。\n防御力 +%d%%；不产兵，需要住宅增援。" % [COMBAT.tower_attack_interval(1), roundi(COMBAT.tower_defense_bonus(1) * 100.0)], "找到炮塔射程圈", "read", "building:1", {"labels": ["kind", "range"]}),
 			step("增援炮塔", "从己方住宅拖到己方炮塔，送入援军。\n随后观察炮塔自动击退敌军。", "从住宅拖到己方炮塔", "reinforce_tower", "buildings", {"source": 0, "target": 1, "watch_goal": "观察增援抵达、炮塔击退敌军"}),
 			step("防守完成", "援军已抵达，炮塔击退了敌军。", "确认炮塔防守结果", "read", "building:1"),
 			step("守住路口", "在敌军必经之路布置炮塔，并用住宅补充守军。", "已完成炮塔防守", "read", "building:1")]
 		"forge": return [
-			step("铁匠铺加成", "1 座铁匠铺：攻击力 +%d%%、防御力 +%d%%。\n无移速加成，不产兵，需要住宅增援。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0)], "认识铁匠铺", "read", "building:1"),
+			step("铁匠铺加成", "1 座铁匠铺：攻击力 +%d%%、防御力 +%d%%。\n无移速加成，不产兵，需要住宅增援。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0)], "认识铁匠铺", "read", "building:1", {"labels": ["kind"]}),
 			step("占领铁匠铺", "从住宅拖到中立铁匠铺，派兵占领。", "占领中立铁匠铺", "capture", "buildings", {"source": 0, "target": 1}),
 			step("全军攻防提高", "持有铁匠铺，加成自动生效；失守后加成消失。", "已获得铁匠铺攻防加成", "read", "building:1")]
 		"energy": return [
 			step("能量塔与技力", "技能下方的细条是技力，施法会消耗它。\n能量塔加快技力恢复，不产兵；多塔收益递减。", "找到能量塔与技力条", "read", "energy"),
 			step("占领能量塔", "从住宅拖到中立能量塔，派兵占领。", "占领中立能量塔", "capture", "buildings", {"source": 0, "target": 1}),
-			step("观察技力恢复", "看技能下方的技力条，等待恢复 5 点。\n技力满后停止增长。", "等待技力恢复 5 点", "energy_watch", "skills"),
+			step("观察技力恢复", "看技能下方的技力条，等待恢复 5 点。\n技力满后停止增长。", "等待技力恢复 5 点", "energy_watch", "energy_meter"),
 			step("四种建筑", "住宅产兵，炮塔守路。\n铁匠铺提高攻防，能量塔加快技力恢复。", "已认识四种建筑", "read", "building:1")]
 		"morale": return [
 			step("士气星星", "兵力条下的星星是士气，影响全军攻防和移速。\n占领据点可获得士气，500 点亮起第一颗星。", "找到己方士气星星", "read", "morale"),
 			step("点亮第一颗星", "派兵占领空置的中立铁匠铺。\n占领后，看顶部己方的第一颗星亮起。", "占领铁匠铺，升到一星士气", "capture", "buildings", {"source": 0, "target": 1}),
 			step("一星加成", "每颗完整星：攻击力 +5%%、防御力 +%d%%、移速 +10%%。\n最多 5 星；进攻伤亡、失守或久无战果会降低士气。" % roundi(WarMorale.DEFENSE_PER_STAR * 100.0), "确认一星士气加成", "read", "morale")]
 		"recruit": return [
-			step("征召军令", "这座住宅已有 30 人，超过 %d 人驻扎容量，已停产。\n征召仍可补充士兵，驻军容纳人数不限。" % BUILDING.HOUSE_PRODUCTION_LIMITS[0], "认识征召军令的用途", "read", "building:0"),
+			step("征召军令", "这座住宅已有 30 人，超过 %d 人驻扎容量，已停产。\n征召仍可补充士兵，驻军容纳人数不限。" % BUILDING.HOUSE_PRODUCTION_LIMITS[0], "认识征召军令的用途", "read", "building:0", {"labels": ["population"]}),
 			step("拖动一技能", "把第一个技能拖到己方住宅上，松开施放。\n看完 %d 秒征召；右键可取消瞄准。" % RULES.DURATIONS[0], "将征召军令拖到己方住宅", "cast_building", "skill:0", {"skill": 0, "target": 0, "watch_goal": "观察征召结束、驻军增加"}),
 			step("征召完成", "完整征召增加 %d 人，超过 %d 人驻扎容量也可接收。" % [int(RULES.RECRUIT_RATE * RULES.DURATIONS[0]), BUILDING.HOUSE_PRODUCTION_LIMITS[0]], "确认征召后的驻军", "read", "building:0"),
 			step("补兵后扩张", "从住宅拖到中立据点，派出一半驻军进攻。", "派兵占领前方据点", "capture", "buildings", {"source": 0, "target": 1})]
@@ -76,5 +76,5 @@ static func steps(id: String) -> Array[Dictionary]:
 		"fire": return [
 			step("天降冲击", "小范围火焰适合攻击密集敌军。\n接触的敌我行军士兵都会死亡，注意避开己军。", "瞄准密集敌军，避开己军", "read", "army:1"),
 			step("拖动四技能", "把第四个技能拖到青绿色敌军中央，松开施放。\n观察火焰展开、消散；右键可取消瞄准。", "用天降冲击消灭至少 3 名敌军", "fire_hit", "skill:3", {"skill": 3, "army": 1, "watch_goal": "消灭至少 3 名敌军，观察火焰消散"}),
-			step("四个技能", "征召补兵，战鼓加速，护盾守点，冲击清敌。", "已完成松鼠的四项技能练习", "read", "skills")]
+			step("四个技能", "征召补兵，战鼓加速，护盾守点，冲击清敌。", "已完成松鼠的四项技能练习", "read", "skill_row")]
 	return []

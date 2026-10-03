@@ -5,6 +5,7 @@ extends Control
 const SLOT_COUNT := 6
 const MARGIN := 14.0
 const GAP := 22.0
+const CLEARANCE := 8.0
 
 @onready var _slots: Array[Control] = [$Slot1, $Slot2, $Slot3, $Slot4, $Slot5, $Slot6]
 
@@ -39,6 +40,10 @@ func layout_annotations(viewport_size: Vector2, avoid: Array[Rect2]) -> void:
 	_lines.clear()
 	var compact := viewport_size.x < 1150.0
 	var bounds := Rect2(Vector2.ONE * MARGIN, (viewport_size - Vector2.ONE * MARGIN * 2.0).max(Vector2.ONE))
+	var subjects: Array[Rect2] = []
+	for item: Dictionary in _items:
+		if item.has("obstacle"):
+			subjects.append(item.obstacle)
 	for index: int in _items.size():
 		var item := _items[index]
 		var target: Rect2 = item["target"]
@@ -52,6 +57,9 @@ func layout_annotations(viewport_size: Vector2, avoid: Array[Rect2]) -> void:
 			label_size = Vector2.ONE * maxf(74.0 if compact else 82.0, text_size.x * 1.64)
 		label_size = label_size.min(bounds.size)
 		var occupied: Array[Rect2] = avoid.duplicate()
+		# Leaders may point to a small flag/icon, but their captions must leave
+		# the complete building, population badge or action strip readable.
+		occupied.append_array(subjects)
 		occupied.append_array(_rects)
 		var placed := _place_label(target, label_size, str(item.get("side", "auto")), bounds, occupied)
 		_slots[index].position = placed.position
@@ -89,20 +97,27 @@ func _place_label(target: Rect2, label_size: Vector2, side: String, bounds: Rect
 			# Slide along the same edge before abandoning an otherwise nearby
 			# position when a panel or another annotation occupies the middle.
 			for rect: Rect2 in occupied:
-				candidates.append(Vector2(centered.x, rect.position.y - label_size.y - MARGIN))
-				candidates.append(Vector2(centered.x, rect.end.y + MARGIN))
+				candidates.append(Vector2(centered.x, rect.position.y - label_size.y - CLEARANCE))
+				candidates.append(Vector2(centered.x, rect.end.y + CLEARANCE))
+				# Keep a direct leader when the subject itself is inside a larger
+				# obstacle: move out past that obstacle without sliding sideways.
+				var outer_x := minf(centered.x, rect.position.x - label_size.x - CLEARANCE) if direction == "left" else maxf(centered.x, rect.end.x + CLEARANCE)
+				candidates.append(Vector2(outer_x, centered.y))
 		else:
 			centered.y = target.position.y - GAP - label_size.y if direction == "above" else target.end.y + GAP
 			candidates.append(centered)
 			candidates.append(Vector2(target.position.x, centered.y))
 			candidates.append(Vector2(target.end.x - label_size.x, centered.y))
 			for rect: Rect2 in occupied:
-				candidates.append(Vector2(rect.position.x - label_size.x - MARGIN, centered.y))
-				candidates.append(Vector2(rect.end.x + MARGIN, centered.y))
+				candidates.append(Vector2(rect.position.x - label_size.x - CLEARANCE, centered.y))
+				candidates.append(Vector2(rect.end.x + CLEARANCE, centered.y))
+				var outer_y := minf(centered.y, rect.position.y - label_size.y - CLEARANCE) if direction == "above" else maxf(centered.y, rect.end.y + CLEARANCE)
+				candidates.append(Vector2(centered.x, outer_y))
 		for _index: int in range(start_index, candidates.size()):
 			preferences.append(float(sides.find(direction)) * 100.0 if side != "auto" else 0.0)
 	var best := Rect2(bounds.position, label_size)
 	var best_overlap := INF
+	var best_crossings := 2147483647
 	var best_distance := INF
 	for index: int in candidates.size():
 		var position_on_screen := candidates[index].clamp(bounds.position, (bounds.end - label_size).max(bounds.position))
@@ -113,14 +128,33 @@ func _place_label(target: Rect2, label_size: Vector2, side: String, bounds: Rect
 		for other: Dictionary in _items:
 			var other_target: Rect2 = other["target"]
 			overlap += candidate.intersection(other_target.grow(8.0)).get_area() * 3.0
+		var from := _edge_towards(candidate, target.get_center())
+		var to := _edge_towards(target, candidate.get_center())
+		var crossings := 0
+		for obstacle: Rect2 in occupied:
+			# A leader ends inside its own subject, but must not cut across a
+			# neighboring population badge, building or another annotation.
+			if not obstacle.has_point(target.get_center()) and _crosses_rect(from, to, obstacle.grow(2.0)):
+				crossings += 1
 		# Strictly prefer clear space, then proximity. The candidate index is a
 		# deterministic tie-breaker so labels do not flip sides each frame.
 		var distance := candidate.get_center().distance_to(target.get_center()) + preferences[index] + float(index) * 0.05
-		if overlap < best_overlap or (is_equal_approx(overlap, best_overlap) and distance < best_distance):
+		if overlap < best_overlap or (is_equal_approx(overlap, best_overlap) and (crossings < best_crossings or (crossings == best_crossings and distance < best_distance))):
 			best = candidate
 			best_overlap = overlap
+			best_crossings = crossings
 			best_distance = distance
 	return best
+
+
+func _crosses_rect(from: Vector2, to: Vector2, rect: Rect2) -> bool:
+	if rect.has_point(from) or rect.has_point(to):
+		return true
+	var corners := PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)])
+	for index: int in 4:
+		if Geometry2D.segment_intersects_segment(from, to, corners[index], corners[(index + 1) % 4]) != null:
+			return true
+	return false
 
 
 func _edge_towards(rect: Rect2, point: Vector2) -> Vector2:
