@@ -1,0 +1,55 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="StandardMaterial3D" id="cloud_occluder"]
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="cloud_lobe"]
+material = SubResource("cloud_occluder")
+radius = 1.0
+height = 2.0
+is_hemisphere = false
+radial_segments = 24
+rings = 12
+
+[node name="RoundCloud" type="Node3D"]
+
+[node name="Core" type="MeshInstance3D" parent="."]
+scale = Vector3(6.6, 1.7, 6.5)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
+
+[node name="NorthwestBillow" type="MeshInstance3D" parent="."]
+position = Vector3(-4.5, 0.6, -3.4)
+scale = Vector3(5.1, 1.2, 4.2)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
+
+[node name="Crown" type="MeshInstance3D" parent="."]
+position = Vector3(1.7, 0.3, -4.6)
+scale = Vector3(4.4, 1.45, 4.0)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
+
+[node name="EastBillow" type="MeshInstance3D" parent="."]
+position = Vector3(5.5, -0.1, -0.1)
+scale = Vector3(5.0, 1.4, 5.0)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
+
+[node name="SoutheastBillow" type="MeshInstance3D" parent="."]
+position = Vector3(3.0, 0.3, 4.3)
+scale = Vector3(5.2, 1.2, 4.2)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
+
+[node name="SouthwestBillow" type="MeshInstance3D" parent="."]
+position = Vector3(-4.6, -0.15, 3.7)
+scale = Vector3(4.4, 1.1, 4.0)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
+
+[node name="WestShoulder" type="MeshInstance3D" parent="."]
+position = Vector3(-7.8, 0.2, -0.2)
+scale = Vector3(3.6, 1.1, 3.8)
+mesh = SubResource("cloud_lobe")
+cast_shadow = 3
