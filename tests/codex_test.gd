@@ -281,8 +281,10 @@ func _run() -> void:
 		if entry.id == &"skills":
 			_check("开局 0 点技力" in entry.sections[0].body and "之后 1.5 点/秒" in entry.sections[0].body, "energy guide retains zero opening and fractional late regeneration")
 		elif entry.id == &"tower":
+			for tier: int in 4:
+				_check(entry.table.rows[tier][1] == str([11, 13, 14, 15][tier]) and is_equal_approx(float(entry.table.rows[tier][2]), [1.0, 0.9, 0.8, 0.8][tier]), "tower guide shows current range and reload at tier %d" % (tier + 1))
 			for tier: int in 3:
-				_check(entry.table.rows[tier][5] == str([20, 60, 90][tier]) and entry.table.rows[tier][6] == "15", "tower guide shows current cost and duration at tier %d" % (tier + 1))
+				_check(entry.table.rows[tier][5] == str([20, 30, 60][tier]) and entry.table.rows[tier][6] == "15", "tower guide shows current cost and duration at tier %d" % (tier + 1))
 		await _search(entry.title)
 		# Titles also match other guides' tags and summaries. Select the exact
 		# result through native input instead of requiring a unique search hit.

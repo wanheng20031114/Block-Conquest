@@ -59,8 +59,8 @@ func _run() -> void:
 	var tower := _building(3)
 	var node_count := tower.find_children("*", "", true, false).size()
 	var old_stone: ArrayMesh = tower.get_node("Visual/Tower/Stone").mesh
-	_check(tower.max_level == 4 and tower.upgrade_cost == 90, "third tower upgrades to fourth for 90 troops")
-	tower.begin_construction(-1, 90)
+	_check(tower.max_level == 4 and tower.upgrade_cost == 60, "third tower upgrades to fourth for 60 troops")
+	tower.begin_construction(-1, 60)
 	_check(tower.construction_remaining == 15.0, "fourth-tier construction lasts fifteen seconds")
 	tower.advance_construction(14.0)
 	_check(tower.level == 3 and tower.get_node("Visual/Tower/Stone").mesh == old_stone, "unfinished upgrade preserves the third-tier model")

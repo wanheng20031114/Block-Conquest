@@ -55,7 +55,7 @@ func _run() -> void:
 	for faction: int in [0, 1]:
 		for tier: int in [1, 2, 3]:
 			await reset_match(tier, faction)
-			check(is_equal_approx(game.tower_interval(tower), [1.0, 0.8, 0.6][tier - 1]), "tower attacks 50 percent faster by dividing its old interval by 1.5")
+			check(is_equal_approx(game.tower_interval(tower), [1.0, 0.9, 0.8][tier - 1]), "tower uses the requested per-tier firing interval")
 			var enemy := 1 - faction
 			spawn(Vector3(5, 0, 0), enemy, 6)
 			spawn(Vector3(5, 0, 2), faction, 6)
@@ -76,10 +76,11 @@ func _run() -> void:
 			check(game.projectiles.size() == tier and game.marches.total_for(enemy) == 6 - tier, "reload launches the next live volley before damage")
 			land()
 			check(game.marches.total_for(enemy) == 6 - tier * 2, "the next volley also resolves only on impact")
-	for tier: int in [1, 2, 3]:
+	for tier: int in [1, 2, 3, 4]:
 		await reset_match(tier)
-		var reach: float = [11.0, 13.0, 15.0][tier - 1]
+		var reach: float = [11.0, 13.0, 14.0, 15.0][tier - 1]
 		check(game.tower_range(tower) == reach, "tier %d exposes its larger actual range" % tier)
+		check(is_equal_approx(tower.get_node("AttackRange").size.x * 0.98, reach * 2.0), "range decal matches the actual firing diameter")
 		spawn(Vector3(reach + 0.05, 0, 0), 1)
 		game.simulate(0.001)
 		check(game.projectiles.is_empty() and game.tower_clocks[tower.building_id] == 0.0, "outside-range scans do not consume reload")
@@ -140,7 +141,7 @@ func _run() -> void:
 	game.marches.clear()
 	game.upgrade_selected()
 	game.simulate(15.0)
-	check(tower.level == 3 and tower.population == 20.0 and game.tower_range(tower) == 15.0, "third tier completes with its original cost and fifteen-metre range")
+	check(tower.level == 3 and tower.population == 50.0 and game.tower_range(tower) == 14.0, "third tier costs thirty soldiers and reaches fourteen metres")
 	# Neutral towers stay silent; capture swaps targeting after the same 0.6s delay.
 	await reset_match(3, -1)
 	spawn(Vector3(4, 0, 0), 0)
@@ -169,11 +170,11 @@ func _fourth_tier_rate() -> void:
 	game.marches.tick(0.25)
 	game.simulate(0.001)
 	check(game.projectiles.size() == 4, "fourth-tier tower launches four balls at once")
-	check(is_equal_approx(game.tower_clocks[tower.building_id], 0.4), "fourth-tier reload is 0.4 seconds after its first volley")
-	game.simulate(0.399)
+	check(is_equal_approx(game.tower_clocks[tower.building_id], 0.8), "fourth-tier reload is 0.8 seconds after its first volley")
+	game.simulate(0.799)
 	check(game.projectiles.is_empty() and game.marches.total_for(1) == 20, "first fourth-tier volley lands and no second volley fires before its deadline")
 	game.simulate(0.001001)
-	check(game.projectiles.size() == 4 and game.marches.total_for(1) == 20, "fourth-tier tower fires its second four-ball volley within a microsecond of the 0.4-second deadline")
+	check(game.projectiles.size() == 4 and game.marches.total_for(1) == 20, "fourth-tier tower fires its second four-ball volley within a microsecond of the 0.8-second deadline")
 
 func _finish() -> void:
 	print("BLOCK_WAR_TOWER checks=", checks, " failures=", failures.size())

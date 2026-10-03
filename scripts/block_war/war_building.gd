@@ -26,7 +26,7 @@ const HOUSE_PRODUCTION_RATES: Array[float] = [0.33, 0.66, 1.0, 1.2]
 const HOUSE_PRODUCTION_LIMITS: Array[float] = [20.0, 40.0, 60.0, 80.0]
 const HOUSE_UPGRADE_COSTS: Array[int] = [5, 15, 30]
 const HOUSE_UPGRADE_DURATIONS: Array[float] = [5.0, 10.0, 20.0]
-const TOWER_UPGRADE_COSTS: Array[int] = [20, 60, 90]
+const TOWER_UPGRADE_COSTS: Array[int] = [20, 30, 60]
 const TOWER_UPGRADE_DURATION := 15.0
 const CONSTRUCTION_DURATION := 10.0
 const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
@@ -54,12 +54,13 @@ var max_level: int:
 	get:
 		return [4, 4, 1, 1][kind]
 var attack_range: float:
-	get: return 9.0 + level * 2.0
+	get: return COMBAT_RULES.tower_attack_range(level)
 var upgrade_cost: int:
 	get:
 		return upgrade_cost_for(kind, level)
 
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
+const COMBAT_RULES := preload("res://scripts/block_war/war_combat_rules.gd")
 const FACTION_COLORS: Array[Color] = FACTIONS.COLORS
 const NEUTRAL_COLOR := Color("b5aa87")
 const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺", "能量塔"]

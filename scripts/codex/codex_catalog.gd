@@ -116,10 +116,10 @@ static func guides() -> Array[Dictionary]:
 			"table": {
 				"headers": ["等级", "射程\n米", "攻击间隔\n秒", "每轮目标\n人", "防御力", "升级消耗\n人", "升级耗时\n秒"],
 				"rows": [
-					["1", "%d" % (9.0 + 1 * 2.0), str(COMBAT.tower_attack_interval(1)), "1", "+%d%%" % roundi(COMBAT.tower_defense_bonus(1) * 100.0), str(BUILDING.upgrade_cost_for(1, 1)), "%d" % BUILDING.upgrade_duration(1, 1)],
-					["2", "%d" % (9.0 + 2 * 2.0), str(COMBAT.tower_attack_interval(2)), "2", "+%d%%" % roundi(COMBAT.tower_defense_bonus(2) * 100.0), str(BUILDING.upgrade_cost_for(1, 2)), "%d" % BUILDING.upgrade_duration(1, 2)],
-					["3", "%d" % (9.0 + 3 * 2.0), str(COMBAT.tower_attack_interval(3)), "3", "+%d%%" % roundi(COMBAT.tower_defense_bonus(3) * 100.0), str(BUILDING.upgrade_cost_for(1, 3)), "%d" % BUILDING.upgrade_duration(1, 3)],
-					["4", "%d" % (9.0 + 4 * 2.0), str(COMBAT.tower_attack_interval(4)), "4", "+%d%%" % roundi(COMBAT.tower_defense_bonus(4) * 100.0), "—", "—"],
+					["1", "%d" % COMBAT.tower_attack_range(1), str(COMBAT.tower_attack_interval(1)), "1", "+%d%%" % roundi(COMBAT.tower_defense_bonus(1) * 100.0), str(BUILDING.upgrade_cost_for(1, 1)), "%d" % BUILDING.upgrade_duration(1, 1)],
+					["2", "%d" % COMBAT.tower_attack_range(2), str(COMBAT.tower_attack_interval(2)), "2", "+%d%%" % roundi(COMBAT.tower_defense_bonus(2) * 100.0), str(BUILDING.upgrade_cost_for(1, 2)), "%d" % BUILDING.upgrade_duration(1, 2)],
+					["3", "%d" % COMBAT.tower_attack_range(3), str(COMBAT.tower_attack_interval(3)), "3", "+%d%%" % roundi(COMBAT.tower_defense_bonus(3) * 100.0), str(BUILDING.upgrade_cost_for(1, 3)), "%d" % BUILDING.upgrade_duration(1, 3)],
+					["4", "%d" % COMBAT.tower_attack_range(4), str(COMBAT.tower_attack_interval(4)), "4", "+%d%%" % roundi(COMBAT.tower_defense_bonus(4) * 100.0), "—", "—"],
 				],
 			},
 			"sections": [

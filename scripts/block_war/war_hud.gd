@@ -281,7 +281,8 @@ func _update_building_actions(state: Dictionary) -> void:
 	var duration := WarBuilding.upgrade_duration(int(state.selected_kind), level)
 	var upgrade_hint := "升级至 %d 级 · 耗时 %d 秒\n消耗 %d 名驻军 · %s\n%s" % [level + 1, duration, cost, detail, state.selected_detail]
 	if int(state.selected_kind) == 1 and not capped:
-		upgrade_hint += "\n完工后射程增加 2 米"
+		var range_increase := COMBAT_RULES.tower_attack_range(level + 1) - COMBAT_RULES.tower_attack_range(level)
+		upgrade_hint += "\n完工后射程增加 %d 米" % roundi(range_increase)
 	var amount := str(cost)
 	if capped:
 		upgrade_hint = "已达 %d 级\n%s" % [max_level, state.selected_detail]

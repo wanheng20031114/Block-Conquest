@@ -69,7 +69,7 @@ func _run() -> void:
 			var path: String = "Visual/%s/Stone" % ["House", "Tower", "Smithy"][kind]
 			var old_mesh: Mesh = home.get_node(path).mesh
 			var cost := home.upgrade_cost
-			check(cost == ([5, 15, 30] if kind == 0 else [20, 60, 90])[tier - 1], "each upgrade exposes its exact authored population cost")
+			check(cost == ([5, 15, 30] if kind == 0 else [20, 30, 60])[tier - 1], "each upgrade exposes its exact authored population cost")
 			var defense: float = game.defense_bonus(home)
 			var attack: float = game.attack_bonus(0)
 			game.upgrade_selected()
