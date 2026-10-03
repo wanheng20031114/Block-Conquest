@@ -128,9 +128,10 @@ corner_detail = 16
 [sub_resource type="StyleBoxFlat" id="IndexScrollTrack"]
 bg_color = Color(0.73, 0.8, 0.67, 0.55)
 content_margin_left = 4.0
-content_margin_top = 4.0
+content_margin_top = 0.0
 content_margin_right = 4.0
-content_margin_bottom = 4.0
+content_margin_bottom = 0.0
+expand_margin_left = -13.0
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_left = 4
@@ -169,7 +170,16 @@ corner_radius_top_right = 4
 corner_radius_bottom_left = 4
 corner_radius_bottom_right = 4
 
+[sub_resource type="ImageTexture" id="NoScrollButtons"]
+
 [sub_resource type="Theme" id="IndexScrollTheme"]
+VScrollBar/constants/padding_left = 13
+VScrollBar/icons/decrement = SubResource("NoScrollButtons")
+VScrollBar/icons/decrement_highlight = SubResource("NoScrollButtons")
+VScrollBar/icons/decrement_pressed = SubResource("NoScrollButtons")
+VScrollBar/icons/increment = SubResource("NoScrollButtons")
+VScrollBar/icons/increment_highlight = SubResource("NoScrollButtons")
+VScrollBar/icons/increment_pressed = SubResource("NoScrollButtons")
 VScrollBar/styles/scroll = SubResource("IndexScrollTrack")
 VScrollBar/styles/scroll_focus = SubResource("IndexScrollTrack")
 VScrollBar/styles/grabber = SubResource("IndexScrollGrabber")
@@ -306,7 +316,13 @@ theme_override_colors/font_placeholder_color = Color(0.43, 0.47, 0.37, 1)
 theme_override_styles/normal = SubResource("LineEdit")
 theme_override_styles/focus = SubResource("Focus")
 
-[node name="Entries" type="ItemList" parent="Margin/Column/Body/Sidebar/Navigation"]
+[node name="IndexGutter" type="MarginContainer" parent="Margin/Column/Body/Sidebar/Navigation"]
+editor_description = "Use 13 px of the sidebar padding to center the 8 px rail, preserving the item width. Match the scrollbar's left padding and the track's drawing inset."
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_right = -13
+
+[node name="Entries" type="ItemList" parent="Margin/Column/Body/Sidebar/Navigation/IndexGutter"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -318,7 +334,7 @@ allow_reselect = true
 theme_override_font_sizes/font_size = 22
 theme_override_constants/v_separation = 16
 theme_override_constants/h_separation = 12
-theme_override_constants/scrollbar_h_separation = 10
+theme_override_constants/scrollbar_h_separation = 0
 theme_override_constants/icon_margin = 14
 theme_override_colors/font_color = Color(0.31, 0.3, 0.23, 1)
 theme_override_colors/font_hovered_color = Color(0.31, 0.3, 0.23, 1)
