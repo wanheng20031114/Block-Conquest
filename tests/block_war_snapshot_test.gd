@@ -394,7 +394,7 @@ func _energy_towers() -> void:
 	host.by_id[2].kind = 3
 	host.by_id[5].kind = 2
 	host.by_id[5].construction_remaining = 2.0
-	host.by_id[5].construction_cost = 10
+	host.by_id[5].construction_cost = 5
 	host.by_id[5].conversion_target = 3
 	var route := PackedVector3Array([Vector3.ZERO, Vector3(100, 0, 0)])
 	host.marches.send(0, 1, 0, 1, route, 1.0, true)
@@ -407,6 +407,7 @@ func _energy_towers() -> void:
 	reader.install(replica, decoded, 10.4)
 	check(replica.by_id[0].kind == 3 and replica.by_id[0].level == 1, "energy building type and sole level survive snapshot installation")
 	check(replica.by_id[5].kind == 2 and replica.by_id[5].conversion_target == 3, "in-progress conversion retains the original smithy function")
+	check(replica.by_id[5].construction_cost == 5, "five-soldier energy conversion receipt survives snapshot installation")
 	check(replica.marches._units[0].order.energy_origin, "issued energy origin survives JSON snapshot installation")
 	near(replica.faction_skills[0].energy, 50.6, "late snapshot projects energy using the captured faction rate")
 	reader.present(replica, decoded, 0.2)

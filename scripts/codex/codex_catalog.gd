@@ -134,7 +134,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "攻防增益", "body": "按有效铁匠铺总数计算累计加成：\n1 座：攻击力 +%d%%，防御力 +%d%%。\n2 座：攻击力 +%d%%，防御力 +%d%%。\n3 座：攻击力 +%d%%，防御力 +%d%%。\n4 座及以上：攻击力 +%d%%，防御力 +%d%%。" % [roundi(COMBAT.forge_attack_bonus(1) * 100.0), roundi(COMBAT.forge_defense_bonus(1) * 100.0), roundi(COMBAT.forge_attack_bonus(2) * 100.0), roundi(COMBAT.forge_defense_bonus(2) * 100.0), roundi(COMBAT.forge_attack_bonus(3) * 100.0), roundi(COMBAT.forge_defense_bonus(3) * 100.0), roundi(COMBAT.forge_attack_bonus(4) * 100.0), roundi(COMBAT.forge_defense_bonus(4) * 100.0)]},
 				{"title": "加成归属", "body": "铁匠铺不提供移速加成。攻防增益只属于建筑拥有者，不共享给队友。"},
-				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。可改建为能量塔；受到封条急件干扰时，暂时停止提供全部增益。"},
+				{"title": "建筑特性", "body": "铁匠铺仅有 1 级，不支持升级，也不会自然产兵。与能量塔互相改建均消耗 %d 人，耗时 %d 秒；受到封条急件干扰时，暂时停止提供全部增益。" % [BUILDING.FORGE_ENERGY_CONVERSION_COST, BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "铁匠铺与士气的同类加成相加；住宅、炮塔的防御力加成计入常驻防御，技能加成独立结算。",
 			"icon": GUIDE_ICONS.get_meta(&"smithy"),
@@ -145,7 +145,7 @@ static func guides() -> Array[Dictionary]:
 			"sections": [
 				{"title": "技力恢复", "body": "每座有效能量塔提供额外恢复：\n第 1 座：+%s 点/秒；第 2 座：+%s 点/秒；\n第 3 座：+%s 点/秒；第 4 座起每座：+%s 点/秒。\n收益按玩家独立计算，技力上限 %d 点；封条急件期间暂停加成。" % [RULES.ENERGY_TOWER_BONUSES[0], RULES.ENERGY_TOWER_BONUSES[1], RULES.ENERGY_TOWER_BONUSES[2], RULES.ENERGY_TOWER_LATER_BONUS, RULES.ENERGY_MAX]},
 				{"title": "夺取奖励", "body": "从能量塔派出的部队夺取敌方建筑时，立即获得 10 点技力。每次成功占领结算一次，奖励不随塔数增加；占领中立建筑不触发。"},
-				{"title": "建设限制", "body": "仅铁匠铺可改建为能量塔，消耗 20 人，耗时 %d 秒。能量塔不产兵、不可升级，可改建回住宅、炮塔或铁匠铺。" % BUILDING.CONSTRUCTION_DURATION},
+				{"title": "建设限制", "body": "仅铁匠铺可改建为能量塔，消耗 %d 人；能量塔改建回铁匠铺也消耗 %d 人，改建回住宅或炮塔消耗 %d 人。改建均耗时 %d 秒。能量塔不产兵、不可升级。" % [BUILDING.FORGE_ENERGY_CONVERSION_COST, BUILDING.FORGE_ENERGY_CONVERSION_COST, BUILDING.CONVERSION_COST, BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "部队来源以发令时的建筑类型为准；原塔改造或易主不影响已发军令。进入建筑后，下次出征重新判定。",
 			"icon": GUIDE_ICONS.get_meta(&"energy"),
@@ -155,7 +155,7 @@ static func guides() -> Array[Dictionary]:
 			"summary": "消耗驻军提升建筑等级，或更换据点功能。",
 			"sections": [
 				{"title": "升级", "body": "住宅：升至 2 级消耗 %d 人，3 级消耗 %d 人，4 级消耗 %d 人。\n炮塔：升至 2 级消耗 %d 人，3 级消耗 %d 人，4 级消耗 %d 人。\n只能使用尚未编入出发队列的驻军。" % (BUILDING.HOUSE_UPGRADE_COSTS + BUILDING.TOWER_UPGRADE_COSTS)},
-				{"title": "改建", "body": "改建消耗 20 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。"},
+				{"title": "改建", "body": "铁匠铺与能量塔互相改建消耗 %d 人，其余改建消耗 %d 人。住宅、炮塔和铁匠铺可互相转换；仅铁匠铺可改建为能量塔，能量塔可改回前三种建筑。完成后，新建筑从 1 级开始。" % [BUILDING.FORGE_ENERGY_CONVERSION_COST, BUILDING.CONVERSION_COST]},
 				{"title": "施工", "body": "住宅：1 → 2 级 %d 秒，2 → 3 级 %d 秒，3 → 4 级 %d 秒。\n炮塔：每次升级均需 %d 秒。改建均需 %d 秒。\n期间保留原有功能与防御力；失守中断施工，消耗不返还。" % [BUILDING.upgrade_duration(0, 1), BUILDING.upgrade_duration(0, 2), BUILDING.upgrade_duration(0, 3), BUILDING.TOWER_UPGRADE_DURATION, BUILDING.CONSTRUCTION_DURATION]},
 			],
 			"tip": "封条急件暂停建筑运作，不暂停升级或改建计时。",

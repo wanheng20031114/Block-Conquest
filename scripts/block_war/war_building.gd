@@ -29,6 +29,8 @@ const HOUSE_UPGRADE_DURATIONS: Array[float] = [5.0, 10.0, 20.0]
 const TOWER_UPGRADE_COSTS: Array[int] = [20, 30, 60]
 const TOWER_UPGRADE_DURATION := 15.0
 const CONSTRUCTION_DURATION := 10.0
+const CONVERSION_COST := 20
+const FORGE_ENERGY_CONVERSION_COST := 5
 const SELECTION_REBOUND: Curve = preload("res://assets/block_war/selection_rebound.tres")
 const SELECTION_REBOUND_DURATION := 0.38
 const ATTACK_RANGE_ROTATION_SPEED := PI / 60.0 # Three degrees per second.
@@ -237,6 +239,12 @@ func can_convert_to(target_kind: int) -> bool:
 	if target_kind == 3:
 		return kind == 2
 	return target_kind in [0, 1, 2]
+
+
+static func conversion_cost_for(source_kind: int, target_kind: int) -> int:
+	if (source_kind == 2 and target_kind == 3) or (source_kind == 3 and target_kind == 2):
+		return FORGE_ENERGY_CONVERSION_COST
+	return CONVERSION_COST
 
 
 static func upgrade_cost_for(building_kind: int, from_level: int) -> int:

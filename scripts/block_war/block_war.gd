@@ -14,7 +14,6 @@ const ENERGY_REGEN := SKILL_RULES.ENERGY_REGEN
 const RECRUIT_RATE := SKILL_RULES.RECRUIT_RATE
 const IMPACT_RADIUS := SKILL_RULES.FIRE_RADIUS
 const IMPACT_DAMAGE := SKILL_RULES.FIRE_DAMAGE
-const CONVERSION_COST := 20
 const PLAYER := 0
 const ENEMY := 1
 const AI_STRATEGY := preload("res://scripts/block_war/war_ai.gd")
@@ -1216,7 +1215,7 @@ func begin_building_construction(building: WarBuilding, kind: int, faction: int)
 			return false
 	elif not building.can_convert_to(kind):
 		return false
-	var cost: int = building.upgrade_cost if kind == -1 else CONVERSION_COST
+	var cost: int = building.upgrade_cost if kind == -1 else WarBuilding.conversion_cost_for(building.kind, kind)
 	if building.available_population < cost:
 		if faction == local_faction:
 			audio.play_ui(&"war_denied")
@@ -1507,7 +1506,7 @@ func update_hud() -> void:
 		"selected_max_level": selected.max_level if selected != null else 4,
 		"construction_remaining": selected.construction_remaining if selected != null else 0.0,
 		"conversion_target": selected.conversion_target if selected != null else -1,
-		"upgrade_cost": selected.upgrade_cost if selected != null else 10, "convert_cost": CONVERSION_COST,
+		"upgrade_cost": selected.upgrade_cost if selected != null else 10,
 		"can_upgrade": selected != null and selected.faction == local_faction and not selected.is_constructing and selected.level < selected.max_level and selected.available_population >= selected.upgrade_cost})
 
 func set_paused(value: bool) -> void:

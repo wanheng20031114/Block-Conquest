@@ -83,7 +83,7 @@ func _lifecycle(building: WarBuilding) -> void:
 			_check(building.can_convert_to(target) == (target != kind and (target != 3 or kind == 2)), "conversion matrix %d to %d" % [kind, target])
 	building.kind = 2
 	building.refresh_visual()
-	building.begin_construction(3, 20)
+	building.begin_construction(3, 5)
 	_check(orbit.speed_scale == 0.0, "smithy conversion keeps energy animation inactive until completion")
 	building.advance_construction(10.0)
 	_check(building.kind == 3 and orbit.speed_scale == 1.0 and pulse.speed_scale == 1.0, "completed energy tower starts both native animations")

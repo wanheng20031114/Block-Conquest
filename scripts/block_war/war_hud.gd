@@ -300,7 +300,7 @@ func _update_building_actions(state: Dictionary) -> void:
 		var button := conversions[kind]
 		var allowed := kind != int(state.selected_kind) and (kind != 3 or int(state.selected_kind) == 2)
 		button.visible = allowed
-		var convert_cost := int(state.convert_cost)
+		var convert_cost := WarBuilding.conversion_cost_for(int(state.selected_kind), kind)
 		var hint := "改建%s · 消耗 %d 名驻军\n施工 10 秒，完工后重置至 1 级\n施工期间保留当前功能和形态" % [BUILDING_NAMES[kind], convert_cost]
 		if kind == 3:
 			hint = "改建能量塔 · 消耗 %d 名驻军 · 施工 10 秒\n第 1 / 2 / 3 座额外恢复 +0.5 / +0.25 / +0.15 技力/秒；\n第 4 座起，每座额外 +0.1 技力/秒。\n本塔出征部队每次夺取敌方建筑 +10 技力，\n中立建筑除外，奖励不随塔数叠加。\n不产兵、不可升级；技力上限 100。" % convert_cost

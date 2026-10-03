@@ -106,7 +106,8 @@ func conversions() -> void:
 	var forge := set_building(0, 0, 2)
 	check(not game.begin_building_construction(forge, 3, 1), "another player cannot pay for this tower")
 	check(game.begin_building_construction(forge, 3, 0), "only a forge accepts the paid energy conversion")
-	near(forge.population, 60.0, "energy conversion uses the existing twenty-soldier cost")
+	near(forge.population, 75.0, "forge-to-energy conversion costs five soldiers")
+	check(forge.construction_cost == 5 and forge.construction_remaining == 10.0, "five-soldier receipt retains the ten-second construction time")
 	near(game.energy_regen_for(0), 1.0, "unfinished tower grants no bonus")
 	near(game.attack_bonus(0), 0.3, "forge keeps its attack bonus during construction")
 	game.simulate(10.0)
@@ -120,16 +121,34 @@ func conversions() -> void:
 	for target_kind: int in [0, 1, 2]:
 		fixture()
 		var tower := set_building(0, 0, 3)
+		var cost := 5 if target_kind == 2 else 20
+		if target_kind != 2:
+			tower.population = 19.0
+			check(not game.begin_building_construction(tower, target_kind, 0), "energy-to-kind-%d still requires twenty soldiers" % target_kind)
+			tower.population = 80.0
 		check(game.begin_building_construction(tower, target_kind, 0), "energy tower can convert back to kind %d" % target_kind)
+		near(tower.population, 80.0 - cost, "reverse conversion charges the correct cost for kind %d" % target_kind)
+		check(tower.construction_cost == cost and tower.construction_remaining == 10.0, "reverse conversion records the cost and retains ten seconds")
 		game.simulate(10.0)
 		near(game.energy, 25.0, "outgoing conversion retains the energy bonus until completion")
 		check(tower.kind == target_kind and tower.level == 1, "reverse conversion installs the requested base building")
 		near(game.energy_regen_for(0), 1.0, "outgoing conversion removes the completed tower's bonus")
+	for source_kind: int in [2, 3]:
+		fixture()
+		var source := set_building(0, 0, source_kind, 4.0)
+		var target_kind := 3 if source_kind == 2 else 2
+		check(not game.execute_network_command(0, {"type": "convert", "building": 0, "kind": target_kind}).accepted, "four soldiers cannot fund conversion from kind %d" % source_kind)
+		near(source.population, 4.0, "insufficient conversion leaves the garrison unchanged")
+		source.population = 5.0
+		source.queued_population = 1
+		check(not game.begin_building_construction(source, target_kind, 0), "queued soldiers cannot fund conversion from kind %d" % source_kind)
+		source.queued_population = 0
+		check(game.execute_network_command(0, {"type": "convert", "building": 0, "kind": target_kind}).accepted, "exactly five available soldiers fund conversion from kind %d" % source_kind)
+		near(source.population, 0.0, "five-soldier conversion charges exactly the available garrison")
+		check(source.construction_cost == 5 and source.construction_remaining == 10.0, "network command retains the discounted receipt and full duration")
 	fixture()
-	forge = set_building(0, 0, 2, 19.0)
-	check(not game.begin_building_construction(forge, 3, 0), "nineteen available soldiers cannot fund a tower")
-	forge.population = 50.0
-	check(game.begin_building_construction(forge, 3, 0), "forge can begin the energy conversion after reinforcements")
+	forge = set_building(0, 0, 2, 50.0)
+	check(game.begin_building_construction(forge, 3, 0), "forge begins the energy conversion before capture")
 	game._on_unit_arrived(0, 1, 100.0)
 	check(forge.faction == 1 and forge.kind == 2 and not forge.is_constructing, "capture cancels unfinished energy conversion and retains forge type")
 	near(game.energy_regen_for(1), 1.0, "unfinished captured tower adds no regeneration")
@@ -241,7 +260,7 @@ func ai_development() -> void:
 		if building.conversion_target == 3:
 			conversions += 1
 			check(building.kind == 2 and building.faction == 1, "AI uses its own forge as the only legal energy source")
-			near(building.population, 80.0, "AI pays the same conversion price")
+			near(building.population, 95.0, "AI pays the same five-soldier conversion price")
 	check(conversions == 1, "an established AI can invest a spare forge into one tower")
 	game.simulate(10.0)
 	check(game.forge_count(1) == 1 and game.energy_tower_count(1) == 1, "AI retains an attack forge while gaining energy regeneration")

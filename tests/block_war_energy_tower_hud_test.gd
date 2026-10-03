@@ -90,8 +90,22 @@ func _run() -> void:
 			var allowed := target != kind and (target != 3 or kind == 2)
 			_check(conversions[target].is_visible_in_tree() == allowed, "kind %d shows exactly the legal conversion to %d" % [kind, target])
 			_check(conversions[target].disabled == not allowed, "kind %d enables only the legal conversion to %d" % [kind, target])
-		_check(hud.get_node("%Selection").size.x == 200.0, "three actions keep the compact menu width for kind %d" % kind)
+			if allowed:
+				var cost := 5 if kind in [2, 3] and target in [2, 3] else 20
+				_check(conversions[target].get_node("Cost/Amount").text == str(cost) and conversions[target].tooltip_text.contains("消耗 %d 名驻军" % cost), "kind %d displays its actual conversion cost to %d" % [kind, target])
+		_check(hud.get_node("%Selection").size.x == 226.0, "three actions fit the current 68-pixel buttons and spacing for kind %d" % kind)
 		_check(Rect2(Vector2.ZERO, Vector2(1600, 900)).encloses(hud.get_node("%Selection").get_global_rect()), "building actions fit inside the viewport")
+	for kind: int in [2, 3]:
+		home.kind = kind
+		home.population = 4.0
+		home.refresh_visual()
+		game.select_building(home)
+		var target := 3 if kind == 2 else 2
+		_check(conversions[target].disabled and conversions[target].tooltip_text.contains("还差 1 名驻军"), "kind %d shows the one-soldier shortfall below five" % kind)
+		home.population = 5.0
+		game.update_hud()
+		_check(not conversions[target].disabled and not conversions[target].tooltip_text.contains("还差"), "kind %d enables discounted conversion at exactly five" % kind)
+		_check(conversions[0].disabled and conversions[1].disabled, "five soldiers still cannot buy a residence or cannon tower")
 	# Use the actual mouse entry to pay for and finish the selected forge.
 	home.kind = 2
 	home.population = 60.0
@@ -103,10 +117,10 @@ func _run() -> void:
 	await _capture("00_forge_actions")
 	_click(energy_button)
 	await _frames(2)
-	_check(home.is_constructing and home.kind == 2 and home.conversion_target == 3 and home.population == 40.0, "native energy action pays twenty soldiers and starts the forge conversion")
+	_check(home.is_constructing and home.kind == 2 and home.conversion_target == 3 and home.population == 55.0, "native energy action pays five soldiers and starts the forge conversion")
 	_check(home.construction_remaining == 10.0 and energy_button.disabled and energy_button.get_node("Cost/Amount").text == "10s", "conversion displays its disabled ten-second countdown")
 	_click(energy_button)
-	_check(home.population == 40.0 and home.construction_remaining == 10.0, "repeated input cannot repay or restart construction")
+	_check(home.population == 55.0 and home.construction_remaining == 10.0, "repeated input cannot repay or restart construction")
 	game.simulate(10.0)
 	game.update_hud()
 	await _frames()
@@ -139,6 +153,18 @@ func _run() -> void:
 	_move(energy_bar.get_global_rect().get_center() + Vector2(4, 0))
 	await _frames(24)
 	await _capture("03_combat_energy_late")
+	_click(conversions[2])
+	await _frames(2)
+	_check(home.kind == 3 and home.conversion_target == 2 and home.population == 50.0 and home.construction_cost == 5, "native reverse action pays five soldiers to restore the forge")
+	_check(home.construction_remaining == 10.0 and conversions[2].disabled and conversions[2].get_node("Cost/Amount").text == "10s", "reverse action shows the same ten-second countdown")
+	game.simulate(10.0)
+	game.update_hud()
+	_check(home.kind == 2 and not home.is_constructing, "native reverse conversion completes into a forge")
+	_click(hud.get_node("%Help"))
+	await _frames(24)
+	var help_detail: Label = hud.get_node("%HelpCard/Detail2")
+	_check(help_detail.text.contains("互相改建花费 5 人，其余改建 20 人") and help_detail.get_visible_line_count() >= help_detail.get_line_count(), "help explains both prices without clipping")
+	await _capture("04_conversion_help")
 	await game.prepare_shutdown()
 	change_scene_to_file("res://scenes/codex/codex.tscn")
 	await scene_changed
@@ -160,6 +186,8 @@ func _run() -> void:
 		_click_at_entry(entries, row)
 		await _frames()
 		_check(current_scene.get_node("%DetailTitle").text == "能量塔", "native list selection opens the energy article")
+		var restrictions: String = current_scene.get_node("%SectionBody2").text
+		_check(restrictions.contains("消耗 5 人") and restrictions.contains("改建回铁匠铺也消耗 5 人") and restrictions.contains("改建回住宅或炮塔消耗 20 人"), "codex lists the two five-soldier directions and ordinary reverse prices")
 		for name: String in ["DetailSummary", "GuideTip", "SectionBody0", "SectionBody1", "SectionBody2"]:
 			var label: Label = current_scene.get_node("%" + name)
 			_check(not label.text.is_empty() and label.get_visible_line_count() >= label.get_line_count(), "guide text fits without internal truncation: " + name)

@@ -27,7 +27,7 @@ func sample(totals: Array, morale: Array, local_faction: int = 0) -> Dictionary:
 		"map_title": "裂谷交汇", "map_mode": "%dv%d" % [totals.size() / 2, totals.size() / 2], "team_size": totals.size() / 2,
 		"time": 126, "percentage": 50, "forges": 0, "selected_owned": false, "selected_level": 0,
 		"selected_available_population": 0, "upgrade_cost": 10, "selected_max_level": 4, "construction_remaining": 0.0,
-		"conversion_target": -1, "selected_kind": -1, "selected_detail": "", "can_upgrade": false, "convert_cost": 20,
+		"conversion_target": -1, "selected_kind": -1, "selected_detail": "", "can_upgrade": false,
 		"armed_skill": -1, "energy": 60.0, "cooldowns": [0.0, 0.0, 0.0, 0.0], "skill_durations": [0.0, 0.0, 0.0, 0.0],
 		"energy_costs": [30, 30, 35, 70], "energy_max": 100.0, "energy_regen": 2.0, "energy_tower_count": 0}
 	for faction: int in totals.size():

@@ -53,7 +53,7 @@ func tower_score(game: Node3D, building: WarBuilding, homes: int, reserve: float
 		return 0.0
 	if building.faction != faction or building.kind != 2 or building.is_constructing:
 		return 0.0
-	if building.available_population < game.CONVERSION_COST + reserve:
+	if building.available_population < WarBuilding.conversion_cost_for(building.kind, 3) + reserve:
 		return 0.0
 	var retained_forges := 0
 	for owned: WarBuilding in game.buildings:

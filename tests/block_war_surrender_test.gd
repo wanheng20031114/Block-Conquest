@@ -85,7 +85,7 @@ func _transfer_rules() -> void:
 	game.by_id[6].kind = 3
 	game.by_id[8].kind = 1
 	game.by_id[10].kind = 2
-	game.by_id[10].begin_construction(3, 20)
+	game.by_id[10].begin_construction(3, 5)
 	game.by_id[0].begin_disruption(4.0)
 	game.by_id[6].begin_burrow(15.0)
 	game.shields[0] = 7.0
@@ -136,7 +136,7 @@ func _transfer_rules() -> void:
 	for id: int in owned:
 		check(game.by_id[id].faction in [2, 4], "building goes only to surviving human ally")
 		near(game.by_id[id].population, 42.3, "every building's actual garrison loses exactly forty percent")
-	check(game.by_id[10].is_constructing and game.by_id[10].conversion_target == 3 and game.by_id[10].construction_cost == 20, "paid energy-tower construction survives transfer")
+	check(game.by_id[10].is_constructing and game.by_id[10].conversion_target == 3 and game.by_id[10].construction_cost == 5, "five-soldier energy-tower construction receipt survives transfer")
 	check(game.by_id[0].disruption_remaining == 4.0 and game.shields[0] == 7.0, "hostile disruption and attached shield persist")
 	check(game.by_id[6].burrow_remaining == 0.0 and game.bear.links.is_empty() and game.bear.wards.is_empty(), "caster-bound building skills end without stale ownership")
 	check(game.bear.locks.is_empty(), "surrender clears the caster's lock on another player's building")

@@ -159,13 +159,15 @@ func candidate_safety() -> void:
 	check(score(policy, 2, 60.0) > score(policy, 4, 10.0), "a rear forge outranks an otherwise equal front forge")
 	check(policy.tower_score(game, candidate, 2, 8.0, 60.0, true) == 0.0, "incoming attackers rule out investment at this forge")
 	check(policy.tower_score(game, candidate, 1, 8.0, 60.0, false) == 0.0, "one residence is too small an economy for the investment")
-	candidate.population = 27.0
+	candidate.population = 12.0
 	check(score(policy) == 0.0, "conversion must leave the defensive garrison intact")
-	candidate.population = 28.0
+	candidate.population = 13.0
 	check(score(policy) > 0.0, "exact conversion cost plus reserve is affordable")
 	candidate.population = 100.0
-	candidate.queued_population = 73
+	candidate.queued_population = 88
 	check(score(policy) == 0.0, "queued departing troops cannot also pay for the tower")
+	candidate.queued_population = 87
+	check(score(policy) > 0.0, "thirteen unqueued soldiers cover the five-soldier price and eight-soldier reserve")
 	candidate.queued_population = 0
 	candidate.faction = -1
 	check(score(policy) == 0.0, "a neutral forge is not an investment candidate")

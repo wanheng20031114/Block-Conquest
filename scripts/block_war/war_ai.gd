@@ -158,14 +158,14 @@ func _development(game: Node3D, homes: int, constructing: int) -> Dictionary:
 		if homes == 0:
 			# Recover production after losing the last residence, using a real conversion.
 			kind = 0
-			cost = game.CONVERSION_COST
+			cost = WarBuilding.conversion_cost_for(building.kind, kind)
 			score = 90.0
 			if _enemy_distance(game, building) >= FRONT_DISTANCE:
 				reserve = 0.0
 		elif building.kind == 2:
 			# Demand, paid construction and the retained forge are planned together.
 			kind = 3
-			cost = game.CONVERSION_COST
+			cost = WarBuilding.conversion_cost_for(building.kind, kind)
 			score = _economy.tower_score(game, building, homes, reserve, _enemy_distance(game, building), false)
 		elif building.level >= building.max_level:
 			continue
