@@ -301,10 +301,16 @@ func cancel_construction() -> void:
 		particles.emitting = false
 
 
+# Persistent aiming pose; restoring it must not replay the recoil animation.
+var tower_yaw: float:
+	get: return $Visual/Tower/Gun.rotation.y
+	set(value): $Visual/Tower/Gun.rotation.y = value
+
+
 func fire_at(target: Vector3) -> void:
 	var gun: Node3D = $Visual/Tower/Gun
 	var local_target: Vector3 = $Visual/Tower.to_local(target) - gun.position
-	gun.rotation.y = atan2(-local_target.x, -local_target.z)
+	tower_yaw = atan2(-local_target.x, -local_target.z)
 	var barrel: Node3D = $Visual/Tower/Gun/Barrel
 	if _recoil_tween:
 		_recoil_tween.kill()

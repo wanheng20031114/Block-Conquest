@@ -878,9 +878,10 @@ func _play_presentation(event: Dictionary) -> void:
 		"casualty":
 			if Snapshot._vector(payload.get("at")) and Snapshot._vector(payload.get("heading")) and Snapshot._vector(payload.get("impulse")) and Snapshot._integer(payload.get("faction"), 0, game.faction_count - 1) and payload.get("burning") is bool:
 				game.world_effects.casualty(at, Snapshot.vector(payload.heading), int(payload.faction), Snapshot.vector(payload.impulse), payload.burning)
-		"tower_shot":
-			if not Snapshot._vector(payload.get("to")) or not Snapshot._vector(payload.get("at")): return
-			game.world_effects.hit(at, (Snapshot.vector(payload.to) - at).normalized(), true)
-			game.audio.play_world(&"cannon_shot", at)
+		"tower_volley":
+			if not Snapshot._building_id(payload.get("building"), game) or not Snapshot._vector(payload.get("aim")): return
+			var building: WarBuilding = game.by_id[int(payload.building)]
+			if building.kind != 1: return
+			game.present_tower_volley(building, Snapshot.vector(payload.aim))
 		"bear_shot":
 			if Snapshot._vector(payload.get("at")): game.world_effects.get_node("Bear").spark(at)

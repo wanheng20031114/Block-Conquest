@@ -52,7 +52,7 @@ func _subject() -> Subject:
 		"counters": [10, 100, 0, 1, 1, 1], "match_control": {"paused": false, "by": -1, "surrendered": []}}
 	for group: String in Snapshot.GROUPS: value._mirror[group] = {}
 	for key: String in ["0", "1"]:
-		value._mirror.buildings[key] = [0, 0, 1, 10.0, 0, 0.0, 0, -1, 0.0, 0.0, 0.0, 0.0]
+		value._mirror.buildings[key] = [0, 0, 1, 10.0, 0, 0.0, 0, -1, 0.0, 0.0, 0.0, 0.0, 0.0]
 	value._mirror.factions["0"] = ["squirrel", 0.0, [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], -1,
 		0.0, 0.0, 10.0, 0.0, Snapshot.RULES.natural_energy_regen(0.0), [1, 1, 1, 1]]
 	value._mirror.orders["1"] = [0, 1, 0, 1.0, false, 0.0, [[0.0, 0.0, 0.0], [100.0, 0.0, 0.0]], false, false, false, false, false, false]

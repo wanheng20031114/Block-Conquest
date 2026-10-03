@@ -1,6 +1,6 @@
 extends RefCounted
 ## A primitive, lossless rule mirror. Rendering never calls combat or production.
-const SCHEMA := 12
+const SCHEMA := 13
 const GROUPS: Array[String] = ["buildings", "factions", "orders", "units", "fields", "shots", "links", "locks", "wards", "remainders", "combat_remainders", "fires", "pig_ready", "pig_drops", "pig_airlifts"]
 const UNIT_SIZE := 17
 const COUNTER_SIZE := 6
@@ -8,7 +8,7 @@ const MAX_ID := 2147483647
 const MAX_RECORDS := 65536
 const MAX_TIME := 1000000000.0
 const MAX_EXTRAPOLATION := 1.0
-const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9], "factions": [0, 3, 4, 5, 9, 10]}
+const STRUCTURE_FIELDS := {"buildings": [0, 1, 2, 4, 5, 6, 7, 8, 9, 12], "factions": [0, 3, 4, 5, 9, 10]}
 const FIRE := preload("res://scripts/block_war/war_fire_state.gd")
 const RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 var _order_cache: Dictionary = {}
@@ -47,7 +47,7 @@ func capture(game: Node, tick: int) -> Dictionary:
 		state.buildings[str(b.building_id)] = [b.faction, b.kind, b.level, b.population, b.queued_population,
 			deadline(now, b.construction_remaining), b.construction_cost, b.conversion_target,
 			deadline(now, b.disruption_remaining), deadline(now, b.burrow_remaining),
-			deadline(now, float(game.tower_clocks[b.building_id])), now]
+			deadline(now, float(game.tower_clocks[b.building_id])), now, b.tower_yaw]
 	for f: int in game.faction_count:
 		var skill: RefCounted = game.faction_skills[f]
 		var cooldown: Array = []
@@ -221,7 +221,7 @@ static func _discrete_changed(group: String, old: Variant, next: Variant) -> boo
 	if group == "buildings":
 		for i: int in [0, 1, 2, 4, 6, 7]:
 			if old[i] != next[i]: return true
-		for i: int in [5, 8, 9]:
+		for i: int in [5, 8, 9, 12]:
 			if absf(float(old[i]) - float(next[i])) > 0.00001: return true
 		# Natural growth is extrapolated; damage and paid construction are facts.
 		return float(next[3]) < float(old[3]) - 0.000001
@@ -380,9 +380,10 @@ static func valid_record(group: String, row: Variant, game: Node) -> bool:
 	# Check the type before ANY indexing, integer conversion or nested cast.
 	match group:
 		"buildings":
-			if not _row(row, 12) or not _integer(row[0], -1, game.faction_count - 1) or not _integer(row[1], 0, 3): return false
+			if not _row(row, 13) or not _integer(row[0], -1, game.faction_count - 1) or not _integer(row[1], 0, 3): return false
 			if not _integer(row[2], 1, [4, 4, 1, 1][int(row[1])]) or not _nonnegative(row[3]) or not _integer(row[4], 0, floori(float(row[3]) + 0.000001)): return false
 			if not _integer(row[6], 0, MAX_ID) or not _integer(row[7], -1, 3): return false
+			if not _number(row[12]) or absf(float(row[12])) > PI + 0.00001: return false
 			for i: int in [5, 8, 9, 10, 11]:
 				if not _nonnegative(row[i]): return false
 			if int(row[7]) == 3 and int(row[1]) != 2: return false
@@ -728,6 +729,7 @@ func _present_buildings(game: Node, state: Dictionary, now: float) -> void:
 		b._sync_disruption_visual()
 		b.get_node("BurrowReady").set_remaining(b.burrow_remaining)
 		b.refresh_visual()
+		b.tower_yaw = float(row[12])
 
 func _install_fields(game: Node, state: Dictionary, now: float) -> void:
 	game.shields.clear()

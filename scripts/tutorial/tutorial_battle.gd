@@ -345,7 +345,7 @@ func submit_player_command(command: Dictionary) -> Dictionary:
 	return result
 
 func _record_event(kind: String, payload: Dictionary) -> void:
-	if kind == "tower_shot" and payload.faction == 0: tower_shots += 1
+	if kind == "tower_volley" and payload.faction == 0: tower_shots += 1
 	if kind == "casualty" and payload.faction == 1 and payload.burning: burned_enemies += 1
 
 func _record_arrival(target: int, faction: int, _strength: float, _bonus: float, _energy_origin: bool) -> void:
