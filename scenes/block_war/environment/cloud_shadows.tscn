@@ -5,7 +5,7 @@
 
 [sub_resource type="Animation" id="drift"]
 resource_name = "drift"
-length = 400.0
+length = 360.0
 loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -14,7 +14,7 @@ tracks/0/path = NodePath("Drift:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 400),
+"times": PackedFloat32Array(0, 360),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Vector3(0, 0, 0), Vector3(96, 0, 0)]
@@ -29,7 +29,7 @@ _data = {
 script = ExtResource("script")
 position = Vector3(-22, 40, 28)
 rotation_degrees = Vector3(0, -18, 0)
-metadata/purpose = "Invisible native shadow casters: 0.24 m/s diagonal drift, 400 s seamless periodic field."
+metadata/purpose = "Invisible native shadow casters: 0.267 m/s diagonal drift, 360 s seamless periodic field."
 
 [node name="Drift" type="Node3D" parent="."]
 
