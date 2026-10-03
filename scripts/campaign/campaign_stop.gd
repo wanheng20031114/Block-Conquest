@@ -2,8 +2,8 @@ extends Button
 ## The hit area stays still while its scene-authored paper marker lifts.
 
 const BATTLE_ICON := preload("res://assets/ui/campaign/station_battle.svg")
-const COMPLETE_ICON := preload("res://assets/ui/block_war/menu_check.svg")
-const LOCKED_ICON := preload("res://assets/ui/block_war/menu_lock.svg")
+const COMPLETE_ICON := preload("res://assets/ui/campaign/station_complete.svg")
+const LOCKED_ICON := preload("res://assets/ui/campaign/station_locked.svg")
 
 @export var stage: CampaignStage
 var selected := false

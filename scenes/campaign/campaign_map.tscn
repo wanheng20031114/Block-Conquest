@@ -4,6 +4,7 @@
 [ext_resource type="Theme" path="res://assets/ui/block_war/menu_theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_diorama.tscn" id="diorama"]
 [ext_resource type="PackedScene" path="res://scenes/campaign/campaign_stop.tscn" id="stop"]
+[ext_resource type="PackedScene" path="res://scenes/campaign/campaign_action.tscn" id="action"]
 [ext_resource type="Resource" path="res://data/campaign/01_woodland.tres" id="stage1"]
 [ext_resource type="Resource" path="res://data/campaign/02_forest.tres" id="stage2"]
 [ext_resource type="Resource" path="res://data/campaign/03_crossing.tres" id="stage3"]
@@ -13,40 +14,6 @@
 [ext_resource type="Texture2D" path="res://assets/ui/campaign/back.svg" id="back"]
 [ext_resource type="Texture2D" path="res://assets/ui/campaign/settings.svg" id="settings"]
 [ext_resource type="Texture2D" path="res://assets/ui/campaign/train.svg" id="train"]
-
-[sub_resource type="StyleBoxFlat" id="MapAction"]
-bg_color = Color(0.99, 0.98, 0.92, 0.94)
-corner_radius_top_left = 26
-corner_radius_top_right = 26
-corner_radius_bottom_left = 26
-corner_radius_bottom_right = 26
-corner_detail = 12
-shadow_color = Color(0.10, 0.17, 0.12, 0.24)
-shadow_size = 4
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="MapActionHover"]
-bg_color = Color(0.94, 1, 0.9, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.38, 0.56, 0.38, 0.85)
-corner_radius_top_left = 26
-corner_radius_top_right = 26
-corner_radius_bottom_left = 26
-corner_radius_bottom_right = 26
-corner_detail = 12
-shadow_color = Color(0.57, 1, 0.35, 0.22)
-shadow_size = 5
-
-[sub_resource type="StyleBoxFlat" id="MapActionPressed"]
-bg_color = Color(0.79, 0.9, 0.77, 1)
-corner_radius_top_left = 26
-corner_radius_top_right = 26
-corner_radius_bottom_left = 26
-corner_radius_bottom_right = 26
-corner_detail = 12
 
 [node name="CampaignMap" type="Control" groups=["animated_menu"]]
 layout_mode = 3
@@ -142,24 +109,17 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Back" type="Button" parent="MapActions"]
+[node name="Back" parent="MapActions" instance=ExtResource("action")]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 72.0
 offset_bottom = 72.0
-focus_mode = 0
-mouse_default_cursor_shape = 2
 tooltip_text = "返回 · Esc"
-theme_override_constants/icon_max_width = 28
-theme_override_styles/normal = SubResource("MapAction")
-theme_override_styles/hover = SubResource("MapActionHover")
-theme_override_styles/pressed = SubResource("MapActionPressed")
 icon = ExtResource("back")
-expand_icon = true
 
-[node name="Settings" type="Button" parent="MapActions"]
+[node name="Settings" parent="MapActions" instance=ExtResource("action")]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 1
@@ -170,17 +130,10 @@ offset_top = 20.0
 offset_right = -20.0
 offset_bottom = 72.0
 grow_horizontal = 0
-focus_mode = 0
-mouse_default_cursor_shape = 2
 tooltip_text = "设置 · P"
-theme_override_constants/icon_max_width = 28
-theme_override_styles/normal = SubResource("MapAction")
-theme_override_styles/hover = SubResource("MapActionHover")
-theme_override_styles/pressed = SubResource("MapActionPressed")
 icon = ExtResource("settings")
-expand_icon = true
 
-[node name="ReturnTrain" type="Button" parent="MapActions"]
+[node name="ReturnTrain" parent="MapActions" instance=ExtResource("action")]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 3
@@ -194,15 +147,9 @@ offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-focus_mode = 0
-mouse_default_cursor_shape = 2
 tooltip_text = "回到列车 · Home"
 theme_override_constants/icon_max_width = 30
-theme_override_styles/normal = SubResource("MapAction")
-theme_override_styles/hover = SubResource("MapActionHover")
-theme_override_styles/pressed = SubResource("MapActionPressed")
 icon = ExtResource("train")
-expand_icon = true
 
 [node name="LoadError" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
