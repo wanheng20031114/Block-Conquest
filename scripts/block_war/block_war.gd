@@ -24,6 +24,9 @@ const MORALE := preload("res://scripts/block_war/war_morale.gd")
 const DEBUG_DATA := preload("res://scripts/block_war/war_debug_data.gd")
 const DEBUG_METRICS := preload("res://scripts/block_war/war_debug_metrics.gd")
 var debug_metrics := DEBUG_METRICS.new()
+# Exact army breakdown from the existing HUD census, shared with diagnostics.
+# Keep every seat so changing the local viewer cannot read the previous seat.
+var hud_armies: Array[Dictionary] = []
 var morale := MORALE.new()
 const RABBIT_SKILLS := preload("res://scripts/block_war/war_rabbit_skills.gd")
 const BEAR_SKILLS := preload("res://scripts/block_war/war_bear_skills.gd")
@@ -1431,13 +1434,23 @@ func update_hud() -> void:
 	faction_population.fill(0.0)
 	for unit: WarMarches.MarchUnit in marches._units:
 		faction_population[unit.order.faction] += 1.0
+	hud_armies.clear()
+	for faction: int in faction_count:
+		hud_armies.append({"garrison": 0.0, "queued": 0,
+			"marching": int(faction_population[faction]), "airlifting": 0})
 	for building: WarBuilding in buildings:
 		if building.faction >= 0:
 			faction_population[building.faction] += building.available_population
+			var army: Dictionary = hud_armies[building.faction]
+			army.garrison += building.population
+			army.queued += building.queued_population
+			army.marching -= building.queued_population
 	var player_population := 0.0
 	var enemy_population := 0.0
 	for faction: int in faction_count:
-		faction_population[faction] += pig.pending_for(faction)
+		var airlifting := pig.pending_for(faction)
+		hud_armies[faction].airlifting = airlifting
+		faction_population[faction] += airlifting
 		faction_totals.append(floori(faction_population[faction]))
 		if FACTIONS.allied(faction, local_faction):
 			player_population += faction_population[faction]

@@ -6,18 +6,12 @@ static func capture(game: Node3D) -> Dictionary:
 	var faction: int = game.local_faction
 	var level: int = game.morale.level(faction)
 	var counts: Array[int] = [0, 0, 0, 0]
-	var garrison := 0.0
-	var queued := 0
-	var marching := 0
-	var airlifting: int = game.pig.pending_for(faction)
+	# Reuse one coherent HUD sample. Reading diagnostics must not rescan soldiers
+	# or airlift queues, and must not force an additional ordinary HUD update.
+	var army: Dictionary = game.hud_armies[faction]
 	for building: WarBuilding in game.buildings:
 		if building.faction == faction:
 			counts[building.kind] += 1
-			garrison += building.population
-			queued += building.queued_population
-	for unit: WarMarches.MarchUnit in game.marches._units:
-		if unit.alive and unit.order.faction == faction and not unit.pending_departure:
-			marching += 1
 	var selected: Dictionary = {}
 	var target: WarBuilding = game.selected
 	if target != null:
@@ -53,7 +47,8 @@ static func capture(game: Node3D) -> Dictionary:
 		"morale_level": level, "morale_points": game.morale.points(faction),
 		"morale_next": game.MORALE.THRESHOLDS[level + 1] if level < 5 else -1.0,
 		"buildings": counts, "forges_active": forges, "energy_towers_active": game.energy_tower_count(faction),
-		"garrison": garrison, "marching": marching, "queued": queued, "airlifting": airlifting, "army_total": garrison + marching + airlifting,
+		"garrison": army.garrison, "marching": army.marching, "queued": army.queued, "airlifting": army.airlifting,
+		"army_total": army.garrison + army.marching + army.airlifting,
 		"energy": game.faction_skills[faction].energy, "energy_max": game.ENERGY_MAX, "energy_regen": game.energy_regen_for(faction),
 		"energy_natural_regen": game.SKILL_RULES.natural_energy_regen(game.elapsed),
 		"combat_energy_per_loss": game.SKILL_RULES.combat_energy_per_loss(game.morale.stars(faction)),

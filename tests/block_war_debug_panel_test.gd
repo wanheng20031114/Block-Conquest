@@ -149,6 +149,9 @@ func population_checks() -> void:
 	check(queued.queued == 40 and queued.marching == 0, "unpaid queue is not counted as departed army")
 	near(queued.army_total, 80.0, "queue cannot duplicate the army total")
 	game.marches.tick(0.25)
+	# The real battle refreshes its census with the ordinary HUD; diagnostics
+	# deliberately do not force another census between those updates.
+	game.update_hud()
 	var moving: Dictionary = DATA.capture(game)
 	check(moving.marching > 0 and moving.queued < 40, "rank departures update both queue and field count")
 	near(moving.garrison + moving.marching, 80.0, "real departures conserve physical soldiers")
