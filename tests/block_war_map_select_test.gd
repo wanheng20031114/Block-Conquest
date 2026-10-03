@@ -33,13 +33,18 @@ func _click(button: Button) -> void:
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
 	var session := root.get_node("Session")
+	var arguments := Array(OS.get_cmdline_user_args()).filter(func(argument: String): return not argument.is_absolute_path())
 	for size_class: int in 3:
 		var count := 0
+		var campaign_maps := 0
 		for definition: Resource in CATALOG.MAPS:
 			count += int(definition.size_class == size_class)
-		check(count == 3, "each battle size offers three authored maps")
+			campaign_maps += int(definition.size_class == size_class and definition.map_id in ["flower_pool", "forest_fork"])
+		check(count == 3 + campaign_maps, "each size retains its original maps and the new encounters authored at that size")
 	for index: int in CATALOG.MAPS.size():
 		var definition: Resource = CATALOG.MAPS[index]
+		if not arguments.is_empty() and definition.map_id not in arguments:
+			continue
 		var size_maps: Array[Resource] = []
 		for candidate: Resource in CATALOG.MAPS:
 			if candidate.size_class == definition.size_class:
@@ -58,7 +63,11 @@ func _run() -> void:
 		check(picker.get_node("%Start").text.contains(definition.mode_label()), "start shows the selected team size")
 		for button_index: int in size_maps.size():
 			var button: Button = picker.get_node("%%Map%d" % button_index)
-			check(button.visible and button.text == size_maps[button_index].title and button.button_pressed == (button_index == slot), "all three map buttons show the selected size and only one remains pressed")
+			check(button.visible and button.text == size_maps[button_index].title and button.button_pressed == (button_index == slot), "all available map buttons show the selected size and only one remains pressed")
+		for button_index: int in range(size_maps.size(), picker._map_buttons.size()):
+			check(not picker._map_buttons[button_index].visible, "unused authored map buttons stay hidden")
+		if definition.asymmetric_start:
+			check(picker.get_node("%Teams").text.contains("敌方拥有起始据点优势"), "the picker explains an asymmetric map before launch")
 		if definition.has_elevation():
 			check(picker.get_node("%TerrainInfo").text.contains("高地土坡"), "selecting a raised battlefield exposes its terrain type")
 		_click(picker.get_node("%%Map%d" % slot))

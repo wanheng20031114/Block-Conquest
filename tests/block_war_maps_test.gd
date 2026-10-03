@@ -30,9 +30,9 @@ func camera_view_inside_map() -> bool:
 func _run() -> void:
 	create_timer(180.0, true, false, true).timeout.connect(func(): quit(3))
 	var session := root.get_node("Session")
+	var arguments := Array(OS.get_cmdline_user_args()).filter(func(argument: String): return not argument.is_absolute_path())
 	for definition: Resource in CATALOG.MAPS:
-		var arguments := OS.get_cmdline_user_args()
-		if not arguments.is_empty() and definition.map_id != arguments[0]:
+		if not arguments.is_empty() and definition.map_id not in arguments:
 			continue
 		var started := Time.get_ticks_msec()
 		session.block_war_map_id = definition.map_id
@@ -55,10 +55,14 @@ func _run() -> void:
 			check(game.map.is_walkable(building.global_position), "every building is placed on traversable land")
 			if building.faction >= 0:
 				starters[building.faction] += 1
-				check(building.kind == 0 and building.population == 60.0, "all players start with the same residence and garrison")
+				if not definition.asymmetric_start:
+					check(building.kind == 0 and building.population == 60.0, "symmetric maps start all players with the same residence and garrison")
 		for count: int in starters:
-			check(count == 1, "each participating commander has exactly one starting home")
-		check(game.team_total_for(0) == game.team_total_for(1), "both alliances have equal initial strength")
+			check(count >= 1 if definition.asymmetric_start else count == 1, "every commander has its authored starting buildings")
+		if definition.asymmetric_start:
+			check(starters[1] > starters[0], "campaign battlefields preserve the enemy's starting building advantage")
+		else:
+			check(game.team_total_for(0) == game.team_total_for(1), "symmetric maps give both alliances equal initial strength")
 		if definition.map_id == "rift":
 			var central: PackedVector3Array = game.map.get_building_route(game.buildings[10], game.buildings[11])
 			check(central.size() >= 2 and game.map.get_building_distance(game.buildings[10], game.buildings[11]) < 35.0, "baked central route avoids the two-bridge detour")
@@ -106,8 +110,8 @@ func _run() -> void:
 		game.ai_clock = 0.0
 		game.simulate(0.001)
 		for building: WarBuilding in game.buildings:
-			if building.faction > 0:
-				check(building.is_constructing and building.population == 50.0, "every computer independently develops its own starting home")
+			if building.faction > 0 and not definition.asymmetric_start:
+				check(building.is_constructing and building.population == 60.0 - WarBuilding.HOUSE_UPGRADE_COSTS[0], "every computer develops its own starting home at the authored upgrade price: population=%s constructing=%s" % [building.population, building.is_constructing])
 		print("WAR_MAP ", definition.map_id, " buildings=", game.buildings.size(), " routes=", routes, " missing=", missing, " off_ground=", off_ground, " ms=", Time.get_ticks_msec() - started, " first=", first_failure)
 		await game.prepare_shutdown()
 	session.block_war_map_id = "rift"

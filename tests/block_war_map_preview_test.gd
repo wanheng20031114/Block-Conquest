@@ -53,6 +53,10 @@ func _run() -> void:
 			return
 	var session := root.get_node("Session")
 	var remembered: String = session.block_war_map_id
+	var requested_maps := PackedStringArray()
+	for argument: String in OS.get_cmdline_user_args():
+		if argument.begins_with("--map="):
+			requested_maps.append(argument.trim_prefix("--map="))
 	change_scene_to_file("res://scenes/block_war/map_select.tscn")
 	await scene_changed
 	var picker := current_scene
@@ -61,6 +65,8 @@ func _run() -> void:
 		await _settle()
 		for index: int in CATALOG.MAPS.size():
 			var definition: Resource = CATALOG.MAPS[index]
+			if not requested_maps.is_empty() and definition.map_id not in requested_maps:
+				continue
 			var size_maps: Array[Resource] = []
 			for candidate: Resource in CATALOG.MAPS:
 				if candidate.size_class == definition.size_class:

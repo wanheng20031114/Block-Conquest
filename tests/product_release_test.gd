@@ -58,7 +58,9 @@ func _run() -> void:
 		var battle: Node = current_scene
 		check(battle.map.definition.map_id == map_id, map_id + " selected map instantiated")
 		check(battle.buildings.size() == battle.map.definition.building_positions.size(), map_id + " authored buildings loaded")
-		check(protocol.MAP_SEATS[map_id] == battle.faction_count, map_id + " packaged relay seats match the battle")
+		check(definition.team_size * 2 == battle.faction_count, map_id + " authored teams match the battle")
+		if protocol.MAP_SEATS.has(map_id):
+			check(protocol.MAP_SEATS[map_id] == battle.faction_count, map_id + " packaged relay seats match the battle")
 		check(battle.get_node("Audio/Music").playing, map_id + " packaged music plays")
 		check(battle.has_node("TeammateCursors"), map_id + " packaged teammate cursor scene")
 		battle.camera_rig.focus_at(Vector3.ZERO, true)

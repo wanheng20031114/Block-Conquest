@@ -3,11 +3,15 @@ extends RefCounted
 
 const DECISION_GAP := 6.0
 const RABBIT_DECISION_GAP := 3.0
+const LAZY_FULL_ENERGY_WAIT := 12.0
+const LAZY_DECISION_GAP := 18.0
 const FIRE_CELL := 4.0
 const SKILL_RULES := preload("res://scripts/block_war/war_skill_rules.gd")
 const INFORMATION := preload("res://scripts/block_war/war_ai_information.gd")
 var faction: int
 var next_decision: float
+var lazy_full_energy := false
+var _full_energy_since := -1.0
 
 static func _xz(point: Vector3) -> Vector2:
 	# Skill and tower footprints are horizontal, even when their targets differ in height.
@@ -28,13 +32,29 @@ func _init(controlled_faction: int) -> void:
 	faction = controlled_faction
 	next_decision = 6.0 + 0.45 * (faction - 1)
 
+func set_lazy_skills(enabled: bool) -> void:
+	if lazy_full_energy == enabled:
+		return
+	lazy_full_energy = enabled
+	_full_energy_since = -1.0
+	next_decision = 6.0 + 0.45 * (faction - 1)
+
 func take_turn(game: Node3D) -> void:
-	if game.finished or game.is_rule_paused() or game.elapsed < next_decision:
+	if game.finished or game.is_rule_paused():
+		return
+	if lazy_full_energy:
+		if game.faction_skills[faction].energy < SKILL_RULES.ENERGY_MAX:
+			_full_energy_since = -1.0
+			return
+		if _full_energy_since < 0.0:
+			_full_energy_since = game.elapsed
+			next_decision = maxf(next_decision, game.elapsed + LAZY_FULL_ENERGY_WAIT)
+	if game.elapsed < next_decision:
 		return
 	# Never chain four casts in one frame, including repeated calls at the same time.
 	# Short marches can finish between six-second decisions. Rabbit's instant
 	# squad selection needs a chance to act after the preceding turn's dispatch.
-	next_decision = game.elapsed + (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP)
+	next_decision = game.elapsed + (LAZY_DECISION_GAP if lazy_full_energy else (RABBIT_DECISION_GAP if game.faction_skills[faction].commander == SKILL_RULES.RABBIT else DECISION_GAP))
 	# Keep the scheduled decision even when no paid action is available. These
 	# checks are read-only; an unavailable decision needs no target forecasts.
 	var available := false
@@ -44,6 +64,11 @@ func take_turn(game: Node3D) -> void:
 			break
 	if not available:
 		return
+	_cast_best_skill(game)
+	if lazy_full_energy and game.faction_skills[faction].energy < SKILL_RULES.ENERGY_MAX:
+		_full_energy_since = -1.0
+
+func _cast_best_skill(game: Node3D) -> void:
 	if game.faction_skills[faction].commander == SKILL_RULES.PIG:
 		_pig_turn(game)
 		return

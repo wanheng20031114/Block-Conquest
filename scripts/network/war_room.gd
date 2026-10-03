@@ -2,6 +2,8 @@ extends Control
 ## A room is a view of relay-owned seats. Never locally invent ready/occupant state.
 
 const CATALOG := preload("res://scripts/block_war/war_map_catalog.gd")
+const PROTOCOL := preload("res://scripts/network/war_protocol.gd")
+var _online_maps: Array[Resource] = []
 var _pending_action := ""
 var _request_clock := 0.0
 var _map_id := ""
@@ -16,6 +18,9 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = true
 	%Nickname.text = session.online_nickname
 	for definition: Resource in CATALOG.MAPS:
+		if not PROTOCOL.MAP_SEATS.has(definition.map_id):
+			continue
+		_online_maps.append(definition)
 		%MapChoice.add_item("%s  ·  %s" % [definition.title, definition.mode_label()])
 	%Create.pressed.connect(_request.bind("create"))
 	%Join.pressed.connect(_request.bind("join"))
@@ -79,7 +84,11 @@ func _request(action: String) -> void:
 
 func _send_pending() -> void:
 	if _pending_action == "create":
-		online.create_room(session.block_war_map_id, session.online_nickname)
+		# A local campaign map is not necessarily part of the relay roster.
+		# Start at the first room map when the previous local choice is absent.
+		var selected: Resource = CATALOG.find_map(session.block_war_map_id)
+		var index := maxi(0, _online_maps.find(selected))
+		online.create_room(str(_online_maps[index].map_id), session.online_nickname)
 	elif _pending_action == "join":
 		online.join_room(%RoomCode.text, session.online_nickname)
 
@@ -159,7 +168,7 @@ func _refresh(room: Dictionary) -> void:
 	elif pending_count > 0:
 		%RoomHint.text = "等待 %d 位指挥官准备 · 换地图、位置或角色后需要重新准备。" % pending_count
 	var selected: Resource = CATALOG.find_map(str(room.map_id))
-	%MapChoice.select(CATALOG.MAPS.find(selected))
+	%MapChoice.select(_online_maps.find(selected))
 	if _map_id != str(room.map_id):
 		_map_id = str(room.map_id)
 		%Preview.show_map(selected)
@@ -171,7 +180,7 @@ func _refresh(room: Dictionary) -> void:
 
 func _choose_map(index: int) -> void:
 	_clear_fill()
-	online.set_map(str(CATALOG.MAPS[index].map_id))
+	online.set_map(str(_online_maps[index].map_id))
 
 func _choose_commander(slot_id: int, commander: String) -> void:
 	for slot: Dictionary in online.room.slots:

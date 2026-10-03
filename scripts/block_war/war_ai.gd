@@ -25,6 +25,9 @@ func _init(controlled_faction: int = 1) -> void:
 	_skills = SKILL_TACTICS.new(faction)
 	_economy = ECONOMY.new(faction)
 
+func set_lazy_skills(enabled: bool) -> void:
+	_skills.set_lazy_skills(enabled)
+
 func take_turn(game: Node3D) -> void:
 	if game.finished or game.is_rule_paused():
 		return

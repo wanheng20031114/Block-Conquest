@@ -331,19 +331,22 @@ theme_override_styles/pressed = SubResource("SmallSelected")
 theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
 metadata/ui_motion_hover_scale = 1.01
 
-[node name="Maps" type="VBoxContainer" parent="Margin/Column/Content/Details/DetailsColumn"]
+[node name="Maps" type="GridContainer" parent="Margin/Column/Content/Details/DetailsColumn"]
 layout_mode = 2
-theme_override_constants/separation = 8
+columns = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 
 [node name="Map0" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 text = "裂谷交汇"
 toggle_mode = true
 alignment = 0
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 19
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
@@ -354,11 +357,12 @@ metadata/ui_motion_hover_scale = 1.01
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 text = "湖心迂回"
 toggle_mode = true
 alignment = 0
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 19
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")
@@ -369,11 +373,44 @@ metadata/ui_motion_hover_scale = 1.01
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 text = "叠翠台地"
 toggle_mode = true
 alignment = 0
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("SmallNormal")
+theme_override_styles/hover = SubResource("SmallHover")
+theme_override_styles/pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="Map3" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "水间花池"
+toggle_mode = true
+alignment = 0
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("SmallNormal")
+theme_override_styles/hover = SubResource("SmallHover")
+theme_override_styles/pressed = SubResource("SmallSelected")
+theme_override_styles/hover_pressed = SubResource("SmallSelectedHover")
+metadata/ui_motion_hover_scale = 1.01
+
+[node name="Map4" type="Button" parent="Margin/Column/Content/Details/DetailsColumn/Maps"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "双径幽林"
+toggle_mode = true
+alignment = 0
+theme_override_font_sizes/font_size = 19
 theme_override_styles/normal = SubResource("SmallNormal")
 theme_override_styles/hover = SubResource("SmallHover")
 theme_override_styles/pressed = SubResource("SmallSelected")

@@ -7,7 +7,7 @@ var selected: Resource
 var _maps: Array[Resource] = []
 var _launching := false
 @onready var session: Node = get_node("/root/Session")
-@onready var _map_buttons: Array[Button] = [%Map0, %Map1, %Map2]
+@onready var _map_buttons: Array[Button] = [%Map0, %Map1, %Map2, %Map3, %Map4]
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = true
@@ -43,9 +43,12 @@ func _select_size(size_class: int) -> void:
 	for index: int in 3:
 		get_node("%%Size%d" % index).set_pressed_no_signal(index == size_class)
 	var selected_index := maxi(0, _maps.find(selected))
-	assert(_maps.size() == _map_buttons.size(), "Each battlefield size has one authored button per map.")
+	assert(_maps.size() <= _map_buttons.size(), "Every selectable map needs an authored button.")
 	for index: int in _map_buttons.size():
 		var button: Button = _map_buttons[index]
+		button.visible = index < _maps.size()
+		if not button.visible:
+			continue
 		button.text = _maps[index].title
 		button.tooltip_text = _maps[index].description
 	_select_map(selected_index)
@@ -60,7 +63,7 @@ func _select_map(index: int) -> void:
 	%MapNumber.text = "%02d / %02d" % [CATALOG.MAPS.find(selected) + 1, CATALOG.MAPS.size()]
 	%MapInfo.text = "%s   ·   %d × %d 米   ·   %d 座据点" % [selected.mode_label(), selected.half_size.x * 2, selected.half_size.y * 2, selected.building_positions.size()]
 	var terrain: Array[String] = []
-	if not selected.water_regions.is_empty():
+	if not selected.water_regions.is_empty() or not selected.water_polygons.is_empty():
 		terrain.append("水域迂回")
 	if not selected.mountain_regions.is_empty():
 		terrain.append("山地隘口")
@@ -79,6 +82,8 @@ func _select_map(index: int) -> void:
 	%SpawnLegend.text = "   ".join(spawns)
 	%Description.text = selected.description
 	%Teams.text = "你对战 1 名电脑" if selected.team_size == 1 else "你 + %d 名电脑盟友，对战 %d 名电脑\n增援抵达队友建筑后，交由队友指挥。" % [selected.team_size - 1, selected.team_size]
+	if selected.asymmetric_start:
+		%Teams.text += " · 敌方拥有起始据点优势"
 	%Start.text = "开始 %s 对局   →" % selected.mode_label()
 	%Preview.show_map(selected)
 	if changed:

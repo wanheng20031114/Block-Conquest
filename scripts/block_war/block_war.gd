@@ -159,12 +159,18 @@ func _enter_tree() -> void:
 	var online := get_node_or_null("/root/Session/Online")
 	if online != null and not online.match_config.is_empty():
 		configure_match(online.match_config, online.player_id)
+	else:
+		var session := get_node("/root/Session")
+		if session.campaign_active_stage >= 0:
+			_ai_strategy.set_lazy_skills(session.CAMPAIGN_STAGES[session.campaign_active_stage].opponent_lazy_skills)
 
 func configure_match(config: Dictionary, player_id: int) -> void:
 	# Seat, controller, team and commander are independent. Reconnection updates
 	# controllers separately so no population, cooldown or AI plan gets reset.
 	assert(config.slots.size() == faction_count)
 	match_config = config.duplicate(true)
+	# Campaign patience belongs to its authored opponent, never an online seat.
+	_ai_strategy.set_lazy_skills(false)
 	local_player_id = player_id
 	online_host = int(config.host_player_id) == player_id
 	var found := false
@@ -313,7 +319,7 @@ func _ready() -> void:
 		if building.faction == local_faction:
 			home = building
 			break
-	if map.definition.size_class > 0 or not match_config.is_empty():
+	if map.definition.size_class > 0 or map.definition.asymmetric_start or not match_config.is_empty():
 		camera_rig.focus_at(home.global_position, true)
 		camera.far = 320.0
 	select_building(home)

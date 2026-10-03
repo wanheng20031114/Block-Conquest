@@ -4,7 +4,7 @@ extends Control
 signal inspected(text: String)
 
 const FACTIONS := preload("res://scripts/block_war/war_factions.gd")
-const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺"]
+const KIND_NAMES: Array[String] = ["住宅", "炮塔", "铁匠铺", "能量塔"]
 const INK := Color("344b43")
 const PAPER := Color("eee8cf")
 const DEFAULT_HINT := "悬停据点或地形查看详情 · 带编号的据点为各玩家出生点"
@@ -119,6 +119,11 @@ func _draw() -> void:
 			water.append(rectangle)
 			_draw_water(rectangle)
 	_draw_shores(water)
+	for polygon: PackedVector2Array in _water_screen_polygons(bounds):
+		draw_colored_polygon(polygon, Color("73aaa9"))
+		var outline := polygon.duplicate()
+		outline.append(outline[0])
+		draw_polyline(outline, Color("d3dfbb"), 2.0, true)
 	for region: Rect2 in definition.mountain_regions:
 		_draw_mountain(_region_rect(region, bounds))
 	for region: Rect2 in definition.bridges:
@@ -127,6 +132,18 @@ func _draw() -> void:
 	_draw_coordinates(bounds, factor)
 	for i: int in definition.building_positions.size():
 		_draw_building(i)
+
+func _water_screen_polygons(bounds: Rect2) -> Array[PackedVector2Array]:
+	var result: Array[PackedVector2Array] = []
+	var playable := _rectangle_polygon(Rect2(-definition.half_size, definition.half_size * 2.0))
+	var factor: Vector2 = bounds.size / (definition.half_size * 2.0)
+	for polygon: PackedVector2Array in definition.water_polygons:
+		for clipped: PackedVector2Array in Geometry2D.intersect_polygons(polygon, playable):
+			var points := PackedVector2Array()
+			for point: Vector2 in clipped:
+				points.append(bounds.position + (point + definition.half_size) * factor)
+			result.append(points)
+	return result
 
 func _draw_terrain(bounds: Rect2) -> void:
 	var surface: WarTerrainSurface = definition.terrain

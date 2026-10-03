@@ -10,6 +10,8 @@ const MAPS: Array[Resource] = [
 	preload("res://data/block_war/maps/terraces.tres"),
 	preload("res://data/block_war/maps/switchback.tres"),
 	preload("res://data/block_war/maps/crown.tres"),
+	preload("res://data/block_war/maps/flower_pool.tres"),
+	preload("res://data/block_war/maps/forest_fork.tres"),
 ]
 
 static func find_map(map_id: String) -> Resource:

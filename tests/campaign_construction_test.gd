@@ -4,8 +4,8 @@ extends SceneTree
 const MAP := "res://scenes/campaign/campaign_map.tscn"
 const LANDSCAPE := preload("res://scenes/campaign/campaign_landscape.tscn")
 const MANIFEST := "res://assets/campaign/reference_railway/manifest.json"
-const STATION_NAMES := ["花田站", "橡木镇", "林间驿站", "河岸驿站", "山麓驿站", "雪峰站"]
-const MAP_IDS := ["rift", "lake", "rivers", "ridges", "switchback", "crown"]
+const STATION_NAMES := ["水间花池", "双径幽林", "林间驿站", "河岸驿站", "山麓驿站", "雪峰站"]
+const MAP_IDS := ["flower_pool", "forest_fork", "rivers", "ridges", "switchback", "crown"]
 const GEOMETRY := {
 	"ReferenceTerrain": "terrain", "ReferenceProps": "props", "ReferenceTrack": "track",
 	"ReferenceWater": "water", "ReferenceStations": "campaign_stations",
@@ -90,6 +90,8 @@ func verify_geometry(landscape: Node3D) -> void:
 		check(station.source_model == "props.js:haltPlatform", "added station reuses reference modeling: " + str(station.key))
 
 func verify_railway(landscape: Node3D) -> void:
+	check(landscape.get_node("Signs/Sign04").text == STATION_NAMES[0], "first platform sign matches its campaign stage")
+	check(landscape.get_node("Signs/Sign01").text == STATION_NAMES[1], "second platform sign matches its campaign stage")
 	var curve: Curve3D = landscape.get_node("Journey").curve
 	check(curve.resource_path == "res://data/campaign/journey_3d.tres", "railway uses its authored Curve3D resource")
 	var anchors := landscape.get_node("StageAnchors").get_children()
@@ -173,7 +175,7 @@ func _run() -> void:
 	var session := root.get_node("Session")
 	for index: int in 6:
 		check(session.CAMPAIGN_STAGES[index].title == STATION_NAMES[index], "station %d title matches its scenery" % (index + 1))
-		check(session.CAMPAIGN_STAGES[index].map_id == MAP_IDS[index], "station %d retains its existing battle mapping" % (index + 1))
+		check(session.CAMPAIGN_STAGES[index].map_id == MAP_IDS[index], "station %d opens its authored battlefield" % (index + 1))
 	check(diorama.intro_running, "entering starts a fresh railway reveal")
 	check(not current_scene.get_node("%Stops").visible, "station markers stay hidden while the camera is moving")
 	check(diorama.landscape.position.y < -0.9, "first render uses the authored lowered world pose")

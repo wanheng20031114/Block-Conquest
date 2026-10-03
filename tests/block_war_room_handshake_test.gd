@@ -28,15 +28,22 @@ func check(condition: bool, description: String) -> void:
 func _run() -> void:
 	var session: Node = root.get_node("Session")
 	var original: Node = session.online
+	var previous_map: String = session.block_war_map_id
 	for action: String in ["create", "join"]:
 		_check_room_request(session, action, false)
 		_check_room_request(session, action, true)
+	for map_id: String in P.MAP_SEATS:
+		_check_room_request(session, "create", false, map_id)
+	for map_id: String in ["flower_pool", "forest_fork"]:
+		_check_room_request(session, "create", false, map_id)
 	_check_queued_request()
 	session.online = original
+	session.block_war_map_id = previous_map
 	print("ROOM HANDSHAKE: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
-func _check_room_request(session: Node, action: String, reconnect: bool) -> void:
+func _check_room_request(session: Node, action: String, reconnect: bool, map_id: String = "rift") -> void:
+	session.block_war_map_id = map_id
 	var model := Rooms.new()
 	model.content_hash = "room-handshake-test"
 	var replies: Array[Dictionary] = []
@@ -56,6 +63,9 @@ func _check_room_request(session: Node, action: String, reconnect: bool) -> void
 	root.add_child(room)
 	current_scene = room
 	room.set_process(false)
+	check(room._online_maps.size() == P.MAP_SEATS.size(), "room lists exactly the relay-supported maps")
+	for definition: Resource in room._online_maps:
+		check(P.MAP_SEATS.has(definition.map_id), "local campaign maps never appear in the room selector")
 	room.get_node("%Nickname").text = "Guest"
 	if action == "join": room.get_node("%RoomCode").text = str(model.rooms.keys()[0])
 	room._request(action)
@@ -71,12 +81,20 @@ func _check_room_request(session: Node, action: String, reconnect: bool) -> void
 	var label := action + (" after reconnect" if reconnect else "")
 	var requests := online.sent.duplicate(true)
 	check(requests.size() == 1 and requests[0].op == action, "%s sends exactly one request after welcome" % label)
+	if action == "create":
+		var expected := map_id if P.MAP_SEATS.has(map_id) else "rift"
+		check(requests[0].map_id == expected, "%s creates its remembered room map or the first supported map" % map_id)
 	for message: Dictionary in requests: model.receive(2, message, P.ROOM_CHANNEL, 100, 3)
 	check(not replies.any(func(message: Dictionary): return message.op == "error"), "%s receives no duplicate-membership notice" % label)
 	for message: Dictionary in replies: online._receive(message, P.ROOM_CHANNEL, 4)
 	check(not online.room.is_empty() and room.get_node("%Room").visible, "%s enters the room" % action)
 	check(room.get_node("%Message").text.is_empty(), "%s shows no error after successful entry" % label)
 	check(not room.get_node("%Create").disabled and not room.get_node("%Join").disabled, "%s releases the entry controls" % action)
+	var selected: int = room.get_node("%MapChoice").selected
+	check(room._online_maps[selected].map_id == online.room.map_id, "room selector indexes match the filtered map roster")
+	online.sent.clear()
+	room._choose_map(room._online_maps.size() - 1)
+	check(online.sent.size() == 1 and online.sent[0].map_id == "crown", "changing the last room map preserves the existing crown battlefield")
 	room.free()
 	online.free()
 

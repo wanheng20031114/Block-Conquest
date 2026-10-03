@@ -3,6 +3,8 @@ extends SceneTree
 ## GLTFDocument: https://docs.godotengine.org/en/stable/classes/class_gltfdocument.html
 
 const DIRECTORY := "res://assets/campaign/reference_railway/"
+## Campaign station names adapt the reference signs without changing its source.
+const CAMPAIGN_SIGN_NAMES := {"花田站": "水间花池", "橡木镇": "双径幽林"}
 var manifest: Dictionary
 
 func _initialize() -> void:
@@ -113,11 +115,11 @@ func _build_landscape() -> void:
 	for index: int in manifest.signs.size():
 		var sign: Dictionary = manifest.signs[index]
 		var label: Label3D = _add(signs, Label3D.new(), "Sign%02d" % index, scene)
-		label.text = sign.text
+		label.text = CAMPAIGN_SIGN_NAMES.get(sign.text, sign.text)
 		label.font = font
 		label.font_size = 64
 		label.outline_size = 0
-		label.pixel_size = minf(sign.height * 0.65 / 64.0, sign.width * 0.88 / (maxi(1, sign.text.length()) * 64.0))
+		label.pixel_size = minf(sign.height * 0.65 / 64.0, sign.width * 0.88 / (maxi(1, label.text.length()) * 64.0))
 		label.modulate = Color(sign.fg)
 		label.shaded = true
 		var q: Array = sign.quaternion

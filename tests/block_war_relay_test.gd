@@ -105,9 +105,11 @@ func _codec() -> void:
 	check(P.nickname("\n\t熊盾\u202e\u2066\r") == "熊盾", "nicknames strip controls and bidi overrides")
 	check(P.nickname(" ") == "指挥官" and P.nickname("熊".repeat(30)).length() == 20, "nickname fallback and length are bounded")
 	check(P.valid_code("ABC234") and not P.valid_code("ABC01I") and not P.valid_code("ABC23"), "room code alphabet and size validated")
-	check(P.MAP_SEATS.size() == CATALOG.MAPS.size(), "relay map roster covers the entire authored catalog")
-	for definition: Resource in CATALOG.MAPS:
-		check(P.MAP_SEATS.get(definition.map_id) == definition.team_size * 2, "relay seat count matches the authored teams for " + definition.map_id)
+	for map_id: String in P.MAP_SEATS:
+		var definition: Resource = CATALOG.find_map(map_id)
+		check(definition != null and P.MAP_SEATS[map_id] == definition.team_size * 2, "every relay map exists with matching authored teams: " + map_id)
+	for map_id: String in ["flower_pool", "forest_fork"]:
+		check(CATALOG.find_map(map_id) != null and not P.MAP_SEATS.has(map_id), "local campaign maps remain outside the deployed relay roster: " + map_id)
 	check(P.valid_match_channel("anchors", 4, false) and not P.valid_match_channel("anchors", 2, true), "anchors require unsequenced correction channel")
 	check(P.valid_match_channel("snapshot_chunk", 5, true) and P.valid_match_channel("command_result", 1, true), "snapshot and control channels are distinct")
 	var precise := {"state": [0.3333333333333333, 13.1234567891011, 0.000000000123456789, 4096.0, 1.0]}

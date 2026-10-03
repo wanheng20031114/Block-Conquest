@@ -5,8 +5,9 @@
 [resource]
 script = ExtResource("stage")
 number = 1
-title = "花田站"
+title = "水间花池"
 region = "西境 · 紫阳花海"
-description = "列车驶出西山隧道，在蓝紫色的紫阳花海旁集结。\n击败裂谷交汇的松鼠守军，开启通往橡木镇的铁路。"
-map_id = "rift"
-opponent_commander = &"squirrel"
+description = "沿紫阳花与曲水之间的石桥向东推进，夺取花池中央的空置建筑。\n兔子守军占据两座二级住宅，却总是攒满技力后才慢悠悠地考虑施放技能。"
+map_id = "flower_pool"
+opponent_commander = &"rabbit"
+opponent_lazy_skills = true
