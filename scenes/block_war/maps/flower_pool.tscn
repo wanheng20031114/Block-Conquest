@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]
 
-[ext_resource type="Script" path="res://scripts/block_war/war_flower_detail.gd" id="flower_detail"]
-
 [ext_resource type="Resource" path="res://data/block_war/maps/flower_pool.tres" id="definition"]
 
 [ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]
@@ -126,7 +124,6 @@ water_paths = Array[NodePath]([NodePath("Terrain/Water")])
 [node name="Bridges" type="Node3D" parent="."]
 
 [node name="Nature" type="Node3D" parent="."]
-script = ExtResource("flower_detail")
 
 [node name="Buildings" type="Node3D" parent="."]
 

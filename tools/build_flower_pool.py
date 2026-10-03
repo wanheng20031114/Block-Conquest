@@ -147,7 +147,6 @@ building_factions = PackedInt32Array({', '.join(str(b[3]) for b in BUILDINGS)})
     (ROOT / "data/block_war/maps/flower_pool.tres").write_text(definition, encoding="utf-8")
     externals = [
         '[ext_resource type="Script" path="res://scripts/block_war/war_map.gd" id="script"]',
-        '[ext_resource type="Script" path="res://scripts/block_war/war_flower_detail.gd" id="flower_detail"]',
         '[ext_resource type="Resource" path="res://data/block_war/maps/flower_pool.tres" id="definition"]',
         '[ext_resource type="PackedScene" path="res://scenes/block_war/building.tscn" id="building"]']
     for name in ("land", "bank_grass", "bank_stone", "water"):
@@ -177,8 +176,6 @@ definition = ExtResource("definition")
 water_paths = Array[NodePath]([NodePath("Terrain/Water")])''']
     for name in ("Terrain", "Bridges", "Nature", "Buildings"):
         nodes.append(f'[node name="{name}" type="Node3D" parent="."]')
-        if name == "Nature":
-            nodes[-1] += '\nscript = ExtResource("flower_detail")'
     for name,asset,material in [("Land","land",'SubResource("Ground")'), ("SoftBanks","bank_grass",'SubResource("Ground")'),
                                ("BankStone","bank_stone",'ExtResource("rock")'), ("Water","water",'SubResource("Water")')]:
         nodes.append(f'[node name="{name}" type="MeshInstance3D" parent="Terrain"]\nlayers = 524289\nmesh = ExtResource("{asset}")\nmaterial_override = {material}')
